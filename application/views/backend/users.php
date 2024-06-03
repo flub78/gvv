@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Manage users</title>
+</head>
+<body>
+<?php
+$this->load->view('header');
+$this->load->view('banner');
+$this->load->view('sidebar');
+$this->load->view('menu');
+$this->lang->load('backend');
+
+$this->load->library('ButtonNew');
+$this->load->library('ButtonDelete');
+
+echo '<div id="body" class="body ui-widget-content">';
+
+// Show reset password message if exist
+if (isset($reset_message))
+echo $reset_message;
+
+// Show error
+echo validation_errors();
+
+$create = new ButtonNew(array(
+	'controller' => 'backend',
+	'param' => ''));
+
+$header = $this->lang->line("gvv_backend_header");
+$header[] = '';
+$header[] = $create->image();
+$this->table->set_heading($header);
+
+foreach ($users as $user)
+{
+	$delete_button = new ButtonDelete(array(
+				'controller' => 'backend',
+				'confirmMsg' => $this->lang->line("gvv_backend_delete_confirm") . " " . $user->username . " ",
+				'param' => $user->id));
+
+	$edit_button = new ButtonEdit(array(
+				'controller' => 'backend',
+			    'param' => $user->id));
+	
+	$banned = ($user->banned == 1) ? $this->lang->line("gvv_backend_yes") : $this->lang->line("gvv_backend_no");
+
+	$this->table->add_row(
+	form_checkbox('checkbox_'.$user->id, 'accept', $user->id),
+	$user->username,
+	$user->email,
+	$user->role_name,
+	$banned,
+	$user->last_ip,
+	date('Y-m-d', strtotime($user->last_login)),
+	date('Y-m-d', strtotime($user->created)),
+	$edit_button->image(),
+	$delete_button->image());
+}
+
+echo form_open($this->uri->uri_string());        // backend/users
+
+// echo form_submit('ban', 'Désactive');
+// echo form_submit('unban', 'Réactive');
+// echo form_submit('reset_pass', 'Reset password');
+
+// echo '<hr/>';
+
+$datatable = ($this->config->item('ajax')) ? "datatable" : "fixed_datatable";
+$tmpl = array (
+	'table_open'=> '<table border="1" cellpadding="4" cellspacing="0" class="' . $datatable . '">',
+	'row_start'           => '<tr style="color:black">',
+	'row_alt_start'       => '<tr style="color:black">'
+);
+$this->table->set_template($tmpl);
+if (isset($pagination)) echo $pagination;
+echo $this->table->generate();
+
+
+
+echo form_close();
+
+echo '</div>';
+?>
+</body>
+</html>

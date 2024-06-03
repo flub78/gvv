@@ -1,0 +1,14 @@
+DELEGATES_PREFERENCE=delegateValidatorList
+USER_BUILD_PREFERENCE=enabledBuildValidatorList
+USER_MANUAL_PREFERENCE=enabledManualValidatorList
+USER_PREFERENCE=overrideGlobalPreferencestruedisableAllValidationfalseversion1.2.501.v201304022101
+eclipse.preferences.version=1
+override=true
+suspend=false
+vals/org.eclipse.php.core.org.eclipse.php.core.PHPTaskValidator/global=TT01
+vals/org.eclipse.php.core.org.eclipse.php.core.PHPTaskValidator/groups=0107include01111contentType130org.eclipse.php.core.phpsourceT0107exclude0304file06systemF0204file08seleniumF0204file123application/third_partyF02
+vals/org.eclipse.php.ui.HTMLValidatorForPHP/groups=0107include01111contentType130org.eclipse.php.core.phpsourceT0107exclude0104file06systemF02
+vals/org.eclipse.wst.dtd.core.dtdDTDValidator/global=FF01
+vals/org.eclipse.wst.xml.core.xml/global=FF03
+vals/org.eclipse.wst.xsd.core.xsd/global=FF02162org.eclipse.wst.xsd.core.internal.validation.eclipse.Validator
+vf.version=3

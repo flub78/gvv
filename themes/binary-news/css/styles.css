@@ -1,0 +1,244 @@
+/*
+ * Stylesheet pour GVV
+ * 
+ * Cette feuille de style ne devrait gérer que l'aspect graphique de GVV.
+ * Le positionnement est géré par layout.css.
+ * Et la plupart des composants graphiques sont controllés par la feuille de style
+ * du theme JQuery UI.
+ */
+body {
+	font: 0.9em Arial, sans-serif;
+	/* line-height: 1.5em; */
+}
+
+.body a {
+	color: #46574D;
+	background: inherit;
+	text-decoration:none;
+}
+
+.body a:hover {
+	color: #647B6D;
+	background: inherit;
+}
+
+h1 {
+	font: bold 2em Arial, Sans-Serif;
+	letter-spacing: -1px;
+	padding: 16px 0 0 8px;
+	margin: 0;
+}
+
+h2 {
+	margin: 0;
+	padding: 0;
+	font: normal 1.6em Arial, Sans-Serif;
+	letter-spacing: -1px;
+}
+
+h3 {
+	font: 120% Arial, Sans-Serif;
+	margin: 0 0 10px 0;
+	padding: 0;
+	color: #46574D;
+	background: #FFF;
+}
+
+p {
+	margin: 0 0 0px 0;
+	line-height: 1.5em;
+}
+
+form {
+	margin: 0;
+}
+
+.content,.body {
+	/* background: #FFF;
+	margin: 50px;
+	padding: 0px;
+	color: #000; */
+}
+
+#header {
+    background: url(../images/header_left.gif) no-repeat left,
+        url(../images/header_right.gif) no-repeat right,
+        url(../images/header.jpg) no-repeat left bottom;
+	color: #46574D;
+	height: 78px;
+	margin: 0;
+	padding: 0;
+}
+
+
+/* Le pied de page (qui se trouve tout en bas, en général pour les copyrights) */
+footer
+{
+    background: #000 url(../images/footer.jpg) left bottom;
+    background-size: 100% 100%;
+}
+
+#sidebar {
+}
+
+.main_content {
+	/* background: #FFF center bottom; */
+	margin: 0 auto;
+	padding: 20px;
+}
+
+.main_content h2,.body h2 {
+	/* background-color: #FFF; */
+	padding: 5px 0 5px 0;
+	color: #46574D;
+	font: bold 1.6em Arial, sans-serif;
+}
+
+
+.error {
+	color: red;
+}
+
+.error h2 {
+	color: #990000;
+	background: inherit;
+}
+
+.success {
+	color: green;
+}
+
+.warning {
+    color: orange;
+}
+
+.success h2 {
+	color: #7BA813;
+	background: inherit;
+}
+
+.sql_table, .datatable, .datatable_style { /* border: 1px solid #9e9e9e; */
+	/* border-bottom: 1px solid #ddd; */
+	border: 1px solid #ddd;
+}
+
+.sql_table caption  /* caption Titre du tableau */ {
+	margin: auto; /* Centre le titre du tableau */
+	margin-bottom: 20px;
+	/* Pour �viter que le titre ne soit trop coll� au tableau en-dessous */
+}
+
+.sql_table, .datatable, .datatable_style /* table Le tableau en lui-même */ {
+	/* margin: auto; /* Centre le tableau */
+	border-collapse: collapse; /* Colle les bordures entre elles */
+	border: 1px solid #9e9e9e;
+}
+
+.sql_table tr td, .datatable tr td, .datatable_style tr td /* td Les cellules normales */ {
+	/* border: 1px solid #9e9e9e; */
+	/* border-bottom: 1px solid #ddd; */
+	border: 1px solid #ddd;
+	padding: 2px;
+	/* Petite marge intérieure aux cellules pour éviter que le texte touche les bordures */
+	padding-right: 4px;
+	/* Petite marge intérieure aux cellules pour éviter que le texte touche les bordures */
+	padding-left: 4px;
+	color: black;
+}
+
+.sql_table tr th /* td Les cellules de la première ligne */ {
+	/* border: 1px solid black; */
+	text-align: left;
+	background-color: #aeaeae;
+	background-color: #46574D;
+	padding-right: 10px;
+	/* Petite marge int�rieure aux cellules pour �viter que le texte touche les bordures */
+	padding-left: 10px;
+	/* text-transform: uppercase; */
+	color: #fff;
+	/* color: #46574D; */
+	/* background: url(../images/head.gif) left -5px repeat-x; */	
+}
+
+.datatable tr th, .datatable_style tr th /* td Les cellules de la première ligne */ {
+    text-align: left;
+    padding-right: 10px;
+    /* Petite marge int�rieure aux cellules pour �viter que le texte touche les bordures */
+    padding-left: 10px;
+    /* text-transform: uppercase; */
+}
+
+
+/* Ajustement des propriété jquery */
+/* Evitez de redéfinir des couleurs si vous voulez appliquer les thmes JQuery UI */
+.ui-widget-content {
+    /* color: black; */
+}
+
+.ui-button
+{
+   padding: 0px 1px 0px 1px !important;
+   font-size: 1.0em !important;
+   line-height: 1.0;
+}
+
+.ui-button:hover
+{
+	/* background: white; */
+}
+	
+.ui-tabs-nav
+{
+   padding: 0px 1px 0px 1px !important;
+   font-size: 0.9em !important;
+   line-height: 0.9;
+   height: 32px;
+}
+
+.paging_full_numbers {
+    width: 450px !important;
+    line-height: 1.8;
+}
+
+.paging_full_numbers .ui-button {
+    line-height: 1.8;
+    padding: 0px 6px 0px 6px !important;
+}
+
+.paging_full_numbers a, a {
+    background: inherit;
+    text-decoration:none;
+}
+
+.paging_full_numbers a:hover {
+    background: inherit;
+}
+
+.ui-toolbar {
+    height: 24px;
+}
+
+.dataTable, .datatable_style {
+    width: 100%;
+}
+
+.gendre_M {
+    background-color: pink;
+    background-color: #83FC7A;
+}
+
+.gendre_F {
+    background-color: #6B7AE9;
+}
+
+.m18 {
+    background-color: #FBF864;
+}
+
+.m25 {
+    background-color: #FBD564;
+}
+
+.p65 {
+    background-color: #83FC7A;
+}

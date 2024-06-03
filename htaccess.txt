@@ -1,0 +1,4 @@
+AuthUserFile /wamp/www/gvv2/.htpasswords
+AuthName "Acces Restreint"
+AuthType Basic
+require valid-user

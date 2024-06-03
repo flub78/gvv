@@ -1,0 +1,171 @@
+<HTML>
+<HEAD>
+<TITLE>A.C.E.S. - Espace Membres</TITLE>
+
+<LINK href="gvv.css" type="text/css" rel="stylesheet">
+<SCRIPT LANGUAGE="Javascript">
+	function Autotab(id, longueur, texte) {
+		if (texte.length > longueur - 1) {
+			document.getElementById("" + id).focus();
+		}
+	}
+
+	function calcul() {
+		if (document.saisie.deb.value != "" && document.saisie.fin.value != "") {
+			var vdeb = window.document.saisie.deb.value;
+			var vfin = window.document.saisie.fin.value;
+			if (isNaN(vdeb)) {
+				alert("La valeur de début n'est pas un nombre");
+				return;
+			}
+			if (isNaN(vfin)) {
+				alert("La valeur de fin n'est pas un nombre");
+				return;
+			}
+			var resultat = Math
+					.round((parseFloat(vfin) - parseFloat(vdeb)) * 100) / 100;
+			if (resultat > 0) {
+				window.document.saisie.duree.value = resultat;
+				document.getElementById("dure").innerHTML = resultat;
+			} else {
+				alert("La durée est nulle ou négative");
+			}
+		}
+	}
+	function calculp() {
+		if (document.saisie.deb.value != "" && document.saisie.fin.value != "") {
+			var vdeb = window.document.saisie.deb.value;
+			var vfin = window.document.saisie.fin.value;
+			if (isNaN(vdeb)) {
+				alert("La valeur de début n'est pas un nombre");
+				return;
+			}
+			if (isNaN(vfin)) {
+				alert("La valeur de fin n'est pas un nombre");
+				return;
+			}
+			var debe = Math.floor(parseFloat(vdeb));
+			var debd = Math.round(((parseFloat(vdeb) - debe)) * 100);
+			var fine = Math.floor(parseFloat(vfin));
+			var find = Math.round((parseFloat(vfin) - fine) * 100);
+			if (debe > 23 || debd > 59) {
+				alert("La valeur de début est incorrecte");
+				return;
+			}
+			if (fine > 23 || find > 59) {
+				alert("La valeur de début est incorrecte");
+				return;
+			}
+
+			var diff = ((fine * 60) + find) - ((debe * 60) + debd);
+
+			if (diff > 0) {
+				var rese = Math.floor(diff / 60);
+				var resd = Math.round(diff - (rese * 60));
+				if (resd < 10) {
+					var resdaff = "0" + resd;
+				} else {
+					var resdaff = resd;
+				}
+				window.document.saisie.duree.value = diff;
+				document.getElementById("dure").innerHTML = rese + "h"
+						+ resdaff;
+			} else {
+				alert("La durée est nulle ou négative");
+			}
+		}
+	}
+</SCRIPT>
+</HEAD>
+<BODY bgcolor="white">
+<TABLE width="100%">
+	<TR>
+		<TD valign="top"><B>Frédéric Peignot</B><BR>
+		<I>Administrateur Internet</I><BR>
+		<I>Membre du CA</I><BR>
+		<I>Aut. VI Planeur</I><BR>
+		<I>Pilote Planeur</I><BR>
+		<I>ITV</I><BR>
+		<BR>
+		<B>..::Administration::..</B><BR>
+		<A HREF="vol.php?action=a">Saisie Avions</A><BR>
+		<A HREF="vol.php?action=g">Visu Avions</A><BR>
+		<BR>
+		<A HREF="vol.php?action=c">Saisie Planeur</A><BR>
+		<A HREF="vol.php?action=e">Visu Planeur</A><BR>
+		<BR>
+		<BR>
+		<A HREF="index.php">Retour</A><BR>
+		<BR>
+		</TD>
+		<TD width="*">
+		<CENTER><B>Saisie vols AVIONS</B></CENTER>
+		<BR>
+		<FORM name="saisie" action="vol.php?action=b" method="post"><INPUT
+			type="hidden" name="duree" value="">
+		<TABLE>
+
+			<TR>
+				<TD valign="bottom">Date (jj-mm-aaaa)</TD>
+				<TD align="center" valign="bottom">Pilote</TD>
+				<TD valign="bottom">Machine</TD>
+				<TD valign="bottom">Debut</TD>
+				<TD valign="bottom">Fin</TD>
+				<TD valign="bottom">Dur&eacute;e</TD>
+				<TD valign="bottom">Observations</TD>
+				<TD valign="bottom">Divers</TD>
+				<TD valign="bottom">Num VI</TD>
+				<TD valign="bottom">NbPax</TD>
+			</TR>
+
+			<TR>
+				<TD valign="top"><INPUT name="date" type="text" size="10"
+					maxlength="10" value="17-02-2011"></TD>
+				<TD valign="top"><select name="pilote" size="1">
+					<option value="_autre">Autre pilote
+				</select></TD>
+				<TD valign="top"><select name="avion" size="1">
+					<option value="F-BCXG">F-BCXG DR-220
+					<option value="F-BLIT">F-BLIT MS893-L
+					<option value="F-BX12">F-BX12 C172
+					<option value="F-BXYZ">F-BXYZ C172
+					<option value="_autre">Autre avion
+				</select></TD>
+				
+				<TD valign="top"><INPUT name="deb" type="text" size="5"
+					maxlength="8" value="" onChange="calcul()"></TD>
+					
+				<TD valign="top"><INPUT name="fin" type="text" size="5"
+					maxlength="8" value="" onChange="calcul()"></TD>
+					
+				<TD valign="top">
+				<div ID="dure"></div>
+				</TD>
+
+				<TD valign="top"><INPUT name="descrip" type="text" size="15"
+					maxlength="50" value=""></TD>
+				<TD valign="top" align="right">VI:<INPUT type="checkbox"
+					name="vi" value="oui"><BR>
+				DC:<INPUT type="checkbox" name="dc" value="oui"><BR>
+				Remorquage:<INPUT type="checkbox" name="rem" value="oui"><BR>
+				Vol d'essai:<INPUT type="checkbox" name="ve" value="oui"></TD>
+				<TD valign="top"><INPUT name="numvi" type="text" size="3"
+					maxlength="10" value=""></TD>
+
+				<TD valign="top"><INPUT name="nbpax" type="text" size="1"
+					maxlength="1" value=""></TD>
+			</TR>
+		</TABLE>
+		<BR>
+		<BR>
+		<CENTER><input type="submit" value="VALIDER">
+		</FORM>
+		<BR>
+		<FORM action="vol.php" method="post"><input type="submit"
+			value="Annulation"></FORM>
+		</CENTER>
+		</TD>
+	</TR>
+</TABLE>
+</BODY>
+</HTML>

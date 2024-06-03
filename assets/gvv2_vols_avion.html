@@ -1,0 +1,253 @@
+<!-- Vue pour les formulaires simples
+
+	Cette vue est entierment paramètrable, elle affiche un formulaire simple 
+	sous forme d'un liste de champs dans un tableau.
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<title>Gestion Vol à Voile</title>
+<meta name="generator" content="Bluefish 2.0.2">
+<meta name="author" content="frederic">
+<meta name="date" content="2010-12-23T13:57:15+0100">
+<meta name="copyright" content="">
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta http-equiv="content-type"
+	content="application/xhtml+xml; charset=UTF-8">
+<meta http-equiv="content-style-type" content="text/css">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" media="screen" type="text/css" title="Design"
+	href="http://localhost/gvv2/themes/binary-news/css/styles.css" />
+<link rel="stylesheet" media="screen" type="text/css"
+	href="http://localhost/gvv2/themes/binary-news/css/layout.css" />
+<link rel="stylesheet" media="screen" type="text/css"
+	href="http://localhost/gvv2/themes/binary-news/css/colors.css" />
+<link rel="stylesheet" media="screen" type="text/css"
+	href="http://localhost/gvv2/themes/binary-news/css/menu.css" />
+
+<script type="text/javascript"
+	src="http://localhost/gvv2/assets/javascript/gvv.js"></script>
+
+</head>
+<body>
+
+<div id="header" class="header"><!-- Ici on mettra la bannière -->
+<h1>Aéroclub d'Abbeville - Buigny - Baie de Somme</h1>
+<form action="http://localhost/gvv2/index.php/admin/logout"
+	method="post" accept-charset="utf-8">
+Frédéric Peignot
+<input type="submit" name="" value="Sortie" />
+</form>
+<br />
+
+</div>
+
+<div id="login"></div>
+<div id="sidebar">
+
+<div class="element_sidebar">
+<h3>Panneau 1</h3>
+<ul>
+	<li class="selected"><a
+		href="http://localhost/gvv2/index.php/membre">Menbres</a></li>
+	<li><a href="page2.html">Saisie planches</a></li>
+
+	<li><a href="page3.html">Trésorier</a></li>
+	<li><a href="page3.html">Administration</a></li>
+	<li><a href="http://localhost/gvv2/index.php/config">Maintenance
+	site</a></li>
+</ul>
+</div>
+
+<div class="element_sidebar">
+<h3>Panneau 2</h3>
+
+<ul>
+	<li><a href="http://localhost/gvv2/index.php/welcome">Welcome</a></li>
+	<li><a href="http://localhost/gvv2/index.php/admin/image">Extension</a></li>
+	<li><a href="http://localhost/gvv2/index.php/admin/logout">Logout</a></li>
+	<li><a href="http://localhost/gvv2/index.php/config">Configuration</a></li>
+</ul>
+</div>
+
+</div>
+<div id="menu" class="menu">
+<ul>
+	<li class="menuheader">Membre
+	<ul>
+		<li><a href="http://localhost/gvv2/index.php/membre/edit">Ma
+		fiche</a></li>
+		<li><a href="http://localhost/gvv2/index.php/membre/page">Liste</a></li>
+		<li><a href="http://localhost/gvv2/index.php/membre/inscription">Inscription
+		annuelle</a></li>
+	</ul>
+
+	</li>
+	<li class="menuheader">Machines
+	<ul>
+		<li><a href="http://localhost/gvv2/index.php/planeur/page">Planeurs</a></li>
+		<li><a href="http://localhost/gvv2/index.php/avion/page">Avions</a></li>
+	</ul>
+	</li>
+	<li class="menuheader">Vols
+	<ul>
+		<li><a href="http://localhost/gvv2/index.php/form">Mes vols</a></li>
+
+		<li><a href="http://localhost/gvv2/index.php/vols_planeur/page">Vols
+		planeur</a></li>
+		<li><a href="http://localhost/gvv2/index.php/vols_avion/page">Vols
+		avion</a></li>
+	</ul>
+	</li>
+	<li class="menuheader">Compta
+	<ul>
+		<li><a href="http://localhost/gvv2/index.php/form">Mon solde</a></li>
+		<li><a href="http://localhost/gvv2/index.php/form">Mes
+		factures</a></li>
+
+		<li><a href="http://localhost/gvv2/index.php/form">Saisie
+		dépenses</a></li>
+		<li><a href="http://localhost/gvv2/index.php/form">Saisie
+		recettes</a></li>
+		<li><a href="http://localhost/gvv2/index.php/form">Compte
+		pilotes</a></li>
+		<li><a href="http://localhost/gvv2/index.php/form">Solde
+		pilotes</a></li>
+	</ul>
+	</li>
+	<li class="menuheader">Partage
+	<ul>
+
+		<li><a href="http://localhost/gvv2/index.php/form">Trombinoscaope</a></li>
+		<li><a href="http://localhost/gvv2/index.php/partage/upload/ca">Document
+		CA</a></li>
+		<li><a
+			href="http://localhost/gvv2/index.php/partage/upload/membres">Documents
+		membres</a></li>
+		<li><a href="http://ffvv.org/">FFVV</a></li>
+		<li><a href="http://www.isimages.com/ffvvsec/">Retour
+		d'expérience</a></li>
+		<li><a href="http://www.netcoupe.net/main.aspx">Netcoupe</a></li>
+
+		<li><a href="https://aviation.meteo.fr/login.php">Prévision
+		vol à voile</a></li>
+	</ul>
+	</li>
+	<li class="menuheader">Administration
+	<ul>
+		<li><a href="http://localhost/gvv2/index.php/config">Configuration</a></li>
+		<li><a href="http://localhost/gvv2/index.php/plan_comptable/page">Plan
+		comptable</a></li>
+		<li><a href="http://localhost/gvv2/index.php/admin/backup">Sauvegarde
+		base</a></li>
+
+		<li><a href="http://localhost/gvv2/index.php/admin/restore">Restauration
+		base</a></li>
+	</ul>
+	</li>
+</ul>
+</div>
+<div id="body" class="body">
+<h3>Création Vols avion</h3>
+<form
+	action="http://localhost/gvv2/index.php/vols_avion/formValidation/creation"
+	method="post" accept-charset="utf-8" name="saisie">
+<table>
+	<tr>
+		<td align="right">Date:</td>
+		<td><input type="text" name="vadate" value="17-02-2011" size="10" /></td>
+		<td></td>
+
+	</tr>
+	<tr>
+		<td align="right">Pilote:</td>
+		<td><select name="vapilid">
+			<option value="admin">admin admin</option>
+			<option value="fpeignot">Frédéric Peignot</option>
+			<option value="mcdr">Mathieu Caudrelier</option>
+			<option value="sucdr">Suzanne Caudrelier</option>
+			<option value="vpgt">Vincent-Olivier Peignot</option>
+
+		</select></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Avion:</td>
+		<td><select name="vamacid">
+			<option value="F-BCXG">F-BCXG</option>
+			<option value="F-BLIT">F-BLIT</option>
+			<option value="F-BX12">F-BX12</option>
+			<option value="F-BXYZ">F-BXYZ</option>
+
+		</select></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Horamètre début:</td>
+		<td><input type="text" name="vacdeb" value="0.0"
+			onChange="calcul()" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Horamètre fin:</td>
+		<td><input type="text" name="vacfin" value="0.0"
+			onChange="calcul()" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Durée:</td>
+		<td><input type="text" name="vaduree" value="00.00" id="vaduree" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Observations:</td>
+		<td><input type="text" name="vaobs" value="" size="50" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">DC:</td>
+		<td><input type="checkbox" name="vadc" value="" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">VI:</td>
+		<td><input type="checkbox" name="vavi" value="" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Numéro de VI:</td>
+		<td><input type="text" name="vanumvi" value="0" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Passagers:</td>
+		<td><input type="text" name="vanbpax" value="0" /></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td align="right">Prix:</td>
+		<td><input type="text" name="vaprixvol" value="0" /></td>
+		<td></td>
+	</tr>
+</table>
+<table>
+	<tr>
+		<td><input type="submit" name="button" value="Validation" />
+		</form>
+		</td>
+		<td>
+		<form action="http://localhost/gvv2//index.php/vols_avion/page/"
+			method="post" accept-charset="utf-8" class="button">
+		<input type="submit" value="Retour" />
+		</form>
+		</td>
+	</tr>
+</table>
+</div>
+<div id="footer" class="footer">
+<p>Copyright (C) 2011 Philippe Boissel et Frédéric Peignot, GPL V3.0<br />
+Page générée en 0.1203 secondes</p>
+</div>

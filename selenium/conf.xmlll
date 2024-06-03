@@ -1,0 +1,19 @@
+<phpunit colors="true"
+>
+    <testsuite name="Test suite name">
+        <directory>.</directory>
+    </testsuite>
+    
+    <filter>
+ 
+   <whitelist>
+      <directory>.</directory>
+    </whitelist>
+  </filter>
+  
+   <logging>
+     <log type="coverage-xml" target="coverage.xml"/>
+  </logging>
+  
+    
+</phpunit>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite errors="0" failures="0" name="Test Helpers" tests="10">
+<testcase name="default theme">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:157 default theme                            Passed 
+</testcase>
+<testcase name="find a css file into a theme">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:160 find a css file into a theme             Passed 
+</testcase>
+<testcase name="Javascript URL">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:163 Javascript URL                           Passed 
+</testcase>
+<testcase name="Initial table size">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:199 Initial table size                       Passed 
+</testcase>
+<testcase name="table size after add_first_row">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:205 table size after add_first_row           Passed 
+</testcase>
+<testcase name="$table[0][0]">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:213 $table[0][0]                             Passed 
+</testcase>
+<testcase name="$table[1][0]">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:214 $table[1][0]                             Passed 
+</testcase>
+<testcase name="$table[1][1]">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:215 $table[1][1]                             Passed 
+</testcase>
+<testcase name="$table[2][2]">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:216 $table[2][2]                             Passed 
+</testcase>
+<testcase name="Undefined Test Name">
+C:\Users\frede\Dropbox\xampp\htdocs\gvv2\application\controllers\tests.php:240 Undefined Test Name                      Passed 
+</testcase>
+</testsuite>

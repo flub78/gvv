@@ -1,0 +1,38 @@
+/*
+ * Jenkinsfile for GVV
+ *
+ * Stages:
+ *   - Build just fetch the project
+ *   - Test run the phpunit tests
+ *
+ */
+pipeline {
+    agent { label 'gvv' }
+    environment { 
+        APP_URL="http://multi.ratus.flub78.net/"
+        TENANT_URL="http://test.multi.ratus.flub78.net/"
+        INSTALLATION_PATH="/var/lib/jenkins/workspace/Multitenant_pipeline"
+        SERVER_PATH="/var/www/multi"
+        VERBOSE="-v"        
+    }
+    stages {
+        stage('Static analysis') { 
+            steps {                
+                echo "phing static analysis"
+    			sh 'phing -f build-phing.xml ci'
+            }
+        }
+        stage('Test') {
+            steps {
+                //  
+				echo "testing gvv"        	
+            }
+        }
+        stage('Deploy') { 
+            steps {
+                // 
+                echo "Deploy step 1"
+            }
+        }
+    }
+}

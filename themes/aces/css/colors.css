@@ -1,0 +1,81 @@
+<!--
+    colors.css: feuille de style universelle et minimale.
+
+	Voir Readme.txt
+	
+    Les couleurs suivantes correspondent au shéma:
+    http://colorschemedesigner.com/#3E91TdZNhw0w0
+-->
+
+/*
+ * Les couleurs d'affichage des caractères
+ */
+
+/* tout ce qui est affiché dans la couleur primaire 1 */
+    .primary-1, H6
+    { color: #9999CC }
+
+/* tout ce qui est affiché dans la couleur primaire 2 */
+    .primary-2,
+    H4, H5
+    { color: #669999 }
+
+/* tout ce qui est affiché dans la couleur primaire 3 */
+    .primary-3,
+    .element_sidebar h3,
+    .table caption,
+    H1, H2, H3,
+    #menu a:hover, 
+    .element_sidebar a:hover,
+    a:hover
+    { color: #336699 }
+.table {border: 4px outset #27548D;}
+
+/* tout ce qui est affiché dans la couleur primaire 4 */
+    .primary-4, #menu a,
+    a,
+    .table th,   /* th Les cellules d'en-tête */
+    #footer,
+    .element_sidebar a /* Tous les liens se trouvant dans un sidebar */
+    { color: #99CCFF }
+
+/* tout ce qui est affiché dans la couleur primaire 5 */
+    .primary-5
+    { color: #CCCCFF }
+
+/* tout ce qui est affiché en blanc */
+    {color:white}
+
+/* tout ce qui est affiché en noir 
+    { color: black; }
+
+    .table2 th  /* th Les cellules d'en-tête */
+    {color: red;}
+    
+/*
+ * Les couleurs des fonds
+ */
+
+.bg-primary-1
+    { background-color: #9999CC }
+
+a:hover, #menu a:hover,
+.bg-primary-2, #header
+    { background-color: #669999 }
+
+.bg-primary-3 ,
+#footer,
+#menu a,
+a, 
+.table th, #menu
+    { background-color: #336699 }
+
+
+.bg-primary-4, input, textarea 
+    { background-color: #99CCFF }
+
+.bg-primary-5
+    {background-color: #CCCCFF}
+
+#body, .element_sidebar, .img
+    {background-color: white}

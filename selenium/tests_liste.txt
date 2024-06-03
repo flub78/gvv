@@ -1,0 +1,112 @@
+AllTests
+ [x]  0
+
+PhpunitReset
+ [x] Reset
+
+PhpunitTests
+ [ ] Coverage
+ [x] Helpers
+ [ ] Librairies
+ [x] Ctrl achats
+ [x] Ctrl admin
+ [x] Ctrl avion
+ [x] Ctrl categorie
+ [x] Ctrl compta
+ [x] Ctrlcomptes
+ [x] Ctrlevent
+ [x] Ctrllicences
+ [x] Ctrlmembre
+ [x] testCtrlplan comptable
+ [x] Ctrlplaneur
+ [x] Ctrlpompes
+ [ ] Ctrlpresences
+ [x] Ctrlrapports
+ [x] Ctrltarifs
+ [x] Ctrlterrains
+ [x] Ctrltickets
+ [x] testCtrltype ticket
+ [x] testCtrlvols avion
+ [x] testCtrlvols planeur
+ [x] Ctrlfacturation
+
+PhpunitBasicNavigation
+ [x] My test case
+ [x] Stats sans vols
+
+PhpunitConfig
+ [x] Config
+
+PhpunitFrenchDatePicker
+ [x] French
+
+CRUD_terrain
+ [x] Create
+ [x] Read
+ [x] Update
+ [x] Delete
+
+PhpunitBasicMember
+ [x] Membre
+ [x] Add asterix
+
+PhpunitAsterix
+ [x] My test case
+
+PhpunitComptesCreate
+ [x] Comptes create
+
+PhpunitTarifs
+ [ ] Tarifs
+
+PhpunitPlaneurs
+ [ ] Comptes create
+
+PhpunitAvions
+ [ ] Avions
+
+PhpunitEcritures1
+ [x] Ecritures 1
+
+PhpunitAchat
+ [ ] Achat
+
+PhpunitVolAvion
+ [ ] Vol avion
+
+PhpunitVolPlaneur
+ [ ] Vol planeur
+
+PhpunitBasicCompta
+ [ ] Journaux
+ [x] Balance
+ [ ] Soldes pilote
+ [ ] Resultat
+ [x] Bilan
+ [ ] Ventes
+
+PhpunitDroits
+ [x] User
+ [x] Planchiste
+ [x] C a
+ [x] Bureau
+ [x] Droits admin
+
+PhpunitTickets
+ [ ] Tickets
+
+PhpunitBugs
+ [x] Bug 1509
+ [x] Users
+
+PhpunitStatistiques
+ [ ] Stats avec vols
+ [ ] Sans recalcul
+
+PhpunitFacturation
+ [ ] Facturation planeur
+ [ ] Facturation avion
+
+PhpunitCoverage
+ [x] Units
+

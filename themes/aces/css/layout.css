@@ -1,0 +1,115 @@
+/*
+    layout.css: Gestion de la disposition et taille des éléments	
+*/
+
+#header
+{
+   height: 75px;
+   margin-bottom: 10px;
+   text-align: left;
+}
+
+#login {
+    position:relative;
+    top: -6px;
+    margin-left: 10px;
+}
+
+.title_image {
+   height: 75px;
+      position:absolute;
+   left: 10px;
+   top:-5px;   
+}
+.title_image2 {
+   height: 75px;
+   position:absolute;
+    right: 30px;
+    top:-5px;
+}
+
+#menu {
+	width: 98%;
+	position:absolute;
+	left: 190px;
+	top:82px;
+	z-index:+1;
+	margin-right: 10px;
+}
+
+#sidebar
+{
+   float: left;
+   width: 180px;
+   margin-top: 10px;
+}
+
+.element_sidebar
+{
+  margin-bottom:10px; /* Pour éviter que les éléments du sidebar ne soient trop collés */
+}
+
+.element_sidebar h3 /* Tous les titres de sidebars */
+{
+    text-align: left;
+    padding-left: 10px;
+}
+
+.element_sidebar ul /* Toutes les listes à puces se trouvant dans un sidebar */
+{
+   list-style-type: none;
+   padding: 5px; /* Tous les côtés ont une marge intérieure de 0 pixels */
+   padding-left: 20px; /* ... mais on modifie ensuite la marge de gauche, donc celle-là fera finalement 20 pixels */
+   margin: 0px; /* Idem pour margin, ça nous évite d'avoir à en écrire 4 (margin-left, margin-right...) */
+   margin-bottom: 5px; /* Même chose que tout à l'heure, on modifie ensuite juste margin-bottom, mais tous les autres sont à 0px */
+}
+
+.element_sidebar ul li /* Eléments de sous-listes */
+{
+        /* pour ie qui ne reconnaît pas "transparent" (comme précédemment) */
+        border-top : 1px solid #fff; /* on met une bordure blanche en haut de chaque élément d'une sous-liste */
+}
+
+/* IE ne reconnaissant pas le sélecteur ">" */
+html>body .element_sidebar ul li                
+{
+        border-top : 1px solid transparent; /* on met une bordure transparente en haut de chaque élément */
+}
+
+#body
+{
+   margin-top: 45px;
+   margin-left: 190px; /* Une marge à gauche pour pousser le corps, afin qu'il ne passe plus sous le sidebar */
+   margin-bottom: 10px; /* Ca c'est pour éviter que le corps colle trop au pied de page en-dessous */
+   margin-right: 10px;
+   padding: 5px; /* Pour éviter que le texte à l'intérieur du corps ne colle trop à la bordure */
+    
+   min-height:600px;
+}
+
+#body h1, h1 /* Tous les titres h1 du corps */
+{
+   text-align: center;
+}
+
+#body h2 /* Tous les titres h2 du corps */
+{
+   padding-left: 30px;
+   text-align: left;
+}
+
+/* Le pied de page (qui se trouve tout en bas, en g�n�ral pour les copyrights) */
+#footer
+{
+   padding: 5px;
+   clear: both;
+   text-align: left;
+
+	height: 50px;
+	color: #555;
+	color: #46574D;
+	font-size: 100%;
+	text-align: center;
+	clear: both;
+}
+ 

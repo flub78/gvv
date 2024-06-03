@@ -1,0 +1,8 @@
+
+RewriteEngine On
+RewriteBase /citemplate/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /gvv_dev/index.php/$1 [L]
+
+

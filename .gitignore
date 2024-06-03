@@ -1,0 +1,5 @@
+.svn/*
+application/logs/*
+application/cache/*
+# application/config/database.php
+# application/config/config.phps

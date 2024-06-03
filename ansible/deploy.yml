@@ -1,0 +1,146 @@
+# Ce script ansible réalise le déploiement de GVV
+#
+# Il modifie les fichiers de configuration extraits du système de gestion de
+# configuration.
+# Il utilise les variables d'environement:
+#
+# BASE_URL              nom de domaine du site déployé
+# INSTALLATION_PATH     repertoire de déploiement
+
+# DB_HOST               hôte su serveur base de données
+# DB_USERNAME           utilisateur base de dnooées
+# DB_PASSWORD
+# DB_DATABASE
+#
+# pour le lancer:
+# ansible-playbook deploy.yml
+---
+
+- name: Simple local playbook
+
+  gather_facts: true
+  hosts: localhost
+
+  vars:
+    base_url: "{{lookup('env','BASE_URL')}}" 
+    installation_path: "{{lookup('env','INSTALLATION_PATH')}}"
+    config_file: '{{installation_path}}/application/config/config.php'
+    db_username: "{{lookup('env','DB_USERNAME')}}"
+    db_password: "{{lookup('env','DB_PASSWORD')}}"
+    db_database: "{{lookup('env','DB_DATABASE')}}"
+
+  tasks:
+# ======
+
+    - name: ENV
+      debug: 
+        msg:
+          - "BASE_URL = {{ base_url }}"
+          - "INSTALLATION_PATH = {{ installation_path }}"
+
+    # activate watir mode in application/config/config.php
+    - name:  setup config/config.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/config.php'
+         regexp: 'watir'
+         line: "$config['watir']     = 1;"
+
+    # set the domain name in application/config/config.php
+    - name:  setup config/config.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/config.php'
+         regexp: 'base_url'
+         line: "$config['base_url']     = '{{base_url}}';"
+
+    # setup user in application/config/database
+    - name:  setup config/database.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/database.php'
+         regexp: 'gvv_user'
+         line: "$db['default']['username'] = '{{db_username}}';"
+
+    # setup password in application/config/database
+    - name:  setup config/database.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/database.php'
+         regexp: 'lfoyfgbj'
+         line: "$db['default']['password'] = '{{db_password}}';"
+
+    # setup database in application/config/database
+    - name:  setup config/database.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/database.php'
+         regexp: 'gvv2'
+         line: "$db['default']['database'] = '{{db_database}}';"
+
+    # a few configuration changes
+    - name: setup config/club.php
+      lineinfile:
+         dest:  '{{installation_path}}/application/config/club.php'
+         regexp: 'palette'
+         line: "$config['palette'] = 'base';"
+
+    # Setup owner and permissions
+    #
+    # The script is executed as jenkins who is not sudoer for
+    # obvious security reasons.
+    #
+    # Apache requests are executed as www-data
+    # www-data must have read access to all files
+    #                    execution access to all directories
+    #                    write access to uploads, backups, etc
+
+    - name: Ensure directories are 0755
+      command: find {{ installation_path }} -type d -exec chmod 0755 {} \;
+
+    - name: Ensure files are 0644
+      command: find {{ installation_path }} -type f -exec chmod 0644 {} \;
+
+    
+    # writable files
+    - name: Ensure file is writable
+      command: chmod a+w "{{ installation_path }}/application/config/{{item}}.php"
+      warn: False
+      with_items:
+        - club
+        - facturation
+        - config
+
+    # writable directories
+    - name: make some directories writable
+      file:
+        path: "{{ installation_path }}/uploads"
+        state: directory
+        mode: 0777
+        recurse: yes
+
+    - name: make some directories writable
+      file:
+        path: "{{ installation_path }}/uploads/restore"
+        state: directory
+        mode: 0777
+        recurse: yes
+
+    - name: make some directories writable
+      file:
+        path: "{{ installation_path }}/assets"
+        state: directory
+        mode: 0777
+        recurse: yes
+
+    - name: make writable
+      file:
+        path: "{{ installation_path }}/application/logs"
+        state: directory
+        mode: 0777
+        recurse: yes
+        
+        
+    - name: make some files executable
+      file:
+        path: "{{ installation_path }}/watir/{{item}}"
+        mode: 0744
+      with_items:
+        - runall.sh
+        - cleanup.sh
+
