@@ -6,7 +6,7 @@ Il a été développé depuis 2011 par Philippe Boissel et Frédéric Peignot su
 
 Depuis il est utilisé par au moins cinq ou six associations. Il est difficile d'en tenir le compte exact, puis qu'il s'agit d'un logiciel libre et que certaines associations peuvent l'avoir déployée sans avoir informé les développeurs.
 
-Depuis l'origine GVV était hébergé chez developpez.com, néanmoins depuis quelques semaines (au printemps 2024) le projet n'est plus accessible sur leur site et ils ne répondent plus aux emails. Leur serveur svn semble toujours actif, mais par précaution mieux vaut migrer le projet sur github.
+Depuis l'origine GVV était hébergé chez developpez.com, néanmoins depuis quelques semaines (au printemps 2024) le projet n'est plus accessible sur leur site et ils ne répondent plus aux emails. Leur serveur svn semble toujours actif, mais par précaution mieux vaut migrer le projet vers github.
 
 Puisqu'il n'est plus possible d'accéder au projet j'ai également perdu la documentation en ligne qui était gérée sur leur wiki. C'est une bonne leçon, ce n'était pas malin de gérer la documentation sur un système externe sans contrôle sur sa durée de vie et sans moyen de sauvegarde simple. Sous github la documentation sera gérée dans le système de gestion de code lui même en langage de balise markdown, ce qui permet de garder la documentation en ligne sans effort particulier. Notez que je n'ai pas l'intention de régénérer l’ensemble de la documentation, uniquement le minimum nécessaire pour l'installation et les mises à jour (cette page).
 
@@ -58,7 +58,43 @@ Les raisons en sont multiples, les version initiales de CodeIgniter n'étaient p
 
 Lest tests sont donc constitués de tests unitaires de bas niveau qui avaient été complété par un ensemble de test de bout en bout (Watir = Ruby + Selenium). Ces tests ont été rendus obsoletes lorsque l'interface graphique a changé et ils ont été partiellement remplacé par des tests de bout en bout avec Laravel et Dusk.
 
+
 ## Installation
+
+La machine utilisée lors de la rédaction de cette documentation est une machine virtuelle Oracle free tier sur laquelle est installé Ubuntu 22.04 et Hestia Control Panel. https://hestiacp.com/docs/introduction/getting-started.html.
+
+C'est un environment entièrement gratuit, à vie, sans publicité et sans limite d'utilisation. Il est donc possible de l'utiliser pour tester et déployer GVV.
+
+### Prérequis
+
+* une machine avec PHP 7.4 et MySql 5.x (linux ou windows, linux recommandé)
+* un serveur web (Apache ou Nginx)
+
+### Étapes d'installation
+
+1. Configurer le serveur WEB, Apache ou Nginx, voir https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-18-04. 
+
+Installez une page WEB de test pour vérifier que le serveur web est bien configuré et accessible sur votre domaine.
+
+Installez les certificats SSL.
+
+Installez MySql et créez une base de données.
+
+Notez que pour les utilisateurs de Hestia Control Panel, il est possible de réaliser ces étapes directement depuis l'interface web.
+
+2. Téléchargez GVV à partir de https://github.com/flub78/gvv.
+
+Connectez vous à votre serveur avec SSH et allez dans le répertoire web. Dans mon cas ~/web/gvvg.flub78.net.
+
+Donnez les droits d'écriture sur le répertoire.
+
+git clone https://github.com/flub78/gvv.git
+
+Renommez le répertoire gvv en public_html
+
+Vérifiez l'accès https://gvvg.flub78.net/install/
+
+![Image fenetre installation](./doc/images/installation1.png)
 
 ## Mise à jour
 
