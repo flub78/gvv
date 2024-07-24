@@ -34,3 +34,5 @@ Renommez le répertoire gvv en public_html
 Vérifiez l'accès https://gvvg.flub78.net/install/
 
 ![Image fenetre installation](./images/installation1.png)
+
+
