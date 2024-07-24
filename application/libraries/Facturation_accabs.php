@@ -80,6 +80,10 @@ class Facturation_accabs extends Facturation {
 
             $produit = "Remorqué 300m";
             $produit_m25ans = "Remorqué 300m -25ans";
+            if ($lieudeco != "LFOI") {
+                $produit = "Remorqué extérieur 300m";
+                $produit_m25ans = "Remorqué extérieur 300m -25ans";
+            }
             if ($m25ans) {
                 $tarifs_m25ans = $this->CI->tarifs_model->get_tarif($produit_m25ans, $date);
                 if (count($tarifs_m25ans)) {
