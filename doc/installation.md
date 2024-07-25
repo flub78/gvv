@@ -47,7 +47,7 @@ Installez MySql et créez une base de données.
 
 Notez que pour les utilisateurs de Hestia Control Panel, il est possible de réaliser ces étapes directement depuis l'interface web.
 
-### Téléchargez GVV à partir de https://github.com/flub78/gvv.
+### Téléchargez GVV
 
 Connectez vous à votre serveur avec SSH et allez dans le répertoire web. Dans mon cas ~/web/gvvg.flub78.net.
 
@@ -71,8 +71,6 @@ Vérifiez l'accès https://gvvg.flub78.net/install/
     vi database.php
 
 Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
-
-https://gvvg.flub78.net/ 
 
 
 ### Configuration
