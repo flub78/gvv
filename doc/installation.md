@@ -72,6 +72,9 @@ Vérifiez l'accès https://gvvg.flub78.net/install/
 
 Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
 
+### Étapes additionnelles
+
+* Créez le répertoire de journaux application/logs
 
 ### Configuration
 

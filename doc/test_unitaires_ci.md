@@ -1,8 +1,8 @@
-# Tests unitaires
+# Tests unitaires CodeIgniter
 
 Mars 2023
 
-Il y a quelques tests unitaires qui fonctionnent encore avec GVV.
+Il y a quelques tests unitaires qui fonctionnent encore avec GVV. Ils utilisent la librairie de test de CodeIgniter.
 
 * Ils sont activables depuis le controller "tests"
 * Ils ne sont pas automatiques

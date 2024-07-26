@@ -26,7 +26,11 @@ C'est important de respecter les dépendances. Il faut qu'il existe des pilotes 
 
 Tests:
 
+Les tests cochés sont ceux qui ont été passés avec succès lors de la rédaction de cette documentation (passage sous Github).
+
 - [x] Vérification de la navigation (admin)
+- [ ] Vérification de la navigation (user)
+- [x] Vérification de l'écriture dans les journaux
 - [x] Configuration club
 - [X] Responsive interface, menu, formulaire
 - [X] Terrains
