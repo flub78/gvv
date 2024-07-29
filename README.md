@@ -18,6 +18,8 @@ Puisqu'il n'est plus possible d'accéder au projet j'ai également perdu la docu
 
 ## [Installation](./doc/installation.md)
 
+## [Migration depuis subversion](./doc/migration_github.md)
+
 ## [Mises à jour](./doc/maj.md)
 
 ## [En cas de problèmes](./doc/troubleshooting.md)
