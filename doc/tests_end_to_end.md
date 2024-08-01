@@ -1,9 +1,26 @@
 # Les tests de bout en bout
 
-Ils simulent un utilisateur qui interagit avec l'application à l'aide d'un navigateur. En gros les tests pilotent le navigateur et vérifient ce qui est affiché. 
+Ils simulent un utilisateur qui interagit avec l'application à l'aide d'un navigateur. Les tests pilotent le navigateur et vérifient ce qui est affiché. 
 
-* Il y a un répertoir de test watir (utilisation de selenium en ruby) je ne sais pas s'il est encore possible de réinstaller watir.
+* Le répertoire de test watir est obsolete.
+  
+* Utilisez (mars 2023) pour tester GVV de bout en bout. https://github.com/flub78/dusk_gvv
 
-* J'ai fait quelques expériences en mars 2023 pour générer quelques tests end to end en utilisant Dusk de Laravel qui fait la même chose. 
 
-Il faudrait vérifier si les tests watir sont encore utilisables, les réactiver si oui, sion les ré-écrire en dusk.
+## Lancement des Tests
+
+Sous Windows, la synchro Dropbox doit être désactivée. Modifiez setenv.bat pour changer le serveur de test.
+
+    cd Dropbox\xampp\htdocs\dusk_gvv
+    setenv.bat
+
+    php artisan dusk
+
+    ERRORS!
+    Tests: 75, Assertions: 981, Errors: 5, Failures: 24, Skipped: 11.
+    
+ou, pour afficher chrome:
+
+    php artisan dusk --browse
+
+    Tests: 75, Assertions: 1035, Errors: 9, Failures: 17, Skipped: 11
