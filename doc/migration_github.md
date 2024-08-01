@@ -15,13 +15,4 @@ Sous Github, la mise à jour des fichiers des fichiers est globale.
 5. ré-installez vos fichiers de configuration
 6. Testez, cela devrait fonctionner.
 
-Une fois la migration réalisée, il est possible de mettre à jour depuis github
-
-    git pull
-    git log --stat -n 1 >> installed.txt
-
-And to activate a specific commit:
-
-    git checkout e517a13c7c242fdd0c93f2dca7f1a6ef32c52190
-
 

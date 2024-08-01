@@ -1,8 +1,28 @@
 # Mises à jour
 
-Si vous voulez mettre à jour votre version de gvv, il suffit de faire un git pull.
+Les mises à jour se font depuis une connexion ssh sur le serveur.
 
-cd ~/web/gvvg.flub78.net/public_html
-git pull
+## Depuis Subversion
 
-à tester: MAJ sur une version spécifique.
+Il existait un script update_gvv.sh qui faisait les mises à jour depuis subversion sans écraser les fichier de configuration. Il inscrivait dernière mise à jour installée dans un fichier nommé installed.txt
+
+Il supportait un paramètre pour revenir en arrière sue une version particulière.
+
+### Attention le dépôt Subversion chez developpez.com n'est plus mis à jour.
+
+## Depuis Github
+
+Une fois la migration réalisée, il est possible de mettre à jour depuis github
+
+    git pull
+    cat "" >> installed.txt
+    git log --stat -n 1 >> installed.txt
+
+Pour activer un commit spécifique:
+
+    git checkout e517a13c7c242fdd0c93f2dca7f1a6ef32c52190
+
+And retourner à la branche principale pour pouvoir faire des pull:
+
+    git checkout main
+    git pull
