@@ -6,3 +6,12 @@ application/cache/*
 uploads/restore/gvv_vol_Ã__voile_abbeville__backup_2024_02_19.zip
 uploads/restore/gvv_vol_à_voile_abbeville__backup_2024_07_21.zip
 uploads/restore/gvv_vol_Ã__voile_abbeville__backup_2024_02_19.zip
+application/config/club.php
+application/config/database..php
+application/config/config.php
+application/config/dx_auth..php
+application/config/google..php
+application/config/program..php
+application/config/database.php
+application/config/dx_auth.php
+application/config/program.php
