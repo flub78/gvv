@@ -3,7 +3,7 @@
  * GVV Fichier de traduction française
 */
 
-$lang['gvv_language'] = "french";	// doit être identique a la valeur dans config.php
+$lang['gvv_language'] = "french";    // doit être identique a la valeur dans config.php
 
 # Menus
 # $this->lang->line("")
@@ -105,48 +105,48 @@ $lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères d
 $lang['gvv_str_select'] = "Filtrer";
 $lang['gvv_str_display'] = "Afficher tout";
 
-$lang['gvv_owner_type'] = array (
-            0 => 'Club',
-            1 => 'Privé',
-            2 => 'Extérieur'
-        );
-
-$lang['gvv_asset_liability'] = array (
-		0 => 'Actif',
-		1 => 'Passif'
+$lang['gvv_owner_type'] = array(
+    0 => 'Club',
+    1 => 'Privé',
+    2 => 'Extérieur'
 );
 
-$lang['gvv_refueling'] = array (
-            0 => 'Non',
-            1 => 'Avant le vol',
-            2 => 'Après le vol',
-            3 => 'En vol'
-        );
+$lang['gvv_asset_liability'] = array(
+    0 => 'Actif',
+    1 => 'Passif'
+);
 
-$lang['gvv_navigation'] = array (
-            0 => 'Local',
-            1 => 'Navigation'
-        );
+$lang['gvv_refueling'] = array(
+    0 => 'Non',
+    1 => 'Avant le vol',
+    2 => 'Après le vol',
+    3 => 'En vol'
+);
 
-$lang['gvv_launch_type'] = array (
-            1 => 'Treuil',
-            2 => 'Autonome',
-            3 => 'Remorqué',
-            4 => 'Extérieur'
-        );
+$lang['gvv_navigation'] = array(
+    0 => 'Local',
+    1 => 'Navigation'
+);
 
-$lang['gvv_short_launch_type'] = array (
-            1 => 'T',
-            2 => 'A',
-            3 => 'R',
-            4 => 'E'
-        );
+$lang['gvv_launch_type'] = array(
+    1 => 'Treuil',
+    2 => 'Autonome',
+    3 => 'Remorqué',
+    4 => 'Extérieur'
+);
 
-$lang['gvv_gas_operation'] = array (
-            'D' => 'Débit',
-            'R' => 'Remplissage',
-            'A' => 'Ajustement'
-        );
+$lang['gvv_short_launch_type'] = array(
+    1 => 'T',
+    2 => 'A',
+    3 => 'R',
+    4 => 'E'
+);
+
+$lang['gvv_gas_operation'] = array(
+    'D' => 'Débit',
+    'R' => 'Remplissage',
+    'A' => 'Ajustement'
+);
 
 $lang['gvv_total'] = "Total";
 $lang['gvv_months'] = array('Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sept', 'Oct', 'Nov', 'Dec');
@@ -159,7 +159,7 @@ $lang['gvv_age_select'] = array(0 => 'Tous', 1 => '-25', 2 => '+25');
 $lang['gvv_owner_select'] = array(0 => 'Tous', 1 => 'Club', 2 => 'Privé', 3 => 'Ext');
 $lang['gvv_launch_select'] = array(0 => 'Tous', 1 => 'Treuil', 2 => 'Automome', 3 => 'Remorqué', 4 => 'Extérieur');
 
-$lang['gvv_copyright'] = "Copyright (&#169;) 2022 Philippe Boissel et Frédéric Peignot, GPL V3.0";
+$lang['gvv_copyright'] = "Copyright (&#169;) 2025 Philippe Boissel et Frédéric Peignot, GPL V3.0";
 $lang['gvv_generated'] = "Page générée en {elapsed_time} secondes";
 
 # termes généraux qu'on retrouve partout
@@ -194,7 +194,7 @@ $lang['gvv_comment_billed_to'] = "Le payeur n'est pas forcément le pilote";
 $lang['gvv_comment_sharing'] = "Partage possible de la facturation entre deux pilote";
 $lang['gvv_comment_gas_station'] = "Gestion des pompes à essence";
 $lang['gvv_comment_towin100'] = "Facturation des remorqués en 1/100 d'heure";
-$lang['gvv_comment_freeze'] = "Date de gel des vols et écritures"; 
+$lang['gvv_comment_freeze'] = "Date de gel des vols et écritures";
 
 $lang['valid_activity_date'] = "Format de date incorrect";
 $lang['valid_minute_time'] = "Durée négative ou invalide";

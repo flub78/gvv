@@ -101,48 +101,48 @@ $lang['gvv_str_display'] = "Weergave";
 $lang['gvv_succesful_creation'] = "Aangemaakt";
 
 
-$lang['gvv_owner_type'] = array (
-		0 => 'Club',
-		1 => 'Privaat',
-		2 => 'Extern'
+$lang['gvv_owner_type'] = array(
+	0 => 'Club',
+	1 => 'Privaat',
+	2 => 'Extern'
 );
 
-$lang['gvv_asset_liability'] = array (
-            0 => 'Asset',
-            1 => 'Liability'
-        );
-
-$lang['gvv_refueling'] = array (
-		0 => 'Geen',
-		1 => 'Voor de vlucht',
-		2 => 'Na de vlucht',
-		3 => 'Onderweg'
+$lang['gvv_asset_liability'] = array(
+	0 => 'Asset',
+	1 => 'Liability'
 );
 
-$lang['gvv_navigation'] = array (
-		0 => 'Lokaal',
-		1 => 'Navigatie'
+$lang['gvv_refueling'] = array(
+	0 => 'Geen',
+	1 => 'Voor de vlucht',
+	2 => 'Na de vlucht',
+	3 => 'Onderweg'
 );
 
-$lang['gvv_launch_type'] = array (
-		1 => 'Lier',
-		2 => 'Lier extern',
-		3 => 'Sleep',
-		4 => 'Sleep extern'
+$lang['gvv_navigation'] = array(
+	0 => 'Lokaal',
+	1 => 'Navigatie'
 );
 
-$lang['gvv_short_launch_type'] = array (
-		1 => 'L',
-		2 => 'LE',
-		3 => 'S',
-		4 => 'SE'
+$lang['gvv_launch_type'] = array(
+	1 => 'Lier',
+	2 => 'Lier extern',
+	3 => 'Sleep',
+	4 => 'Sleep extern'
 );
 
-$lang['gvv_gas_operation'] = array (
-            'D' => 'Tanken',
-            'R' => 'Bijvullen',
-            'A' => 'Aanpassing'
-        );
+$lang['gvv_short_launch_type'] = array(
+	1 => 'L',
+	2 => 'LE',
+	3 => 'S',
+	4 => 'SE'
+);
+
+$lang['gvv_gas_operation'] = array(
+	'D' => 'Tanken',
+	'R' => 'Bijvullen',
+	'A' => 'Aanpassing'
+);
 
 $lang['gvv_total'] = "Totaal";
 $lang['gvv_months'] = array('Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sept', 'Okt', 'Nov', 'Dec');
@@ -154,7 +154,7 @@ $lang['gvv_age_select'] = array(0 => 'Alle', 1 => '-25', 2 => '+25');
 $lang['gvv_owner_select'] = array(0 => 'Alle', 1 => 'Club', 2 => 'Prive', 3 => 'Ext');
 $lang['gvv_launch_select'] = array(0 => 'Alle', 1 => 'Lier', 2 => 'Lier extern', 3 => 'Sleep', 4 => 'Sleep extern');
 
-$lang['gvv_copyright'] = "Copyright (&#169;) 2022 Philippe Boissel en Frederic Peignot, GPL V3.0";
+$lang['gvv_copyright'] = "Copyright (&#169;) 2025 Philippe Boissel en Frederic Peignot, GPL V3.0";
 $lang['gvv_generated'] = "Pagina gegenereerd in {elapsed_time} seconden";
 
 # termes g�n�raux qu'on retrouve partout

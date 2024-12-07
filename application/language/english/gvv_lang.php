@@ -104,47 +104,47 @@ $lang['gvv_str_filter_tooltip'] = "Click to display/hide select criteria";
 $lang['gvv_str_select'] = "Select";
 $lang['gvv_str_display'] = "Display all";
 
-$lang['gvv_owner_type'] = array (
-		0 => 'Club',
-		1 => 'Private',
-		2 => 'Extern'
+$lang['gvv_owner_type'] = array(
+	0 => 'Club',
+	1 => 'Private',
+	2 => 'Extern'
 );
 
-$lang['gvv_asset_liability'] = array (
-            0 => 'Asset',
-            1 => 'Liability'
-        );
-
-$lang['gvv_refueling'] = array (
-		0 => 'None',
-		1 => 'Before flight',
-		2 => 'After flight',
-		3 => 'In flight'
+$lang['gvv_asset_liability'] = array(
+	0 => 'Asset',
+	1 => 'Liability'
 );
 
-$lang['gvv_navigation'] = array (
-		0 => 'Local',
-		1 => 'Navigation'
+$lang['gvv_refueling'] = array(
+	0 => 'None',
+	1 => 'Before flight',
+	2 => 'After flight',
+	3 => 'In flight'
 );
 
-$lang['gvv_launch_type'] = array (
-		1 => 'Winch',
-		2 => 'Self launch',
-		3 => 'Towing',
-		4 => 'External'
+$lang['gvv_navigation'] = array(
+	0 => 'Local',
+	1 => 'Navigation'
 );
 
-$lang['gvv_short_launch_type'] = array (
-		1 => 'W',
-		2 => 'A',
-		3 => 'T',
-		4 => 'E'
+$lang['gvv_launch_type'] = array(
+	1 => 'Winch',
+	2 => 'Self launch',
+	3 => 'Towing',
+	4 => 'External'
 );
 
-$lang['gvv_gas_operation'] = array (
-		'D' => 'Sale',
-		'R' => 'Filling',
-		'A' => 'Adjustment'
+$lang['gvv_short_launch_type'] = array(
+	1 => 'W',
+	2 => 'A',
+	3 => 'T',
+	4 => 'E'
+);
+
+$lang['gvv_gas_operation'] = array(
+	'D' => 'Sale',
+	'R' => 'Filling',
+	'A' => 'Adjustment'
 );
 
 $lang['gvv_total'] = "Total";
@@ -157,7 +157,7 @@ $lang['gvv_age_select'] = array(0 => 'All', 1 => '-25', 2 => '+25');
 $lang['gvv_owner_select'] = array(0 => 'All', 1 => 'Club', 2 => 'Private', 3 => 'Ext');
 $lang['gvv_launch_select'] = array(0 => 'All', 1 => 'Winch', 2 => 'Automomous', 3 => 'Tow', 4 => 'External');
 
-$lang['gvv_copyright'] = "Copyright (&#169;) 2022 Philippe Boissel and Frédéric Peignot, GPL V3.0";
+$lang['gvv_copyright'] = "Copyright (&#169;) 2025 Philippe Boissel and Frédéric Peignot, GPL V3.0";
 $lang['gvv_generated'] = "Page generated in {elapsed_time} seconds";
 
 # termes généraux qu'on retrouve partout
