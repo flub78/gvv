@@ -31,9 +31,9 @@ $lang['gvv_ecritures_field_gel'] = "Vérifié";
 # $this->data['message'] = $this->lang->line("gvv_compta_message_advice_manual");
 
 $lang['gvv_compta_message_advice_manual'] = "Si possible utilisez plutôt l'achat de produit"
-		. " qui enregistrera aussi une vente.";
+	. " qui enregistrera aussi une vente.";
 
-$lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Resource est le compte à débiter"; 
+$lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Resource est le compte à débiter";
 
 $lang['gvv_compta_comptes'] = "Comptes";
 $lang['gvv_compta_compte'] = "Compte";
@@ -71,12 +71,12 @@ $lang['gvv_ecritures_short_field_montant'] = "Montant";
 $lang['gvv_ecritures_short_field_gel'] = "Gel";
 $lang['gvv_ecritures_short_field_nom_compte2'] = "Compte";
 
-$lang['gvv_vue_journal_selector'] = array (
-		0 => "Selectionner ...",
-		1 => "Les dépenses", // Emploi 600 - 700
-		2 => "Les recettes", // ressources 700 - 800
-		3 => "Les paiements pilotes", // Ressources 411
-		4 => "Les immobilisations" // Emploi 200-300
+$lang['gvv_vue_journal_selector'] = array(
+	0 => "Selectionner ...",
+	1 => "Les dépenses", // Emploi 600 - 700
+	2 => "Les recettes", // ressources 700 - 800
+	3 => "Les paiements pilotes", // Ressources 411
+	4 => "Les immobilisations" // Emploi 200-300
 );
 
 $lang['gvv_compta_fieldset_addresses'] = "Adresse";
@@ -106,5 +106,7 @@ $lang['gvv_vue_journal_short_field_credit'] = "Crédit";
 $lang['gvv_vue_journal_short_field_solde'] = "Solde";
 $lang['gvv_vue_journal_short_field_gel'] = "Gelé";
 
-$lang['gvv_compta_csv_header'] = array ( 'Date', 'Code', 'Compte', 'Description', 'Référence', 'Débit', 'Crédit' );
-$lang['gvv_compta_csv_header_411'] = array ( 'Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit' );
+$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 'Référence', 'Débit', 'Crédit');
+$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit');
+
+$lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";

@@ -24,8 +24,7 @@
  * Controleur de gestion des écritures comptables
  */
 include('./application/libraries/Gvv_Controller.php');
-class Compta extends Gvv_Controller
-{
+class Compta extends Gvv_Controller {
     protected $controller = 'compta';
     protected $model = 'ecritures_model';
     protected $modification_level = 'tresorier';
@@ -34,8 +33,7 @@ class Compta extends Gvv_Controller
     /**
      * Constructor
      */
-    function __construct()
-    {
+    function __construct() {
         parent::__construct();
         // Check if user is logged in or not
         if (!$this->dx_auth->is_logged_in()) {
@@ -52,8 +50,7 @@ class Compta extends Gvv_Controller
      *
      * @see Gvv_Controller::edit()
      */
-    function edit($id = "")
-    {
+    function edit($id = "") {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         if ($this->data['achat']) {
@@ -73,8 +70,7 @@ class Compta extends Gvv_Controller
 
     /**
      */
-    function to_hash($select, &$total_actif, &$total_passif)
-    {
+    function to_hash($select, &$total_actif, &$total_passif) {
         $data = array();
         foreach ($select as $row) {
             $actif = $row['actif'];
@@ -100,8 +96,7 @@ class Compta extends Gvv_Controller
      * @param $action CREATION
      *            | VISUALISATION | MODIFICATION
      */
-    protected function form_static_element($action)
-    {
+    protected function form_static_element($action) {
         parent::form_static_element($action);
 
         $this->data['title_key'] = "gvv_compta_title_line";
@@ -120,8 +115,7 @@ class Compta extends Gvv_Controller
      *
      * @param $id clé
      */
-    function delete($id)
-    {
+    function delete($id) {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         if ($this->data['achat']) {
@@ -143,8 +137,7 @@ class Compta extends Gvv_Controller
      * @param unknown_type $data
      *            hash enregistrement
      */
-    private function change_ecriture($data)
-    {
+    private function change_ecriture($data) {
         $this->db->trans_start();
 
         // Annule l'écritue précédente
@@ -162,6 +155,26 @@ class Compta extends Gvv_Controller
     }
 
     /**
+     * Validation callback to check that compte1 and compte2 are different
+     * 
+     * @return boolean True if accounts are different, false if they are the same
+     */
+    public function check_compte1_compte2() {
+        $compte1 = $this->input->post('compte1');
+        $compte2 = $this->input->post('compte2');
+
+        if ($compte1 === $compte2) {
+            $this->form_validation->set_message(
+                'check_compte1_compte2',
+                $this->lang->line('gvv_compta_error_same_accounts')
+            );
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
      * Validation du formulaire de passage d'écriture.
      * Il est spécifique dans le sens ou il doit enregistrer l'écriture et modifier
      * les soldes de façon atomique(transaction)
@@ -169,8 +182,7 @@ class Compta extends Gvv_Controller
      * @param $action CREATION
      *            | VISUALISATION | MODIFICATION
      */
-    public function formValidation($action, $return_on_success = false)
-    {
+    public function formValidation($action, $return_on_success = false) {
         $button = $this->input->post('button');
 
         if ($button == "Abandonner") {
@@ -191,6 +203,10 @@ class Compta extends Gvv_Controller
         }
 
         $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
+
+        // Add to the form validation rules a rule to prevent the valous of compte1 and compte2 to be the same.
+        $this->form_validation->set_rules('compte1', 'Compte 1', 'callback_check_compte1_compte2');
+        # $this->form_validation->set_rules('compte2', 'Compte 2', 'callback_check_compte1_compte2');
 
         if ($this->form_validation->run()) {
             // get the processed data. It must not be done before because all the
@@ -222,8 +238,7 @@ class Compta extends Gvv_Controller
     /**
      * Ecriture entre un compte de charge et un compte de banque
      */
-    function depenses()
-    {
+    function depenses() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
@@ -248,8 +263,7 @@ class Compta extends Gvv_Controller
      * La saisie d'une recette est juste le passage d'une écriture mais uniquement
      * sur un compte de produit.
      */
-    function recettes()
-    {
+    function recettes() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_recette";
@@ -273,8 +287,7 @@ class Compta extends Gvv_Controller
      * La facturation pilote est une opération entre un compte client et un
      * compte produit
      */
-    function factu_pilote()
-    {
+    function factu_pilote() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_manual";
@@ -297,8 +310,7 @@ class Compta extends Gvv_Controller
     /**
      * Credit d'un compte pilote à partir d'un compte de charge
      */
-    function credit_pilote()
-    {
+    function credit_pilote() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_remboursement";
@@ -319,8 +331,7 @@ class Compta extends Gvv_Controller
      * Le reglement pilote est une opération entre un compte pilote et un compte
      * de caisse.
      */
-    function reglement_pilote()
-    {
+    function reglement_pilote() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_paiement";
@@ -343,8 +354,7 @@ class Compta extends Gvv_Controller
      * Remboursement avance pilote est une opération entre un compte pilote et un compte
      * de caisse.
      */
-    function debit_pilote()
-    {
+    function debit_pilote() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_avance";
@@ -366,8 +376,7 @@ class Compta extends Gvv_Controller
     /**
      * Enregistrement d'un avoir fournisseur
      */
-    function avoir_fournisseur()
-    {
+    function avoir_fournisseur() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
@@ -390,8 +399,7 @@ class Compta extends Gvv_Controller
     /**
      * Utilisation d'un avoir fournisseur
      */
-    function utilisation_avoir_fournisseur()
-    {
+    function utilisation_avoir_fournisseur() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
@@ -414,8 +422,7 @@ class Compta extends Gvv_Controller
     /**
      * Virement entre comptes bancaire
      */
-    function virement()
-    {
+    function virement() {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
         $this->data['title_key'] = "gvv_compta_title_wire";
@@ -442,8 +449,7 @@ class Compta extends Gvv_Controller
      * @param $message à
      *            afficher
      */
-    function page($premier = 0, $message = '', $selection = array())
-    {
+    function page($premier = 0, $message = '', $selection = array()) {
         $current_url = current_url();
 
         $this->push_return_url("grand journal");
@@ -477,8 +483,7 @@ class Compta extends Gvv_Controller
     /**
      * Vérifie qu'un des éléments du tableau match le pattern
      */
-    function matching_row($row, $pattern)
-    {
+    function matching_row($row, $pattern) {
         foreach ($row as $elt) {
             if (preg_match('/' . $pattern . '/', $elt, $matches)) {
                 return TRUE;
@@ -496,8 +501,7 @@ class Compta extends Gvv_Controller
      * données de façon à pour voir filtrer sur les champs tels qu'ils sont
      * affichés.
      */
-    function ajax_page()
-    {
+    function ajax_page() {
         $year = $this->session->userdata('year');
 
         gvv_debug("ajax_page compta $year");
@@ -647,7 +651,7 @@ class Compta extends Gvv_Controller
                 $image = $this->gvvmetadata->action($action, $url, $select_row[$sIndexColumn], $elt_image, $confirm);
                 $row[] = $image;
             }
-            
+
             for ($i = 0; $i < count($out_cols); $i++) {
                 if (isset($out_cols[$i]) && $out_cols[$i] != ' ') {
                     // General output
@@ -671,8 +675,7 @@ class Compta extends Gvv_Controller
     /**
      * Export du journal soue Excel ou Pdf
      */
-    function export_journal()
-    {
+    function export_journal() {
         if ($_POST['button'] == 'Pdf') {
             $mode = 'pdf';
         } else if ($_POST['button'] == 'Excel') {
@@ -737,8 +740,7 @@ class Compta extends Gvv_Controller
     /**
      * Rempli les données à transmettre au formulaire avec la selection du filtrage
      */
-    private function selection_filter()
-    {
+    private function selection_filter() {
         $this->data['filter_active'] = $this->session->userdata('filter_active');
         $this->data['filter_date'] = $this->session->userdata('filter_date');
         $this->data['date_end'] = $this->session->userdata('date_end');
@@ -764,8 +766,7 @@ class Compta extends Gvv_Controller
      * @param unknown_type $message
      * @param unknown_type $per_page
      */
-    private function select_data($account_data, $compte = '', $premier = 0, $message = '', $per_page = 0)
-    {
+    private function select_data($account_data, $compte = '', $premier = 0, $message = '', $per_page = 0) {
         if (!$per_page)
             $per_page = $this->session->userdata('per_page');
 
@@ -858,8 +859,7 @@ class Compta extends Gvv_Controller
     /**
      * Display acount extract
      */
-    private function journal_data($data, $compte = '', $premier = 0, $message = '')
-    {
+    private function journal_data($data, $compte = '', $premier = 0, $message = '') {
         $this->select_data($data, $compte, $premier, $message);
         load_last_view('compta/journalCompteView', $this->data);
     }
@@ -867,8 +867,7 @@ class Compta extends Gvv_Controller
     /**
      * journal
      */
-    function journal_compte($compte = '', $premier = 0, $message = '')
-    {
+    function journal_compte($compte = '', $premier = 0, $message = '') {
         $current_url = current_url();
 
         /*
@@ -893,8 +892,7 @@ class Compta extends Gvv_Controller
      *
      * @param unknown_type $compte
      */
-    function view($compte)
-    {
+    function view($compte) {
         $this->journal_compte($compte);
     }
 
@@ -904,8 +902,7 @@ class Compta extends Gvv_Controller
      * @param
      *            $pilote
      */
-    function compte_pilote($pilote)
-    {
+    function compte_pilote($pilote) {
         if ($this->comptes_model->has_compte($pilote)) {
             $compte = $this->comptes_model->compte_pilote($pilote);
             $data = $this->comptes_model->get_by_id('id', $compte);
@@ -921,8 +918,7 @@ class Compta extends Gvv_Controller
     /**
      * journal
      */
-    function mon_compte()
-    {
+    function mon_compte() {
         $this->push_return_url("mon compte");
 
         $mlogin = $this->dx_auth->get_username();
@@ -939,8 +935,7 @@ class Compta extends Gvv_Controller
     /**
      * Validation du filtre d'affichage de compte.
      */
-    private function _filterValidation()
-    {
+    private function _filterValidation() {
         $button = $this->input->post('button');
         $filter_variables = array(
             'filter_date',
@@ -976,8 +971,7 @@ class Compta extends Gvv_Controller
     /**
      * Validation du filtre d'affichage de compte.
      */
-    public function filterValidation($compte)
-    {
+    public function filterValidation($compte) {
         $this->_filterValidation();
         // Le filtrage modifie la pagination, donc après filtrage on ne peut pas retourner
         // à la page initiale
@@ -991,8 +985,7 @@ class Compta extends Gvv_Controller
      * 3 => "Les paiements pilotes", // Ressources 411
      * 4 => "Les immobilisations" // Emploi 200-300
      */
-    public function query($selection)
-    {
+    public function query($selection) {
         // echo "query = $selection" . br();
         $session = array();
         $session['filter_active'] = 1;
@@ -1025,8 +1018,7 @@ class Compta extends Gvv_Controller
     /**
      * Validation du filtre d'affichage de compte.
      */
-    public function JournalFilterValidation()
-    {
+    public function JournalFilterValidation() {
         $this->_filterValidation();
         redirect($this->controller . '/page'); // bug #1639
     }
@@ -1219,8 +1211,7 @@ class Compta extends Gvv_Controller
      *
      * @param unknown_type $compte
      */
-    function export($compte = '')
-    {
+    function export($compte = '') {
         if ($compte == '') {
             $user = $this->dx_auth->get_username();
             if (!$this->comptes_model->has_compte($user)) {
@@ -1361,8 +1352,7 @@ class Compta extends Gvv_Controller
      * @param unknown_type $state
      *            avant bascule
      */
-    function switch_line($id, $state, $compte, $premier)
-    {
+    function switch_line($id, $state, $compte, $premier) {
         $new_state = ($state == 0) ? 1 : 0;
         $this->gvv_model->switch_line($id, $new_state);
         $this->pop_return_url();
@@ -1372,8 +1362,7 @@ class Compta extends Gvv_Controller
      * Retourne la liste des dernierres références pour l'autocompletion
      *
      */
-    function search_ref()
-    {
+    function search_ref() {
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
         } else {
@@ -1391,8 +1380,7 @@ class Compta extends Gvv_Controller
      * Retourne la liste des dernierres références pour l'autocompletion
      *
      */
-    function search_description()
-    {
+    function search_description() {
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
         } else {
@@ -1409,8 +1397,7 @@ class Compta extends Gvv_Controller
     /**
      * Test unitaire
      */
-    function test($format = "html")
-    {
+    function test($format = "html") {
         // parent::test($format);
         $this->unit_test = TRUE;
         $this->load->library('unit_test');

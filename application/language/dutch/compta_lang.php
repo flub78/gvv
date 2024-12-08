@@ -31,9 +31,9 @@ $lang['gvv_ecritures_field_gel'] = "Gecontroleerd";
 # $this->data['message'] = $this->lang->line("gvv_compta_message_advice_manual");
 
 $lang['gvv_compta_message_advice_manual'] = "Indien mogelijk probeer aankoop product te gebruiken"
-		. " dat registreert ook een verkoop.";
+	. " dat registreert ook een verkoop.";
 
-$lang['gvv_compta_message_advice_wire'] = "De bron is de te krediteren rekeningen, de grootboekrekening is de te debiteren rekening"; 
+$lang['gvv_compta_message_advice_wire'] = "De bron is de te krediteren rekeningen, de grootboekrekening is de te debiteren rekening";
 
 $lang['gvv_compta_comptes'] = "Rekeningen";
 $lang['gvv_compta_compte'] = "Rekening";
@@ -71,12 +71,12 @@ $lang['gvv_ecritures_short_field_montant'] = "Bedrag";
 $lang['gvv_ecritures_short_field_gel'] = "Lock";
 $lang['gvv_ecritures_short_field_nom_compte2'] = "Rekening";
 
-$lang['gvv_vue_journal_selector'] = array (
-		0 => "Selecteer ...",
-		1 => "Uitgaves", // Emploi 600 - 700
-		2 => "Ontvangsten", // ressources 700 - 800
-		3 => "Betalingen piloten", // Ressources 411
-		4 => "Passiva/Activa" // Emploi 200-300
+$lang['gvv_vue_journal_selector'] = array(
+	0 => "Selecteer ...",
+	1 => "Uitgaves", // Emploi 600 - 700
+	2 => "Ontvangsten", // ressources 700 - 800
+	3 => "Betalingen piloten", // Ressources 411
+	4 => "Passiva/Activa" // Emploi 200-300
 );
 
 $lang['gvv_compta_fieldset_addresses'] = "Adres";
@@ -106,5 +106,7 @@ $lang['gvv_vue_journal_short_field_credit'] = "Credit";
 $lang['gvv_vue_journal_short_field_solde'] = "Saldo";
 $lang['gvv_vue_journal_short_field_gel'] = "Locked";
 
-$lang['gvv_compta_csv_header'] = array ( 'Datum', 'Code', 'Rekening', 'Omschrijving', 'Referentie', 'Debet', 'Credit' );
-$lang['gvv_compta_csv_header_411'] = array ( 'Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit' );
+$lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijving', 'Referentie', 'Debet', 'Credit');
+$lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit');
+
+$lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";

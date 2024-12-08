@@ -32,7 +32,7 @@ $lang['gvv_ecritures_field_gel'] = "Checked";
 # $this->data['message'] = $this->lang->line("gvv_compta_message_advice_manual");
 
 $lang['gvv_compta_message_advice_manual'] = "Rather use product purchase (if possible)"
-		. " it also records a sale.";
+	. " it also records a sale.";
 
 $lang['gvv_compta_message_advice_wire'] = "Emploi is the account to credit, Resource is the account to debit";
 
@@ -72,12 +72,12 @@ $lang['gvv_ecritures_short_field_num_cheque'] = "Reference";
 $lang['gvv_ecritures_short_field_montant'] = "Amount";
 $lang['gvv_ecritures_short_field_gel'] = "Frozen";
 
-$lang['gvv_vue_journal_selector'] = array (
-		0 => "Select ...",
-		1 => "Expenses", // Emploi 600 - 700
-		2 => "Earnings", // ressources 700 - 800
-		3 => "Pilots paiements", // Ressources 411
-		4 => "Fix assets operations" // Emploi 200-300
+$lang['gvv_vue_journal_selector'] = array(
+	0 => "Select ...",
+	1 => "Expenses", // Emploi 600 - 700
+	2 => "Earnings", // ressources 700 - 800
+	3 => "Pilots paiements", // Ressources 411
+	4 => "Fix assets operations" // Emploi 200-300
 );
 
 $lang['gvv_compta_fieldset_addresses'] = "Adress";
@@ -107,6 +107,7 @@ $lang['gvv_vue_journal_short_field_credit'] = "Credit";
 $lang['gvv_vue_journal_short_field_solde'] = "Solde";
 $lang['gvv_vue_journal_short_field_gel'] = "Frozen";
 
-$lang['gvv_compta_csv_header'] = array ( 'Date', 'Code', 'Account', 'Description', 'Reference', 'Debit', 'Credit' );
-$lang['gvv_compta_csv_header_411'] = array ( 'Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit' );
+$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Account', 'Description', 'Reference', 'Debit', 'Credit');
+$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit');
 
+$lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
