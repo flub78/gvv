@@ -86,8 +86,7 @@ if (!defined('BASEPATH'))
  * @author idefix
  * @package librairies
  */
-abstract class Metadata
-{
+abstract class Metadata {
     protected $db = array();
     protected $keys = array();
     protected $alias = array(); // Table des alias des champs
@@ -98,8 +97,7 @@ abstract class Metadata
     /**
      * Constructor
      */
-    function __construct()
-    {
+    function __construct() {
         $this->CI = &get_instance();
         $this->CI->load->database();
 
@@ -138,8 +136,7 @@ abstract class Metadata
     /**
      * Return the list of table in the database
      */
-    function tables_list()
-    {
+    function tables_list() {
         return $this->tables;
     }
 
@@ -150,8 +147,7 @@ abstract class Metadata
      * @param boolean $no_autogen_key when true does not return auto-generated keys
      * @return mixed[]
      */
-    function fields_list($table, $no_autogen_key = FALSE)
-    {
+    function fields_list($table, $no_autogen_key = FALSE) {
         $tmp = $this->fields[$table];
         if ($no_autogen_key) {
             $key = $this->autogen_key();
@@ -167,8 +163,7 @@ abstract class Metadata
      * @param string $table name
      * @return string
      */
-    function table_key($table)
-    {
+    function table_key($table) {
         return isset($this->keys[$table]) ? $this->keys[$table] : 'id';
     }
 
@@ -178,8 +173,7 @@ abstract class Metadata
      * @param string $table name
      * @return boolean
      */
-    function autogen_key($table)
-    {
+    function autogen_key($table) {
         $key = $this->table_key($table);
         if ($this->field_attr($table, $key, 'Extra') == 'auto_increment') {
             return $key;
@@ -193,8 +187,7 @@ abstract class Metadata
      * @param string $table name
      * @return string
      */
-    function table_image_elt($table)
-    {
+    function table_image_elt($table) {
         return $this->table_key($table);
     }
 
@@ -206,8 +199,7 @@ abstract class Metadata
      * @param string $attr attribut name
      * @return string
      */
-    function field_attr($table, $field, $attr = '')
-    {
+    function field_attr($table, $field, $attr = '') {
         $this->resolve($table, $field);
 
         if ($attr == '') {
@@ -228,8 +220,7 @@ abstract class Metadata
      * @param string $field name
      * @return string
      */
-    function field_name($table, $field)
-    {
+    function field_name($table, $field) {
         $this->resolve($table, $field);
 
         $key = "gvv_" . $table . "_short_field_" . $field;
@@ -269,8 +260,7 @@ abstract class Metadata
      * @param string $field name
      * @return string
      */
-    function field_long_name($table, $field)
-    {
+    function field_long_name($table, $field) {
         $this->resolve($table, $field);
 
         $key = "gvv_" . $table . "_field_" . $field;
@@ -292,8 +282,7 @@ abstract class Metadata
      * @param string $field name
      * @return string
      */
-    function field_subtype($table, $field)
-    {
+    function field_subtype($table, $field) {
         $this->resolve($table, $field);
 
         // look for the exact definition
@@ -317,8 +306,7 @@ abstract class Metadata
      * @param string $field name
      * @return string
      */
-    function field_default($table, $field)
-    {
+    function field_default($table, $field) {
         $this->resolve($table, $field);
 
         if (isset($this->field[$table][$field]['Default'])) {
@@ -345,8 +333,7 @@ abstract class Metadata
      * @param string $table name
      * @return mixed[]
      */
-    function defaults_list($table)
-    {
+    function defaults_list($table) {
         $fields = $this->fields_list($table);
         $defaults = array();
         foreach ($fields as $field) {
@@ -364,8 +351,7 @@ abstract class Metadata
      * @param string $field
      *            name of the field
      */
-    function field_type($table, $field)
-    {
+    function field_type($table, $field) {
         $this->resolve($table, $field);
 
         $db_type = $this->field_attr($table, $field, 'Type');
@@ -397,8 +383,7 @@ abstract class Metadata
      * @param string $field
      *            name of the field
      */
-    function field_size($table, $field)
-    {
+    function field_size($table, $field) {
         $this->resolve($table, $field);
 
         $db_type = $this->field_attr($table, $field, 'Type');
@@ -425,8 +410,7 @@ abstract class Metadata
      * @param
      *            boolean short format for PDF
      */
-    function field_align($table, $field, $short = 0)
-    {
+    function field_align($table, $field, $short = 0) {
         $this->resolve($table, $field);
 
         $left = ($short) ? 'L' : 'align="left"';
@@ -479,8 +463,7 @@ abstract class Metadata
      *            - count nombre total d'éléments de la sélection
      *            - mode "ro" | "rw" table en lecture seule "ro" ou modifiable "rw"
      */
-    function table($table, $attrs = array(), $data = "")
-    {
+    function table($table, $attrs = array(), $data = "") {
         if (isset($data) && $data != "") {
             $this->db[$table] = $data;
         } else {
@@ -668,7 +651,7 @@ abstract class Metadata
                         $res .= "<td></td>";
                     }
                 }
-                
+
                 foreach ($fields as $field) {
                     $align = $this->field_align($table, $field);
                     $value = isset($footer[$col]) ? $footer[$col] : '';
@@ -707,8 +690,7 @@ abstract class Metadata
      * @todo : remplacer par une version qui ne travaille qu'avec les paramètres d'entrée.
      *
      */
-    function normalise($table, $array, $attrs = array())
-    {
+    function normalise($table, $array, $attrs = array()) {
         $result = $array;
         if (!array_key_exists($table, $this->db))
             throw new Exception('unknown table ' . $table);
@@ -758,8 +740,7 @@ abstract class Metadata
      *            - count nombre total d'éléments de la sélection
      *            - mode "ro" | "rw" table en lecture seule "ro" ou modifiable "rw"
      */
-    function empty_table($table, $attrs = array())
-    {
+    function empty_table($table, $attrs = array()) {
         if (!array_key_exists($table, $this->db))
             throw new Exception('unknown table ' . $table);
 
@@ -853,8 +834,7 @@ abstract class Metadata
      * @deprecated
      *
      */
-    function csv($table, $attrs = array())
-    {
+    function csv($table, $attrs = array()) {
         if (!array_key_exists($table, $this->db))
             throw new Exception('unknown table ' . $table);
 
@@ -934,8 +914,7 @@ abstract class Metadata
      *            - title
      *            - offset
      */
-    function csv_table($table, $data, $attrs = array())
-    {
+    function csv_table($table, $data, $attrs = array()) {
         $class = (isset($attrs['class'])) ? "class=\"" . $attrs['class'] . "\"" : "class=\"sql_table\"";
         $numbered = (isset($attrs['numbered'])) ? $attrs['numbered'] : 0;
         if (isset($attrs['fields'])) {
@@ -1015,8 +994,7 @@ abstract class Metadata
      * @deprecated
      *
      */
-    function pdf($table, $pdf, $attrs = array())
-    {
+    function pdf($table, $pdf, $attrs = array()) {
         if (!array_key_exists($table, $this->db))
             throw new Exception('unknown table ' . $table);
 
@@ -1088,8 +1066,7 @@ abstract class Metadata
      *            - offset
      *
      */
-    function pdf_table($table, $data, $pdf, $attrs = array())
-    {
+    function pdf_table($table, $data, $pdf, $attrs = array()) {
 
         // $class = (isset($attrs['class'])) ? "class=\"" . $attrs['class'] . "\"" : "class=\"sql_table\"";
         $numbered = (isset($attrs['numbered'])) ? $attrs['numbered'] : 0;
@@ -1159,8 +1136,7 @@ abstract class Metadata
      * @param $id of
      *            the element
      */
-    protected function array_field($table, $field, $value, &$row, $mode = "ro", $id = '')
-    {
+    protected function array_field($table, $field, $value, &$row, $mode = "ro", $id = '') {
         $this->resolve($table, $field);
 
         // gvv_debug("array_field ($table, $field, $value");
@@ -1172,7 +1148,6 @@ abstract class Metadata
             if ($mode == 'csv')
                 return $value;
             return ($value) ? img(theme() . "/images/tick.png") : '';
-            
         } elseif ('currency' == $subtype) {
 
             if ($value === '')
@@ -1253,8 +1228,7 @@ abstract class Metadata
      * @param
      *            confirm
      */
-    function action($action = '', $url = '', $elt_id = '', $elt_image = '', $confirm = 0)
-    {
+    function action($action = '', $url = '', $elt_id = '', $elt_image = '', $confirm = 0) {
         $label = $this->action_name($action);
         $attrs = array();
 
@@ -1313,8 +1287,7 @@ abstract class Metadata
      *
      * @param $action
      */
-    function action_name($action = '')
-    {
+    function action_name($action = '') {
         if ($action == 'edit')
             return $this->CI->lang->line("gvv_button_update");
 
@@ -1340,8 +1313,7 @@ abstract class Metadata
      * @param $query to
      *            analyze to find the data types (default = the latest query on the database)
      */
-    function store_table($view, $selection, $query = '')
-    {
+    function store_table($view, $selection, $query = '') {
         $log = 0;
         $detail = 1;
 
@@ -1469,8 +1441,7 @@ abstract class Metadata
     /**
      * Debug function
      */
-    function dump()
-    {
+    function dump() {
         echo "// Metadata dump" . br();
         $tables_list = $this->tables_list();
         echo "// Tables = " . join(", ", $tables_list) . br();
@@ -1505,8 +1476,7 @@ abstract class Metadata
      * @param $view
      * @param $field
      */
-    function real_table($view, $field)
-    {
+    function real_table($view, $field) {
         if (isset($this->real_table[$view][$field]))
             return $this->real_table[$view][$field];
         return $view;
@@ -1518,8 +1488,7 @@ abstract class Metadata
      * @param $view
      * @param $field
      */
-    function real_field($view, $field)
-    {
+    function real_field($view, $field) {
         // echo "real_field ($view, $field)" . br();
         if (isset($this->real_field[$view][$field])) {
             return $this->real_field[$view][$field];
@@ -1535,8 +1504,7 @@ abstract class Metadata
      * @param $view
      * @param $field
      */
-    function resolve(&$view, &$field)
-    {
+    function resolve(&$view, &$field) {
         $previous_view = $view;
         $previous_field = $field;
         // d'abord les champs
@@ -1556,8 +1524,7 @@ abstract class Metadata
      * @param string $table name
      * @param string $field name
      */
-    function rules($table, $field, $action)
-    {
+    function rules($table, $field, $action) {
         // 'trim|required|min_length[3]|max_length[52]|encode_php_tags|xss_clean');
         $rules = "";
         $type = $this->field_type($table, $field);
@@ -1612,8 +1579,7 @@ abstract class Metadata
      * @param
      *            action CREATION | MODIFICATION
      */
-    function set_rules($table, $fields = array(), $ext_rules = array(), $action)
-    {
+    function set_rules($table, $fields = array(), $ext_rules = array(), $action) {
         foreach ($fields as $field) {
             $rules = $this->rules($table, $field, $action);
             if (isset($ext_rules[$field])) {
@@ -1635,8 +1601,7 @@ abstract class Metadata
      * @param $mode
      *            "ro"
      */
-    function input_field($table, $field, $value = '', $mode = "ro", $attrs = array())
-    {
+    function input_field($table, $field, $value = '', $mode = "ro", $attrs = array()) {
         $radio_limit = 4;
         $text_limit = 128;
 
@@ -1677,6 +1642,12 @@ abstract class Metadata
             $selector = $this->selector($to_select);
             // return dropdown_field($field, $value, $selector, "");
             $attrsv = "id=\"$field\"";
+
+            # if there are more than 8 values in the selector,
+            if (count($selector) > 8) {
+                $attrsv .= " class=\"big_select\" ";
+            }
+
             if ($def_attrs) {
                 foreach ($def_attrs as $k => $v) {
                     $attrsv .= " $k = \"$v\"";
@@ -1850,8 +1821,7 @@ abstract class Metadata
      * @param string $value précédante
      * @return string value
      */
-    function post2database($table, $field, $value = '')
-    {
+    function post2database($table, $field, $value = '') {
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
         if ('date' == $type) {
@@ -1869,8 +1839,7 @@ abstract class Metadata
      * @param mixed[] $fields hash of field names with initial values
      * @return mixed[]
      */
-    function form($table, $fields = array())
-    {
+    function form($table, $fields = array()) {
         $res = "";
         $res .= "<table>\n";
         foreach ($fields as $field => $init) {
@@ -1895,8 +1864,7 @@ abstract class Metadata
      * @param mixed[] $fields hash of field names with initial values
      * @return string
      */
-    function form_generator($table, $fields = array())
-    {
+    function form_generator($table, $fields = array()) {
         $res = "\n";
         $res .= '$table = array();' . "\n";
         $res .= '$row = 0;' . "\n";
@@ -1917,16 +1885,14 @@ abstract class Metadata
      * @param $selector
      * @param $values
      */
-    function set_selector($selector, $values)
-    {
+    function set_selector($selector, $values) {
         $this->selectors[$selector] = $values;
     }
 
     /**
      * Return selector
      */
-    function selector($selector)
-    {
+    function selector($selector) {
         return $this->selectors[$selector];
     }
 
@@ -1950,8 +1916,7 @@ abstract class Metadata
      *     }
      *   }
      */
-    public function upload($table)
-    {
+    public function upload($table) {
         $list = $this->fields_list($table);
         foreach ($list as $field) {
             if (isset($this->field[$table][$field]['Subtype']) && $this->field[$table][$field]['Subtype'] == "upload_image") {
