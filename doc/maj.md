@@ -18,6 +18,13 @@ Une fois la migration réalisée, il est possible de mettre à jour depuis githu
     cat "" >> installed.txt
     git log --stat -n 1 >> installed.txt
 
+Si vous ne pouvez pas faire le pull à cause des fichiers de configuration locaux:
+
+    git stash --include-untracked
+    git pull
+    git stash pop
+
+
 Pour activer un commit spécifique:
 
     git checkout e517a13c7c242fdd0c93f2dca7f1a6ef32c52190
