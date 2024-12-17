@@ -24,7 +24,6 @@ Si vous ne pouvez pas faire le pull à cause des fichiers de configuration locau
     git pull
     git stash pop
 
-
 Pour activer un commit spécifique:
 
     git checkout e517a13c7c242fdd0c93f2dca7f1a6ef32c52190

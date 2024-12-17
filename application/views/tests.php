@@ -28,57 +28,62 @@ echo p("Cette page permet l'activation des tests unitaires. Note: elle doit êtr
 
 echo heading("Tests des librairies et helpers", 4);
 $list = array(
-		anchor(controller_url("tests/test_helpers") , "Helpers"),
-		anchor(controller_url("tests/test_libraries") , "Libraries")
+	anchor(controller_url("tests/test_helpers"), "Helpers"),
+	anchor(controller_url("tests/test_libraries"), "Libraries")
 );
-echo ul ($list);
+echo ul($list);
 
 echo heading("Tests controleurs et models", 4);
 echo p("Tests unitaires des fonctions du controleur et du model");
 
 
 $list = array(
-	anchor(controller_url("achats/test") , "Achats"),
-	anchor(controller_url("admin/test") , "Admin"),
-	anchor(controller_url("categorie/test") , "Categories"),
-	anchor(controller_url("compta/test") , "Compta"),
-	anchor(controller_url("comptes/test") , "Comptes"),
-	anchor(controller_url("event/test") , "Events"),
-	anchor(controller_url("licences/test") , "Licences"),
-	anchor(controller_url("membre/test") , "Membres"),
-	anchor(controller_url("plan_comptable/test") , "Plan comptable"),		
-	anchor(controller_url("planeur/test") , "Planeur"),
-	anchor(controller_url("pompes/test") , "Pompes"),
-	anchor(controller_url("presences/test") , "Présences"),
-	anchor(controller_url("rapports/test") , "Rapports"),
-	anchor(controller_url("tarifs/test") , "Tarifs"),
-	anchor(controller_url("terrains/test") , "Terrains"),
-	anchor(controller_url("tickets/test") , "Tickets"),
-	anchor(controller_url("types_ticket/test") , "Type tickets"),
-	);
-echo ul ($list);
+	anchor(controller_url("achats/test"), "Achats"),
+	anchor(controller_url("admin/test"), "Admin"),
+	anchor(controller_url("categorie/test"), "Categories"),
+	anchor(controller_url("compta/test"), "Compta"),
+	anchor(controller_url("comptes/test"), "Comptes"),
+	anchor(controller_url("event/test"), "Events"),
+	anchor(controller_url("licences/test"), "Licences"),
+	anchor(controller_url("membre/test"), "Membres"),
+	anchor(controller_url("plan_comptable/test"), "Plan comptable"),
+	anchor(controller_url("planeur/test"), "Planeur"),
+	anchor(controller_url("pompes/test"), "Pompes"),
+	anchor(controller_url("presences/test"), "Présences"),
+	anchor(controller_url("rapports/test"), "Rapports"),
+	anchor(controller_url("tarifs/test"), "Tarifs"),
+	anchor(controller_url("terrains/test"), "Terrains"),
+	anchor(controller_url("tickets/test"), "Tickets"),
+	anchor(controller_url("types_ticket/test"), "Type tickets"),
+);
+echo ul($list);
 
 echo heading("Tests fonctionels", 4);
 echo p("Ces tests mettent en jeux plusieurs models.");
-echo p("Attention ils chargent une base de données de test et efface vos données.", 'class="error"' );
+echo p("Attention ils chargent une base de données de test et efface vos données.", 'class="error"');
 //echo p("(Note: il doivent laisser la base de donnée dans l'état ou ils l'ont trouvée).");
 
 $list = array(
-	anchor(controller_url("facturation/test") , "Facturation"),
-    anchor(controller_url("vols_avion/test") , "Vols avion"),
-    anchor(controller_url("vols_planeur/test") , "Vols planeur")
-		);
-echo ul ($list);
+	anchor(controller_url("facturation/test"), "Facturation"),
+	anchor(controller_url("vols_avion/test"), "Vols avion"),
+	anchor(controller_url("vols_planeur/test"), "Vols planeur")
+);
+echo ul($list);
 
 $list = array(
-		'statistiques planeur',
-		'statistiques avion',
-		'facturation planeur',
-		'facturation avion',
-		'bilan'
-		);
-echo ul ($list);
+	'statistiques planeur',
+	'statistiques avion',
+	'facturation planeur',
+	'facturation avion',
+	'bilan'
+);
+echo ul($list);
 
 echo '</div">';
 
-?>
+echo '<div>';
+echo '<form action="/upload_article_image" method="POST" enctype="multipart/form-data">
+    <input type="file" name="article_image" accept="image/*" capture="camera">
+    <button type="submit">Upload</button>
+</form>';
+echo '</div">';
