@@ -30,6 +30,7 @@ class Tests extends CI_Controller {
         // }
         $this->load->library('unit_test');
     }
+
     function index() {
         load_last_view('tests');
     }
@@ -37,32 +38,34 @@ class Tests extends CI_Controller {
     /**
      * entry for experimentation
      */
-    public function hello () {
+    public function hello() {
         echo ("Hello world;");
-        
+
         $url = 'https://gvv.planeur-abbeville.fr/index.php/auth/login';
         $fields = array(
             'username' => 'fpeignot',
             'password' => 'xxxxx'
         );
-        
+
         $fields_string = "";
         //url-ify the data for the POST
-        foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+        foreach ($fields as $key => $value) {
+            $fields_string .= $key . '=' . $value . '&';
+        }
         rtrim($fields_string, '&');
-        
+
         //open connection
         $ch = curl_init();
-        
+
         //set the url, number of POST vars, POST data
-        curl_setopt($ch,CURLOPT_URL, $url);
-        curl_setopt($ch,CURLOPT_POST, count($fields));
-        curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
-        
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, count($fields));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+
         //execute post
         $result = curl_exec($ch);
         var_dump($result);
-        
+
         //close connection
         curl_close($ch);
         echo ("Bye!");
@@ -71,32 +74,33 @@ class Tests extends CI_Controller {
     /**
      * entry for experimentation
      */
-    public function fetch () {
+    public function fetch() {
         /**
          * Ca marche copie le le fichier HTML reçu dans
         C:\Users\frede\Dropbox\xampp\htdocs\gvv2\example_homepage.txt
-        */
-        
+         */
+
         echo ("Hello world;");
         $ch = curl_init("http://www.example.com/");
         $fp = fopen("example_homepage.txt", "w");
-        
+
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        
+
         curl_exec($ch);
-        if(curl_error($ch)) {
+        if (curl_error($ch)) {
             fwrite($fp, curl_error($ch));
         }
         curl_close($ch);
-        fclose($fp);$ch = curl_init("http://www.example.com/");
+        fclose($fp);
+        $ch = curl_init("http://www.example.com/");
         $fp = fopen("example_homepage.txt", "w");
-        
+
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        
+
         curl_exec($ch);
-        if(curl_error($ch)) {
+        if (curl_error($ch)) {
             fwrite($fp, curl_error($ch));
         }
         curl_close($ch);
@@ -106,42 +110,44 @@ class Tests extends CI_Controller {
     /**
      * entry for experimentation
      */
-    public function fetch2 () {
+    public function fetch2() {
         /**
          * Ca marche copie le le fichier HTML reçu dans
          C:\Users\frede\Dropbox\xampp\htdocs\gvv2\example_homepage.txt
          */
-        
+
         echo ("Fetching ACS;");
         $fields = array(
             'username' => 'fpeignot',
             'password' => 'didamu'
         );
-        
+
         $fields_string = "";
         //url-ify the data for the POST
-        foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+        foreach ($fields as $key => $value) {
+            $fields_string .= $key . '=' . $value . '&';
+        }
         rtrim($fields_string, '&');
-        
+
         $ch = curl_init("https://gvv.planeur-abbeville.fr/index.php/auth/login");
         $fp = fopen("acs_homepage.txt", "w");
-        
+
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch,CURLOPT_POST, count($fields));
-        curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+        curl_setopt($ch, CURLOPT_POST, count($fields));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
         echo ($fields_string);
-        
+
         curl_exec($ch);
-        if(curl_error($ch)) {
+        if (curl_error($ch)) {
             fwrite($fp, curl_error($ch));
         }
         curl_close($ch);
         fclose($fp);
-        
+
         echo ("Bye!");
     }
-    
+
     /**
      * Helpers
      */
@@ -181,39 +187,39 @@ class Tests extends CI_Controller {
         $input = input_field("name", "value", "");
 
         $mlogin = 'moi';
-        $pilote_selector = array ();
+        $pilote_selector = array();
         dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' onchange='new_selection();'");
 
-        $table = array (
-                array (
-                        6,
-                        12,
-                        17
-                ),
-                array (
-                        7,
-                        11,
-                        23
-                )
+        $table = array(
+            array(
+                6,
+                12,
+                17
+            ),
+            array(
+                7,
+                11,
+                23
+            )
         );
         $this->unit->run(count($table), 2, "Initial table size");
-        add_first_row($table, array (
-                'Jan',
-                'Fev',
-                'Mar'
+        add_first_row($table, array(
+            'Jan',
+            'Fev',
+            'Mar'
         ));
         $this->unit->run(count($table), 3, "table size after add_first_row");
 
-        add_first_col($table, array (
-                'Année',
-                '2013',
-                '2014'
+        add_first_col($table, array(
+            'Année',
+            '2013',
+            '2014'
         ));
 
-        $this->unit->run($table [0] [0], "Année", '$table[0][0]');
-        $this->unit->run($table [1] [0], "2013", '$table[1][0]');
-        $this->unit->run($table [1] [1], 6, '$table[1][1]');
-        $this->unit->run($table [2] [2], 11, '$table[2][2]');
+        $this->unit->run($table[0][0], "Année", '$table[0][0]');
+        $this->unit->run($table[1][0], "2013", '$table[1][0]');
+        $this->unit->run($table[1][1], 6, '$table[1][1]');
+        $this->unit->run($table[2][2], 11, '$table[2][2]');
     }
 
     /**
@@ -223,19 +229,19 @@ class Tests extends CI_Controller {
         $this->unit->header("Helper csv");
         $res = $this->load->helper('csv');
 
-        $table = array (
-                array (
-                        "Nom",
-                        "Age"
-                ),
-                array (
-                        "Jean",
-                        18
-                ),
-                array (
-                        "Mathusalem",
-                        99
-                )
+        $table = array(
+            array(
+                "Nom",
+                "Age"
+            ),
+            array(
+                "Jean",
+                18
+            ),
+            array(
+                "Mathusalem",
+                99
+            )
         );
         $this->unit->run(csv_file("test.csv", $table, false) != "", "CSV not empty");
     }
@@ -268,8 +274,8 @@ class Tests extends CI_Controller {
 
         $res = $this->load->library('Widget');
 
-        $w = new Widget(array (
-                'color' => 'orange'
+        $w = new Widget(array(
+            'color' => 'orange'
         ));
         $this->unit->run($w != NULL, TRUE, "Widget library loaded");
         $this->unit->run($w->get('color'), 'orange', "Widget default attribut");
@@ -327,8 +333,8 @@ class Tests extends CI_Controller {
 
         $res = $this->load->library('Button');
 
-        $w = new Button(array (
-                'color' => 'orange'
+        $w = new Button(array(
+            'color' => 'orange'
         ));
         $this->unit->run($w != NULL, TRUE, "Button library loaded");
         $this->unit->run($w->get('color'), 'orange', "Button default attribut");
@@ -356,8 +362,8 @@ class Tests extends CI_Controller {
         $this->unit->run(count($tables) > 0, true, "GVVMetadata several tables are declared");
 
         $cnt = 0;
-        foreach ( $tables as $table ) {
-            $cnt ++;
+        foreach ($tables as $table) {
+            $cnt++;
 
             if ($cnt > 5)
                 continue;
@@ -372,8 +378,8 @@ class Tests extends CI_Controller {
             $this->unit->run(count($fields) > 0, true, "GVVMetadata table=$table as several fields");
 
             $cnt2 = 0;
-            foreach ( $fields as $field ) {
-                $cnt2 ++;
+            foreach ($fields as $field) {
+                $cnt2++;
                 if ($cnt2 > 5)
                     continue;
 
@@ -433,7 +439,7 @@ class Tests extends CI_Controller {
      * Convert a language file into a hash
      */
     private function to_hash($filename) {
-        include ($filename);
+        include($filename);
         return $lang;
     }
 
@@ -446,16 +452,16 @@ class Tests extends CI_Controller {
         $ref_hash = $this->to_hash($ref_file);
         $lang_hash = $this->to_hash($lang_file);
 
-        foreach ( $ref_hash as $key => $value ) {
+        foreach ($ref_hash as $key => $value) {
             if (! array_key_exists($key, $lang_hash)) {
                 echo nbs(8) . "key $key not found in $lang_file" . br();
-                $missing_keys ++;
+                $missing_keys++;
             } else {
-                if (is_array($ref_hash [$key]) != is_array($lang_hash [$key])) {
+                if (is_array($ref_hash[$key]) != is_array($lang_hash[$key])) {
                     echo nbs(8) . "incoherent array type for $key" . br();
-                } elseif (is_array($ref_hash [$key]) && (count($ref_hash [$key]) != count($lang_hash [$key]))) {
+                } elseif (is_array($ref_hash[$key]) && (count($ref_hash[$key]) != count($lang_hash[$key]))) {
                     echo nbs(8) . "different number of array elements for $key" . br();
-                } elseif ($identical && ($ref_hash [$key] == $lang_hash [$key])) {
+                } elseif ($identical && ($ref_hash[$key] == $lang_hash[$key])) {
                     echo nbs(12) . "value for $key = $value, identical, may be not translated yet" . br();
                 }
             }
@@ -478,8 +484,8 @@ class Tests extends CI_Controller {
 
         $pwd = getcwd();
 
-        $ref_files = array ();
-        $lang_files = array ();
+        $ref_files = array();
+        $lang_files = array();
 
         $ref_dir = $pwd . "/$type/language/" . $lang_ref;
         if (! is_dir($ref_dir)) {
@@ -497,16 +503,16 @@ class Tests extends CI_Controller {
 
         // Check that all files are found in the checked language
         if ($dh = opendir($ref_dir)) {
-            while ( ($file = readdir($dh)) !== false ) {
+            while (($file = readdir($dh)) !== false) {
                 if (preg_match('/.*\.php$/', $file, $matches)) {
                     // echo "fichier : $file : type : " . filetype($ref_dir . $file) . br();
-                    $ref_files [] = $file;
+                    $ref_files[] = $file;
 
                     $lang_file = $lang_dir . '/' . $file;
 
                     if (! file_exists($lang_file)) {
                         echo "$lang_file not found" . br();
-                        $missing_files ++;
+                        $missing_files++;
                     }
                 }
             }
@@ -516,7 +522,7 @@ class Tests extends CI_Controller {
         echo br();
         // Check that all entries are found in the checked language
         if ($dh = opendir($ref_dir)) {
-            while ( ($file = readdir($dh)) !== false ) {
+            while (($file = readdir($dh)) !== false) {
                 if (preg_match('/.*\.php$/', $file, $matches)) {
                     $ref_file = $ref_dir . '/' . $file;
                     $lang_file = $lang_dir . '/' . $file;
@@ -534,11 +540,11 @@ class Tests extends CI_Controller {
         echo "Missing files = $missing_files, missing entries = $missing_keys" . br();
     }
     function upload() {
-        $data = array ();
-        $data ['msg'] = "upload form";
-        $data ['controller'] = "tests";
-        $data ['action'] = "action";
-        $data ['error'] = "";
+        $data = array();
+        $data['msg'] = "upload form";
+        $data['controller'] = "tests";
+        $data['action'] = "action";
+        $data['error'] = "";
         load_last_view('tests/upload_form', $data);
     }
 
@@ -552,37 +558,36 @@ class Tests extends CI_Controller {
     }
 
     function do_upload() {
-        $config ['upload_path'] = './uploads/';
-        $config ['allowed_types'] = 'gif|jpg|png|avi';
-        $config ['allowed_types'] = '*';
-        $config ['max_size'] = '2000000'; // 2 Gb
-                                         // $config['max_width'] = '1024';
-                                         // $config['max_height'] = '768';
+        $config['upload_path'] = './uploads/';
+        $config['allowed_types'] = 'gif|jpg|png|avi';
+        $config['allowed_types'] = '*';
+        $config['max_size'] = '2000000'; // 2 Gb
+        // $config['max_width'] = '1024';
+        // $config['max_height'] = '768';
         $this->load->library('upload', $config);
 
         if (! $this->upload->do_upload('userfile')) {
-            $error = array (
-                    'error' => $this->upload->display_errors()
+            $error = array(
+                'error' => $this->upload->display_errors()
             );
 
             load_last_view('tests/upload_form', $error);
         } else {
-            $data = array (
-                    'upload_data' => $this->upload->data()
+            $data = array(
+                'upload_data' => $this->upload->data()
             );
 
             load_last_view('tests/upload_success', $data);
         }
     }
-    
+
     function exception() {
         throw new ErrorException("Test exception");
     }
-    
+
     function error() {
         show_error("GVV error");
     }
-    
 }
 
 /* End of file tests.php */
