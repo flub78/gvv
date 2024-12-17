@@ -15,9 +15,13 @@ echo $error; ?>
 <input type="submit" value="Cancel" />
 
 </form>
+
 <form action="/upload_article_image" method="POST" enctype="multipart/form-data">
-    <input type="file" name="article_image" accept="image/*" capture="camera">
-    <button type="submit">Upload Photo</button>
+    <label for="article_image" class="btn btn-primary">
+        <i class="fas fa-camera"></i> Take Photo
+    </label>
+    <input type="file" id="article_image" name="article_image" accept="image/*" capture="camera" style="display: none;">
+    <button type="submit" class="btn btn-success">Upload</button>
 </form>
 
 <div class="progress">
