@@ -81,9 +81,9 @@ echo ul($list);
 
 echo '</div">';
 
-echo '<div>';
-echo '<form action="/upload_article_image" method="POST" enctype="multipart/form-data">
-    <input type="file" name="article_image" accept="image/*" capture="camera">
-    <button type="submit">Upload</button>
-</form>';
-echo '</div">';
+?>
+
+<form action="/upload_article_image" method="POST" enctype="multipart/form-data">
+	<input type="file" name="article_image" accept="image/*" capture="camera">
+	<button type="submit">Upload</button>
+</form>
