@@ -24,8 +24,8 @@ DROP TABLE IF EXISTS terrains;
 CREATE TABLE `terrains` (
   `oaci` varchar(10) COLLATE utf8_bin NOT NULL COMMENT 'Code OACI',
   `nom` varchar(64) COLLATE utf8_bin DEFAULT NULL COMMENT 'Nom du terrain',
-  `freq1` decimal(6,0) DEFAULT NULL COMMENT 'Fréquence principale',
-  `freq2` decimal(6,0) DEFAULT NULL COMMENT 'Fréquence secondaire',
+  `freq1` decimal(6,0) DEFAULT '0.000' COMMENT 'Fréquence principale',
+  `freq2` decimal(6,0) DEFAULT '0.000' COMMENT 'Fréquence secondaire',
   `comment` varchar(256) COLLATE utf8_bin DEFAULT NULL COMMENT 'Description',
   PRIMARY KEY (`oaci`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

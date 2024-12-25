@@ -166,8 +166,8 @@ DROP TABLE IF EXISTS terrains;
 CREATE TABLE `terrains` (
   `oaci` varchar(10) COLLATE latin1_general_ci NOT NULL COMMENT 'Code OACI',
   `nom` varchar(64) COLLATE latin1_general_ci DEFAULT NULL COMMENT 'Nom du terrain',
-  `freq1` decimal(6,3) DEFAULT NULL COMMENT 'Fréquence principale',
-  `freq2` decimal(6,3) DEFAULT NULL COMMENT 'Fréquence secondaire',
+  `freq1` decimal(6,3) DEFAULT '0.000' COMMENT 'Fréquence principale',
+  `freq2` decimal(6,3) DEFAULT '0.000' COMMENT 'Fréquence secondaire',
   `comment` varchar(256) COLLATE latin1_general_ci DEFAULT NULL COMMENT 'Description',
   PRIMARY KEY (`oaci`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
@@ -418,7 +418,7 @@ CREATE TABLE `membres` (
   `compte` int(11) DEFAULT NULL COMMENT 'Compte pilote',
   `comment` varchar(2048) DEFAULT NULL COMMENT 'Commentaires',
   `trigramme` varchar(12) DEFAULT NULL COMMENT 'Trigramme',
-  `categorie` varchar(12) DEFAULT '' COMMENT 'Cat�gorie du pilote',
+  `categorie` varchar(12) DEFAULT '' COMMENT 'Cat�gorie du pilote',
   `profession` varchar(64) DEFAULT NULL COMMENT 'Profession',
   `inst_glider` varchar(25) DEFAULT NULL COMMENT 'Instructeur planeur',
   `inst_airplane` varchar(25) DEFAULT NULL COMMENT 'Instructeur avion',

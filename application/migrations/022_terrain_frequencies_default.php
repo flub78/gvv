@@ -17,14 +17,34 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *	Configuration du programme
+ *	  Script de migration de la base
  */
 
-if (! defined('BASEPATH')) exit('No direct script access allowed');
+if (!defined('BASEPATH'))
+	exit('No direct script access allowed');
 
-$config['migration_enabled'] = true;
+/**
+ * Set correct defaults to frequencies
+ * 
+ * @author frederic
+ *
+ */
+class Migration_Terrain_frequencies_default extends CI_Migration {
 
-$config['migration_version'] = 22;
+	/**
+	 * Migration 021 -> 022
+	 */
+	public function up() {
+		$sql = "ALTER TABLE `terrains` ALTER COLUMN `freq1` SET DEFAULT '0.000', ALTER COLUMN `freq2` SET DEFAULT '0.000'";
+		$this->db->query($sql);
+	}
 
-/* End of file migration.php */
-/* Location: .application/config/migration.php */
+	/**
+	 * Retour 022 -> 021
+	 */
+	public function down() {
+		$sql = "ALTER TABLE `terrains` ALTER COLUMN `freq1` SET DEFAULT NULL, ALTER COLUMN `freq2` SET DEFAULT NULL";
+
+		$this->db->query($sql);
+	}
+}
