@@ -1929,9 +1929,9 @@ abstract class Metadata {
 
                 if ($button == $this->CI->lang->line('gvv_button_upload')) {
                     // echo "uploading $userfile to ..." . br();
-                    $config['upload_path'] = './assets/uploads/';
+                    $config['upload_path'] = './uploads/';
                     $config['allowed_types'] = 'zip|png|jpeg|jpg';
-                    $config['max_size'] = '256';
+                    $config['max_size'] = '4000000';
                     $config['encrypt_name'] = TRUE;
 
                     $this->CI->load->library('upload', $config);
