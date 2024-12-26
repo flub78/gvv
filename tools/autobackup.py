@@ -42,7 +42,7 @@ con = MySQLdb.connect(host=host, user=user, passwd=password, db=database)
 con.query("SELECT * FROM migrations")
 result = con.use_result()
 migration=result.fetch_row()[0][0]
-#print "migration="+str(migration) + '|'
+#print("migration="+str(migration) + '|')
 con.close
 
 current_time = time          
@@ -59,18 +59,18 @@ fullname = backup_dir + backupfile + ".gz"
 def log(logmsg):
     with open(logfile, 'a') as file:
         file.write(logmsg)    
-        print logmsg
+        print (logmsg)
     
 # sauvegarde la base
 
 cmd = "mysqldump --host=" + host
 cmd += " --user=" + user
 cmd += " --password=" + password
-cmd += " --default-character-set=utf8 " + database
+cmd += " --default-character-set=utf8  --no-tablespaces " + database
 cmd += " | gzip "
 cmd += " > " + fullname
 os.system(cmd)
-print cmd
+print(cmd)
 
 # Vérifie l'existence de la sauvegarde
 if (os.path.getsize(fullname) > 100):
@@ -80,6 +80,7 @@ else:
 
 # Ne garde que certaines sauvegarde pour sauver de la place
 files = filter(os.path.isfile, glob.glob(backup_dir + database + "_backup*.gz"))
+files = list(files)
 files.sort(key=lambda x: os.path.getmtime(x),reverse=True)
 
 day = 3600 * 24
@@ -100,7 +101,7 @@ for file in files:
         limit = month
     else:
         limit = year
-    # print "age=", age, ", limit= ", limit, ", file=", file
+    # print("age=", age, ", limit= ", limit, ", file=", file)
     
     since = age - age_previous
     if (since < limit * 0.95):
