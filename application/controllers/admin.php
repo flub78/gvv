@@ -57,23 +57,23 @@ class Admin extends CI_Controller {
      * cela. C'est surement une faille de sécurité potentielle ???
      */
     public function restore() {
-    	$dir = getcwd() . '/backups/';
-    	$files = glob($dir . '*.sql.gz'); // get all file names
-    	
-    	$backups = array();
-    	foreach ($files as $file) {
-    		$name = basename($file);
-    		$url = base_url() . '/backups/' . $name;
-    		$anchor = anchor($url, $name);
-    		$backups[] = $anchor;
-    	}
-    	
-        $error = array (
-                'error' => '',
-                'erase_db' => 1
+        $dir = getcwd() . '/backups/';
+        $files = glob($dir . '*.sql.gz'); // get all file names
+
+        $backups = array();
+        foreach ($files as $file) {
+            $name = basename($file);
+            $url = base_url() . '/backups/' . $name;
+            $anchor = anchor($url, $name);
+            $backups[] = $anchor;
+        }
+
+        $error = array(
+            'error' => '',
+            'erase_db' => 1
         );
         if (count($files)) {
-        	$error['backups'] = $backups;
+            $error['backups'] = $backups;
         }
         load_last_view('admin/restore_form', $error);
     }
@@ -89,12 +89,12 @@ class Admin extends CI_Controller {
         $aFilePath = explode("/", $sPath);
         $i = 0;
         $sLastFolder = "";
-        foreach ( $aFilePath as $sFolder ) {
-            $i ++;
+        foreach ($aFilePath as $sFolder) {
+            $i++;
             if (file_exists($sLastFolder . $sFolder) || is_dir($sLastFolder . $sFolder)) {
                 // chmod ($sLastFolder . $sFolder, 0777);
                 $iOldumask = umask(0); // important part #1
-                                       // chmod($sLastFolder . $sFolder, 0777);
+                // chmod($sLastFolder . $sFolder, 0777);
                 umask($iOldumask); // important part #2
                 $sLastFolder .= $sFolder . "/";
             }
@@ -117,15 +117,15 @@ class Admin extends CI_Controller {
 
         // delete all files in the uploads/restore directory
         $files = glob($upload_path . '*'); // get all file names
-        foreach ( $files as $file ) { // iterate files
+        foreach ($files as $file) { // iterate files
             if (is_file($file))
                 unlink($file); // delete file
         }
 
         // upload archive
-        $config ['upload_path'] = $upload_path;
-        $config ['allowed_types'] = 'zip|gz';
-        $config ['max_size'] = '1500';
+        $config['upload_path'] = $upload_path;
+        $config['allowed_types'] = 'zip|gz';
+        $config['max_size'] = '1500';
 
         $this->load->library('upload', $config);
 
@@ -133,9 +133,9 @@ class Admin extends CI_Controller {
 
         if (! $this->upload->do_upload()) {
             // On a pas réussi à recharger la sauvegarde
-            $error = array (
-                    'error' => $this->upload->display_errors(),
-                    'erase_db' => 1
+            $error = array(
+                'error' => $this->upload->display_errors(),
+                'erase_db' => 1
             );
             load_last_view('admin/restore_form', $error);
         } else {
@@ -144,17 +144,17 @@ class Admin extends CI_Controller {
             $data = $this->upload->data();
 
             $this->load->library('unzip');
-            $filename = $config ['upload_path'] . $data ['file_name'];
+            $filename = $config['upload_path'] . $data['file_name'];
             // echo $filename . br();
-            $orig_name = $config ['upload_path'] . $data ['orig_name'];
+            $orig_name = $config['upload_path'] . $data['orig_name'];
             // echo $orig_name . br();
-            
+
             // TODO: support pour les fichiers *.sql.tz
             $this->unzip->extract($filename, $upload_path);
 
             // $sqlfile = str_replace('.zip', '.sql', $orig_name);
             $sqlfiles = glob($upload_path . '*.sql');
-            $sqlfile = $sqlfiles [0];
+            $sqlfile = $sqlfiles[0];
             $sql = file_get_contents($sqlfile);
 
             // remove the uncompressed file
@@ -178,7 +178,7 @@ class Admin extends CI_Controller {
      * cela. C'est surement une faille de sécurité potentielle ???
      */
     public function page() {
-        return load_last_view('admin/admin', array (), $this->unit_test);
+        return load_last_view('admin/admin', array(), $this->unit_test);
     }
 
     /**
@@ -206,13 +206,13 @@ class Admin extends CI_Controller {
 
     function spy() {
         echo "spy:" . br();
-        foreach ( $_POST as $key => $value ) {
+        foreach ($_POST as $key => $value) {
             echo "POST[$key] = $value" . br();
         }
-        foreach ( $_GET as $key => $value ) {
+        foreach ($_GET as $key => $value) {
             echo "GET[$key] = $value" . br();
         }
-        foreach ( $_ENV as $key => $value ) {
+        foreach ($_ENV as $key => $value) {
             echo "ENV[$key] = $value" . br();
         }
         var_dump($_REQUEST);
