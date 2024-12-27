@@ -58,8 +58,7 @@ class Admin extends CI_Controller {
      */
     public function restore() {
         $dir = getcwd() . '/backups/';
-        $files = glob($dir . '*.sql.gz'); // get all file names
-
+        $files = glob($dir . '*.{zip,sql.gz}', GLOB_BRACE); // get all file names
         $backups = array();
         foreach ($files as $file) {
             $name = basename($file);
