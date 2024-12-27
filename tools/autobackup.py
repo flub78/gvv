@@ -5,14 +5,8 @@
 #    * typiquement lancé par un cron job
 #    * garde un journal des sauvegarde
 #   * les noms de sauvegarde incluent les dates et numéro de version de la base
-#   * Efface les anciennes sauvegardes en en gardant
-#
-#     - une par jour pendant une semaine    7
-#     - une par semaine pendant un mois        3
-#     - une par mois pendant un an            11
-#     - une par an pendant 10 ans            9
-#
-#    soit un total maximal de 30 fichiers    soit 15 Mo
+#   * Efface les anciennes sauvegardes en en gardant un nombre limité
+
 
 import time
 import os
@@ -22,13 +16,12 @@ import calendar
 import MySQLdb    # apt-get install python-mysqldb
 
 # configuration
-backup_dir = os.environ['HOME'] + '/workspace/gvv2/backups/'
+backup_dir = os.environ.get('BACKUP_DIR', os.environ['HOME'] + '/workspace/gvv2/backups/')
+database = os.environ.get('DB_NAME', 'ci3')
+user = os.environ.get('DB_USER', 'ci3')
+password = os.environ.get('DB_PASSWORD', 'ci3')
+host = os.environ.get('DB_HOST', 'localhost')# fin de configuration
 logfile = backup_dir + 'logfile.txt'
-database = 'ci3'
-user = 'ci3'
-password = 'ci3'
-host = "localhost"
-# fin de configuration
 
 # Vérifie l'existance du répertoire et crée le s'il le faut
 try:
@@ -47,11 +40,11 @@ con.close
 
 current_time = time          
 now = current_time.strftime("%H:%M:%S %d/%m/%Y")
-backupfile = database + "_backup_" + current_time.strftime("%Y%m%d_%H%M%S")
-backupfile += '_migration_' + str(migration)
-backupfile += '.sql'
+backup_basename = database + "_backup_" + current_time.strftime("%Y%m%d_%H%M%S")
+backup_basename += '_migration_' + str(migration)
 
-fullname = backup_dir + backupfile + ".gz"
+zipname = backup_dir + backup_basename + ".zip"
+backup_script = backup_basename + '.sql'
 
 # utilitaires
 
@@ -67,19 +60,27 @@ cmd = "mysqldump --host=" + host
 cmd += " --user=" + user
 cmd += " --password=" + password
 cmd += " --default-character-set=utf8  --no-tablespaces " + database
-cmd += " | gzip "
-cmd += " > " + fullname
+cmd += " > "  + backup_script
+
 os.system(cmd)
 print(cmd)
 
+cmd = "zip " + zipname + " " + backup_script
+os.system(cmd)
+print(cmd)
+
+# Supprime les fichiers temporaires
+os.remove(backup_script)
+
 # Vérifie l'existence de la sauvegarde
-if (os.path.getsize(fullname) > 100):
-    log(now + ": Backup " + backupfile + " successful\n") 
+if (os.path.getsize(zipname) > 100):
+    log(now + ": Backup " + backup_basename + " successful\n") 
 else:
-    log(now + ": Backup " + backupfile + " failed\n") 
+    log(now + ": Backup " + backup_basename + " failed\n") 
 
 # Ne garde que certaines sauvegarde pour sauver de la place
-files = filter(os.path.isfile, glob.glob(backup_dir + database + "_backup*.gz"))
+# On utilise la liste des sauvegardes triées par date de création
+files = filter(os.path.isfile, glob.glob(backup_dir + database + "*.zip"))
 files = list(files)
 files.sort(key=lambda x: os.path.getmtime(x),reverse=True)
 
@@ -91,8 +92,11 @@ year = 365 * day
 age_previous = -10 * year
 
 for file in files:
+    # On regarde l'age du fichier
     age = current_time.time() - os.path.getmtime(file)
+    # print("file=", file, "age=", age)
 
+    # On garde le plus récent 
     if age < week:
         limit = day
     elif age < month:
