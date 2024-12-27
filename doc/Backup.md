@@ -9,3 +9,7 @@ Attention une sauvegarde complète de l'environnement devrait également compren
 En plus des sauvegardes manuelles, il est possible de configurer une sauvegarde automatique de la base de données.
 
 Il y a un script tools/autobackup.py qui fait cela. Il doit être installé dans une tâche cron.
+
+Pour lister les tâches cron :
+
+    crontab -l 

@@ -20,7 +20,9 @@ backup_dir = os.environ.get('BACKUP_DIR', os.environ['HOME'] + '/workspace/gvv2/
 database = os.environ.get('DB_NAME', 'ci3')
 user = os.environ.get('DB_USER', 'ci3')
 password = os.environ.get('DB_PASSWORD', 'ci3')
-host = os.environ.get('DB_HOST', 'localhost')# fin de configuration
+host = os.environ.get('DB_HOST', 'localhost')
+
+# fin de configuration
 logfile = backup_dir + 'logfile.txt'
 
 # Vérifie l'existance du répertoire et crée le s'il le faut
@@ -44,7 +46,7 @@ backup_basename = database + "_backup_" + current_time.strftime("%Y%m%d_%H%M%S")
 backup_basename += '_migration_' + str(migration)
 
 zipname = backup_dir + backup_basename + ".zip"
-backup_script = backup_basename + '.sql'
+backup_script = backup_dir + backup_basename + '.sql'
 
 # utilitaires
 
@@ -62,12 +64,12 @@ cmd += " --password=" + password
 cmd += " --default-character-set=utf8  --no-tablespaces " + database
 cmd += " > "  + backup_script
 
-os.system(cmd)
 print(cmd)
+os.system(cmd)
 
 cmd = "zip " + zipname + " " + backup_script
-os.system(cmd)
 print(cmd)
+os.system(cmd)
 
 # Supprime les fichiers temporaires
 os.remove(backup_script)

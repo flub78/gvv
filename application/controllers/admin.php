@@ -148,7 +148,7 @@ class Admin extends CI_Controller {
             $orig_name = $config['upload_path'] . $data['orig_name'];
             // echo $orig_name . br();
 
-            // TODO: support pour les fichiers *.sql.tz
+            // Les fichiers standards de backup sont des zip même sous Linux
             $this->unzip->extract($filename, $upload_path);
 
             // $sqlfile = str_replace('.zip', '.sql', $orig_name);
