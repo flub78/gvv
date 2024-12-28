@@ -67,9 +67,6 @@ class Attachments extends Gvv_Controller {
         $this->data['saisie_par'] = $this->dx_auth->get_username();
     }
 
-
-
-
     /**
      * Test unitaire
      */
@@ -82,7 +79,6 @@ class Attachments extends Gvv_Controller {
     }
 
     public function message($to = 'World') {
-        die('CLI called');
         if ($this->input->is_cli_request()) {
             $msg = "CLI request";
         } else {

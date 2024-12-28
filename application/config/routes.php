@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (! defined('BASEPATH')) exit('No direct script access allowed');
 /*
 | -------------------------------------------------------------------------
 | URI ROUTING
@@ -38,14 +38,15 @@
 |
 */
 
-$route['testing/(:any)'] = 'tools/index/$1';
-$route['testing'] = 'tools';
+$route['bye/(:any)'] = 'tools/bye/$1';
+$route['hello/(:any)'] = 'tools/index/$1';  // works
+$route['attachments/(:any)'] = 'attachments/message/$1';
+
 
 $route['default_controller'] = "calendar";
 $route['404_override'] = '';
 
-$route['tools'] = 'Tools';
-
+// $route['tools'] = 'Tools';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

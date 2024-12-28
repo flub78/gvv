@@ -18,10 +18,12 @@
  * NOTE: If you change these, also change the error_reporting() code below
  *
  */
-// define('ENVIRONMENT', 'development');
-define('ENVIRONMENT', 'production');
+define('ENVIRONMENT', 'development');
+// define('ENVIRONMENT', 'production');
 // xdebug_break();
-
+if (php_sapi_name() === 'cli') {
+	# echo "Running in CLI mode\n";
+}
 /*
  *---------------------------------------------------------------
  * ERROR REPORTING
@@ -34,7 +36,7 @@ define('ENVIRONMENT', 'production');
 if (defined('ENVIRONMENT')) {
 	switch (ENVIRONMENT) {
 		case 'development':
-			error_reporting(E_ALL);
+			error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE);
 			break;
 
 		case 'testing':
