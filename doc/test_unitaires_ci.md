@@ -26,6 +26,19 @@ La verification d'assertion ce fait avec
 
 * en mars 2023 il y avait 89 assertions vérifiés par ces tests (c'est pas beaucoup).
 
+* de plus il y a a plusieurs contrôleurs dont les tests sont bidons (true == true):
+  * licences
+  * membres
+  * plan_comptable
+  * pompes
+  * presences
+  * rapports
+  * tarifs
+  * terrains
+  * tickets
+  * type_tickets
+  * vols_avion
+
 * Il y a un formatter XML_result qui génère un fichier XML. 
 
 ## A faire
