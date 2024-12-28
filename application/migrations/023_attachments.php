@@ -50,8 +50,9 @@ class Migration_Attachments extends CI_Migration {
 	private function run_queries($sqls = array()) {
 		$errors = 0;
 		foreach ($sqls as $sql) {
-			// echo $sql . br();
+			gvv_info("Migration sql: " . $sql);
 			if (!$this->db->query($sql)) {
+				gvv_error("Migration error: " . $this->db->error()['message']);
 				$errors += 1;
 			}
 		}
@@ -75,7 +76,10 @@ class Migration_Attachments extends CI_Migration {
   				`description` varchar(1024) DEFAULT NULL,
   				`file` varchar(255) DEFAULT NULL
 
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+			"ALTER TABLE `attachments` ADD PRIMARY KEY (`id`)",
+			"ALTER TABLE `attachments`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -94,7 +98,7 @@ class Migration_Attachments extends CI_Migration {
 		);
 
 		$errors += $this->run_queries($sqls);
-		gvv_info("Migration database down to " . $this->migration_number - 1 . ", errors=$errors");
+		gvv_info("Migration database down to " . ($this->migration_number - 1) . ", errors=$errors");
 
 		return !$errors;
 	}
