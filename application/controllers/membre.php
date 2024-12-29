@@ -696,4 +696,29 @@ class Membre extends Gvv_Controller {
 
         redirect("FFVV/licences");
     }
+
+    /**
+     * Supprime la photo d'un membre
+     * @param string $mlogin Login du membre
+     */
+    function delete_photo($mlogin) {
+
+        $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
+        $photo = $membre['photo'];
+        $filename = 'uploads/' . $photo;
+
+        if (file_exists($filename)) {
+            unlink($filename);
+        }
+
+        // Met à jour la base de données pour supprimer la référence à la photo
+        $this->gvv_model->update(
+            'mlogin',
+            array('photo' => NULL),
+            $mlogin
+        );
+
+        // Redirige vers la page du membre
+        redirect("membre/edit/$mlogin");
+    }
 }
