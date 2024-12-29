@@ -64,17 +64,19 @@ $tabs = nbs(10);
 echo form_fieldset($this->lang->line("membre_fieldset_perso"));
 ?>
 
-<div id="picture_id">
-    <?php echo $this->gvvmetadata->input_field("membres", 'photo', $photo); ?>
-    <img src="<?php echo base_url('uploads/' . $photo); ?>" alt="Photo" class="img-responsive" style="max-width: 200px;">
+<?php if ($action != CREATION): ?>
+    <div id="picture_id">
+        <?php echo $this->gvvmetadata->input_field("membres", 'photo', $photo); ?>
 
-    <?php if (isset($photo) && $photo != ''): ?>
-        <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'">
-            <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
-        </button>
-    <?php endif; ?>
+        <?php if (isset($photo) && $photo != ''): ?>
+            <img src="<?php echo base_url('uploads/' . $photo); ?>" id="photo" alt="Photo" class="img-responsive" style="max-width: 200px;">
 
-</div>
+            <button type="button" class="btn btn-danger btn-sm" id="delete_photo" onclick="window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'">
+                <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
+            </button>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
 <?php
 
