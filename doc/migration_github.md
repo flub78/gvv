@@ -13,6 +13,7 @@ Sous Github, la mise à jour des fichiers des fichiers est globale.
 3. git clone https://github.com/flub78/gvv.git
 4. renommez le répertoire si besoin
 5. ré-installez vos fichiers de configuration
-6. Testez, cela devrait fonctionner.
+6. Recréez les répertoires uploads et uploads/restore
+7. Testez, cela devrait fonctionner.
 
 
