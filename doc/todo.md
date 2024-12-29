@@ -16,3 +16,10 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 * [] Multitenant                                             20j
 * [] Online Payments                                         10j
 * [] Reservation des avions                                  10j
+
+
+## Dette technique
+
+* [] Supprimer les vues non bootstrap
+* [] Utiliser les flexbox plutôt que les tableaux
+* [] 
