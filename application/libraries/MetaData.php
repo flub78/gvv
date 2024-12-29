@@ -1930,7 +1930,7 @@ abstract class Metadata {
                 if ($button == $this->CI->lang->line('gvv_button_upload')) {
                     // echo "uploading $userfile to ..." . br();
                     $config['upload_path'] = './uploads/';
-                    $config['allowed_types'] = 'zip|png|jpeg|jpg';
+                    $config['allowed_types'] = 'zip|png|jpeg|jpg|gif';
                     $config['max_size'] = '4000000';
                     $config['encrypt_name'] = TRUE;
 
@@ -1942,9 +1942,10 @@ abstract class Metadata {
                             ""
                         );
                     } else {
+                        // TODO translate this message
                         return array(
                             "",
-                            "Chargement de $userfile\n" . "vers " . $config['upload_path'] . "\n" . "extension supportées " . $config['allowed_types'] . "\n" . "taile max " . $config['max_size'] . "\n" . $this->CI->upload->display_errors()
+                            "Chargement de $userfile\n" . "vers " . $config['upload_path'] . "\n" . "extension supportées " . $config['allowed_types'] . "\n" . "taille max " . $config['max_size'] . "\n" . $this->CI->upload->display_errors()
                         );
                     }
                 }

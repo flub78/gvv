@@ -22,4 +22,4 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 
 * [] Supprimer les vues non bootstrap
 * [] Utiliser les flexbox plutôt que les tableaux
-* [] 
+* [] Warnings en mode développement

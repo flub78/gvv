@@ -20,7 +20,7 @@
  * @filesource membres.php
  * @package controllers
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 
 // First, include Requests
 include(APPPATH . '/third_party/Requests.php');
@@ -38,14 +38,14 @@ class Membre extends Gvv_Controller {
     protected $modification_level = 'ca'; // no edit delete buttons on list
 
     // régles de validation
-    protected $rules = array (
-            'mlogin' => 'alpha_dash'
+    protected $rules = array(
+        'mlogin' => 'alpha_dash'
     );
-    protected $filter_variables = array (
-            'filter_active',
-            'filter_membre_actif',
-            'filter_categorie',
-            'filter_25'
+    protected $filter_variables = array(
+        'filter_active',
+        'filter_membre_actif',
+        'filter_categorie',
+        'filter_25'
     );
 
     /**
@@ -72,17 +72,17 @@ class Membre extends Gvv_Controller {
         // Load la liste des dates pour le membre
         $this->load->model('event_model');
         // 0=Autre,1=planeur,2=avion,3=ULM,4=FAI
-        $this->event_model->evenement_de($id, array (
-                'activite' => 0
+        $this->event_model->evenement_de($id, array(
+            'activite' => 0
         ), "vue_exp_autre");
-        $this->event_model->evenement_de($id, array (
-                'activite' => 1
+        $this->event_model->evenement_de($id, array(
+            'activite' => 1
         ), "vue_exp_vv");
-        $this->event_model->evenement_de($id, array (
-                'activite' => 2
+        $this->event_model->evenement_de($id, array(
+            'activite' => 2
         ), "vue_exp_avion");
-        $this->event_model->evenement_de($id, array (
-                'activite' => 4
+        $this->event_model->evenement_de($id, array(
+            'activite' => 4
         ), "vue_exp_fai");
     }
 
@@ -94,8 +94,8 @@ class Membre extends Gvv_Controller {
      * @param
      *            message message à afficher
      */
-    function page($premier = 0, $message = '', $selection = Array()) {
-        $this->data ['action'] = VISUALISATION;
+    function page($premier = 0, $message = '', $selection = array()) {
+        $this->data['action'] = VISUALISATION;
         $this->load_filter($this->filter_variables);
 
         $selection = $this->selection();
@@ -119,7 +119,7 @@ class Membre extends Gvv_Controller {
      * dans la section de filtrage.
      */
     function selection() {
-        $this->data ['filter_active'] = $this->session->userdata('filter_active');
+        $this->data['filter_active'] = $this->session->userdata('filter_active');
 
         $selection = "";
         $year = $this->session->userdata('year');
@@ -129,7 +129,7 @@ class Membre extends Gvv_Controller {
 
             $filter_membre_actif = $this->session->userdata('filter_membre_actif');
             if ($filter_membre_actif) {
-                $filter_membre_actif --;
+                $filter_membre_actif--;
                 $selection .= "(actif = \"$filter_membre_actif\" )";
             }
 
@@ -158,7 +158,7 @@ class Membre extends Gvv_Controller {
         }
 
         if ($selection == "")
-            $selection = array ();
+            $selection = array();
 
         return $selection;
     }
@@ -173,9 +173,9 @@ class Membre extends Gvv_Controller {
             $id = $this->gvv_model->default_id();
             // echo "id=$id<br>";
             if ($id == '') {
-                $data = array ();
-                $data ['title'] = $this->lang->line("gvv_error");
-                $data ['text'] = $this->lang->line("membre_error_no_file");
+                $data = array();
+                $data['title'] = $this->lang->line("gvv_error");
+                $data['text'] = $this->lang->line("membre_error_no_file");
                 load_last_view('message', $data);
                 return;
             }
@@ -186,21 +186,21 @@ class Membre extends Gvv_Controller {
         $non_existing = false;
         try {
             parent::edit($id, FALSE);
-        } catch ( Exception $e ) {
+        } catch (Exception $e) {
             // echo 'Exception reçue : ', $e->getMessage(), "\n";
             $non_existing = true;
         }
         $non_existing = $non_existing || (! array_key_exists('mnom', $this->data));
         if ($non_existing) {
-            $data = array ();
-            $data ['title'] = $this->lang->line("gvv_error");
-            $data ['text'] = $id . " " . $this->lang->line("membre_error_unknow");
+            $data = array();
+            $data['title'] = $this->lang->line("gvv_error");
+            $data['text'] = $id . " " . $this->lang->line("membre_error_unknow");
             load_last_view('message', $data);
             return;
         }
 
-        $this->data ['mniveau'] = int2array($this->data ['mniveaux']);
-        $this->data ['macce'] = int2array($this->data ['macces']);
+        $this->data['mniveau'] = int2array($this->data['mniveaux']);
+        $this->data['macce'] = int2array($this->data['macces']);
 
         $this->load->model('comptes_model');
         $this->load_certificats($id);
@@ -216,26 +216,28 @@ class Membre extends Gvv_Controller {
      */
     function form2database($action = '') {
         $processed_data = parent::form2database($action);
-        $processed_data ["mniveaux"] = array2int($this->input->post('mniveau'));
-        $processed_data ["macces"] = array2int($this->input->post('macce'));
-        unset($processed_data ["mniveau"]);
-        unset($processed_data ["macce"]);
+        $processed_data["mniveaux"] = array2int($this->input->post('mniveau'));
+        $processed_data["macces"] = array2int($this->input->post('macce'));
+        unset($processed_data["mniveau"]);
+        unset($processed_data["macce"]);
 
         // unset date fields
-        foreach ( array (
+        foreach (
+            array(
                 // 'mbradat',
                 // 'mbraval',
                 // 'mbrpdat',
                 // 'mbrpval',
                 'mdaten'
-        )
-        // 'dateinstavion',
-        // 'dateivv',
-        // 'medical',
-        // 'vallicencefed'
-         as $field ) {
-            if ($processed_data [$field] == '')
-                unset($processed_data [$field]);
+            )
+            // 'dateinstavion',
+            // 'dateivv',
+            // 'medical',
+            // 'vallicencefed'
+            as $field
+        ) {
+            if ($processed_data[$field] == '')
+                unset($processed_data[$field]);
         }
         return $processed_data;
     }
@@ -256,28 +258,28 @@ class Membre extends Gvv_Controller {
      * @see Gvv_Controller::form_static_element()
      */
     function form_static_element($action = MODIFICATION) {
-        $this->data ['mniveau'] = array ();
+        $this->data['mniveau'] = array();
         // Utilisé seulement pour les certificats
-        $this->data ['has_modification_rights'] = $this->dx_auth->is_role('ca', true, true);
+        $this->data['has_modification_rights'] = $this->dx_auth->is_role('ca', true, true);
         parent::form_static_element($action);
         $this->load->model('comptes_model');
         if ($this->dx_auth->is_role('ca', true, true)) {
-            $this->data ['pilote_selector'] = $this->membres_model->selector();
+            $this->data['pilote_selector'] = $this->membres_model->selector();
         }
-        $compte_selector = $this->comptes_model->selector_with_null(array (
-                'codec' => 411
+        $compte_selector = $this->comptes_model->selector_with_null(array(
+            'codec' => 411
         ));
         $this->gvvmetadata->set_selector('compte_pilote_selector', $compte_selector);
         if ($action != CREATION)
-            $this->data ['compte_pilote'] = $this->comptes_model->compte_pilote($this->data ['mlogin']);
+            $this->data['compte_pilote'] = $this->comptes_model->compte_pilote($this->data['mlogin']);
 
-        $this->data ['cp'] = sprintf("%05d", $this->data ['cp']);
-        if ($this->data ['compte']) {
+        $this->data['cp'] = sprintf("%05d", $this->data['cp']);
+        if ($this->data['compte']) {
             $this->load->model('comptes_model');
-            $compte_info = $this->comptes_model->get_by_id('id', $this->data ['compte']);
-            $this->data ['compte_ticket'] = $compte_info ['pilote'];
+            $compte_info = $this->comptes_model->get_by_id('id', $this->data['compte']);
+            $this->data['compte_ticket'] = $compte_info['pilote'];
         } else {
-            $this->data ['compte_ticket'] = $this->data ['mlogin'];
+            $this->data['compte_ticket'] = $this->data['mlogin'];
         }
         $this->gvvmetadata->set_selector('inst_glider_selector', $this->membres_model->qualif_selector('mlogin', ITP | IVV));
         $this->gvvmetadata->set_selector('inst_airplane_selector', $this->membres_model->qualif_selector('mlogin', FE_AVION | FI_AVION));
@@ -288,30 +290,30 @@ class Membre extends Gvv_Controller {
      *
      * @see Gvv_Controller::post_create()
      */
-    function post_create($data = array ()) {
-        if (! $data ['compte']) {
+    function post_create($data = array()) {
+        if (! $data['compte']) {
             // Creation du compte comptable
-            $id = $data ['mlogin'];
-            $cpt = array (
-                    'nom' => $data ['mnom'] . " " . $data ['mprenom'],
-                    'pilote' => $id,
-                    'desc' => "Compte pilote",
-                    'codec' => 411,
-                    'actif' => 1,
-                    'debit' => 0.0,
-                    'credit' => 0.0,
-                    'saisie_par' => $this->dx_auth->get_username()
+            $id = $data['mlogin'];
+            $cpt = array(
+                'nom' => $data['mnom'] . " " . $data['mprenom'],
+                'pilote' => $id,
+                'desc' => "Compte pilote",
+                'codec' => 411,
+                'actif' => 1,
+                'debit' => 0.0,
+                'credit' => 0.0,
+                'saisie_par' => $this->dx_auth->get_username()
             );
             $this->load->model('comptes_model');
             $this->comptes_model->create($cpt);
         }
 
         // Creation de l'utilisateur
-        if (! $this->dx_auth->is_username_available($data ['mlogin'])) {
+        if (! $this->dx_auth->is_username_available($data['mlogin'])) {
             // echo "l'utilisateur " . $data['mlogin'] . " existe déjà" . br();
             return;
         }
-        if (! $user = $this->dx_auth->register($data ['mlogin'], $data ['mlogin'], $data ['memail'])) {
+        if (! $user = $this->dx_auth->register($data['mlogin'], $data['mlogin'], $data['memail'])) {
             echo "Erreur sur la création de l'utilisateur<br>";
         }
     }
@@ -322,11 +324,11 @@ class Membre extends Gvv_Controller {
     function licences($premier = 0, $message = '') {
         $this->push_return_url("licences");
 
-        $data ['select_result'] = $this->gvv_model->select_licences($this->session->userdata('per_page'), $premier);
-        $data ['kid'] = $this->kid;
+        $data['select_result'] = $this->gvv_model->select_licences($this->session->userdata('per_page'), $premier);
+        $data['kid'] = $this->kid;
 
-        $data ['controller'] = $this->controller;
-        $data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $data['controller'] = $this->controller;
+        $data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
         return load_last_view("membre/licences", $data, $this->unit_test);
     }
 
@@ -342,16 +344,16 @@ class Membre extends Gvv_Controller {
         }
 
         $results = $this->gvv_model->select_licences();
-        $attrs = array (
-                'numbered' => 1,
-                'fields' => array (
-                        'mnom',
-                        'mprenom',
-                        'madresse',
-                        'cp',
-                        'ville',
-                        'mdaten'
-                )
+        $attrs = array(
+            'numbered' => 1,
+            'fields' => array(
+                'mnom',
+                'mprenom',
+                'madresse',
+                'cp',
+                'ville',
+                'mdaten'
+            )
         );
         $this->gvvmetadata->csv("membres", $attrs);
     }
@@ -373,25 +375,27 @@ class Membre extends Gvv_Controller {
         // echo "formValidation($action)" . br(); exit;
         $mlogin = $this->input->post('mlogin');
         $upload = $this->gvvmetadata->upload("membres");
-        if ($upload [1]) {
+        if ($upload[1]) {
             // erreur
-            show_error($upload [1]);
+            $this->data['message'] = '<div class="text-danger">' . $upload[1] . '</div>';
 
-            // echo "Erreur détectée: " . $upload[1]; exit;
+            $this->form_static_element($action);
+            load_last_view($this->form_view, $this->data);
+            // show_error($upload[1]);
         }
 
         // pas d'erreur
-        if ($newfile = $upload [0]) {
+        if ($newfile = $upload[0]) {
             // Un fichier a été chargé
             $photo = $this->input->post('photo');
             if (file_exists("uploads/$photo"))
                 unlink("uploads/$photo");
-                // update the file name
-            $data = array (
-                    'photo' => $newfile
+            // update the file name
+            $data = array(
+                'photo' => $newfile
             );
-            $this->gvv_model->update(array (
-                    'mlogin' => $mlogin
+            $this->gvv_model->update(array(
+                'mlogin' => $mlogin
             ), $data);
             redirect("membre/edit/$mlogin");
         }
@@ -451,9 +455,9 @@ class Membre extends Gvv_Controller {
         if ($mlogin != "") {
             parent::edit($mlogin, false);
         }
-        if (isset($this->data ['mniveau'])) {
-            $this->data ['mniveau'] = int2array($this->data ['mniveaux']);
-            $this->data ['macce'] = int2array($this->data ['macces']);
+        if (isset($this->data['mniveau'])) {
+            $this->data['mniveau'] = int2array($this->data['mniveaux']);
+            $this->data['macce'] = int2array($this->data['macces']);
         }
         $this->load->model('comptes_model');
         $this->load_certificats($mlogin);
@@ -469,8 +473,8 @@ class Membre extends Gvv_Controller {
         }
 
         // photo
-        if ($this->data ['photo']) {
-            $photofile = "./assets/uploads/" . $this->data ['photo'];
+        if ($this->data['photo']) {
+            $photofile = "./assets/uploads/" . $this->data['photo'];
             if (file_exists($photofile)) {
                 $pdf->Image($photofile, 10, 40, 50);
             }
@@ -483,23 +487,23 @@ class Membre extends Gvv_Controller {
             $this->pdf_line($pdf, $this->lang->line("membre_sheet_undersigned"), $photo_margin);
         }
 
-        $txt = $this->lang->line("membre_sheet_name_and_firstanme") . ": " . $this->data ['mnom'] . " " . $this->data ['mprenom'];
+        $txt = $this->lang->line("membre_sheet_name_and_firstanme") . ": " . $this->data['mnom'] . " " . $this->data['mprenom'];
         $this->pdf_line($pdf, $txt, $photo_margin);
 
-        $txt = $this->lang->line("membre_sheet_address") . ": " . $this->data ['madresse'] . " " . $this->data ['cp'];
-        $txt .= ", " . $this->data ['ville'];
+        $txt = $this->lang->line("membre_sheet_address") . ": " . $this->data['madresse'] . " " . $this->data['cp'];
+        $txt .= ", " . $this->data['ville'];
         $this->pdf_line($pdf, $txt, $photo_margin);
 
-        $txt = $this->lang->line("membre_sheet_birthdate") . ": " . date_db2ht($this->data ['mdaten']);
+        $txt = $this->lang->line("membre_sheet_birthdate") . ": " . date_db2ht($this->data['mdaten']);
         $this->pdf_line($pdf, $txt, $photo_margin);
 
-        $txt = $this->lang->line("membre_sheet_occupation") . ": " . $this->data ['profession'];
+        $txt = $this->lang->line("membre_sheet_occupation") . ": " . $this->data['profession'];
         $this->pdf_line($pdf, $txt, $photo_margin);
 
-        $txt = $this->lang->line("membre_sheet_telephone") . ": " . $this->data ['mtelf'] . ", " . $this->lang->line("membre_sheet_mobile") . ": " . $this->data ['mtelm'];
+        $txt = $this->lang->line("membre_sheet_telephone") . ": " . $this->data['mtelf'] . ", " . $this->lang->line("membre_sheet_mobile") . ": " . $this->data['mtelm'];
         $this->pdf_line($pdf, $txt, $photo_margin);
 
-        $txt = $this->lang->line("membre_sheet_email") . ": " . $this->data ['memail'];
+        $txt = $this->lang->line("membre_sheet_email") . ": " . $this->data['memail'];
         $this->pdf_line($pdf, $txt, $photo_margin);
 
         $pdf->SetXY(10, 100);
@@ -508,19 +512,19 @@ class Membre extends Gvv_Controller {
         // Load la liste des dates pour le membre
         $this->load->model('event_model');
         // 0=Autre,1=planeur,2=avion,3=ULM,4=FAI
-        $events = $this->event_model->evenement_de($mlogin, array (), "vue_exp_aero");
+        $events = $this->event_model->evenement_de($mlogin, array(), "vue_exp_aero");
 
-        $this->gvvmetadata->pdf_table("events", $events, $pdf, array (
-                'width' => array (
-                        50,
-                        30,
-                        30
-                ),
-                'fields' => array (
-                        'event_type',
-                        'date',
-                        'comment'
-                )
+        $this->gvvmetadata->pdf_table("events", $events, $pdf, array(
+            'width' => array(
+                50,
+                30,
+                30
+            ),
+            'fields' => array(
+                'event_type',
+                'date',
+                'comment'
+            )
         ));
 
         // $txt1 = $this->lang->line("membre_sheet_bia") . ": "
@@ -541,7 +545,7 @@ class Membre extends Gvv_Controller {
 
         $pdf->Ln(5);
 
-        $comment = isset($this->data ['comment']) ? $this->data ['comment'] : '';
+        $comment = isset($this->data['comment']) ? $this->data['comment'] : '';
 
         $pdf->title($this->lang->line("membre_sheet_info"), 4);
 
@@ -560,16 +564,16 @@ class Membre extends Gvv_Controller {
             $pdf->AddPage();
 
             $content = $this->lang->line("membre_subscription_information");
-            foreach ( $content as $section ) {
-                $title = $section ['title'];
-                $txt = $section ['text'];
+            foreach ($content as $section) {
+                $title = $section['title'];
+                $txt = $section['text'];
                 $txt = str_replace('$club', $club, $txt);
 
                 if ($title) {
                     $pdf->title($title, 4);
                 }
 
-                foreach ( explode("\n", $txt) as $line ) {
+                foreach (explode("\n", $txt) as $line) {
                     $this->pdf_line($pdf, $line, 10);
                 }
 
@@ -590,25 +594,25 @@ class Membre extends Gvv_Controller {
         $this->unit->run(true, true, "Tests $this->controller");
         $this->tests_results($format);
     }
-    
+
     /**
      * Ouvre le formulaire de saisie pré-rempli avec les indormations du licencié
      * @param unknown $licence_number
      */
     function heva_create($licence_number) {
-    	
-    	$request = heva_request("/persons/$licence_number");
-    	
-    	if (!$request->success) {
-    		echo "status_code = " . $request->status_code . br();
-    		echo "success = " . $request->success . br();
-    		return;
-    	}
-    	
-    	$result = json_decode($request->body, true);
-    	// var_dump($result);
-    	 
-       // membre/create
+
+        $request = heva_request("/persons/$licence_number");
+
+        if (!$request->success) {
+            echo "status_code = " . $request->status_code . br();
+            echo "success = " . $request->success . br();
+            return;
+        }
+
+        $result = json_decode($request->body, true);
+        // var_dump($result);
+
+        // membre/create
         $this->data = $this->gvvmetadata->defaults_list('membres');
         // var_dump($this->data);
         $this->form_static_element(CREATION);
@@ -616,79 +620,80 @@ class Membre extends Gvv_Controller {
         // var_dump($this->data);
         $this->data['controller'] = 'membre';
         $this->data['action'] = CREATION;
-        
+
         $this->data['mlogin'] = strtolower(substr($result['first_name'], 0, 1) . $result['last_name']);
         $this->data['mprenom'] = $result['first_name'];
         $this->data['mnom'] = ucwords(strtolower($result['last_name']));
         $this->data['licfed'] = $result['licence_number'];
         $this->data['mdaten'] = $result['date_of_birth'];
         if (isset($result['comment']))
-        	$this->data['comment'] = $result['comment'];
+            $this->data['comment'] = $result['comment'];
         if (isset($result['insee_category']))
-        	$this->data['profession'] = $result['insee_category'];
+            $this->data['profession'] = $result['insee_category'];
         if (isset($result['email']['value']))
-        	$this->data['memail'] = $result['email']['value'];
+            $this->data['memail'] = $result['email']['value'];
         if (isset($result['mobile']['value']))
-        	$this->data['mtelm'] = $result['mobile']['value'];
+            $this->data['mtelm'] = $result['mobile']['value'];
         if (isset($result['phone']['value']))
-        	$this->data['mtelf'] = $result['phone']['value'];
-        
+            $this->data['mtelf'] = $result['phone']['value'];
+
         if (isset($result['address']['address']))
-	        $this->data['madresse'] = ucwords(strtolower($result['address']['address']));
+            $this->data['madresse'] = ucwords(strtolower($result['address']['address']));
 
         if (isset($result['address']['postal_code']))
-			$this->data['cp'] = $result['address']['postal_code'];
+            $this->data['cp'] = $result['address']['postal_code'];
         if (isset($result['address']['city']))
-	        $this->data['ville'] = ucwords(strtolower($result['address']['city']));
+            $this->data['ville'] = ucwords(strtolower($result['address']['city']));
         if (isset($result['address']['country']))
-        	$this->data['pays'] = $result['address']['country'];
-        
+            $this->data['pays'] = $result['address']['country'];
+
         $this->data['msexe'] = ($result['civility'] == 'M.') ? "M" : "F";
         //$this->data['m25ans'] = ($result['date_of_birth'] == 'M.') ? 1 : 0;
-        
+
         return load_last_view('membre/formView', $this->data, false);
     }
-    
+
     /**
      * Associe un numéro de licence avec un pilote
      * @param unknown $mlogin
      * @param unknown $licence_number
      */
     function associe_licence($licence_number, $image) {
-    	    	
-    	// Verifie que le numéro n'est pas déjà affecté
-    	
-    	// va chercher la liste des membres qui aurait déjà ce numéro de licence
-    	if (false) {
-    		// la liste est non vide
-    		
-    		// message = Ce numéro de licence est déjà affecté aux membres X, Y et Z
-    		// Corrigez la situation en éditant les fiches pilotes manuellement
-    		return;
-    	}    	 
-    	
-    	$data['title'] = "Association d'un numéro de licence avec un membre";
-    	$data['licence_number'] = $licence_number;
-    	$data['image'] = urldecode($image);
-    	$data['selector'] = $this->membres_model->selector(array('licfed' => NULL));
-    	
-    	return load_last_view("membre/associe", $data, $this->unit_test);
-    	 
+
+        // Verifie que le numéro n'est pas déjà affecté
+
+        // va chercher la liste des membres qui aurait déjà ce numéro de licence
+        if (false) {
+            // la liste est non vide
+
+            // message = Ce numéro de licence est déjà affecté aux membres X, Y et Z
+            // Corrigez la situation en éditant les fiches pilotes manuellement
+            return;
+        }
+
+        $data['title'] = "Association d'un numéro de licence avec un membre";
+        $data['licence_number'] = $licence_number;
+        $data['image'] = urldecode($image);
+        $data['selector'] = $this->membres_model->selector(array('licfed' => NULL));
+
+        return load_last_view("membre/associe", $data, $this->unit_test);
     }
-    
+
     /**
      * Affecte le numéro de licence d'un membre
      * @param unknown $licence_number
      * @param unknown $mlogin
      */
     function associe($licence_number) {
-    	$mlogin = $this->input->post('mlogin');
-    	 
-    	// echo "associe($licence_number, $mlogin) " . br();
-    	$this->gvv_model->update('mlogin', 
-    			array('licfed' => $licence_number), $mlogin);
-    	
-    	redirect("FFVV/licences");
-    	 
+        $mlogin = $this->input->post('mlogin');
+
+        // echo "associe($licence_number, $mlogin) " . br();
+        $this->gvv_model->update(
+            'mlogin',
+            array('licfed' => $licence_number),
+            $mlogin
+        );
+
+        redirect("FFVV/licences");
     }
 }
