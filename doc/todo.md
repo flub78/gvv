@@ -10,8 +10,8 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 
 * [x] Fix the photo upload                                   2j
 * [x] Documentation de la sauvegarde automatique             2j
-* [] Adapt the membre view to show the picture               2j
-* [] Analyse and document auto backup mechanism              2j
+* [x] Adapt the membre view to show the picture              2j
+* [x] Analyse and document auto backup mechanism             2j
 * [] Implement attachments                                   5j
 * [] Multitenant                                             20j
 * [] Online Payments                                         10j

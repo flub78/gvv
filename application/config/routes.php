@@ -40,8 +40,9 @@
 
 $route['bye/(:any)'] = 'tools/bye/$1';
 $route['hello/(:any)'] = 'tools/index/$1';  // works
-$route['attachments/(:any)'] = 'attachments/message/$1';
 
+$route['attachments/(:any)'] = 'attachments/message/$1';
+$route['attachments/test'] = 'attachments/test/$1';
 
 $route['default_controller'] = "calendar";
 $route['404_override'] = '';
