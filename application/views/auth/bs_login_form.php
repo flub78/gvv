@@ -37,65 +37,62 @@ echo '<div id="body" class="body container-fluid  d-flex justify-content-center 
 ?>
 
 
-<?php echo form_open($this->uri->uri_string())?>
+<?php echo form_open($this->uri->uri_string()) ?>
 
 <?php echo $this->dx_auth->get_auth_error(); ?>
 
 <?php
-	if ($locked) {
-		echo p($this->lang->line("auth_locked"), 'class="error"' );
-		echo p($this->lang->line("auth_come_back"));
-	}
+if ($locked) {
+	echo p($this->lang->line("auth_locked"), 'class="error"');
+	echo p($this->lang->line("auth_come_back"));
+}
 ?>
-<dl>	
-	<dt><?php echo form_label($this->lang->line("auth_user"), $username['id']);?></dt>
+<dl>
+	<dt><?php echo form_label($this->lang->line("auth_user"), $username['id']); ?></dt>
 	<dd>
-		<?php echo form_input($username)?>
-    <?php echo form_error($username['name']); ?>
+		<?php echo form_input($username) ?>
+		<?php echo form_error($username['name']); ?>
 	</dd>
 
-  <dt><?php echo form_label($this->lang->line("auth_password"), $password['id']);?></dt>
+	<dt><?php echo form_label($this->lang->line("auth_password"), $password['id']); ?></dt>
 	<dd>
-		<?php echo form_password($password)?>
-    <?php echo form_error($password['name']); ?>
+		<?php echo form_password($password) ?>
+		<?php echo form_error($password['name']); ?>
 	</dd>
 
-	<dd><?=$this->lang->line("legacy_gui") ?> <input type="checkbox" name="legacy_gui" value="1"  id="legacy_guy"  /></dd>
-	
+	<?php if ($show_captcha): ?>
 
-<?php if ($show_captcha): ?>
+		<dt><?= $this->lang->line("auth_enter_code") ?></dt>
+		<dd><?php echo $this->dx_auth->get_captcha_image(); ?></dd>
 
-	<dt><?=$this->lang->line("auth_enter_code") ?></dt>
-	<dd><?php echo $this->dx_auth->get_captcha_image(); ?></dd>
+		<dt><?php echo form_label($this->lang->line("auth_confirmation_code"), $confirmation_code['id']); ?></dt>
+		<dd>
+			<?php echo form_input($confirmation_code); ?>
+			<?php echo form_error($confirmation_code['name']); ?>
+		</dd>
 
-	<dt><?php echo form_label($this->lang->line("auth_confirmation_code"), $confirmation_code['id']);?></dt>
-	<dd>
-		<?php echo form_input($confirmation_code);?>
-		<?php echo form_error($confirmation_code['name']); ?>
-	</dd>
-	
-<?php endif; ?>
+	<?php endif; ?>
 
 	<dt></dt>
 	<dd>
 		<!-- 
-		<?php echo form_checkbox($remember);?> 
-		<?php echo form_label($this->lang->line("auth_save_id"), $remember['id']);?> 
+		<?php echo form_checkbox($remember); ?> 
+		<?php echo form_label($this->lang->line("auth_save_id"), $remember['id']); ?> 
 		-->
-		<?php echo anchor($this->dx_auth->forgot_password_uri, $this->lang->line("auth_forgoten_password"));?> 
+		<?php echo anchor($this->dx_auth->forgot_password_uri, $this->lang->line("auth_forgoten_password")); ?>
 		<?php
-			if ($this->dx_auth->allow_registration) {
-				echo anchor($this->dx_auth->register_uri, 'Register');
-			};
+		if ($this->dx_auth->allow_registration) {
+			echo anchor($this->dx_auth->register_uri, 'Register');
+		};
 		?>
 	</dd>
 
 	<dt></dt>
-	<dd><?php echo form_submit('login',$this->lang->line("auth_login"));?></dd>
+	<dd><?php echo form_submit('login', $this->lang->line("auth_login")); ?></dd>
 </dl>
 
 <?php
- 
+
 echo br(2);
 // Si il existe testadmin ou tesuser afficher l'information
 // Si iles existent mais qu'il y a d'autres utilisateurs afficher un warning de sécurité.

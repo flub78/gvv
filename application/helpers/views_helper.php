@@ -31,8 +31,7 @@ if (!function_exists('load_club_view')) {
      * @param unknown_type $data
      * @param unknown_type $nodisplay
      */
-    function load_club_view($view, $data, $nodisplay)
-    {
+    function load_club_view($view, $data, $nodisplay) {
         $CI = &get_instance();
         $club = $CI->config->item('club');
         $filename = "./application/views/" . $view . "_" . $club . ".php";
@@ -65,9 +64,9 @@ if (!function_exists('load_bs_view')) {
             $filename = "./application/views/" . $bs_view . ".php";
             if (file_exists($filename)  && !$legacy_gui) {
                 $view = $bs_view;
-            } 
+            }
         }
-        return $CI->load->view($view, $data, $nodisplay);
+        return $CI->load->view($bs_view, $data, $nodisplay);
     }
 }
 
@@ -82,8 +81,7 @@ if (!function_exists('load_last_view')) {
      * @param unknown_type $data
      * @param unknown_type $nodisplay
      */
-    function load_last_view()
-    {
+    function load_last_view() {
         $args = func_get_args(); // récupère les arguments
         $view = array_shift($args); // retire et retourne le premier argument
         $data = array_shift($args); // retire et retourne le second argument
@@ -108,24 +106,21 @@ if (!function_exists('load_last_view')) {
  */
 
 if (!function_exists('is_logged_in')) {
-    function is_logged_in()
-    {
+    function is_logged_in() {
         $CI = &get_instance();
         return $CI->dx_auth->is_logged_in();
     }
 }
 
 if (!function_exists('is_admin')) {
-    function is_admin()
-    {
+    function is_admin() {
         $CI = &get_instance();
         return $CI->dx_auth->is_admin();
     }
 }
 
 if (!function_exists('has_role')) {
-    function has_role($role)
-    {
+    function has_role($role) {
         $CI = &get_instance();
 
         if ($CI->dx_auth->is_admin()) {
