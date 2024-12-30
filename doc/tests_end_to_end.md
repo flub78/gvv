@@ -1,9 +1,7 @@
 # Les tests de bout en bout
 
 Ils simulent un utilisateur qui interagit avec l'application à l'aide d'un navigateur. Les tests pilotent le navigateur et vérifient ce qui est affiché. 
-
-* Le répertoire de test watir est obsolete.
-  
+ 
 * Utilisez (mars 2023) pour tester GVV de bout en bout. https://github.com/flub78/dusk_gvv
 
 

@@ -11,4 +11,4 @@ d'un module PHP même simple reste un exercise hors d'atteinte pour tous les clu
 
 Les raisons en sont multiples, les version initiales de CodeIgniter n'étaient pas intégrés avec phpunit, elles utilisait un système de test qui était propre à CodeIgniter et difficile à intégrer dans les systèmes d'intégration continue (jenkins). De plus les contrôleurs ne pouvaient pas être testé avec le système de test. Certains développeur ont bien tenté de palier à ces limitations mais comme il s'agissait de modules externes, ils n'ont pas suivi les évolutions de CodeIgniter.
 
-Lest tests sont donc constitués de tests unitaires de bas niveau qui avaient été complété par un ensemble de test de bout en bout (Watir = Ruby + Selenium). Ces tests ont été rendus obsoletes lorsque l'interface graphique a changé et ils ont été partiellement remplacé par des tests de bout en bout avec Laravel et Dusk.
+Lest tests sont donc constitués de tests unitaires de bas niveau et de tests de bout en bout Laravel Dusk dans un projet Dusk_Gvv. Les tests Selenium et Watir sont obsolètes depuis le passage à Bootstrap.
