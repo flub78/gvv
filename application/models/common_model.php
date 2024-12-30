@@ -59,7 +59,7 @@ class Common_Model extends CI_Model {
             $last_id = $this->db->insert_id();
             gvv_debug("create succesful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
             if (! $last_id) {
-                $last_id = $data [$this->primary_key];
+                $last_id = $data[$this->primary_key];
                 gvv_debug("\$last_id=$last_id (\$data[primary_key])");
             }
             return $last_id;
@@ -75,7 +75,7 @@ class Common_Model extends CI_Model {
      * @param unknown_type $where
      *            selection des éléments à détruire
      */
-    function delete($where = array ()) {
+    function delete($where = array()) {
         $this->db->delete($this->table, $where);
     }
 
@@ -101,7 +101,7 @@ class Common_Model extends CI_Model {
      *            des éléments
      * @return hash des valeurs
      */
-    public function get_first($where = array ()) {
+    public function get_first($where = array()) {
         return $this->db->select('*')->from($this->table)->where($where)->limit(1)->get()->row_array(0);
     }
 
@@ -116,9 +116,9 @@ class Common_Model extends CI_Model {
      */
     public function update($keyid, $data, $keyvalue = '') {
         if ($keyvalue == '')
-            $keyvalue = $data [$keyid];
+            $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
-        unset($data [$keyid]);
+        unset($data[$keyid]);
         $this->db->update($this->table, $data);
     }
 
@@ -129,7 +129,7 @@ class Common_Model extends CI_Model {
      *            Tableau associatif permettant de définir des conditions
      * @return integer Le nombre de news satisfaisant la condition
      */
-    public function count($where = array (), $where2 = array ()) {
+    public function count($where = array(), $where2 = array()) {
         $this->db->where($where);
         if (isset($where2))
             $this->db->where($where2);
@@ -152,7 +152,7 @@ class Common_Model extends CI_Model {
      *            nombre à sauter
      * @return objet La liste
      */
-    public function list_of($where = array (), $nb = 100, $debut = 0) {
+    public function list_of($where = array(), $nb = 100, $debut = 0) {
         return $this->db->select('*')->from($this->table)->where($where)->limit($nb, $debut)->get()->result();
     }
 
@@ -171,7 +171,7 @@ class Common_Model extends CI_Model {
      * @param $where selection
      * @return objet La liste
      */
-    public function select_columns($columns, $nb = 0, $debut = 0, $where = array ()) {
+    public function select_columns($columns, $nb = 0, $debut = 0, $where = array()) {
         if ($nb) {
             $db_res = $this->db->select($columns)->from($this->table)->where($where)->limit($nb, $debut)->get();
         } else {
@@ -191,7 +191,7 @@ class Common_Model extends CI_Model {
      * @param $where selection
      * @return objet La liste
      */
-    public function select_all($where = array (), $order_by = "") {
+    public function select_all($where = array(), $order_by = "") {
         if ($order_by) {
             $db_res = $this->db->from($this->table)->where($where)->order_by($order_by)->get();
         } else {
@@ -220,16 +220,16 @@ class Common_Model extends CI_Model {
      * @param $order ordre
      *            de tri
      */
-    public function selector($where = array (), $order = "asc") {
+    public function selector($where = array(), $order = "asc") {
         $key = $this->primary_key;
 
         $db_res = $this->db->select($key)->from($this->table)->where($where)->get();
         $allkeys = $this->get_to_array($db_res);
 
-        $result = array ();
-        foreach ( $allkeys as $row ) {
-            $value = $row [$key];
-            $result [$value] = $this->image($value);
+        $result = array();
+        foreach ($allkeys as $row) {
+            $value = $row[$key];
+            $result[$value] = $this->image($value);
         }
         if ($order == "asc") {
             natcasesort($result);
@@ -246,7 +246,7 @@ class Common_Model extends CI_Model {
      *
      * @param $where selection
      */
-    public function selector_with_all($where = array ()) {
+    public function selector_with_all($where = array()) {
         // TODO delete comments
         // $key = $this->primary_key;
 
@@ -259,7 +259,7 @@ class Common_Model extends CI_Model {
         // }
         // asort($result);
         $result = $this->selector($where);
-        $result [''] = $this->lang->line("gvv_tous") . ' ...';
+        $result[''] = $this->lang->line("gvv_tous") . ' ...';
         return $result;
     }
 
@@ -269,12 +269,12 @@ class Common_Model extends CI_Model {
      *
      * @param $where selection
      */
-    public function selector_with_null($where = array ()) {
+    public function selector_with_null($where = array()) {
         $allkeys = $this->selector($where);
-        $result = array ();
-        $result [''] = '';
-        foreach ( $allkeys as $key => $value ) {
-            $result [$key] = $value;
+        $result = array();
+        $result[''] = '';
+        foreach ($allkeys as $key => $value) {
+            $result[$key] = $value;
         }
         return $result;
     }
@@ -294,14 +294,14 @@ class Common_Model extends CI_Model {
         }
         gvv_debug("sql: year selector: " . $this->db->last_query());
 
-        $year_selector = array ();
+        $year_selector = array();
 
-        foreach ( $results as $key => $row ) {
-            $year_selector [$row ['year']] = $row ['year'];
+        foreach ($results as $key => $row) {
+            $year_selector[$row['year']] = $row['year'];
         }
         return $year_selector;
     }
-    
+
     /**
      * Transform a database query into an array of result
      * 
@@ -312,7 +312,7 @@ class Common_Model extends CI_Model {
      */
     public function get_to_array($res) {
         gvv_debug("sql: " . $this->db->last_query());
-        
+
         if ($res) {
             return $res->result_array();
         } else {
@@ -322,7 +322,6 @@ class Common_Model extends CI_Model {
             return array();
         }
     }
-    
 }
 
 /* End of file common_model.php */

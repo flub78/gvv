@@ -21,8 +21,7 @@
  * @package controllers
  * Controleur des attachments / CRUD
  *
- * Les attachments peuvent être générés par les vols ou à traves la vue
- * des comptes pilotes.
+ * Attachments
  */
 
 /**
@@ -36,6 +35,8 @@ include('./application/libraries/Gvv_Controller.php');
 class Attachments extends Gvv_Controller {
     protected $controller = 'attachments';
     protected $model = 'attachments_model';
+    // protected $modification_level = 'ca';
+
     protected $rules = array();
 
     /**
@@ -45,9 +46,9 @@ class Attachments extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
-        $this->load->model('membres_model');
-        $this->load->model('tarifs_model');
-        $this->load->model('ecritures_model');
+        // $this->load->model('membres_model');
+        // $this->load->model('tarifs_model');
+        // $this->load->model('ecritures_model');
         $this->lang->load('attachments');
     }
 
