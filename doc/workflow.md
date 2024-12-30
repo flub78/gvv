@@ -1,4 +1,4 @@
-# Developpement workflow
+# Development workflow
 
 Ce fichier pour documenter les étapes de développement.
 
@@ -39,6 +39,10 @@ Tests are assertion based
 and test execution
 
 http://gvv.net/index.php/attachments/test
+
+Pour une raison inconnue on ne peux pas appeler les fonctions de test depuis le modèle. Donc on retourne un tableau de résultat de contrôle d'assertions.
+
+## Génération des vues
 
 
 

@@ -42,10 +42,10 @@ class Gvv_Controller extends CI_Controller {
     protected $unit_test = FALSE;
 
     // régles de validation
-    protected $fields = array ();
+    protected $fields = array();
 
     // Données transmises au formulaire
-    protected $data = array ();
+    protected $data = array();
 
     /**
      * Constructeur
@@ -98,11 +98,11 @@ class Gvv_Controller extends CI_Controller {
      * @see constants.php
      */
     protected function form_static_element($action) {
-        $this->data ['action'] = $action;
-        $this->data ['fields'] = $this->fields;
-        $this->data ['controller'] = $this->controller;
+        $this->data['action'] = $action;
+        $this->data['fields'] = $this->fields;
+        $this->data['controller'] = $this->controller;
         if ($action == "visualisation") {
-            $this->data ['readonly'] = "readonly";
+            $this->data['readonly'] = "readonly";
         }
     }
 
@@ -114,17 +114,10 @@ class Gvv_Controller extends CI_Controller {
             $no_view_loading = func_get_arg(0);
         }
 
-        // initialise les valeurs par défaut
-        // if (isset($this->rules)) {
-            // Méthode basée sur les méta-données
-            $table = $this->gvv_model->table();
-            $this->data = $this->gvvmetadata->defaults_list($table);
-        // } else {
-            // @deprecated
-            //foreach ( $this->fields as $field => $value ) {
-                //$this->data [$field] = (array_key_exists('default', $value)) ? $value ['default'] : '';
-            //}
-        //}
+        // Méthode basée sur les méta-données
+        $table = $this->gvv_model->table();
+        $this->data = $this->gvvmetadata->defaults_list($table);
+
         $this->form_static_element(CREATION);
 
         if (! isset($no_view_loading)) {
@@ -140,8 +133,8 @@ class Gvv_Controller extends CI_Controller {
     function delete($id) {
         // détruit en base
         $this->pre_delete($id);
-        $this->gvv_model->delete(array (
-                $this->kid => $id
+        $this->gvv_model->delete(array(
+            $this->kid => $id
         ));
 
         // réaffiche la liste (serait sympa de réafficher la même page)
@@ -173,7 +166,7 @@ class Gvv_Controller extends CI_Controller {
         $this->form_static_element($action);
 
         $this->session->set_userdata('inital_id', $id);
-        $this->data [$this->kid] = $id;
+        $this->data[$this->kid] = $id;
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
         }
@@ -189,8 +182,8 @@ class Gvv_Controller extends CI_Controller {
         if ($id == "")
             return TRUE;
 
-        if ($this->gvv_model->count(array (
-                $this->kid => $id
+        if ($this->gvv_model->count(array(
+            $this->kid => $id
         )) > 0) {
             $this->form_validation->set_message('check_uniq', $this->lang->line("check_uniq"));
             return FALSE;
@@ -208,34 +201,34 @@ class Gvv_Controller extends CI_Controller {
         if ($this->config->item('watir')) {
             gvv_debug("watir date format = " . $date);
             if (preg_match('/(\d{2,2})(\d{2,2})(\d{4,4})/', $date, $matches)) {
-                $day = $matches [1];
-                $month = $matches [2];
-                $year = $matches [3];
+                $day = $matches[1];
+                $month = $matches[2];
+                $year = $matches[3];
                 // force the date
                 $date = $day . '/' . $month . '/' . $year;
             }
         }
-        
+
         // check that it is a regular date
         if (! $this->valid_date($date)) {
             gvv_debug("non valide date " . $date);
             return false;
-        }        
+        }
 
         $date_gel = $this->config->item('date_gel');
         $this->form_validation->set_message('valid_activity_date', "Date antérieure au " . $date_gel);
 
         if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date, $matches)) {
-            $day = $matches [1];
-            $month = $matches [2];
-            $year = $matches [3];
+            $day = $matches[1];
+            $month = $matches[2];
+            $year = $matches[3];
 
             $time = mktime(0, 0, 0, $month, $day, $year);
 
             if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date_gel, $matches)) {
-                $day = $matches [1];
-                $month = $matches [2];
-                $year = $matches [3];
+                $day = $matches[1];
+                $month = $matches[2];
+                $year = $matches[3];
                 $freeze_time = mktime(0, 0, 0, $month, $day, $year);
                 return $time > $freeze_time;
             }
@@ -258,11 +251,11 @@ class Gvv_Controller extends CI_Controller {
         if ($date == '')
             return '';
         $this->form_validation->set_message('valid_date', $this->lang->line("valid_activity_date"));
-        
+
         if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date, $matches)) {
-            $day = $matches [1];
-            $month = $matches [2];
-            $year = $matches [3];
+            $day = $matches[1];
+            $month = $matches[2];
+            $year = $matches[3];
             // echo "day=$day, month=$month, year=$year" . br();
             if (! checkdate($month, $day, $year)) {
                 return FALSE;
@@ -270,7 +263,7 @@ class Gvv_Controller extends CI_Controller {
         } else {
             return FALSE;
         }
-        
+
         if ($res = mysql_date($date)) {
             // do not return a modified date or the field will not be repopulated correctly
             return TRUE;
@@ -380,17 +373,17 @@ class Gvv_Controller extends CI_Controller {
      *            | MODIFICATION | VISUALISATION
      */
     function form2database($action = '') {
-        $processed_data = array ();
+        $processed_data = array();
         if (isset($this->rules)) {
             // Méthode basée sur les méta-données
             $table = $this->gvv_model->table();
             $fields_list = $this->gvvmetadata->fields_list($table);
-            foreach ( $fields_list as $field ) {
-                $processed_data [$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
+            foreach ($fields_list as $field) {
+                $processed_data[$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
             }
         } else {
-            foreach ( $this->fields as $field => $value ) {
-                $processed_data [$field] = $this->input->post($field);
+            foreach ($this->fields as $field => $value) {
+                $processed_data[$field] = $this->input->post($field);
             }
         }
         return $processed_data;
@@ -405,7 +398,7 @@ class Gvv_Controller extends CI_Controller {
      * @param $data enregistrement
      *            crée
      */
-    function post_create($data = array ()) {
+    function post_create($data = array()) {
         gvv_debug($this->controller . " creation " . var_export($data, true));
     }
 
@@ -425,14 +418,14 @@ class Gvv_Controller extends CI_Controller {
      * @param $data enregistrement
      *            modifié
      */
-    function post_update($data = array ()) {
+    function post_update($data = array()) {
         gvv_debug($this->controller . " post modification " . var_export($data, true));
     }
 
     /**
      * Hook activé avant la mise à jour
      */
-    function pre_update($id, $data = array ()) {
+    function pre_update($id, $data = array()) {
         gvv_debug($this->controller . " pre modification $id " . var_export($data, true));
     }
 
@@ -469,26 +462,26 @@ class Gvv_Controller extends CI_Controller {
 
             $table = $this->gvv_model->table();
             $fields_list = $this->gvvmetadata->fields_list($table);
-            foreach ( $fields_list as $field ) {
-                $this->data [$field] = $this->input->post($field);
+            foreach ($fields_list as $field) {
+                $this->data[$field] = $this->input->post($field);
             }
 
             $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
         } else {
             // Ancienne méthode
             // echo "Ancienne méthode de validation à migrer" . br();
-            $data = array ();
-            foreach ( $this->fields as $field => $value ) {
-                $rules = array_key_exists('rules', $value) ? $value ['rules'] : '';
-                $label = array_key_exists('label', $value) ? $value ['label'] : $field;
+            // $data = array();
+            // foreach ($this->fields as $field => $value) {
+            //     $rules = array_key_exists('rules', $value) ? $value['rules'] : '';
+            //     $label = array_key_exists('label', $value) ? $value['label'] : $field;
 
-                if ($action == CREATION && ($field == $this->kid)) {
-                    // On vérifie également que l'enregistrement n'existe pas déja
-                    $rules .= "|callback_check_uniq";
-                }
-                $this->form_validation->set_rules($field, $label, $rules);
-                $this->data [$field] = $this->input->post($field);
-            }
+            //     if ($action == CREATION && ($field == $this->kid)) {
+            //         // On vérifie également que l'enregistrement n'existe pas déja
+            //         $rules .= "|callback_check_uniq";
+            //     }
+            //     $this->form_validation->set_rules($field, $label, $rules);
+            //     $this->data[$field] = $this->input->post($field);
+            // }
         }
 
         if ($this->form_validation->run($this)) {
@@ -502,7 +495,7 @@ class Gvv_Controller extends CI_Controller {
                     // only replace autoincremented id
                     if ($id) {
                         gvv_debug("autoincremented id=$id, key=" . $this->kid);
-                        $processed_data [$this->kid] = $id;
+                        $processed_data[$this->kid] = $id;
                         gvv_debug("processed_data = " . var_export($processed_data, true));
                     } else {
                         var_dump("Erreur GVV_controller.formValidation \$id=$id");
@@ -531,21 +524,21 @@ class Gvv_Controller extends CI_Controller {
 
                 if ($button == $this->lang->line('gvv_button_logs_submitbutton')) {
 
-                    $this->data ['vol_ok'] = $msg;
-                    $this->data ['numligne'] = $numlign;
+                    $this->data['vol_ok'] = $msg;
+                    $this->data['numligne'] = $numlign;
                     $this->load->view($this->popup_view, $this->data);
                 } else {
                     $this->validationOkPage($processed_data, $button);
                 }
 
                 return;
-            } catch ( Exception $e ) {
+            } catch (Exception $e) {
                 $msg = $e->getMessage();
-                $data = array ();
-                $data ['title'] = 'Erreur';
-                $data ['text'] = $msg;
+                $data = array();
+                $data['title'] = 'Erreur';
+                $data['text'] = $msg;
                 // load_last_view('message', $data);
-                $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';  
+                $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
             }
         }
 
@@ -569,13 +562,13 @@ class Gvv_Controller extends CI_Controller {
      */
     function page($premier = 0, $message = '', $selection = array()) {
         $this->push_return_url("GVV controller page");
-        $this->data ['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
-        $this->data ['kid'] = $this->kid;
-        $this->data ['controller'] = $this->controller;
-        $this->data ['count'] = $this->gvv_model->count();
-        $this->data ['premier'] = $premier;
-        $this->data ['message'] = $message;
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
+        $this->data['kid'] = $this->kid;
+        $this->data['controller'] = $this->controller;
+        $this->data['count'] = $this->gvv_model->count();
+        $this->data['premier'] = $premier;
+        $this->data['message'] = $message;
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
@@ -618,17 +611,17 @@ class Gvv_Controller extends CI_Controller {
         if (($button == "Filtrer") || ($button == $this->lang->line("gvv_str_select"))) {
 
             // Enable filtering
-            foreach ( $filter_variables as $field ) {
-                $session [$field] = $this->input->post($field);
+            foreach ($filter_variables as $field) {
+                $session[$field] = $this->input->post($field);
                 // echo "$field => " . $this->data[$field] . br();
             }
 
-            $session ['filter_active'] = 1;
+            $session['filter_active'] = 1;
             $this->session->set_userdata($session);
             // var_dump($session);
         } else {
             // Disable filtering
-            foreach ( $filter_variables as $field ) {
+            foreach ($filter_variables as $field) {
                 $this->session->unset_userdata($field);
             }
         }
@@ -641,8 +634,8 @@ class Gvv_Controller extends CI_Controller {
      *            filter_variables list of variables names
      */
     function load_filter($filter_variables) {
-        foreach ( $filter_variables as $field ) {
-            $this->data [$field] = $this->session->userdata($field);
+        foreach ($filter_variables as $field) {
+            $this->data[$field] = $this->session->userdata($field);
             // echo "$field => " . $this->data[$field] . br();
         }
     }
@@ -660,7 +653,7 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
-     * Test unitaire
+     * Test d'affichage du contrôleur
      */
     function test($format = "html") {
         $this->unit_test = TRUE;
@@ -686,7 +679,7 @@ class Gvv_Controller extends CI_Controller {
      */
     function set_per_page($per_page) {
         // echo "set_per_page $per_page" . br();
-        $session ['per_page'] = $per_page;
+        $session['per_page'] = $per_page;
         $this->session->set_userdata($session);
         $this->pop_return_url();
     }
@@ -707,7 +700,7 @@ class Gvv_Controller extends CI_Controller {
 
         $nb = 3;
         $field_number = 0;
-        for($i = 0; $i < $nb; $i ++) {
+        for ($i = 0; $i < $nb; $i++) {
             $elt = $this->test_element($i);
             $id = $this->test_element_id($i);
             $this->unit->run($this->check_uniq($id), true, "elt $id n'existe pas");
@@ -730,7 +723,7 @@ class Gvv_Controller extends CI_Controller {
 
         // Modifie les valeurs
         $res = $elt_initial;
-        $id = $res [$key];
+        $id = $res[$key];
         $this->unit->run($this->$model->image($id), $id, "image == $id");
 
         $this->test_change($res);
@@ -754,10 +747,10 @@ class Gvv_Controller extends CI_Controller {
         // $this->db->display_error('my message');
 
         // Reset database to its initial state
-        for($i = 0; $i < $nb; $i ++) {
+        for ($i = 0; $i < $nb; $i++) {
             $id = $this->test_element_id($i);
             $this->delete($id);
-            $expected_count --;
+            $expected_count--;
             $this->unit->run($this->$model->count() == $expected_count, true, "Avion number==$expected_count");
         }
 
