@@ -78,40 +78,40 @@ $this->lang->load('admin');
                         <li><a class="dropdown-item" href="<?= controller_url("FFVV/facturation") ?>"><?= translation("Facturation") ?></a></li>
                       </ul>
                     </li>
-                    
+
                     <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                       <ul class="submenu dropdown-menu">
-                        <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><?= translation("gvv_admin_menu_config") ?></a></li>                      
+                        <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><?= translation("gvv_admin_menu_config") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><?= translation("welcome_airfield_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><?= translation("welcome_history_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><?= translation("welcome_reports_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("event/page") ?>"><?= translation("welcome_certificates") ?></a></li>
                       </ul>
-                    </li>                    
-                    
+                    </li>
+
                   <?php endif; ?>
 
                   <?php if (has_role('tresorier')) : ?>
-                    
-                     <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_accounting") ?> &raquo;</a>
+
+                    <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_accounting") ?> &raquo;</a>
                       <ul class="submenu dropdown-menu">
                         <li><a class="dropdown-item" href="<?= controller_url("admin/backup") ?>"><?= translation("welcome_database_backup_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("comptes/cloture") ?>"><?= translation("welcome_database_endofyear_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("facturation/config") ?>"><?= translation("welcome_billing_config_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("plan_comptable/page") ?>"><?= translation("welcome_chart_of_account_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("tarifs/page") ?>"><?= translation("welcome_price_list_title") ?></a></li>
-                        <?php if ($this->config->item('gestion_tickets')) : ?>                        
-                        <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><?= translation("welcome_ticket_types_title") ?></a></li>
+                        <?php if ($this->config->item('gestion_tickets')) : ?>
+                          <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><?= translation("welcome_ticket_types_title") ?></a></li>
                         <?php endif; ?>
                         <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><?= translation("welcome_global_entries_title") ?></a></li>
                       </ul>
-                    </li>                    
-                    
+                    </li>
+
                   <?php endif; ?>
 
                   <?php if (has_role('admin')) : ?>
-                    
-                     <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_system") ?> &raquo;</a>
+
+                    <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_system") ?> &raquo;</a>
                       <ul class="submenu dropdown-menu">
                         <li><a class="dropdown-item" href="<?= controller_url("admin/backup") ?>"><?= translation("welcome_database_backup_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("admin/restore") ?>"><?= translation("gvv_admin_menu_restore") ?></a></li>
@@ -122,9 +122,9 @@ $this->lang->load('admin');
                         <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><?= translation("gvv_admin_menu_permissions") ?></a></li>
                       </ul>
                     </li>
-                           
+
                     <li><a class="dropdown-item" href="<?= controller_url("admin/page") ?>">Admin</a></li>
-                                 
+
                   <?php endif; ?>
 
                 </ul>
@@ -261,7 +261,9 @@ $this->lang->load('admin');
             $menu_file = $view_name . '.php';
             $menu_path = join(DIRECTORY_SEPARATOR, array(
               getcwd(),
-              'application', 'views', $menu_file
+              'application',
+              'views',
+              $menu_file
             ));
             if (file_exists($menu_path)) {
               $this->load->view($view_name);
@@ -280,6 +282,7 @@ $this->lang->load('admin');
                   <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>">phpinfo</a></li>
                   <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><?= translation("CodeIgniter") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><?= translation("Dump Metadata") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("Attachments") ?></a></li>
 
                 </ul>
               </li>
@@ -307,29 +310,29 @@ $this->lang->load('admin');
         </div>
 
         <form class="d-flex ms-5">
-            <div class="text-white me-1 text-center"><?= $gvv_user ?>
-              <div class="text-white me-1 text-center"><?= $gvv_role ?></div>
-            </div>
+          <div class="text-white me-1 text-center"><?= $gvv_user ?>
+            <div class="text-white me-1 text-center"><?= $gvv_role ?></div>
+          </div>
 
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle  text-white" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="fa-solid fa-user fa-2xl" dusk="user_icon"></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><?= translation("gvv_menu_reports_my_bill") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><?= translation("gvv_menu_membres_password") ?></a></li>
-                <?php if ($this->config->item('gestion_tickets')) : ?>
-                  <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
-                <?php endif; ?>
-                <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><?= translation("gvv_menu_validities") ?></a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle  text-white" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="fa-solid fa-user fa-2xl" dusk="user_icon"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><?= translation("gvv_menu_reports_my_bill") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><?= translation("gvv_menu_membres_password") ?></a></li>
+              <?php if ($this->config->item('gestion_tickets')) : ?>
+                <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
+              <?php endif; ?>
+              <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><?= translation("gvv_menu_validities") ?></a></li>
 
-                <li><a class="dropdown-item" href="<?= controller_url("auth/logout") ?>"><?= translation("gvv_button_exit") ?></a></li>
-              </ul>
-            </li>
+              <li><a class="dropdown-item" href="<?= controller_url("auth/logout") ?>"><?= translation("gvv_button_exit") ?></a></li>
+            </ul>
+          </li>
 
-          </form>
+        </form>
       <?php endif; ?>
 
     </div>
-    
+
   </nav>

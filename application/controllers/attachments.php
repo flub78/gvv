@@ -62,9 +62,6 @@ class Attachments extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
 
-        $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector());
-        $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->selector());
-
         $this->data['saisie_par'] = $this->dx_auth->get_username();
     }
 
