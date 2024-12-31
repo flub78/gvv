@@ -64,8 +64,6 @@ $this->lang->load('attachments');
 				</div>
 
 				<div class="form-floating mb-2 border">
-					<input type="file" class="form-control" name="file" value="" />
-					<label class="form-label" for="file">File</label>
 					<?= $this->gvvmetadata->input_field('attachments', 'file') ?>
 					<?= $this->gvvmetadata->label('attachments', 'file') ?>
 				</div>

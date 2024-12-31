@@ -1741,6 +1741,7 @@ abstract class Metadata {
             // echo "value=$value, " . $input; exit;
             return $input;
         } elseif ($subtype == 'loader') {
+
             $attrs = array_merge($attrs, array(
                 'type' => 'file',
                 'name' => "userfile",
@@ -1752,7 +1753,8 @@ abstract class Metadata {
                 'name' => 'button',
                 'value' => 'Upload'
             ));
-            return $input . $upload;
+            $upload = '<button type="submit" class="btn btn-primary">Submit</button>';
+            return $input; // . $upload;
         }
 
         if ($type == 'date') {
