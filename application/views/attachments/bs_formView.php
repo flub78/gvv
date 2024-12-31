@@ -35,25 +35,43 @@ $this->lang->load('attachments');
 	echo checkalert($this->session, isset($popup) ? $popup : "");
 	?>
 
-	<h3><?= $this->lang->line("gvv_attachments_title") ?> </h3>
+	<div class="card uper">
+		<div class="card-header">
+			<h3><?= $this->lang->line("gvv_attachments_title") ?> </h3>
+		</div>
+		<div class="card-body">
 
-	<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
-		<?php
+				<?=
+				// hidden controller url for java script access
+				form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+				?>
 
-		// hidden controller url for java script access
-		echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+				<input type="hidden" name="_token" value="oJ6vI9ZQkrWXQqbAfUmQGkPSBFTl2g7y88pwFFD5" autocomplete="off">
+				<input type="hidden" name="referenced_table" value="calendar_events">
+				<input type="hidden" name="referenced_id" value="12">
 
-		// echo validation_errors();
-		echo ($this->gvvmetadata->form('terrains', array(
-			'oaci' => $oaci,
-			'nom' => $nom,
-			'freq1' => $freq1,
-			'freq2' => $freq2,
-			'comment' => $comment
-		)));
+				<div class="form-floating mb-2 border">
+					<?= $this->gvvmetadata->input_field('attachments', 'filename') ?>
+					<?= $this->gvvmetadata->label('attachments', 'filename') ?>
+				</div>
 
-		?>
-		<?= validation_button($action) ?>
-	</form>
+				<div class="form-floating mb-2 border">
+
+					<?= $this->gvvmetadata->input_field('attachments', 'description') ?>
+					<?= $this->gvvmetadata->label('attachments', 'description') ?>
+				</div>
+
+				<div class="form-floating mb-2 border">
+					<input type="file" class="form-control" name="file" value="" />
+					<label class="form-label" for="file">File</label>
+					<?= $this->gvvmetadata->input_field('attachments', 'file') ?>
+					<?= $this->gvvmetadata->label('attachments', 'file') ?>
+				</div>
+
+				<?= validation_button($action) ?>
+			</form>
+		</div>
+	</div>
 </div>

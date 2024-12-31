@@ -270,7 +270,9 @@ abstract class Metadata {
         }
 
         if (isset($this->field[$table][$field]['Comment'])) {
-            return $this->field[$table][$field]['Comment'];
+            $fln = $this->field[$table][$field]['Comment'];
+            if (!$fln) $fln = ucwords($field);
+            return $fln;
         }
         return $this->field_name($table, $field);
     }
@@ -1589,6 +1591,17 @@ abstract class Metadata {
             // echo "rule $field, $name, $rules" . br();
             $this->CI->form_validation->set_rules($field, $name, $rules);
         }
+    }
+
+    /**
+     * Génére un label pour les formulaires
+     */
+    function label($table, $field) {
+        $res = '<label class="form-label"';
+        $res .= ' for="' . $field . '">';
+        $res .= $this->field_long_name($table, $field);
+        $res .= '</label>';
+        return $res;
     }
 
     /**
