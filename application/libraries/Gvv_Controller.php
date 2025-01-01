@@ -562,7 +562,9 @@ class Gvv_Controller extends CI_Controller {
      */
     function page($premier = 0, $message = '', $selection = array()) {
         $this->push_return_url("GVV controller page");
+        // retourne le tableau de valeurs mais pas les boutons edit, delete
         $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
+
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
         $this->data['count'] = $this->gvv_model->count();

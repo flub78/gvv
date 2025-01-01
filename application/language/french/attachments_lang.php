@@ -1,6 +1,7 @@
 <?php
 /*
  * GVV French translation
+ * TODO : translate
 */
 
 # Attachments view

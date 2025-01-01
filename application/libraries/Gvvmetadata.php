@@ -690,9 +690,9 @@ class GVVMetadata extends Metadata {
                 $this->field['pompes']['pdesc']['Name'] = 'Commentaires';
 
                 /*
-         * Facturation, ce n'est pas vraiment une table mais on fait comme si
-         * pour pouvoir bénéficier des routines associées
-         */
+                * Facturation, ce n'est pas vraiment une table mais on fait comme si
+                * pour pouvoir bénéficier des routines associées
+                */
                 $fields = array(
                         'rem',
                         'remex',
@@ -728,7 +728,6 @@ class GVVMetadata extends Metadata {
                 /**
                  * Attachments
                  */
-
                 $this->field['attachments']['file']['Subtype'] = 'loader';
                 // $this->field ['attachments'] ['m25ans'] ['Subtype'] = 'boolean';
                 // $this->field ['attachments'] ['m25ans'] ['Subtype'] = 'boolean';

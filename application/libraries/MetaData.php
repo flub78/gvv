@@ -158,7 +158,7 @@ abstract class Metadata {
     }
 
     /**
-     * return the name of the column containing the element id
+     * return the name of the column containing the primary key
      *
      * @param string $table name
      * @return string
@@ -605,7 +605,7 @@ abstract class Metadata {
             }
             $cnt++;
 
-            $elt_id = isset($row[$this->table_key($table)]) ? $row[$this->table_key($table)] : '';
+            $elt_id = isset($row[$this->table_key($table)]) ? $row[$this->table_key($table)] : 'XXX';
 
 
             // and the actions
