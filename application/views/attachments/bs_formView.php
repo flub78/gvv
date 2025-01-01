@@ -48,24 +48,22 @@ $this->lang->load('attachments');
 				form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 				?>
 
-				<input type="hidden" name="_token" value="oJ6vI9ZQkrWXQqbAfUmQGkPSBFTl2g7y88pwFFD5" autocomplete="off">
 				<input type="hidden" name="referenced_table" value="calendar_events">
 				<input type="hidden" name="referenced_id" value="12">
 
 				<div class="form-floating mb-2 border">
 					<?= $this->gvvmetadata->input_field('attachments', 'filename') ?>
-					<?= $this->gvvmetadata->label('attachments', 'filename') ?>
+					<label class="form-label" for="filename"><?= $this->lang->line("gvv_attachments_field_filename") ?></label>
 				</div>
 
 				<div class="form-floating mb-2 border">
-
 					<?= $this->gvvmetadata->input_field('attachments', 'description') ?>
-					<?= $this->gvvmetadata->label('attachments', 'description') ?>
+					<label class="form-label" for="description"><?= $this->lang->line("gvv_attachments_field_description") ?></label>
 				</div>
 
 				<div class="form-floating mb-2 border">
-					<?= $this->gvvmetadata->input_field('attachments', 'file') ?>
-					<?= $this->gvvmetadata->label('attachments', 'file') ?>
+					<input type="file" class="form-control" name="file" value="" size="32">
+					<label class="form-label" for="file"><?= $this->lang->line("gvv_attachments_field_file") ?></label>
 				</div>
 
 				<?= validation_button($action) ?>

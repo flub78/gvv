@@ -729,6 +729,7 @@ class GVVMetadata extends Metadata {
                  * Attachments
                  */
                 $this->field['attachments']['file']['Subtype'] = 'loader';
+                $this->field['attachments']['file']['Subtype'] = 'upload_image';
                 // $this->field ['attachments'] ['m25ans'] ['Subtype'] = 'boolean';
                 // $this->field ['attachments'] ['m25ans'] ['Subtype'] = 'boolean';
 

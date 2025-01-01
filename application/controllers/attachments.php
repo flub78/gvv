@@ -66,6 +66,75 @@ class Attachments extends Gvv_Controller {
     }
 
     /**
+     * Validation du formulaire
+     */
+    public function formValidation($action, $return_on_success = false) {
+
+        // $filename = $this->input->post('filename');
+        // $file = $this->input->post('file');
+        // $description = $this->input->post('description');
+
+        // echo "file = " . $file;
+        // echo "description = " . $description;
+        // echo "filename = " . $filename;
+
+        $config['upload_path'] = './uploads/';
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['max_size']    = '2000';            // in kilobytes
+        $config['max_width']  = '1024';
+        $config['max_height']  = '768';
+        $config['encrypt_name']  = true;
+
+        $this->load->library('upload', $config);
+
+        // the purpose of attachment is to upload a file, so it's a fatal error if the file is not uploaded
+        if (! $this->upload->do_upload("file")) {
+            // erreur
+            $this->data['message'] = '<div class="text-danger">' . $this->upload->display_errors() . '</div>';
+
+            $this->form_static_element($action);
+            load_last_view($this->form_view, $this->data);
+        } else {
+
+            // upload success
+            $upload_data = array('upload_data' => $this->upload->data());
+
+            // Add the uploaded file information to POST data
+            $_POST['filename'] = $upload_data['file_name'];
+            $_POST['file_path'] = $upload_data['full_path'];
+
+            if ($action == MODIFICATION) {
+                // Get previous attachment data
+                $previous_attachment = $this->gvv_model->get($this->input->post('id'));
+
+                // Delete the old file if it exists
+                if (!empty($previous_attachment->file_path) && file_exists($previous_attachment->file_path)) {
+                    unlink($previous_attachment->file_path);
+                }
+            }
+
+            parent::formValidation($action);
+
+            // redirect("attachments");
+            // $this->load->view('upload_success', $data);
+        }
+
+        // pas d'erreur
+        // if ($newfile = $upload[0]) {
+        //     // Un fichier a été chargé
+
+        //     // update the file name
+        //     $data = array(
+        //         'photo' => $newfile
+        //     );
+        //     $this->gvv_model->update(array(
+        //         'mlogin' => $mlogin
+        //     ), $data);
+        //     redirect("attachments");
+        // }
+    }
+
+    /**
      * Test unitaire
      */
     function test($format = "html") {

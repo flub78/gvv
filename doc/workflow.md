@@ -16,7 +16,8 @@ Update application/config/migration.php
 
 ## Génération du modèle
 
-dans application/models
+dans application/models. Attention select_page doit retourner également la colonne de la clé primaire même si elle n'est jamais affichée.
+
 
 ## Génération des fichiers de traduction
 
