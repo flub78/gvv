@@ -9,7 +9,10 @@
             "type": "php",
             "request": "launch",
             "port": 9003,
-            "log": true
+            "log": true,
+            "pathMappings": {
+                "/var/www/html/gvv.net": "${workspaceFolder}" // Adjust paths
+            },
         },
         {
             "name": "Launch currently open script",

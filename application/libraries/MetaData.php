@@ -510,7 +510,7 @@ abstract class Metadata {
 
         $res = "";
 
-        // pagination
+        // pagination, obsolete dans la plupart des cas, on utilise datatable
         if (isset($attrs['count'])) {
             $config['base_url'] = "$controller/$page";
             $config['total_rows'] = $attrs['count'];
@@ -606,7 +606,6 @@ abstract class Metadata {
             $cnt++;
 
             $elt_id = isset($row[$this->table_key($table)]) ? $row[$this->table_key($table)] : 'XXX';
-
 
             // and the actions
             if ($mode == "rw") {
