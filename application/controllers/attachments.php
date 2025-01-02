@@ -46,9 +46,6 @@ class Attachments extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
-        // $this->load->model('membres_model');
-        // $this->load->model('tarifs_model');
-        // $this->load->model('ecritures_model');
         $this->lang->load('attachments');
     }
 
@@ -76,7 +73,7 @@ class Attachments extends Gvv_Controller {
             mkdir($dirname, 0777, true);
         };
 
-        // I am not sure that I want the capacity to specify a filename ...
+        // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
         // $filename = $this->input->post('filename');
         $userfile = rand(100000, 999999) . '_' . $_FILES['file']['name'];
@@ -119,24 +116,7 @@ class Attachments extends Gvv_Controller {
             }
 
             parent::formValidation($action);
-
-            // redirect("attachments");
-            // $this->load->view('upload_success', $data);
         }
-
-        // pas d'erreur
-        // if ($newfile = $upload[0]) {
-        //     // Un fichier a été chargé
-
-        //     // update the file name
-        //     $data = array(
-        //         'photo' => $newfile
-        //     );
-        //     $this->gvv_model->update(array(
-        //         'mlogin' => $mlogin
-        //     ), $data);
-        //     redirect("attachments");
-        // }
     }
 
     /**

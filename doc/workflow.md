@@ -45,5 +45,12 @@ Pour une raison inconnue on ne peux pas appeler les fonctions de test depuis le 
 
 ## Génération des vues
 
+### Génération des vues de la liste
+
+select_page() dans le modèle retourne les valeurs brutes depuis la base de données. C'est aussi cette fonction qui stocke les valeurs dans le cache.
+
+Dans la vue bs_tableView.php c'est la fonction $this->gvvmetadata->table("vue_attachments", $attrs, ""); qui génère la table HTML à aficher.
+
+Les champs sont affichés par la fonction array_field de la classe Metadata.
 
 

@@ -560,10 +560,16 @@ if (! function_exists('attachment')) {
 
      * @SuppressWarnings("PMD.ShortVariable")
      */
-    function attachment($route_name, $id, $field, $filename, $label = "") {
+    function attachment($id, $filename, $label = "") {
         if (!$filename) return "";
 
-        $mime_type = mime_content_type(storage_path('app/uploads/' . $filename));
+        $img = '<img class="img-thumbnail"';
+        $img .= ' src="' . $filename . '"';
+        $img .= '/>';
+
+        return $img;
+
+        $mime_type = mime_content_type($filename);
         $url = route($route_name, ['id' => $id, 'field' => $field]);
 
         $inner_html = "";

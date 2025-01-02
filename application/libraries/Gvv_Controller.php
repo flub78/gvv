@@ -469,6 +469,7 @@ class Gvv_Controller extends CI_Controller {
             $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
         } else {
             // Ancienne méthode
+            // TODO: à supprimer après validation
             // echo "Ancienne méthode de validation à migrer" . br();
             // $data = array();
             // foreach ($this->fields as $field => $value) {

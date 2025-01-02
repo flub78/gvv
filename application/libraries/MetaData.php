@@ -1143,7 +1143,7 @@ abstract class Metadata {
         // gvv_debug("array_field ($table, $field, $value");
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
-        gvv_debug("array_field ($table, $field), type=$type, subtype=$subtype, value=$value");
+        gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
 
         if ($subtype == 'boolean') {
             if ($mode == 'csv')
@@ -1202,9 +1202,17 @@ abstract class Metadata {
             return $value;
             // return auto_link($value);
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
-            $filename = "assets/uploads/$value";
-            $img = (file_exists($filename)) ? img($filename) : '';
-            return $img;
+            if (file_exists($value)) {
+                $url = site_url();
+                $url = rtrim($url, '/index.php');
+
+                $url .= "/" . ltrim($value, './');
+
+                return attachment($id, $url);
+            }
+            // $img = (file_exists($filename)) ? img($filename) : '';
+            // return $img;
+            return "XYZ"; // for debugging should never happen
         }
 
         if ($type == 'date') {
