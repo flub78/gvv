@@ -582,7 +582,7 @@ if (! function_exists('attachment')) {
 
         $inner_html = "";
         if (str_starts_with($mime_type, 'image')) {
-            $img = '<img class="img-thumbnail"';
+            $img = '<img class="doc-thumbnail"';
             $img .= ' src="' . $url . '"';
             $img .= '/>';
             $inner_html = $img;
