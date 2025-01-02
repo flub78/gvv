@@ -549,6 +549,21 @@ if (! function_exists('e_section')) {
     }
 }
 
+if (! function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle) {
+        return substr($haystack, 0, strlen($needle)) === $needle;
+    }
+}
+
+if (! function_exists('str_ends_with')) {
+    function str_ends_with($haystack, $needle) {
+        if ($needle === '') {
+            return true;
+        }
+        return substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+
 if (! function_exists('attachment')) {
     /**
      * Generate a link to download an uploaded file
@@ -560,21 +575,17 @@ if (! function_exists('attachment')) {
 
      * @SuppressWarnings("PMD.ShortVariable")
      */
-    function attachment($id, $filename, $label = "") {
+    function attachment($id, $filename, $url = "") {
         if (!$filename) return "";
 
-        $img = '<img class="img-thumbnail"';
-        $img .= ' src="' . $filename . '"';
-        $img .= '/>';
-
-        return $img;
-
         $mime_type = mime_content_type($filename);
-        $url = route($route_name, ['id' => $id, 'field' => $field]);
 
         $inner_html = "";
-        if (str_starts_with($mime_type, 'image/')) {
-            $inner_html = "<img src=\"$url\" class=\"img-thumbnail\" alt=\"$label\" title=\"$filename\" width=\"50\" height=\"auto\" >";
+        if (str_starts_with($mime_type, 'image')) {
+            $img = '<img class="img-thumbnail"';
+            $img .= ' src="' . $url . '"';
+            $img .= '/>';
+            $inner_html = $img;
         } else {
             if (str_ends_with($mime_type, 'pdf')) {
                 $inner_html = "<i class=\"fas fa-file-pdf fa-2x text-danger\" title=\"$filename\"></i>";

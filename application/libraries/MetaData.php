@@ -1208,7 +1208,7 @@ abstract class Metadata {
 
                 $url .= "/" . ltrim($value, './');
 
-                return attachment($id, $url);
+                return attachment($id, $value, $url);
             }
             // $img = (file_exists($filename)) ? img($filename) : '';
             // return $img;
