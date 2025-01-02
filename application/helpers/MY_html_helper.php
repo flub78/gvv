@@ -52,7 +52,7 @@ if (! function_exists('hr')) {
      */
     function hr($n = 1) {
         $res = "";
-        for($i = 0; $i < $n; $i ++) {
+        for ($i = 0; $i < $n; $i++) {
             $res .= "<hr/>";
         }
         return $res;
@@ -86,7 +86,7 @@ if (! function_exists('e_br')) {
  */
 if (! function_exists('heading')) {
     function heading($txt = '', $h = '1', $attrs = '') {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $translation = $CI->lang->line($txt);
         if ($translation) {
             $txt = $translation;
@@ -109,47 +109,47 @@ if (! function_exists('table_from_array')) {
      * @return string TODO check for incorrect parameter type
      */
     function table_from_array($table, $attrs = array()) {
-        $class = isset($attrs ['class']) ? $attrs ['class'] : '';
+        $class = isset($attrs['class']) ? $attrs['class'] : '';
         $res = "";
         // $res .= '<div class="fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"></div>';
         $res .= "<table class=\"$class\">\n";
 
         if (array_key_exists('title', $attrs)) {
-            $title = $attrs ['title'];
+            $title = $attrs['title'];
             $res .= "\t<caption>$title</caption>\n";
         }
-        $alignments = (array_key_exists('align', $attrs)) ? $attrs ['align'] : array ();
+        $alignments = (array_key_exists('align', $attrs)) ? $attrs['align'] : array();
 
         if (array_key_exists('fields', $attrs)) {
             $res .= "\t<thead>";
             $res .= "<tr>";
             $cnt = 0;
-            foreach ( $attrs ['fields'] as $field ) {
-                $align = (array_key_exists($cnt, $alignments)) ? 'align="' . $alignments [$cnt] . '"' : "";
+            foreach ($attrs['fields'] as $field) {
+                $align = (array_key_exists($cnt, $alignments)) ? 'align="' . $alignments[$cnt] . '"' : "";
                 $res .= "\t\t<th $align class=\"ui-state-default\" >";
                 $res .= $field;
                 $res .= "</th>\n";
-                $cnt ++;
+                $cnt++;
             }
             $res .= "</tr>";
             $res .= "</thead>\n";
         }
 
         $line_cnt = 0;
-        foreach ( $table as $row ) {
-            $line_cnt ++;
+        foreach ($table as $row) {
+            $line_cnt++;
             if ($line_cnt % 2) {
                 $res .= "\t<tr class=\"odd\"  >";
             } else {
                 $res .= "\t<tr class=\"even\"  >";
             }
             $cnt = 0;
-            foreach ( $row as $cell ) {
-                $align = (array_key_exists($cnt, $alignments)) ? 'align="' . $alignments [$cnt] . '"' : "";
+            foreach ($row as $cell) {
+                $align = (array_key_exists($cnt, $alignments)) ? 'align="' . $alignments[$cnt] . '"' : "";
                 $res .= "\t\t<td $align>";
                 $res .= $cell;
                 $res .= "</td>\n";
-                $cnt ++;
+                $cnt++;
             }
             $res .= "\t</tr>\n";
         }
@@ -194,28 +194,28 @@ if (! function_exists('flat_array')) {
      *            value name of the filed to be used as value in the array
      */
     function flat_array($hash_list, $row_id = '', $col_id = '', $values = '', $delete = '') {
-        $col_list = array (); // sequential list of colomns
-        $col_index = array (); // access to colomn index from colomn id
-        $row_list = array (); // same with rows
-        $row_index = array ();
+        $col_list = array(); // sequential list of colomns
+        $col_index = array(); // access to colomn index from colomn id
+        $row_list = array(); // same with rows
+        $row_index = array();
         $col_nb = 0; // number of colomns
         $row_nb = 0; // number of rows
 
         // Look for colomns and rows
-        foreach ( $hash_list as $elt ) {
-            $col = $elt [$col_id];
-            $row = $elt [$row_id];
+        foreach ($hash_list as $elt) {
+            $col = $elt[$col_id];
+            $row = $elt[$row_id];
 
-            if (! isset($col_index [$col])) {
+            if (! isset($col_index[$col])) {
                 // it is a new col
-                $col_index [$col] = $col_nb ++;
-                $col_list [] = $col;
+                $col_index[$col] = $col_nb++;
+                $col_list[] = $col;
             }
 
-            if (! isset($row_index [$row])) {
+            if (! isset($row_index[$row])) {
                 // It is a new row
-                $row_index [$row] = $row_nb ++;
-                $row_list [] = $row;
+                $row_index[$row] = $row_nb++;
+                $row_list[] = $row;
             }
         }
 
@@ -223,87 +223,87 @@ if (! function_exists('flat_array')) {
         // it implies to reset the indexes
         sort($col_list);
         $col_nb = 0;
-        foreach ( $col_list as $col ) {
-            $col_index [$col] = $col_nb ++;
+        foreach ($col_list as $col) {
+            $col_index[$col] = $col_nb++;
         }
 
         sort($row_list);
         $row_nb = 0;
-        foreach ( $row_list as $row ) {
-            $row_index [$row] = $row_nb ++;
+        foreach ($row_list as $row) {
+            $row_index[$row] = $row_nb++;
         }
 
         // Generates an empty array
-        $empty_line = array ();
-        $empty_line [] = '';
-        foreach ( $col_list as $col_title ) {
-            $empty_line [] = 0;
+        $empty_line = array();
+        $empty_line[] = '';
+        foreach ($col_list as $col_title) {
+            $empty_line[] = 0;
         }
 
-        $result = array ();
+        $result = array();
         // push the title line
-        $result [] = array_merge(array (
-                ''
+        $result[] = array_merge(array(
+            ''
         ), $col_list);
         // fill the result with empty lines
         $n = 1;
-        foreach ( $row_list as $row_title ) {
-            $result [$n] = $empty_line;
-            $result [$n] [0] = $row_title;
-            $n ++;
+        foreach ($row_list as $row_title) {
+            $result[$n] = $empty_line;
+            $result[$n][0] = $row_title;
+            $n++;
         }
 
         // fill the result array with values
-        foreach ( $hash_list as $elt ) {
-            $col = $elt [$col_id];
-            $row = $elt [$row_id];
-            $val = $elt [$values];
+        foreach ($hash_list as $elt) {
+            $col = $elt[$col_id];
+            $row = $elt[$row_id];
+            $val = $elt[$values];
 
-            $i = $row_index [$row];
-            $j = $col_index [$col];
+            $i = $row_index[$row];
+            $j = $col_index[$col];
 
-            $result [$i + 1] [$j + 1] = $val;
+            $result[$i + 1][$j + 1] = $val;
         }
 
         // Totaux
         $total = 1;
-        $CI = & get_instance();
+        $CI = &get_instance();
         $total = $CI->lang->line('gvv_total');
 
         if ($total) {
             $total_col_index = count($col_list) + 1;
-            $total_col = array ();
-            for($j = 1; $j <= count($col_list); $j ++) {
-                $total_col [$j] = 0;
+            $total_col = array();
+            for ($j = 1; $j <= count($col_list); $j++) {
+                $total_col[$j] = 0;
             }
 
-            $result [0] [$total_col_index] = "$total:";
+            $result[0][$total_col_index] = "$total:";
             $total_total = 0;
-            for($i = 1; $i <= count($row_list); $i ++) {
+            for ($i = 1; $i <= count($row_list); $i++) {
                 $total_line = 0;
-                for($j = 1; $j <= count($col_list); $j ++) {
-                    $total_line += $result [$i] [$j];
-                    $total_col [$j] += $result [$i] [$j];
+                for ($j = 1; $j <= count($col_list); $j++) {
+                    $total_line += $result[$i][$j];
+                    $total_col[$j] += $result[$i][$j];
                 }
-                $result [$i] [$total_col_index] = $total_line;
+                $result[$i][$total_col_index] = $total_line;
                 $total_total += $total_line;
             }
-            $total_col [] = $total_total;
+            $total_col[] = $total_total;
 
-            $result [] = array_merge(array (
-                    "$total: "
+            $result[] = array_merge(array(
+                "$total: "
             ), $total_col);
-            $col_list [] = $total;
-            $row_list [] = $total;
+            $col_list[] = $total;
+            $row_list[] = $total;
         }
 
         // format
         if ($values == 'minutes') {
-            for($i = 1; $i <= count($row_list); $i ++) {
-                for($j = 1; $j <= count($col_list); $j ++) {
-                    $result [$i] [$j] = minute_to_time($result [$i] [$j]);
-                    if ($result [$i] [$j] == $delete) {
-                        $result [$i] [$j] = '';
+            for ($i = 1; $i <= count($row_list); $i++) {
+                for ($j = 1; $j <= count($col_list); $j++) {
+                    $result[$i][$j] = minute_to_time($result[$i][$j]);
+                    if ($result[$i][$j] == $delete) {
+                        $result[$i][$j] = '';
                     }
                 }
             }
@@ -315,37 +315,37 @@ if (! function_exists('flat_array')) {
 
 if (! function_exists('flatten')) {
 
-/**
- * Flatten an array of hashs
- * 
- * @param unknown $table
- * @param unknown $fields
- */
-function flatten($table, $attrs = array()) {
-	
-	$fields = $attrs['fields'];
-	$result = array();
-	
-	if (isset($attrs['headers'])) {
-		$result[] = $attrs['headers'];
-	} else {
-		$result[] = $attrs['fields'];
-	}
-	
-	foreach ($table as $elt) {
-		
-		$row = array();
-		foreach ($fields as $field) {
-			if (array_key_exists($field, $elt)) {
-				$row[] = $elt[$field];
-			} else {
-				$row[] = "";
-			}
-		}
-		$result[] = $row;
-	}
-	return $result;
-}
+    /**
+     * Flatten an array of hashs
+     * 
+     * @param unknown $table
+     * @param unknown $fields
+     */
+    function flatten($table, $attrs = array()) {
+
+        $fields = $attrs['fields'];
+        $result = array();
+
+        if (isset($attrs['headers'])) {
+            $result[] = $attrs['headers'];
+        } else {
+            $result[] = $attrs['fields'];
+        }
+
+        foreach ($table as $elt) {
+
+            $row = array();
+            foreach ($fields as $field) {
+                if (array_key_exists($field, $elt)) {
+                    $row[] = $elt[$field];
+                } else {
+                    $row[] = "";
+                }
+            }
+            $result[] = $row;
+        }
+        return $result;
+    }
 }
 
 if (! function_exists('curPageURL')) {
@@ -354,20 +354,20 @@ if (! function_exists('curPageURL')) {
      */
     function curPageURL() {
         $pageURL = 'http';
-        if (isset($_SERVER ["HTTPS"])) {
-            if ($_SERVER ["HTTPS"] == "on") {
+        if (isset($_SERVER["HTTPS"])) {
+            if ($_SERVER["HTTPS"] == "on") {
                 $pageURL .= "s";
             }
         }
         $pageURL .= "://";
-        if (isset($_SERVER ["SERVER_NAME"])) {
-            $pageURL = $_SERVER ["SERVER_NAME"];
+        if (isset($_SERVER["SERVER_NAME"])) {
+            $pageURL = $_SERVER["SERVER_NAME"];
         }
-        if (isset($_SERVER ["SERVER_PORT"]) && $_SERVER ["SERVER_PORT"] != "80") {
-            $pageURL .= ":" . $_SERVER ["SERVER_PORT"];
+        if (isset($_SERVER["SERVER_PORT"]) && $_SERVER["SERVER_PORT"] != "80") {
+            $pageURL .= ":" . $_SERVER["SERVER_PORT"];
         }
-        if (isset($_SERVER ["REQUEST_URI"])) {
-            $pageURL .= $_SERVER ["REQUEST_URI"];
+        if (isset($_SERVER["REQUEST_URI"])) {
+            $pageURL .= $_SERVER["REQUEST_URI"];
         }
         return $pageURL;
     }
@@ -380,15 +380,17 @@ if (! function_exists('html_link')) {
     function html_link($args = array(), $balise = "link") {
         $res = "<$balise ";
 
-        foreach ( array (
+        foreach (
+            array(
                 'rel',
                 'type',
                 'href',
                 'src',
                 'title',
                 'media'
-        ) as $opt ) {
-            if (isset($args [$opt])) {
+            ) as $opt
+        ) {
+            if (isset($args[$opt])) {
                 $res .= " $opt=\"$args[$opt]\" ";
             }
         }
@@ -421,7 +423,7 @@ if (! function_exists('markup_open')) {
      */
     function markup_open($type = 'div', $attrs = array()) {
         $res = "<$type";
-        foreach ( $attrs as $key => $value ) {
+        foreach ($attrs as $key => $value) {
             $res .= " $key=\"$value\"";
         }
         return $res . ">";
@@ -544,5 +546,48 @@ if (! function_exists('e_section')) {
      */
     function e_section($content, $attrs = array()) {
         echo markup('section', $content, $attrs);
+    }
+}
+
+if (! function_exists('attachment')) {
+    /**
+     * Generate a link to download an uploaded file
+     * @param unknown $route_name
+     * @param unknown $id
+     * @param unknown $field
+     * @param unknown $label
+     * @return string
+
+     * @SuppressWarnings("PMD.ShortVariable")
+     */
+    function attachment($route_name, $id, $field, $filename, $label = "") {
+        if (!$filename) return "";
+
+        $mime_type = mime_content_type(storage_path('app/uploads/' . $filename));
+        $url = route($route_name, ['id' => $id, 'field' => $field]);
+
+        $inner_html = "";
+        if (str_starts_with($mime_type, 'image/')) {
+            $inner_html = "<img src=\"$url\" class=\"img-thumbnail\" alt=\"$label\" title=\"$filename\" width=\"50\" height=\"auto\" >";
+        } else {
+            if (str_ends_with($mime_type, 'pdf')) {
+                $inner_html = "<i class=\"fas fa-file-pdf fa-2x text-danger\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'txt') || str_ends_with($mime_type, 'text/plain')) {
+                $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'md') || str_ends_with($mime_type, 'markdown')) {
+                $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'csv')) {
+                $inner_html = "<i class=\"fas fa-file-csv fa-2x\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'xlsx') || str_ends_with($mime_type, 'xls') || str_contains($mime_type, 'spreadsheet')) {
+                $inner_html = "<i class=\"fas fa-file-excel fa-2x text-success\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'doc') || str_ends_with($mime_type, 'docx') || str_contains($mime_type, 'word')) {
+                $inner_html = "<i class=\"fas fa-file-word fa-2x text-primary\" title=\"$filename\"></i>";
+            } else if (str_ends_with($mime_type, 'ppt') || str_ends_with($mime_type, 'pptx') || str_contains($mime_type, 'powerpoint') || str_contains($mime_type, 'presentation')) {
+                $inner_html = "<i class=\"fas fa-file-powerpoint fa-2x text-warning\" title=\"$filename\"></i>";
+            } else {
+                $inner_html = "<i class=\"fas fa-file fa-2x\" title=\"$filename\"></i>";
+            }
+        }
+        return "<a href=\"$url\" target=\"_blank\">$inner_html</a>";
     }
 }

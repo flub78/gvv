@@ -52,11 +52,6 @@ $this->lang->load('attachments');
 				<input type="hidden" name="referenced_id" value="12">
 
 				<div class="form-floating mb-2 border">
-					<?= $this->gvvmetadata->input_field('attachments', 'filename') ?>
-					<label class="form-label" for="filename"><?= $this->lang->line("gvv_attachments_field_filename") ?></label>
-				</div>
-
-				<div class="form-floating mb-2 border">
 					<?= $this->gvvmetadata->input_field('attachments', 'description') ?>
 					<label class="form-label" for="description"><?= $this->lang->line("gvv_attachments_field_description") ?></label>
 				</div>

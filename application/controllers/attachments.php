@@ -70,20 +70,26 @@ class Attachments extends Gvv_Controller {
      */
     public function formValidation($action, $return_on_success = false) {
 
+        $year = date('Y');
+        $dirname = './uploads/attachments/' . $year . '/';
+        if (!file_exists($dirname)) {
+            mkdir($dirname, 0777, true);
+        };
+
+        // I am not sure that I want the capacity to specify a filename ...
+        // The description is likely enough
         // $filename = $this->input->post('filename');
-        // $file = $this->input->post('file');
-        // $description = $this->input->post('description');
+        $userfile = rand(100000, 999999) . '_' . $_FILES['file']['name'];
+        // echo "uploading $userfile ..." . br();
+        // exit;
 
-        // echo "file = " . $file;
-        // echo "description = " . $description;
-        // echo "filename = " . $filename;
-
-        $config['upload_path'] = './uploads/';
+        $config['upload_path'] = $dirname;
         $config['allowed_types'] = 'gif|jpg|png';
         $config['max_size']    = '2000';            // in kilobytes
         $config['max_width']  = '1024';
         $config['max_height']  = '768';
-        $config['encrypt_name']  = true;
+        $config['file_name'] = $userfile;
+        // $config['encrypt_name']  = true;
 
         $this->load->library('upload', $config);
 
@@ -100,8 +106,7 @@ class Attachments extends Gvv_Controller {
             $upload_data = array('upload_data' => $this->upload->data());
 
             // Add the uploaded file information to POST data
-            $_POST['filename'] = $upload_data['file_name'];
-            $_POST['file_path'] = $upload_data['full_path'];
+            $_POST['file'] = $dirname . $userfile;
 
             if ($action == MODIFICATION) {
                 // Get previous attachment data
