@@ -768,9 +768,11 @@ class Gvv_Controller extends CI_Controller {
      *
      * @param string $format
      */
-    public function tests_results($format = "html") {
+    public function tests_results($format = "html", $controller = "") {
         if ($format == "xml") {
-            $this->unit->XML_result("build/logs/test_$controller.xml", "Test $controller");
+            if (!$controller)
+                $controller = $this->controller;
+            $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
         } else {
             echo $this->unit->report();
         }

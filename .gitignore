@@ -16,3 +16,4 @@ application/config/dx_auth.php
 application/config/program.php
 application/config/google.php
 setenv.sh
+results/*

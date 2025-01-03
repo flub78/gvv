@@ -351,6 +351,17 @@ class Achats_model extends Common_Model {
         $this->gvvmetadata->store_table("vue_achats_per_year", $res, $this->db->last_query());
         return $res;
     }
+
+    /** 
+     * For some reasons unit test library can only be invoked directly from the controller.
+     * This test returns an array of test results.
+     */
+    function test() {
+        $res = [];
+
+        $res[] = ["description" => "Model attachments", "result" => true];
+        return $res;
+    }
 }
 
 /* End of file */

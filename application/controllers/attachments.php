@@ -129,9 +129,7 @@ class Attachments extends Gvv_Controller {
         $this->unit->run(true, true, "Tests $this->controller");
 
         $res = $this->gvv_model->test();
-
         $all_passed = !in_array(false, array_column($res, 'result'));
-        // $all_passed = false;
         if ($all_passed) {
             $count = count($res);
             $this->unit->run(true, true, "All " . $count . " Model tests $this->controller are passed");
@@ -141,9 +139,8 @@ class Attachments extends Gvv_Controller {
             }
         }
 
-        // test page/create/edit
-        // parent::test($format);
 
+        $this->tests_results('xml');
         $this->tests_results($format);
     }
 
