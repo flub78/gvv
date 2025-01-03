@@ -101,19 +101,6 @@ class Attachments extends Gvv_Controller {
             // Add the uploaded file information to POST data
             $_POST['file'] = $dirname . $storage_file;
 
-            if ($action == MODIFICATION) {
-                // Get previous attachment data
-                $previous = $this->gvv_model->get_by_id('id', $this->input->post('id'));
-
-                var_dump($previous);
-                exit;
-
-                // Delete the old file if it exists
-                if (!empty($previous['file']) && file_exists($previous['file'])) {
-                    unlink($previous['file']);
-                }
-            }
-
             parent::formValidation($action);
         }
     }

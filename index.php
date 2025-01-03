@@ -19,7 +19,7 @@
  *
  */
 define('ENVIRONMENT', 'development');
-//	define('ENVIRONMENT', 'production');
+// define('ENVIRONMENT', 'production');
 
 // xdebug_break();
 if (php_sapi_name() === 'cli') {

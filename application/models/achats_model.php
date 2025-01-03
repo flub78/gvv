@@ -1,13 +1,13 @@
 <?php
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+    exit('No direct script access allowed');
 
 /**
  *	Modèle des achats (lignes de factures)
  *
  */
 
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->model('common_model');
 
 class Achats_model extends Common_Model {
@@ -19,9 +19,9 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, ' 
-        . "tarifs.prix as prix_unit, tarifs.prix * quantite as prix, " 
-        . 'achats.description as description,  pilote, facture';
+        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, '
+            . "tarifs.prix as prix_unit, tarifs.prix * quantite as prix, "
+            . 'achats.description as description,  pilote, facture';
 
         $db_res = $this->db
             ->select($select)
@@ -47,8 +47,8 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select($nb = 1000, $debut = 0) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, tarifs.prix as prix_unit, tarifs.prix * quantite as prix' 
-        . ', achats.description as description,  pilote, facture';
+        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
+            . ', achats.description as description,  pilote, facture';
 
         $db_res = $this->db
             ->select($select)
@@ -66,28 +66,28 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_raw($nb = 1000, $debut = 0) {
-    
-    	$db_res = $this->db->select('*')->from("achats")->get();
-    	$res = $this->get_to_array($db_res);
-    	return $res;
+
+        $db_res = $this->db->select('*')->from("achats")->get();
+        $res = $this->get_to_array($db_res);
+        return $res;
     }
-    
+
     /**
      *	Retourne la liste des achats d'un pilote
      *	@return objet		  La liste
      */
     public function achats_de($pilote) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite' 
-        . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix' 
-        . ', achats.description as description,  pilote, facture, compte, produit';
+        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite'
+            . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
+            . ', achats.description as description,  pilote, facture, compte, produit';
         $db_res = $this->db
             ->select($select)
             ->from("achats, tarifs")
             ->where("achats.produit = tarifs.reference")
-            ->where(array ("pilote" => $pilote, "facture" => 0))
+            ->where(array("pilote" => $pilote, "facture" => 0))
             ->order_by('date')->get();
         $res = $this->get_to_array($db_res);
-        return $res;        
+        return $res;
     }
 
     /**
@@ -101,7 +101,7 @@ class Achats_model extends Common_Model {
             ->from("achats, tarifs, membres")
             ->where("achats.produit = tarifs.reference")
             ->where("achats.pilote = membres.mlogin")
-            ->where(array ("facture" => 0))
+            ->where(array("facture" => 0))
             ->group_by('pilote')
             ->order_by("mnom, mprenom")
             ->get();
@@ -115,20 +115,20 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function achats_de_facture($facture) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite' 
-        . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix' 
-        . ', achats.description as description,  pilote, facture, compte';
-        
+        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite'
+            . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
+            . ', achats.description as description,  pilote, facture, compte';
+
         $db_res = $this->db
             ->select($select)
             ->from("achats, tarifs")
             ->where("achats.produit = tarifs.reference")
-            ->where(array ("facture" => $facture))
+            ->where(array("facture" => $facture))
             ->order_by('date')->get();
         $res = $this->get_to_array($db_res);
         return $res;
     }
-    
+
     /**
      *	Calcul the total des achats d'un pilote
      *  @deprecated
@@ -148,7 +148,7 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function a_achete($pilote, $produit, $annee) {
-        $select = array (
+        $select = array(
             'pilote' => $pilote,
             'produit' => $produit,
             "YEAR(date)" => $annee
@@ -163,23 +163,23 @@ class Achats_model extends Common_Model {
      * @param unknown $annee
      */
     public function somme_achats($pilote, $produit, $annee) {
-    	
-    	$where = array (
-    			'pilote' => $pilote,
-    			'produit' => $produit,
-    			"YEAR(date)" => $annee
-    	);
-    	
-    	$row = $this->db->select('quantite')
-    	->from('achats')
-    	->where($where)
-    	->select_sum('quantite')
-    	->get()->row();
-    	
-    	// var_dump($row); exit;
-    	return isset($row->quantite) ? $row->quantite : 0;
+
+        $where = array(
+            'pilote' => $pilote,
+            'produit' => $produit,
+            "YEAR(date)" => $annee
+        );
+
+        $row = $this->db->select('quantite')
+            ->from('achats')
+            ->where($where)
+            ->select_sum('quantite')
+            ->get()->row();
+
+        // var_dump($row); exit;
+        return isset($row->quantite) ? $row->quantite : 0;
     }
-    
+
     /**
      *	Ajoute un achat
      *
@@ -192,7 +192,7 @@ class Achats_model extends Common_Model {
         gvv_debug("achat create: " . var_export($data, true));
         $produit = $data['produit'];
         $this->load->model('achats_model');
-        
+
         $product_info = $this->tarifs_model->get_tarif($produit, $data['date']);
         if (count($product_info) == 0) {
             // Il n'y a pas de référence produit
@@ -202,9 +202,9 @@ class Achats_model extends Common_Model {
 
         $this->db->trans_start();
 
-        if (isset ($data['format'])) {
+        if (isset($data['format'])) {
             $is_time = TRUE;
-            unset ($data['format']);
+            unset($data['format']);
         } else {
             $is_time = FALSE;
         }
@@ -218,9 +218,10 @@ class Achats_model extends Common_Model {
 
             $this->db->trans_complete();
             return $data['id'];
-
         } else {
+            $msg = $this->db->_error_message();
             $this->db->trans_complete();
+            gvv_error("Erreur lors de l'ajout de l'achat: " . $msg);
             return FALSE;
         }
     }
@@ -232,10 +233,10 @@ class Achats_model extends Common_Model {
      *	@param string  $data donnée à remplacer
      *	@return bool		Le résultat de la requête
      */
-    public function update($keyid, $data) {
+    public function update($keyid, $data, $keyvalue = '') {
         // détruit la ligne d'écriture correspondante
         $this->load->model('ecritures_model');
-        $this->ecritures_model->delete_all(array (
+        $this->ecritures_model->delete_all(array(
             'achat' => $data[$keyid]
         ));
 
@@ -252,9 +253,9 @@ class Achats_model extends Common_Model {
         $this->db->where($keyid, $keyvalue);
         $this->db->update($this->table, $data);
 
-        if (isset ($data['format'])) {
+        if (isset($data['format'])) {
             $is_time = TRUE;
-            unset ($data['format']);
+            unset($data['format']);
         } else {
             $is_time = FALSE;
         }
@@ -266,8 +267,8 @@ class Achats_model extends Common_Model {
      * Génère l'écriture correspondante à un achat
      * @param unknown_type $data
      */
-    function gen_ecriture($data = array ()) {
-    	
+    function gen_ecriture($data = array()) {
+
         // Cherche le prix unitaire et le compte du produit
         $tarif = $this->tarifs_model->get_tarif($data['produit'], $data['date']);
 
@@ -286,7 +287,7 @@ class Achats_model extends Common_Model {
             $quantite = $data['quantite'];
         }
 
-        $ecriture = array (
+        $ecriture = array(
             'id' => 0,
             'annee_exercise' => $this->config->item('annee_exercise'),
             'date_creation' => date("Y-m-d", time()),
@@ -309,7 +310,7 @@ class Achats_model extends Common_Model {
      * delete
      * @param unknown_type $data
      */
-    function delete($where = array ()) {
+    function delete($where = array()) {
 
         // détruit les lignes d'écriture correspondante        
         $selection = $this->select_all($where);
@@ -317,10 +318,10 @@ class Achats_model extends Common_Model {
         $this->load->model('tickets_model');
 
         foreach ($selection as $row) {
-            $this->ecritures_model->delete_all(array (
+            $this->ecritures_model->delete_all(array(
                 'achat' => $row['id']
             ));
-            $this->tickets_model->delete_all(array (
+            $this->tickets_model->delete_all(array(
                 'achat' => $row['id']
             ));
         }
@@ -335,21 +336,20 @@ class Achats_model extends Common_Model {
      */
     function list_per_year($year) {
 
-    	$select = 'achats.id as id, achats.date as date, achats.produit as produit, sum(quantite) as quantite, ' 
-    			. "achats.prix as prix_unit, sum(achats.prix * quantite) as prix ";
-    	 
+        $select = 'achats.id as id, achats.date as date, achats.produit as produit, sum(quantite) as quantite, '
+            . "achats.prix as prix_unit, sum(achats.prix * quantite) as prix ";
+
         $db_res = $this->db->select($select)
-             ->from("achats")
-             ->where("YEAR(achats.date) = $year")
-			 ->order_by('achats.produit')
-             ->group_by('achats.produit, prix_unit')
-             ->get();
-        
+            ->from("achats")
+            ->where("YEAR(achats.date) = $year")
+            ->order_by('achats.produit')
+            ->group_by('achats.produit, prix_unit')
+            ->get();
+
         $res = $this->get_to_array($db_res);
-         
+
         $this->gvvmetadata->store_table("vue_achats_per_year", $res, $this->db->last_query());
         return $res;
-
     }
 }
 

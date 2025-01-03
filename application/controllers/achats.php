@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,7 +28,7 @@
 /**
  * Include parent library
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 
 /**
  * Controleur de gestion des achats
@@ -35,7 +36,7 @@ include ('./application/libraries/Gvv_Controller.php');
 class Achats extends Gvv_Controller {
     protected $controller = 'achats';
     protected $model = 'achats_model';
-    protected $rules = array ();
+    protected $rules = array();
 
     /**
      * Constructor
@@ -63,7 +64,7 @@ class Achats extends Gvv_Controller {
         $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector());
         $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->selector());
 
-        $this->data ['saisie_par'] = $this->dx_auth->get_username();
+        $this->data['saisie_par'] = $this->dx_auth->get_username();
     }
 
     /**
@@ -75,26 +76,26 @@ class Achats extends Gvv_Controller {
     function create() {
 
         // initialise les valeurs par défaut
-        foreach ( $this->fields as $field => $value ) {
-            $this->data [$field] = (array_key_exists('default', $value)) ? $value ['default'] : '';
+        foreach ($this->fields as $field => $value) {
+            $this->data[$field] = (array_key_exists('default', $value)) ? $value['default'] : '';
         }
         $this->form_static_element(CREATION);
         if (func_num_args() > 0) {
-            $this->data ['pilote'] = func_get_arg(0);
+            $this->data['pilote'] = func_get_arg(0);
         }
-        
-        
-		/**
-		 * Reverse logic. An amount is fetched from HEVA. A product has a price
-		 * so the quantity is the free variable
-		 * http://localhost/gvv_dev/index.php/achats/create?amount=80.01&pilot=vpeignot
-		 */
+
+
+        /**
+         * Reverse logic. An amount is fetched from HEVA. A product has a price
+         * so the quantity is the free variable
+         * http://localhost/gvv_dev/index.php/achats/create?amount=80.01&pilot=vpeignot
+         */
         $amount = $this->input->get('amount');
-        
+
         $produit = $this->config->item('ffvv_product');
         $tarif_info = $this->tarifs_model->get_by_id('reference', $produit);
         $price = $tarif_info['prix'];
-       
+
         $this->data['id'] = '';
         $this->data['date'] = $this->input->get('date');
         $this->data['produit'] = $produit;
@@ -102,7 +103,7 @@ class Achats extends Gvv_Controller {
         $this->data['quantite'] = $amount / $price;
         $this->data['description'] = $this->input->get('description');
         $this->data['num_cheque'] = $this->input->get('num_cheque');
-        
+
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
@@ -112,28 +113,28 @@ class Achats extends Gvv_Controller {
      * @param $id integer
      *            identifiant à modifier
      */
-    function edit($id) {
+    function edit($id = "", $load_view = TRUE, $action = MODIFICATION) {
         $action = (count($this->ecritures_model->select_frozen_lines($id))) ? VISUALISATION : MODIFICATION;
         parent::edit($id, FALSE, $action);
-        $this->data ['date'] = date_db2ht($this->data ['date']);
+        $this->data['date'] = date_db2ht($this->data['date']);
 
-        if (isset($this->data ['vol_avion'])) {
+        if (isset($this->data['vol_avion'])) {
             // L'achat a été généré par un vol, c'est le vol qu'il faut éditer
-            $vol = $this->data ['vol_avion'];
+            $vol = $this->data['vol_avion'];
             if ($vol != 0) {
                 redirect("vols_avion/edit/" . $vol);
                 return;
             }
-        } else if (isset($this->data ['vol_planeur'])) {
+        } else if (isset($this->data['vol_planeur'])) {
             // L'achat a été généré par un vol, c'est le vol qu'il faut éditer
-            $vol = $this->data ['vol_planeur'];
+            $vol = $this->data['vol_planeur'];
             if ($vol != 0) {
                 redirect("vols_planeur/edit/" . $vol);
                 return;
             }
-        } else if (isset($this->data ['mvt_pompe'])) {
+        } else if (isset($this->data['mvt_pompe'])) {
             // L'achat a été généré par un mvt de pompe
-            $mvt = $this->data ['mvt_pompe'];
+            $mvt = $this->data['mvt_pompe'];
             if ($mvt != 0) {
                 redirect("pompes/edit/" . $mvt);
                 return;
@@ -150,31 +151,31 @@ class Achats extends Gvv_Controller {
      * @param array $data
      *            tableau des champs de l'enregistrement
      */
-    function post_create($data = array ()) {
-        $pilote = $data ['pilote'];
-        $produit = $data ['produit'];
-        $quantite = $data ['quantite'];
-        $date = $data ['date'];
-        $achat = $data ['id'];
-        $saisie_par = $data ['saisie_par'];
-        $desc = $data ['description'];
-        $club = $data ['club'];
+    function post_create($data = array()) {
+        $pilote = $data['pilote'];
+        $produit = $data['produit'];
+        $quantite = $data['quantite'];
+        $date = $data['date'];
+        $achat = $data['id'];
+        $saisie_par = $data['saisie_par'];
+        $desc = $data['description'];
+        $club = $data['club'];
 
         $tarif_info = $this->tarifs_model->get_by_id('reference', $produit);
 
-        if ($tarif_info ['nb_tickets'] && ($tarif_info ['nb_tickets'] > 0.000001)) {
+        if ($tarif_info['nb_tickets'] && ($tarif_info['nb_tickets'] > 0.000001)) {
 
             $this->load->model('tickets_model');
             // Prend en compte les remorqués
-            $this->tickets_model->create(array (
-                    'date' => $date,
-                    'pilote' => $pilote,
-                    'achat' => $achat,
-                    'quantite' => $quantite * $tarif_info ['nb_tickets'],
-                    'description' => "Achat " . $desc,
-                    'saisie_par' => $saisie_par,
-                    'club' => $club,
-                    'type' => $tarif_info ['type_ticket']
+            $this->tickets_model->create(array(
+                'date' => $date,
+                'pilote' => $pilote,
+                'achat' => $achat,
+                'quantite' => $quantite * $tarif_info['nb_tickets'],
+                'description' => "Achat " . $desc,
+                'saisie_par' => $saisie_par,
+                'club' => $club,
+                'type' => $tarif_info['type_ticket']
             ));
         }
 
@@ -200,15 +201,15 @@ class Achats extends Gvv_Controller {
      * @param array $data
      *            tableau des champs de l'enregistrement
      */
-    function pre_update($id, $data = array ()) {
+    function pre_update($id, $data = array()) {
         // cancel previous action
-        $previous = $this->gvv_model->get_by_id('id', $data [$id]);
+        $previous = $this->gvv_model->get_by_id('id', $data[$id]);
 
         // todo: Il faut détruire la lignes de ticket qui référencent cet achat
         // Detruit les tickets correspondant
         $this->load->model('tickets_model');
-        $this->tickets_model->delete(array (
-                'achat' => $previous ['id']
+        $this->tickets_model->delete(array(
+            'achat' => $previous['id']
         ));
     }
 
@@ -218,7 +219,7 @@ class Achats extends Gvv_Controller {
      * @param array $data
      *            tableau des champs de l'enregistrement
      */
-    function post_update($data = array ()) {
+    function post_update($data = array()) {
         $this->post_create($data);
     }
 
@@ -233,24 +234,24 @@ class Achats extends Gvv_Controller {
         // détruit en base
         $current = $this->gvv_model->get_by_id('id', $id);
 
-        if (isset($current ['vol_avion'])) {
-            $vol = $current ['vol_avion'];
+        if (isset($current['vol_avion'])) {
+            $vol = $current['vol_avion'];
 
             // L'achat a été généré par un vol, c'est le vol qu'il faut détruire
             if ($vol != 0) {
                 redirect("vols_avion/delete/" . $vol);
                 return;
             }
-        } else if (isset($current ['vol_planeur'])) {
-            $vol = $current ['vol_planeur'];
+        } else if (isset($current['vol_planeur'])) {
+            $vol = $current['vol_planeur'];
 
             // L'achat a été généré par un vol, c'est le vol qu'il faut détruire
             if ($vol != 0) {
                 redirect("vols_planeur/delete/" . $vol);
                 return;
             }
-        } else if (isset($current ['mvt_pompe'])) {
-            $mvt = $current ['mvt_pompe'];
+        } else if (isset($current['mvt_pompe'])) {
+            $mvt = $current['mvt_pompe'];
 
             // L'achat a été généré par un mouvement de pompe
             if ($mvt != 0) {
@@ -260,7 +261,7 @@ class Achats extends Gvv_Controller {
         }
 
         $this->load->model('comptes_model');
-        $compte_pilote = $this->comptes_model->compte_pilote($current ['pilote']);
+        $compte_pilote = $this->comptes_model->compte_pilote($current['pilote']);
 
         if (count($this->ecritures_model->select_frozen_lines($id))) {
             // Il y a des lignes gelées la suppression est interdite
@@ -269,13 +270,13 @@ class Achats extends Gvv_Controller {
 
             // Detruit les tickets correspondant
             $this->load->model('tickets_model');
-            $this->tickets_model->delete(array (
-                    'achat' => $id
+            $this->tickets_model->delete(array(
+                'achat' => $id
             ));
 
             $this->pre_delete($id);
-            $this->gvv_model->delete(array (
-                    $this->kid => $id
+            $this->gvv_model->delete(array(
+                $this->kid => $id
             ));
         }
         redirect("compta/view/" . $compte_pilote);
@@ -287,10 +288,10 @@ class Achats extends Gvv_Controller {
     function list_per_year() {
         $this->push_return_url("liste ventes par an");
 
-        $data ['year'] = $this->session->userdata('year');
-        $data ['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
-        $data ['controller'] = $this->controller;
-        $this->gvv_model->list_per_year($data ['year']);
+        $data['year'] = $this->session->userdata('year');
+        $data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+        $data['controller'] = $this->controller;
+        $this->gvv_model->list_per_year($data['year']);
         load_last_view('achats/TablePerYear', $data);
     }
 
@@ -299,14 +300,14 @@ class Achats extends Gvv_Controller {
      */
     function ventes_csv($year) {
         $this->gvv_model->list_per_year($year);
-        $attrs = array (
-                'numbered' => 1,
-                'fields' => array (
-                        'produit',
-                        'prix_unit',
-                        'quantite',
-                        'prix'
-                )
+        $attrs = array(
+            'numbered' => 1,
+            'fields' => array(
+                'produit',
+                'prix_unit',
+                'quantite',
+                'prix'
+            )
         );
         $this->gvvmetadata->csv("vue_achats_per_year", $attrs);
     }
@@ -319,18 +320,18 @@ class Achats extends Gvv_Controller {
         echo "cleanup" . br();
         $achats = $this->gvv_model->select_raw();
         $pattern = '/(.*)(, reste=(\d+))(.*)/';
-        foreach ( $achats as $key => $row ) {
-            $description = $row ['description'];
+        foreach ($achats as $key => $row) {
+            $description = $row['description'];
             if (preg_match($pattern, $description, $matches)) {
-                $avant = $matches [1];
-                $reste = $matches [2];
-                $apres = $matches [4];
+                $avant = $matches[1];
+                $reste = $matches[2];
+                $apres = $matches[4];
                 echo $avant . '---|' . $reste . '|---' . $apres . br();
-                $replace = $matches [1] . $matches [4];
-                $row ['description'] = $replace;
+                $replace = $matches[1] . $matches[4];
+                $row['description'] = $replace;
                 // echo "replace=$replace" . br();
 
-                $this->db->where('id', $row ['id']);
+                $this->db->where('id', $row['id']);
                 $this->db->update('achats', $row);
             }
         }
