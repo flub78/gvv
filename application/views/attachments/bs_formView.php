@@ -43,24 +43,11 @@ $this->lang->load('attachments');
 
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
-				<?=
-				// hidden controller url for java script access
-				form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
-				?>
-
-				<input type="hidden" name="referenced_table" value="calendar_events">
-				<input type="hidden" name="referenced_id" value="12">
-
-				<div class="form-floating mb-2 border">
-					<?= $this->gvvmetadata->input_field('attachments', 'description', set_value('description')) ?>
-					<textarea name="description" cols="40" rows="10" type="text" id="description" size="1024"><?php echo set_value('description'); ?></textarea>
-					<label class="form-label" for="description"><?= $this->lang->line("gvv_attachments_field_description") ?></label>
-				</div>
-
-				<div class="form-floating mb-2 border">
-					<input type="file" class="form-control" name="file" value="" size="32">
-					<label class="form-label" for="file"><?= $this->lang->line("gvv_attachments_field_file") ?></label>
-				</div>
+				<?= ($this->gvvmetadata->form('attachments', array(
+					'filename' => $filename,
+					'description' => $description,
+					'file' => $file
+				))); ?>
 
 				<?= validation_button($action) ?>
 			</form>

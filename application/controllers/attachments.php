@@ -76,37 +76,34 @@ class Attachments extends Gvv_Controller {
         // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
 
-        $userfile = rand(100000, 999999) . '_' . $_FILES['file']['name'];
+        $storage_file = rand(100000, 999999) . '_' . $_FILES['userfile']['name'];
 
         $config['upload_path'] = $dirname;
         $config['allowed_types'] = 'gif|jpg|png|bnp|svg|avif|webp|md|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|odt|odp|ods|odg|odc|odf';
         $config['allowed_types'] = '*';
         $config['max_size']    = '2000';            // in kilobytes
-        // $config['max_width']  = '1024';
-        // $config['max_height']  = '768';
-        $config['file_name'] = $userfile;
+        $config['file_name'] = $storage_file;
         // $config['encrypt_name']  = true;
 
         $this->load->library('upload', $config);
 
         // the purpose of attachment is to upload a file, so it's a fatal error if the file is not uploaded
-        if (! $this->upload->do_upload("file")) {
+        if (! $this->upload->do_upload("userfile")) {
             // erreur
             $this->data['message'] = '<div class="text-danger">' . $this->upload->display_errors() . '</div>';
 
             $this->form_static_element($action);
             load_last_view($this->form_view, $this->data);
         } else {
-
             // upload success
             $upload_data = array('upload_data' => $this->upload->data());
 
             // Add the uploaded file information to POST data
-            $_POST['file'] = $dirname . $userfile;
+            $_POST['file'] = $dirname . $storage_file;
 
             if ($action == MODIFICATION) {
                 // Get previous attachment data
-                $previous_attachment = $this->gvv_model->get($this->input->post('id'));
+                $previous_attachment = $this->gvv_model->get_by_id('id', $this->input->post('id'));
 
                 // Delete the old file if it exists
                 if (!empty($previous_attachment->file_path) && file_exists($previous_attachment->file_path)) {
