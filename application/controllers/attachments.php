@@ -103,11 +103,14 @@ class Attachments extends Gvv_Controller {
 
             if ($action == MODIFICATION) {
                 // Get previous attachment data
-                $previous_attachment = $this->gvv_model->get_by_id('id', $this->input->post('id'));
+                $previous = $this->gvv_model->get_by_id('id', $this->input->post('id'));
+
+                var_dump($previous);
+                exit;
 
                 // Delete the old file if it exists
-                if (!empty($previous_attachment->file_path) && file_exists($previous_attachment->file_path)) {
-                    unlink($previous_attachment->file_path);
+                if (!empty($previous['file']) && file_exists($previous['file'])) {
+                    unlink($previous['file']);
                 }
             }
 
@@ -115,6 +118,19 @@ class Attachments extends Gvv_Controller {
         }
     }
 
+    /**
+     * Supprime un élément
+     */
+    function delete($id) {
+
+        $elt = $this->gvv_model->get_by_id('id', $id);
+
+        if (!empty($elt['file']) && file_exists($elt['file'])) {
+            unlink($elt['file']);
+        }
+
+        parent::delete($id);
+    }
     /**
      * Test unitaire
      */
