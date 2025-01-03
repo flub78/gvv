@@ -187,7 +187,7 @@ if (! function_exists('img')) {
 			$src['alt'] = '';
 		}
 
-		$img = '<img class="img-thumbnail"';
+		$img = '<img class="icon"';
 
 		foreach ($src as $k => $v) {
 

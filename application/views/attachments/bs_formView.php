@@ -52,7 +52,8 @@ $this->lang->load('attachments');
 				<input type="hidden" name="referenced_id" value="12">
 
 				<div class="form-floating mb-2 border">
-					<?= $this->gvvmetadata->input_field('attachments', 'description') ?>
+					<?= $this->gvvmetadata->input_field('attachments', 'description', set_value('description')) ?>
+					<textarea name="description" cols="40" rows="10" type="text" id="description" size="1024"><?php echo set_value('description'); ?></textarea>
 					<label class="form-label" for="description"><?= $this->lang->line("gvv_attachments_field_description") ?></label>
 				</div>
 
