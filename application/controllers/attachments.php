@@ -75,16 +75,15 @@ class Attachments extends Gvv_Controller {
 
         // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
-        // $filename = $this->input->post('filename');
+
         $userfile = rand(100000, 999999) . '_' . $_FILES['file']['name'];
-        // echo "uploading $userfile ..." . br();
-        // exit;
 
         $config['upload_path'] = $dirname;
-        $config['allowed_types'] = 'gif|jpg|png';
+        $config['allowed_types'] = 'gif|jpg|png|bnp|svg|avif|webp|md|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|odt|odp|ods|odg|odc|odf';
+        $config['allowed_types'] = '*';
         $config['max_size']    = '2000';            // in kilobytes
-        $config['max_width']  = '1024';
-        $config['max_height']  = '768';
+        // $config['max_width']  = '1024';
+        // $config['max_height']  = '768';
         $config['file_name'] = $userfile;
         // $config['encrypt_name']  = true;
 

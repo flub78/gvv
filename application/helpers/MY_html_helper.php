@@ -564,6 +564,16 @@ if (! function_exists('str_ends_with')) {
     }
 }
 
+if (! function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        if ($needle === '') {
+            return true;
+        }
+        return strpos($haystack, $needle) !== false;
+    }
+}
+
+
 if (! function_exists('attachment')) {
     /**
      * Generate a link to download an uploaded file
