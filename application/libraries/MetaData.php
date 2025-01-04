@@ -1701,7 +1701,8 @@ abstract class Metadata {
             $upload = form_input(array(
                 'type' => 'submit',
                 'name' => "button_$field",
-                'value' => $this->CI->lang->line('gvv_button_upload')
+                'value' => $this->CI->lang->line('gvv_button_upload'),
+                'class' => 'btn btn-success'
             ));
             return $img . $input . $upload;
         } elseif ($subtype == 'minute') {

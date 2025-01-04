@@ -252,29 +252,29 @@ if ($codec == 411 && $navigation_allowed) {
     ));
 
     echo '<div class="me-3 mb-2 d-md-flex">';
-    
-    
+
+
     echo '<div class="form-group me-3 mb-2">' .
         '<label for="date">' . $this->lang->line("gvv_compta_purchase_headers")[0] . nbs(2) . '</label>';
     echo input_field('date', $date, array('type'  => 'text', 'size' => '10', 'class' => 'datepicker')) . "</div>";
-    
+
     echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[1] . nbs(2);
     echo dropdown_field(
         'produit',
         $produit,
         $produit_selector,
         "id='product_selector' "
-        ) . "</div>";
-    
-        echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[2] . nbs(2);
+    ) . "</div>";
+
+    echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[2] . nbs(2);
     echo input_field('quantite', $quantite, array('type'  => 'text', 'size' => '10')) . "</div>";
-    
+
     echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[3] . nbs(2);
     echo input_field('description', $description, array('type'  => 'text', 'size' => '50')) . "</div>";
-    
-    echo  form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Validation', 'id' => 'validation_achat')) ;
-    
-    
+
+    echo  form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Validation', 'id' => 'validation_achat', 'class' => 'btn btn-success')) . "</div>";
+
+
     echo "</div>";
     echo form_fieldset_close();
 
