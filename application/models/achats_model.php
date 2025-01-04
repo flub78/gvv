@@ -359,7 +359,55 @@ class Achats_model extends Common_Model {
     function test() {
         $res = [];
 
-        $res[] = ["description" => "Model attachments", "result" => true];
+        $res[] = ["description" => "Model achats", "result" => true];
+
+        // Count elements in attachments table
+        $initial_count = $this->db->count_all($this->table);
+        $res[] = ["description" => "Initial count achats: " . $initial_count, "result" => true];
+
+        // Insert a dummy element
+        $data = array(
+            'date' => '2025-01-01',
+            'produit' => '80',
+            'quantite' => '2',
+            'prix' => '25.0',
+            'description' => '2 remorqués',
+            'pilote' => 'asterix',
+            'saisie_par' => 'moi'
+        );
+
+        $insert_result = $this->db->insert($this->table, $data);
+        $last_id = $this->db->insert_id();
+
+        if (!$insert_result) {
+            $res[] = ["description" => "Insert returns false", "result" => false];
+            $msg = $this->db->_error_message();
+            $this->db->trans_complete();
+            gvv_error("Test: Erreur lors de l'ajout de l'achat: " . $msg);
+        }
+
+        $count = $this->db->count_all($this->table);
+
+        $res[] = ["description" => "Insert returns true", "result" => $insert_result];
+        $res[] = ["description" => "Attachment created", "result" => ($count == $initial_count + 1)];
+
+        // Get last inserted id
+        $res[] = ["description" => "Last inserted ID: " . $last_id, "result" => ($last_id > 0)];
+
+        // Get last inserted element
+        $last = $this->get_by_id('id', $last_id);
+
+        $res[] = ["description" => "Last element id", "result" => ($last['id'] == $last_id)];
+        $res[] = ["description" => "Last element produit", "result" => ($last['produit'] == '80')];
+
+        // Delete last inserted element
+        $delete_result = $this->db->delete($this->table, array('id' => $last_id));
+        $res[] = ["description" => "Delete returns true", "result" => $delete_result];
+
+        // Verify deletion
+        $count_after_delete = $this->db->count_all($this->table);
+        $res[] = ["description" => "Attachment deleted", "result" => ($count_after_delete == $initial_count)];
+
         return $res;
     }
 }
