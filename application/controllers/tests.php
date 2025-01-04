@@ -29,6 +29,8 @@ class Tests extends CI_Controller {
         // redirect("auth/login");
         // }
         $this->load->library('unit_test');
+
+        $this->lang->load('gvv');
     }
 
     function index() {
