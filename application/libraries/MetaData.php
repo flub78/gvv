@@ -1698,12 +1698,10 @@ abstract class Metadata {
                 'size' => 32
             ));
             $input = form_input($attrs, null);
-            $upload = form_input(array(
-                'type' => 'submit',
-                'name' => "button_$field",
-                'value' => $this->CI->lang->line('gvv_button_upload'),
-                'class' => 'btn btn-success'
-            ));
+
+            $upload = '<button type="submit" class="btn btn-success" name="button_file"><i class="fa fa-camera"></i> '
+                . $this->CI->lang->line('gvv_button_upload') . '</button>';
+
             return $img . $input . $upload;
         } elseif ($subtype == 'minute') {
             // echo "value=$value" . br();
@@ -1756,6 +1754,7 @@ abstract class Metadata {
                 'size' => 64
             ));
             $input = form_input($attrs, null);
+
             $upload = form_input(array(
                 'type' => 'submit',
                 'name' => 'button',
