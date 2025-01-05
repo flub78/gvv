@@ -1699,8 +1699,16 @@ abstract class Metadata {
             ));
             $input = form_input($attrs, null);
 
-            $upload = '<button type="submit" class="btn btn-success" name="button_file"><i class="fa fa-camera"></i> '
+            $upload = '<button type="submit" class="btn btn-success" name="button_photo"><i class="fa fa-camera"></i> '
                 . $this->CI->lang->line('gvv_button_upload') . '</button>';
+
+            // The version above is more elegant as it include a camera icon
+            // However it does not work because the Metada upload method relies on a post 
+            // parameter named "button_$fieldname"
+
+            // It is a bad over engineered method to find out multiple upload buttons into a form.
+
+            $upload = '<input type="submit" name="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
             return $img . $input . $upload;
         } elseif ($subtype == 'minute') {
