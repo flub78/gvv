@@ -50,7 +50,7 @@ class Compta extends Gvv_Controller {
      *
      * @see Gvv_Controller::edit()
      */
-    function edit($id = "") {
+    function edit($id = "", $load_view = true, $action = MODIFICATION) {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         if ($this->data['achat']) {
