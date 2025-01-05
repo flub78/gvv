@@ -44,7 +44,6 @@ $this->lang->load('attachments');
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
 				<?= ($this->gvvmetadata->form('attachments', array(
-					'filename' => $filename,
 					'description' => $description,
 					'file' => $file
 				))); ?>

@@ -47,8 +47,8 @@ echo validation_errors();
 <div class="d-md-flex flex-row mb-2">
 	<!-- -->
 	<div class="me-3 mb-2">
-		<?=  $this->lang->line("gvv_events_types_field_name") . ": " ?>
-		<input type="text" name="name" value="<?= $name?>" id="name" size="64" />
+		<?= $this->lang->line("gvv_events_types_field_name") . ": " ?>
+		<input type="text" name="name" value="<?= $name ?>" id="name" size="64" />
 	</div>
 
 	<div class="me-3 mb-2">
@@ -62,7 +62,7 @@ echo validation_errors();
 
 	<div class="me-3 mb-2">
 		<?= $this->lang->line("gvv_events_types_field_en_vol") . ": " ?>
-		<?= $this->eventstypesmetadata->input_field("events_types", 'en_vol', $en_vol) ?>	</div>
+		<?= $this->eventstypesmetadata->input_field("events_types", 'en_vol', $en_vol) ?> </div>
 
 	<div class="me-3 mb-2">
 		<?= $this->lang->line("gvv_events_types_field_multiple") . ": " ?>
@@ -85,18 +85,7 @@ echo validation_errors();
 </div>
 
 <?php
-// echo validation_errors();
-/*
-echo ($this->eventstypesmetadata->form('events_types', array(
-	'name' => $name,
-    'activite' => $activite,
-    'en_vol' => $en_vol,
-	'multiple' => $multiple,
-	'expirable' => $expirable,
-	'ordre' => $ordre,
-	'annual' => $annual
-)));
-*/
+
 echo validation_button($action);
 echo form_close();
 

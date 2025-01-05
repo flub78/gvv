@@ -209,6 +209,16 @@ class Achats_model extends Common_Model {
             $is_time = FALSE;
         }
 
+        // If these fields aren't set in $data, set them explicitly to NULL
+        $fields_allowing_null = array('vol_planeur', 'vol_avion', 'mvt_pompe', 'num_cheque', 'description', 'machine');
+
+        foreach ($fields_allowing_null as $field) {
+            if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === 0) {
+                $data[$field] = NULL;
+            }
+        }
+
+        $this->db->insert($this->table, $data);
         if ($this->db->insert($this->table, $data)) {
             $data['id'] = $this->db->insert_id();
 
@@ -219,6 +229,8 @@ class Achats_model extends Common_Model {
             $this->db->trans_complete();
             return $data['id'];
         } else {
+            gvv_error("sql: " . $this->db->last_query());
+
             $msg = $this->db->_error_message();
             $this->db->trans_complete();
             gvv_error("Erreur lors de l'ajout de l'achat: " . $msg);

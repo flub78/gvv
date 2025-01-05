@@ -79,7 +79,6 @@ class Attachments extends Gvv_Controller {
         $storage_file = rand(100000, 999999) . '_' . $_FILES['userfile']['name'];
 
         $config['upload_path'] = $dirname;
-        $config['allowed_types'] = 'gif|jpg|png|bnp|svg|avif|webp|md|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|odt|odp|ods|odg|odc|odf';
         $config['allowed_types'] = '*';
         $config['max_size']    = '2000';            // in kilobytes
         $config['file_name'] = $storage_file;
@@ -100,6 +99,16 @@ class Attachments extends Gvv_Controller {
 
             // Add the uploaded file information to POST data
             $_POST['file'] = $dirname . $storage_file;
+
+            // Delete the previous file for this attachment
+            $initial_id = $this->session->userdata('inital_id');
+
+            if ($initial_id) {
+                $initial_elt = $this->gvv_model->get_by_id('id', $initial_id);
+                if (!empty($initial_elt['file']) && file_exists($initial_elt['file'])) {
+                    unlink($initial_elt['file']);
+                }
+            }
 
             parent::formValidation($action);
         }
