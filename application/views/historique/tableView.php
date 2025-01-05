@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -30,22 +31,21 @@ $this->lang->load('historique');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_historique_title_list"), 3);
+echo heading("gvv_historique_title_list", 3);
 
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 // --------------------------------------------------------------------------------------------------
 // Data
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
     'fields' => array('machine', 'annee', 'heures'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable");
+    'class' => "datatable"
+);
 
 echo $this->gvvmetadata->table("vue_historique", $attrs, "");
 br();
 echo p($this->lang->line("gvv_historique_txt"));
 echo '</div>';
-
-?>

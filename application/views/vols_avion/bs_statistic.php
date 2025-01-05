@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -31,100 +32,102 @@ $controller = "vols_avion";
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_vols_avion_title_statistic"), 3);
+echo heading("gvv_vols_avion_title_statistic", 3);
 
 echo year_selector($controller, $year, $year_selector);
 
 echo br(2);
 ?>
 <div id="tabs">
-<ul>
-<li><a href="#tabs-1"><?php echo ($this->lang->line("gvv_vols_avion_tab_monthly"));?></a></li>
-<li><a href="#tabs-2"><?php echo ($this->lang->line("gvv_vols_avion_tab_per_machine"));?></a></li>
-</ul>
+	<ul>
+		<li><a href="#tabs-1"><?php echo ($this->lang->line("gvv_vols_avion_tab_monthly")); ?></a></li>
+		<li><a href="#tabs-2"><?php echo ($this->lang->line("gvv_vols_avion_tab_per_machine")); ?></a></li>
+	</ul>
 
-<?php
-$title_row = array_merge(
-					array( $this->lang->line("gvv_total")),
-					$this->lang->line("gvv_months")
-				);
+	<?php
+	$title_row = array_merge(
+		array($this->lang->line("gvv_total")),
+		$this->lang->line("gvv_months")
+	);
 
-$first_col = $this->lang->line("gvv_vols_avion_stats_col");
+	$first_col = $this->lang->line("gvv_vols_avion_stats_col");
 
-$pm_first_row = array_merge(array($this->lang->line("gvv_vue_vols_avion_short_field_type"),
-		$this->lang->line("gvv_vue_vols_avion_short_field_vamacid")), $title_row);
+	$pm_first_row = array_merge(array(
+		$this->lang->line("gvv_vue_vols_avion_short_field_type"),
+		$this->lang->line("gvv_vue_vols_avion_short_field_vamacid")
+	), $title_row);
 
-################################################################################
-$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
+	################################################################################
+	$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
 		. $this->lang->line("gvv_vols_avion_header_per_month") . ' '
 		.  $this->lang->line("gvv_vols_avion_header_in") . ' ' . $year;
-echo '<div id="tabs-1">' . heading($header, 4);;
+	echo '<div id="tabs-1">' . heading($header, 4);;
 
-add_first_row($per_month, $title_row);
-add_first_col($per_month, $first_col);
+	add_first_row($per_month, $title_row);
+	add_first_col($per_month, $first_col);
 
-$table = new DataTable(array(
-	'title' => "",
-	'values' => $per_month,
-	'controller' => '',
-	'class' => "datatable_style fixed_datatable table",
-	'create' => "",
-    'first' => 0,
-	'align' => array('left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right')
-));
+	$table = new DataTable(array(
+		'title' => "",
+		'values' => $per_month,
+		'controller' => '',
+		'class' => "datatable_style fixed_datatable table",
+		'create' => "",
+		'first' => 0,
+		'align' => array('left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right')
+	));
 
-$table->display();
-echo br() . hr();
+	$table->display();
+	echo br() . hr();
 
-#-------------------------------------------------------------------------------
-echo heading($header, 4);
+	#-------------------------------------------------------------------------------
+	echo heading($header, 4);
 
-$filename = image_dir() . "avion_mois_$year.png";
-if (file_exists($filename)) echo img($filename);
+	$filename = image_dir() . "avion_mois_$year.png";
+	if (file_exists($filename)) echo img($filename);
 
-$bar = array(
-	array('label' => "Excel", 'url' =>"$controller/csv_month/$year"),
-	array('label' => "Pdf", 'url' =>"$controller/pdf_month/$year"),
-	array('label' => "Génération", 'url' =>"$controller/statistic/true", "role" => 'ca'),
+	$bar = array(
+		array('label' => "Excel", 'url' => "$controller/csv_month/$year"),
+		array('label' => "Pdf", 'url' => "$controller/pdf_month/$year"),
+		array('label' => "Génération", 'url' => "$controller/statistic/true", "role" => 'ca'),
 	);
-echo br() . button_bar4($bar);
-echo '</div>';
+	echo br() . button_bar4($bar);
+	echo '</div>';
 
-################################################################################
-$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
+	################################################################################
+	$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
 		. $this->lang->line("gvv_vols_avion_header_per_aircraft") . ' '
 		.  $this->lang->line("gvv_vols_avion_header_in") . ' ' . $year;
-echo '<div id="tabs-2">' . heading($header, 4);
-add_first_row($per_machine, $pm_first_row);
+	echo '<div id="tabs-2">' . heading($header, 4);
+	add_first_row($per_machine, $pm_first_row);
 
-$table = new DataTable(array(
-	'title' => "",
-	'values' => $per_machine,
-	'controller' => '',
-	'class' => "datatable_style fixed_datatable table",
-	'create' => "",
-    'first' => 0,
-	'align' => array('left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right')
-));
+	$table = new DataTable(array(
+		'title' => "",
+		'values' => $per_machine,
+		'controller' => '',
+		'class' => "datatable_style fixed_datatable table",
+		'create' => "",
+		'first' => 0,
+		'align' => array('left', 'left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right')
+	));
 
-$table->display();
+	$table->display();
 
-#-------------------------------------------------------------------------------
-echo br();
-echo br() . hr();
-echo heading($header, 4);
+	#-------------------------------------------------------------------------------
+	echo br();
+	echo br() . hr();
+	echo heading($header, 4);
 
-$filename = image_dir() . "avion_machine_$year.png";
-if (file_exists($filename)) echo img($filename);
+	$filename = image_dir() . "avion_machine_$year.png";
+	if (file_exists($filename)) echo img($filename);
 
-$bar = array(
-	array('label' => "Excel", 'url' =>"$controller/csv_machine/$year"),
-	array('label' => "Pdf", 'url' =>"$controller/pdf_machine/$year"),
-	array('label' => "Génération", 'url' =>"$controller/statistic/true", "role" => 'ca'),
+	$bar = array(
+		array('label' => "Excel", 'url' => "$controller/csv_machine/$year"),
+		array('label' => "Pdf", 'url' => "$controller/pdf_machine/$year"),
+		array('label' => "Génération", 'url' => "$controller/statistic/true", "role" => 'ca'),
 	);
-echo br() . button_bar4($bar);
+	echo br() . button_bar4($bar);
 
-echo '</div>';		// par machine
-echo '</div>';      // tabs
-echo '</div>';		// body
-?>
+	echo '</div>';		// par machine
+	echo '</div>';      // tabs
+	echo '</div>';		// body
+	?>

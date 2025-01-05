@@ -25,8 +25,7 @@ $this->lang->load('admin');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_admin_title_restore"), 3);
+echo heading("gvv_admin_title_restore", 3);
 
 echo $this->lang->line("gvv_admin_db_success") . " " . $file_name . "<br>";
 echo "</div>";
-?>

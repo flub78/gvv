@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -28,13 +29,13 @@ $this->lang->load('mails');
 echo '<div id="body" class="body ui-widget-content">';
 
 if (isset($message)) {
-	echo p($message) .br();
+    echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading($this->lang->line("gvv_mails_title"), 3);
+echo heading("gvv_mails_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -42,10 +43,10 @@ echo form_hidden('id', $id);
 
 // echo validation_errors();
 echo ($this->mailmetadata->form('mails', array(
-	'titre' => $titre,
-	'selection' => $selection,
-	'destinataires' => $destinataires,
-	'copie_a' => $copie_a,
+    'titre' => $titre,
+    'selection' => $selection,
+    'destinataires' => $destinataires,
+    'copie_a' => $copie_a,
     'individuel' => $individuel,
     'date_envoie' => $date_envoie,
     'texte' => $texte,
@@ -62,4 +63,3 @@ echo form_close();
 echo '</div>';
 ?>
 <script type="text/javascript" src="<?php echo js_url('form_emails'); ?>"></script>
-

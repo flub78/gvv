@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,15 +30,16 @@ $this->lang->load('terrains');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_terrains_title_list"), 3);
+echo heading("gvv_terrains_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
     'fields' => array('oaci', 'nom', 'freq1', 'freq2', 'comment'),
-     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable table table-striped");
+    'mode' => ($has_modification_rights) ? "rw" : "ro",
+    'class' => "datatable table table-striped"
+);
 
 echo $this->gvvmetadata->table("vue_terrains", $attrs, "");
 /*
@@ -49,5 +51,3 @@ echo button_bar4($bar);
 */
 
 echo '</div>';
-
-?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 
  *    GVV Gestion vol à voile
@@ -29,13 +30,13 @@ $this->lang->load('comptes');
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading( $this->lang->line('gvv_comptes_title'), 3);
+echo heading('gvv_comptes_title', 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -47,13 +48,12 @@ echo ($this->gvvmetadata->form('comptes', array(
 	'codec' => $codec,
 	'desc' => $desc,
 	'debit' => $debit,		// Support pour les champs readonly et hidden ???
-    'credit' => $credit,    // Dans ce cas le concept est cachée ou readonly seulement à la création ...
+	'credit' => $credit,    // Dans ce cas le concept est cachée ou readonly seulement à la création ...
 	'saisie_par' => $saisie_par,
-    'pilote' => $pilote
+	'pilote' => $pilote
 )));
 echo $this->lang->line('comptes_pilot_warning');
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

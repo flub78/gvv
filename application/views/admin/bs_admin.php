@@ -73,7 +73,7 @@ echo ul($list, $attributes);
 
 if (ENVIRONMENT == 'development') {
 
-	echo heading($this->lang->line("gvv_admin_title_tests"), 4);
+	echo heading("gvv_admin_title_tests", 4);
 
 	$list = array(
 		anchor(controller_url("tests"), $this->lang->line("gvv_admin_menu_ut"), array("class" => "jbutton")),

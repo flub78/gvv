@@ -30,7 +30,7 @@ $this->lang->load('attachments');
 echo '<div id="body" class="body container-fluid">';
 
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo heading($this->lang->line($title_key), 3);
+echo heading($title_key, 3);
 
 ?>
 

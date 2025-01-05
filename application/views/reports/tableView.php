@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,18 +30,17 @@ $this->lang->load('reports');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_reports_title_list"), 3);
+echo heading("gvv_reports_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete', 'clone_elt', 'csv', 'pdf', 'execute'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete', 'clone_elt', 'csv', 'pdf', 'execute'),
     'fields' => array('nom', 'titre'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable");
+    'class' => "datatable"
+);
 
 echo $this->gvvmetadata->table("vue_reports", $attrs, "");
 
 echo '</div>';
-
-?>

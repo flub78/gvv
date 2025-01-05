@@ -26,7 +26,7 @@ $this->lang->load('admin');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_admin_title_restore"), 3);
+echo heading("gvv_admin_title_restore", 3);
 echo $error . "<br>";
 if (isset($backups)) {
 	echo heading("Sauvegardes disponibles", 4);
@@ -34,7 +34,7 @@ if (isset($backups)) {
 	echo br();
 }
 
-echo p($this->lang->line("gvv_admin_db_warning"), 'class="error"' );
+echo p($this->lang->line("gvv_admin_db_warning"), 'class="error"');
 echo br();
 echo p($this->lang->line("gvv_admin_db_select"));
 echo form_open_multipart('admin/do_restore');
@@ -44,8 +44,7 @@ if ($erase_db) {
 	$checked = ' checked="checked" ';
 }
 echo $this->lang->line("gvv_admin_db_overwrite") . ': '
-		. "<input type=\"checkbox\" name=\"erase_db\" $checked value=\"$erase_db\" id=\"erase_db\"  />" 
-		. br(2);
+	. "<input type=\"checkbox\" name=\"erase_db\" $checked value=\"$erase_db\" id=\"erase_db\"  />"
+	. br(2);
 echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_button_validate")));
 echo form_close('</div>');
-?>

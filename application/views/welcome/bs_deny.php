@@ -26,8 +26,8 @@ $this->lang->load('welcome');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("welcome_forbiden_title"), 3);
+echo heading("welcome_forbiden_title", 3);
 
-echo "<p>". $this->lang->line("welcome_forbiden_text") . "</p>"; 
+echo "<p>" . $this->lang->line("welcome_forbiden_text") . "</p>";
 ?>
 </div>

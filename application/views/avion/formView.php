@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,13 +28,13 @@ $this->lang->load('avion');
 echo '<div id="body" class="body ui-widget-content">';
 
 if (isset($message)) {
-	echo p($message) .br();
+    echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading($this->lang->line("gvv_avion_title"), 3);
+echo heading("gvv_avion_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -42,10 +43,10 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 
 // echo validation_errors();
 echo ($this->gvvmetadata->form('machinesa', array(
-	'macconstruc' => $macconstruc,
-	'macmodele' => $macmodele,
-	'macimmat' => $macimmat,
-	'macnbhdv' => $macnbhdv,
+    'macconstruc' => $macconstruc,
+    'macmodele' => $macmodele,
+    'macimmat' => $macimmat,
+    'macnbhdv' => $macnbhdv,
     'macplaces' => $macplaces,
     'macrem' => $macrem,
     'maprive' => $maprive,
@@ -53,12 +54,11 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'maprixdc' => $maprixdc,
     'horametre_en_minutes' => $horametre_en_minutes,
     'actif' => $actif,
-	'fabrication' => $fabrication,
-	'comment' => $comment
+    'fabrication' => $fabrication,
+    'comment' => $comment
 )));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

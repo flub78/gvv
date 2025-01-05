@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -28,14 +29,14 @@ $this->lang->load('tarifs');
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo validation_errors(); 
+echo validation_errors();
 
-echo heading($this->lang->line("gvv_tarifs_title"), 3);
+echo heading("gvv_tarifs_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -62,8 +63,7 @@ if ($this->config->item('gestion_tickets')) {
 // echo validation_errors();
 echo ($this->gvvmetadata->form('tarifs', $fields));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

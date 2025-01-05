@@ -34,7 +34,7 @@ if (isset($message)) {
 echo checkalert($this->session, isset($popup) ? $popup : "");
 echo validation_errors();
 
-echo heading($this->lang->line("gvv_events_title"), 3);
+echo heading("gvv_events_title", 3);
 
 // ------------------------------------------------------------------------
 echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));

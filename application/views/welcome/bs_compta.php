@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 
  *    GVV Gestion vol à voile
@@ -28,40 +29,40 @@ $this->lang->load('welcome');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("welcome_treasurer_title"), 3);
+echo heading("welcome_treasurer_title", 3);
 
 $this->load->helper('html');
 $attributes = array(
-                    'class' => 'boldlist',
-                    'id'    => 'mylist'
-                    );
+    'class' => 'boldlist',
+    'id'    => 'mylist'
+);
 
-echo heading($this->lang->line("welcome_admin_title"), 4);
+echo heading("welcome_admin_title", 4);
 $list = array(
-    anchor (controller_url('admin/backup'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton")),
-    anchor (controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton"))
+    anchor(controller_url('admin/backup'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton")),
+    anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton"))
 );
 echo ul($list, $attributes);
 
-echo heading($this->lang->line("welcome_special_entries_title"), 4);
+echo heading("welcome_special_entries_title", 4);
 $list = array(
-	anchor (controller_url('facturation/config'), $this->lang->line("welcome_billing_config_title"), array("class" => "jbutton"))
+    anchor(controller_url('facturation/config'), $this->lang->line("welcome_billing_config_title"), array("class" => "jbutton"))
 );
 echo ul($list, $attributes);
-                    
+
 $list = array(
-	anchor (controller_url('plan_comptable/page'), $this->lang->line("welcome_chart_of_account_title"), array("class" => "jbutton")),
-	anchor (controller_url('tarifs/page'), $this->lang->line("welcome_price_list_title"), array("class" => "jbutton")),
+    anchor(controller_url('plan_comptable/page'), $this->lang->line("welcome_chart_of_account_title"), array("class" => "jbutton")),
+    anchor(controller_url('tarifs/page'), $this->lang->line("welcome_price_list_title"), array("class" => "jbutton")),
 );
 if ($this->config->item('gestion_tickets'))
-    $list[] = anchor (controller_url('types_ticket/page'), $this->lang->line("welcome_ticket_types_title"), array("class" => "jbutton"));
+    $list[] = anchor(controller_url('types_ticket/page'), $this->lang->line("welcome_ticket_types_title"), array("class" => "jbutton"));
 echo ul($list, $attributes);
 
 
-echo heading($this->lang->line("welcome_special_entries_title"), 4);
+echo heading("welcome_special_entries_title", 4);
 $list = array(
-	anchor (controller_url('compta/create'), $this->lang->line("welcome_global_entries_title"), array("class" => "jbutton")), 
-	);
+    anchor(controller_url('compta/create'), $this->lang->line("welcome_global_entries_title"), array("class" => "jbutton")),
+);
 echo ul($list, $attributes);
 echo p($this->lang->line("welcome_special_entries_warning"));
 
@@ -82,4 +83,3 @@ echo ul($list, $attributes);
 */
 
 echo "</div>";
-?>

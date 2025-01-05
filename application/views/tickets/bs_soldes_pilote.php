@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,23 +30,22 @@ $controller = 'tickets';
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_tickets_title_balance"), 3);
+echo heading("gvv_tickets_title_balance", 3);
 echo form_hidden('controller_url', controller_url($controller) . "/solde", '"id"="controller_url"');
 
 $attrs = array(
-    		'fields' => array('pilote', 'nom', 'solde'),
-    		'controller' => $controller,
-    		'mode' => "ro",
-            'class' => "datatable table");
+	'fields' => array('pilote', 'nom', 'solde'),
+	'controller' => $controller,
+	'mode' => "ro",
+	'class' => "datatable table"
+);
 
 echo $this->gvvmetadata->table("vue_solde_tickets", $attrs, "");
 
 $bar = array(
-	array('label' => "Excel", 'url' =>"$controller/solde/csv"),
+	array('label' => "Excel", 'url' => "$controller/solde/csv"),
 	array('label' => "Pdf", 'url' => "$controller/solde/pdf"),
-	);
+);
 echo button_bar4($bar);
 
 echo '</div>';
-
-?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -30,7 +31,7 @@ $this->lang->load('events');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line($title_key), 3);
+echo heading($title_key, 3);
 
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
@@ -62,18 +63,17 @@ $table = new DataTable(array(
 	'controller' => '',
 	'class' => "datatable",
 	'create' => "",
-    'first' => 0));
+	'first' => 0
+));
 
 $table->display();
 
 $bar = array(
-		array('label' => "Excel", 'url' =>"$controller/csv/$type"),
-		array('label' => "Pdf", 'url' =>"$controller/pdf/$type"),
+	array('label' => "Excel", 'url' => "$controller/csv/$type"),
+	array('label' => "Pdf", 'url' => "$controller/pdf/$type"),
 );
 echo br() . button_bar4($bar);
 
 echo '</div>';
 
 echo '</div>';
-
-?>

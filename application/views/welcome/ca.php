@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -26,39 +27,39 @@ $this->load->view('menu');
 $this->lang->load('welcome');
 
 $attributes = array(
-                    'class' => 'boldlist',
-                    'id'    => 'mylist'
-                    );
+	'class' => 'boldlist',
+	'id'    => 'mylist'
+);
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("welcome_admin_title"), 4);
+echo heading("welcome_admin_title", 4);
 $list = array(
-	anchor (controller_url('terrains/page'), $this->lang->line("welcome_airfield_title"), array("class" => "jbutton")),
-	anchor (controller_url('historique'), $this->lang->line("welcome_history_title"), array("class" => "jbutton")),
-	);
+	anchor(controller_url('terrains/page'), $this->lang->line("welcome_airfield_title"), array("class" => "jbutton")),
+	anchor(controller_url('historique'), $this->lang->line("welcome_history_title"), array("class" => "jbutton")),
+);
 echo ul($list, $attributes);
 
 // echo year_selector($controller, $year, $year_selector);
 
-echo heading($this->lang->line("welcome_reports_title"), 4);
+echo heading("welcome_reports_title", 4);
 $list = array(
 	// anchor (controller_url('rapports/annuel'), "Rapport d'activité annuel", array("class" => "jbutton")),
-	anchor (controller_url('rapports/financier'), $this->lang->line("welcome_financial_title"), array("class" => "jbutton")),
-	anchor (controller_url('rapports/comptes'), $this->lang->line("welcome_accounts_title"), array("class" => "jbutton"))
-	);
+	anchor(controller_url('rapports/financier'), $this->lang->line("welcome_financial_title"), array("class" => "jbutton")),
+	anchor(controller_url('rapports/comptes'), $this->lang->line("welcome_accounts_title"), array("class" => "jbutton"))
+);
 if ($this->config->item('gestion_avion'))
-	$list[] = anchor (controller_url('vols_avion/pdf'), $this->lang->line("welcome_airplane_flightlog"), array("class" => "jbutton"));
+	$list[] = anchor(controller_url('vols_avion/pdf'), $this->lang->line("welcome_airplane_flightlog"), array("class" => "jbutton"));
 if ($this->config->item('gestion_planeur'))
-	$list[] = anchor (controller_url('vols_planeur/pdf'), $this->lang->line("welcome_glider_flightlog"), array("class" => "jbutton"));
+	$list[] = anchor(controller_url('vols_planeur/pdf'), $this->lang->line("welcome_glider_flightlog"), array("class" => "jbutton"));
 
 echo year_selector($controller, $year, $year_selector);
 echo ul($list, $attributes);
 
-echo heading($this->lang->line("welcome_dates"), 4);
+echo heading("welcome_dates", 4);
 $list = array(
-	anchor (controller_url('event/page'), $this->lang->line("welcome_certificates"), array("class" => "jbutton")),
-            );
+	anchor(controller_url('event/page'), $this->lang->line("welcome_certificates"), array("class" => "jbutton")),
+);
 echo ul($list, $attributes);
 
 ?>

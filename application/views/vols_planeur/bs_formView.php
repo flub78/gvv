@@ -35,7 +35,7 @@ if (isset($message)) {
 echo checkalert($this->session, isset($popup) ? $popup : "");
 echo validation_errors();
 
-echo heading($this->lang->line("gvv_vols_planeur_fieldset_flight"), 3);
+echo heading("gvv_vols_planeur_fieldset_flight", 3);
 
 echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
@@ -185,21 +185,21 @@ $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
 </div>
 
 <?php if ($payeur_non_pilote) : ?>
-<div class="d-md-flex flex-row mb-2">
-    <!-- Payeur -->
-    <div class="me-3 mb-2 payeur">
-        <?= $this->lang->line("gvv_vols_planeur_label_payer") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsp", 'payeur', $payeur) ?>
-    </div>
+    <div class="d-md-flex flex-row mb-2">
+        <!-- Payeur -->
+        <div class="me-3 mb-2 payeur">
+            <?= $this->lang->line("gvv_vols_planeur_label_payer") . ": " ?>
+            <?= $this->gvvmetadata->input_field("volsp", 'payeur', $payeur) ?>
+        </div>
 
-    <?php if ($partage) : ?>
-    <div class="me-3 mb-2 payeur">
-        <?= $this->lang->line("gvv_vols_planeur_label_percent") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsp", 'pourcentage', $pourcentage) ?>
-    </div>
-    <?php endif; ?>
+        <?php if ($partage) : ?>
+            <div class="me-3 mb-2 payeur">
+                <?= $this->lang->line("gvv_vols_planeur_label_percent") . ": " ?>
+                <?= $this->gvvmetadata->input_field("volsp", 'pourcentage', $pourcentage) ?>
+            </div>
+        <?php endif; ?>
 
-</div>
+    </div>
 <?php endif; ?>
 
 <div class="d-md-flex flex-row mb-2">

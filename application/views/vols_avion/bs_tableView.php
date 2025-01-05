@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,11 +30,11 @@ echo '<div id="body" class="body container-fluid">';
 
 echo checkalert($this->session);
 
-echo heading($this->lang->line("gvv_vols_avion_title_list"), 3);
+echo heading("gvv_vols_avion_title_list", 3);
 
 $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this->config->item('categories_vol_avion'));
 
-?> 
+?>
 <input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
 <div class='mb-3'>
     <?= year_selector($controller, $year, $year_selector) ?>
@@ -145,8 +146,10 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
 // -----------------------------------------------------------------------------------------
 // Consomations
 if (count($conso) > 1 && (!$by_pilote)) {
-	echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_conso"), array('class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_vols_avion_tooltip_conso")));
+    echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_conso"), array(
+        'class' => 'coolfieldset filtre',
+        'title' => $this->lang->line("gvv_vols_avion_tooltip_conso")
+    ));
     echo "<div>";
     display_form_table($conso);
     echo "<div>";
@@ -161,13 +164,14 @@ if ($this->dx_auth->is_role('planchiste') || $auto_planchiste) {
     $classes = "datatable_style datedtable_ro table table-striped";
 }
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
     'mode' => ($has_modification_rights || $auto_planchiste) ? "rw" : "ro",
-    'class' => $classes);
+    'class' => $classes
+);
 if ($auto_planchiste) {
-	$attrs['autoplanchiste'] = $default_user;
-	$attrs['autoplanchiste_id'] = 'vapilid';
+    $attrs['autoplanchiste'] = $default_user;
+    $attrs['autoplanchiste_id'] = 'vapilid';
 }
 
 echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
@@ -177,9 +181,9 @@ echo br();
 echo p($this->lang->line("gvv_vols_avion_tip_unit"));
 
 $bar = array(
-    array('label' => "Excel", 'url' =>"$controller/csv/$year"),
-    array('label' => "Pdf", 'url' =>"$controller/pdf/$year"),
-    );
+    array('label' => "Excel", 'url' => "$controller/csv/$year"),
+    array('label' => "Pdf", 'url' => "$controller/pdf/$year"),
+);
 echo br() . button_bar4($bar);
 
 echo '</div>';

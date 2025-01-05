@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,14 +28,14 @@ $this->lang->load('compta');
 echo '<div id="body" class="body ui-widget-content">';
 
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo heading($this->lang->line($title_key), 3);
+echo heading($title_key, 3);
 
 
 if (isset($message)) {
-    echo p($message) .br();
+    echo p($message) . br();
 }
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -52,18 +53,18 @@ echo form_hidden('categorie', 0);
 
 echo validation_errors();
 echo ($this->gvvmetadata->form('ecritures', array(
-	'date_op' => $date_op,
-//	'annee_exercise' => $annee_exercise,
-	'compte1' => $compte1,
-	'compte2' => $compte2,
+    'date_op' => $date_op,
+    //	'annee_exercise' => $annee_exercise,
+    'compte1' => $compte1,
+    'compte2' => $compte2,
     'montant' => $montant,
     'description' => $description,
     'num_cheque' => $num_cheque,
-//     'categorie' => $categorie,
-	'gel' => $gel
+    //     'categorie' => $categorie,
+    'gel' => $gel
 )));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -28,7 +29,7 @@ $this->lang->load('avion');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_avion_title_list"), 3);
+echo heading("gvv_avion_title_list", 3);
 
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
@@ -37,16 +38,18 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 echo form_hidden('filter_active', $filter_active);
 
 $tab = 3;
-echo form_fieldset($this->lang->line("gvv_str_filter"), array('class' => 'coolfieldset filtre mb-3 mt-3',
-    'title' => $this->lang->line("gvv_str_filter_tooltip")));
+echo form_fieldset($this->lang->line("gvv_str_filter"), array(
+	'class' => 'coolfieldset filtre mb-3 mt-3',
+	'title' => $this->lang->line("gvv_str_filter_tooltip")
+));
 echo "<div>";
-echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie'));
 echo "<table><tr><td>\n";
-echo $this->lang->line("avion_filter_active") . ": " 
-		. enumerate_radio_fields($this->lang->line("avion_filter_active_select"), 'filter_machine_actif', $filter_machine_actif);
+echo $this->lang->line("avion_filter_active") . ": "
+	. enumerate_radio_fields($this->lang->line("avion_filter_active_select"), 'filter_machine_actif', $filter_machine_actif);
 
 echo "</td></tr><tr><td>";
-	
+
 echo $this->lang->line("avion_filter_owner") . ": " .  enumerate_radio_fields($this->lang->line("avion_filter_owner_select"), 'filter_proprio', $filter_proprio);
 
 echo "</td></tr><tr><td>";
@@ -62,11 +65,21 @@ echo form_fieldset_close();
 // Data
 $attrs = array(
 	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
-    'fields' => array('macmodele', 'macconstruc', 'macimmat', 'macplaces', 'macrem', 
-   	'maprive', 'actif', 'vols', 'fabrication'),
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable table table-striped");
+	'actions' => array('edit', 'delete'),
+	'fields' => array(
+		'macmodele',
+		'macconstruc',
+		'macimmat',
+		'macplaces',
+		'macrem',
+		'maprive',
+		'actif',
+		'vols',
+		'fabrication'
+	),
+	'mode' => ($has_modification_rights) ? "rw" : "ro",
+	'class' => "datatable table table-striped"
+);
 
 echo $this->gvvmetadata->table("vue_avions", $attrs, "");
 
@@ -79,5 +92,3 @@ echo button_bar4($bar);
 */
 
 echo '</div>';
-
-?>

@@ -28,15 +28,15 @@ echo '<div id="body" class="body container-fluid">';
 $controller = 'backend';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo validation_errors(); 
+echo validation_errors();
 
-echo heading($this->lang->line("gvv_backend_title"), 3);
+echo heading("gvv_backend_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -49,35 +49,34 @@ if (isset($id)) echo form_hidden('id', $id);
 
 $table = array();
 $row = 0;
-$table [$row][] = $this->lang->line("gvv_backend_field_nom") . ": ";
-$table [$row][] = input_field('username', $username, array('type'  => 'text', 'size' => '25'));
+$table[$row][] = $this->lang->line("gvv_backend_field_nom") . ": ";
+$table[$row][] = input_field('username', $username, array('type'  => 'text', 'size' => '25'));
 
 $row++;
-$table [$row][] =  $this->lang->line("gvv_backend_field_password") . ": ";
-$table [$row][] = form_password('password', $password, "'type'='text', 'size'='34'");
+$table[$row][] =  $this->lang->line("gvv_backend_field_password") . ": ";
+$table[$row][] = form_password('password', $password, "'type'='text', 'size'='34'");
 
 $row++;
-$table [$row][] =  $this->lang->line("gvv_backend_field_passconf") . ": ";
-$table [$row][] = form_password('passconf', $passconf, "'type'='text', 'size'='34'");
+$table[$row][] =  $this->lang->line("gvv_backend_field_passconf") . ": ";
+$table[$row][] = form_password('passconf', $passconf, "'type'='text', 'size'='34'");
 
 $row++;
-$table [$row][] =  $this->lang->line("gvv_backend_field_email") . ": ";
-$table [$row][] = input_field('email', $email, array('type'  => 'text', 'size' => '100'));
+$table[$row][] =  $this->lang->line("gvv_backend_field_email") . ": ";
+$table[$row][] = input_field('email', $email, array('type'  => 'text', 'size' => '100'));
 
 $row++;
-$table [$row][] =  $this->lang->line("gvv_backend_field_role") . ": ";
-$table [$row][] = dropdown_field('role_id', $role_id, $role_selector, "");
+$table[$row][] =  $this->lang->line("gvv_backend_field_role") . ": ";
+$table[$row][] = dropdown_field('role_id', $role_id, $role_selector, "");
 
 display_form_table($table);
 
 // Le boutton de validation
 echo "<table><tr><td>\n";
 if ($action != VISUALISATION) {
-	echo validation_button ($action);
+	echo validation_button($action);
 }
 echo form_close();
 echo "</td><td>";
 echo "</td></tr></table>\n";
 
 echo '</div>';
-?>

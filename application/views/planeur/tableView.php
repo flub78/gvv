@@ -32,7 +32,7 @@ $this->lang->load('planeur');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_planeur_title_list"), 3);
+echo heading("gvv_planeur_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 // --------------------------------------------------------------------------------------------------
@@ -69,8 +69,17 @@ $attrs = array(
 	'controller' => $controller,
 	'actions' => array('edit', 'delete'),
 	'fields' => array(
-		'mpmodele', 'mpconstruc', 'mpimmat', 'mpnumc', 'mpbiplace', 'mpautonome', 'mptreuil',
-		'mpprive', 'actif', 'vols', 'fabrication'
+		'mpmodele',
+		'mpconstruc',
+		'mpimmat',
+		'mpnumc',
+		'mpbiplace',
+		'mpautonome',
+		'mptreuil',
+		'mpprive',
+		'actif',
+		'vols',
+		'fabrication'
 	),
 	'mode' => ($has_modification_rights) ? "rw" : "ro",
 	'class' => "datatable"

@@ -32,7 +32,7 @@ if (isset($message)) {
     echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo heading($this->lang->line("membre_title"), 3);
+echo heading("membre_title", 3);
 
 echo validation_errors();
 
@@ -176,7 +176,7 @@ $attrs = array(
     'param' => $mlogin
 );
 if ($action != CREATION) {
-    echo heading($this->lang->line("membre_title_medical"), 4);
+    echo heading("membre_title_medical", 4);
     echo $this->gvvmetadata->table("vue_exp_autre", $attrs, "");
 }
 
@@ -300,7 +300,7 @@ $attrs = array(
     'param' => $mlogin
 );
 
-echo heading($this->lang->line("membre_title_airplane_training"), 4);
+echo heading("membre_title_airplane_training", 4);
 echo $this->lang->line("gvv_membres_field_inst_airplane") . nbs() .
     $this->gvvmetadata->input_field("membres", 'inst_airplane', $inst_airplane) . br(2);
 if ($action != CREATION) {
@@ -376,7 +376,7 @@ $attrs = array(
     'param' => $mlogin
 );
 
-echo heading($this->lang->line("membre_title_glider_training"), 4);
+echo heading("membre_title_glider_training", 4);
 
 echo $this->lang->line("gvv_membres_field_inst_glider") . nbs() .
     $this->gvvmetadata->input_field("membres", 'inst_glider', $inst_glider) . br(2);
@@ -384,7 +384,7 @@ echo $this->lang->line("gvv_membres_field_inst_glider") . nbs() .
 if ($action != CREATION) {
     echo $this->gvvmetadata->table("vue_exp_vv", $attrs, "");
 
-    echo heading($this->lang->line("membre_title_FAI"), 4);
+    echo heading("membre_title_FAI", 4);
     echo $this->gvvmetadata->table("vue_exp_fai", $attrs, "");
 }
 echo form_fieldset_close();

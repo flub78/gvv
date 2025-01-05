@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,13 +30,13 @@ $this->lang->load('events_types');
 echo '<div id="body" class="body ui-widget-content">';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading($this->lang->line("gvv_events_types_title"), 3);
+echo heading("gvv_events_types_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -43,16 +44,15 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 // echo validation_errors();
 echo ($this->eventstypesmetadata->form('events_types', array(
 	'name' => $name,
-    'activite' => $activite,
-    'en_vol' => $en_vol,
+	'activite' => $activite,
+	'en_vol' => $en_vol,
 	'multiple' => $multiple,
 	'expirable' => $expirable,
 	'ordre' => $ordre,
 	'annual' => $annual
 )));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

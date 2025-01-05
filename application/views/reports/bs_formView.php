@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,13 +28,13 @@ $this->lang->load('reports');
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
-	echo p($message) .br();
+    echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading($this->lang->line("gvv_reports_title"), 3);
+echo heading("gvv_reports_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -42,17 +43,16 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 
 echo validation_errors();
 echo ($this->gvvmetadata->form('reports', array(
-	'nom' => $nom,
+    'nom' => $nom,
     'titre' => $titre,
     'fields_list' => $fields_list,
     'align' => $align,
     'width' => $width,
     'landscape' => $landscape,
-	'sql' => $sql,
+    'sql' => $sql,
 )));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

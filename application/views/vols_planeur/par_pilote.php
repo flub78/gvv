@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -33,180 +34,180 @@ $controller = "vols_planeur";
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_vols_planeur_title_per_pilot"), 3);
+echo heading("gvv_vols_planeur_title_per_pilot", 3);
 
 // echo year_selector($controller, $year, $year_selector);
 // echo br(2);
 ?>
 <div id="tabs">
-	<ul>
-		<li><a href="#tabs-1"><?php echo $this->lang->line("gvv_vols_planeur_tab_per_glider")?></a></li>
-		<li><a href="#tabs-2"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo_per_glider")?></a></li>
-		<li><a href="#tabs-3"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_hours")?></a></li>
-		<li><a href="#tabs-4"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_flights")?></a></li>
-		<li><a href="#tabs-5"><?php echo $this->lang->line("gvv_vols_planeur_tab_dual")?></a></li>
-		<li><a href="#tabs-6"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo")?></a></li>
-	</ul>
+        <ul>
+                <li><a href="#tabs-1"><?php echo $this->lang->line("gvv_vols_planeur_tab_per_glider") ?></a></li>
+                <li><a href="#tabs-2"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo_per_glider") ?></a></li>
+                <li><a href="#tabs-3"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_hours") ?></a></li>
+                <li><a href="#tabs-4"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_flights") ?></a></li>
+                <li><a href="#tabs-5"><?php echo $this->lang->line("gvv_vols_planeur_tab_dual") ?></a></li>
+                <li><a href="#tabs-6"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo") ?></a></li>
+        </ul>
 
-<?php
-function align_array($data) {
-    $count = count($data [0]);
-    $res = array (
-            'left'
-    );
-    for($i = 0; $i < $count; $i ++) {
-        $res [] = 'right';
-    }
-    return $res;
-}
+        <?php
+        function align_array($data) {
+                $count = count($data[0]);
+                $res = array(
+                        'left'
+                );
+                for ($i = 0; $i < $count; $i++) {
+                        $res[] = 'right';
+                }
+                return $res;
+        }
 
-echo '<div id="tabs-1">' . heading($this->lang->line("gvv_vols_planeur_title_yearly_machine"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $total,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($total)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/total"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/total"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-1">' . heading("gvv_vols_planeur_title_yearly_machine", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $total,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($total)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/total"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/total"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-echo '<div id="tabs-2">' . heading($this->lang->line("gvv_vols_planeur_title_solo_machine"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $total_solo,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($total)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/total_solo"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/total_solo"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-2">' . heading("gvv_vols_planeur_title_solo_machine", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $total_solo,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($total)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/total_solo"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/total_solo"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-echo '<div id="tabs-3">' . heading($this->lang->line("gvv_vols_planeur_title_yearly_hours"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $hours_per_year,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($hours_per_year)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/hours_per_year"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/hours_per_year"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-3">' . heading("gvv_vols_planeur_title_yearly_hours", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $hours_per_year,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($hours_per_year)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/hours_per_year"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/hours_per_year"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-echo '<div id="tabs-4">' . heading($this->lang->line("gvv_vols_planeur_title_yearly_flights"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $flights_per_year,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($flights_per_year)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/flights_per_year"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/flights_per_year"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-4">' . heading("gvv_vols_planeur_title_yearly_flights", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $flights_per_year,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($flights_per_year)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/flights_per_year"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/flights_per_year"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-echo '<div id="tabs-5">' . heading($this->lang->line("gvv_vols_planeur_title_yearly_dual"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $double_per_year,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($double_per_year)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/double_per_year"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/double_per_year"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-5">' . heading("gvv_vols_planeur_title_yearly_dual", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $double_per_year,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($double_per_year)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/double_per_year"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/double_per_year"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-echo '<div id="tabs-6">' . heading($this->lang->line("gvv_vols_planeur_title_yearly_solo"), 4);
-$table = new DataTable(array (
-        'title' => "",
-        'values' => $solo_per_year,
-        'controller' => '',
-        'class' => "datatable",
-        'create' => "",
-        'first' => 0,
-        'align' => align_array($solo_per_year)
-));
-$table->display();
-$bar = array (
-        array (
-                'label' => "Excel",
-                'url' => "$controller/par_pilote_machine/csv/solo_per_year"
-        ),
-        array (
-                'label' => "Pdf",
-                'url' => "$controller/par_pilote_machine/pdf/solo_per_year"
-        )
-);
-echo br() . button_bar4($bar);
-echo '</div>';
+        echo '<div id="tabs-6">' . heading("gvv_vols_planeur_title_yearly_solo", 4);
+        $table = new DataTable(array(
+                'title' => "",
+                'values' => $solo_per_year,
+                'controller' => '',
+                'class' => "datatable",
+                'create' => "",
+                'first' => 0,
+                'align' => align_array($solo_per_year)
+        ));
+        $table->display();
+        $bar = array(
+                array(
+                        'label' => "Excel",
+                        'url' => "$controller/par_pilote_machine/csv/solo_per_year"
+                ),
+                array(
+                        'label' => "Pdf",
+                        'url' => "$controller/par_pilote_machine/pdf/solo_per_year"
+                )
+        );
+        echo br() . button_bar4($bar);
+        echo '</div>';
 
-// ====================================================================================
+        // ====================================================================================
 
-echo '</div></div>';
-echo '</div>'; // body
+        echo '</div></div>';
+        echo '</div>'; // body
 
-?>
+        ?>

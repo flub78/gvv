@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -30,15 +31,16 @@ $this->lang->load('events_types');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_events_types_title_list"), 3);
+echo heading("gvv_events_types_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
     'fields' => array('name', 'activite', 'en_vol', 'multiple', 'expirable', 'ordre', 'annual'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable");
+    'class' => "datatable"
+);
 
 echo $this->eventstypesmetadata->table("vue_events_types", $attrs);
 
@@ -51,5 +53,3 @@ echo button_bar4($bar);
 */
 
 echo '</div>';
-
-?>

@@ -32,7 +32,7 @@ echo '<div id="body" class="body container-fluid">';
 
 echo checkalert($this->session);
 
-echo heading($this->lang->line("gvv_vols_planeur_title"), 3);
+echo heading("gvv_vols_planeur_title", 3);
 
 $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this->config->item('categories_vol_planeur'));
 $launch = $this->lang->line("gvv_launch_type");

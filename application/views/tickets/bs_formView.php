@@ -1,5 +1,6 @@
 <?php
- /**
+
+/**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
  *
@@ -19,7 +20,7 @@
  * @package vues
  * 
  * Formulaire de saisie tickets
- */ 
+ */
 $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
@@ -27,13 +28,13 @@ $this->lang->load('tickets');
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo validation_errors(); 
-echo heading($this->lang->line("gvv_tickets_title"), 3);
+echo validation_errors();
+echo heading("gvv_tickets_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
@@ -48,11 +49,10 @@ echo ($this->gvvmetadata->form('tickets', array(
 	'pilote' => $pilote,
 	'quantite' => $quantite,
 	'type' => $type,
-    'description' => $description
+	'description' => $description
 )));
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

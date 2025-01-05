@@ -28,18 +28,18 @@ $this->lang->load('facturation');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_facturation_title"), 3);
+echo heading("gvv_facturation_title", 3);
 
-if (isset ($popup))
+if (isset($popup))
     echo checkalert($this->session, $popup);
 
-if (isset ($text)) {
+if (isset($text)) {
     // echo "<center>\n";
     echo (p($text));
     // echo "</center>";
 }
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array (
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array(
     'name' => 'saisie'
 ));
 
@@ -47,11 +47,11 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 // echo validation_errors();
-echo ($this->gvvmetadata->form('facturation', array (
+echo ($this->gvvmetadata->form('facturation', array(
     'payeur_non_pilote' => $payeur_non_pilote,
     'partage' => $partage,
     'gestion_pompes' => $gestion_pompes,
-	'remorque_100eme' => $remorque_100eme,
+    'remorque_100eme' => $remorque_100eme,
     'date_gel' => $date_gel
 )));
 

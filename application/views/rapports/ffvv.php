@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -28,44 +29,46 @@ $this->lang->load('rapports');
 
 echo '<div id="body" class="body ui-widget-content">';
 
-echo heading($this->lang->line("gvv_rapports_title"), 3);
+echo heading("gvv_rapports_title", 3);
 
 echo year_selector($controller, $year, $year_selector);
 echo br(2);
 
 $list = array(
-	$this->lang->line("gvv_rapports_label_assoc") . " = $association", 
+	$this->lang->line("gvv_rapports_label_assoc") . " = $association",
 	$this->lang->line("gvv_rapports_label_code") . " = $code",
 );
 echo ul($list);
 
 $list = array(
-	$this->lang->line("gvv_rapports_label_heures_rem") . " = $total_towing", 
+	$this->lang->line("gvv_rapports_label_heures_rem") . " = $total_towing",
 );
 echo ul($list);
 
-echo table_from_array ($activity, array(
+echo table_from_array($activity, array(
 	'fields' => $this->lang->line("gvv_rapports_headers"),
 	'align' => array('left', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right'),
 	'class' => 'datatable_style'
 ));
 
 $list = array(
-	$this->lang->line("gvv_rapports_label_heures_rem") . " = $total_towing", 
-	$this->lang->line("gvv_rapports_label_heures_totales") . " = $total_glider", 
+	$this->lang->line("gvv_rapports_label_heures_rem") . " = $total_towing",
+	$this->lang->line("gvv_rapports_label_heures_totales") . " = $total_glider",
 );
 echo ul($list);
 
-echo table_from_array ($machine_activity, 
-	array('fields' => $this->lang->line("gvv_rapports_machines"),
+echo table_from_array(
+	$machine_activity,
+	array(
+		'fields' => $this->lang->line("gvv_rapports_machines"),
 		'align' => array('left', 'right', 'left', 'right', 'right'),
-		'class' => 'datatable_style '));
+		'class' => 'datatable_style '
+	)
+);
 
 $bar = array(
-    array('label' => $this->lang->line("gvv_button_print"), 'url' => "$controller/pdf_ffvv", 'role' => 'admin'),
-    );
- if (ENVIRONMENT == 'development') echo button_bar4($bar);
+	array('label' => $this->lang->line("gvv_button_print"), 'url' => "$controller/pdf_ffvv", 'role' => 'admin'),
+);
+if (ENVIRONMENT == 'development') echo button_bar4($bar);
 
 echo '</div>';
-
-?>

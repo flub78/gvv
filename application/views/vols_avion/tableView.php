@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -30,7 +31,7 @@ echo '<div id="body" class="body ui-widget-content">';
 
 echo checkalert($this->session);
 
-echo heading($this->lang->line("gvv_vols_avion_title_list"), 3);
+echo heading("gvv_vols_avion_title_list", 3);
 
 echo year_selector($controller, $year, $year_selector);
 
@@ -39,25 +40,29 @@ echo year_selector($controller, $year, $year_selector);
 echo form_hidden('filter_active', $filter_active);
 
 $tab = 3;
-echo form_fieldset($this->lang->line("gvv_str_filter"), array('class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_str_filter_tooltip")));
+echo form_fieldset($this->lang->line("gvv_str_filter"), array(
+    'class' => 'coolfieldset filtre',
+    'title' => $this->lang->line("gvv_str_filter_tooltip")
+));
 echo "<div>";
-echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie'));
 echo "<table><tr><td>\n";
 echo $this->lang->line("gvv_date") . ": " . input_field('filter_date', $filter_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'))
-	. nbs() . $this->lang->line("gvv_until") . ": ". input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'))
-	. nbs(3) . $this->lang->line("gvv_pilot") . ": ". dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "")
-	. nbs(3) . $this->lang->line("gvv_machine") . ": ". dropdown_field('filter_machine', $filter_machine, $machine_selector, "")
-	. nbs(3) . $this->lang->line("gvv_site") . ": ". dropdown_field('filter_aero', $filter_aero, $aero_selector, "");
+    . nbs() . $this->lang->line("gvv_until") . ": " . input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'))
+    . nbs(3) . $this->lang->line("gvv_pilot") . ": " . dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "")
+    . nbs(3) . $this->lang->line("gvv_machine") . ": " . dropdown_field('filter_machine', $filter_machine, $machine_selector, "")
+    . nbs(3) . $this->lang->line("gvv_site") . ": " . dropdown_field('filter_aero', $filter_aero, $aero_selector, "");
 echo "</td></tr><tr><td>";
 echo $this->lang->line("gvv_age") . ": " . enumerate_radio_fields($this->lang->line("gvv_age_select"), 'filter_25', $filter_25)
-	. nbs($tab * 3) . $this->lang->line("gvv_dual") . " " . form_checkbox(array ('name' => 'filter_dc',
-                'value' => 1,
-                'checked' => (0 != $filter_dc)))
-	. nbs($tab * 3) . $this->lang->line("gvv_airplanes") . ": " . enumerate_radio_fields($this->lang->line("gvv_owner_select"), 'filter_prive', $filter_prive);
+    . nbs($tab * 3) . $this->lang->line("gvv_dual") . " " . form_checkbox(array(
+        'name' => 'filter_dc',
+        'value' => 1,
+        'checked' => (0 != $filter_dc)
+    ))
+    . nbs($tab * 3) . $this->lang->line("gvv_airplanes") . ": " . enumerate_radio_fields($this->lang->line("gvv_owner_select"), 'filter_prive', $filter_prive);
 
 echo "</td></tr><tr><td>";
-	
+
 $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this->config->item('categories_vol_avion'));
 echo $this->lang->line("gvv_categories") . ": " .  enumerate_radio_fields($categories, 'filter_vi', $filter_vi);
 
@@ -72,19 +77,21 @@ echo form_fieldset_close();
 
 // -----------------------------------------------------------------------------------------
 // Totaux
-echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_totals"), array('class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_vols_avion_fieldset_totals_tooltip")));
+echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_totals"), array(
+    'class' => 'coolfieldset filtre',
+    'title' => $this->lang->line("gvv_vols_avion_fieldset_totals_tooltip")
+));
 echo "<div>";
 echo "<table>\n"; // <tr><td align=\"right\">\n";
 
-echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_flight_number"). " = " . "</td><td> $count </td> \n";
-echo "<td>" . nbs(4) ."</td>";
+echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . "</td><td> $count </td> \n";
+echo "<td>" . nbs(4) . "</td>";
 echo "<td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_total_hours") . " = "  . "</td><td>" . $total . " </td></tr>\n";
 echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_total_junior") . " = " . "</td><td> " . $m25ans . "</td>\n";
-echo "<td>" . nbs(4) ."</td>";
+echo "<td>" . nbs(4) . "</td>";
 echo "<td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . "</td><td> " . $count_m25ans . "</td></tr>\n";
 echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . "</td><td> " . $remorquage . "</td>\n";
-echo "<td>" . nbs(4) ."</td>";
+echo "<td>" . nbs(4) . "</td>";
 echo "<td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . "</td><td> " . $count_remorquage . "</td></tr>\n";
 if ($by_pilote) {
     echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_total_dual") . "  = " . "</td><td> " . $dc . "</td></tr>\n";
@@ -92,7 +99,7 @@ if ($by_pilote) {
     echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . "</td><td> " . $inst . "</td></tr>\n";
 } else {
     echo "<tr><td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . "</td><td> " . $dc . "</td>\n";
-    echo "<td>" . nbs(4) ."</td>";
+    echo "<td>" . nbs(4) . "</td>";
     echo "<td align=\"right\">" . $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " . "</td><td> " . $count_dc . "</td></tr>\n";
 }
 
@@ -103,8 +110,10 @@ echo form_fieldset_close();
 // -----------------------------------------------------------------------------------------
 // Consomations
 if (count($conso) > 1 && (!$by_pilote)) {
-	echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_conso"), array('class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_vols_avion_tooltip_conso")));
+    echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_conso"), array(
+        'class' => 'coolfieldset filtre',
+        'title' => $this->lang->line("gvv_vols_avion_tooltip_conso")
+    ));
     echo "<div>";
     display_form_table($conso);
     echo "<div>";
@@ -119,13 +128,14 @@ if ($this->dx_auth->is_role('planchiste') || $auto_planchiste) {
     $classes = "datatable_style datedtable_ro";
 }
 $attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
     'mode' => ($has_modification_rights || $auto_planchiste) ? "rw" : "ro",
-    'class' => $classes);
+    'class' => $classes
+);
 if ($auto_planchiste) {
-	$attrs['autoplanchiste'] = $default_user;
-	$attrs['autoplanchiste_id'] = 'vapilid';
+    $attrs['autoplanchiste'] = $default_user;
+    $attrs['autoplanchiste_id'] = 'vapilid';
 }
 
 echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
@@ -135,9 +145,9 @@ echo br();
 echo p($this->lang->line("gvv_vols_avion_tip_unit"));
 
 $bar = array(
-    array('label' => "Excel", 'url' =>"$controller/csv/$year"),
-    array('label' => "Pdf", 'url' =>"$controller/pdf/$year"),
-    );
+    array('label' => "Excel", 'url' => "$controller/csv/$year"),
+    array('label' => "Pdf", 'url' => "$controller/pdf/$year"),
+);
 echo br() . button_bar4($bar);
 
 echo '</div>';
