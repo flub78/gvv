@@ -88,32 +88,33 @@ $lang['gvv_membres_short_field_actif'] = "Actif";
 $lang['gvv_membres_short_field_categorie'] = "Categorie";
 $lang['gvv_membres_short_field_msexe'] = "Genre";
 $lang['gvv_membres_short_field_mdaten'] = "Naissance";
+$lang['gvv_membres_short_field_photo'] = "Photo";
 
 $lang['membres_filter_active_select'] = array(0 => 'Tous', 1 => 'inactifs', 2 => 'actifs');
 $lang['membres_filter_age'] = array(0 => 'Tous', 1 => '-25 ans', 2 => '+25 ans');
 
 $lang['membres_niveaux'] = array(
-		PRESIDENT => "Président",
-		VICE_PRESIDENT => "Vice-Président",
-		CA => "Membre du CA",
-		TRESORIER => "Trésorier",
-		SECRETAIRE => "Secrétaire",
-		SECRETAIRE_ADJ => "Secrétaire-Adjoint",
-		CHEF_PILOTE => "Chef-Pilote",
-		MECANO => "Responsable Atelier",
-		PLIEUR => "Plieur Parachute",
-		INTERNET => "Administrateur Internet",
-		TREUILLARD => "Treuillard",
-		CHEF_DE_PISTE => "Chef de piste",
-		PILOTE_AVION => "Pilote avion",
-		VI_AVION => "Aut. Vi Avion",
-		REMORQUEUR => "Pilote Remorqueur",
-		FI_AVION => "FI avion",
-		FE_AVION => "FE avion",
-		PILOTE_PLANEUR => "Pilote Planeur",
-		VI_PLANEUR => "Aut. Vi Planeur",
-		ITP => "FI planeur",
-		IVV => "FE planeur"
+	PRESIDENT => "Président",
+	VICE_PRESIDENT => "Vice-Président",
+	CA => "Membre du CA",
+	TRESORIER => "Trésorier",
+	SECRETAIRE => "Secrétaire",
+	SECRETAIRE_ADJ => "Secrétaire-Adjoint",
+	CHEF_PILOTE => "Chef-Pilote",
+	MECANO => "Responsable Atelier",
+	PLIEUR => "Plieur Parachute",
+	INTERNET => "Administrateur Internet",
+	TREUILLARD => "Treuillard",
+	CHEF_DE_PISTE => "Chef de piste",
+	PILOTE_AVION => "Pilote avion",
+	VI_AVION => "Aut. Vi Avion",
+	REMORQUEUR => "Pilote Remorqueur",
+	FI_AVION => "FI avion",
+	FE_AVION => "FE avion",
+	PILOTE_PLANEUR => "Pilote Planeur",
+	VI_PLANEUR => "Aut. Vi Planeur",
+	ITP => "FI planeur",
+	IVV => "FE planeur"
 );
 
 # Individual sheet
@@ -178,14 +179,8 @@ TXT;
 
 // membre_subscription_information est un tableau de de tableau title et content
 // qui sont imprimé dans la fiche d'inscription
-$lang['membre_subscription_information'] = array (
-		array('title' => 'Loi du 31 mai 1924', 'text' => $section_1),
-		array('title' => 'Autorisation parentale', 'text' => $section_2),
-		array('title' => '', 'text' => $section_3),
+$lang['membre_subscription_information'] = array(
+	array('title' => 'Loi du 31 mai 1924', 'text' => $section_1),
+	array('title' => 'Autorisation parentale', 'text' => $section_2),
+	array('title' => '', 'text' => $section_3),
 );
-
-
-
-
-
-

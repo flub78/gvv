@@ -85,32 +85,34 @@ $lang['gvv_membres_short_field_actif'] = "Active";
 $lang['gvv_membres_short_field_categorie'] = "Category";
 $lang['gvv_membres_short_field_msexe'] = "Gender";
 $lang['gvv_membres_short_field_mdaten'] = "Birthdate";
+$lang['gvv_membres_short_field_photo'] = "Picture";
+
 
 $lang['membres_filter_active_select'] = array(0 => 'All', 1 => 'inactive', 2 => 'active');
 $lang['membres_filter_age'] = array(0 => 'All', 1 => '-25 year', 2 => '+25 year');
 
 $lang['membres_niveaux'] = array(
-		PRESIDENT => "President",
-		VICE_PRESIDENT => "Vice-President",
-		CA => "Club administrator",
-		TRESORIER => "Tresorer",
-		SECRETAIRE => "Secretary",
-		SECRETAIRE_ADJ => "Assistant secretary",
-		CHEF_PILOTE => "Chief Pilot",
-		MECANO => "Mechanic",
-		PLIEUR => "Rigger",
-		INTERNET => "Webmaster",
-		TREUILLARD => "Winch operator",
-		CHEF_DE_PISTE => "Ground chief",
-		PILOTE_AVION => "Airplane pilot",
-		VI_AVION => "Scenic flight pilot",
-		REMORQUEUR => "Tow plane pilot",
-		FI_AVION => "FI",
-		FE_AVION => "FE",
-		PILOTE_PLANEUR => "Glider pilot",
-		VI_PLANEUR => "Glider scenic flight pilot",
-		ITP => "Glider FI",
-		IVV => "Glider FE"
+	PRESIDENT => "President",
+	VICE_PRESIDENT => "Vice-President",
+	CA => "Club administrator",
+	TRESORIER => "Tresorer",
+	SECRETAIRE => "Secretary",
+	SECRETAIRE_ADJ => "Assistant secretary",
+	CHEF_PILOTE => "Chief Pilot",
+	MECANO => "Mechanic",
+	PLIEUR => "Rigger",
+	INTERNET => "Webmaster",
+	TREUILLARD => "Winch operator",
+	CHEF_DE_PISTE => "Ground chief",
+	PILOTE_AVION => "Airplane pilot",
+	VI_AVION => "Scenic flight pilot",
+	REMORQUEUR => "Tow plane pilot",
+	FI_AVION => "FI",
+	FE_AVION => "FE",
+	PILOTE_PLANEUR => "Glider pilot",
+	VI_PLANEUR => "Glider scenic flight pilot",
+	ITP => "Glider FI",
+	IVV => "Glider FE"
 );
 
 # Individual sheet
@@ -177,8 +179,8 @@ TXT;
 
 // membre_subscription_information est un tableau de de tableau title et content
 // qui sont imprimé dans la fiche d'inscription
-$lang['membre_subscription_information'] = array (
-		array('title' => 'Limitation of liability', 'text' => $section_1),
-		array('title' => 'Parent authorization', 'text' => $section_2),
-		array('title' => '', 'text' => $section_3),
+$lang['membre_subscription_information'] = array(
+	array('title' => 'Limitation of liability', 'text' => $section_1),
+	array('title' => 'Parent authorization', 'text' => $section_2),
+	array('title' => '', 'text' => $section_3),
 );

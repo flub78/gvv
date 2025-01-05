@@ -72,7 +72,7 @@ $table_style = ($has_modification_rights) ? "table_membre" : "table_membre_ro";
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete'),
-    'fields' => array('mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif', 'categorie'),
+    'fields' => array('photo', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable_style $table_style table table-striped"
 );

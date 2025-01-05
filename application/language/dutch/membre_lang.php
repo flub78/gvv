@@ -90,32 +90,34 @@ $lang['gvv_membres_short_field_actif'] = "Actief";
 $lang['gvv_membres_short_field_categorie'] = "Categorie";
 $lang['gvv_membres_short_field_msexe'] = "Geslacht";
 $lang['gvv_membres_short_field_mdaten'] = "Geboortedatum";
+$lang['gvv_membres_short_field_photo'] = "Foto";
+
 
 $lang['membres_filter_active_select'] = array(0 => 'Alle', 1 => 'Inactief', 2 => 'Actief');
 $lang['membres_filter_age'] = array(0 => 'Alle', 1 => '-25 jaar', 2 => '+25 jaar');
 
 $lang['membres_niveaux'] = array(
-		PRESIDENT => "Voorzitter",
-		VICE_PRESIDENT => "Ondervoorzitter",
-		CA => "Bestuurslid",
-		TRESORIER => "Penningmeester",
-		SECRETAIRE => "Secretaris",
-		SECRETAIRE_ADJ => "Adj. Head of Training",
-		CHEF_PILOTE => "Hoofdinstructeur",
-		MECANO => "Werkhuisverantwoordelijke",
-		PLIEUR => "Heeft sleutel",
-		INTERNET => "Effectief lid",
-		TREUILLARD => "Lierist",
-		CHEF_DE_PISTE => "Startleider",
-		PILOTE_AVION => "Motorpiloot",
-		VI_AVION => "Initiatievluchten motorvliegen",
-		REMORQUEUR => "Sleeppiloot",
-		FI_AVION => "FI Motorvliegen",
-		FE_AVION => "FE Motorvliegen",
-		PILOTE_PLANEUR => "Zweefvliegpiloot",
-		VI_PLANEUR => "Initiatievluchten",
-		ITP => "FI",
-		IVV => "FE"
+	PRESIDENT => "Voorzitter",
+	VICE_PRESIDENT => "Ondervoorzitter",
+	CA => "Bestuurslid",
+	TRESORIER => "Penningmeester",
+	SECRETAIRE => "Secretaris",
+	SECRETAIRE_ADJ => "Adj. Head of Training",
+	CHEF_PILOTE => "Hoofdinstructeur",
+	MECANO => "Werkhuisverantwoordelijke",
+	PLIEUR => "Heeft sleutel",
+	INTERNET => "Effectief lid",
+	TREUILLARD => "Lierist",
+	CHEF_DE_PISTE => "Startleider",
+	PILOTE_AVION => "Motorpiloot",
+	VI_AVION => "Initiatievluchten motorvliegen",
+	REMORQUEUR => "Sleeppiloot",
+	FI_AVION => "FI Motorvliegen",
+	FE_AVION => "FE Motorvliegen",
+	PILOTE_PLANEUR => "Zweefvliegpiloot",
+	VI_PLANEUR => "Initiatievluchten",
+	ITP => "FI",
+	IVV => "FE"
 );
 
 # Individual sheet
@@ -180,8 +182,8 @@ TXT;
 
 // membre_subscription_information est un tableau de de tableau title et content
 // qui sont imprimé dans la fiche d'inscription
-$lang['membre_subscription_information'] = array (
-		array('title' => 'Loi du 31 mai 1924', 'text' => $section_1),
-		array('title' => 'Autorisation parentale', 'text' => $section_2),
-		array('title' => '', 'text' => $section_3),
+$lang['membre_subscription_information'] = array(
+	array('title' => 'Loi du 31 mai 1924', 'text' => $section_1),
+	array('title' => 'Autorisation parentale', 'text' => $section_2),
+	array('title' => '', 'text' => $section_3),
 );

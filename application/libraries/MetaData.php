@@ -1202,17 +1202,22 @@ abstract class Metadata {
             return $value;
             // return auto_link($value);
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
+            $url = site_url();
+            $url = rtrim($url, '/index.php') . '/';
             if (file_exists($value)) {
-                $url = site_url();
-                $url = rtrim($url, '/index.php');
-
-                $url .= "/" . ltrim($value, './');
-
+                $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
             }
+
+            $value = "uploads/" . $value;
+            if (file_exists($value)) {
+                $url .= $value;
+                return attachment($id, $value, $url);
+            }
+
             // $img = (file_exists($filename)) ? img($filename) : '';
             // return $img;
-            return "XYZ"; // for debugging should never happen
+            return "XYZ: " . $value; // for debugging should never happen
         }
 
         if ($type == 'date') {
