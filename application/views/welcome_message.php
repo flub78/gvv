@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -29,46 +30,46 @@ $gcalendar = $this->config->item('url_gcalendar');
 echo '<div id="body" class="body ui-widget-content">';
 $club = $this->config->item('club');
 
-echo heading($this->lang->line("welcome_title"), 3);
+echo heading("welcome_title", 3);
 
-echo p ($this->lang->line("welcome_intro1"));
+echo p($this->lang->line("welcome_intro1"));
 echo mailto($this->config->item('email_club'), $this->lang->line("welcome_admin")) . br(2);
 
 if ($display_presences) {
 
-$options = $this->lang->line("welcome_options");
-$role = form_dropdown("role", $options, "", 'id="role"');
-$table = array(
-    array($this->lang->line("welcome_attendance")),
-    array($this->lang->line("welcome_date") . ": ", '<input type="text" name="date_ajout" value="" size="10" class="datepicker" title="JJ/MM/AAAA"  />' . nbs(3) .
-    $this->lang->line("welcome_absent") . ": " . nbs() . '<input type="checkbox" name="absent" value="1" id="absent"   />' ),
-	array($this->lang->line("welcome_intent") . ": ", $role ),
-	array($this->lang->line("welcome_comment") . ": ", '<input type="text" name="commentaire" value="" size="32"  />' ),
-	array(form_input(array (
-                    'type' => 'submit',
-                    'name' => 'button',
-                    'value' => $this->lang->line("gvv_button_new")
-                ))),
-	array(nbs())
-);
-foreach ($mes_presences as $event) {
-    $delete = $event['id'];
-    $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], 'Supprimer');
-    $image = theme() . "/images/delete.png";
-    $image_properties = array (
-                    'src' => $image,
-                    'class' => 'icon',
-                    'title' => 'delete'
+    $options = $this->lang->line("welcome_options");
+    $role = form_dropdown("role", $options, "", 'id="role"');
+    $table = array(
+        array($this->lang->line("welcome_attendance")),
+        array($this->lang->line("welcome_date") . ": ", '<input type="text" name="date_ajout" value="" size="10" class="datepicker" title="JJ/MM/AAAA"  />' . nbs(3) .
+            $this->lang->line("welcome_absent") . ": " . nbs() . '<input type="checkbox" name="absent" value="1" id="absent"   />'),
+        array($this->lang->line("welcome_intent") . ": ", $role),
+        array($this->lang->line("welcome_comment") . ": ", '<input type="text" name="commentaire" value="" size="32"  />'),
+        array(form_input(array(
+            'type' => 'submit',
+            'name' => 'button',
+            'value' => $this->lang->line("gvv_button_new")
+        ))),
+        array(nbs())
     );
-    $label = img($image_properties);
-    $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], $label);
-    
-    
-    $date = date_db2ht($event['start']);
-    $table[] = array($date, $delete);
-} 
+    foreach ($mes_presences as $event) {
+        $delete = $event['id'];
+        $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], 'Supprimer');
+        $image = theme() . "/images/delete.png";
+        $image_properties = array(
+            'src' => $image,
+            'class' => 'icon',
+            'title' => 'delete'
+        );
+        $label = img($image_properties);
+        $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], $label);
+
+
+        $date = date_db2ht($event['start']);
+        $table[] = array($date, $delete);
+    }
 } else {
-    $table=array();
+    $table = array();
 }
 
 echo "<table>\n";
@@ -78,8 +79,8 @@ echo '<iframe src="' . $gcalendar . '" style="border: 0" width="800" height="600
 echo '</CENTER></td><td style="vertical-align: top">';
 
 $controller = 'presences';
-echo form_open(controller_url($controller) . "/ajout/", array('name' => 'saisie') );
-$CI =& get_instance();
+echo form_open(controller_url($controller) . "/ajout/", array('name' => 'saisie'));
+$CI = &get_instance();
 echo form_hidden('mlogin', $CI->dx_auth->get_username());
 
 display_form_table($table);
@@ -104,5 +105,3 @@ if ($club == 'accabs') {
 echo p($this->lang->line("welcome_intro2"));
 
 echo '</div>';
-
-?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,25 +28,24 @@ $this->lang->load('achats');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_achats_title_year"), 3);
+echo heading("gvv_achats_title_year", 3);
 
 echo year_selector($controller, $year, $year_selector);
 echo br(2);
 
 $attrs = array(
 	'controller' => $controller,
-    'fields' => array('produit', 'prix_unit', 'quantite', 'prix'),
-    'mode' => "ro",
-    'class' => "sql_table fixed_datatable table");
+	'fields' => array('produit', 'prix_unit', 'quantite', 'prix'),
+	'mode' => "ro",
+	'class' => "sql_table fixed_datatable table"
+);
 
 echo $this->gvvmetadata->table("vue_achats_per_year", $attrs, "");
 
 $bar = array(
-	array('label' => "Excel", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
+	array('label' => "Excel", 'url' => "$controller/ventes_csv/$year", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => controller_url("rapports/ventes"), 'role' => 'ca'),
-	);
+);
 echo button_bar4($bar);
 
 echo '</div>';
-
-?>
