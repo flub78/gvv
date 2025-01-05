@@ -149,6 +149,8 @@ class Attachments extends Gvv_Controller {
         }
 
 
+        parent::test();
+
         $this->tests_results('xml');
         $this->tests_results($format);
     }
