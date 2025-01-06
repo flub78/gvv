@@ -54,6 +54,7 @@ class Compta extends Gvv_Controller {
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
+        $this->session->set_userdata('back_url', current_url());
 
         if ($this->data['achat']) {
             redirect("achats/edit/" . $this->data['achat']);

@@ -138,6 +138,7 @@ class Gvv_Controller extends CI_Controller {
         ));
 
         // réaffiche la liste (serait sympa de réafficher la même page)
+        $this->pop_return_url();
         redirect($this->controller . "/page");
     }
 
