@@ -25,6 +25,7 @@
 $this->lang->load('gvv');
 $this->lang->load('welcome');
 $this->lang->load('admin');
+$this->lang->load('attachments');
 
 ?>
 
@@ -104,6 +105,7 @@ $this->lang->load('admin');
                           <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><?= translation("welcome_ticket_types_title") ?></a></li>
                         <?php endif; ?>
                         <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><?= translation("welcome_global_entries_title") ?></a></li>
+
                       </ul>
                     </li>
 
@@ -218,6 +220,8 @@ $this->lang->load('admin');
                     <li><a class="dropdown-item" href="<?= controller_url("comptes/bilan") ?>"><?= translation("gvv_menu_accounting_bilan") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><?= translation("gvv_menu_accounting_sales") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><?= translation("gvv_menu_accounting_cash") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("gvv_attachments_title") ?></a></li>
+
                   <?php endif; ?>
 
                 </ul>
@@ -282,7 +286,6 @@ $this->lang->load('admin');
                   <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>">phpinfo</a></li>
                   <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><?= translation("CodeIgniter") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><?= translation("Dump Metadata") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("Attachments") ?></a></li>
 
                 </ul>
               </li>
