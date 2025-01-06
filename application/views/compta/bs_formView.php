@@ -79,14 +79,17 @@ echo heading($title_key, 3);
         echo heading("gvv_attachments_title", 3);
 
         $attrs = array(
-            'controller' => $controller,
+            'controller' => "attachments",
             'actions' => array('edit', 'delete'),
-            'fields' => array('referenced_table', 'referenced_id', 'user_id', 'filename', 'description', 'file'),
+            'fields' => array('description', 'file'),
             'mode' => "rw",
-            'class' => "datatable table table-striped"
+            'class' => "fixed_datatable table table-striped",
+            'referenced_table' => "ecritures",
+            'referenced_field' => $id,
+            'saisie_par' => $saisie_par
         );
 
-        // echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
+        echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
         ?>
     </div>
 

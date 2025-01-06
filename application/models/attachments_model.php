@@ -20,8 +20,8 @@ class Attachments_model extends Common_Model {
      *	Retourne le tableau tableau utilisé pour l'affichage par page
      *	@return objet		  La liste
      */
-    public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, referenced_table, referenced_id, user_id, filename, description, file');
+    public function select_page($selection = []) {
+        $select = $this->select_columns('id, referenced_table, referenced_id, user_id, filename, description, file', 0, 0, $selection);
 
         $this->gvvmetadata->store_table("vue_attachments", $select);
         return $select;

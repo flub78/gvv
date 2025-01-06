@@ -42,7 +42,9 @@ class Compta extends Gvv_Controller {
         $this->load->model('comptes_model');
         $this->load->model('tarifs_model');
         $this->load->model('categorie_model');
+        $this->load->model('attachments_model');
         $this->lang->load('compta');
+        $this->lang->load('attachments');
     }
 
     /**
@@ -64,6 +66,7 @@ class Compta extends Gvv_Controller {
             $this->form_static_element(MODIFICATION);
         }
 
+        $this->attachments_model->select_page();
         $this->data[$this->kid] = $id;
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
