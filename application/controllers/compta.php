@@ -66,7 +66,11 @@ class Compta extends Gvv_Controller {
             $this->form_static_element(MODIFICATION);
         }
 
-        $this->attachments_model->select_page();
+        $this->attachments_model->select_page(
+            0,
+            0,
+            ['referenced_table' => 'ecritures', 'referenced_id' => $id]
+        );
         $this->data[$this->kid] = $id;
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
