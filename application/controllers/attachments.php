@@ -50,6 +50,22 @@ class Attachments extends Gvv_Controller {
     }
 
     /**
+     * Affiche le formulaire de création
+     */
+    function create() {
+
+
+
+        // Méthode basée sur les méta-données
+        $table = $this->gvv_model->table();
+        $this->data = $this->gvvmetadata->defaults_list($table);
+
+        $this->form_static_element(CREATION);
+
+        return load_last_view($this->form_view, $this->data, $this->unit_test);
+    }
+
+    /**
      * Génération des éléments à passer au formulaire en cas de création,
      * modification ou réaffichage après erreur.
      *
@@ -59,7 +75,12 @@ class Attachments extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
 
-        $this->data['saisie_par'] = $this->dx_auth->get_username();
+        $referenced_table = $this->input->get('table');
+        $id = $this->input->get('id');
+
+        $this->data['user_id'] = $this->dx_auth->get_username();
+        $this->data['referenced_table'] = $referenced_table;
+        $this->data['referenced_id'] = $id;
     }
 
     /**

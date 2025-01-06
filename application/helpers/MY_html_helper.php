@@ -590,8 +590,10 @@ if (! function_exists('attachment')) {
 
         $mime_type = mime_content_type($filename);
 
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
         $inner_html = "";
-        if (str_starts_with($mime_type, 'image')) {
+        if (str_starts_with($mime_type, 'image') || ($extension == 'avif')) {
             $img = '<img class="doc-thumbnail"';
             $img .= ' src="' . $url . '"';
             $img .= '/>';

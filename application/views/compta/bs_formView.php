@@ -84,9 +84,7 @@ echo heading($title_key, 3);
             'fields' => array('description', 'file'),
             'mode' => "rw",
             'class' => "fixed_datatable table table-striped",
-            'referenced_table' => "ecritures",
-            'referenced_field' => $id,
-            'saisie_par' => $saisie_par
+            'param' => "?table=ecritures&id=" . $id
         );
 
         echo $this->gvvmetadata->table("vue_attachments", $attrs, "");

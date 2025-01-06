@@ -42,6 +42,9 @@ $this->lang->load('attachments');
 		<div class="card-body">
 
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
+				<input type="hidden" name="referenced_table" value="<?= $referenced_table ?>" />
+				<input type="hidden" name="referenced_id" value="<?= $referenced_id ?>" />
+				<input type="hidden" name="user_id" value="<?= $user_id ?>" />
 
 				<?= ($this->gvvmetadata->form('attachments', array(
 					'description' => $description,
