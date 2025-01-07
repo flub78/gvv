@@ -75,12 +75,14 @@ class Attachments extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
 
-        $referenced_table = $this->input->get('table');
-        $id = $this->input->get('id');
+        if (CREATION == $action) {
+            $referenced_table = $this->input->get('table');
+            $id = $this->input->get('id');
 
-        $this->data['user_id'] = $this->dx_auth->get_username();
-        $this->data['referenced_table'] = $referenced_table;
-        $this->data['referenced_id'] = $id;
+            $this->data['user_id'] = $this->dx_auth->get_username();
+            $this->data['referenced_table'] = $referenced_table;
+            $this->data['referenced_id'] = $id;
+        }
     }
 
     /**
