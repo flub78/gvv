@@ -440,6 +440,8 @@ class Gvv_Controller extends CI_Controller {
         // $button = $_POST['button'];
         $button = $this->input->post('button');
         $numlign = $this->input->post('numlign');
+        $button_photo = $this->input->post('button_photo');
+
 
         if ($button == $this->lang->line("gvv_button_show_list")) {
             $this->page();
@@ -504,7 +506,9 @@ class Gvv_Controller extends CI_Controller {
                         $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
                     }
                     $this->post_create($processed_data);
-                    if ($button != $this->lang->line("gvv_button_create")) {
+                    $create_txt = $this->lang->line("gvv_button_create");
+                    $upload_txt = $this->lang->line("gvv_button_upload");
+                    if (($button != $create_txt) && ($button_photo != $upload_txt)) {
                         $image = $this->gvv_model->image($id);
                         $msg = $image . ' ' . $this->lang->line("gvv_succesful_creation");
                         $this->session->set_flashdata('popup', $msg);
