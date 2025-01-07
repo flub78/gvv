@@ -27,31 +27,16 @@ class Attachments_model extends Common_Model {
             $referenced_table = $elt['referenced_table'];
             $referenced_id = $elt['referenced_id'];
 
-            // Check if table exists in database schema
-            $table_exists = $this->db->table_exists($referenced_table);
-
-            if ($table_exists && false) {
-                // Check if referenced_id exists in the table
-                $this->db->where('id', $referenced_id);
-                $query = $this->db->get($referenced_table);
-
-                if ($query->num_rows() > 0) {
-                    $row = $query->row_array();
-                    // Assuming each table has an identifier field that should be displayed
-                    $display_field = isset($row['immatriculation']) ? $row['immatriculation'] : (isset($row['nom']) ? $row['nom'] : $referenced_id);
-
-                    if ($referenced_table == 'ecritures') {
-                        $referenced_table = 'compta';
-                    }
-
-                    // Create the link
-                    $select[$key]['referenced_id'] = '<a href="'
-                        . ' http://gvv.net'
-                        . '/index.php/'
-                        . $referenced_table . '/edit/' . $referenced_id . '">' .
-                        $referenced_id . '</a>';
-                }
+            if ($referenced_table == 'ecritures') {
+                $referenced_table = 'compta';
             }
+
+            // Create the link
+            $select[$key]['referenced_id'] = '<a href="'
+                . base_url()
+                . 'index.php/'
+                . $referenced_table . '/edit/' . $referenced_id . '">' .
+                $referenced_id . '</a>';
         }
 
         $this->gvvmetadata->store_table("vue_attachments", $select);
