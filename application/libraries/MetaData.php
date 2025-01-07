@@ -1700,9 +1700,15 @@ abstract class Metadata {
             $attrs = array_merge($attrs, array(
                 'type' => 'file',
                 'name' => "userfile",
-                'size' => 32
+                'size' => 32,
+                'capture' => 'camera'
             ));
             $input = form_input($attrs, null);
+
+            $input = '<label for="fileInput" class="btn btn-default">
+                        <i class="fa fa-camera"></i> ' . $this->CI->lang->line('gvv_button_file') . '
+                    </label>
+                    <input type="file" id="fileInput" class="form-control" name="userfile" style="display:none" capture="camera">';
 
             $upload = '<button type="submit" class="btn btn-success" name="button_photo"><i class="fa fa-camera"></i> '
                 . $this->CI->lang->line('gvv_button_upload') . '</button>';
@@ -1713,7 +1719,7 @@ abstract class Metadata {
 
             // It is a bad over engineered method to find out multiple upload buttons into a form.
 
-            $upload = '<input type="submit" name="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
+            $upload     = '<input type="submit" name="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
             return $img . $input . $upload;
         } elseif ($subtype == 'minute') {

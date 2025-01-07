@@ -93,6 +93,7 @@ $lang['gvv_button_print'] = "Print";
 $lang['gvv_button_logs_submitbutton'] = "Validate_flight";
 $lang['gvv_button_upload'] = "Upload";
 $lang['gvv_button_show_list'] = "Show list";
+$lang['gvv_button_file'] = "Choose a file";
 
 
 $lang['gvv_label_mode'] = "Mode";

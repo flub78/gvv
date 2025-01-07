@@ -95,6 +95,7 @@ $lang['gvv_button_print'] = "Imprimer";
 $lang['gvv_button_logs_submitbutton'] = "Valider vol";
 $lang['gvv_button_upload'] = "Télécharger";
 $lang['gvv_button_show_list'] = "Voir la liste";
+$lang['gvv_button_file'] = "Choisir un fichier";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
