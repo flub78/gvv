@@ -114,6 +114,8 @@ class Gvv_Controller extends CI_Controller {
             $no_view_loading = func_get_arg(0);
         }
 
+        $this->session->unset_userdata('inital_id');
+
         // Méthode basée sur les méta-données
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
