@@ -1705,10 +1705,13 @@ abstract class Metadata {
             ));
             $input = form_input($attrs, null);
 
+            // 
             $input = '<label for="fileInput" class="btn btn-default">
                         <i class="fa fa-camera"></i> ' . $this->CI->lang->line('gvv_button_file') . '
                     </label>
-                    <input type="file" id="fileInput" class="form-control" name="userfile" style="display:none" capture="camera">';
+                    <input type="file" id="fileInput" class="form-control" name="userfile" style="display:none" capture="camera">
+                    <input type="text" name="display_userfile" class="form-control" value="' . "Aucun fichier choisi" . '">
+                    ';
 
             $upload = '<button type="submit" class="btn btn-success" name="button_photo"><i class="fa fa-camera"></i> '
                 . $this->CI->lang->line('gvv_button_upload') . '</button>';
