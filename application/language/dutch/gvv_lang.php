@@ -89,6 +89,7 @@ $lang['gvv_button_logs_submitbutton'] = "Bewaar vlucht";
 $lang['gvv_button_upload'] = "Upload";
 $lang['gvv_button_show_list'] = "Toon lijst";
 $lang['gvv_button_file'] = "Kies een bestand";
+$lang['gvv_no_upload_file'] = "Geen bestand geselecteerd";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

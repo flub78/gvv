@@ -1703,24 +1703,18 @@ abstract class Metadata {
                 'size' => 32,
                 'capture' => 'camera'
             ));
-            $input = form_input($attrs, null);
-
-            // 
+            // $input = form_input($attrs, null);
+            $js = '<script>
+                document.getElementById("fileInput").onchange = function() {
+                    document.getElementsByName("display_userfile")[0].value = this.value.split("\\\\").pop();
+                };
+            </script>';
             $input = '<label for="fileInput" class="btn btn-default">
                         <i class="fa fa-camera"></i> ' . $this->CI->lang->line('gvv_button_file') . '
                     </label>
                     <input type="file" id="fileInput" class="form-control" name="userfile" style="display:none" capture="camera">
-                    <input type="text" name="display_userfile" class="form-control" value="' . "Aucun fichier choisi" . '">
-                    ';
-
-            $upload = '<button type="submit" class="btn btn-success" name="button_photo"><i class="fa fa-camera"></i> '
-                . $this->CI->lang->line('gvv_button_upload') . '</button>';
-
-            // The version above is more elegant as it include a camera icon
-            // However it does not work because the Metada upload method relies on a post 
-            // parameter named "button_$fieldname"
-
-            // It is a bad over engineered method to find out multiple upload buttons into a form.
+                    <input type="text" name="display_userfile" class="form-control" value="' . $this->CI->lang->line('gvv_no_upload_file') . '">
+                    ' . $js;
 
             $upload     = '<input type="submit" name="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 

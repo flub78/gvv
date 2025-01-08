@@ -94,7 +94,7 @@ $lang['gvv_button_logs_submitbutton'] = "Validate_flight";
 $lang['gvv_button_upload'] = "Upload";
 $lang['gvv_button_show_list'] = "Show list";
 $lang['gvv_button_file'] = "Choose a file";
-
+$lang['gvv_no_upload_file'] = "No file selected";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
