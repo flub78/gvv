@@ -41,6 +41,7 @@ $this->lang->load('attachments');
 		</div>
 		<div class="card-body">
 
+			<p><?= $image ?></p>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 				<input type="hidden" name="referenced_table" value="<?= $referenced_table ?>" />
 				<input type="hidden" name="referenced_id" value="<?= $referenced_id ?>" />

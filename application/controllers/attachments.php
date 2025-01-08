@@ -47,6 +47,7 @@ class Attachments extends Gvv_Controller {
     function __construct() {
         parent::__construct();
         $this->lang->load('attachments');
+        $this->load->model('ecritures_model');
     }
 
     /**
@@ -82,6 +83,19 @@ class Attachments extends Gvv_Controller {
             $this->data['user_id'] = $this->dx_auth->get_username();
             $this->data['referenced_table'] = $referenced_table;
             $this->data['referenced_id'] = $id;
+        }
+
+        if (
+            isset($this->data['referenced_table'])
+            && ($this->data['referenced_table'] != "")
+            && isset($this->data['referenced_id'])
+        ) {
+            $referenced_model = $this->data['referenced_table'] . '_model';
+            $this->load->model($referenced_model);
+
+            $id = $this->data['referenced_id'];
+            $image = $this->$referenced_model->image($id);
+            $this->data['image'] = $this->data['referenced_table'] . ': ' . $image;
         }
     }
 
