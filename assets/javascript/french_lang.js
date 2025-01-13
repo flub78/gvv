@@ -22,43 +22,43 @@
  */
 
 /* alert('french'); */
-    var olanguage = {
-            "sProcessing":     "Traitement en cours...",
-            "sLengthMenu":     "Afficher _MENU_ &eacute;l&eacute;ments",
-            "sZeroRecords":    "Aucun &eacute;l&eacute;ment &agrave; afficher",
-            "sInfo":           "Affichage de l'&eacute;lement _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
-            "sInfoEmpty":      "Affichage de l'&eacute;lement 0 &agrave; 0 sur 0 &eacute;l&eacute;ments",
-            "sInfoFiltered":   "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
-            "sInfoPostFix":    "",
-            "sSearch":         "Rechercher&nbsp;:",
-            "sLoadingRecords": "Téléchargement...",
-            "sUrl":            "",
-            "oPaginate": {
-                "sFirst":    "Premier",
-                "sPrevious": "Pr&eacute;c&eacute;dent",
-                "sNext":     "Suivant",
-                "sLast":     "Dernier"
-            }                       
-    };
-    
-    var months = [ 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-                  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre',
-                  'Décembre' ];
+var olanguage = {
+    "sProcessing": "Traitement en cours...",
+    "sLengthMenu": "Afficher _MENU_ &eacute;l&eacute;ments",
+    "sZeroRecords": "Aucun &eacute;l&eacute;ment &agrave; afficher",
+    "sInfo": "Affichage de l'&eacute;lement _START_ &agrave; _END_ sur _TOTAL_ &eacute;l&eacute;ments",
+    "sInfoEmpty": "Affichage de l'&eacute;lement 0 &agrave; 0 sur 0 &eacute;l&eacute;ments",
+    "sInfoFiltered": "(filtr&eacute; de _MAX_ &eacute;l&eacute;ments au total)",
+    "sInfoPostFix": "",
+    "sSearch": "Rechercher&nbsp;:",
+    "sLoadingRecords": "Téléchargement...",
+    "sEmptyTable": "Aucune donnée disponible dans le tableau",
+    "sUrl": "",
+    "oPaginate": {
+        "sFirst": "Premier",
+        "sPrevious": "Pr&eacute;c&eacute;dent",
+        "sNext": "Suivant",
+        "sLast": "Dernier"
+    }
+};
 
-    var title_cumul = 'Heures de vol cumulées';
-    var horametre = 'Horametre';
-    var hm = 'heures.minutes';
-    var h_100 = 'heures.centième';
-    
-    var label_cumul_depenses = "Cumul des dépenses";
-    var label_cumul_recettes = "Cumul des recettes";
-    var label_recettes = "Recettes";
-    var label_depenses = "Dépenses";
-    var title_cumul = 'Cumul des dépenses et recettes';
-    
-    var button_add = 'Ajouter';
-    var button_cancel = 'Abandon';
-    var button_change = 'Modifier';
-    var button_delete = 'Supprimer';
-    var button_save = 'Enregistrer';
-    
+var months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre',
+    'Décembre'];
+
+var title_cumul = 'Heures de vol cumulées';
+var horametre = 'Horametre';
+var hm = 'heures.minutes';
+var h_100 = 'heures.centième';
+
+var label_cumul_depenses = "Cumul des dépenses";
+var label_cumul_recettes = "Cumul des recettes";
+var label_recettes = "Recettes";
+var label_depenses = "Dépenses";
+var title_cumul = 'Cumul des dépenses et recettes';
+
+var button_add = 'Ajouter';
+var button_cancel = 'Abandon';
+var button_change = 'Modifier';
+var button_delete = 'Supprimer';
+var button_save = 'Enregistrer';
