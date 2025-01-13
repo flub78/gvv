@@ -12,10 +12,12 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 * [x] Documentation de la sauvegarde automatique             2j
 * [x] Adapt the membre view to show the picture              2j
 * [x] Analyse and document auto backup mechanism             2j
-* [] Implement attachments                                   5j
+* [x] Implement attachments                                  5j
 * [] Multitenant                                             20j
 * [] Online Payments                                         10j
 * [] Reservation des avions                                  10j
+* [] Fixer la date de gel lors de la cloture
+* [] Support du markdown
 
 
 ## Dette technique
