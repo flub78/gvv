@@ -40,7 +40,7 @@ $this->lang->load('sections');
 			<h3><?= $this->lang->line("gvv_sections_title") ?> </h3>
 		</div>
 		<div class="card-body">
-
+			<?php echo validation_errors(); ?>
 			<p><?= $image ?></p>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 

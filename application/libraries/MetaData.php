@@ -146,6 +146,9 @@ abstract class Metadata {
      * @param string $table name
      * @param boolean $no_autogen_key when true does not return auto-generated keys
      * @return mixed[]
+     * 
+     * BUG: There is no occurences in the code of call with $no_autogen_key
+     * However their are existing cases. If they are managed another way this code is useless. 
      */
     function fields_list($table, $no_autogen_key = FALSE) {
         $tmp = $this->fields[$table];

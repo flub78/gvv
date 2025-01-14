@@ -4,7 +4,11 @@ Ce fichier pour documenter les étapes de développement.
 
 ## Génération de la migration
 
-dans application/migrations
+Définir la nouvelle table dan phpmyadmin puis d'exporter le schema pour générere la migration.
+
+Attention aux champs auto-incrémenté, ne pas oublier de le spécifier dans phpmyadmin. 
+
+Créer la migration dans application/migrations
 
 Naming conventions for CodeIgniter 2.x Migration Classes:
 
@@ -14,7 +18,7 @@ Methods: Classes must define up() and down() methods.
 
 Update application/config/migration.php
 
-La méthode la plus simple est de définir la nouvelle table dan phpmyadmin puis d'exporter le schema.
+
 
 ## Génération du modèle
 

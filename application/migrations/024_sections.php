@@ -73,7 +73,9 @@ class Migration_Sections extends CI_Migration {
   				`description` varchar(128)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
 			"ALTER TABLE `sections`
-  			ADD PRIMARY KEY (`id`)"
+  			ADD PRIMARY KEY (`id`)",
+			"ALTER TABLE `sections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4"
 		);
 
 		$errors += $this->run_queries($sqls);
