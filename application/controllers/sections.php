@@ -62,33 +62,14 @@ class Sections extends Gvv_Controller {
     //     return load_last_view($this->form_view, $this->data, $this->unit_test);
     // }
 
-    /**
-     * Génération des éléments à passer au formulaire en cas de création,
-     * modification ou réaffichage après erreur.
-     *
-     * @param string $action
-     *            creation, modification
-     */
-    // function form_static_element($action) {
-    //     parent::form_static_element($action);
-
-    //     if (CREATION == $action) {
-    //     }
-    // }
-
-    /**
-     * Validation du formulaire
-     */
-    // public function formValidation($action, $return_on_success = false) {
-    //     $year = date('Y');
-    // }
 
     /**
      * Supprime un élément
+     * TODO: interdire la suppression d'une section qui a des éléments
      */
-    // function delete($id) {
-    //     parent::delete($id);
-    // }
+    function delete($id) {
+        parent::delete($id);
+    }
 
     /**
      * Test unitaire

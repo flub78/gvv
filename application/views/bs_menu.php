@@ -26,6 +26,7 @@ $this->lang->load('gvv');
 $this->lang->load('welcome');
 $this->lang->load('admin');
 $this->lang->load('attachments');
+$this->lang->load('sections');
 
 ?>
 
@@ -122,6 +123,7 @@ $this->lang->load('attachments');
                         <li><a class="dropdown-item" href="<?= controller_url("backend/users") ?>"><?= translation("gvv_admin_menu_users") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("backend/roles") ?>"><?= translation("gvv_admin_menu_roles") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><?= translation("gvv_admin_menu_permissions") ?></a></li>
+                        <li><a class="dropdown-item" href="<?= controller_url('sections') ?>"><?= translation("gvv_sections_title") ?></a></li>
                       </ul>
                     </li>
 

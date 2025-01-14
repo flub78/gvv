@@ -18,8 +18,6 @@ Methods: Classes must define up() and down() methods.
 
 Update application/config/migration.php
 
-
-
 ## Génération du modèle
 
 dans application/models. Attention select_page doit retourner également la colonne de la clé primaire même si elle n'est jamais affichée.
