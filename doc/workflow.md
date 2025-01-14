@@ -14,6 +14,8 @@ Methods: Classes must define up() and down() methods.
 
 Update application/config/migration.php
 
+La méthode la plus simple est de définir la nouvelle table dan phpmyadmin puis d'exporter le schema.
+
 ## Génération du modèle
 
 dans application/models. Attention select_page doit retourner également la colonne de la clé primaire même si elle n'est jamais affichée.
@@ -54,3 +56,6 @@ Dans la vue bs_tableView.php c'est la fonction $this->gvvmetadata->table("vue_at
 Les champs sont affichés par la fonction array_field de la classe Metadata.
 
 
+## Génération d'un test end-to-end
+
+Dans le projet dusk_gvv
