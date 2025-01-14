@@ -69,7 +69,8 @@ class Migration_Sections extends CI_Migration {
 		$sqls = array(
 			"CREATE TABLE `sections` (
   				`id` int(11) NOT NULL,
-  				`description` varchar(128) NOT NULL
+				`nom` varchar(64) NOT NULL,
+  				`description` varchar(128)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
 			"ALTER TABLE `sections`
   			ADD PRIMARY KEY (`id`)"
