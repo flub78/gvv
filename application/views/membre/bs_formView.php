@@ -90,7 +90,12 @@ if ($action == CREATION) {
 } else {
     if (isset($pilote_selector)) {
         $table[$row][] = $tabs;
-        $table[$row][] = dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' onchange='new_selection();'");
+        $table[$row][] = dropdown_field(
+            'mlogin',
+            $mlogin,
+            $pilote_selector,
+            "id='selector' class='big_select' onchange='new_selection();'"
+        );
     } else {
         echo form_hidden('mlogin', $mlogin);
     }

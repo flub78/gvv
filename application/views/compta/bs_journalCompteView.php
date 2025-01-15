@@ -68,7 +68,7 @@ echo checkalert($this->session);
                 <div class="me-3 mb-2">
                     <?= $flt .= $this->lang->line("gvv_compta_compte") . ": " ?>
                     <?php if ($navigation_allowed) : ?>
-                        <?= dropdown_field('id', $id, $compte_selector, "id='selector' onchange='compte_selection();'") ?>
+                        <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' onchange='compte_selection();'") ?>
                     <?php else : ?>
                         <input type="text" name="id" ivalue="<?= $nom ?>" size="30" readonly="readonly" />
                     <?php endif; ?>

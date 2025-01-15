@@ -56,7 +56,7 @@ echo form_open(controller_url($controller) . "/JournalFilterValidation/" . $comp
 $table = array();
 $row = 0;
 $table[$row][] = $this->lang->line('gvv_compta_comptes') . ": ";
-$table[$row][] = dropdown_field('id', $id, $compte_selector, "id='selector' onchange='compte_selection();'");
+$table[$row][] = dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' onchange='compte_selection();'");
 $row++;
 $table[$row][] =  $this->lang->line('gvv_compta_date') . ": ";
 

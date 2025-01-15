@@ -55,7 +55,11 @@ if (! function_exists('input_field')) {
 
 if (! function_exists('dropdown_field')) {
     function dropdown_field($name, $value, $options, $attrs) {
-        return form_dropdown($name, $options, $value, $attrs);
+        if (!$attrs) {
+            $attrs = 'class="form-control big_select" ';
+        }
+        $res = form_dropdown($name, $options, $value, $attrs);
+        return $res;
     }
 }
 
