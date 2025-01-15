@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mar. 14 jan. 2025 à 20:34
+-- Généré le : mer. 15 jan. 2025 à 17:43
 -- Version du serveur : 10.11.8-MariaDB-0ubuntu0.24.04.1
 -- Version de PHP : 8.3.14
 
@@ -30,7 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `user_roles_per_section` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `types_roles_id` int(11) NOT NULL
+  `types_roles_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -43,7 +44,8 @@ CREATE TABLE `user_roles_per_section` (
 ALTER TABLE `user_roles_per_section`
   ADD PRIMARY KEY (`id`),
   ADD KEY `types_roles_id` (`types_roles_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `section_id` (`section_id`);
 
 --
 -- AUTO_INCREMENT pour les tables déchargées
@@ -63,6 +65,7 @@ ALTER TABLE `user_roles_per_section`
 -- Contraintes pour la table `user_roles_per_section`
 --
 ALTER TABLE `user_roles_per_section`
+  ADD CONSTRAINT `section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`),
   ADD CONSTRAINT `types_roles_id` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`),
   ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;

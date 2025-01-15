@@ -25,7 +25,8 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 * [] Supprimer les vues non bootstrap
 * [] Utiliser les flexbox plutôt que les tableaux
 * [] Warnings en mode développement
-* [] Retirer les vues non bootstrap
 * [x] Supprimer watir
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
+* [] utiliser les accordéons bootstrap sur la vue compte pilote
+     Sinon le bouton de validation des achats n'est pas au bon niveau.

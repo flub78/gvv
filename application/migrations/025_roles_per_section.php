@@ -73,6 +73,9 @@ class Migration_Roles_per_section extends CI_Migration {
 		$filename = getcwd() . '/application/migrations/user_roles_per_section.sql';
 		$res = $this->database->sqlfile($filename);
 
+		$filename = getcwd() . '/application/migrations/role-mapping.sql';
+		$res = $this->database->sqlfile($filename);
+
 		gvv_info("Migration database up to " . $this->number . ", errors=$errors");
 		return !$errors;
 	}

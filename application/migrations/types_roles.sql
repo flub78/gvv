@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : mar. 14 jan. 2025 à 20:26
+-- Généré le : mer. 15 jan. 2025 à 19:11
 -- Version du serveur : 10.11.8-MariaDB-0ubuntu0.24.04.1
 -- Version de PHP : 8.3.14
 
@@ -41,10 +41,11 @@ INSERT INTO `types_roles` (`id`, `nom`, `description`) VALUES
 (1, 'user', 'Capacity to login and see user data'),
 (2, 'auto_planchiste', 'Capacity to create, modify and delete the user own data'),
 (5, 'planchiste', 'Authorization to create, modify and delete flight data'),
-(6, 'ca', 'capacity to see all data for a section including financial data'),
-(7, 'tresorer', 'Capacity to edit financial data for one section'),
-(8, 'super-tresorer', 'Capacity to see an edit financial data for all sections'),
-(9, 'club-admin', 'capacity to access all data and change everything');
+(6, 'ca', 'capacity to see all data for a section including global financial data'),
+(7, 'bureau', 'capacity to see all data for a section including personnal financial data'),
+(8, 'tresorier', 'Capacity to edit financial data for one section'),
+(9, 'super-tresorier', 'Capacity to see an edit financial data for all sections'),
+(10, 'club-admin', 'capacity to access all data and change everything');
 
 --
 -- Index pour les tables déchargées
@@ -64,7 +65,7 @@ ALTER TABLE `types_roles`
 -- AUTO_INCREMENT pour la table `types_roles`
 --
 ALTER TABLE `types_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
