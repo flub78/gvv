@@ -47,8 +47,8 @@ if (! function_exists('input_field')) {
      *
      */
     function input_field($name, $value, $attrs) {
-        $attrs ['name'] = $name;
-        $attrs ['value'] = $value;
+        $attrs['name'] = $name;
+        $attrs['value'] = $value;
         return form_input($attrs) . form_error($name);
     }
 }
@@ -77,7 +77,7 @@ if (! function_exists('radio_field')) {
     function radio_field($name, $default, $values, $attrs = "") {
         $res = "";
         // $attrs = 'readonly="readonly"';
-        foreach ( $values as $key => $value ) {
+        foreach ($values as $key => $value) {
             if ($default == $value) {
                 $res .= $key . ":" . form_radio($name, $value, TRUE, $attrs);
             } else {
@@ -101,9 +101,9 @@ if (! function_exists('enumerate_radio_fields')) {
      * Privé <input type="radio" name="filter_proprio" value="2" id="Privé" />&nbsp;&nbsp;
      * Extérieur <input type="radio" name="filter_proprio" value="3" id="Extérieur" />&nbsp;
      */
-    function enumerate_radio_fields($values, $name, $value, $mode = "ro", $attrs = array ()) {
+    function enumerate_radio_fields($values, $name, $value, $mode = "ro", $attrs = array()) {
         $res = "";
-        foreach ( $values as $key => $val ) {
+        foreach ($values as $key => $val) {
             $attrs['name'] = $name;
             $attrs['id'] = $val;
             $attrs['value'] = $key;
@@ -134,10 +134,10 @@ if (! function_exists('display_form_table')) {
      */
     function display_form_table($table) {
         echo "<table>\n";
-        foreach ( $table as $row ) {
+        foreach ($table as $row) {
             echo "\t<tr>\n";
             $first_cell = TRUE;
-            foreach ( $row as $cell ) {
+            foreach ($row as $cell) {
                 if ($first_cell) {
                     echo "\t\t<td align=\"right\">\n";
                     $first_cell = FALSE;
@@ -158,7 +158,7 @@ if (! function_exists('account_header')) {
      * Return the header line of an account into an array
      */
     function account_header() {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->lang->load('comptes');
         return $CI->lang->line('comptes_table_header');
     }
@@ -169,49 +169,49 @@ if (! function_exists('account_rows')) {
      * Return the rows of an account into an array
      */
     function account_rows($rows) {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->load->library('ButtonView');
 
-        $table = array ();
+        $table = array();
         $index = 0;
-        foreach ( $rows as $row ) {
-            $table [$index] [] = $row ['codec'];
-            $table [$index] [] = $row ['nom'];
-            if (isset($row ['count'])) {
-                $table [$index] [] = $row ['count'];
+        foreach ($rows as $row) {
+            $table[$index][] = $row['codec'];
+            $table[$index][] = $row['nom'];
+            if (isset($row['count'])) {
+                $table[$index][] = $row['count'];
             } else {
-                $table [$index] [] = '';
+                $table[$index][] = '';
             }
-            $table [$index] [] = euro($row ['debit']);
-            $table [$index] [] = euro($row ['credit']);
+            $table[$index][] = euro($row['debit']);
+            $table[$index][] = euro($row['credit']);
 
-            if ($row ['solde'] < 0) {
-                $table [$index] [] = euro(abs($row ['solde']));
-                $table [$index] [] = nbs(11);
+            if ($row['solde'] < 0) {
+                $table[$index][] = euro(abs($row['solde']));
+                $table[$index][] = nbs(11);
             } else {
-                $table [$index] [] = nbs(11);
-                $table [$index] [] = euro($row ['solde']);
+                $table[$index][] = nbs(11);
+                $table[$index][] = euro($row['solde']);
             }
-            $button = new ButtonView(array (
-                    'label' => 'Voir',
-                    'action' => 'journal_compte',
-                    'controller' => 'compta',
-                    'param' => $row ['id']
+            $button = new ButtonView(array(
+                'label' => 'Voir',
+                'action' => 'journal_compte',
+                'controller' => 'compta',
+                'param' => $row['id']
             ));
 
-            if (isset($row ['count'])) {
-                if ($row ['count'] > 1) {
-                    $button = new Button(array (
-                            'label' => 'Voir',
-                            'image' => theme() . "/images/eye.png",
-                            'action' => 'balance',
-                            'controller' => 'comptes',
-                            'param' => $row ['codec']
+            if (isset($row['count'])) {
+                if ($row['count'] > 1) {
+                    $button = new Button(array(
+                        'label' => 'Voir',
+                        'image' => theme() . "/images/eye.png",
+                        'action' => 'balance',
+                        'controller' => 'comptes',
+                        'param' => $row['codec']
                     ));
                 }
             }
-            $table [$index] [] = $button->image();
-            $index ++;
+            $table[$index][] = $button->image();
+            $index++;
         }
         return $table;
     }
@@ -222,20 +222,20 @@ if (! function_exists('account_sums')) {
      * Return the sum rows of an account into an array
      */
     function account_sums($row, $title) {
-        $table = array ();
+        $table = array();
         $index = 0;
-        $solde = $row ['total_credit'] - $row ['total_debit'];
-        $table [$index] [] = nbs();
-        $table [$index] [] = $title;
-        $table [$index] [] = nbs();
-        $table [$index] [] = euro($row ['total_debit']);
-        $table [$index] [] = euro($row ['total_credit']);
+        $solde = $row['total_credit'] - $row['total_debit'];
+        $table[$index][] = nbs();
+        $table[$index][] = $title;
+        $table[$index][] = nbs();
+        $table[$index][] = euro($row['total_debit']);
+        $table[$index][] = euro($row['total_credit']);
         if ($solde < 0) {
-            $table [$index] [] = euro(abs($solde));
-            $table [$index] [] = nbs(11);
+            $table[$index][] = euro(abs($solde));
+            $table[$index][] = nbs(11);
         } else {
-            $table [$index] [] = nbs(11);
-            $table [$index] [] = euro($solde);
+            $table[$index][] = nbs(11);
+            $table[$index][] = euro($solde);
         }
         return $table;
     }
@@ -246,9 +246,9 @@ if (! function_exists('account_sums')) {
  */
 if (! function_exists('to_list')) {
     function to_list($hash) {
-        $list = array ();
-        foreach ( $hash as $row ) {
-            $list [] = $row;
+        $list = array();
+        foreach ($hash as $row) {
+            $list[] = $row;
         }
         return $list;
     }
@@ -265,11 +265,11 @@ if (! function_exists('result_rows')) {
      * $rows = result_rows($bilan ['dispo'], array (), $bilan_prec ['dispo'], array (), $html, $sep);
      */
     function result_rows($actif, $passif, $actif_prec = array(), $passif_prec = array(), $with_links = TRUE, $sep = ',') {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->load->library('ButtonView');
 
         if (!$actif && !$passif) {
-        	return array(array('', '','','','',''));
+            return array(array('', '', '', '', '', ''));
         }
 
         $output_format = ($with_links) ? "html" : "csv";
@@ -286,73 +286,73 @@ if (! function_exists('result_rows')) {
         $nb_charges = count($actif);
         $nb_produits = count($passif);
         $max = max($nb_charges, $nb_produits);
-        $table = array ();
-        for($i = 0; $i < $max; $i ++) {
-            $param = (isset($actif [$i] ['code'])) ? $actif [$i] ['code'] : '';
+        $table = array();
+        for ($i = 0; $i < $max; $i++) {
+            $param = (isset($actif[$i]['code'])) ? $actif[$i]['code'] : '';
             if ($i < $nb_charges) {
-                $compte = $actif [$i] ['compte'];
+                $compte = $actif[$i]['compte'];
                 // on affiche plus les codes
                 // $table[$i][] = $actif[$i]['code'];
                 if ($with_links) {
-                    if ($actif [$i] ['nom'] == "Immobilisations corporelles") {
-                        $table [$i] [] = anchor(controller_url("comptes/page/2/28"), "Immobilisations corporelles");
-                    } else if ($actif [$i] ['nom'] == "Comptes financiers") {
-                        $table [$i] [] = anchor(controller_url("comptes/page/512"), "Comptes de banque et financiers");
+                    if ($actif[$i]['nom'] == "Immobilisations corporelles") {
+                        $table[$i][] = anchor(controller_url("comptes/page/2/28"), "Immobilisations corporelles");
+                    } else if ($actif[$i]['nom'] == "Comptes financiers") {
+                        $table[$i][] = anchor(controller_url("comptes/page/512"), "Comptes de banque et financiers");
                     } else {
-                        $table [$i] [] = anchor(controller_url("compta/journal_compte/$compte"), $actif [$i] ['nom']);
+                        $table[$i][] = anchor(controller_url("compta/journal_compte/$compte"), $actif[$i]['nom']);
                     }
                 } else {
-                    $table [$i] [] = $actif [$i] ['nom'];
+                    $table[$i][] = $actif[$i]['nom'];
                 }
 
                 // Amortissements
-                $table [$i] [] = $tab;
+                $table[$i][] = $tab;
 
                 // Valeur nette année N
-                $table [$i] [] = $tab;
+                $table[$i][] = $tab;
 
                 // Valeur nette année N
-                $table [$i] [] = euro($actif [$i] ['debit'] - $actif [$i] ['credit'], $sep, $output_format);
+                $table[$i][] = euro($actif[$i]['debit'] - $actif[$i]['credit'], $sep, $output_format);
 
                 // Valeur nette année N - 1
-                if (isset($actif_prec [$compte])) {
-                    $prec = $actif_prec [$compte];
-                    $table [$i] [] = euro($prec ['debit'] - $prec ['credit'], $sep, $output_format);
+                if (isset($actif_prec[$compte])) {
+                    $prec = $actif_prec[$compte];
+                    $table[$i][] = euro($prec['debit'] - $prec['credit'], $sep, $output_format);
                 } else {
-                    $table [$i] [] = $tab;
+                    $table[$i][] = $tab;
                 }
             } else {
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab; // N - 1
+                $table[$i][] = $tab;
+                $table[$i][] = $tab;
+                $table[$i][] = $tab;
+                $table[$i][] = $tab;
+                $table[$i][] = $tab; // N - 1
             }
 
-            $table [$i] [] = $tab; // séparateur milieux
+            $table[$i][] = $tab; // séparateur milieux
 
             if ($i < $nb_produits) {
-                $compte = $passif [$i] ['compte'];
+                $compte = $passif[$i]['compte'];
                 // On affiche plus les codes
                 // $table[$i][] = $passif[$i]['code'];
                 if ($with_links) {
-                    $table [$i] [] = anchor(controller_url("compta/journal_compte/$compte"), $passif [$i] ['nom']);
+                    $table[$i][] = anchor(controller_url("compta/journal_compte/$compte"), $passif[$i]['nom']);
                 } else {
-                    $table [$i] [] = $passif [$i] ['nom'];
+                    $table[$i][] = $passif[$i]['nom'];
                 }
-                $table [$i] [] = euro($passif [$i] ['credit'] - $passif [$i] ['debit'], $sep, $output_format);
+                $table[$i][] = euro($passif[$i]['credit'] - $passif[$i]['debit'], $sep, $output_format);
 
                 // passif N - 1
-                if (isset($passif_prec [$compte])) {
-                    $prec = $passif_prec [$compte];
-                    $table [$i] [] = euro($prec ['credit'] - $prec ['debit'], $sep, $output_format);
+                if (isset($passif_prec[$compte])) {
+                    $prec = $passif_prec[$compte];
+                    $table[$i][] = euro($prec['credit'] - $prec['debit'], $sep, $output_format);
                 } else {
-                    $table [$i] [] = $tab;
+                    $table[$i][] = $tab;
                 }
             } else {
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab;
-                $table [$i] [] = $tab; // passif N - 1
+                $table[$i][] = $tab;
+                $table[$i][] = $tab;
+                $table[$i][] = $tab; // passif N - 1
             }
         }
         return $table;
@@ -376,7 +376,7 @@ if (! function_exists('bilan_table')) {
      * @param boolean $html
      */
     function bilan_table($bilan, $bilan_prec, $html) {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->lang->load('comptes');
         // $CI->lang->line('')
 
@@ -384,48 +384,48 @@ if (! function_exists('bilan_table')) {
         $sep = ($html) ? '.' : ',';
         $output_format = ($html) ? "html" : "csv";
 
-        $year = $bilan ['year'];
-        $table = array ();          // resultat
+        $year = $bilan['year'];
+        $table = array();          // resultat
 
         // ligne de titres
-        $table [] = array (
-                $CI->lang->line('comptes_bilan_actif'),
-                $CI->lang->line('comptes_bilan_valeur_brute'),
-                $CI->lang->line('comptes_bilan_ammortissement'),
-                $CI->lang->line('comptes_bilan_valeur_nette'),
-                $CI->lang->line('comptes_bilan_valeur_nette'),
-                $tab,
-                $CI->lang->line('comptes_bilan_passif'),
-                "",
-                $tab
+        $table[] = array(
+            $CI->lang->line('comptes_bilan_actif'),
+            $CI->lang->line('comptes_bilan_valeur_brute'),
+            $CI->lang->line('comptes_bilan_ammortissement'),
+            $CI->lang->line('comptes_bilan_valeur_nette'),
+            $CI->lang->line('comptes_bilan_valeur_nette'),
+            $tab,
+            $CI->lang->line('comptes_bilan_passif'),
+            "",
+            $tab
         );
 
         // ligne d'années
-        $table [] = array (
-                $tab,
-                $tab,
-                $tab,
-                highlight($year, $html),
-                highlight($year - 1, $html),
-                $tab,
-                $tab,
-                highlight($year, $html),
-                highlight($year - 1, $html)
+        $table[] = array(
+            $tab,
+            $tab,
+            $tab,
+            highlight($year, $html),
+            highlight($year - 1, $html),
+            $tab,
+            $tab,
+            highlight($year, $html),
+            highlight($year - 1, $html)
         );
 
         // immo ligne 1
         $imo_label = highlight($CI->lang->line('comptes_bilan_immobilise'), $html);
         $fa_label = highlight($CI->lang->line('comptes_bilan_fonds_propres'), $html);
-        $table [] = array (
-                $imo_label,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $fa_label,
-                $tab,
-                $tab
+        $table[] = array(
+            $imo_label,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $fa_label,
+            $tab,
+            $tab
         );
 
         // immos ligne 2
@@ -446,127 +446,127 @@ if (! function_exists('bilan_table')) {
             $report_cred_label = anchor(controller_url("comptes/page/110"), $report_cred_label);
         }
 
-        $amo = euro($bilan ['ammortissements_corp'], $sep, $output_format);
+        $amo = euro($bilan['ammortissements_corp'], $sep, $output_format);
         if ($html) {
             $amo = anchor(controller_url("comptes/page/281"), $amo);
         }
-        $valeur_nette_immo = euro($bilan ['valeur_nette_immo_corp'], $sep, $output_format);
-        $table [] = array (
-                $imo_label,
-                euro($bilan ['valeur_brute_immo_corp'], $sep, $output_format),
-                $amo,
-                $valeur_nette_immo,
-                euro($bilan_prec ['valeur_nette_immo_corp'], $sep, $output_format),
-                $tab,
-                $fa_label,
-                euro($bilan ['fonds_associatifs'], $sep, $output_format),
-                euro($bilan_prec ['fonds_associatifs'], $sep, $output_format)
+        $valeur_nette_immo = euro($bilan['valeur_nette_immo_corp'], $sep, $output_format);
+        $table[] = array(
+            $imo_label,
+            euro($bilan['valeur_brute_immo_corp'], $sep, $output_format),
+            $amo,
+            $valeur_nette_immo,
+            euro($bilan_prec['valeur_nette_immo_corp'], $sep, $output_format),
+            $tab,
+            $fa_label,
+            euro($bilan['fonds_associatifs'], $sep, $output_format),
+            euro($bilan_prec['fonds_associatifs'], $sep, $output_format)
         );
 
         // reports à nouveau créditeur
-        $table [] = array (
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $report_cred_label,
-                euro($bilan ['reports_cred'], $sep, $output_format),
-                euro($bilan_prec ['reports_cred'], $sep, $output_format)
+        $table[] = array(
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $report_cred_label,
+            euro($bilan['reports_cred'], $sep, $output_format),
+            euro($bilan_prec['reports_cred'], $sep, $output_format)
         );
 
         // report à nouveau débiteur
-        $table [] = array (
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $report_deb_label,
-                euro($bilan ['reports_deb'], $sep, $output_format),
-                euro($bilan_prec ['reports_deb'], $sep, $output_format)
+        $table[] = array(
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $report_deb_label,
+            euro($bilan['reports_deb'], $sep, $output_format),
+            euro($bilan_prec['reports_deb'], $sep, $output_format)
         );
 
         // résultat
-        $table [] = array (
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $CI->lang->line('comptes_bilan_resultat'),
-                euro($bilan ['resultat'], $sep, $output_format),
-                euro($bilan_prec ['resultat'], $sep, $output_format)
+        $table[] = array(
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $CI->lang->line('comptes_bilan_resultat'),
+            euro($bilan['resultat'], $sep, $output_format),
+            euro($bilan_prec['resultat'], $sep, $output_format)
         );
 
         // titres Disponible et dette court terme
         $imo_label = highlight($CI->lang->line('comptes_bilan_dispo'), $html);
         $fa_label = highlight($CI->lang->line('comptes_bilan_dettes_court_terme'), $html);
-        $table [] = array (
-                $imo_label,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $fa_label,
-                $tab,
-                $tab
+        $table[] = array(
+            $imo_label,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $fa_label,
+            $tab,
+            $tab
         );
 
         // ligne Créances et dettes de tiers
-        $table [] = array (
-                ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_creances_tiers')) : $CI->lang->line('comptes_bilan_creances_tiers'),
-                $tab,
-                $tab,
-                euro($bilan ['creances_pilotes'], $sep, $output_format),
-                euro($bilan_prec ['creances_pilotes'], $sep, $output_format),
-                $tab,
-                ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_dettes_tiers')) : $CI->lang->line('comptes_bilan_dettes_tiers'),
-                euro($bilan ['dettes_pilotes'], $sep, $output_format),
-                euro($bilan_prec ['dettes_pilotes'], $sep, $output_format)
+        $table[] = array(
+            ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_creances_tiers')) : $CI->lang->line('comptes_bilan_creances_tiers'),
+            $tab,
+            $tab,
+            euro($bilan['creances_pilotes'], $sep, $output_format),
+            euro($bilan_prec['creances_pilotes'], $sep, $output_format),
+            $tab,
+            ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_dettes_tiers')) : $CI->lang->line('comptes_bilan_dettes_tiers'),
+            euro($bilan['dettes_pilotes'], $sep, $output_format),
+            euro($bilan_prec['dettes_pilotes'], $sep, $output_format)
         );
 
         // comptes de banque et emprunts
-        foreach ( $bilan ['dispo'] as $key => $row ) {
-            $bilan ['dispo'] [$key] ['nom'] = $CI->lang->line('comptes_bilan_comptes_financiers');
+        foreach ($bilan['dispo'] as $key => $row) {
+            $bilan['dispo'][$key]['nom'] = $CI->lang->line('comptes_bilan_comptes_financiers');
         }
 
-        $rows = result_rows($bilan ['dispo'], array (), $bilan_prec ['dispo'], array (), $html, $sep);
+        $rows = result_rows($bilan['dispo'], array(), $bilan_prec['dispo'], array(), $html, $sep);
 
         $str_loan = ($html) ? anchor(controller_url("comptes/page/16/17/1"), $CI->lang->line('comptes_bilan_dettes_banques')) : $CI->lang->line('comptes_bilan_dettes_banques');
 
-        $rows [0] [6] = $str_loan;
-        $rows [0] [7] = euro($bilan ['emprunts'], $sep, $output_format); // "emprunts n";
-        $rows [0] [8] = euro($bilan_prec ['emprunts'], $sep, $output_format); // "emprunts n - 1";
+        $rows[0][6] = $str_loan;
+        $rows[0][7] = euro($bilan['emprunts'], $sep, $output_format); // "emprunts n";
+        $rows[0][8] = euro($bilan_prec['emprunts'], $sep, $output_format); // "emprunts n - 1";
         $table = array_merge($table, $rows);
 
         $imo_label = highlight($CI->lang->line('comptes_bilan_total'), $html);
-        $table [] = array (
-                $imo_label,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab,
-                $tab
+        $table[] = array(
+            $imo_label,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab
         );
 
-        $table [] = array (
-                $CI->lang->line('comptes_bilan_total_actif'),
-                $tab,
-                $tab,
-                euro($bilan ['total_actif'], $sep, $output_format),
-                euro($bilan_prec ['total_actif'], $sep, $output_format),
-                $tab,
-                $CI->lang->line('comptes_bilan_total_passif'),
-                euro($bilan ['total_passif'], $sep, $output_format),
-                euro($bilan_prec ['total_passif'], $sep, $output_format)
+        $table[] = array(
+            $CI->lang->line('comptes_bilan_total_actif'),
+            $tab,
+            $tab,
+            euro($bilan['total_actif'], $sep, $output_format),
+            euro($bilan_prec['total_actif'], $sep, $output_format),
+            $tab,
+            $CI->lang->line('comptes_bilan_total_passif'),
+            euro($bilan['total_passif'], $sep, $output_format),
+            euro($bilan_prec['total_passif'], $sep, $output_format)
         );
         return $table;
     }
@@ -578,19 +578,19 @@ if (! function_exists('button_bar2')) {
      *
      * C'est la plus utilisée, mais elle doit être remplacée par la version 4
      */
-    function button_bar2($controller, $list = array ()) {
+    function button_bar2($controller, $list = array()) {
         $res = "" . br();
-        $res .= form_open(controller_url($controller), array (
-                'id' => 'button'
+        $res .= form_open(controller_url($controller), array(
+            'id' => 'button'
         ));
 
-        foreach ( $list as $value => $name ) {
+        foreach ($list as $value => $name) {
             // echo "name=$name, value=$value" . br();
-            $res .= form_input(array (
-                    'type' => 'submit',
-                    'name' => $name,
-                    'value' => $value,
-                    'class' => 'jbutton btn btn-secondary'
+            $res .= form_input(array(
+                'type' => 'submit',
+                'name' => $name,
+                'value' => $value,
+                'class' => 'jbutton btn btn-secondary'
             ));
         }
         $res .= form_close();
@@ -607,19 +607,19 @@ if (! function_exists('button_bar4')) {
      *
      * $list = hash with the following entries: 'url', 'label', 'role', 'class'
      */
-    function button_bar4($list = array ()) {
-        $CI = & get_instance();
+    function button_bar4($list = array()) {
+        $CI = &get_instance();
         $res = '<div class="ui-widget ui-buttonbar">';
         $res .= '<div class="ui-widget-header ui-corner-top">';
         $res .= "<table><tr>\n";
-        foreach ( $list as $button ) {
-            $url = isset($button ['url']) ? $button ['url'] : "";
-            $label = isset($button ['label']) ? $button ['label'] : $url;
-            $attrs = isset($button ['class']) ? $button ['class'] : 'class="jbutton btn"';
-            $role = isset($button ['role']) ? $button ['role'] : '';
-            $type = isset($button ['type']) ? $button ['type'] : '';
-            $id = isset($button ['id']) ? $button ['id'] : '';
-            $name = isset($button ['name']) ? $button ['name'] : '';
+        foreach ($list as $button) {
+            $url = isset($button['url']) ? $button['url'] : "";
+            $label = isset($button['label']) ? $button['label'] : $url;
+            $attrs = isset($button['class']) ? $button['class'] : 'class="jbutton btn"';
+            $role = isset($button['role']) ? $button['role'] : '';
+            $type = isset($button['type']) ? $button['type'] : '';
+            $id = isset($button['id']) ? $button['id'] : '';
+            $name = isset($button['name']) ? $button['name'] : '';
 
             if (! $CI->dx_auth->is_admin()) {
                 if ($role != '' && ! $CI->dx_auth->is_role($role, true, true)) {
@@ -629,12 +629,12 @@ if (! function_exists('button_bar4')) {
             }
             $res .= "\t<td>";
             if ($type == 'submit') {
-                $res .= form_input(array (
-                        'type' => 'submit',
-                        'id' => $id,
-                        'name' => $name,
-                        'value' => $label,
-                        'class' => 'jbutton btn'
+                $res .= form_input(array(
+                    'type' => 'submit',
+                    'id' => $id,
+                    'name' => $name,
+                    'value' => $label,
+                    'class' => 'jbutton btn'
                 ));
             } else {
                 $res .= anchor($url, $label, $attrs);
@@ -653,26 +653,26 @@ if (! function_exists('validation_button')) {
      * Affiche un boutton de validation
      */
     function validation_button($action, $with_delete = FALSE) {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $res = "";
         if ($action != VISUALISATION) {
             if ($action == CREATION) {
                 $res .= "<table><tr><td>\n";
-                $res .= form_input(array (
-                        'type' => 'submit',
-                        'name' => 'button',
-                        'id' => 'validate',
-                        'value' => $CI->lang->line("gvv_button_create"),
-                        'class' => 'jbutton btn btn-primary mt-3'
+                $res .= form_input(array(
+                    'type' => 'submit',
+                    'name' => 'button',
+                    'id' => 'validate',
+                    'value' => $CI->lang->line("gvv_button_create"),
+                    'class' => 'btn btn-primary mt-3'
                 ));
 
                 $res .= "</td><td>";
-                $res .= form_input(array (
-                        'type' => 'submit',
-                        'name' => 'button',
-                        'id' => 'validate_continue',
-                        'value' => $CI->lang->line("gvv_button_create_and_continue"),
-                        'class' => 'jbutton btn btn-primary mt-3'
+                $res .= form_input(array(
+                    'type' => 'submit',
+                    'name' => 'button',
+                    'id' => 'validate_continue',
+                    'value' => $CI->lang->line("gvv_button_create_and_continue"),
+                    'class' => 'btn btn-primary mt-3'
                 ));
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
@@ -684,23 +684,23 @@ if (! function_exists('validation_button')) {
                 $txt = $CI->lang->line("gvv_button_confirm");
                 $attrs = "onclick=\"return confirm('$txt')\" ";
                 $res .= "<table><tr><td>\n";
-                $res .= form_input(array (
-                        'type' => 'submit',
-                        'name' => 'button',
-                        'id' => 'validate',
-                        'value' => $CI->lang->line("gvv_button_validate"),
-                        'class' => 'jbutton btn btn-primary mt-3'
+                $res .= form_input(array(
+                    'type' => 'submit',
+                    'name' => 'button',
+                    'id' => 'validate',
+                    'value' => $CI->lang->line("gvv_button_validate"),
+                    'class' => 'btn btn-primary mt-3'
                 ));
 
                 if ($with_delete) {
                     $res .= "</td><td>";
-                    $res .= form_input(array (
-                            'type' => 'submit',
-                            'name' => 'button',
-                            'id' => 'delete',
-                            'value' => $CI->lang->line("gvv_button_delete"),
-                            'onclick' => "return confirm('$txt')",
-                            'class' => 'jbutton btn btn-primary mt-3'
+                    $res .= form_input(array(
+                        'type' => 'submit',
+                        'name' => 'button',
+                        'id' => 'delete',
+                        'value' => $CI->lang->line("gvv_button_delete"),
+                        'onclick' => "return confirm('$txt')",
+                        'class' => 'btn btn-primary mt-3'
                     ));
                 }
                 /*
@@ -727,12 +727,12 @@ if (! function_exists('year_selector')) {
      */
     function year_selector($controller, $year, $year_selector) {
         if (! array_key_exists($year, $year_selector)) {
-            $year_selector [$year] = ( string ) $year;
+            $year_selector[$year] = (string) $year;
         }
         $url = controller_url($controller);
         $res = '<input type="hidden" name="controller_url" value="' . $url . '" />';
-        $CI = & get_instance();
-        $res .= nbs() . $CI->lang->line("gvv_year") . " " 
+        $CI = &get_instance();
+        $res .= nbs() . $CI->lang->line("gvv_year") . " "
             . dropdown_field('year', $year, $year_selector, "id='year_selector' onchange=new_year();");
 
         return $res;
@@ -748,11 +748,11 @@ if (! function_exists('licence_selector')) {
      * @return string
      */
     function licence_selector($controller, $type) {
-        $licence_selector = array (
-                0 => "Cotisation",
-                1 => "Licence/Assurance planeur",
-                2 => "Licence/Assurance avion",
-                3 => "Licence/Assurance ULM"
+        $licence_selector = array(
+            0 => "Cotisation",
+            1 => "Licence/Assurance planeur",
+            2 => "Licence/Assurance avion",
+            3 => "Licence/Assurance ULM"
         );
         $res = form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
         $res .= nbs() . "Type de licence " . dropdown_field('licence', $type, $licence_selector, "id='licence_selector' onchange=new_licence();");
@@ -789,8 +789,8 @@ if (! function_exists('add_first_row')) {
      */
     function add_first_row(&$table, $first_row) {
         if (count($table) == 0) {
-            $table = array (
-                    $first_row
+            $table = array(
+                $first_row
             );
             return 1;
         }
@@ -804,11 +804,11 @@ if (! function_exists('add_first_col')) {
      */
     function add_first_col(&$table, $first_col) {
         $i = 0;
-        for($j = 0; $j < count($table); $j ++) {
-            if (isset($first_col [$i])) {
-                array_unshift($table [$j], $first_col [$i]);
+        for ($j = 0; $j < count($table); $j++) {
+            if (isset($first_col[$i])) {
+                array_unshift($table[$j], $first_col[$i]);
             }
-            $i ++;
+            $i++;
         }
         return $i;
     }
@@ -820,12 +820,12 @@ if (! function_exists('label')) {
      */
     function label($label, $attrs = array()) {
         $res = '<label';
-        foreach ( $attrs as $key => $value ) {
+        foreach ($attrs as $key => $value) {
             $res .= " $key=\"$value\"";
         }
         $res .= ">";
 
-        $CI = & get_instance();
+        $CI = &get_instance();
         $translation = $CI->lang->line($label);
         if ($translation) {
             $label = $translation;
@@ -852,9 +852,8 @@ if (! function_exists('translation')) {
      * @param unknown_type $title_id
      */
     function translation($title_id = '') {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $translated = $CI->lang->line($title_id);
         return ($translated) ? $translated : $title_id;
     }
 }
-

@@ -45,5 +45,10 @@ if ($erase_db) {
 echo $this->lang->line("gvv_admin_db_overwrite") . ': '
 	. "<input type=\"checkbox\" name=\"erase_db\" $checked value=\"$erase_db\" id=\"erase_db\"  />"
 	. br(2);
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_button_validate")));
+echo form_input(array(
+	'type' => 'submit',
+	'name' => 'button',
+	'value' => $this->lang->line("gvv_button_validate"),
+	'class' => 'btn btn-primary'
+));
 echo form_close('</div>');
