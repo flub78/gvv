@@ -62,6 +62,19 @@ ALTER TABLE `sections`
 --
 ALTER TABLE `sections`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+
+-- Set the club default value
+UPDATE `achats` SET `club` = '1';
+UPDATE `comptes` SET `club` = '1';
+UPDATE `ecritures` SET `club` = '1';
+UPDATE `machinesa` SET `club` = '1';
+UPDATE `machinesp` SET `club` = '1';
+UPDATE `tarifs` SET `club` = '1';
+UPDATE `tickets` SET `club` = '1';
+UPDATE `volsa` SET `club` = '1';
+UPDATE `volsp` SET `club` = '1';
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
