@@ -42,6 +42,7 @@ class Migration_Sections extends CI_Migration {
 	function __construct() {
 		parent::__construct();
 		$this->migration_number = 23;
+		$this->load->library('database');
 	}
 
 	/*
@@ -66,21 +67,9 @@ class Migration_Sections extends CI_Migration {
 	public function up() {
 		$errors = 0;
 
-		$sqls = array(
-			"CREATE TABLE `sections` (
-  				`id` int(11) NOT NULL,
-				`nom` varchar(64) NOT NULL,
-  				`description` varchar(128)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
-			"ALTER TABLE `sections`
-  			ADD PRIMARY KEY (`id`)",
-			"ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4"
-		);
-
-		$errors += $this->run_queries($sqls);
-		gvv_info("Migration database up to " . $this->migration_number . ", errors=$errors");
-
+		$filename = getcwd() . '/application/migrations/sections.sql';
+		$res = $this->database->sqlfile($filename);
+		gvv_info("Migration database up to " . $this->number . ", errors=$errors");
 		return !$errors;
 	}
 
