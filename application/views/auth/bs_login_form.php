@@ -60,6 +60,12 @@ if ($locked) {
 		<?php echo form_error($password['name']); ?>
 	</dd>
 
+	<dt><?php echo form_label($this->lang->line("gvv_sections_element"), 'section'); ?></dt>
+	<dd>
+		<?= dropdown_field('section', $section, $sections_selector, "") ?>
+		<?php echo form_error($password['name']); ?>
+	</dd>
+
 	<?php if ($show_captcha): ?>
 
 		<dt><?= $this->lang->line("auth_enter_code") ?></dt>

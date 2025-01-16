@@ -247,17 +247,6 @@ class Common_Model extends CI_Model {
      * @param $where selection
      */
     public function selector_with_all($where = array()) {
-        // TODO delete comments
-        // $key = $this->primary_key;
-
-        // $allkeys = $this->db->select($key)->from($this->table)->where($where)->get()->result_array();
-
-        // $result = array ();
-        // foreach ($allkeys as $row) {
-        // $value = $row[$key];
-        // $result[$value] = $this->image($value);
-        // }
-        // asort($result);
         $result = $this->selector($where);
         $result[''] = $this->lang->line("gvv_tous") . ' ...';
         return $result;

@@ -2,6 +2,37 @@
 
 Description détaillée du travail de développement.
 
+## Tâches
+
+- [x] Sélecteur de section
+- [ ] Enregistrer la section dans la session
+- [ ] afficher la section dans les tables de resources par section
+- [ ] Afficher la section courante dans le bandeau
+- [ ] N'afficher que les resources de la section courante
+- [ ] CRUD rôle des utilisateurs, ajout de rôle dans de nouvelle sections
+- [ ] affecter la section courante lors de la création d'une resource
+- [ ] Vérifier les droits d'action basé sur les rôles par section
+- [ ] refuser la creation de resources sans section définie
+- [ ] Adapter les vues comptables par section
+- [ ] Clôture par section
+- [ ] Vue et export des données consolidées
+- [ ] possibilité pour un utilisateur multi-section de selectionner une autre section
+
+- [ ] Création d'un compte client par section
+- [ ] Gestion de la facturation
+
+- [ ] Gestion des réservations
+  - [ ] Visualisation du calendrier des réservations
+  - [ ] définition des resources réservables
+  - [ ] définition des disponibilité
+  - [ ] réservation
+  - [ ] annulation
+  - [ ] modification
+  - [ ] changement de date de réservation
+
+- [ ] Gestion de la maintenance
+
+
 ## Resource sections
 
 Elle définit les sections de l'association. C'est un CRUD qui doit être accessible aux admins et super trésoriers.
@@ -27,3 +58,10 @@ La section planeur est la la section qui exploitait GVV avant que les autres ne 
 Toutes les données spécifiques à une section doivent indiquer à quelle section elles appartiennent. 
 
 Note : Il existe une section courante qui est la section dans laquelle l'utilisateur est connecté. Il devra être possible de changer de section pour les utilisateurs multi sections. Auquel cas peut-être qu'il n'y a pas besoin d'afficher la section sauf pour les super trésoriers et les admins.
+
+
+## Approche alternative
+
+Déploiement de quatre entités.
+
+Fusion manuelle des données.

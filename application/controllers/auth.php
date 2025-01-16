@@ -5,6 +5,7 @@ class Auth extends CI_Controller {
     var $max_username = 20;
     var $min_password = 4;
     var $max_password = 20;
+
     function __construct() {
         parent::__construct();
 
@@ -15,7 +16,9 @@ class Auth extends CI_Controller {
         $this->load->helper('form');
 
         $this->lang->load('auth');
+        $this->load->model('sections_model');
     }
+
     function index() {
         $this->login();
     }
@@ -29,6 +32,7 @@ class Auth extends CI_Controller {
 
         return $result;
     }
+
     function email_check($email) {
         $result = $this->dx_auth->is_email_available($email);
         if (! $result) {
@@ -37,6 +41,7 @@ class Auth extends CI_Controller {
 
         return $result;
     }
+
     function captcha_check($code) {
         $result = TRUE;
 
@@ -51,6 +56,7 @@ class Auth extends CI_Controller {
 
         return $result;
     }
+
     function recaptcha_check() {
         $result = $this->dx_auth->is_recaptcha_match();
         if (! $result) {
@@ -61,8 +67,10 @@ class Auth extends CI_Controller {
     }
 
     /* End of Callback function */
+
     function _login() {
-        $data ['url_club'] = $this->config->item('url_club');
+        $data['url_club'] = $this->config->item('url_club');
+        $data['sections_selector'] = $this->sections_model->selector_with_all();
 
         if (! $this->dx_auth->is_logged_in()) {
             $val = $this->form_validation;
@@ -85,10 +93,11 @@ class Auth extends CI_Controller {
 
                 // By default only display active items
                 $session = [
-                        'filter_active' => 1,
-                        'filter_25' => 0,
-                        'filter_membre_actif' => 2,
-                        'filter_machine_actif' => 2];
+                    'filter_active' => 1,
+                    'filter_25' => 0,
+                    'filter_membre_actif' => 2,
+                    'filter_machine_actif' => 2
+                ];
                 if ($this->input->post('legacy_gui')) {
                     $session['legacy_gui'] = true;
                 } else {
@@ -104,7 +113,7 @@ class Auth extends CI_Controller {
                     $this->dx_auth->deny_access('banned');
                 } else {
                     // Default is we don't show captcha until max login attempts eceeded
-                    $data ['show_captcha'] = FALSE;
+                    $data['show_captcha'] = FALSE;
 
                     // Show captcha if login attempts exceed max attempts in config
                     if ($this->dx_auth->is_max_login_attempts_exceeded()) {
@@ -112,18 +121,18 @@ class Auth extends CI_Controller {
                         $this->dx_auth->captcha();
 
                         // Set view data to show captcha on view file
-                        $data ['show_captcha'] = TRUE;
+                        $data['show_captcha'] = TRUE;
                     }
 
                     $this->load->config('program');
-                    $data ['locked'] = $this->config->item('locked');
+                    $data['locked'] = $this->config->item('locked');
 
                     // Load login page view
                     load_last_view($this->dx_auth->login_view, $data);
                 }
             }
         } else {
-            $data ['auth_message'] = $this->lang->line("auth_already_connected");
+            $data['auth_message'] = $this->lang->line("auth_already_connected");
             load_last_view($this->dx_auth->logged_in_view, $data);
         }
     }
@@ -160,9 +169,9 @@ class Auth extends CI_Controller {
             if ($val->run() and $this->dx_auth->register($val->set_value('username'), $val->set_value('password'), $val->set_value('email'))) {
                 // Set success message accordingly
                 if ($this->dx_auth->email_activation) {
-                    $data ['auth_message'] = $this->lang->line("auth_success_registration_email");
+                    $data['auth_message'] = $this->lang->line("auth_success_registration_email");
                 } else {
-                    $data ['auth_message'] = $this->lang->line("auth_success_registration") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
+                    $data['auth_message'] = $this->lang->line("auth_success_registration") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
                 }
 
                 // Load registration success page
@@ -177,10 +186,10 @@ class Auth extends CI_Controller {
                 load_last_view($this->dx_auth->register_view);
             }
         } elseif (! $this->dx_auth->allow_registration) {
-            $data ['auth_message'] = $this->lang->line("auth_registration_disabled");
+            $data['auth_message'] = $this->lang->line("auth_registration_disabled");
             load_last_view($this->dx_auth->register_disabled_view, $data);
         } else {
-            $data ['auth_message'] = $this->lang->line("auth_disconnect_before");
+            $data['auth_message'] = $this->lang->line("auth_disconnect_before");
             load_last_view($this->dx_auth->logged_in_view, $data);
         }
     }
@@ -207,9 +216,9 @@ class Auth extends CI_Controller {
             if ($val->run() and $this->dx_auth->register($val->set_value('username'), $val->set_value('password'), $val->set_value('email'))) {
                 // Set success message accordingly
                 if ($this->dx_auth->email_activation) {
-                    $data ['auth_message'] = $this->lang->line("auth_success_registration_email");
+                    $data['auth_message'] = $this->lang->line("auth_success_registration_email");
                 } else {
-                    $data ['auth_message'] = $this->lang->line("auth_success_registration") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
+                    $data['auth_message'] = $this->lang->line("auth_success_registration") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
                 }
 
                 // Load registration success page
@@ -219,10 +228,10 @@ class Auth extends CI_Controller {
                 load_last_view('auth/register_recaptcha_form');
             }
         } elseif (! $this->dx_auth->allow_registration) {
-            $data ['auth_message'] = $this->lang->line("auth_registration_disabled");
+            $data['auth_message'] = $this->lang->line("auth_registration_disabled");
             load_last_view($this->dx_auth->register_disabled_view, $data);
         } else {
-            $data ['auth_message'] = $this->lang->line("auth_disconnect_before");
+            $data['auth_message'] = $this->lang->line("auth_disconnect_before");
             load_last_view($this->dx_auth->logged_in_view, $data);
         }
     }
@@ -234,10 +243,10 @@ class Auth extends CI_Controller {
 
         // Activate user
         if ($this->dx_auth->activate($username, $key)) {
-            $data ['auth_message'] = $this->lang->line("auth_account_enabled") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
+            $data['auth_message'] = $this->lang->line("auth_account_enabled") . ' ' . anchor(site_url($this->dx_auth->login_uri), 'Login');
             load_last_view($this->dx_auth->activate_success_view, $data);
         } else {
-            $data ['auth_message'] = $this->lang->line("auth_incorrect_activation");
+            $data['auth_message'] = $this->lang->line("auth_incorrect_activation");
             load_last_view($this->dx_auth->activate_failed_view, $data);
         }
     }
@@ -249,7 +258,7 @@ class Auth extends CI_Controller {
 
         // Validate rules and call forgot password function
         if ($val->run() and $this->dx_auth->forgot_password($val->set_value('login'))) {
-            $data ['auth_message'] = $this->lang->line("auth_forgot_pw_msg");
+            $data['auth_message'] = $this->lang->line("auth_forgot_pw_msg");
             load_last_view($this->dx_auth->forgot_password_success_view, $data);
         } else {
             load_last_view($this->dx_auth->forgot_password_view);
@@ -262,10 +271,10 @@ class Auth extends CI_Controller {
 
         // Reset password
         if ($this->dx_auth->reset_password($username, $key)) {
-            $data ['auth_message'] = $this->lang->line("auth_reinit_password") . anchor(site_url($this->dx_auth->login_uri), 'Login');
+            $data['auth_message'] = $this->lang->line("auth_reinit_password") . anchor(site_url($this->dx_auth->login_uri), 'Login');
             load_last_view($this->dx_auth->reset_password_success_view, $data);
         } else {
-            $data ['auth_message'] = $this->lang->line("auth_reinit_password_failed");
+            $data['auth_message'] = $this->lang->line("auth_reinit_password_failed");
             load_last_view($this->dx_auth->reset_password_failed_view, $data);
         }
     }
@@ -282,11 +291,11 @@ class Auth extends CI_Controller {
 
             // Validate rules and change password
             if ($val->run() and $this->dx_auth->change_password($val->set_value('old_password'), $val->set_value('new_password'))) {
-                $data ['auth_message'] = $this->lang->line("auth_password_changed");
+                $data['auth_message'] = $this->lang->line("auth_password_changed");
                 load_last_view($this->dx_auth->change_password_success_view, $data);
             } else {
-                $data = array (
-                        'duplicate' => $duplicate
+                $data = array(
+                    'duplicate' => $duplicate
                 );
                 load_last_view($this->dx_auth->change_password_view, $data);
             }
@@ -338,9 +347,9 @@ class Auth extends CI_Controller {
                 $txt .= $this->lang->line("auth_delete_forbiden");
             }
 
-            $data = array ();
-            $data ['title'] = $this->lang->line("auth_my_permissions");
-            $data ['text'] = $txt;
+            $data = array();
+            $data['title'] = $this->lang->line("auth_my_permissions");
+            $data['text'] = $txt;
             load_last_view('message', $data);
         }
     }
@@ -349,6 +358,4 @@ class Auth extends CI_Controller {
     function deny() {
         load_last_view('welcome/deny');
     }
-
 }
-?>

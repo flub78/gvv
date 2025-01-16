@@ -4,6 +4,7 @@ if (!defined('BASEPATH'))
 
 $CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->language('sections');
 
 /**
  *	Accès base Sections
@@ -40,6 +41,19 @@ class Sections_model extends Common_Model {
         } else {
             return "section inconnu $key";
         }
+    }
+
+    /**
+     * Retourne un hash qui peut-être utilisé dans un menu drow-down
+     * avec une entrée "Tous .
+     * ."
+     *
+     * @param $where selection
+     */
+    public function selector_with_all($where = array()) {
+        $result = $this->selector($where);
+        $result[] = $this->lang->line("all_sections");
+        return $result;
     }
 }
 
