@@ -63,7 +63,7 @@ if ($locked) {
 	<dt><?php echo form_label($this->lang->line("gvv_sections_element"), 'section'); ?></dt>
 	<dd>
 		<?= dropdown_field('section', $section, $sections_selector, "") ?>
-		<?php echo form_error($password['name']); ?>
+		<?php echo form_error('section'); ?>
 	</dd>
 
 	<?php if ($show_captcha): ?>
@@ -100,8 +100,8 @@ if ($locked) {
 <?php
 
 echo br(2);
-// Si il existe testadmin ou tesuser afficher l'information
-// Si iles existent mais qu'il y a d'autres utilisateurs afficher un warning de sécurité.
+// Si il existe testadmin ou testuser afficher l'information
+// Si ils existent mais qu'il y a d'autres utilisateurs afficher un warning de sécurité.
 // echo "Après installation, vous pouvez vous connecter en utilisant testadmin/testadmin ou testuser/testuser";
 echo form_close()
 ?>

@@ -85,7 +85,11 @@ class Auth extends CI_Controller {
                 $val->set_rules('captcha', 'lang:auth_confirmation_code', 'trim|required|xss_clean|callback_captcha_check');
             }
 
-            if ($val->run() and $this->dx_auth->login($val->set_value('username'), $val->set_value('password'), $val->set_value('remember'))) {
+            if (
+                $val->run() and
+                $this->dx_auth->login($val->set_value('username'), $val->set_value('password'), $val->set_value('remember'))
+            ) {
+                // Login success
                 // Redirect to homepage
                 gvv_info("Login: " . $val->set_value('username'));
 

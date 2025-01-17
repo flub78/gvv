@@ -21,7 +21,7 @@
  *    
  */
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+    exit('No direct script access allowed');
 
 if (!function_exists('csv_file')) {
 
@@ -31,8 +31,8 @@ if (!function_exists('csv_file')) {
      * @param unknown_type $data
      * @param unknown_type $nodisplay
      */
-    function csv_file($title, $data, $download=true, $header=false) {
-        $CI = & get_instance();
+    function csv_file($title, $data, $download = true, $header = false) {
+        $CI = &get_instance();
 
         // Load the file helper and write the file to your server
         $CI->load->helper('file');
@@ -45,29 +45,29 @@ if (!function_exists('csv_file')) {
         $filename = "gvv_" . $title . "_$dt.csv";
         $filename = strtolower($filename);
         $filename = str_replace(' ', '_', $filename);
-        
+
         $str = "";
         if ($title)
-        	$str .= $title . ";\n";
+            $str .= $title . ";\n";
         foreach ($data as $row) {
-						if ($header) {		// affichage des noms des champs sur la première ligne
-							foreach ($row as $key => $cell) {
-                $str .= $key . ";";
-							}
-							$str .= "\n";
-							$header = False;
-						}
+            if ($header) {        // affichage des noms des champs sur la première ligne
+                foreach ($row as $key => $cell) {
+                    $str .= $key . ";";
+                }
+                $str .= "\n";
+                $header = False;
+            }
             foreach ($row as $cell) {
                 $str .= $cell . ";";
             }
             $str .= "\n";
         }
 
-        $str = iconv('UTF-8', 'windows-1252', $str);
+        # $str = iconv('UTF-8', 'windows-1252', $str);
 
         if ($download) {
-        	force_download($filename, $str);
+            force_download($filename, $str);
         }
-		return $str;
+        return $str;
     }
 }
