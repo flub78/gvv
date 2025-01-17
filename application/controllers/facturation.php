@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -25,18 +26,18 @@
  * ou des pleins. Pour l'instant ce controleur ne contient que les méthodes relatives à
  * la configuration. Si l'on gère des profils de facturation plus tard ils seront gérés ici.
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Facturation extends Gvv_Controller {
     protected $controller = 'facturation';
     protected $model = 'facturation_model';
-    protected $modification_level = 'tresorier';
-    protected $rules = array ();
-    protected $fields = array (
-            'payeur_non_pilote',
-            'partage',
-            'gestion_pompes',
-            'remorque_100eme',
-            'date_gel'
+    protected $modification_level = 'ca';
+    protected $rules = array();
+    protected $fields = array(
+        'payeur_non_pilote',
+        'partage',
+        'gestion_pompes',
+        'remorque_100eme',
+        'date_gel'
     );
 
     /**
@@ -63,12 +64,12 @@ class Facturation extends Gvv_Controller {
         $this->load->model('tarifs_model');
         $this->gvvmetadata->set_selector('tarif_selector', $this->tarifs_model->selector());
 
-        $data = array (
-                'controller' => $this->controller,
-                'action' => MODIFICATION
+        $data = array(
+            'controller' => $this->controller,
+            'action' => MODIFICATION
         );
-        foreach ( $this->fields as $field ) {
-            $data [$field] = $this->config->item($field);
+        foreach ($this->fields as $field) {
+            $data[$field] = $this->config->item($field);
         }
         return load_last_view('facturation/formView', $data, ! $display);
     }
@@ -82,20 +83,20 @@ class Facturation extends Gvv_Controller {
         $this->load->helper('update_config');
         $this->load->helper('file');
 
-        foreach ( $this->fields as $key ) {
-            $config [$key] = (isset($_POST [$key])) ? $_POST [$key] : false;
-            $this->config->set_item($key, $config [$key]);
+        foreach ($this->fields as $key) {
+            $config[$key] = (isset($_POST[$key])) ? $_POST[$key] : false;
+            $this->config->set_item($key, $config[$key]);
         }
-        $config ['date_gel'] = "'" . $config ['date_gel'] . "'";
-        update_config("./application/config/facturation.php", $config, array (
-                'payeur_non_pilote',
-                'gestion_pompes',
-                'remorque_100eme',
-                'partage'
+        $config['date_gel'] = "'" . $config['date_gel'] . "'";
+        update_config("./application/config/facturation.php", $config, array(
+            'payeur_non_pilote',
+            'gestion_pompes',
+            'remorque_100eme',
+            'partage'
         ));
 
-        $data ['title'] = 'Configuration de la facturation';
-        $data ['text'] = 'Configuration modifiée avec succès.';
+        $data['title'] = 'Configuration de la facturation';
+        $data['text'] = 'Configuration modifiée avec succès.';
         load_last_view('message', $data);
     }
 

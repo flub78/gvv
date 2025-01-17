@@ -18,10 +18,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+    exit('No direct script access allowed');
 
 if (!function_exists('update_config')) {
-    
+
     /**
      * Mise à jour d'un fichier de configuration
      * 
@@ -34,16 +34,16 @@ if (!function_exists('update_config')) {
      */
     function update_config($filename, $data, $booleans = array()) {
 
-        if (!$info = get_file_info($filename)) {
+        if (!get_file_info($filename)) {
             throw new Exception('File $filename not found');
         }
 
         $content = "";
-        $lines = file ($filename);
+        $lines = file($filename);
         $comment = FALSE;
-                
+
         foreach ($lines as $line) {
-            
+
             if (preg_match("/\/\*.*\*\//", $line, $matches)) {
                 // full comment /*      */
                 $content .= $line;
@@ -71,26 +71,24 @@ if (!function_exists('update_config')) {
                         $value = $data[$key];
                         if (in_array($key, $booleans)) {
                             if ($value) {
-                                $content .= "\$config['$key'] = TRUE;\n";                                                         
+                                $content .= "\$config['$key'] = TRUE;\n";
                             } else {
-                                $content .= "\$config['$key'] = FALSE;\n";                                                                                         
+                                $content .= "\$config['$key'] = FALSE;\n";
                             }
                         } else {
-                            $content .= "\$config['$key'] = $value;\n";                         
+                            $content .= "\$config['$key'] = $value;\n";
                         }
                     } else {
                         $content .= $line;
                     }
                 }
-             
             } else {
                 $content .= $line;
-            }            
-        }
-        
-        if (!write_file($filename, $content)) {
-            throw new Exception ("error writing $filename, check that it is writable by your WEB server");
+            }
         }
 
+        if (!write_file($filename, $content)) {
+            throw new Exception("error writing $filename, check that it is writable by your WEB server");
+        }
     }
 }

@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (! defined('BASEPATH')) exit('No direct script access allowed');
 /*
 |--------------------------------------------------------------------------
 | Fichier de configuration de la facturation
@@ -31,6 +31,6 @@ $config['gestion_pompes'] = TRUE;
 | Date de gel, les vols et écritures avant cette date sont rejetés
 |--------------------------------------------------------------------------
 */
-$config['date_gel'] = '01/01/2020';
+$config['date_gel'] = '31/12/2024';
 
 /* End of file facturation.php */

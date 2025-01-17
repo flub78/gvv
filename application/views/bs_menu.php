@@ -99,7 +99,7 @@ $this->lang->load('sections');
                       <ul class="submenu dropdown-menu">
                         <li><a class="dropdown-item" href="<?= controller_url("admin/backup") ?>"><?= translation("welcome_database_backup_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("comptes/cloture") ?>"><?= translation("welcome_database_endofyear_title") ?></a></li>
-                        <li><a class="dropdown-item" href="<?= controller_url("facturation/config") ?>"><?= translation("welcome_billing_config_title") ?></a></li>
+
                         <li><a class="dropdown-item" href="<?= controller_url("plan_comptable/page") ?>"><?= translation("welcome_chart_of_account_title") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("tarifs/page") ?>"><?= translation("welcome_price_list_title") ?></a></li>
                         <?php if ($this->config->item('gestion_tickets')) : ?>
@@ -124,6 +124,7 @@ $this->lang->load('sections');
                         <li><a class="dropdown-item" href="<?= controller_url("backend/roles") ?>"><?= translation("gvv_admin_menu_roles") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><?= translation("gvv_admin_menu_permissions") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url('sections') ?>"><?= translation("gvv_sections_title") ?></a></li>
+                        <li><a class="dropdown-item" href="<?= controller_url("facturation/config") ?>"><?= translation("welcome_billing_config_title") ?></a></li>
                       </ul>
                     </li>
 

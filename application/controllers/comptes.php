@@ -174,12 +174,14 @@ class Comptes extends Gvv_Controller {
             'solde_credit' => 0
         );
         foreach ($result as $row) {
-            foreach (array(
-                'debit',
-                'credit',
-                'solde_debit',
-                'solde_credit'
-            ) as $field) {
+            foreach (
+                array(
+                    'debit',
+                    'credit',
+                    'solde_debit',
+                    'solde_credit'
+                ) as $field
+            ) {
                 $total[$field] += $row[$field];
             }
         }
@@ -794,6 +796,14 @@ class Comptes extends Gvv_Controller {
             $comment = $this->lang->line("comptes_cloture") . " $year, " . $this->lang->line("comptes_cloture_raz_produits");
 
             $this->charges_integration("codec >= \"7\" and codec < \"8\"", $date_op, $year, $resultat_debiteur, $resultat_crediteur, $comment);
+
+            // Modifie la date de gel
+            $this->load->helper('update_config');
+            $this->load->helper('file');
+
+            $config['date_gel'] = "'" . $date_fin . "'";
+            update_config("./application/config/facturation.php", $config);
+            $this->config->load('facturation', TRUE, TRUE);
 
             redirect($this->controller . "/cloture/" . VISUALISATION);
         }
