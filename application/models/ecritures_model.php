@@ -500,10 +500,24 @@ class Ecritures_model extends Common_Model {
         $compte2 = $data['compte2'];
         $montant = $data['montant'];
 
+
         $this->db->trans_start();
         $this->comptes_model->maj_comptes($compte1, $compte2, $montant);
+
         $id = $this->create($data);
+
         $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            gvv_error('error', "Transaction failed for ecriture $id");
+            // Get MySQL error number
+            $errno = $this->db->_error_number();
+            // Get MySQL error message
+            $error = $this->db->_error_message();
+            gvv_error("MySQL Error #$errno: $error");
+            return FALSE;
+        }
+
         return $id;
     }
 

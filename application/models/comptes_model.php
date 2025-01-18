@@ -8,7 +8,7 @@ if (! defined('BASEPATH'))
  * C'est un CRUD de base.
  */
 
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->model('common_model');
 class Comptes_model extends Common_Model {
     public $table = 'comptes';
@@ -20,7 +20,7 @@ class Comptes_model extends Common_Model {
      */
     function __construct() {
         parent::__construct();
-        $this->CI = & get_instance();
+        $this->CI = &get_instance();
         $this->load->model("ecritures_model");
         $this->load->model("membres_model");
     }
@@ -32,15 +32,15 @@ class Comptes_model extends Common_Model {
      *            des valeurs
      */
     public function create($data) {
-        if (isset($data [$this->primary_key])) {
-            unset($data [$this->primary_key]);
+        if (isset($data[$this->primary_key])) {
+            unset($data[$this->primary_key]);
         }
 
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
             gvv_debug("create succesful, \$last_id=$last_id");
             if (! $last_id) {
-                $last_id = $data [$this->primary_key];
+                $last_id = $data[$this->primary_key];
                 gvv_debug("\$last_id=$last_id (\$data[primary_key])");
             }
             return $last_id;
@@ -66,7 +66,7 @@ class Comptes_model extends Common_Model {
      *            nombre à sauter
      * @return objet La liste
      */
-    public function list_of($where = array (), $order = "") {
+    public function list_of($where = array(), $order = "") {
         return $this->db->select('*')->from($this->table)->where($where)->order_by($order)->get()->result_array();
     }
 
@@ -82,49 +82,49 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page($selection = array (), $date, $filter_solde = "") {
+    public function select_page($selection = array(), $date, $filter_solde = "") {
 
         // selectionne les comptes
         $result = $this->db->select('id, nom, codec, actif, debit, credit')->from('comptes, planc')->where($selection)->where('codec = planc.pcode')->
-        // ->limit($nb, $debut)
-        order_by('codec, nom')->get()->result_array();
+            // ->limit($nb, $debut)
+            order_by('codec, nom')->get()->result_array();
 
         $balance_date = date_ht2db($date);
 
         // Va chercher les soldes à la date donnée pour chaque compte
-        foreach ( $result as $key => $row ) {
+        foreach ($result as $key => $row) {
             // echo "$key => "; var_dump($row);
 
             // Ajustement à la date donnée
-            $soldes = $this->ecritures_model->solde_compte($row ['id'], $balance_date, "<=", true);
+            $soldes = $this->ecritures_model->solde_compte($row['id'], $balance_date, "<=", true);
             // $codec = substr($row['codec'], 0, 1);
 
-            $row ['debit'] = $soldes [0];
-            $row ['credit'] = $soldes [1];
-            $result [$key] ['debit'] = $row ['debit'];
-            $result [$key] ['credit'] = $row ['credit'];
-            $result [$key] ['image'] = 'le compte (' . $row ['codec'] . ') ' . $row ['nom'];
+            $row['debit'] = $soldes[0];
+            $row['credit'] = $soldes[1];
+            $result[$key]['debit'] = $row['debit'];
+            $result[$key]['credit'] = $row['credit'];
+            $result[$key]['image'] = 'le compte (' . $row['codec'] . ') ' . $row['nom'];
 
-            if ($row ['debit'] > $row ['credit']) {
+            if ($row['debit'] > $row['credit']) {
                 // Solde débiteur
-                $result [$key] ['solde_debit'] = $row ['debit'] - $row ['credit'];
-                $result [$key] ['solde_credit'] = '';
+                $result[$key]['solde_debit'] = $row['debit'] - $row['credit'];
+                $result[$key]['solde_credit'] = '';
                 if ($filter_solde == 3) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
-            } else if ($row ['debit'] < $row ['credit']) {
+            } else if ($row['debit'] < $row['credit']) {
                 // Solde créditeur
-                $result [$key] ['solde_debit'] = '';
-                $result [$key] ['solde_credit'] = $row ['credit'] - $row ['debit'];
+                $result[$key]['solde_debit'] = '';
+                $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
                 if ($filter_solde == 1) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
             } else {
                 // Solde null
-                $result [$key] ['solde_debit'] = '';
-                $result [$key] ['solde_credit'] = $row ['credit'] - $row ['debit'];
+                $result[$key]['solde_debit'] = '';
+                $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
                 if (($filter_solde != 0)) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
             }
         }
@@ -144,7 +144,7 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page_general($selection = array (), $date, $filter_solde = "") {
+    public function select_page_general($selection = array(), $date, $filter_solde = "") {
 
         // selectionne les comptes
         $result = $this->db->select('pcode as codec, pdesc as nom')->from('planc, comptes')->where('codec = planc.pcode')->where($selection)->order_by('codec')->group_by('codec')->get()->result_array();
@@ -152,38 +152,38 @@ class Comptes_model extends Common_Model {
         $balance_date = date_ht2db($date);
 
         // Va chercher les soldes à la date donnée pour chaque compte
-        foreach ( $result as $key => $row ) {
+        foreach ($result as $key => $row) {
             // echo "$key => "; var_dump($row);
 
             // Ajustement à la date donnée
-            $soldes = $this->ecritures_model->solde_compte_general($row ['codec'], $balance_date, "<=", true);
+            $soldes = $this->ecritures_model->solde_compte_general($row['codec'], $balance_date, "<=", true);
 
-            $row ['debit'] = $soldes [0];
-            $row ['credit'] = $soldes [1];
-            $result [$key] ['debit'] = $row ['debit'];
-            $result [$key] ['credit'] = $row ['credit'];
-            $result [$key] ['image'] = 'le compte général (' . $row ['codec'] . ') ' . $row ['nom'];
+            $row['debit'] = $soldes[0];
+            $row['credit'] = $soldes[1];
+            $result[$key]['debit'] = $row['debit'];
+            $result[$key]['credit'] = $row['credit'];
+            $result[$key]['image'] = 'le compte général (' . $row['codec'] . ') ' . $row['nom'];
 
-            if ($row ['debit'] > $row ['credit']) {
+            if ($row['debit'] > $row['credit']) {
                 // Solde débiteur
-                $result [$key] ['solde_debit'] = $row ['debit'] - $row ['credit'];
-                $result [$key] ['solde_credit'] = '';
+                $result[$key]['solde_debit'] = $row['debit'] - $row['credit'];
+                $result[$key]['solde_credit'] = '';
                 if ($filter_solde == 3) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
-            } else if ($row ['debit'] < $row ['credit']) {
+            } else if ($row['debit'] < $row['credit']) {
                 // Solde créditeur
-                $result [$key] ['solde_debit'] = '';
-                $result [$key] ['solde_credit'] = $row ['credit'] - $row ['debit'];
+                $result[$key]['solde_debit'] = '';
+                $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
                 if ($filter_solde == 1) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
             } else {
                 // Solde null
-                $result [$key] ['solde_debit'] = '';
-                $result [$key] ['solde_credit'] = $row ['credit'] - $row ['debit'];
+                $result[$key]['solde_debit'] = '';
+                $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
                 if (($filter_solde != 0)) {
-                    unset($result [$key]);
+                    unset($result[$key]);
                 }
             }
         }
@@ -202,7 +202,7 @@ class Comptes_model extends Common_Model {
      */
     public function image($key) {
         $vals = $this->get_by_id('id', $key);
-        return '(' . $vals ['codec'] . ") " . $vals ['nom'];
+        return '(' . $vals['codec'] . ") " . $vals['nom'];
     }
 
     /**
@@ -214,27 +214,32 @@ class Comptes_model extends Common_Model {
      */
     public function maj_comptes($deb_id, $cred_id, $montant) {
         $compte_deb = $this->get_by_id('id', $deb_id);
-        $compte_cred = $this->get_by_id('id', $cred_id);
+        // gvv_debug("sql: " . $this->db->last_query());
 
-        if ($compte_deb ['actif'] != $compte_cred ['actif']) {
-            $compte_deb ['debit'] += $montant;
-            $compte_cred ['credit'] += $montant;
+        $compte_cred = $this->get_by_id('id', $cred_id);
+        // gvv_debug("sql: " . $this->db->last_query());
+
+        if ($compte_deb['actif'] != $compte_cred['actif']) {
+            $compte_deb['debit'] += $montant;
+            $compte_cred['credit'] += $montant;
         } else {
-            $compte_deb ['debit'] += $montant;
-            $compte_cred ['credit'] += $montant;
+            $compte_deb['debit'] += $montant;
+            $compte_cred['credit'] += $montant;
         }
 
         // Patch pour certains contextes desc n'es pas analysé comme un champ et
         // provoque une erreur MySQL. Le plus bizarre est que ce n'est pas systématique.
         // peut-être les caractères d'échappement d'Active record
-        $compte_deb ['comptes.desc'] = $compte_deb ['desc'];
-        unset($compte_deb ['desc']);
+        $compte_deb['comptes.desc'] = $compte_deb['desc'];
+        unset($compte_deb['desc']);
 
-        $compte_cred ['comptes.desc'] = $compte_cred ['desc'];
-        unset($compte_cred ['desc']);
+        $compte_cred['comptes.desc'] = $compte_cred['desc'];
+        unset($compte_cred['desc']);
 
         $this->update('id', $compte_deb);
+        // gvv_debug("sql: " . $this->db->last_query());
         $this->update('id', $compte_cred);
+        // gvv_debug("sql: " . $this->db->last_query());
     }
 
     /**
@@ -246,15 +251,15 @@ class Comptes_model extends Common_Model {
     public function compte_pilote($pilote) {
         $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
 
-        if ($info_pilote ['compte']) {
-            return $info_pilote ['compte'];
+        if ($info_pilote['compte']) {
+            return $info_pilote['compte'];
         }
 
-        $select = $this->db->select('id, nom, debit, credit, actif')->from($this->table)->where(array (
-                'pilote' => $pilote
+        $select = $this->db->select('id, nom, debit, credit, actif')->from($this->table)->where(array(
+            'pilote' => $pilote
         ))->get()->result_array();
 
-        return $select [0] ['id'];
+        return $select[0]['id'];
     }
 
     /**
@@ -275,7 +280,7 @@ class Comptes_model extends Common_Model {
      */
     public function user($key) {
         $vals = $this->get_by_id('id', $key);
-        return $vals ['pilote'];
+        return $vals['pilote'];
     }
 
     /**
@@ -290,8 +295,8 @@ class Comptes_model extends Common_Model {
     }
     function total_of($list) {
         $total = 0;
-        foreach ( $list as $row ) {
-            $total += $row ['solde'];
+        foreach ($list as $row) {
+            $total += $row['solde'];
         }
         return $total;
     }
@@ -301,68 +306,68 @@ class Comptes_model extends Common_Model {
      * retourn une table de hash avec les données collectées
      */
     public function select_all_for_bilan($year) {
-        $data = array ();
-        $data ['controller'] = "compta";
-        $data ['nom'] = $this->config->item('nom_club');
+        $data = array();
+        $data['controller'] = "compta";
+        $data['nom'] = $this->config->item('nom_club');
 
         // $year = $this->session->userdata('year');
-        $data ['annee_exercise'] = $year;
-        $data ['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
-        $data ['year'] = $year;
+        $data['annee_exercise'] = $year;
+        $data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+        $data['year'] = $year;
         $day = 31;
         $month = 12;
-        $data ['date'] = "$day/$month/$year";
+        $data['date'] = "$day/$month/$year";
         $date_op = "$year-$month-$day";
 
         // immobilisation = solde des comptes de classe 2
-        $data ['immo'] = $this->ecritures_model->select_solde($date_op, 2, 28, TRUE);
+        $data['immo'] = $this->ecritures_model->select_solde($date_op, 2, 28, TRUE);
 
         // Disponible = solde des comptes de classe 5
-        $data ['dispo'] = $this->ecritures_model->select_solde($date_op, 5, 6, TRUE);
+        $data['dispo'] = $this->ecritures_model->select_solde($date_op, 5, 6, TRUE);
 
         // Fonds associatif = solde des comptes de classe 1 et 11
-        $data ['capital_2'] = $this->ecritures_model->select_solde($date_op, 1, 12, FALSE);
+        $data['capital_2'] = $this->ecritures_model->select_solde($date_op, 1, 12, FALSE);
 
-        $data ['ammortissements_corp'] = $this->total_of($this->ecritures_model->select_solde($date_op, "28", "29", TRUE));
+        $data['ammortissements_corp'] = $this->total_of($this->ecritures_model->select_solde($date_op, "28", "29", TRUE));
 
-        $data ['fonds_associatifs'] = $this->total_of($this->ecritures_model->select_solde($date_op, 102, 103, TRUE));
-        $data ['reports_cred'] = $this->total_of($this->ecritures_model->select_solde($date_op, 110, 111, TRUE));
-        $data ['reports_deb'] = $this->total_of($this->ecritures_model->select_solde($date_op, 119, 120, TRUE));
+        $data['fonds_associatifs'] = $this->total_of($this->ecritures_model->select_solde($date_op, 102, 103, TRUE));
+        $data['reports_cred'] = $this->total_of($this->ecritures_model->select_solde($date_op, 110, 111, TRUE));
+        $data['reports_deb'] = $this->total_of($this->ecritures_model->select_solde($date_op, 119, 120, TRUE));
 
-        $data ['valeur_brute_immo_corp'] = - $this->total_of($data ['immo']);
-        $data ['valeur_nette_immo_corp'] = $data ['valeur_brute_immo_corp'] - $data ['ammortissements_corp'];
+        $data['valeur_brute_immo_corp'] = -$this->total_of($data['immo']);
+        $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['ammortissements_corp'];
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
 
         $creances_pilotes = 0.0;
         $dettes_pilotes = 0.0;
-        foreach ( $tiers as $row ) {
+        foreach ($tiers as $row) {
             // var_dump($row);
-            if ($row ['solde'] > 0) {
-                $dettes_pilotes += $row ['solde'];
+            if ($row['solde'] > 0) {
+                $dettes_pilotes += $row['solde'];
             } else {
-                $creances_pilotes -= $row ['solde'];
+                $creances_pilotes -= $row['solde'];
             }
         }
-        $data ['creances_pilotes'] = $creances_pilotes;
-        $data ['dettes_pilotes'] = $dettes_pilotes;
+        $data['creances_pilotes'] = $creances_pilotes;
+        $data['dettes_pilotes'] = $dettes_pilotes;
 
         // Résultat
         $charges = $this->ecritures_model->select_depenses($year, "");
-        $total_charges = $charges [0] ['montant'];
+        $total_charges = $charges[0]['montant'];
 
         $produits = $this->ecritures_model->select_recettes($year, "");
-        $total_produits = $produits [0] ['montant'];
+        $total_produits = $produits[0]['montant'];
 
-        $data ['resultat'] = $total_produits - $total_charges;
+        $data['resultat'] = $total_produits - $total_charges;
 
-        $total_dispo = $this->total_of($data ['dispo']);
-        $data ['total_actif'] = $creances_pilotes + $data ['valeur_nette_immo_corp'] - $total_dispo;
+        $total_dispo = $this->total_of($data['dispo']);
+        $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo;
 
-        $total_capital = $this->total_of($data ['capital_2']);
-        $data ['total_passif'] = $dettes_pilotes + $total_capital + $data ['resultat'];
+        $total_capital = $this->total_of($data['capital_2']);
+        $data['total_passif'] = $dettes_pilotes + $total_capital + $data['resultat'];
 
-        $data ['emprunts'] = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE));
-        $data ['total_passif'] += $data ['emprunts'];
+        $data['emprunts'] = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE));
+        $data['total_passif'] += $data['emprunts'];
 
         // var_dump($data); exit;
         return $data;
