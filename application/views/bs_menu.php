@@ -124,7 +124,6 @@ $this->lang->load('sections');
                         <li><a class="dropdown-item" href="<?= controller_url("backend/roles") ?>"><?= translation("gvv_admin_menu_roles") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><?= translation("gvv_admin_menu_permissions") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url('sections') ?>"><?= translation("gvv_sections_title") ?></a></li>
-                        <li><a class="dropdown-item" href="<?= controller_url("facturation/config") ?>"><?= translation("welcome_billing_config_title") ?></a></li>
                       </ul>
                     </li>
 
