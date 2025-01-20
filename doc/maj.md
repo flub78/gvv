@@ -15,7 +15,7 @@ Il supportait un paramètre pour revenir en arrière sue une version particuliè
 Une fois la migration réalisée, il est possible de mettre à jour depuis github
 
     git pull
-    cat "" >> installed.txt
+    echo "" >> installed.txt
     git log --stat -n 1 >> installed.txt
 
 Si vous ne pouvez pas faire le pull à cause des fichiers de configuration locaux:
