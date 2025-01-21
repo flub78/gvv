@@ -510,7 +510,7 @@ class Gvv_Controller extends CI_Controller {
                     $this->post_create($processed_data);
                     $create_txt = $this->lang->line("gvv_button_create");
                     $upload_txt = $this->lang->line("gvv_button_upload");
-                    if (($button != $create_txt) && ($button_photo != $upload_txt)) {
+                    if (($button != $create_txt) && ($button_photo != $upload_txt) && $table != 'achats') {
                         $image = $this->gvv_model->image($id);
                         $msg = $image . ' ' . $this->lang->line("gvv_succesful_creation");
                         $this->session->set_flashdata('popup', $msg);
