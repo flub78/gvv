@@ -43,7 +43,7 @@ $gvv_role = $CI->dx_auth->get_role_name();
 	<input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
 
 	<!-- Filtre -->
-	<div class="accordion container-fluid mt-3 mb-3" id="accordionFilter">
+	<div class="accordion accordion-flush collapsed container-fluid mt-3 mb-3" id="accordionFilter">
 
 		<div class="accordion-item">
 			<h2 class="accordion-header" id="headingOne">
@@ -82,9 +82,18 @@ $gvv_role = $CI->dx_auth->get_role_name();
 	$attrs = array(
 		'controller' => $controller,
 		'actions' => array('edit', 'delete'),
-		'fields' => array('mpimmat',
-			'mpmodele', 'mpconstruc',  'mpnumc', 'mpbiplace', 'mpautonome', 'mptreuil',
-			'mpprive', 'actif', 'vols', 'fabrication'
+		'fields' => array(
+			'mpimmat',
+			'mpmodele',
+			'mpconstruc',
+			'mpnumc',
+			'mpbiplace',
+			'mpautonome',
+			'mptreuil',
+			'mpprive',
+			'actif',
+			'vols',
+			'fabrication'
 		),
 		'mode' => ($has_modification_rights) ? "rw" : "ro",
 		'class' => "datatable table table-striped"
