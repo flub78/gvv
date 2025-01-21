@@ -27,40 +27,52 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('avion');
 
-echo '<div id="body" class="body container-fluid">';
+?>
+<div id="body" class="body container-fluid">
+	<h3><?= $this->lang->line("gvv_avion_title_list") ?></h3>
 
-echo heading("gvv_avion_title_list", 3);
+	<input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
-echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+	<input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
 
-// --------------------------------------------------------------------------------------------------
-// Filtre
-echo form_hidden('filter_active', $filter_active);
+	<!-- Filtre -->
+	<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="panelsStayOpen-headingOne">
+				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+					<?= $this->lang->line("gvv_str_filter") ?>
+				</button>
+			</h2>
+			<div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+				<div class="accordion-body">
+					<div>
+						<form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+							<div>
 
-$tab = 3;
-echo form_fieldset($this->lang->line("gvv_str_filter"), array(
-	'class' => 'coolfieldset filtre mb-3 mt-3',
-	'title' => $this->lang->line("gvv_str_filter_tooltip")
-));
-echo "<div>";
-echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie'));
-echo "<table><tr><td>\n";
-echo $this->lang->line("avion_filter_active") . ": "
-	. enumerate_radio_fields($this->lang->line("avion_filter_active_select"), 'filter_machine_actif', $filter_machine_actif);
+								<?= $this->lang->line("avion_filter_active") . ": "
+									. enumerate_radio_fields($this->lang->line("avion_filter_active_select"), 'filter_machine_actif', $filter_machine_actif); ?>
 
-echo "</td></tr><tr><td>";
+							</div>
+							<div>
+								<?=
+								$this->lang->line("avion_filter_owner") . ": " .  enumerate_radio_fields($this->lang->line("avion_filter_owner_select"), 'filter_proprio', $filter_proprio)
+								?>
 
-echo $this->lang->line("avion_filter_owner") . ": " .  enumerate_radio_fields($this->lang->line("avion_filter_owner_select"), 'filter_proprio', $filter_proprio);
+								<div class="mb-2 mt-2">
+									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" class="btn bg-primary text-white" />
+									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" class="btn bg-primary text-white" />
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
 
-echo "</td></tr><tr><td>";
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_str_select")));
-echo nbs();
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_str_display")));
-echo "</td></tr></table>\n";
-echo form_close();
-echo "</div>";
-echo form_fieldset_close();
+	</div>
 
+</div>
+<?php
 // --------------------------------------------------------------------------------------------------
 // Data
 $attrs = array(
