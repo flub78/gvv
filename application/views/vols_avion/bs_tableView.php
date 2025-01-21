@@ -40,106 +40,119 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
     <?= year_selector($controller, $year, $year_selector) ?>
 </div>
 
-<!-- Filtre -->
-<fieldset class="coolfieldset filtre mb-3 p-2" title="<?= $this->lang->line("gvv_str_filter_tooltip") ?>">
-    <legend><?= $this->lang->line("gvv_str_filter") ?></legend>
+<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                <?= $this->lang->line("gvv_str_filter") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body">
+                <div>
+                    <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
 
-    <div>
-        <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+                        <div class="d-md-flex flex-row mb-2">
+                            <!-- date, jusqua, compte-->
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_date") . ": " ?>
+                                <input type="text" name="filter_date" value="<?= $filter_date ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
+                            </div>
 
-            <div class="d-md-flex flex-row mb-2">
-                <!-- date, jusqua, compte-->
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_date") . ": " ?>
-                    <input type="text" name="filter_date" value="<?= $filter_date ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
-                </div>
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_until") . ": " ?>
+                                <input type="text" name="date_end" value="<?= $date_end ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
+                            </div>
 
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_until") . ": " ?>
-                    <input type="text" name="date_end" value="<?= $date_end ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
-                </div>
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_pilot") . ": " ?>
+                                <?= dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "") ?>
+                            </div>
 
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_pilot") . ": " ?>
-                    <?= dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "") ?>
-                </div>
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_machine") . ": " ?>
+                                <?= dropdown_field('filter_machine', $filter_machine, $machine_selector, "") ?>
+                            </div>
 
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_machine") . ": " ?>
-                    <?= dropdown_field('filter_machine', $filter_machine, $machine_selector, "") ?>
-                </div>
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_site") . ": " ?>
+                                <?= dropdown_field('filter_aero', $filter_aero, $aero_selector, "") ?>
+                            </div>
+                        </div>
 
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_site") . ": " ?>
-                    <?= dropdown_field('filter_aero', $filter_aero, $aero_selector, "") ?>
+                        <div class="d-md-flex flex-row  mb-2">
+
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_dual") . ": " ?>
+                                <?= form_checkbox(array('name' => 'filter_dc', 'value' => 1, 'checked' => (0 != $filter_dc))) ?>
+                            </div>
+
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_age") . ": " ?>
+                                <?= enumerate_radio_fields($this->lang->line("gvv_age_select"), 'filter_25', $filter_25) ?>
+                            </div>
+
+                        </div>
+
+                        <div class="d-md-flex flex-row  mb-2">
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_categories") . ": " ?>
+                                <?= enumerate_radio_fields($categories, 'filter_vi', $filter_vi) ?>
+                            </div>
+
+                        </div>
+
+                        <div class="d-md-flex flex-row  mb-2">
+                            <div class="me-3 mb-2">
+                                <?= $this->lang->line("gvv_airplanes") . ": " ?>
+                                <?= enumerate_radio_fields($this->lang->line("gvv_owner_select"), 'filter_prive', $filter_prive) ?>
+                            </div>
+
+                        </div>
+
+                        <div class="d-md-flex flex-row">
+                            <!-- Bouttons filtrer, afficher tout -->
+                            <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
+                            <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
+                        </div>
+
+                    </form>
                 </div>
             </div>
-
-            <div class="d-md-flex flex-row  mb-2">
-
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_dual") . ": " ?>
-                    <?= form_checkbox(array('name' => 'filter_dc', 'value' => 1, 'checked' => (0 != $filter_dc))) ?>
-                </div>
-
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_age") . ": " ?>
-                    <?= enumerate_radio_fields($this->lang->line("gvv_age_select"), 'filter_25', $filter_25) ?>
-                </div>
-
-            </div>
-
-            <div class="d-md-flex flex-row  mb-2">
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_categories") . ": " ?>
-                    <?= enumerate_radio_fields($categories, 'filter_vi', $filter_vi) ?>
-                </div>
-
-            </div>
-
-            <div class="d-md-flex flex-row  mb-2">
-                <div class="me-3 mb-2">
-                    <?= $this->lang->line("gvv_airplanes") . ": " ?>
-                    <?= enumerate_radio_fields($this->lang->line("gvv_owner_select"), 'filter_prive', $filter_prive) ?>
-                </div>
-
-            </div>
-
-            <div class="d-md-flex flex-row">
-                <!-- Bouttons filtrer, afficher tout -->
-                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
-                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
-            </div>
-
-        </form>
+        </div>
     </div>
-</fieldset>
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                <?= $this->lang->line("gvv_vols_avion_fieldset_totals") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+            <div class="accordion-body">
+                <div class="d-md-flex flex-row">
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . $count ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_hours") . " = "   . $total ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_junior") . " = "  . $m25ans ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . $count_m25ans ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . $remorquage ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . $count_remorquage ?></div>
+                </div>
 
-<!-- Totaux -->
-<fieldset class="coolfieldset filtre mb-3 p-2" title="<?= $this->lang->line("gvv_vols_avion_fieldset_totals_tooltip") ?>">
-    <legend><?= $this->lang->line("gvv_vols_avion_fieldset_totals") ?></legend>
-
-    <div class="d-md-flex flex-row">
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . $count ?></div>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_hours") . " = "   . $total ?></div>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_junior") . " = "  . $m25ans ?></div>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . $count_m25ans ?></div>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . $remorquage ?></div>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . $count_remorquage ?></div>
+                <div class="d-md-flex flex-row">
+                    <?php if ($by_pilote) : ?>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_captain") . " = " . $cdb ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . $inst ?></div>
+                    <?php else : ?>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
+                    <?php endif; ?>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " .  $count_dc  ?></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="d-md-flex flex-row">
-        <?php if ($by_pilote) : ?>
-            <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
-            <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_captain") . " = " . $cdb ?></div>
-            <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . $inst ?></div>
-        <?php else : ?>
-            <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
-        <?php endif; ?>
-        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " .  $count_dc  ?></div>
-    </div>
-
-</fieldset>
+</div>
 
 <?php
 
