@@ -69,7 +69,8 @@ class Migration_Taille_ecritures extends CI_Migration {
 		$sqls = array(
 			"ALTER TABLE `comptes` CHANGE `debit` `debit` DECIMAL(14,2) NOT NULL DEFAULT '0.00' COMMENT 'Débit'",
 			"ALTER TABLE `comptes` CHANGE `credit` `credit` DECIMAL(14,2) NOT NULL DEFAULT '0.00' COMMENT 'Crédit'",
-			"ALTER TABLE `ecritures` CHANGE `montant` `montant` DECIMAL(14,2) NOT NULL COMMENT 'Montant de l\'écriture'"
+			"ALTER TABLE `ecritures` CHANGE `montant` `montant` DECIMAL(14,2) NOT NULL COMMENT 'Montant de l\'écriture'",
+			"ALTER TABLE `ecritures` CHANGE `description` `description` VARCHAR(80) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT 'Libellé'"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -90,7 +91,8 @@ class Migration_Taille_ecritures extends CI_Migration {
 		$sqls = array(
 			// "ALTER TABLE `comptes` CHANGE `debit` `debit` DECIMAL(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Débit'",
 			// "ALTER TABLE `comptes` CHANGE `credit` `credit` DECIMAL(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Crédit'",
-			// "ALTER TABLE `ecritures` CHANGE `montant` `montant` DECIMAL(10,2) NOT NULL COMMENT 'Montant de l\'écriture'"
+			// "ALTER TABLE `ecritures` CHANGE `montant` `montant` DECIMAL(10,2) NOT NULL COMMENT 'Montant de l\'écriture'",
+			"ALTER TABLE `ecritures` CHANGE `description` `description` VARCHAR(80) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT 'Libellé'"
 		);
 
 		$errors += $this->run_queries($sqls);

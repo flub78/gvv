@@ -64,7 +64,7 @@ class Common_Model extends CI_Model {
             }
             return $last_id;
         } else {
-            gvv_error("create error: " .  $this->db->_error_message());
+            gvv_error("create error: " . $this->table . ' - ' . $this->db->_error_message());
             return FALSE;
         }
     }
