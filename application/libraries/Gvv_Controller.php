@@ -589,10 +589,19 @@ class Gvv_Controller extends CI_Controller {
     function index() {
         $this->page();
     }
+
+
+    /**
+     * store the URL to return back with pop_return_url
+     */
     function push_return_url($context) {
         $this->session->set_userdata('back_url', current_url());
         gvv_debug("push back_url  $context: " . current_url());
     }
+
+    /**
+     * Return to a previously saved URL
+     */
     function pop_return_url() {
         if ($this->session->userdata('back_url')) {
             // retour d'ou l'on vient
