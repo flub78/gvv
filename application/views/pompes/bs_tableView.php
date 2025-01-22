@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -25,51 +26,71 @@ $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
-echo '<div id="body" class="body container-fluid">';
-
-echo heading("Utilisation de la pompe", 3);
-
-// -----------------------------------------------------------------------------------------
-// Filtre
-echo form_hidden('filter_active', $filter_active);
-
-
-$tab = 3;
-echo form_fieldset("Filtre", array('class' => 'coolfieldset filtre mb-3 mt-3',
-    'title' => 'Cliquez pour afficher/masquer les critères de selection'));
-echo "<div>";
-echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie') );
-echo form_hidden('pnum', $pnum); // 0: 100LL (défaut), 1: 98SP
-echo "<table><tr><td>\n";
-echo "Date: " . input_field('filter_date', $filter_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'));
-echo nbs($tab); // "</td><td>";
-echo "Jusqu'a: ". input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'));
-echo nbs($tab); // "</td><td>";
-echo "Utilisateur: ". dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "");
-echo "</td></tr><tr><td>";
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Filtrer'));
-echo nbs();
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Afficher tout'));
-echo "</td></tr></table>\n";
-echo form_close();
-echo "</div>";
-echo form_fieldset_close();
-
-// ------------------------------------- fin filtre
-
-$totaux = $totaux['totaux'][0];
-
-$footer = array();
-$footer[] = array( '', '', '', 'Total:', $totaux['total_qte'], $totaux['total_prix'], '', '', '');
-$attrs = array(
-	'controller' => $controller,
-    'actions' => array ('edit', 'delete'),
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'footer' => $footer,
-    'class' => 'table');
-
-echo $this->gvvmetadata->table("vue_pompes", $attrs, "");
-
-echo '</div>';
-
 ?>
+<div id="body" class="body container-fluid">
+    <h3>Utilisation de la pompe </h3>
+    <input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
+    <?php
+    // -----------------------------------------------------------------------------------------
+    // Filtre
+    ?>
+    <div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    <?= $this->lang->line("gvv_str_filter") ?>
+                </button>
+            </h2>
+            <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+                <div class="accordion-body">
+                    <div>
+                        <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+
+                            <div class="d-md-flex flex-row mb-2">
+                                <!-- date, jusqua, compte-->
+                                <div class="me-3 mb-2">
+                                    <?= "Date: " . input_field('filter_date', $filter_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker')) ?>
+                                </div>
+
+                                <div class="me-3 mb-2">
+                                    <?= "Jusqu'a: " . input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker')) ?>
+                                </div>
+
+                                <div class="me-3 mb-2">
+                                    <?= "Utilisateur: " . dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "") ?>
+                                </div>
+                            </div>
+
+                            <div class="d-md-flex flex-row">
+                                <!-- Bouttons filtrer, afficher tout -->
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <?php
+
+    // ------------------------------------- fin filtre
+
+    $totaux = $totaux['totaux'][0];
+
+    $footer = array();
+    $footer[] = array('', '', '', 'Total:', $totaux['total_qte'], $totaux['total_prix'], '', '', '');
+    $attrs = array(
+        'controller' => $controller,
+        'actions' => array('edit', 'delete'),
+        'mode' => ($has_modification_rights) ? "rw" : "ro",
+        'footer' => $footer,
+        'class' => 'table'
+    );
+
+    echo $this->gvvmetadata->table("vue_pompes", $attrs, "");
+
+    echo '</div>';
+
+    ?>

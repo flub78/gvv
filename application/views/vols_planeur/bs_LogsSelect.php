@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -37,26 +38,26 @@ echo validation_errors();
 */
 
 
-	
+
 /*
 ******************************************************************************************
 *************************   Formulaire saisie DATE + Terrain   ***************************
 ******************************************************************************************
 */
-	
-	
-	echo form_open(controller_url($controller) . "/plancheauto");
 
-	echo form_fieldset($this->lang->line("gvv_vols_planeur_fieldset_flight_logs")); 
 
-	echo form_hidden('auto', 1);
+echo form_open(controller_url($controller) . "/plancheauto");
 
-	echo $this->lang->line("gvv_date") . ":".nbs(2).$this->gvvmetadata->input_field("volsp", 'vpdate', $vpdate);
-	echo nbs(3);
-	echo $this->lang->line("gvv_site") . ":" . nbs(2) . form_dropdown('terrain', $terrains ); 
-	echo nbs(3);
-	echo $this->lang->line("gvv_vols_planeur_logs_timezone") . ":" . nbs(2);
-	echo '<select name="z" id="tz" size="1">
+echo form_fieldset($this->lang->line("gvv_vols_planeur_fieldset_flight_logs"));
+
+echo form_hidden('auto', 1);
+
+echo $this->lang->line("gvv_date") . ":" . nbs(2) . $this->gvvmetadata->input_field("volsp", 'vpdate', $vpdate);
+echo nbs(3);
+echo $this->lang->line("gvv_site") . ":" . nbs(2) . form_dropdown('terrain', $terrains, 'class="big_select"');
+echo nbs(3);
+echo $this->lang->line("gvv_vols_planeur_logs_timezone") . ":" . nbs(2);
+echo '<select name="z" id="tz" size="1">
   <option value="4">GMT+4
   <option value="3">GMT+3
   <option value="2">GMT+2
@@ -65,15 +66,14 @@ echo validation_errors();
   <option value="-1">GMT-1
   </select>
   ';
-		
-	echo form_fieldset_close();
 
-	echo validation_button (VALIDATION);
-	
-	echo form_close();	
+echo form_fieldset_close();
+
+echo validation_button(VALIDATION);
+
+echo form_close();
 
 
 echo '</div>';
 
-echo '<script type="text/javascript" src="'. js_url('form_vols_planeur') . '"></script>';
-?>
+echo '<script type="text/javascript" src="' . js_url('form_vols_planeur') . '"></script>';
