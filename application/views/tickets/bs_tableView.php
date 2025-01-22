@@ -26,61 +26,78 @@ $this->load->view('bs_header');
 $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('tickets');
+?>
+<div id="body" class="body container-fluid">
+    <h3><?= $this->lang->line("gvv_tickets_title_list") ?></h3>
+    <input type="hidden" name="controller_url" id="controller_url" value="<?= controller_url($controller) ?>" />
+    <input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
 
-echo '<div id="body" class="body container-fluid">';
+    <div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    <?= $this->lang->line("gvv_str_filter") ?>
+                </button>
+            </h2>
+            <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+                <div class="accordion-body">
+                    <div>
+                        <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
 
-echo heading("gvv_tickets_title_list", 3);
-echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+                            <div class="d-md-flex flex-row mb-2">
+                                <!-- date, jusqua, compte-->
+                                <div class="me-3 mb-2">
+                                    <?= $this->lang->line("gvv_date") . ": " . input_field('filter_date', $filter_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAA', 'class' => 'datepicker')) ?>
+                                </div>
 
-// Filtre
-echo form_hidden('filter_active', $filter_active);
-echo form_fieldset($this->lang->line("gvv_str_filter"), array(
-    'class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_str_filter_tooltip")
-));
-echo "<div>";
-echo form_open(controller_url($controller) . "/filterValidation/" . $action, array('name' => 'saisie'));
-echo "<table><tr><td>\n";
-echo $this->lang->line("gvv_date") . ": " . input_field('filter_date', $filter_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAA', 'class' => 'datepicker'));
-echo "</td><td>";
-echo $this->lang->line("gvv_until") . ": " . input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAA', 'class' => 'datepicker'));
-echo "</td><td>";
-echo $this->lang->line("gvv_pilot") . ": " . dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "");
-echo "</td><td>";
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_str_select")));
-echo "</td><td>";
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' =>  $this->lang->line("gvv_str_display")));
-echo "</td></tr></table>\n";
-echo form_close();
-echo "</div>";
-echo form_fieldset_close();
+                                <div class="me-3 mb-2">
+                                    <?= $this->lang->line("gvv_until") . ": " . input_field('date_end', $date_end, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAA', 'class' => 'datepicker')) ?>
+                                </div>
 
-echo br();
-if ($nom)
-    echo $this->lang->line("gvv_tickets_label_account") . " =" . nbs() . $nom . br();
+                                <div class="me-3 mb-2">
+                                    <?= $this->lang->line("gvv_pilot") . ": " . dropdown_field('filter_pilote', $filter_pilote, $pilote_selector, "") ?>
+                                </div>
+                            </div>
 
-if (isset($solde_pilote))
-    echo $this->lang->line("gvv_tickets_label_balance") . " =" . nbs() . $solde_pilote . nbs() . "remorqués" . br(2);
+                            <div class="d-md-flex flex-row">
+                                <!-- Bouttons filtrer, afficher tout -->
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-// Elements table
-$attrs = array(
-    'controller' => $controller,
-    'actions' => array('edit', 'delete'),
-    'fields' => array('date', 'pilote', 'quantite', 'nom', 'description', 'vol'),
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable table table-striped"
-);
+    <?php
 
-echo $this->gvvmetadata->table("vue_tickets", $attrs, "");
+    if ($nom)
+        echo $this->lang->line("gvv_tickets_label_account") . " =" . nbs() . $nom . br();
 
-$bar = array(
-    array('label' => "Excel", 'url' => "$controller/export/csv/$filter_pilote", 'role' => 'ca'),
-    array('label' => "Pdf", 'url' => "$controller/export/pdf/$filter_pilote", 'role' => 'ca'),
-);
-echo button_bar4($bar);
+    if (isset($solde_pilote))
+        echo $this->lang->line("gvv_tickets_label_balance") . " =" . nbs() . $solde_pilote . nbs() . "remorqués" . br(2);
 
-if ($has_modification_rights) {
-    echo br();
-    echo p($this->lang->line("gvv_tickets_warning"));
-}
-echo '</div>';
+    // Elements table
+    $attrs = array(
+        'controller' => $controller,
+        'actions' => array('edit', 'delete'),
+        'fields' => array('date', 'pilote', 'quantite', 'nom', 'description', 'vol'),
+        'mode' => ($has_modification_rights) ? "rw" : "ro",
+        'class' => "datatable table table-striped"
+    );
+
+    echo $this->gvvmetadata->table("vue_tickets", $attrs, "");
+
+    $bar = array(
+        array('label' => "Excel", 'url' => "$controller/export/csv/$filter_pilote", 'role' => 'ca'),
+        array('label' => "Pdf", 'url' => "$controller/export/pdf/$filter_pilote", 'role' => 'ca'),
+    );
+    echo button_bar4($bar);
+
+    if ($has_modification_rights) {
+        echo br();
+        echo p($this->lang->line("gvv_tickets_warning"));
+    }
+    echo '</div>';
