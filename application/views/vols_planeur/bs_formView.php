@@ -219,45 +219,64 @@ $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
 
 </div>
 
+<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                <?= $this->lang->line("gvv_vols_planeur_fieldset_formation") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body">
+                <div>
+
+                    <div class="d-md-flex flex-row mb-2">
+                        <!-- date, jusqua, compte-->
+                        <div class="me-3 mb-2">
+                            <?php $str = "";
+                            foreach ($certificats as $certificat) {
+                                $id = $certificat['id'];
+                                $value = isset($certificat_values[$id]) ? $certificat_values[$id] : null;
+                                $str .= $certificat['label'] . nbs() .
+                                    checkbox_array('certificat_values', $id, $certificat_values) . nbs(3);
+                            }
+                            echo $str; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                <?= $this->lang->line("gvv_vols_planeur_fieldset_FAI") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+            <div class="accordion-body">
+                <div class="d-md-flex flex-row">
+                    <div class="me-3 mb-3">
+                        <?php
+                        $str = "";
+                        foreach ($certificats_fai as $certificat_fai) {
+                            $id = $certificat_fai['id'];
+                            $value = isset($certificat_fai_values[$id]) ? $certificat_fai_values[$id] : null;
+                            $str .= $certificat_fai['label'] . nbs() .
+                                checkbox_array('certificat_fai_values', $id, $certificat_fai_values) . nbs(3);
+                        }
+                        echo $str;
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <?php
 
-echo br();
-// Fieldset Formation
-echo form_fieldset($this->lang->line("gvv_vols_planeur_fieldset_formation"), array(
-    'class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_vols_planeur_tooltip_formation")
-));
-echo '<div>';
-$str = "";
-foreach ($certificats as $certificat) {
-    $id = $certificat['id'];
-    $value = isset($certificat_values[$id]) ? $certificat_values[$id] : null;
-    $str .= $certificat['label'] . nbs() .
-        checkbox_array('certificat_values', $id, $certificat_values) . nbs(3);
-}
-echo $str;
-echo '</div>';
-echo form_fieldset_close();
-
-// Fieldset certificats FAI
-echo br();
-echo form_fieldset($this->lang->line("gvv_vols_planeur_fieldset_FAI"), array(
-    'class' => 'coolfieldset filtre',
-    'title' => $this->lang->line("gvv_vols_planeur_tooltip_FAI")
-));
-echo '<div>';
-$str = "";
-foreach ($certificats_fai as $certificat_fai) {
-    $id = $certificat_fai['id'];
-    $value = isset($certificat_fai_values[$id]) ? $certificat_fai_values[$id] : null;
-    $str .= $certificat_fai['label'] . nbs() .
-        checkbox_array('certificat_fai_values', $id, $certificat_fai_values) . nbs(3);
-}
-echo $str; // ul($list);
-echo '</div>';
-echo form_fieldset_close();
-
-echo br();
 echo validation_button($action);
 echo form_close();
 
