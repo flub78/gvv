@@ -25,55 +25,90 @@ $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 $this->lang->load('tarifs');
+?>
+<div id="body" class="body container-fluid">
+    <h3><?= $this->lang->line("gvv_tarifs_title_list") ?></h3>
 
-echo '<div id="body" class="body container-fluid">';
+    <input type="hidden" name="controller_url" id="controller_url" value="<?= controller_url($controller) ?>" />
 
-echo heading("gvv_tarifs_title_list", 3);
+    <div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    <?= $this->lang->line("gvv_str_filter") ?>
+                </button>
+            </h2>
+            <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+                <div class="accordion-body">
+                    <div>
+                        <form action="<?= controller_url($controller) . "/filterValidation/" ?>" method="post" accept-charset="utf-8" name="saisie">
 
-echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+                            <div class="d-md-flex flex-row mb-2">
+                                <!-- date, jusqua, compte-->
+                                <div class="me-3 mb-2">
+                                    <?= $this->lang->line("gvv_tarifs_label_todate") . ": " . input_field('filter_tarif_date', $filter_tarif_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker')) ?>
+                                </div>
 
-echo form_fieldset($this->lang->line("gvv_str_filter"), array(
-    'class' => 'coolfieldset filtre mb-3 mt-3',
-    'title' => $this->lang->line("gvv_str_filter_tooltip")
-));
-echo "<div>";
+                                <div class="me-3 mb-2">
+                                    <?= $this->lang->line("gvv_tarifs_label_public") . ": "
+                                        . enumerate_radio_fields($this->lang->line("gvv_tarifs_filter_public_select"), 'filter_tarif_public', $filter_tarif_public) ?>
+                                </div>
 
-echo form_open(controller_url($controller) . "/filterValidation/", array('name' => 'saisie'));
+                                <div class="me-3 mb-2">
+                                    <?= "" ?>
+                                </div>
 
-echo $this->lang->line("gvv_tarifs_label_todate") . ": " . input_field('filter_tarif_date', $filter_tarif_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker'));
-echo br();
-echo $this->lang->line("gvv_tarifs_label_public") . ": "
-    . enumerate_radio_fields($this->lang->line("gvv_tarifs_filter_public_select"), 'filter_tarif_public', $filter_tarif_public);
+                                <div class="me-3 mb-2">
+                                    <?= "" ?>
+                                </div>
 
-echo br(2);
-echo "<table><tr><td>";
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_str_select")));
-echo nbs();
-echo form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_str_display")));
-echo "</td></tr></table>\n";
+                                <div class="me-3 mb-2">
+                                    <?= "" ?>
+                                </div>
+                            </div>
 
-echo form_close();
-echo "</div>";
-echo form_fieldset_close();
+                            <div class="d-md-flex flex-row  mb-2">
+                                <div class="me-3 mb-2">
+                                    <?= "" ?>
+                                </div>
 
-$tarifs = "Tarifs";
-if ($filter_tarif_date) $tarifs .= " au $filter_tarif_date";
+                                <div class="me-3 mb-2">
+                                    <?= "" ?>
+                                </div>
+                            </div>
 
-$attrs = array(
-    'controller' => $controller,
-    'actions' => array('edit', 'delete', 'clone_elt'),
-    'title' => $tarifs,
-    'fields' => array('reference', 'description', 'date', 'date_fin', 'prix', 'nom_compte', 'public'),
-    //    'count' => $count,
-    'first' => $premier,
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable table table-striped"
-);
+                            <div class="d-md-flex flex-row">
+                                <!-- Bouttons filtrer, afficher tout -->
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
+                                <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-echo $this->gvvmetadata->table("vue_tarifs", $attrs, "");
+    </div>
 
-echo p($this->lang->line("gvv_tarifs_clone_tooltip"));
-echo br();
-echo p($this->lang->line("gvv_tarifs_warning"));
+    <?php
+    $tarifs = "Tarifs";
+    if ($filter_tarif_date) $tarifs .= " au $filter_tarif_date";
 
-echo '</div>';
+    $attrs = array(
+        'controller' => $controller,
+        'actions' => array('edit', 'delete', 'clone_elt'),
+        'title' => $tarifs,
+        'fields' => array('reference', 'description', 'date', 'date_fin', 'prix', 'nom_compte', 'public'),
+        //    'count' => $count,
+        'first' => $premier,
+        'mode' => ($has_modification_rights) ? "rw" : "ro",
+        'class' => "datatable table table-striped"
+    );
+
+    echo $this->gvvmetadata->table("vue_tarifs", $attrs, "");
+
+    echo p($this->lang->line("gvv_tarifs_clone_tooltip"));
+    echo br();
+    echo p($this->lang->line("gvv_tarifs_warning"));
+
+    echo '</div>';
