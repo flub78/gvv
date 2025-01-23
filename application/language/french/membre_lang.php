@@ -74,6 +74,17 @@ $lang['gvv_membres_field_vallicencefed'] = "Date licence/assurance";
 $lang['gvv_membres_field_dateivv'] = "Validité instructeur planeur";
 $lang['gvv_membres_field_pays'] = "Pays";
 
+$lang['gvv_membres_field_mlieun'] = "Lieu de naisance";
+$lang['gvv_membres_field_msexe'] = "Genre";
+$lang['gvv_membres_field_mniveaux'] = "Qualifications";
+$lang['gvv_membres_field_macces'] = "Responsabilités";
+$lang['gvv_membres_field_club'] = "Club";
+$lang['gvv_membres_field_ext'] = "Extérieur";
+$lang['gvv_membres_field_username'] = "Nom";
+$lang['gvv_membres_field_photo'] = "Photo";
+$lang['gvv_membres_field_comment'] = "Commentaire";
+$lang['gvv_membres_field_licfed'] = "Numéro fédéral";
+
 $lang['gvv_membres_short_field_mlogin'] = "Identifiant";
 $lang['gvv_membres_short_field_mnom'] = "Nom";
 $lang['gvv_membres_short_field_mprenom'] = "Prénom";

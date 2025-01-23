@@ -75,6 +75,16 @@ $lang['gvv_membres_field_vallicencefed'] = "Datum verzekering";
 $lang['gvv_membres_field_dateivv'] = "Datum FI/FE";
 $lang['gvv_membres_field_pays'] = "Land";
 
+$lang['gvv_membres_field_mlieun'] = "Geboorteplaats";
+$lang['gvv_membres_field_msexe'] = "Geslacht";
+$lang['gvv_membres_field_mniveaux'] = "Kwalificaties";
+$lang['gvv_membres_field_macces'] = "Verantwoordelijkheden";
+$lang['gvv_membres_field_club'] = "lub";
+$lang['gvv_membres_field_ext'] = "Buitenkant";
+$lang['gvv_membres_field_username'] = "Naam";
+$lang['gvv_membres_field_photo'] = "Foto";
+$lang['gvv_membres_field_comment'] = "Comment";
+$lang['gvv_membres_field_licfed'] = "Federale ID";
 
 $lang['gvv_membres_short_field_mlogin'] = "Login";
 $lang['gvv_membres_short_field_mnom'] = "Naam";

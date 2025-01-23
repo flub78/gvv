@@ -72,6 +72,16 @@ $lang['gvv_membres_field_vallicencefed'] = "Insurance date";
 $lang['gvv_membres_field_dateivv'] = "Glider instructor validity date";
 $lang['gvv_membres_field_pays'] = "Country";
 
+$lang['gvv_membres_field_mlieun'] = "Birthplace";
+$lang['gvv_membres_field_msexe'] = "Gender";
+$lang['gvv_membres_field_mniveaux'] = "Qualifications";
+$lang['gvv_membres_field_macces'] = "Responsabilities";
+$lang['gvv_membres_field_club'] = "Club";
+$lang['gvv_membres_field_ext'] = "Exterieur";
+$lang['gvv_membres_field_username'] = "Name";
+$lang['gvv_membres_field_photo'] = "Photo";
+$lang['gvv_membres_field_comment'] = "Comment";
+$lang['gvv_membres_field_licfed'] = "Federal ID";
 
 $lang['gvv_membres_short_field_mlogin'] = "Identifier";
 $lang['gvv_membres_short_field_mnom'] = "Name";
