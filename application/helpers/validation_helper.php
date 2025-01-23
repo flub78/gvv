@@ -30,9 +30,9 @@ function date_db2ht($datedb) // retourne une date depuis MySQL au format aaaa-mm
 
     $pattern = '%((19|20)[0-9]{2})\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])%';
     if (preg_match($pattern, $datedb, $matches)) {
-        $day = $matches [4];
-        $month = $matches [3];
-        $year = $matches [1];
+        $day = $matches[4];
+        $month = $matches[3];
+        $year = $matches[1];
         $str = $day . "/" . $month . "/" . $year;
         return $str;
         echo "match $str" . br();
@@ -54,9 +54,12 @@ function date_ht2db($datedb) // retourne une date depuis le format d'affichage d
 {
     if ($datedb == "")
         return "";
-    $date_regexp = '%(0[1-9]|[12][0-9]|3[01])[\/](0[1-9]|1[012])[\/]((19|20)[0-9]{2})%';
+    $date_regexp = '%([0-9]|[12][0-9]|3[01])[\/]([0-9]|1[012])[\/]((19|20)[0-9]{2})%';
     if (preg_match($date_regexp, $datedb, $matches)) {
-        return substr($datedb, 6, 4) . "-" . substr($datedb, 3, 2) . "-" . substr($datedb, 0, 2);
+        $day = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+        $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+        $year = $matches[3];
+        return $year . "-" . $month . "-" . $day;
     } else {
         return $datedb;
     }
@@ -118,7 +121,7 @@ if (! function_exists('mysql_date')) {
      * @return boolean
      */
     function mysql_date($date) {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
         $CI->lang->load('gvv');
         $CI->form_validation->set_message('valid_date', $CI->lang->line("valid_activity_date"));
@@ -126,13 +129,13 @@ if (! function_exists('mysql_date')) {
         if ($date == '')
             return '';
 
-            // $date_regexp = '(19|20)[0-9]{2}[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])';
+        // $date_regexp = '(19|20)[0-9]{2}[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])';
         $date_regexp = '%(0*[1-9]|[12][0-9]|3[01])[- \/\.](0*[1-9]|1[012])[- \/\.]((19|20)[0-9]{2})%';
         if (preg_match($date_regexp, $date, $matches)) {
             // transformation en date MSQL
-            $day = $matches [1];
-            $month = $matches [2];
-            $year = $matches [3];
+            $day = $matches[1];
+            $month = $matches[2];
+            $year = $matches[3];
             // vérification que la date existe
             $date = $year . '-' . $month . '-' . $day;
             return $date;
@@ -150,7 +153,7 @@ if (! function_exists('mysql_time')) {
      * @return boolean
      */
     function mysql_time($time) {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->lang->load('gvv');
         $CI->form_validation->set_message('valid_time', $CI->lang->line("valid_minute_time"));
 
@@ -160,8 +163,8 @@ if (! function_exists('mysql_time')) {
         $time_regexp = '%([012][0-9]|[0-9])[\:h\.]([0-9][0-9]|[0-9])%';
         if (preg_match($time_regexp, $time, $matches)) {
             // transformation en date MSQL
-            $hours = $matches [1];
-            $minutes = $matches [2];
+            $hours = $matches[1];
+            $minutes = $matches[2];
             // vérification que la date existe
             $time = $hours . ':' . $minutes;
             return $time;
@@ -179,7 +182,7 @@ if (! function_exists('mysql_minutes')) {
      * @return boolean
      */
     function mysql_minutes($time) {
-        $CI = & get_instance();
+        $CI = &get_instance();
         $CI->lang->load('gvv');
         $CI->form_validation->set_message('valid_time', $CI->lang->line("valid_minute_time"));
 
@@ -189,8 +192,8 @@ if (! function_exists('mysql_minutes')) {
         $time_regexp = '/(\d+)[\:|h|\.](\d+)/';
         if (preg_match($time_regexp, $time, $matches)) {
             // transformation en minutes
-            $hours = $matches [1];
-            $minutes = $matches [2];
+            $hours = $matches[1];
+            $minutes = $matches[2];
             $res = 60 * $hours + $minutes;
             return $res;
         }
@@ -209,14 +212,14 @@ if (! function_exists('minute_to_time')) {
         $pattern = '/(\d+)\:(\d+)/';
         if (preg_match($pattern, $time)) {
             // time est déjà au format 
-            gvv_debug("minute_to_time($time) = $time "); 
+            gvv_debug("minute_to_time($time) = $time ");
             return $time;
         }
         // time est un floatant
         $minutes = intval($time) % 60;
         $hours = (intval($time) - $minutes) / 60;
         $res = sprintf("%02d:%02d", $hours, $minutes);
-        gvv_debug("minute_to_time($time) = $res "); 
+        gvv_debug("minute_to_time($time) = $res ");
         return $res;
     }
 }
@@ -285,7 +288,7 @@ if (! function_exists('decimal_to_hm')) {
 if (! function_exists('line_of')) {
     function line_of($pattern, $nb = 1) {
         $txt = "";
-        for($i = 0; $i < $nb; $i ++) {
+        for ($i = 0; $i < $nb; $i++) {
             $txt .= $pattern;
         }
         return $txt;
