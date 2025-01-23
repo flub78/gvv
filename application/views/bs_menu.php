@@ -106,6 +106,7 @@ $this->lang->load('sections');
                           <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><?= translation("welcome_ticket_types_title") ?></a></li>
                         <?php endif; ?>
                         <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><?= translation("welcome_global_entries_title") ?></a></li>
+                        <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><?= translation("welcome_global_financial_report") ?></a></li>
 
                       </ul>
                     </li>

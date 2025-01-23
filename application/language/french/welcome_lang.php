@@ -21,17 +21,19 @@ $lang['welcome_absent'] = "Absent";
 $lang['welcome_intent'] = "Intentions";
 $lang['welcome_comment'] = "Commentaires";
 
-$lang['welcome_options'] =  array("" => "",
-		"Absent" => "absent",
-		"Inst" => "instructeur",
-		"Rem" => "remorqueur",
-		"Entretien" => "entretien",
-		"Elève" => "élève",
-		"Elève campagne" => "élève campagne",
-		"Solo" => "vol solo",
-		"Circuit" => "circuit solo",
-		"Simu" => "simulateur",
-		"Cours" => "cours théorique");
+$lang['welcome_options'] =  array(
+	"" => "",
+	"Absent" => "absent",
+	"Inst" => "instructeur",
+	"Rem" => "remorqueur",
+	"Entretien" => "entretien",
+	"Elève" => "élève",
+	"Elève campagne" => "élève campagne",
+	"Solo" => "vol solo",
+	"Circuit" => "circuit solo",
+	"Simu" => "simulateur",
+	"Cours" => "cours théorique"
+);
 
 $lang['welcome_forbiden_title'] = "Accès non autorisé";
 $lang['welcome_forbiden_text'] = "Vous ne pouvez pas accéder à cette page. Elle peut être vérouillée pour maintenance, 
@@ -65,12 +67,12 @@ $lang['welcome_ticket_types_title'] = "Types de ticket";
 $lang['welcome_special_entries_title'] = "Ecritures spécialisées";
 $lang['welcome_global_entries_title'] = "Ecriture générale";
 $lang['welcome_special_entries_warning'] = "A cause du risque d'erreur, le passage d'ecritures générales est déconseillé. Les ecritures générales sont possibles entre n'importe quel comptes dans n'importe quel sens. Les écrans d'écritures spécialisé, recettes, dépenses, paiement pilotes, etc. "
-. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est controlé, il guident l'utilisateur. Si vous etes ammené à passer régulierement des écritures générales, faites créer un écran de saisie spécialisé.";
-;
+	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est controlé, il guident l'utilisateur. Si vous etes ammené à passer régulierement des écritures générales, faites créer un écran de saisie spécialisé.";
+
+$lang['welcome_global_financial_report'] = "Rapport financier annuel";
 
 $lang['welcome_nyi_title'] = "Information";
 $lang['welcome_nyi_text'] = "Cette page n'est pas encore disponible. Revenez plus tard, ou portez vous volontaire pour la réaliser.";
 
 $lang['welcome_confirm_delete'] = "Etes vous sûr de vouloir supprimer cet élément?";
 $lang['welcome_not_a_user_event'] = "Vous n'êtes pas autorisé à modifier cet événement.";
-

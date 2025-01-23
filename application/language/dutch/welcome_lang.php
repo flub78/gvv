@@ -18,16 +18,18 @@ $lang['welcome_absent'] = "Afwezig";
 $lang['welcome_intent'] = "Intenties";
 $lang['welcome_comment'] = "Opmerkingen";
 
-$lang['welcome_options'] =  array("" => "",
-		"Inst" => "instructeur",
-		"Rem" => "sleeppiloot",
-		"Entretien" => "onderhoud",
-		"Elève" => "leerling",
-		"Elève campagne" => "leerling overland",
-		"Solo" => "solo",
-		"Circuit" => "solo overland",
-		"Simu" => "simulator",
-		"Cours" => "theorieles");
+$lang['welcome_options'] =  array(
+	"" => "",
+	"Inst" => "instructeur",
+	"Rem" => "sleeppiloot",
+	"Entretien" => "onderhoud",
+	"Elève" => "leerling",
+	"Elève campagne" => "leerling overland",
+	"Solo" => "solo",
+	"Circuit" => "solo overland",
+	"Simu" => "simulator",
+	"Cours" => "theorieles"
+);
 
 $lang['welcome_forbiden_title'] = "Geen toegang";
 $lang['welcome_forbiden_text'] = "Geen toegang tot deze pagina, onvoldoende rechten of pagina in onderhoud.  Contacteer de beheerder.";
@@ -62,6 +64,6 @@ $lang['welcome_special_entries_warning'] = "Door risico op fouten is het wijzige
 
 $lang['welcome_nyi_title'] = "Informatie";
 $lang['welcome_nyi_text'] = "Deze pagina is nog niet beschikbaar. Kom later eens terug of stel u voor al vrijwilliger.";
-$lang['welcome_not_a_user_event'] = "Cet événement ne vous appartient pas";
+$lang['welcome_not_a_user_event'] = "Dit evenement is niet van jou";
 
-
+$lang['welcome_global_financial_report'] = "Jaarlijks financieel verslag";

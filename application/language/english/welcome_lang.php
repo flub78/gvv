@@ -8,8 +8,8 @@ $lang['welcome_title'] = "Welcome on the flight management system";
 
 $lang['welcome_intro1'] = "This is the flight management WEB site.
 It is reserved to the club members. It is still an on going work, 
-not yet in its final version. Please be indulgent and send me your suggestions for improvment.";		
-		
+not yet in its final version. Please be indulgent and send me your suggestions for improvment.";
+
 $lang['welcome_intro2'] = 'Your rights are differents depending on your abilitation level: member, club admin, accounter, etc.
 		please be aware, that changes that you make to the database are logged with your user name.';
 
@@ -21,17 +21,19 @@ $lang['welcome_absent'] = "Absent";
 $lang['welcome_intent'] = "Intentions";
 $lang['welcome_comment'] = "Comment";
 
-$lang['welcome_options'] =  array("" => "",
-		"Absent" => "absent",
-		"Inst" => "instructor",
-		"Rem" => "remorqueur",
-		"Maintenance" => "maintenance",
-		"Student" => "student",
-		"Cross country student" => "cross country student",
-		"Solo" => "solo flight",
-		"Cross country" => "solo cross country",
-		"Simu" => "simulator",
-		"Ground" => "ground training");
+$lang['welcome_options'] =  array(
+	"" => "",
+	"Absent" => "absent",
+	"Inst" => "instructor",
+	"Rem" => "remorqueur",
+	"Maintenance" => "maintenance",
+	"Student" => "student",
+	"Cross country student" => "cross country student",
+	"Solo" => "solo flight",
+	"Cross country" => "solo cross country",
+	"Simu" => "simulator",
+	"Ground" => "ground training"
+);
 
 $lang['welcome_forbiden_title'] = "Access forbiden";
 $lang['welcome_forbiden_text'] = "Page access forbiden. The page may be locked for maintainance or you do not have the abilitation to see it.
@@ -64,8 +66,9 @@ $lang['welcome_ticket_types_title'] = "Ticket types definition";
 $lang['welcome_special_entries_title'] = "Special entries";
 $lang['welcome_global_entries_title'] = "Global entries";
 $lang['welcome_special_entries_warning'] = "A cause du risque d'erreur, le passage d'ecritures générales est déconseillé. Les ecritures générales sont possibles entre n'importe quel comptes dans n'importe quel sens. Les écrans d'écritures spécialisé, recettes, dépenses, paiement pilotes, etc. "
-. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est controlé, il guident l'utilisateur. Si vous etes ammené à passer régulierement des écritures générales, faites créer un écran de saisie spécialisé.";
-;
+	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est controlé, il guident l'utilisateur. Si vous etes ammené à passer régulierement des écritures générales, faites créer un écran de saisie spécialisé.";
+
+$lang['welcome_global_financial_report'] = "Annual financial report";
 
 $lang['welcome_special_entries_warning'] = "As they are errors prone, global entries are not recommended.
 		Global entries may be passed between any account in any way. Specialized entries like expenses,
