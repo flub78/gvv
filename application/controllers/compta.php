@@ -1340,7 +1340,7 @@ class Compta extends Gvv_Controller {
             $str .= $this->lang->line("gvv_compta_label_creditor") . "; ";
             $str .= number_format($solde, 2, ",", "") . "\n";
         }
-        $str = iconv('UTF-8', 'windows-1252', $str);
+        # $str = iconv('UTF-8', 'windows-1252', $str);
 
         // echo $str; return;
 
