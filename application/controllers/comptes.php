@@ -265,7 +265,7 @@ class Comptes extends Gvv_Controller {
             '',
             ''
         );
-        $csv_data = array_merge($csv_data, $this->ecritures_model->resultat_table($resultat, false, '', ','));
+        $csv_data = array_merge($csv_data, $this->ecritures_model->resultat_table($resultat, false, '', ',', 'csv'));
 
         csv_file($title, $csv_data);
     }
@@ -500,6 +500,7 @@ class Comptes extends Gvv_Controller {
         $year = $this->session->userdata('year');
         $bilan = $this->gvv_model->select_all_for_bilan($year);
         $bilan_prec = $this->gvv_model->select_all_for_bilan($year - 1);
+        // bilan table not in HTML
         $bilan_table = bilan_table($bilan, $bilan_prec, false);
 
         $year = $this->session->userdata('year');

@@ -1137,7 +1137,7 @@ array (size=2)
     /**
      * Formate les information de resultat dans un tableau
      */
-    function resultat_table($resultat, $links, $tab, $decimal_sep = '') {
+    function resultat_table($resultat, $links, $tab, $decimal_sep = '', $target = 'html') {
         $CI = &get_instance();
         $CI->lang->load('comptes');
 
@@ -1170,10 +1170,10 @@ array (size=2)
                 $tbl[$line][1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
 
                 $montant = isset($resultat['montants'][$year]['depenses'][$compte]) ? $resultat['montants'][$year]['depenses'][$compte] : '';
-                $tbl[$line][2] = euro($montant, $decimal_sep);
+                $tbl[$line][2] = euro($montant, $decimal_sep, $target);
 
                 $montant = isset($resultat['montants'][$previous_year]['depenses'][$compte]) ? $resultat['montants'][$previous_year]['depenses'][$compte] : '';
-                $tbl[$line][3] = euro($montant, $decimal_sep);
+                $tbl[$line][3] = euro($montant, $decimal_sep, $target);
             } else {
                 $tbl[$line][0] = '';
                 $tbl[$line][1] = '';
@@ -1193,10 +1193,10 @@ array (size=2)
                 $tbl[$line][$offset + 1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
 
                 $montant = isset($resultat['montants'][$year]['recettes'][$compte]) ? $resultat['montants'][$year]['recettes'][$compte] : '';
-                $tbl[$line][$offset + 2] = euro($montant, $decimal_sep);
+                $tbl[$line][$offset + 2] = euro($montant, $decimal_sep, $target);
 
                 $montant = isset($resultat['montants'][$previous_year]['recettes'][$compte]) ? $resultat['montants'][$previous_year]['recettes'][$compte] : '';
-                $tbl[$line][$offset + 3] = euro($montant, $decimal_sep);
+                $tbl[$line][$offset + 3] = euro($montant, $decimal_sep, $target);
             } else {
                 $tbl[$line][$offset + 0] = '';
                 $tbl[$line][$offset + 1] = '';
@@ -1227,29 +1227,29 @@ array (size=2)
         $tbl[] = array(
             $tab,
             $this->lang->line("comptes_label_total_expenses"),
-            euro($solde_charges, $decimal_sep),
-            euro($solde_charges_prec, $decimal_sep),
+            euro($solde_charges, $decimal_sep, $target),
+            euro($solde_charges_prec, $decimal_sep, $target),
             $tab,
             $tab,
             $this->lang->line("comptes_label_total_incomes"),
-            euro($solde_produits, $decimal_sep),
-            euro($solde_produits_prec, $decimal_sep)
+            euro($solde_produits, $decimal_sep, $target),
+            euro($solde_produits_prec, $decimal_sep, $target)
         );
 
         // Pertes et benefices
         if ($solde_produits > $solde_charges) {
-            $benefice = euro($solde_produits - $solde_charges, $decimal_sep);
+            $benefice = euro($solde_produits - $solde_charges, $decimal_sep, $target);
             $perte = '';
         } else {
-            $perte = euro($solde_charges - $solde_produits, $decimal_sep);
+            $perte = euro($solde_charges - $solde_produits, $decimal_sep, $target);
             $benefice = '';
         }
 
         if ($solde_produits_prec > $solde_charges_prec) {
-            $benefice_prec = euro($solde_produits_prec - $solde_charges_prec, $decimal_sep);
+            $benefice_prec = euro($solde_produits_prec - $solde_charges_prec, $decimal_sep, $target);
             $perte_prec = '';
         } else {
-            $perte_prec = euro($solde_charges_prec - $solde_produits_prec, $decimal_sep);
+            $perte_prec = euro($solde_charges_prec - $solde_produits_prec, $decimal_sep, $target);
             $benefice_prec = '';
         }
         $tbl[] = array(
@@ -1265,8 +1265,8 @@ array (size=2)
         );
 
         // Totaux
-        $total = euro(max($solde_charges, $solde_produits), $decimal_sep);
-        $total_prec = euro(max($solde_charges_prec, $solde_produits_prec), $decimal_sep);
+        $total = euro(max($solde_charges, $solde_produits), $decimal_sep, $target);
+        $total_prec = euro(max($solde_charges_prec, $solde_produits_prec), $decimal_sep, $target);
         $tbl[] = array(
             $tab,
             $this->lang->line("comptes_label_total"),
