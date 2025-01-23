@@ -21,15 +21,15 @@
  * @package controllers
  * Controleur des rapports utilisateur
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Reports extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'reports';
     protected $model = 'reports_model';
     protected $modification_level = 'ca';
-    protected $rules = array (
-            'sql' => 'callback_safe_sql'
+    protected $rules = array(
+        'sql' => 'callback_safe_sql'
     );
 
     /**
@@ -45,7 +45,7 @@ class Reports extends Gvv_Controller {
      */
     function clone_elt($id) {
         $data = $this->gvv_model->get_by_id('nom', $id);
-        $data ['nom'] .= "_clone";
+        $data['nom'] .= "_clone";
         $this->gvv_model->create($data);
         redirect(controller_url("reports/page"));
     }
@@ -56,20 +56,20 @@ class Reports extends Gvv_Controller {
     function execute($id) {
         $elt = $this->gvv_model->get_by_id('nom', $id);
 
-        $sql = $elt ['sql'];
+        $sql = $elt['sql'];
         $select = $this->database->sql($sql, true);
 
         $this->lang->load('reports');
 
-        $data ['title'] = $this->lang->line("gvv_reports_title");
-        $data ['text'] = $sql;
-        $data ['request'] = $id;
-        $data ['table'] = $select [0];
-        $data ['attrs'] = array (
-                'fields' => explode(",", $elt ['fields_list']),
-                'align' => explode(",", $elt ['align']),
-                'title' => $elt ['titre'],
-                'class' => "table"
+        $data['title'] = $this->lang->line("gvv_reports_title");
+        $data['text'] = $sql;
+        $data['request'] = $id;
+        $data['table'] = $select[0];
+        $data['attrs'] = array(
+            'fields' => explode(",", $elt['fields_list']),
+            'align' => explode(",", $elt['align']),
+            'title' => $elt['titre'],
+            'class' => "table"
         );
 
         load_last_view('message', $data);
@@ -81,14 +81,14 @@ class Reports extends Gvv_Controller {
     public function export($type, $request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
-        $sql = $elt ['sql'];
+        $sql = $elt['sql'];
         $select = $this->database->sql($sql, true);
-        $data = $select [0];
-        $title = $elt ['titre'];
-        $fields = explode(",", $elt ['fields_list']);
-        $align = explode(",", $elt ['align']);
-        $width = explode(",", $elt ['width']);
-        $landscape = $elt ['landscape'];
+        $data = $select[0];
+        $title = $elt['titre'];
+        $fields = explode(",", $elt['fields_list']);
+        $align = explode(",", $elt['align']);
+        $width = explode(",", $elt['width']);
+        $landscape = $elt['landscape'];
 
         if ($type == 'pdf') {
             $this->gen_pdf($title, $data, $fields, $align, $width, $landscape);
@@ -103,14 +103,14 @@ class Reports extends Gvv_Controller {
     public function csv($request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
-        $sql = $elt ['sql'];
+        $sql = $elt['sql'];
         $select = $this->database->sql($sql, true);
-        $data = $select [0];
-        $title = $elt ['titre'];
-        $fields = explode(",", $elt ['fields_list']);
-        $align = explode(",", $elt ['align']);
-        $width = explode(",", $elt ['width']);
-        $landscape = $elt ['landscape'];
+        $data = $select[0];
+        $title = $elt['titre'];
+        $fields = explode(",", $elt['fields_list']);
+        $align = explode(",", $elt['align']);
+        $width = explode(",", $elt['width']);
+        $landscape = $elt['landscape'];
 
         $this->gen_csv($request, $title, $data, $fields);
     }
@@ -121,14 +121,14 @@ class Reports extends Gvv_Controller {
     public function pdf($request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
-        $sql = $elt ['sql'];
+        $sql = $elt['sql'];
         $select = $this->database->sql($sql, true);
-        $data = $select [0];
-        $title = $elt ['titre'];
-        $fields = explode(",", $elt ['fields_list']);
-        $align = explode(",", $elt ['align']);
-        $width = explode(",", $elt ['width']);
-        $landscape = $elt ['landscape'];
+        $data = $select[0];
+        $title = $elt['titre'];
+        $fields = explode(",", $elt['fields_list']);
+        $align = explode(",", $elt['align']);
+        $width = explode(",", $elt['width']);
+        $landscape = $elt['landscape'];
 
         $this->gen_pdf($title, $data, $fields, $align, $width, $landscape);
     }
@@ -146,18 +146,18 @@ class Reports extends Gvv_Controller {
             $pdf->AddPage();
         }
 
-        $align_pdf = array ();
-        foreach ( $align as $elt ) {
-            $align_pdf [] = substr($elt, 0, 1);
+        $align_pdf = array();
+        foreach ($align as $elt) {
+            $align_pdf[] = substr($elt, 0, 1);
         }
 
-        $fields_pdf = array ();
+        $fields_pdf = array();
         $cnt = 0;
-        foreach ( $data [0] as $key => $value ) {
-            $fields_pdf [$key] = $fields [$cnt];
-            $cnt ++;
+        foreach ($data[0] as $key => $value) {
+            $fields_pdf[$key] = $fields[$cnt];
+            $cnt++;
         }
-        $first_line [0] = $fields_pdf;
+        $first_line[0] = $fields_pdf;
 
         $table = array_merge($first_line, $data);
         $pdf->title($title);
@@ -173,13 +173,13 @@ class Reports extends Gvv_Controller {
         $res = "";
         $res .= "$title\n";
 
-        foreach ( $fields as $field ) {
+        foreach ($fields as $field) {
             $res .= "$field; ";
         }
         $res .= "\n";
 
-        foreach ( $data as $row ) {
-            foreach ( $row as $elt ) {
+        foreach ($data as $row) {
+            foreach ($row as $elt) {
                 $res .= "$elt; ";
             }
             $res .= "\n";
@@ -189,8 +189,8 @@ class Reports extends Gvv_Controller {
         $dt = date("Y_m_d");
         $filename = "gvv_" . $request . "_$dt.csv";
 
-        $res = iconv('UTF-8', 'windows-1252', $res);
-        $CI = & get_instance();
+        # $res = iconv('UTF-8', 'windows-1252', $res);
+        $CI = &get_instance();
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
         force_download($filename, $res);

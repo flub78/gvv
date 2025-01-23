@@ -899,7 +899,7 @@ abstract class Metadata {
         $dt = date("Y_m_d");
         $filename = "gvv_" . $table . "_$dt.csv";
 
-        $res = iconv('UTF-8', 'windows-1252', $res);
+        # $res = iconv('UTF-8', 'windows-1252', $res);
         $CI = &get_instance();
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
@@ -976,7 +976,7 @@ abstract class Metadata {
         $dt = date("Y_m_d");
         $filename = "gvv_" . $table . "_$dt.csv";
 
-        $res = iconv('UTF-8', 'windows-1252', $res);
+        # $res = iconv('UTF-8', 'windows-1252', $res);
         $CI = &get_instance();
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
