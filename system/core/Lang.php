@@ -135,6 +135,8 @@ class CI_Lang {
 			// small patch to avoid to have logs clutered during unit testing
 			if (strpos($line, 'ut_') !== 0) {
 				log_message('error', 'Could not find the language line "' . $line . '"');
+				// debug_print_backtrace();
+				// exit("Terminating script looking for \"$line\" " . "\n");
 			}
 		}
 

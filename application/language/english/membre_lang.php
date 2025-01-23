@@ -70,6 +70,8 @@ $lang['gvv_membres_field_numivv'] = "Glider instructor number";
 $lang['gvv_membres_field_numlicencefed'] = "Insurance number";
 $lang['gvv_membres_field_vallicencefed'] = "Insurance date";
 $lang['gvv_membres_field_dateivv'] = "Glider instructor validity date";
+$lang['gvv_membres_field_pays'] = "Country";
+
 
 $lang['gvv_membres_short_field_mlogin'] = "Identifier";
 $lang['gvv_membres_short_field_mnom'] = "Name";

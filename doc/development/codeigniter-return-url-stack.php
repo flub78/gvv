@@ -144,13 +144,15 @@ class Customer extends MY_Controller {
 }
 ```
 
-## Implementation Steps
-
-1. Save the `MY_Controller.php` file in your `application/core` directory
-2. Ensure your controllers extend `MY_Controller` instead of `CI_Controller`
-3. Call `push_return_url()` before redirecting to another page that needs a return URL
-4. Use `pop_return_url()` when you want to return to the previous page
-
 ## Common Scenarios
 
-### Basic Navigation
+1. I am on a table list
+2. I edit an element
+3. I return to the table list
+
+### More complex scenarios
+
+1. I am on an account line table
+2. I edit an accountine line
+3. I add an attachment
+4. I return to the account table from the backward arrow or after validation of the accounting line.

@@ -597,23 +597,85 @@ class Gvv_Controller extends CI_Controller {
     function push_return_url($context) {
         $this->session->set_userdata('back_url', current_url());
         gvv_debug("push back_url  $context: " . current_url());
+
+        $url_stack = $this->session->userdata('return_url_stack');
+        if (!is_array($url_stack)) {
+            $url_stack = array();
+        }
+        $url = current_url();
+        // Validate URL before pushing
+        if ($this->validate_return_url($url)) {
+            array_push($url_stack, $url);
+            $this->session->set_userdata('return_url_stack', $url_stack);
+
+            // Update stack timestamp
+            $this->session->set_userdata('url_stack_time', time());
+        }
     }
 
     /**
      * Return to a previously saved URL
      */
     function pop_return_url() {
-        if ($this->session->userdata('back_url')) {
-            // retour d'ou l'on vient
-            $url = $this->session->userdata('back_url');
-            gvv_debug("pop back_url $url");
+
+        // With stack
+        $this->clean_old_url_stack();
+
+        $url_stack = $this->session->userdata('return_url_stack');
+
+        if (!empty($url_stack)) {
+            $url = array_pop($url_stack);
+            $this->session->set_userdata('return_url_stack', $url_stack);
             redirect($url);
-            return;
-        } else {
-            // par défaut ou retourne à la vue table
-            $url = $this->controller . "/page";
-            gvv_debug("pop default back_url $url");
-            redirect($url);
+        }
+
+        $url = $this->controller . "/page";
+        gvv_debug("pop default back_url $url");
+        redirect($url);
+
+        // if ($this->session->userdata('back_url')) {
+        //     // retour d'ou l'on vient
+        //     $url = $this->session->userdata('back_url');
+        //     gvv_debug("pop back_url $url");
+        //     redirect($url);
+        //     return;
+        // } else {
+        //     // par défaut ou retourne à la vue table
+        //     $url = $this->controller . "/page";
+        //     gvv_debug("pop default back_url $url");
+        //     redirect($url);
+        // }
+    }
+
+    /**
+     * Validate that a return URL is safe to use
+     * 
+     * @param string $url URL to validate
+     * @return bool True if URL is valid
+     */
+    protected function validate_return_url($url) {
+        // Ensure URL is internal
+        if (strpos($url, base_url()) !== 0) {
+            return false;
+        }
+
+        // Additional security checks can be added here
+        // For example, checking against allowed controllers/methods
+
+        return true;
+    }
+
+    /**
+     * Clean up old URL stacks to prevent session bloat
+     * 
+     * @return void
+     */
+    protected function clean_old_url_stack() {
+        $stack_time = $this->session->userdata('url_stack_time');
+        if (!$stack_time || (time() - $stack_time > 3600)) {
+            // Clear stack after 1 hour of inactivity
+            $this->session->unset_userdata('return_url_stack');
+            $this->session->unset_userdata('url_stack_time');
         }
     }
 

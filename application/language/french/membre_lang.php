@@ -72,6 +72,7 @@ $lang['gvv_membres_field_numivv'] = "N° instructeur planeur";
 $lang['gvv_membres_field_numlicencefed'] = "N° licence/assurance";
 $lang['gvv_membres_field_vallicencefed'] = "Date licence/assurance";
 $lang['gvv_membres_field_dateivv'] = "Validité instructeur planeur";
+$lang['gvv_membres_field_pays'] = "Pays";
 
 $lang['gvv_membres_short_field_mlogin'] = "Identifiant";
 $lang['gvv_membres_short_field_mnom'] = "Nom";

@@ -237,3 +237,5 @@ $lang['HEVA'] = "HEVA";
 $lang['HEVA'] = "HEVA";
 
 $lang['datatable_no_data'] = 'Aucune donnée disponible dans le tableau';
+
+$lang['delete'] = 'Supprimer';

@@ -73,6 +73,8 @@ $lang['gvv_membres_field_numivv'] = "N° instructeur";
 $lang['gvv_membres_field_numlicencefed'] = "N° verzekering";
 $lang['gvv_membres_field_vallicencefed'] = "Datum verzekering";
 $lang['gvv_membres_field_dateivv'] = "Datum FI/FE";
+$lang['gvv_membres_field_pays'] = "Land";
+
 
 $lang['gvv_membres_short_field_mlogin'] = "Login";
 $lang['gvv_membres_short_field_mnom'] = "Naam";

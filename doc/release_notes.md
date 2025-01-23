@@ -12,7 +12,7 @@ Ce fichier retrace les dernières évolutions de façon un peu plus synthétique
 * Meilleur documentation d'installation
 * Interdiction des écritures sur un même compte
 * Menu avec filtre pour sélectionner les pilotes, les comptes, les machines
-* Amelioration des sauvegardes automatiques
+* Amélioration des sauvegardes automatiques
 * Attachements de pièces justificatives sur les écritures
 * Réactivation des photos des membres
 * Suppression du support pour firefox < 46
