@@ -17,7 +17,7 @@ Ce fichier retrace les dernières évolutions de façon un peu plus synthétique
 * Réactivation des photos des membres
 * Suppression du support pour firefox < 46
 * Tous les exports CSV (Excel) sont maintenant en UTF8
-* Correction des exports CSV
+* Correction des exports CSV et PDF
 * Mise à jour automatique de la date de gel et suppression de la possibilité de la modifier
 * Support des écritures et cumuls à plus d'un million d'euro
 * Remplacement des fieldset Jquery par des accordéons Bootstrap

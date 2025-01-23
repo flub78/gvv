@@ -74,7 +74,7 @@ echo heading($title_key, 3);
         echo form_close();
         ?>
     </div>
-    <div>
+    <div class="ms-4">
         <?php
         echo heading("gvv_attachments_title", 3);
 
