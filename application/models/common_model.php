@@ -57,6 +57,7 @@ class Common_Model extends CI_Model {
     public function create($data) {
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
+
             gvv_debug("create succesful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
             if (! $last_id) {
                 $last_id = $data[$this->primary_key];
@@ -119,7 +120,12 @@ class Common_Model extends CI_Model {
             $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
         unset($data[$keyid]);
-        $this->db->update($this->table, $data);
+
+        if (!$this->db->update($this->table, $data)) {
+            // Get MySQL error message
+            $error = $this->db->_error_message();
+            gvv_error("MySQL Error #$errno: $error");
+        }
     }
 
     /**

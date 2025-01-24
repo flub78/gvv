@@ -428,7 +428,7 @@ class Gvv_Controller extends CI_Controller {
     /**
      * Hook activé avant la mise à jour
      */
-    function pre_update($id, $data = array()) {
+    function pre_update($id, &$data = array()) {
         gvv_debug($this->controller . " pre modification $id " . var_export($data, true));
     }
 

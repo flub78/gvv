@@ -66,6 +66,16 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Hook activé avant la mise à jour
+     */
+    function pre_update($id, &$data = array()) {
+        parent::pre_update($id, $data);
+        if (isset($data['compte']) && $data['compte'] === '') {
+            $data['compte'] = 0;
+        }
+    }
+
+    /**
      * Charge les valeurs de certificats à présenter dans le formulaire
      */
     private function load_certificats($id) {
