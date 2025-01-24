@@ -602,6 +602,7 @@ class Gvv_Controller extends CI_Controller {
         if (!is_array($url_stack)) {
             $url_stack = array();
         }
+
         $url = current_url();
         // Validate URL before pushing
         if ($this->validate_return_url($url)) {
@@ -616,36 +617,35 @@ class Gvv_Controller extends CI_Controller {
     /**
      * Return to a previously saved URL
      */
-    function pop_return_url() {
+    function pop_return_url($skip = 0) {
 
-        // With stack
+        // Clean old stacks first
         $this->clean_old_url_stack();
 
         $url_stack = $this->session->userdata('return_url_stack');
 
-        if (!empty($url_stack)) {
+        // Handle skip parameter if needed
+        if (!empty($url_stack) && $skip && $skip < count($url_stack)) {
             $url = array_pop($url_stack);
             $this->session->set_userdata('return_url_stack', $url_stack);
-            redirect($url);
         }
 
+        // Try to find a valid return URL from the stack
+        while (!empty($url_stack)) {
+            $url = array_pop($url_stack);
+            $this->session->set_userdata('return_url_stack', $url_stack);
+            $current_url = current_url();
+            if ($url != $current_url) {
+                redirect($url);
+            }
+        }
+
+        // Default fallback
         $url = $this->controller . "/page";
         gvv_debug("pop default back_url $url");
         redirect($url);
-
-        // if ($this->session->userdata('back_url')) {
-        //     // retour d'ou l'on vient
-        //     $url = $this->session->userdata('back_url');
-        //     gvv_debug("pop back_url $url");
-        //     redirect($url);
-        //     return;
-        // } else {
-        //     // par défaut ou retourne à la vue table
-        //     $url = $this->controller . "/page";
-        //     gvv_debug("pop default back_url $url");
-        //     redirect($url);
-        // }
     }
+
 
     /**
      * Validate that a return URL is safe to use

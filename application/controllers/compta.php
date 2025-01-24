@@ -61,6 +61,8 @@ class Compta extends Gvv_Controller {
             return;
         }
 
+        $this->push_return_url("edit ecriture");
+
         if ($this->data['gel']) {
             $this->form_static_element(VISUALISATION);
         } else {
@@ -235,7 +237,7 @@ class Compta extends Gvv_Controller {
                 }
             } else {
                 $this->change_ecriture($processed_data);
-                $this->pop_return_url();
+                $this->pop_return_url(1);
             }
         }
         // Display the form again
