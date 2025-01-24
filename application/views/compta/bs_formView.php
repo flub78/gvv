@@ -76,19 +76,22 @@ echo heading($title_key, 3);
     </div>
     <div class="ms-4">
         <?php
-        echo heading("gvv_attachments_title", 3);
+        if ($action == MODIFICATION) {
+            echo heading("gvv_attachments_title", 3);
 
-        $attrs = array(
-            'controller' => "attachments",
-            'actions' => array('edit', 'delete'),
-            'fields' => array('description', 'file'),
-            'mode' => "rw",
-            'class' => "fixed_datatable table table-striped",
-            'param' => "?table=ecritures&id=" . $id
-        );
+            $attrs = array(
+                'controller' => "attachments",
+                'actions' => array('edit', 'delete'),
+                'fields' => array('description', 'file'),
+                'mode' => "rw",
+                'class' => "fixed_datatable table table-striped",
+                'param' => "?table=ecritures&id=" . $id
+            );
 
-        echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
+            echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
+        }
         ?>
     </div>
+</div>
 
-    <script type="text/javascript" src="<?php echo js_url('form_ecriture'); ?>"></script>
+<script type="text/javascript" src="<?php echo js_url('form_ecriture'); ?>"></script>
