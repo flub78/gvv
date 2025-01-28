@@ -59,21 +59,23 @@ echo checkalert($this->session);
                 <form action="<?= controller_url($controller) . "/filterValidation/" . $compte ?>" method="post" accept-charset="utf-8" name="saisie">
 
                     <div class="d-md-flex flex-row mb-2">
-                        <!-- date, jusqua, compte-->
+                        <!-- date -->
                         <div class="me-3 mb-2">
                             <?= $this->lang->line("gvv_date") . ": " ?>
                             <input type="text" name="filter_date" value="<?= $filter_date ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
                         </div>
 
+                        <!-- jusqua -->
                         <div class="me-3 mb-2">
                             <?= $this->lang->line("gvv_until") . ": " ?>
                             <input type="text" name="date_end" value="<?= $date_end ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
                         </div>
 
+                        <!-- compte-->
                         <div class="me-3 mb-2">
                             <?= $flt .= $this->lang->line("gvv_compta_compte") . ": " ?>
                             <?php if ($navigation_allowed) : ?>
-                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' onchange='compte_selection();'") ?>
+                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:300px' onchange='compte_selection();'") ?>
                             <?php else : ?>
                                 <input type="text" name="id" ivalue="<?= $nom ?>" size="30" readonly="readonly" />
                             <?php endif; ?>
