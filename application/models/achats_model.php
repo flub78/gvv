@@ -218,7 +218,6 @@ class Achats_model extends Common_Model {
             }
         }
 
-        $this->db->insert($this->table, $data);
         if ($this->db->insert($this->table, $data)) {
             $data['id'] = $this->db->insert_id();
 
