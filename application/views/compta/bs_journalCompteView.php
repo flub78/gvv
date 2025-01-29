@@ -163,7 +163,7 @@ echo checkalert($this->session);
                     <?= $this->lang->line("gvv_compta_fieldset_compte") ?>
                 </button>
             </h3>
-            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse" aria-labelledby="panel-compte">
+            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse show" aria-labelledby="panel-compte">
                 <div class="accordion-body">
                     <?php
                     if ($solde_avant < 0) {
