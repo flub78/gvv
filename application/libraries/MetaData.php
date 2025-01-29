@@ -1719,7 +1719,7 @@ abstract class Metadata {
                     <input type="text" name="display_userfile" class="form-control" value="' . $this->CI->lang->line('gvv_no_upload_file') . '">
                     ' . $js;
 
-            $upload     = '<input type="submit" name="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
+            $upload     = '<input type="submit" name="button_photo" id="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
             return $img . $input . $upload;
         } elseif ($subtype == 'minute') {
