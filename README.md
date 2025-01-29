@@ -12,7 +12,7 @@ Puisqu'il n'est plus possible d'accéder au projet j'ai également perdu la docu
 
 ## [Fonctionnalités](./doc/features.md)
 
-## [Status du développement](./doc/development_status.md)
+## [Status du développement](./doc/development/development_status.md)
 
 ## [Les défauts de GVV](./doc/drawbacks.md)
 
