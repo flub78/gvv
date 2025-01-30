@@ -55,11 +55,6 @@ class Common_Model extends CI_Model {
      *            des valeurs
      */
     public function create($data) {
-        // I tis a create the primary key should not be set
-        $key =  $this->primary_key;
-        if (isset($data[$key])) {
-            unset($data[$key]);
-        }
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
 
