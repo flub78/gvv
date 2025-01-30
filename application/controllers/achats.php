@@ -180,7 +180,7 @@ class Achats extends Gvv_Controller {
         }
 
         $this->load->model('comptes_model');
-        $compte_pilote = $this->comptes_model->compte_pilote($pilote);
+        // $compte_pilote = $this->comptes_model->compte_pilote($pilote);
         // redirect("compta/view/" . $compte_pilote);
     }
 

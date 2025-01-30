@@ -504,8 +504,9 @@ class Gvv_Controller extends CI_Controller {
                         $processed_data[$this->kid] = $id;
                         gvv_debug("processed_data = " . var_export($processed_data, true));
                     } else {
-                        $msg = "No ID returned by create()";
+                        $msg = "No ID returned by create()\n ";
                         $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
+                        $this->session->set_flashdata('popup', $msg);
                     }
                     $this->post_create($processed_data);
                     $create_txt = $this->lang->line("gvv_button_create");

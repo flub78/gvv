@@ -34,6 +34,7 @@ if (isset($message)) {
     echo p($message) . br();
 }
 echo checkalert($this->session);
+
 ?>
 
 <h3><?= $this->lang->line("gvv_compta_title_entries") ?></h3>
@@ -71,16 +72,6 @@ echo checkalert($this->session);
                             <input type="text" name="date_end" value="<?= $date_end ?>" size="15" title="JJ/MM/AAA" class="datepicker" />
                         </div>
 
-                        <!-- compte-->
-                        <div class="me-3 mb-2">
-                            <?= $flt .= $this->lang->line("gvv_compta_compte") . ": " ?>
-                            <?php if ($navigation_allowed) : ?>
-                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:300px' onchange='compte_selection();'") ?>
-                            <?php else : ?>
-                                <input type="text" name="id" ivalue="<?= $nom ?>" size="30" readonly="readonly" />
-                            <?php endif; ?>
-
-                        </div>
                     </div>
 
                     <div class="d-md-flex flex-row  mb-2">
@@ -176,6 +167,16 @@ echo checkalert($this->session);
                     ?>
 
                     <div class="">
+                        <!-- compte-->
+                        <div class="me-3 mb-2">
+                            <?= $flt .= $this->lang->line("gvv_compta_compte") . ": " ?>
+                            <?php if ($navigation_allowed) : ?>
+                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:300px' onchange='compte_selection();'") ?>
+                            <?php else : ?>
+                                <input type="text" name="id" ivalue="<?= $nom ?>" size="30" readonly="readonly" />
+                            <?php endif; ?>
+
+                        </div>
                         <div class="me-3 mb-2">
                             <?= $this->lang->line("gvv_compta_label_accounting_code") . ": " ?>
                             <input type="text" name="codec" value="<?= $codec ?>" size="10" readonly="readonly" />
@@ -276,48 +277,51 @@ if ($codec == 411 && $navigation_allowed) {
             </h3>
             <div id="panel_purchase_id" class="accordion-collapse collapse" aria-labelledby="panel-achats">
                 <div class="accordion-body">
+                    <?= form_open(controller_url("achats") . "/formValidation/" . $action, array('name' => 'saisie')) ?>
+                    <?= form_hidden('controller_url', controller_url($controller), '"id"="controller_url"') ?>
+                    <?= form_hidden('saisie_par', $saisie_par, '') ?>
+                    <?= form_hidden('id', 0) ?>
+                    <?= form_hidden('action', $action) ?>
+                    <?= form_hidden('pilote', $pilote) ?>
 
-                    <?php
-                    echo form_open(controller_url("achats") . "/formValidation/" . $action, array('name' => 'saisie'));
-
-                    // hidden contrller url for java script access
-                    echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
-                    echo form_hidden('saisie_par', $saisie_par, '');
-                    echo form_hidden('id', 0);
-                    echo form_hidden('action', $action);
-                    echo form_hidden('pilote', $pilote);
-
-                    echo '<div class="me-3 mb-2 d-md-flex">';
-
-                    echo '<div class="form-group me-3 mb-2">' .
-                        '<label for="date">' . $this->lang->line("gvv_compta_purchase_headers")[0] . nbs(2) . '</label>';
-                    echo input_field('date', $date, array('type'  => 'text', 'size' => '10', 'class' => 'datepicker')) . "</div>";
-
-                    echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[1] . nbs(2);
-                    echo dropdown_field(
-                        'produit',
-                        $produit,
-                        $produit_selector,
-                        "id='product_selector' class='big_select' "
-                    ) . "</div>";
-
-                    echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[2] . nbs(2);
-                    echo input_field('quantite', $quantite, array('type'  => 'text', 'size' => '10')) . "</div>";
-
-                    echo '<div class="me-3 mb-2">' . $this->lang->line("gvv_compta_purchase_headers")[3] . nbs(2);
-                    echo input_field('description', $description, array('type'  => 'text', 'size' => '50')) . "</div>";
-
-                    echo  form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Validation', 'id' => 'validation_achat', 'class' => 'btn btn-success')) . "</div>";
-
-                    echo "</div>";
-                    echo form_close();
+                    <?php if ($this->session->flashdata('popup')) {
+                        echo p('<div class="error">' . $this->session->flashdata('popup') . '</div>');
+                    }
                     ?>
+
+                    <div class="d-flex flex-wrap align-items-end gap-3">
+                        <div class="form-group">
+                            <label for="date"><?= $this->lang->line("gvv_compta_purchase_headers")[0] ?></label>
+                            <?= input_field('date', $date, array('type'  => 'text', 'size' => '10', 'class' => 'datepicker')) ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="produit"><?= $this->lang->line("gvv_compta_purchase_headers")[1] ?></label>
+                            <?= dropdown_field(
+                                'produit',
+                                $produit,
+                                $produit_selector,
+                                "id='product_selector' class='big_select' style='width:300px' "
+                            ) ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quantite"><?= $this->lang->line("gvv_compta_purchase_headers")[2] ?></label>
+                            <?= input_field('quantite', $quantite, array('type'  => 'text', 'size' => '10')) ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description"><?= $this->lang->line("gvv_compta_purchase_headers")[3] ?></label>
+                            <?= input_field('description', $description, array('type'  => 'text', 'size' => '50')) ?>
+                        </div>
+
+                        <?= form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Validation', 'id' => 'validation_achat', 'class' => 'btn btn-success')) ?>
+                    </div>
+                    </form>
                 </div>
             </div>
         </div>
-
     </div>
-
 
 <?php
 }
