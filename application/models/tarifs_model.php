@@ -78,6 +78,36 @@ class Tarifs_model extends Common_Model {
     }
 
     /**
+     * Ajoute un élément
+     *
+     * @param $data hash
+     *            des valeurs
+     */
+    public function create($data) {
+        // I tis a create the primary key should not be set
+        $key =  $this->primary_key;
+        if (isset($data[$key])) {
+            unset($data[$key]);
+        }
+        if ($data['type_ticket'] == '') {
+            unset($data['type_ticket']);
+        }
+        if ($this->db->insert($this->table, $data)) {
+            $last_id = $this->db->insert_id();
+
+            gvv_debug("create succesful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
+            if (! $last_id) {
+                $last_id = $data[$this->primary_key];
+                gvv_debug("\$last_id=$last_id (\$data[primary_key])");
+            }
+            return $last_id;
+        } else {
+            gvv_error("create error: " . $this->table . ' - ' . $this->db->_error_message());
+            return FALSE;
+        }
+    }
+
+    /**
      * Retourne une chaine de caractère qui identifie une ligne de façon unique.
      * Cette chaine est utilisé dans les affichages.
      * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
