@@ -85,6 +85,9 @@ class Gvv_Controller extends CI_Controller {
         if (! $this->session->userdata('licence_type')) {
             $this->session->set_userdata('licence_type', 0);
         }
+
+        $current_url = current_url();
+        gvv_debug("URL: " . $current_url);
     }
 
     /**
