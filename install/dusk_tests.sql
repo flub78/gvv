@@ -399,7 +399,7 @@ INSERT INTO comptes (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `
 INSERT INTO comptes (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `credit`, `saisie_par`, `club`) VALUES ('306', 'Le Gaulois Goudurix', 'goudurix', 'Compte pilote', '411', '1', '50.13', '250.47', 'testadmin', '0');
 INSERT INTO comptes (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `credit`, `saisie_par`, `club`) VALUES ('307', 'Le Gaulois Panoramix', 'panoramix', 'Compte pilote', '411', '1', '0.00', '25.50', 'testadmin', '0');
 INSERT INTO comptes (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `credit`, `saisie_par`, `club`) VALUES ('308', 'Le Gaulois Abraracourcix', 'abraracourcix', 'Compte pilote', '411', '1', '0.00', '0.00', 'testadmin', '0');
-
+INSERT INTO comptes (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `credit`, `saisie_par`, `club`) VALUES ('309', 'Ventes diverses', '', 'Ventes goodies', '707', '1', '0.00', '0.00', 'testadmin', '0');
 
 #
 # TABLE STRUCTURE FOR: ecritures
@@ -626,6 +626,12 @@ INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`
 INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('87', 'Remorqué 500m', '2023-01-01', '2099-12-31', 'Remorqué 500m', '25.00', '302', 'testadmin', '0', '0.00', '0', '1');
 INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('88', 'Remorqué 300m', '2023-01-01', '2099-12-31', 'Remorqué 300m', '15.00', '302', 'testadmin', '0', '0.00', '0', '1');
 INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('89', 'Remorqué 100m', '2023-01-01', '2099-12-31', 'Remorqué 100m', '3.00', '302', 'testadmin', '0', '0.00', '0', '1');
+
+INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('90', 'bobr', '2023-01-01', '2099-12-31', 'Bob rouge', '20.00', '302', 'testadmin', '0', '0.00', '0', '1');
+INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('91', 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', '10.00', '302', 'testadmin', '0', '0.00', '0', '1');
+
+
+
 
 
 #
