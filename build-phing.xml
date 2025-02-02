@@ -40,8 +40,8 @@
     </target>
 
     <target name="phploc">
-        <exec logoutput="true" dir="${project.basedir}" 
-        command="phploc 
+        <exec logoutput="true" dir="${project.basedir}"
+            command="phploc 
         --log-csv '${project.basedir}/build/logs/phploc.csv'
         --exclude '${project.basedir}/system' 
         --exclude '${project.basedir}/assets' 
@@ -50,35 +50,50 @@
         --exclude '${project.basedir}/application/third_party' 
         --exclude '${project.basedir}/application/cache' 
         --exclude '${project.basedir}/application/logs' 
-        '${project.basedir}'" escape="false" />
+        '${project.basedir}'"
+            escape="false" />
     </target>
-    
+
     <target name="pdepend">
-        <exec logoutput="true" dir="${project.basedir}/" command="pdepend --jdepend-chart=build/jdepend-chart.svg --jdepend-xml=build/jdepend-log.xml --overview-pyramid=build/pyramid.svg --summary-xml=build/pdepensummary.xml application/controllers,application/helpers,application/libraries,application/models,application/views" escape="false" />
-     </target>
-    
+        <exec logoutput="true" dir="${project.basedir}/"
+            command="pdepend --jdepend-chart=build/jdepend-chart.svg --jdepend-xml=build/jdepend-log.xml --overview-pyramid=build/pyramid.svg --summary-xml=build/pdepensummary.xml application/controllers,application/helpers,application/libraries,application/models,application/views"
+            escape="false" />
+    </target>
+
     <target name="phpmd">
-        <exec logoutput="true" dir="${project.basedir}/" command="phpmd ./application/controllers,./application/helpers,./application/libraries,./application/models,./application/views xml cleancode,codesize > build/logs/md.xml" escape="false" />
+        <exec logoutput="true" dir="${project.basedir}/"
+            command="phpmd ./application/controllers,./application/helpers,./application/libraries,./application/models,./application/views xml cleancode,codesize 2>/dev/null > build/logs/md.xml"
+            escape="false" />
     </target>
-    
+
     <target name="phpcpd">
-        <exec logoutput="true" dir="${project.basedir}/" command="phpcpd application/controllers application/helpers application/libraries application/models application/views --exclude third_party --exclude logs --log-pmd=build/logs/phpcpd.xml " escape="false" />
+        <exec logoutput="true" dir="${project.basedir}/"
+            command="phpcpd application/controllers application/helpers application/libraries application/models application/views --exclude third_party --exclude logs --log-pmd=build/logs/phpcpd.xml "
+            escape="false" />
     </target>
-    
+
     <target name="phpcs">
-        <exec logoutput="true" dir="${project.basedir}/" command="phpcs application/controllers application/helpers application/libraries application/models application/views --report-checkstyle=build/checkstyle.xml" escape="false" />
+        <exec logoutput="true" dir="${project.basedir}/"
+            command="phpcs application/controllers application/helpers application/libraries application/models application/views --report-checkstyle=build/checkstyle.xml"
+            escape="false" />
     </target>
-    
+
     <target name="phpdoc">
-        <exec logoutput="true" dir="${project.basedir}/" command="phpdoc run -d ./application/controllers,./application/helpers,.application/libraries,./application/models,./application/views -t build/doc" escape="false" />
+        <exec logoutput="true" dir="${project.basedir}/"
+            command="phpdoc run -d ./application/controllers,./application/helpers,.application/libraries,./application/models,./application/views -t build/doc"
+            escape="false" />
     </target>
-    
+
     <target name="phpunit">
-         <exec logoutput="true" dir="${project.basedir}/tests" command="phpunit --log-junit ../build/logs/ut_phpunit.xml --coverage-html ../build/coverage --coverage-clover ../build/logs/clover.xml" escape="false" />
+        <exec logoutput="true" dir="${project.basedir}/tests"
+            command="phpunit --log-junit ../build/logs/ut_phpunit.xml --coverage-html ../build/coverage --coverage-clover ../build/logs/clover.xml"
+            escape="false" />
     </target>
-    
+
     <target name="phpcb">
-        <exec logoutput="true" command="phpcb --log '${project.basedir}/build/logs' --source '${project.basedir}/application/controllers' --source '${project.basedir}/application/helpers' --source '${project.basedir}/application/libraries' --source '${project.basedir}/application/models' --source '${project.basedir}/application/views' --output '${project.basedir}/build/code-browser'" escape="false" />
+        <exec logoutput="true"
+            command="phpcb --log '${project.basedir}/build/logs' --source '${project.basedir}/application/controllers' --source '${project.basedir}/application/helpers' --source '${project.basedir}/application/libraries' --source '${project.basedir}/application/models' --source '${project.basedir}/application/views' --output '${project.basedir}/build/code-browser'"
+            escape="false" />
     </target>
-    
+
 </project>
