@@ -373,8 +373,8 @@ CREATE TABLE `comptes` (
   `desc` varchar(80) DEFAULT NULL COMMENT 'Description',
   `codec` varchar(10) NOT NULL COMMENT 'Code comptable',
   `actif` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Actif = 1, passif = 0',
-  `debit` decimal(8,2) NOT NULL DEFAULT 0.00 COMMENT 'Débit',
-  `credit` decimal(8,2) NOT NULL DEFAULT 0.00 COMMENT 'Crédit',
+  `debit` decimal(14,2) NOT NULL DEFAULT 0.00 COMMENT 'Débit',
+  `credit` decimal(14,2) NOT NULL DEFAULT 0.00 COMMENT 'Crédit',
   `saisie_par` varchar(25) NOT NULL COMMENT 'Créateur',
   `club` tinyint(1) DEFAULT 0 COMMENT 'Gestion multi-club',
   PRIMARY KEY (`id`),
@@ -414,7 +414,7 @@ CREATE TABLE `ecritures` (
   `date_op` date NOT NULL COMMENT 'Date de l''opération',
   `compte1` int(11) NOT NULL COMMENT 'Emploi',
   `compte2` int(11) NOT NULL COMMENT 'Ressource',
-  `montant` decimal(8,2) NOT NULL COMMENT 'Montant de l''écriture',
+  `montant` decimal(14,2) NOT NULL COMMENT 'Montant de l''écriture',
   `description` varchar(80) CHARACTER SET utf8 NOT NULL COMMENT 'Libellé',
   `type` int(11) DEFAULT 0 COMMENT 'Type de paiement',
   `num_cheque` varchar(50) CHARACTER SET utf8 DEFAULT NULL COMMENT 'Numéro de piéce comptable',
@@ -850,17 +850,130 @@ CREATE TABLE `ci_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('0abcd0fb4bd502fb5836391bdfd9b69f', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976185', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('141a056692e1548c45e83a0ad3311a51', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976262', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('78c51ad15b46096752662ac714c8a256', '::1', '', '1686976395', '');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('904cd822639a0fd051e1b8cc363a72a7', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36', '1687078214', 'a:18:{s:9:\"user_data\";s:0:\"\";s:10:\"DX_user_id\";s:2:\"16\";s:11:\"DX_username\";s:9:\"testadmin\";s:10:\"DX_role_id\";s:1:\"2\";s:12:\"DX_role_name\";s:5:\"admin\";s:18:\"DX_parent_roles_id\";a:5:{i:0;s:1:\"9\";i:1;s:1:\"3\";i:2;s:1:\"8\";i:3;s:1:\"7\";i:4;s:1:\"1\";}s:20:\"DX_parent_roles_name\";a:5:{i:0;s:9:\"tresorier\";i:1;s:6:\"bureau\";i:2;s:2:\"ca\";i:3;s:10:\"planchiste\";i:4;s:6:\"membre\";}s:13:\"DX_permission\";a:1:{s:3:\"uri\";a:32:{i:0;s:8:\"/membre/\";i:1;s:9:\"/planeur/\";i:2;s:7:\"/avion/\";i:3;s:17:\"/vols_avion/page/\";i:4;s:29:\"/vols_avion/filterValidation/\";i:5;s:16:\"/vols_avion/pdf/\";i:6;s:23:\"/vols_avion/statistics/\";i:7;s:21:\"/vols_avion/new_year/\";i:8;s:19:\"/vols_planeur/page/\";i:9;s:24:\"/vols_planeur/statistic/\";i:10;s:31:\"/vols_planeur/filterValidation/\";i:11;s:18:\"/vols_planeur/pdf/\";i:12;s:24:\"/vols_planeur/pdf_month/\";i:13;s:26:\"/vols_planeur/pdf_machine/\";i:14;s:25:\"/vols_planeur/export_per/\";i:15;s:21:\"/vols_planeur/export/\";i:16;s:23:\"/vols_planeur/new_year/\";i:17;s:19:\"/factures/en_cours/\";i:18;s:15:\"/factures/page/\";i:19;s:15:\"/factures/view/\";i:20;s:21:\"/factures/ma_facture/\";i:21;s:19:\"/compta/mon_compte/\";i:22;s:23:\"/compta/journal_compte/\";i:23;s:25:\"/compta/filterValidation/\";i:24;s:12:\"/compta/pdf/\";i:25;s:17:\"/compta/new_year/\";i:26;s:18:\"/comptes/new_year/\";i:27;s:14:\"/tickets/page/\";i:28;s:13:\"/event/stats/\";i:29;s:12:\"/event/page/\";i:30;s:17:\"/event/formation/\";i:31;s:11:\"/event/fai/\";}}s:21:\"DX_parent_permissions\";a:5:{i:1;a:1:{s:3:\"uri\";a:22:{i:0;s:8:\"/membre/\";i:1;s:14:\"/planeur/page/\";i:2;s:12:\"/avion/page/\";i:3;s:12:\"/vols_avion/\";i:4;s:14:\"/vols_planeur/\";i:5;s:19:\"/rapports/licences/\";i:6;s:19:\"/compta/mon_compte/\";i:7;s:23:\"/compta/journal_compte/\";i:8;s:25:\"/compta/filterValidation/\";i:9;s:12:\"/compta/pdf/\";i:10;s:15:\"/compta/export/\";i:11;s:17:\"/compta/new_year/\";i:12;s:18:\"/comptes/new_year/\";i:13;s:17:\"/achats/new_year/\";i:14;s:14:\"/tickets/page/\";i:15;s:13:\"/event/stats/\";i:16;s:12:\"/event/page/\";i:17;s:17:\"/event/formation/\";i:18;s:11:\"/event/fai/\";i:19;s:11:\"/presences/\";i:20;s:10:\"/licences/\";i:21;s:9:\"/welcome/\";}}i:2;a:1:{s:3:\"uri\";a:3:{i:0;s:12:\"/vols_avion/\";i:1;s:14:\"/vols_planeur/\";i:2;s:0:\"\";}}i:3;a:1:{s:3:\"uri\";a:8:{i:0;s:10:\"/factures/\";i:1;s:8:\"/compta/\";i:2;s:9:\"/comptes/\";i:3;s:10:\"/remorque/\";i:4;s:16:\"/plan_comptable/\";i:5;s:11:\"/categorie/\";i:6;s:8:\"/tarifs/\";i:7;s:0:\"\";}}i:4;a:1:{s:3:\"uri\";a:20:{i:0;s:8:\"/membre/\";i:1;s:9:\"/planeur/\";i:2;s:7:\"/avion/\";i:3;s:12:\"/vols_avion/\";i:4;s:14:\"/vols_planeur/\";i:5;s:10:\"/factures/\";i:6;s:8:\"/compta/\";i:7;s:8:\"/compta/\";i:8;s:8:\"/compta/\";i:9;s:9:\"/comptes/\";i:10;s:9:\"/tickets/\";i:11;s:7:\"/event/\";i:12;s:10:\"/rapports/\";i:13;s:10:\"/licences/\";i:14;s:8:\"/achats/\";i:15;s:10:\"/terrains/\";i:16;s:7:\"/admin/\";i:17;s:9:\"/reports/\";i:18;s:7:\"/mails/\";i:19;s:12:\"/historique/\";}}i:5;a:1:{s:3:\"uri\";a:2:{i:0;s:23:\"/compta/journal_compte/\";i:1;s:13:\"/compta/view/\";}}}s:12:\"DX_logged_in\";b:1;s:13:\"filter_active\";i:1;s:9:\"filter_25\";i:0;s:19:\"filter_membre_actif\";i:2;s:20:\"filter_machine_actif\";i:2;s:4:\"year\";s:4:\"2023\";s:8:\"per_page\";i:50;s:12:\"licence_type\";i:0;s:8:\"back_url\";s:49:\"http://localhost/gvv2/index.php/vols_planeur/page\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('a9200827b3b782fd68433af509ae6584', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976253', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('b23145890f3b94cc4a8776f6502c5479', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976416', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('b378114872fc100e670849443b697332', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976472', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('b7cb725068c7c64006ef7fade171a384', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686979156', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('c5e27a2e8e4ffdf6b13599461642853a', '::1', '', '1686976397', '');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('de7629ed0ecbcef23edecb813df846a6', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976174', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('f2772a8c1e4a8dbc109cdeafa2740951', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976399', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('f2a41796cee5b0edbc4a134134f03181', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36', '1686978985', 'a:14:{s:9:\"user_data\";s:0:\"\";s:10:\"DX_user_id\";s:2:\"16\";s:11:\"DX_username\";s:9:\"testadmin\";s:10:\"DX_role_id\";s:1:\"2\";s:12:\"DX_role_name\";s:5:\"admin\";s:18:\"DX_parent_roles_id\";a:5:{i:0;s:1:\"9\";i:1;s:1:\"3\";i:2;s:1:\"8\";i:3;s:1:\"7\";i:4;s:1:\"1\";}s:20:\"DX_parent_roles_name\";a:5:{i:0;s:9:\"tresorier\";i:1;s:6:\"bureau\";i:2;s:2:\"ca\";i:3;s:10:\"planchiste\";i:4;s:6:\"membre\";}s:13:\"DX_permission\";a:1:{s:3:\"uri\";a:32:{i:0;s:8:\"/membre/\";i:1;s:9:\"/planeur/\";i:2;s:7:\"/avion/\";i:3;s:17:\"/vols_avion/page/\";i:4;s:29:\"/vols_avion/filterValidation/\";i:5;s:16:\"/vols_avion/pdf/\";i:6;s:23:\"/vols_avion/statistics/\";i:7;s:21:\"/vols_avion/new_year/\";i:8;s:19:\"/vols_planeur/page/\";i:9;s:24:\"/vols_planeur/statistic/\";i:10;s:31:\"/vols_planeur/filterValidation/\";i:11;s:18:\"/vols_planeur/pdf/\";i:12;s:24:\"/vols_planeur/pdf_month/\";i:13;s:26:\"/vols_planeur/pdf_machine/\";i:14;s:25:\"/vols_planeur/export_per/\";i:15;s:21:\"/vols_planeur/export/\";i:16;s:23:\"/vols_planeur/new_year/\";i:17;s:19:\"/factures/en_cours/\";i:18;s:15:\"/factures/page/\";i:19;s:15:\"/factures/view/\";i:20;s:21:\"/factures/ma_facture/\";i:21;s:19:\"/compta/mon_compte/\";i:22;s:23:\"/compta/journal_compte/\";i:23;s:25:\"/compta/filterValidation/\";i:24;s:12:\"/compta/pdf/\";i:25;s:17:\"/compta/new_year/\";i:26;s:18:\"/comptes/new_year/\";i:27;s:14:\"/tickets/page/\";i:28;s:13:\"/event/stats/\";i:29;s:12:\"/event/page/\";i:30;s:17:\"/event/formation/\";i:31;s:11:\"/event/fai/\";}}s:21:\"DX_parent_permissions\";a:5:{i:1;a:1:{s:3:\"uri\";a:22:{i:0;s:8:\"/membre/\";i:1;s:14:\"/planeur/page/\";i:2;s:12:\"/avion/page/\";i:3;s:12:\"/vols_avion/\";i:4;s:14:\"/vols_planeur/\";i:5;s:19:\"/rapports/licences/\";i:6;s:19:\"/compta/mon_compte/\";i:7;s:23:\"/compta/journal_compte/\";i:8;s:25:\"/compta/filterValidation/\";i:9;s:12:\"/compta/pdf/\";i:10;s:15:\"/compta/export/\";i:11;s:17:\"/compta/new_year/\";i:12;s:18:\"/comptes/new_year/\";i:13;s:17:\"/achats/new_year/\";i:14;s:14:\"/tickets/page/\";i:15;s:13:\"/event/stats/\";i:16;s:12:\"/event/page/\";i:17;s:17:\"/event/formation/\";i:18;s:11:\"/event/fai/\";i:19;s:11:\"/presences/\";i:20;s:10:\"/licences/\";i:21;s:9:\"/welcome/\";}}i:2;a:1:{s:3:\"uri\";a:3:{i:0;s:12:\"/vols_avion/\";i:1;s:14:\"/vols_planeur/\";i:2;s:0:\"\";}}i:3;a:1:{s:3:\"uri\";a:8:{i:0;s:10:\"/factures/\";i:1;s:8:\"/compta/\";i:2;s:9:\"/comptes/\";i:3;s:10:\"/remorque/\";i:4;s:16:\"/plan_comptable/\";i:5;s:11:\"/categorie/\";i:6;s:8:\"/tarifs/\";i:7;s:0:\"\";}}i:4;a:1:{s:3:\"uri\";a:20:{i:0;s:8:\"/membre/\";i:1;s:9:\"/planeur/\";i:2;s:7:\"/avion/\";i:3;s:12:\"/vols_avion/\";i:4;s:14:\"/vols_planeur/\";i:5;s:10:\"/factures/\";i:6;s:8:\"/compta/\";i:7;s:8:\"/compta/\";i:8;s:8:\"/compta/\";i:9;s:9:\"/comptes/\";i:10;s:9:\"/tickets/\";i:11;s:7:\"/event/\";i:12;s:10:\"/rapports/\";i:13;s:10:\"/licences/\";i:14;s:8:\"/achats/\";i:15;s:10:\"/terrains/\";i:16;s:7:\"/admin/\";i:17;s:9:\"/reports/\";i:18;s:7:\"/mails/\";i:19;s:12:\"/historique/\";}}i:5;a:1:{s:3:\"uri\";a:2:{i:0;s:23:\"/compta/journal_compte/\";i:1;s:13:\"/compta/view/\";}}}s:12:\"DX_logged_in\";b:1;s:13:\"filter_active\";i:1;s:9:\"filter_25\";i:0;s:19:\"filter_membre_actif\";i:2;s:20:\"filter_machine_actif\";i:2;}');
-INSERT INTO ci_sessions (`session_id`, `ip_address`, `user_agent`, `last_activity`, `user_data`) VALUES ('f3e59ac8b8c89550c8eb4684606e8ecc', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/114.0.5735.134 Safari/53', '1686976194', 'a:1:{s:9:\"user_data\";s:0:\"\";}');
+
+
+--
+-- Structure de la table `sections`
+--
+
+CREATE TABLE `sections` (
+  `id` int(11) NOT NULL,
+  `nom` varchar(64) NOT NULL,
+  `description` varchar(128) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Index pour la table `sections`
+--
+ALTER TABLE `sections`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Déchargement des données de la table `sections`
+--
+
+INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
+(1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville'),
+(2, 'ULM', 'Section ULM de l\'aéroclub d\'Abbeville'),
+(3, 'Avion', 'Section avion de l\'aéroclub d\'Abbeville'),
+(4, 'Général', 'Compte général de l\'aéroclub d\'Abbeville');
+
+--
+-- Structure de la table `types_roles`
+--
+
+CREATE TABLE `types_roles` (
+  `id` int(11) NOT NULL,
+  `nom` varchar(64) NOT NULL,
+  `description` varchar(128) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Type de rôle pour les section';
+
+--
+-- Déchargement des données de la table `types_roles`
+--
+
+INSERT INTO `types_roles` (`id`, `nom`, `description`) VALUES
+(1, 'user', 'Capacity to login and see user data'),
+(2, 'auto_planchiste', 'Capacity to create, modify and delete the user own data'),
+(5, 'planchiste', 'Authorization to create, modify and delete flight data'),
+(6, 'ca', 'capacity to see all data for a section including global financial data'),
+(7, 'bureau', 'capacity to see all data for a section including personnal financial data'),
+(8, 'tresorier', 'Capacity to edit financial data for one section'),
+(9, 'super-tresorier', 'Capacity to see an edit financial data for all sections'),
+(10, 'club-admin', 'capacity to access all data and change everything');
+
+--
+-- Index pour la table `types_roles`
+--
+ALTER TABLE `types_roles`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT pour la table `types_roles`
+--
+ALTER TABLE `types_roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Structure de la table `user_roles_per_section`
+--
+
+CREATE TABLE `user_roles_per_section` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `types_roles_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `user_roles_per_section`
+--
+
+INSERT INTO `user_roles_per_section` (`id`, `user_id`, `types_roles_id`, `section_id`) VALUES
+(1, 15, 1, 1),
+(2, 16, 10, 1),
+(3, 58, 5, 1),
+(4, 59, 6, 1),
+(5, 60, 7, 1),
+(6, 61, 8, 1),
+(7, 118, 1, 1),
+(8, 119, 1, 1),
+(9, 120, 1, 1),
+(10, 121, 1, 1);
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `user_roles_per_section`
+--
+ALTER TABLE `user_roles_per_section`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `types_roles_id` (`types_roles_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `section_id` (`section_id`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `user_roles_per_section`
+--
+ALTER TABLE `user_roles_per_section`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `user_roles_per_section`
+--
+ALTER TABLE `user_roles_per_section`
+  ADD CONSTRAINT `section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`),
+  ADD CONSTRAINT `types_roles_id` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`),
+  ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 
