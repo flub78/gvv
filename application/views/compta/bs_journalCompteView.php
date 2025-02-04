@@ -39,7 +39,6 @@ echo checkalert($this->session);
 
 <h3><?= $this->lang->line("gvv_compta_title_entries") ?></h3>
 
-<input type="hidden" name="gvv_role" value="<?= $role ?>" />
 <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
 <div class='mb-3'>
@@ -169,7 +168,7 @@ echo checkalert($this->session);
                     <div class="">
                         <!-- compte-->
                         <div class="me-3 mb-2">
-                            <?= $flt .= $this->lang->line("gvv_compta_compte") . ": " ?>
+                            <?= $this->lang->line("gvv_compta_compte") . ": " ?>
                             <?php if ($navigation_allowed) : ?>
                                 <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:300px' onchange='compte_selection();'") ?>
                             <?php else : ?>

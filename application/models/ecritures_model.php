@@ -260,9 +260,8 @@ class Ecritures_model extends Common_Model {
             $result[$line]['image'] = "la ligne du " . date_db2ht($result[$line]['date_op']) . " " . $result[$line]['nom_compte1'] . "-" . $result[$line]['nom_compte2'] . " " . $result[$line]['montant'] . " " . $result[$line]['description'];
         }
 
-        $this->gvvmetadata->store_table("vue_journal", $result, $last_query);
+        $this->gvvmetadata->store_table("vue_journal", $result);
 
-        gvv_debug("sql: " . $last_query);
         return $result;
     }
 
