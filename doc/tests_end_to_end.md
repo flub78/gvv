@@ -2,7 +2,13 @@
 
 Ils simulent un utilisateur qui interagit avec l'application à l'aide d'un navigateur. Les tests pilotent le navigateur et vérifient ce qui est affiché. 
  
-* Utilisez (mars 2023) pour tester GVV de bout en bout. https://github.com/flub78/dusk_gvv
+* Les tests de bout en bout sont gérés dans ce projet (mars 2023): https://github.com/flub78/dusk_gvv
+
+## Régénération de la base de test.
+
+Les tests de bout en bout utilisent une base de donnée par défaut qui contient déjà des données, des pilotes, des tarifs, etc.
+
+En cas de modification de la structure de la base régénérez la base de test dans installation/dusk_tests.sql à partir d'un export.
 
 
 ## Lancement des Tests
