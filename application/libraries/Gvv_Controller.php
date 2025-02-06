@@ -372,7 +372,7 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
-     * Transforme les données brutes en base en données affichables
+     * Transforme les données brutes en base en données compatibles avec le format de base de données
      * Default implementation returns the data attribute
      *
      * @param $action CREATION

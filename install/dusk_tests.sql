@@ -627,8 +627,8 @@ INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`
 INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('88', 'Remorqué 300m', '2023-01-01', '2099-12-31', 'Remorqué 300m', '15.00', '302', 'testadmin', '0', '0.00', '0', '1');
 INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('89', 'Remorqué 100m', '2023-01-01', '2099-12-31', 'Remorqué 100m', '3.00', '302', 'testadmin', '0', '0.00', '0', '1');
 
-INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('90', 'bobr', '2023-01-01', '2099-12-31', 'Bob rouge', '20.00', '302', 'testadmin', '0', '0.00', '0', '1');
-INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('91', 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', '10.00', '302', 'testadmin', '0', '0.00', '0', '1');
+INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('90', 'bobr', '2023-01-01', '2099-12-31', 'Bob rouge', '20.00', '309', 'testadmin', '0', '0.00', '0', '1');
+INSERT INTO tarifs (`id`, `reference`, `date`, `date_fin`, `description`, `prix`, `compte`, `saisie_par`, `club`, `nb_tickets`, `type_ticket`, `public`) VALUES ('91', 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', '10.00', '309', 'testadmin', '0', '0.00', '0', '1');
 
 
 
