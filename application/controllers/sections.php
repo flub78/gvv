@@ -76,9 +76,6 @@ class Sections extends Gvv_Controller {
      */
     function test($format = "html") {
 
-        echo "Test $this->controller";
-        exit;
-
         $this->unit_test = TRUE;
         $this->load->library('unit_test');
 

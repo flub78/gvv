@@ -63,20 +63,16 @@ class Sections_model extends Common_Model {
     public function test() {
         $res = [];
 
-        $res[] = ["description" => "Model attachments", "result" => true];
+        $res[] = ["description" => "Model sections", "result" => true];
 
-        // Count elements in attachments table
+        // Count elements in sections table
         $initial_count = $this->db->count_all($this->table);
-        $res[] = ["description" => "Initial count attachments: " . $initial_count, "result" => true];
+        $res[] = ["description" => "Initial count sections: " . $initial_count, "result" => true];
 
         // Insert a dummy element
         $data = array(
-            'referenced_table' => 'ecritures',
-            'referenced_id' => '10',
-            'user_id' => 'fpeignot',
-            'filename' => 'asterix.jpeg',
-            'description' => 'Facture Asterix',
-            'file' => 'asterix.jpeg'
+            'nom' => 'Autogire',
+            'description' => 'Section Autogire'
         );
         $insert_result = $this->db->insert($this->table, $data);
         $last_id = $this->db->insert_id();
@@ -84,7 +80,7 @@ class Sections_model extends Common_Model {
         $count = $this->db->count_all($this->table);
 
         $res[] = ["description" => "Insert returns true", "result" => $insert_result];
-        $res[] = ["description" => "Attachment created", "result" => ($count == $initial_count + 1)];
+        $res[] = ["description" => "Section created", "result" => ($count == $initial_count + 1)];
 
         // Get last inserted id
         $res[] = ["description" => "Last inserted ID: " . $last_id, "result" => ($last_id > 0)];
@@ -93,8 +89,6 @@ class Sections_model extends Common_Model {
         $last = $this->get_by_id('id', $last_id);
 
         $res[] = ["description" => "Last element id", "result" => ($last['id'] == $last_id)];
-        $res[] = ["description" => "Last element referenced_table", "result" => ($last['referenced_table'] == 'ecritures')];
-        $res[] = ["description" => "Last element referenced_id", "result" => ($last['referenced_id'] == '10')];
 
         // Delete last inserted element
         $delete_result = $this->db->delete($this->table, array('id' => $last_id));
@@ -102,7 +96,7 @@ class Sections_model extends Common_Model {
 
         // Verify deletion
         $count_after_delete = $this->db->count_all($this->table);
-        $res[] = ["description" => "Attachment deleted", "result" => ($count_after_delete == $initial_count)];
+        $res[] = ["description" => "Section deleted", "result" => ($count_after_delete == $initial_count)];
 
         return $res;
     }
