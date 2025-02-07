@@ -55,11 +55,7 @@
 
 	// CSS
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/datatable_jui.css'));
-	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/jquery.coolfieldset.css'));
-
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/jquery-ui.css'));
-	$href = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/" . jqueryui_theme() . "/jquery-ui.css";
-	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => $href));
 
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/fullcalendar.css'));
 

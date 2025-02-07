@@ -316,8 +316,10 @@ $this->lang->load('sections');
         </div>
 
         <form class="d-flex ms-5">
-          <div class="text-white me-1 text-center"><?= $gvv_user ?>
+          <div class="text-white me-1 text-center">
+            <?= $gvv_user ?>
             <div class="text-white me-1 text-center"><?= $gvv_role ?></div>
+            <?= $this->session->userdata('current_section') ?>
           </div>
 
           <li class="nav-item dropdown">

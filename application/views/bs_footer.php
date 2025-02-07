@@ -31,16 +31,6 @@
             changeYear: true,
             yearRange: "1930:2030"
         });
-        $('.startClosed').coolfieldset({
-            collapsed: true
-        });
-        if ($("input[name=filter_active]").val()) {
-            $('.filtre').coolfieldset();
-        } else {
-            $('.filtre').coolfieldset({
-                collapsed: true
-            });
-        }
 
         $('.datatable').dataTable({
             "bFilter": true,

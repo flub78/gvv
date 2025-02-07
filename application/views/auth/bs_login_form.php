@@ -64,7 +64,7 @@ if ($locked) {
 	<?php if ($this->config->item('multi_sections')) : ?>
 		<dt><?php echo form_label($this->lang->line("gvv_sections_element"), 'section'); ?></dt>
 		<dd>
-			<?= dropdown_field('section', $section, $sections_selector, "") ?>
+			<?= dropdown_field('section', $section, $sections_selector, 'class="form-control" id="section" ') ?>
 			<?php echo form_error('section'); ?>
 		</dd>
 	<?php endif; ?>

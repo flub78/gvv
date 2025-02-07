@@ -107,6 +107,11 @@ class Auth extends CI_Controller {
                 } else {
                     $this->session->unset_userdata('legacy_gui');
                 }
+                if ($this->input->post('section')) {
+                    $section = $this->input->post('section');
+                    $session['section'] = $section;
+                    $session['current_section'] = $this->sections_model->image($section);
+                }
                 $this->session->set_userdata($session);
 
                 redirect('', 'location');
