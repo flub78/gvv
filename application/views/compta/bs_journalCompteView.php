@@ -274,7 +274,7 @@ if ($codec == 411 && $navigation_allowed) {
                     <?= $this->lang->line("gvv_compta_fieldset_achats") ?>
                 </button>
             </h3>
-            <div id="panel_purchase_id" class="accordion-collapse collapse" aria-labelledby="panel-achats">
+            <div id="panel_purchase_id" class="accordion-collapse collapse show" aria-labelledby="panel-achats">
                 <div class="accordion-body">
                     <?= form_open(controller_url("achats") . "/formValidation/" . $action, array('name' => 'saisie')) ?>
                     <?= form_hidden('controller_url', controller_url($controller), '"id"="controller_url"') ?>
