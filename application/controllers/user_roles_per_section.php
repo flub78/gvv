@@ -32,9 +32,9 @@ include('./application/libraries/Gvv_Controller.php');
 /**
  * Controleur de gestion des sections
  */
-class Sections extends Gvv_Controller {
-    protected $controller = 'sections';
-    protected $model = 'sections_model';
+class User_roles_per_section extends Gvv_Controller {
+    protected $controller = 'user_roles_per_section';
+    protected $model = 'user_roles_per_section_model';
 
     protected $rules = array();
 
@@ -75,9 +75,6 @@ class Sections extends Gvv_Controller {
      * Test unitaire
      */
     function test($format = "html") {
-
-        echo "Test $this->controller";
-        exit;
 
         $this->unit_test = TRUE;
         $this->load->library('unit_test');

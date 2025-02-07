@@ -16,3 +16,5 @@ $lang['gvv_vue_sections_short_field_nom'] = "Naam";
 $lang['gvv_vue_sections_short_field_description'] = "Beschrijving";
 
 $lang['all_sections'] = "Alle";
+
+$lang['gvv_users_roles_per_sections_title'] = "Users roles";
