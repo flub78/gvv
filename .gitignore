@@ -18,3 +18,4 @@ application/config/google.php
 setenv.sh
 results/*
 captcha/*
+.htaccess

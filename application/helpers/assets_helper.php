@@ -20,10 +20,10 @@
  *	  Gestion des chemins des ressources
  */
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+    exit('No direct script access allowed');
 
 function theme() {
-    $CI = & get_instance();
+    $CI = &get_instance();
     $theme = $CI->config->item('theme');
     return base_url() . "themes/" . $theme;
 }
@@ -64,16 +64,17 @@ if (!function_exists('asset_url')) {
 
 if (!function_exists('controller_url')) {
     function controller_url($nom) {
+        // return site_url() . $nom;
         return site_url() . '/' . $nom;
     }
 }
 
 if (!function_exists('jqueryui_theme')) {
-	function jqueryui_theme () {
-    	$CI = & get_instance();
-    	if($CI->config->item('palette')) {
-    		return $CI->config->item('palette');
-    	}
-		return "base";
-	}
+    function jqueryui_theme() {
+        $CI = &get_instance();
+        if ($CI->config->item('palette')) {
+            return $CI->config->item('palette');
+        }
+        return "base";
+    }
 }
