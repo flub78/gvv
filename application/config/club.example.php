@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (! defined('BASEPATH')) exit('No direct script access allowed');
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +13,7 @@ $config['cp_club'] = "99999";
 $config['ville_club'] = "Trifouillis les oies";
 $config['tel_club'] = "0123456789";
 $config['email_club'] = "gvv.abbeville@gmail.fr";
-$config['url_club'] = "http://projets.developpez.com/projects/gvv/wiki/Documentation_utilisateur";
+$config['url_club'] = "https://github.com/flub78/gvv/blob/main/README.md";
 $config['calendar_id'] = "gvv.abbeville@gmail.com";
 $config['theme'] = "binary-news";
 $config['palette'] = "base";

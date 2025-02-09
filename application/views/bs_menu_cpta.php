@@ -29,14 +29,14 @@
   <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("Aide") ?></a>
   <ul class="dropdown-menu">
 
-    <li><a class="dropdown-item" href="http://projets.developpez.com/projects/gvv/wiki/Documentation_utilisateur"  target="_blank" rel="noopener noreferrer"><?= translation("GVV") ?></a></li>
-    <li><a class="dropdown-item" href="http://planeur-troyes.fr/"  target="_blank" rel="noopener noreferrer"><?= translation("Site club") ?></a></li>
+    <li><a class="dropdown-item" href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" rel="noopener noreferrer"><?= translation("GVV") ?></a></li>
+    <li><a class="dropdown-item" href="http://planeur-troyes.fr/" target="_blank" rel="noopener noreferrer"><?= translation("Site club") ?></a></li>
 
-    <li><a class="dropdown-item" href="https://www.ffvp.fr/"  target="_blank" rel="noopener noreferrer"><?= translation("FFVP") ?></a></li>
-    <li><a class="dropdown-item" href="http://www.isimages.com/ffvvsec/"  target="_blank" rel="noopener noreferrer"><?= translation("Retours d'expérience") ?></a></li>
-    <li><a class="dropdown-item" href="https://www.netcoupe.net/main.aspx"  target="_blank" rel="noopener noreferrer"><?= translation("Netcoupe") ?></a></li>
-    <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php"  target="_blank" rel="noopener noreferrer"><?= translation("Prévisions vol à voile") ?></a></li>
-    <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login"  target="_blank" rel="noopener noreferrer"><?= translation("Licences assurance") ?></a></li>
+    <li><a class="dropdown-item" href="https://www.ffvp.fr/" target="_blank" rel="noopener noreferrer"><?= translation("FFVP") ?></a></li>
+    <li><a class="dropdown-item" href="http://www.isimages.com/ffvvsec/" target="_blank" rel="noopener noreferrer"><?= translation("Retours d'expérience") ?></a></li>
+    <li><a class="dropdown-item" href="https://www.netcoupe.net/main.aspx" target="_blank" rel="noopener noreferrer"><?= translation("Netcoupe") ?></a></li>
+    <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer"><?= translation("Prévisions vol à voile") ?></a></li>
+    <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer"><?= translation("Licences assurance") ?></a></li>
 
   </ul>
 </li>

@@ -286,7 +286,7 @@ $this->lang->load('sections');
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
                 <ul class="dropdown-menu">
 
-                  <li><a class="dropdown-item" href="<?= controller_url("tests") ?>"><?= translation("Tests") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("tests/index") ?>"><?= translation("Tests") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>">phpinfo</a></li>
                   <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><?= translation("CodeIgniter") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><?= translation("Dump Metadata") ?></a></li>
