@@ -35,8 +35,7 @@
     <li><a class="dropdown-item" href="https://moncompte.ffvp.fr/" target="_blank" rel="noopener noreferrer">Compte FFVP, GESASSO</a></li>
 
     <li><a class="dropdown-item" href="https://www.ffvp.fr/" target="_blank" rel="noopener noreferrer"><?= translation("FFVP") ?></a></li>
-    <li><a class="dropdown-item" href="http://www.isimages.com/ffvvsec" target="_blank" rel="noopener noreferrer"><?= translation("Retours d'expérience") ?></a></li>
-    <li><a class="dropdown-item" href="https://www.netcoupe.net/main.aspx" target="_blank" rel="noopener noreferrer"><?= translation("Netcoupe") ?></a></li>
+    <li><a class="dropdown-item" href="https://www.ffvp.fr/les-rex" target="_blank" rel="noopener noreferrer"><?= translation("Retours d'expérience") ?></a></li>
     <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer"><?= translation("Prévisions vol à voile") ?></a></li>
     <?php if (has_role('ca')) : ?>
       <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer"><?= translation("Licences assurance") ?></a></li>
