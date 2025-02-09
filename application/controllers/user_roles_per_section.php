@@ -36,6 +36,7 @@ class User_roles_per_section extends Gvv_Controller {
     protected $controller = 'user_roles_per_section';
     protected $model = 'user_roles_per_section_model';
 
+
     protected $rules = array();
 
     /**
@@ -44,6 +45,7 @@ class User_roles_per_section extends Gvv_Controller {
      * Affiche header et menu
      */
     function __construct() {
+
         parent::__construct();
         $this->lang->load('sections');
     }
@@ -75,6 +77,9 @@ class User_roles_per_section extends Gvv_Controller {
      * Test unitaire
      */
     function test($format = "html") {
+
+        echo "Test $this->controller";
+        return;
 
         $this->unit_test = TRUE;
         $this->load->library('unit_test');

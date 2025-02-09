@@ -301,8 +301,6 @@ class MY_Unit_Test extends CI_Unit_Test {
         foreach ($results as $row) {
             $result = $row['Result'];
             $name = $row['Test Name'];
-            $file = $row['File Name'];
-            $line = $row['Line Number'];
             $notes = isset($row['Notes']) ? $row['Notes'] : "";
             $result = $row['Result'];
             if (preg_match('/.*\/application\/(.*)/', $file, $matches)) {

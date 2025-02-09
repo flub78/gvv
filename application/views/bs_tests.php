@@ -52,6 +52,7 @@ $list = array(
 	anchor(controller_url("presences/test"), "Présences"),
 	anchor(controller_url("rapports/test"), "Rapports"),
 	anchor(controller_url("sections/test"), "Sections"),
+	anchor(controller_url("user_roles_per_section/test"), "Rôles utilisateur par section"),
 
 	anchor(controller_url("tarifs/test"), "Tarifs"),
 	anchor(controller_url("terrains/test"), "Terrains"),
