@@ -61,7 +61,7 @@ echo ul($list);
 
 echo heading("Tests fonctionels", 4);
 echo p("Ces tests mettent en jeux plusieurs models.");
-echo p("Attention ils chargent une base de données de test et efface vos données.", 'class="error"');
+echo p("Attention ils chargent une base de données de test et effacent vos données.", 'class="error"');
 //echo p("(Note: il doivent laisser la base de donnée dans l'état ou ils l'ont trouvée).");
 
 $list = array(
