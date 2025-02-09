@@ -22,7 +22,7 @@
  * @filesource planeur.php
  * @package controllers
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 
 /**
  *
@@ -36,14 +36,14 @@ class Planeur extends Gvv_Controller {
     protected $model = 'planeurs_model';
     protected $kid = 'mpimmat';
     protected $modification_level = 'ca';
-    protected $rules = array (
-            'mpimmat' => "strtoupper|alpha_dash",
-            'mpnumc' => "strtoupper|alpha_dash"
+    protected $rules = array(
+        'mpimmat' => "strtoupper|alpha_dash",
+        'mpnumc' => "strtoupper|alpha_dash"
     );
-    protected $filter_variables = array (
-            'filter_active',
-            'filter_machine_actif',
-            'filter_proprio'
+    protected $filter_variables = array(
+        'filter_active',
+        'filter_machine_actif',
+        'filter_proprio'
     );
 
     /**
@@ -62,8 +62,8 @@ class Planeur extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $this->data ['machine_selector'] = $this->gvv_model->selector();
-        $pilote_selector = $this->membres_model->selector_with_null(array ());
+        $this->data['machine_selector'] = $this->gvv_model->selector();
+        $pilote_selector = $this->membres_model->selector_with_null(array());
 
         $this->gvvmetadata->set_selector('owner_selector', $pilote_selector);
         $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector());
@@ -77,8 +77,8 @@ class Planeur extends Gvv_Controller {
      * @param
      *            message message à afficher
      */
-    function page($premier = 0, $message = '', $selection = Array ()) {
-        $this->data ['action'] = VISUALISATION;
+    function page($premier = 0, $message = '', $selection = array()) {
+        $this->data['action'] = VISUALISATION;
         $this->load_filter($this->filter_variables);
 
         $selection = $this->selection();
@@ -102,14 +102,14 @@ class Planeur extends Gvv_Controller {
      * dans la section de filtrage.
      */
     function selection() {
-        $this->data ['filter_active'] = $this->session->userdata('filter_active');
+        $this->data['filter_active'] = $this->session->userdata('filter_active');
 
         $selection = "";
         if ($this->session->userdata('filter_active')) {
 
             $filter_machine_active = $this->session->userdata('filter_machine_actif');
             if ($filter_machine_active) {
-                $filter_machine_active --;
+                $filter_machine_active--;
                 $selection .= "(actif = \"$filter_machine_active\" )";
             }
 
@@ -124,7 +124,7 @@ class Planeur extends Gvv_Controller {
         }
 
         if ($selection == "")
-            $selection = array ();
+            $selection = array();
 
         return $selection;
     }
@@ -151,7 +151,7 @@ class Planeur extends Gvv_Controller {
         parent::test($format);
         $this->unit->run('Foo', 'is_string', 'test planeur');
         if ($format == "xml") {
-            $this->unit->XML_result("build/logs/test_planeur.xml", "Test planeur");
+            $this->unit->XML_result("results/test_planeur.xml", "Test planeur");
         } else {
             echo $this->unit->report();
         }

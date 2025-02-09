@@ -73,7 +73,7 @@ if (! defined('BASEPATH'))
  * </testcase>
  */
 class MY_Unit_Test extends CI_Unit_Test {
-    var $titles = array ();
+    var $titles = array();
     var $coverage;
     protected $CI;
     var $persistent_coverage_data = "coverage.data";
@@ -151,9 +151,9 @@ class MY_Unit_Test extends CI_Unit_Test {
     public function header($str, $level = "4") {
         $balise = "h" . $level;
         $count = count($this->results);
-        $titles [$count] = array (
-                'header' => $str,
-                'level' => $level
+        $titles[$count] = array(
+            'header' => $str,
+            'level' => $level
         );
         return ($this->active) ? "<$balise>$str</$balise>" . br() : "";
     }
@@ -178,10 +178,11 @@ class MY_Unit_Test extends CI_Unit_Test {
 
         $res = parent::run($test, $expected, $test_name, $notes);
         $count = count($this->results);
-        $result = $this->results [$count - 1] [0] ['result'];
+        $result = $this->results[$count - 1][0]['result'];
         if ($result == "failed")
-            $this->results [$count - 1] [0] ['notes'] .= " result=" . $test . ", expected=" . $expected;
+            $this->results[$count - 1][0]['notes'] .= " result=" . $test . ", expected=" . $expected;
 
+        // echo "res = " . $res . " result = " . $result . " expected = " . $expected . " test = " . $test . " test_name = " . $test_name . " notes = " . $notes;
         return $res;
     }
 
@@ -197,17 +198,17 @@ class MY_Unit_Test extends CI_Unit_Test {
         if (function_exists('debug_backtrace')) {
             $back = debug_backtrace();
 
-            $file = (! isset($back [$level] ['file'])) ? '' : $back [$level] ['file'];
-            $line = (! isset($back [$level] ['line'])) ? '' : $back [$level] ['line'];
+            $file = (! isset($back[$level]['file'])) ? '' : $back[$level]['file'];
+            $line = (! isset($back[$level]['line'])) ? '' : $back[$level]['line'];
 
-            return array (
-                    'file' => $file,
-                    'line' => $line
+            return array(
+                'file' => $file,
+                'line' => $line
             );
         }
-        return array (
-                'file' => 'Unknown',
-                'line' => 'Unknown'
+        return array(
+            'file' => 'Unknown',
+            'line' => 'Unknown'
         );
     }
 
@@ -219,23 +220,23 @@ class MY_Unit_Test extends CI_Unit_Test {
     public function cli_result() {
         $results = $this->result();
         $passed = $failed = 0;
-        foreach ( $results as $row ) {
-            $result = $row ['Result'];
-            $name = $row ['Test Name'];
-            $file = $row ['File Name'];
-            $line = $row ['Line Number'];
-            $notes = isset($row ['Notes']) ? $row ['Notes'] : "";
-            $result = $row ['Result'];
+        foreach ($results as $row) {
+            $result = $row['Result'];
+            $name = $row['Test Name'];
+            $file = $row['File Name'];
+            $line = $row['Line Number'];
+            $notes = isset($row['Notes']) ? $row['Notes'] : "";
+            $result = $row['Result'];
             if (preg_match('/.*\/application\/(.*)/', $file, $matches)) {
-                $file = $matches [1];
+                $file = $matches[1];
             }
 
             $str = sprintf("%-40s %-40s %6s %s", $file . ":" . $line, $name, $result, $notes);
             echo $str . PHP_EOL;
             if ($result == "Passed") {
-                $passed ++;
+                $passed++;
             } else {
-                $failed ++;
+                $failed++;
             }
         }
         $count = $passed + $failed;
@@ -263,26 +264,26 @@ class MY_Unit_Test extends CI_Unit_Test {
      * @param string $suitename
      */
     public function XML_result($filename, $suitename = "Test suite") {
-        
+
         $results = $this->result();
         $passed = $failed = 0;
-        foreach ( $results as $row ) {
-            $result = $row ['Result'];
-            $name = $row ['Test Name'];
-            $file = $row ['File Name'];
-            $line = $row ['Line Number'];
-            $notes = isset($row ['Notes']) ? $row ['Notes'] : "";
-            $result = $row ['Result'];
+        foreach ($results as $row) {
+            $result = $row['Result'];
+            $name = $row['Test Name'];
+            $file = $row['File Name'];
+            $line = $row['Line Number'];
+            $notes = isset($row['Notes']) ? $row['Notes'] : "";
+            $result = $row['Result'];
             if (preg_match('/.*\/application\/(.*)/', $file, $matches)) {
-                $file = $matches [1];
+                $file = $matches[1];
             }
 
             $str = sprintf("%-40s %-40s %6s %s", $file . ":" . $line, $name, $result, $notes);
             // echo $str .PHP_EOL;
             if ($result == "Passed") {
-                $passed ++;
+                $passed++;
             } else {
-                $failed ++;
+                $failed++;
             }
         }
         $count = $passed + $failed;
@@ -297,23 +298,26 @@ class MY_Unit_Test extends CI_Unit_Test {
         $xml .= " tests=\"$count\"";
         $xml .= '>' . PHP_EOL;
 
-        foreach ( $results as $row ) {
-            $result = $row ['Result'];
-            $name = $row ['Test Name'];
-            $file = $row ['File Name'];
-            $line = $row ['Line Number'];
-            $notes = isset($row ['Notes']) ? $row ['Notes'] : "";
-            $result = $row ['Result'];
+        foreach ($results as $row) {
+            $result = $row['Result'];
+            $name = $row['Test Name'];
+            $file = $row['File Name'];
+            $line = $row['Line Number'];
+            $notes = isset($row['Notes']) ? $row['Notes'] : "";
+            $result = $row['Result'];
             if (preg_match('/.*\/application\/(.*)/', $file, $matches)) {
-                $file = $matches [1];
+                $file = $matches[1];
             }
 
             $str = sprintf("%-40s %-40s %6s %s", $file . ":" . $line, $name, $result, $notes);
 
             $xml .= '<testcase';
             $xml .= " name=\"$name\"";
-            $xml .= '>' . PHP_EOL;
-            $xml .= $str . PHP_EOL;
+            $xml .= " file=\"$file\"";
+            $xml .= " line=\"$line\"";
+            $xml .= '>';
+            // . PHP_EOL;
+            // $xml .= $str . PHP_EOL;
 
             if ($result != "Passed") {
                 $xml .= "<failure>$str</failure>";
@@ -323,8 +327,7 @@ class MY_Unit_Test extends CI_Unit_Test {
         }
 
         $xml .= '</testsuite>' . PHP_EOL;
-        
+
         file_put_contents($filename, $xml);
     }
 }
-

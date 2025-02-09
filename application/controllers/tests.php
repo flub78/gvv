@@ -257,7 +257,7 @@ class Tests extends CI_Controller {
         $this->test_csv_helper();
 
         if ($format == "xml") {
-            $this->unit->XML_result("build/logs/test_helpers.xml", "Test Helpers");
+            $this->unit->XML_result("results/test_helpers.xml", "Test Helpers");
         } else {
             echo $this->unit->report();
         }
@@ -431,7 +431,7 @@ class Tests extends CI_Controller {
         // $this->test_coverage_library();
 
         if ($format == "xml") {
-            $this->unit->XML_result("build/logs/test_libraries.xml", "Test Libraries");
+            $this->unit->XML_result("results/test_libraries.xml", "Test Libraries");
         } else {
             echo $this->unit->report();
         }
