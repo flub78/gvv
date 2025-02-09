@@ -44,7 +44,7 @@ class Sections_model extends Common_Model {
     }
 
     /**
-     * Retourne un hash qui peut-être utilisé dans un menu drow-down
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
      * avec une entrée "Tous .
      * ."
      *
