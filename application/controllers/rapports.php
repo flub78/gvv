@@ -569,11 +569,9 @@ class Rapports extends Gvv_Controller {
                 $this->load->library('unit_test');
 
                 $this->unit->run(true, true, "Tests édition des rapports");
-                if ($format == "xml") {
-                        $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
-                } else {
-                        echo $this->unit->report();
-                }
+                $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
+                echo $this->unit->report();
+
                 $this->unit->save_coverage();
         }
 }

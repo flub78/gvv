@@ -251,16 +251,13 @@ class Tests extends CI_Controller {
     /**
      * All helpers unit tests
      */
-    public function test_helpers($format = "html") {
+    public function test_helpers() {
         $this->test_assets_helper();
         $this->test_form_elements_helper();
         $this->test_csv_helper();
 
-        if ($format == "xml") {
-            $this->unit->XML_result("results/test_helpers.xml", "Test Helpers");
-        } else {
-            echo $this->unit->report();
-        }
+        $this->unit->XML_result("results/test_helpers.xml", "Test Helpers");
+        echo $this->unit->report();
     }
 
     /**
@@ -423,18 +420,15 @@ class Tests extends CI_Controller {
     /**
      * All Libraries unit tests
      */
-    public function test_libraries($format = "html") {
+    public function test_libraries() {
         $this->test_log_library();
         $this->test_widget_library();
         $this->test_button_library();
         $this->test_metadata_library();
         // $this->test_coverage_library();
 
-        if ($format == "xml") {
-            $this->unit->XML_result("results/test_libraries.xml", "Test Libraries");
-        } else {
-            echo $this->unit->report();
-        }
+        $this->unit->XML_result("results/test_libraries.xml", "Test Libraries");
+        echo $this->unit->report();
     }
 
     /*

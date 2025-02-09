@@ -150,11 +150,9 @@ class Planeur extends Gvv_Controller {
     function test($format = "html") {
         parent::test($format);
         $this->unit->run('Foo', 'is_string', 'test planeur');
-        if ($format == "xml") {
-            $this->unit->XML_result("results/test_planeur.xml", "Test planeur");
-        } else {
-            echo $this->unit->report();
-        }
+        $this->unit->XML_result("results/test_planeur.xml", "Test planeur");
+        echo $this->unit->report();
+
         $this->unit->save_coverage();
     }
 }

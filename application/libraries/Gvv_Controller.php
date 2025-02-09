@@ -851,13 +851,11 @@ class Gvv_Controller extends CI_Controller {
      * @param string $format
      */
     public function tests_results($format = "html", $controller = "") {
-        if ($format == "xml") {
-            if (!$controller)
-                $controller = $this->controller;
-            $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
-        } else {
-            echo $this->unit->report();
-        }
+        if (!$controller)
+            $controller = $this->controller;
+        $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
+        echo $this->unit->report();
+
         $this->unit->save_coverage();
     }
 }
