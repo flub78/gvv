@@ -311,8 +311,6 @@ class MY_Unit_Test extends CI_Unit_Test {
 
             $xml .= '<testcase';
             $xml .= " name=\"$name\"";
-            $xml .= " file=\"$file\"";
-            $xml .= " line=\"$line\"";
             $xml .= '>';
             // . PHP_EOL;
             // $xml .= $str . PHP_EOL;
