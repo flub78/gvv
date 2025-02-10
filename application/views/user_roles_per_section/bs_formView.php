@@ -37,16 +37,17 @@ $this->lang->load('sections');
 
 	<div class="card uper">
 		<div class="card-header">
-			<h3><?= $this->lang->line("gvv_sections_title") ?> </h3>
+			<h3><?= $this->lang->line("gvv_user_roles_per_section_title") ?> </h3>
 		</div>
 		<div class="card-body">
 			<?php echo validation_errors(); ?>
 			<p><?= $image ?></p>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
-				<?= ($this->gvvmetadata->form('sections', array(
-					'nom' => $nom,
-					'description' => $description
+				<?= ($this->gvvmetadata->form('user_roles_per_section', array(
+					'user_id' => $user_id,
+					'types_roles_id' => $types_roles_id,
+					'section_id' => $section_id,
 				))); ?>
 
 				<?= validation_button($action); ?>
