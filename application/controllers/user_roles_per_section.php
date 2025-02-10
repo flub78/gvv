@@ -47,7 +47,7 @@ class User_roles_per_section extends Gvv_Controller {
     function __construct() {
 
         parent::__construct();
-        $this->lang->load('sections');
+        $this->lang->load('user_roles_per_section');
     }
 
     /**
@@ -78,8 +78,6 @@ class User_roles_per_section extends Gvv_Controller {
      */
     function test($format = "html") {
 
-        echo "Test $this->controller";
-        return;
 
         $this->unit_test = TRUE;
         $this->load->library('unit_test');
@@ -87,6 +85,8 @@ class User_roles_per_section extends Gvv_Controller {
         $this->unit->run(true, true, "Tests $this->controller");
 
         $res = $this->gvv_model->test();
+
+
         $all_passed = !in_array(false, array_column($res, 'result'));
         if ($all_passed) {
             $count = count($res);
@@ -97,7 +97,7 @@ class User_roles_per_section extends Gvv_Controller {
             }
         }
 
-        parent::test();
+        // parent::test();
         $this->tests_results('xml');
         $this->tests_results($format);
     }

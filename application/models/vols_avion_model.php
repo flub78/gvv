@@ -22,7 +22,7 @@
 if (! defined('BASEPATH'))
     exit('No direct script access allowed');
 
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->model('common_model');
 
 /**
@@ -43,20 +43,20 @@ class Vols_avion_model extends Common_Model {
      *            Tableau associatif permettant de définir des conditions
      * @return integer La somme du champ satisfaisant la condition
      */
-    public function sum($field, $where = array (), $selection = array ()) {
+    public function sum($field, $where = array(), $selection = array()) {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
 
         $res = $this->db->select("MIN('vaduree'), MIN('mdaten')")->from('volsa, membres, machinesa')->select_sum($field)->where($where2)->where($where)->where($selection)->get();
 
         gvv_debug("sql: sum hours avion: " . $this->db->last_query());
         if ($this->db->_error_number()) {
-		    gvv_debug("sql: error: " .  $this->db->_error_number() . " - " . $this->db->_error_message());
+            gvv_debug("sql: error: " .  $this->db->_error_number() . " - " . $this->db->_error_message());
         }
         if ($res) {
             return $res->row()->$field;
-		} else {
+        } else {
             return 0;
-		}
+        }
         return $row->$field;
     }
 
@@ -67,7 +67,7 @@ class Vols_avion_model extends Common_Model {
      *            Tableau associatif permettant de définir des conditions
      * @return integer Le nombre de lignes satisfaisant la condition
      */
-    public function count($where = array (), $selection = array ()) {
+    public function count($where = array(), $selection = array()) {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
         $count = $this->db->select('vaduree, mdaten')->from('volsa, membres, machinesa')->where($where2)->where($where)->count_all_results();
         return $count;
@@ -99,7 +99,7 @@ class Vols_avion_model extends Common_Model {
      *
      * @return objet La liste
      */
-    public function select_page($year, $nb = 1000, $debut = 0, $selection = array (), $order = 'desc') {
+    public function select_page($year, $nb = 1000, $debut = 0, $selection = array(), $order = 'desc') {
         $this->load->model('membres_model');
 
         $date25 = date_m25ans($year);
@@ -108,21 +108,23 @@ class Vols_avion_model extends Common_Model {
         $select = 'vaid, vadate, vapilid, vamacid, vacdeb, vacfin, vaduree, vaatt, vaobs, vainst as instructeur, valieudeco';
         $select .= ', concat(mprenom," ", mnom) as pilote, vacategorie, vadc, maprive as prive';
         $select .= ", facture, mdaten, (mdaten > \"$date25\") as m25ans, payeur, essence, reappro";
+
         $from = 'volsa, membres, machinesa';
 
         // echo "select $select from $from where $where and $selection" . br(); exit;
 
         $result = $this->db->select($select, FALSE)->from($from)->where($where)->where($selection)->
-        // ->limit($nb, $debut)
-        order_by("vadate $order, vacdeb $order")->get()->result_array();
+            // ->limit($nb, $debut)
+            order_by("vadate $order, vacdeb $order")->get()->result_array();
+
         gvv_debug("sql: " . $this->db->last_query());
 
-        foreach ( $result as $key => $row ) {
+        foreach ($result as $key => $row) {
             // var_dump($row);
             $kid = $this->primary_key;
-            $image = $this->image($row [$kid], TRUE);
-            $result [$key] ['image'] = "le vol " . $image;
-            $result [$key] ['instructeur'] = $this->membres_model->image($row ['instructeur'], true);
+            $image = $this->image($row[$kid], TRUE);
+            $result[$key]['image'] = "le vol " . $image;
+            $result[$key]['instructeur'] = $this->membres_model->image($row['instructeur'], true);
         }
 
         $this->gvvmetadata->store_table("vue_vols_avion", $result);
@@ -136,18 +138,18 @@ class Vols_avion_model extends Common_Model {
      *
      * @param unknown_type $selection
      */
-    public function conso($year, $selection = array ()) {
-        $conso = array ();
+    public function conso($year, $selection = array()) {
+        $conso = array();
         // On extrait la selection complète
         $select_result = $this->select_page($year, 1000000000, 0, $selection, "asc");
 
         // Calcul des infos par machine sur tout l'intervalle
-        foreach ( $select_result as $vol ) {
-            $machine = $vol ['vamacid'];
-            $essence = $vol ['essence'];
-            $debut = $vol ['vacdeb'];
-            $fin = $vol ['vacfin'];
-            $reappro = $vol ['reappro'];
+        foreach ($select_result as $vol) {
+            $machine = $vol['vamacid'];
+            $essence = $vol['essence'];
+            $debut = $vol['vacdeb'];
+            $fin = $vol['vacfin'];
+            $reappro = $vol['reappro'];
 
             // aucun = 0, avant = 1, après = 2
             $avant = 1;
@@ -157,48 +159,48 @@ class Vols_avion_model extends Common_Model {
             if ($essence <= 0)
                 continue;
 
-                // Il y a un avitaillement
-                // echo "machine=$machine, essence=$essence, debut=$debut, fin=$fin, reappro=$reappro" . br();
+            // Il y a un avitaillement
+            // echo "machine=$machine, essence=$essence, debut=$debut, fin=$fin, reappro=$reappro" . br();
 
             if (! array_key_exists($machine, $conso)) {
                 // creation de la machine
-                $conso [$machine] = array (
-                        'debut' => $debut,
-                        'fin' => $fin,
-                        'essence' => $essence,
-                        'ess_avant' => 0
+                $conso[$machine] = array(
+                    'debut' => $debut,
+                    'fin' => $fin,
+                    'essence' => $essence,
+                    'ess_avant' => 0
                 );
                 if ($reappro == $avant) {
-                    $conso [$machine] ['essence'] = 0;
-                    $conso [$machine] ['ess_avant'] = $essence;
+                    $conso[$machine]['essence'] = 0;
+                    $conso[$machine]['ess_avant'] = $essence;
                 } else {
-                    $conso [$machine] ['essence'] = $essence;
+                    $conso[$machine]['essence'] = $essence;
                 }
             }
 
-            if ($fin > $conso [$machine] ['fin']) {
+            if ($fin > $conso[$machine]['fin']) {
                 // étend l'interval par sa limite supérieure
-                $conso [$machine] ['fin'] = $fin;
-                $conso [$machine] ['essence'] += $essence;
+                $conso[$machine]['fin'] = $fin;
+                $conso[$machine]['essence'] += $essence;
             }
         }
 
-        $conso_tab = array ();
-        $conso_tab [] = array (
-                "Machine",
-                "Temps",
-                "Essence",
-                "Moyenne"
+        $conso_tab = array();
+        $conso_tab[] = array(
+            "Machine",
+            "Temps",
+            "Essence",
+            "Moyenne"
         );
-        foreach ( $conso as $machine => $row ) {
-            $temps = $row ['fin'] - $row ['debut'];
-            $essence = $row ['essence'];
+        foreach ($conso as $machine => $row) {
+            $temps = $row['fin'] - $row['debut'];
+            $essence = $row['essence'];
             $moyenne = $essence / $temps;
-            $conso_tab [] = array (
-                    $machine,
-                    sprintf("%6.2f", $temps),
-                    $essence,
-                    sprintf("%6.2f", $moyenne)
+            $conso_tab[] = array(
+                $machine,
+                sprintf("%6.2f", $temps),
+                $essence,
+                sprintf("%6.2f", $moyenne)
             );
         }
         return $conso_tab;
@@ -214,10 +216,12 @@ class Vols_avion_model extends Common_Model {
         if ($key == "")
             return "";
         $vals = $this->get_by_id('vaid', $key);
-        if (array_key_exists('vamacid', $vals) && 
-            array_key_exists('vacdeb', $vals) && 
-            array_key_exists('vadate', $vals)) {
-            return date_db2ht($vals ['vadate']) . " " . $vals ['vacdeb']  . " " . $vals ['vamacid'];
+        if (
+            array_key_exists('vamacid', $vals) &&
+            array_key_exists('vacdeb', $vals) &&
+            array_key_exists('vadate', $vals)
+        ) {
+            return date_db2ht($vals['vadate']) . " " . $vals['vacdeb']  . " " . $vals['vamacid'];
         } else {
             return "Vol inconnu $key";
         }
@@ -227,7 +231,7 @@ class Vols_avion_model extends Common_Model {
      * select count(*) as count, sum(vpduree) as minutes, month(vpdate) as month
      * from volsp group by month;
      */
-    public function monthly_sum($group_by = '', $where = array (), $selection = array ()) {
+    public function monthly_sum($group_by = '', $where = array(), $selection = array()) {
         $select = $this->db->select('count(*) as count, year(vadate) as current_year, month(vadate) as month, mdaten, msexe, vacategorie, vadc, vamacid')->from('volsa, membres')->select_sum('vaduree', 'centiemes')->where($where)->where($selection)->where('volsa.vapilid = membres.mlogin')->group_by($group_by)->get()->result_array();
 
         $query = $this->db->last_query();
@@ -243,48 +247,48 @@ class Vols_avion_model extends Common_Model {
      * select count(*) as count, sum(vpduree) as minutes, month(vpdate) as month
      * from volsp group by month;
      */
-    public function line_monthly($type = 'count', $where = array (), $percent = array ()) {
+    public function line_monthly($type = 'count', $where = array(), $percent = array()) {
         $what = 'count(*) as count, year(vadate) as current_year, month(vadate) as month, mdaten, msexe, vacategorie, vadc, vamacid';
 
         $db_res = $this->db->select($what)
-			->from('volsa, membres')
-			->select_sum('vaduree', 'centiemes')
-			->where($where)
-			->where('volsa.vapilid = membres.mlogin')
-			->get();
-		$total = $this->get_to_array($db_res);
+            ->from('volsa, membres')
+            ->select_sum('vaduree', 'centiemes')
+            ->where($where)
+            ->where('volsa.vapilid = membres.mlogin')
+            ->get();
+        $total = $this->get_to_array($db_res);
 
         $db_res = $this->db->select($what)
-			->from('volsa, membres')
-			->select_sum('vaduree', 'centiemes')
-			->where($where)
-			->where('volsa.vapilid = membres.mlogin')
-			->group_by('month')
-			->get();
-		$per_month = $this->get_to_array($db_res);
+            ->from('volsa, membres')
+            ->select_sum('vaduree', 'centiemes')
+            ->where($where)
+            ->where('volsa.vapilid = membres.mlogin')
+            ->group_by('month')
+            ->get();
+        $per_month = $this->get_to_array($db_res);
 
 
-        $res = array (
-                ''
+        $res = array(
+            ''
         );
-        $res [] = $total [0] [$type];
-        for($i = 1; $i <= 12; $i ++) {
-            $res [] = '';
+        $res[] = $total[0][$type];
+        for ($i = 1; $i <= 12; $i++) {
+            $res[] = '';
         }
-        foreach ( $per_month as $row ) {
-            $month = $row ['month'];
-            $res [$month + 1] = $row [$type];
+        foreach ($per_month as $row) {
+            $month = $row['month'];
+            $res[$month + 1] = $row[$type];
         }
 
         if ($percent) {
-            for($i = 1; $i <= 12; $i ++) {
-                if ($percent [$i]) {
-                    $res [$i] = ( int ) ($res [$i] * 1000 / $percent [$i]) / 10;
+            for ($i = 1; $i <= 12; $i++) {
+                if ($percent[$i]) {
+                    $res[$i] = (int) ($res[$i] * 1000 / $percent[$i]) / 10;
                 } else {
-                    $res [$i] = '';
+                    $res[$i] = '';
                 }
-                if (abs($res [$i]) < 0.00001)
-                    $res [$i] = '';
+                if (abs($res[$i]) < 0.00001)
+                    $res[$i] = '';
             }
         }
 
@@ -305,15 +309,15 @@ class Vols_avion_model extends Common_Model {
      * @param $order ordre
      *            de tri
      */
-    public function selector($where = array (), $order = "asc") {
+    public function selector($where = array(), $order = "asc") {
         $key = $this->primary_key;
 
         $allkeys = $this->db->select($key)->from($this->table)->where($where)->order_by("vadate $order, vacdeb $order")->get()->result_array();
 
-        $result = array ();
-        foreach ( $allkeys as $row ) {
-            $value = $row [$key];
-            $result [$value] = $this->image($value);
+        $result = array();
+        foreach ($allkeys as $row) {
+            $value = $row[$key];
+            $result[$value] = $this->image($value);
         }
         return $result;
     }
@@ -330,9 +334,9 @@ class Vols_avion_model extends Common_Model {
         if ($club) {
             $facturation_module = "Facturation_" . $club;
             $this->load->library($facturation_module, '', "facturation_club");
-            $data ['logs'] = $this->facturation_club->facture_vol_avion($vol);
+            $data['logs'] = $this->facturation_club->facture_vol_avion($vol);
         } else {
-            $data ['logs'] = $this->facturation_generique->facture_vol_avion($vol);
+            $data['logs'] = $this->facturation_generique->facture_vol_avion($vol);
         }
     }
 
@@ -343,8 +347,8 @@ class Vols_avion_model extends Common_Model {
      */
     public function delete_facture($id) {
         $this->load->model('achats_model');
-        $achats = $this->achats_model->delete(array (
-                'vol_avion' => $id
+        $achats = $this->achats_model->delete(array(
+            'vol_avion' => $id
         ));
     }
 
@@ -355,10 +359,10 @@ class Vols_avion_model extends Common_Model {
      *            hash des valeurs
      */
     public function create($data) {
-        unset($data ['vaid']);
+        unset($data['vaid']);
         if ($this->db->insert($this->table, $data)) {
             $id = $this->db->insert_id();
-            $data ['vaid'] = $id;
+            $data['vaid'] = $id;
             /*
              * var_dump($data);
              * array
@@ -409,10 +413,10 @@ class Vols_avion_model extends Common_Model {
      */
     public function update($keyid, $data, $keyvalue = '') {
         // detruit les lignes d'achat correspondante
-        $this->delete_facture($data [$keyid]);
+        $this->delete_facture($data[$keyid]);
 
         // MAJ du vol
-        $keyvalue = $data [$keyid];
+        $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
         $this->db->update($this->table, $data);
 
@@ -425,12 +429,12 @@ class Vols_avion_model extends Common_Model {
      *
      * @param unknown_type $data
      */
-    function delete($where = array ()) {
+    function delete($where = array()) {
 
         // detruit les lignes d'achat correspondante
         $selection = $this->select_all($where);
-        foreach ( $selection as $row ) {
-            $this->delete_facture($row ['vaid']);
+        foreach ($selection as $row) {
+            $this->delete_facture($row['vaid']);
         }
         // Detruit le vol
         $this->db->delete($this->table, $where);
@@ -444,17 +448,17 @@ class Vols_avion_model extends Common_Model {
     public function cumul_heures($year, $first_year) {
         $json = "[";
         $y = $first_year;
-        while ( $y <= $year ) {
-            $yearly_res = $this->monthly_sum('month', array (
-                    'year(vadate)' => $y
+        while ($y <= $year) {
+            $yearly_res = $this->monthly_sum('month', array(
+                'year(vadate)' => $y
             ));
 
             $partial_json = "[";
 
             $total = 0;
-            foreach ( $yearly_res as $month_values ) {
-                $month = $month_values ['month'];
-                $hours = $month_values ['centiemes'];
+            foreach ($yearly_res as $month_values) {
+                $month = $month_values['month'];
+                $hours = $month_values['centiemes'];
 
                 $total += $hours;
                 if (strlen($partial_json) > 2) {
@@ -469,24 +473,23 @@ class Vols_avion_model extends Common_Model {
             if ($y != $year) {
                 $json .= ", ";
             }
-            $y ++;
+            $y++;
         }
         $json .= "]";
 
         return $json;
     }
-    
+
     /*
      * Retourne les vols
      */
-    function get($where = array ()) {
-        
+    function get($where = array()) {
+
         $selection = $this->select_all($where);
-        foreach ( $selection as $row ) {
+        foreach ($selection as $row) {
         }
         return $selection;
     }
-    
 }
 
 /* End of file vols_avion_model.php */

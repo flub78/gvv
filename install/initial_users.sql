@@ -54,7 +54,7 @@ INSERT INTO `users` (`id`, `role_id`, `username`, `password`, `email`, `banned`,
 (58, 7, 'testplanchiste', '$1$DT0.QJ1.$yXqRz6gf/jWC4MzY2D05Y.', 'testplanchiste@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:00:23', '2014-12-23 20:38:02'),
 (59, 8, 'testca', '$1$9h..cY3.$NzkeKkCoSa2oxL7bQCq4v1', 'testca@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:00:58', '2014-12-23 20:38:30'),
 (60, 3, 'testbureau', '$1$NC0.SN5.$qwnSUxiPbyh6v2JrhA1fH1', 'testbureau@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '2012-01-25 21:03:01', '2012-01-25 21:01:36', '2014-12-23 20:39:00'),
-(61, 9, 'testtressorier', '$1$KiPMl0ho$/E3NBaprpM5Xcv.z40zjK0', 'testresorier@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:02:36', '2012-01-25 20:02:36');
+(61, 9, 'testtresorier', '$1$KiPMl0ho$/E3NBaprpM5Xcv.z40zjK0', 'testresorier@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:02:36', '2012-01-25 20:02:36');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
