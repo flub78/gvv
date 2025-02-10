@@ -731,6 +731,20 @@ class GVVMetadata extends Metadata {
                 $this->field['attachments']['file']['Subtype'] = 'loader';
                 $this->field['attachments']['file']['Subtype'] = 'upload_image';
 
+
+
+                /**
+                 * Rôles par section
+                 */
+                $this->field['user_roles_per_section']['types_roles_id']['Subtype'] = 'selector';
+                $this->field['user_roles_per_section']['types_roles_id']['Selector'] = 'role_selector';
+
+                $this->field['user_roles_per_section']['section_id']['Subtype'] = 'selector';
+                $this->field['user_roles_per_section']['section_id']['Selector'] = 'section_selector';
+
+                $this->field['user_roles_per_section']['user_id']['Subtype'] = 'selector';
+                $this->field['user_roles_per_section']['user_id']['Selector'] = 'user_selector';
+
                 // $this->dump();
         }
 }

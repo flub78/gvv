@@ -48,6 +48,29 @@ class User_roles_per_section extends Gvv_Controller {
 
         parent::__construct();
         $this->lang->load('user_roles_per_section');
+        $this->load->model('sections_model');
+        $this->load->model('types_roles_model');
+        // $this->load->model('dx_auth/users', 'users_model');
+    }
+
+    /**
+     * Génération des éléments à passer au formulaire en cas de création,
+     * modification ou réaffichage après erreur.
+     *
+     * @param string $action
+     *            creation, modification
+     */
+    function form_static_element($action) {
+        parent::form_static_element($action);
+
+        $section_selector = $this->sections_model->selector();
+        $this->gvvmetadata->set_selector('section_selector', $section_selector);
+        // $this->gvvmetadata->set_selector('user_selector', $this->users_model->selector());
+
+        $role_selector = $this->types_roles_model->selector();
+        $this->gvvmetadata->set_selector('role_selector', $role_selector);
+
+        $this->data['saisie_par'] = $this->dx_auth->get_username();
     }
 
     /**
