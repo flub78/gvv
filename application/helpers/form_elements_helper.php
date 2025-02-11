@@ -53,12 +53,22 @@ if (! function_exists('input_field')) {
     }
 }
 
+/**
+ * Generate a dropdown list
+ * 
+ * $name: name of the select
+ * $options: array of values in keyy=>value
+ * $value: current value of the select
+ * $attrs: string attributes
+ * 
+ * $pilot = dropdown_field('mlogin', $mlogin, $pilote_selector, "id='mlogin' ");
+ */
 if (! function_exists('dropdown_field')) {
     function dropdown_field($name, $value, $options, $attrs) {
         if (!$attrs) {
             $attrs = 'class="form-control big_select" ';
         }
-        $res = form_dropdown($name, $options, $value, $attrs);
+        $res = form_dropdown($name, $options, $value, $attrs);r
         return $res;
     }
 }

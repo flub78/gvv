@@ -50,6 +50,23 @@ class User_roles_per_section extends Gvv_Controller {
         $this->load->model('sections_model');
         $this->load->model('types_roles_model');
         $this->load->model('dx_auth/users', 'users_model');
+
+        $this->section_selector = $this->sections_model->selector();
+        $this->gvvmetadata->set_selector('section_selector', $this->section_selector);
+    }
+
+
+    /**
+     * Affiche une page d'éléments
+     *
+     * @param $premier élément
+     *            à afficher
+     * @param
+     *            message message à afficher
+     */
+    function page($premier = 0, $message = '', $selection = array()) {
+        $this->data['section_selector'] = $this->section_selector;
+        parent::page($premier, $message, $selection);
     }
 
     /**
@@ -61,9 +78,6 @@ class User_roles_per_section extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-
-        $section_selector = $this->sections_model->selector();
-        $this->gvvmetadata->set_selector('section_selector', $section_selector);
 
         $role_selector = $this->types_roles_model->selector();
         $this->gvvmetadata->set_selector('role_selector', $role_selector);

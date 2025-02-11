@@ -41,6 +41,13 @@ $attrs = array(
     <h3><?= $this->lang->line("gvv_user_roles_per_section_title") ?></h3>
     <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
-    <?= $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "") ?>
+    <div>
+        <div>
+            <?= dropdown_field('section', 'Planeur', ["1" => "Planeu", "2" => "ULM"], 'class="form-control big_select"') ?>
+        </div>
+        <div><?= $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "") ?></div>
+    </div>
+
+
 
 </div>

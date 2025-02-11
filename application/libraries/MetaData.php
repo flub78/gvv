@@ -454,9 +454,9 @@ abstract class Metadata {
      */
 
     /**
-     * Generate an HTML table
+     * Generate an HTML table from $this->db[$table]
      *
-     * @param strin $table name
+     * @param string $table name
      * @param $attrs display
      *            attributes
      *            possible values:
