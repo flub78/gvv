@@ -1,5 +1,5 @@
 <?php
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->model('common_model');
 
 class Users extends Common_Model {
@@ -7,7 +7,7 @@ class Users extends Common_Model {
     protected $primary_key = 'id';
 
     function __construct() {
-        parent :: __construct();
+        parent::__construct();
         // Other stuff
         $this->_prefix = $this->config->item('DX_table_prefix');
         $this->_table = $this->_prefix . $this->config->item('DX_users_table');
@@ -20,7 +20,7 @@ class Users extends Common_Model {
         $users_table = $this->_table;
         $roles_table = $this->_roles_table;
 
-        if ($offset >= 0 AND $row_count > 0) {
+        if ($offset >= 0 and $row_count > 0) {
             $this->db->select("$users_table.*", FALSE);
             $this->db->select("$roles_table.name AS role_name", FALSE);
             $this->db->join($roles_table, "$roles_table.id = $users_table.role_id");
@@ -79,7 +79,7 @@ class Users extends Common_Model {
     }
 
     function ban_user($user_id, $reason = NULL) {
-        $data = array (
+        $data = array(
             'banned' => 1,
             'ban_reason' => $reason
         );
@@ -87,7 +87,7 @@ class Users extends Common_Model {
     }
 
     function unban_user($user_id) {
-        $data = array (
+        $data = array(
             'banned' => 0,
             'ban_reason' => NULL
         );
@@ -95,7 +95,7 @@ class Users extends Common_Model {
     }
 
     function set_role($user_id, $role_id) {
-        $data = array (
+        $data = array(
             'role_id' => $role_id
         );
         return $this->set_user($user_id, $data);
@@ -128,7 +128,7 @@ class Users extends Common_Model {
     // Forgot password function
 
     function newpass($user_id, $pass, $key) {
-        $data = array (
+        $data = array(
             'newpass' => $pass,
             'newpass_key' => $key,
             'newpass_time' => date('Y-m-d h:i:s', time() + $this->config->item('DX_forgot_password_expire'))
@@ -148,7 +148,7 @@ class Users extends Common_Model {
     }
 
     function clear_newpass($user_id) {
-        $data = array (
+        $data = array(
             'newpass' => NULL,
             'newpass_key' => NULL,
             'newpass_time' => NULL
@@ -163,5 +163,21 @@ class Users extends Common_Model {
         $this->db->where('id', $user_id);
         return $this->db->update($this->_table);
     }
+
+    /**
+     * Retourne une chaine de caractère qui identifie une ligne de façon unique.
+     * Cette chaine est utilisé dans les affichages.
+     * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
+     * surchargée.
+     */
+    public function image($key) {
+        if ($key == "")
+            return "";
+        $vals = $this->get_by_id('id', $key);
+        if (array_key_exists('id', $vals) && array_key_exists('username', $vals)) {
+            return $vals['username'] . " - " . $vals['email'];
+        } else {
+            return "user inconnu $key";
+        }
+    }
 }
-?>
