@@ -28,11 +28,6 @@ $this->load->view('bs_banner');
 
 $this->lang->load('sections');
 
-echo '<div id="body" class="body container-fluid">';
-
-echo heading("gvv_user_roles_per_section_title", 3);
-echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
-
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete'),
@@ -40,7 +35,12 @@ $attrs = array(
     'mode' => "rw",
     'class' => "datatable table table-striped"
 );
+?>
 
-echo $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "");
+<div id="body" class="body container-fluid">
+    <h3><?= $this->lang->line("gvv_user_roles_per_section_title") ?></h3>
+    <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
-echo '</div>';
+    <?= $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "") ?>
+
+</div>

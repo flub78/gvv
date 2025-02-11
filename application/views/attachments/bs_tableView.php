@@ -42,12 +42,5 @@ $attrs = array(
 );
 
 echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
-/*
-$bar = array(
-	array('label' => "Excel", 'url' =>"$controller/export/csv", 'role' => 'ca'),
-	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
-	);
-echo button_bar4($bar);
-*/
 
 echo '</div>';
