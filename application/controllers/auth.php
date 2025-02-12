@@ -72,6 +72,14 @@ class Auth extends CI_Controller {
         $data['url_club'] = $this->config->item('url_club');
         $data['sections_selector'] = $this->sections_model->selector_with_all();
 
+        // I tried to setup the section selector in the GVV controller, but there are a lot of controllers which are not GVV controllers.
+        // So it has to be done here
+        if (! $this->session->userdata('section_selector')) {
+            $this->load->model('sections_model');
+            $section_selector = $this->sections_model->selector_with_all();
+            $this->session->set_userdata('section_selector', $section_selector);
+        }
+
         if (! $this->dx_auth->is_logged_in()) {
             $val = $this->form_validation;
 

@@ -323,7 +323,7 @@ $this->lang->load('sections');
               <?= $gvv_role ?>
             </div>
             <div>
-              <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="form-control big_select" onchange="updateSection(this.value)"') ?>
+              <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="" onchange="updateSection(this.value)"') ?>
             </div>
           </div>
           <script>
