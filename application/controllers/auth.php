@@ -110,7 +110,7 @@ class Auth extends CI_Controller {
                 if ($this->input->post('section')) {
                     $section = $this->input->post('section');
                     $session['section'] = $section;
-                    $session['current_section'] = $this->sections_model->image($section);
+                    $session['section_image'] = $this->sections_model->image($section);
                 }
                 $this->session->set_userdata($session);
 

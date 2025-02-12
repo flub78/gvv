@@ -56,6 +56,13 @@ class User_roles_per_section extends Gvv_Controller {
     }
 
 
+    function set_section() {
+        $section = $this->input->post('section');
+        $this->session->set_userdata('section', $section);
+        $this->session->set_userdata('section_image', $this->sections_model->image($section));
+        redirect(site_url($this->controller));
+    }
+
     /**
      * Affiche une page d'éléments
      *
@@ -66,6 +73,8 @@ class User_roles_per_section extends Gvv_Controller {
      */
     function page($premier = 0, $message = '', $selection = array()) {
         $this->data['section_selector'] = $this->section_selector;
+        $section = $this->session->userdata('section');
+
         parent::page($premier, $message, $selection);
     }
 

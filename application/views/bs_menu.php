@@ -320,7 +320,7 @@ $this->lang->load('sections');
           <div class="text-white me-1 text-center">
             <?= $gvv_user ?>
             <div class="text-white me-1 text-center"><?= $gvv_role ?></div>
-            <?= $this->session->userdata('current_section') ?>
+            <?= $this->session->userdata('section_image') ?>
           </div>
 
           <li class="nav-item dropdown">
