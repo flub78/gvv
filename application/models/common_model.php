@@ -12,8 +12,8 @@ if (! defined('BASEPATH'))
  * Le modèle commun implémente un simple CRUD (Create, Read, Update, Delete).
  *
  * Il fournit les fonction de création, lecture, mise à jour et suppression sur une table simple.
- * De cette façon tout le code courrant est géré par ce module d'interface avec la base de données.
- * Dans les cas simple les enfants n'on besoin que de déclarer le nom de la table
+ * De cette façon tout le code courant est géré par ce module d'interface avec la base de données.
+ * Dans les cas simple les enfants n'ont besoin que de déclarer le nom de la table
  * sur laquelle ils travaillent.
  */
 class Common_Model extends CI_Model {
@@ -22,8 +22,6 @@ class Common_Model extends CI_Model {
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct() {
         parent::__construct();
@@ -88,8 +86,6 @@ class Common_Model extends CI_Model {
      * @return hash des valeurs
      */
     public function get_by_id($keyid, $keyvalue) {
-        $table = $this->table;
-
         $this->db->where($keyid, $keyvalue);
         $res = $this->db->get($this->table)->row_array();
         return $res;
@@ -220,7 +216,7 @@ class Common_Model extends CI_Model {
     }
 
     /**
-     * Retourne un hash qui peut-être utilisé dans un menu drow-down
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
      *
      * @param $where selection
      * @param $order ordre
@@ -246,7 +242,7 @@ class Common_Model extends CI_Model {
     }
 
     /**
-     * Retourne un hash qui peut-être utilisé dans un menu drow-down
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
      * avec une entrée "Tous .
      * ."
      *
@@ -259,7 +255,7 @@ class Common_Model extends CI_Model {
     }
 
     /**
-     * Retourne un hash qui peut-être utilisé dans un menu drow-down
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
      * avec une entrée vide
      *
      * @param $where selection
@@ -275,7 +271,7 @@ class Common_Model extends CI_Model {
     }
 
     /**
-     * Génère un selecteur d'année contenant toutes les années possibles pour une table
+     * Génère un sélecteur d'année contenant toutes les années possibles pour une table
      *
      * @param $date_field champ
      *            contenant la date dont extraire l'année

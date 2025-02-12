@@ -18,13 +18,20 @@ class Avions_model extends Common_Model {
     protected $primary_key = 'macimmat';
 
     /**
+     * Constructor
+     */
+    function __construct() {
+        parent::__construct();
+
+        $this->section_id = $this->session->userdata('section');
+        $this->section = $this->sections_model->get_by_id('id', $this->section_id);
+    }
+
+    /**
      *	Retourne le tableau tableau utilisé pour l'affichage par page
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0, $selection = array()) {
-
-        $this->section_id = $this->session->userdata('section');
-        $this->section = $this->sections_model->get_by_id('id', $this->section_id);
 
         $columns = 'macmodele, macimmat, macconstruc, macplaces, macrem, maprive, actif, fabrication, club, sections.nom as section_name';
 
@@ -34,6 +41,8 @@ class Avions_model extends Common_Model {
             ->where($selection)
             ->order_by('macimmat asc');
         $this->db->join('sections', 'machinesa.club = sections.id');
+
+        // select per section
         if ($this->section) {
             $this->db->where('sections.id', $this->section_id);
         }
