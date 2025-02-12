@@ -47,19 +47,16 @@ class User_roles_per_section extends Gvv_Controller {
 
         parent::__construct();
         $this->lang->load('user_roles_per_section');
-        $this->load->model('sections_model');
         $this->load->model('types_roles_model');
         $this->load->model('dx_auth/users', 'users_model');
-
-        $this->section_selector = $this->sections_model->selector();
-        $this->gvvmetadata->set_selector('section_selector', $this->section_selector);
     }
 
-
+    /** 
+     * Select the current section
+     */
     function set_section() {
         $section = $this->input->post('section');
         $this->session->set_userdata('section', $section);
-        $this->session->set_userdata('section_image', $this->sections_model->image($section));
         redirect(site_url($this->controller));
     }
 

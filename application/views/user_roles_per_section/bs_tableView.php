@@ -42,20 +42,10 @@ $attrs = array(
     <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
     <div>
-        <div style="width: fit-content; float: left; margin-bottom: 10px;">
-            <?= $this->lang->line("gvv_sections_element") . " : " ?>
-            <?= dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="form-control big_select" onchange="updateSection(this.value)"') ?>
+        <div style="clear: both;">
+            <?= $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "") ?>
         </div>
-        <div style="clear: both;"><?= $this->gvvmetadata->table("vue_user_roles_per_section", $attrs, "") ?></div>
-        <script>
-            function updateSection(value) {
-                $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
-                    section: value
-                }, function() {
-                    window.location.reload();
-                });
-            }
-        </script>
+
     </div>
 
 

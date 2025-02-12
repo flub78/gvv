@@ -88,6 +88,12 @@ class Gvv_Controller extends CI_Controller {
 
         $current_url = current_url();
         gvv_debug("URL: " . $current_url);
+
+        if (! $this->session->userdata('section_selector')) {
+            $this->load->model('sections_model');
+            $section_selector = $this->sections_model->selector_with_all();
+            $this->session->set_userdata('section_selector', $section_selector);
+        }
     }
 
     /**

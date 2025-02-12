@@ -319,9 +319,22 @@ $this->lang->load('sections');
         <form class="d-flex ms-5">
           <div class="text-white me-1 text-center">
             <?= $gvv_user ?>
-            <div class="text-white me-1 text-center"><?= $gvv_role ?></div>
-            <?= $this->session->userdata('section_image') ?>
+            <div class="text-white me-1 text-center">
+              <?= $gvv_role ?>
+            </div>
+            <div>
+              <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="form-control big_select" onchange="updateSection(this.value)"') ?>
+            </div>
           </div>
+          <script>
+            function updateSection(value) {
+              $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
+                section: value
+              }, function() {
+                window.location.reload();
+              });
+            }
+          </script>
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle  text-white" href="#" role="button" data-bs-toggle="dropdown">
