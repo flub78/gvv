@@ -4,6 +4,8 @@ if (!defined('BASEPATH'))
 
 $CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->model('sections_model');
+
 $CI->load->language('user_roles_per_section');
 
 /**
@@ -34,6 +36,9 @@ class User_roles_per_section_model extends Common_Model {
      */
     public function select_page($nb = 1000, $debut = 0) {
 
+        $section_id = $this->session->userdata('section');
+        $section = $this->sections_model->get_by_id('id', $section_id);
+
         $this->db->select('users.username, types_roles.nom as role_type, sections.nom as section_name, 
                    user_roles_per_section.id as id, users.email, 
                    types_roles.description as role_description, 
@@ -42,7 +47,9 @@ class User_roles_per_section_model extends Common_Model {
         $this->db->join('users', 'user_roles_per_section.user_id = users.id');
         $this->db->join('types_roles', 'user_roles_per_section.types_roles_id = types_roles.id');
         $this->db->join('sections', 'user_roles_per_section.section_id = sections.id');
-
+        if ($section) {
+            $this->db->where('sections.id', $section_id);
+        }
         $result = $this->db->get()->result_array();
         $this->gvvmetadata->store_table("vue_user_roles_per_section", $result);
     }
