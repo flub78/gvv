@@ -1,9 +1,10 @@
 <?php
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+    exit('No direct script access allowed');
 
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->model('sections_model');
 
 /**
  *	Accès base Avions
@@ -21,28 +22,24 @@ class Avions_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0, $selection = array()) {
-    	/*
-        $columns = 'macmodele, macimmat, macconstruc, macplaces, macrem, maprive, actif, tarifs.prix as prix, tarifs.date';
-        $where = "machinesa.maprix = tarifs.reference";
-        
-        $select = $this->db
-        ->select($columns)
-        ->from("machinesa, tarifs")->where($where)
-        ->order_by('macimmat asc, tarifs.date asc')
+
+        $this->section_id = $this->session->userdata('section');
+        $this->section = $this->sections_model->get_by_id('id', $this->section_id);
+
+        $columns = 'macmodele, macimmat, macconstruc, macplaces, macrem, maprive, actif, fabrication, club, sections.nom as section_name';
+
+        $this->db
+            ->select($columns)
+            ->from("machinesa")
+            ->where($selection)
+            ->order_by('macimmat asc');
+        $this->db->join('sections', 'machinesa.club = sections.id');
+        if ($this->section) {
+            $this->db->where('sections.id', $this->section_id);
+        }
         // ->limit($nb, $debut)
-        ->get()->result_array();
-		*/
-        
-    	$columns = 'macmodele, macimmat, macconstruc, macplaces, macrem, maprive, actif, fabrication';
-        
-        $select = $this->db
-        ->select($columns)
-        ->from("machinesa")
-        ->where($selection)
-        ->order_by('macimmat asc')
-        // ->limit($nb, $debut)
-        ->get()->result_array();
-    	
+        $select = $this->db->get()->result_array();
+
         foreach ($select as $key => $row) {
             $machine = $row['macimmat'];
             $select[$key]['vols'] = anchor(controller_url("vols_avion/vols_de_la_machine/$machine"), "vols");
@@ -50,38 +47,37 @@ class Avions_model extends Common_Model {
         $this->gvvmetadata->store_table("vue_avions", $select);
 
         gvv_debug("sql: " . $this->db->last_query());
-        
+
         return $select;
     }
-    
+
     /*
      * retourne la liste des immatriculations 
      */
-    public function machine_list ($where = array(), $list_only = true) {
+    public function machine_list($where = array(), $list_only = true) {
 
-    	$columns = 'macimmat, horametre_en_minutes';
-    	
-    	$select = $this->db
-    	->select($columns)
-    	->from("machinesa")
-    	->where($where)
-    	->order_by('macimmat asc')
-    	->get()->result_array();
+        $columns = 'macimmat, horametre_en_minutes';
 
-    	$result = array();
-    	foreach ($select as $key => $row) {
-    		$machine = $row['macimmat'];
-    		if ($list_only) {
-    			$result[] = $machine;
-    		} else {
-    			$result[$machine] = $row['horametre_en_minutes'];
-    		}
-    	}
-    	
-    	gvv_debug("sql: " . $this->db->last_query());
-    	
-    	return $result;
-    	 
+        $select = $this->db
+            ->select($columns)
+            ->from("machinesa")
+            ->where($where)
+            ->order_by('macimmat asc')
+            ->get()->result_array();
+
+        $result = array();
+        foreach ($select as $key => $row) {
+            $machine = $row['macimmat'];
+            if ($list_only) {
+                $result[] = $machine;
+            } else {
+                $result[$machine] = $row['horametre_en_minutes'];
+            }
+        }
+
+        gvv_debug("sql: " . $this->db->last_query());
+
+        return $result;
     }
 }
 

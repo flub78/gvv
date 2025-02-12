@@ -31,6 +31,8 @@ $lang['gvv_machinesa_short_field_maprive'] = "Eigenaar";
 $lang['gvv_machinesa_short_field_actif'] = "Actief";
 $lang['gvv_machinesa_short_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesa_short_field_vols'] = "Vluchten";
+$lang['gvv_machinesa_short_field_section_name'] = "Sectie";
+
 
 $lang['avion_filter_active'] = "Actief";
 $lang['avion_filter_owner'] = "Eigenaar";

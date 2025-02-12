@@ -30,6 +30,7 @@ $lang['gvv_machinesa_short_field_maprive'] = "Pirvé";
 $lang['gvv_machinesa_short_field_actif'] = "Actif";
 $lang['gvv_machinesa_short_field_fabrication'] = "Année";
 $lang['gvv_machinesa_short_field_vols'] = "Vols";
+$lang['gvv_machinesa_short_field_section_name'] = "Section";
 
 $lang['avion_filter_active'] = "Actif";
 $lang['avion_filter_owner'] = "Propriétaire";

@@ -87,7 +87,8 @@ $attrs = array(
 		'maprive',
 		'actif',
 		'vols',
-		'fabrication'
+		'fabrication',
+		'section_name'
 	),
 	'mode' => ($has_modification_rights) ? "rw" : "ro",
 	'class' => "datatable table table-striped"
