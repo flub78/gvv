@@ -22,9 +22,6 @@ class Avions_model extends Common_Model {
      */
     function __construct() {
         parent::__construct();
-
-        $this->section_id = $this->session->userdata('section');
-        $this->section = $this->sections_model->get_by_id('id', $this->section_id);
     }
 
     /**
@@ -65,13 +62,19 @@ class Avions_model extends Common_Model {
      */
     public function machine_list($where = array(), $list_only = true) {
 
-        $columns = 'macimmat, horametre_en_minutes';
+        $columns = 'macimmat, horametre_en_minutes, club';
 
-        $select = $this->db
+        $this->db
             ->select($columns)
             ->from("machinesa")
-            ->where($where)
-            ->order_by('macimmat asc')
+            ->where($where);
+
+        // select per section
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+
+        $select = $this->db->order_by('macimmat asc')
             ->get()->result_array();
 
         $result = array();
@@ -87,6 +90,17 @@ class Avions_model extends Common_Model {
         gvv_debug("sql: " . $this->db->last_query());
 
         return $result;
+    }
+
+    /**
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
+     *
+     * @param $where selection
+     * @param $order ordre
+     *            de tri
+     */
+    public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
+        return parent::selector($where, $order, TRUE);
     }
 }
 

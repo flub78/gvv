@@ -26,6 +26,10 @@ class Common_Model extends CI_Model {
     function __construct() {
         parent::__construct();
         $this->load->library('gvvmetadata');
+
+        $this->section_id = $this->session->userdata('section');
+        $this->db->where('id', $this->section_id);
+        $this->section = $this->db->get('sections')->row_array();
     }
 
     /**
@@ -222,10 +226,15 @@ class Common_Model extends CI_Model {
      * @param $order ordre
      *            de tri
      */
-    public function selector($where = array(), $order = "asc") {
+    public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
         $key = $this->primary_key;
 
-        $db_res = $this->db->select($key)->from($this->table)->where($where)->get();
+        $this->db->select($key)->from($this->table)->where($where);
+
+        if ($filter_section && $this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+        $db_res = $this->db->get();
         $allkeys = $this->get_to_array($db_res);
 
         $result = array();
