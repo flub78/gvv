@@ -1882,6 +1882,7 @@ abstract class Metadata {
      */
     function form($table, $fields = array()) {
         $res = "";
+        $res .= form_error('club') . "\n";
         $res .= "<table>\n";
         foreach ($fields as $field => $init) {
             $label = $this->field_long_name($table, $field) . ":";

@@ -239,3 +239,5 @@ $lang['HEVA'] = "HEVA";
 $lang['datatable_no_data'] = 'Aucune donnée disponible dans le tableau';
 
 $lang['delete'] = 'Supprimer';
+
+$lang['section_selected'] = 'Sélectionnez une section pour réaliser cette action';

@@ -34,7 +34,8 @@ class Avion extends Gvv_Controller {
     protected $model = 'avions_model';
     protected $modification_level = 'ca';
     protected $rules = array(
-        'macimmat' => "strtoupper"
+        'macimmat' => "strtoupper",
+        'club' => "callback_section_selected"
     );
     protected $filter_variables = array(
         'filter_active',

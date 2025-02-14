@@ -201,3 +201,5 @@ $lang['safe_sql_select'] = "Ongeldig SQL-verzoek, SELECT is verplicht.";
 $lang['check_uniq'] = "Het element bestaat al.";
 
 $lang['delete'] = 'Verwijderen';
+
+$lang['section_selected'] = 'Er moet een sectie worden geselecteerd om deze actie uit te voeren';

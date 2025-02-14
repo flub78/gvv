@@ -755,7 +755,8 @@ if (! function_exists('form_error')) {
 			return '';
 		}
 
-		return $OBJ->error($field, $prefix, $suffix);
+		$res = $OBJ->error($field, $prefix, $suffix);
+		return $res;
 	}
 }
 

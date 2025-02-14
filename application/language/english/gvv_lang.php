@@ -204,3 +204,5 @@ $lang['safe_sql_select'] = "Invalid SQL request, SELECT is mandatory.";
 $lang['check_uniq'] = "The element already exist.";
 
 $lang['delete'] = 'Delete';
+
+$lang['section_selected'] = 'A section must be selected to perform this action';

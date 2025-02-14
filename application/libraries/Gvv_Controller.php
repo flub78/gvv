@@ -303,7 +303,6 @@ class Gvv_Controller extends CI_Controller {
      * @param unknown_type $time
      */
     function valid_minute_time($time) {
-        // Todo: the error messages should be localized
         $res = mysql_minutes($time);
         if ($res < 0) {
             $this->form_validation->set_message('valid_minute_time', $this->lang->line("valid_minute_time"));
@@ -767,6 +766,24 @@ class Gvv_Controller extends CI_Controller {
         $session['per_page'] = $per_page;
         $this->session->set_userdata($session);
         $this->pop_return_url();
+    }
+
+    /**
+     * Validation callback to check that a section is selected
+     *
+     * @return boolean
+     */
+    public function section_selected() {
+        $section = $this->gvv_model->section();
+
+        $this->form_validation->set_message('section_selected', $this->lang->line("section_selected"));
+        if ($section) {
+            gvv_debug("callback check section selected OK");
+            return TRUE;
+        } else {
+            gvv_debug("callback check section selected Error, no section selected");
+            return FALSE;
+        }
     }
 
     /**
