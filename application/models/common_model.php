@@ -32,6 +32,14 @@ class Common_Model extends CI_Model {
         $this->section = $this->db->get('sections')->row_array();
     }
 
+    public function section_id() {
+        return $this->section_id;
+    }
+
+    public function section() {
+        return $this->section;
+    }
+
     /**
      * Accès en lecture au nom de la table
      *

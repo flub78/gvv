@@ -20,6 +20,8 @@ $lang['gvv_machinesa_field_mmax_facturation'] = "Maximum number of billed minute
 $lang['gvv_machinesa_field_actif'] = "Active airplane";
 $lang['gvv_machinesa_field_fabrication'] = "First year of operation";
 $lang['gvv_machinesa_field_comment'] = "Description";
+$lang['gvv_machinesa_field_club'] = "Section";
+
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructor";
 $lang['gvv_machinesa_short_field_macmodele'] = "Type";

@@ -22,10 +22,10 @@ if (! defined('BASEPATH'))
  * @package controllers
  *          Controleur de gestion des avions.
  */
-    // set_include_path(getcwd() . "/..:" . get_include_path());
+// set_include_path(getcwd() . "/..:" . get_include_path());
 
 // include_once ('application/libraries/Gvv_Controller.php');
-include_once (APPPATH . '/libraries/Gvv_Controller.php');
+include_once(APPPATH . '/libraries/Gvv_Controller.php');
 // include_once (APPPATH . '/libraries/My_Controller.php');
 class Avion extends Gvv_Controller {
 
@@ -33,13 +33,13 @@ class Avion extends Gvv_Controller {
     protected $controller = 'avion';
     protected $model = 'avions_model';
     protected $modification_level = 'ca';
-    protected $rules = array (
-            'macimmat' => "strtoupper"
+    protected $rules = array(
+        'macimmat' => "strtoupper"
     );
-    protected $filter_variables = array (
-            'filter_active',
-            'filter_machine_actif',
-            'filter_proprio'
+    protected $filter_variables = array(
+        'filter_active',
+        'filter_machine_actif',
+        'filter_proprio'
     );
 
     /**
@@ -49,6 +49,7 @@ class Avion extends Gvv_Controller {
         parent::__construct();
 
         $this->load->model('tarifs_model');
+        $this->lang->load('avion');
     }
 
     /**
@@ -58,7 +59,7 @@ class Avion extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector(array (), "asc", 'nom'));
+        $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector(array(), "asc", 'nom'));
     }
 
     /**
@@ -69,8 +70,8 @@ class Avion extends Gvv_Controller {
      * @param
      *            message message à afficher
      */
-    function page($premier = 0, $message = '', $selection = Array()) {
-        $this->data ['action'] = VISUALISATION;
+    function page($premier = 0, $message = '', $selection = array()) {
+        $this->data['action'] = VISUALISATION;
         $this->load_filter($this->filter_variables);
 
         $selection = $this->selection();
@@ -96,14 +97,14 @@ class Avion extends Gvv_Controller {
      * dans la section de filtrage.
      */
     function selection() {
-        $this->data ['filter_active'] = $this->session->userdata('filter_active');
+        $this->data['filter_active'] = $this->session->userdata('filter_active');
 
         $selection = "";
         if ($this->session->userdata('filter_active')) {
 
             $filter_machine_active = $this->session->userdata('filter_machine_actif');
             if ($filter_machine_active) {
-                $filter_machine_active --;
+                $filter_machine_active--;
                 $selection .= "(actif = \"$filter_machine_active\" )";
             }
 
@@ -118,7 +119,7 @@ class Avion extends Gvv_Controller {
         }
 
         if ($selection == "")
-            $selection = array ();
+            $selection = array();
 
         return $selection;
     }

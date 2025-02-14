@@ -19,6 +19,7 @@ $lang['gvv_machinesa_field_horametre_en_minutes'] = "Horamètre en minutes";
 $lang['gvv_machinesa_field_actif'] = "Actif";
 $lang['gvv_machinesa_field_fabrication'] = "Année de mise en service";
 $lang['gvv_machinesa_field_comment'] = "Description";
+$lang['gvv_machinesa_field_club'] = "Section";
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructeur";
 $lang['gvv_machinesa_short_field_macmodele'] = "Modèle";

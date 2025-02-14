@@ -20,6 +20,8 @@ $lang['gvv_machinesa_field_mmax_facturation'] = "Forfait minuten";
 $lang['gvv_machinesa_field_actif'] = "Actief";
 $lang['gvv_machinesa_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesa_field_comment'] = "Omschrijving";
+$lang['gvv_machinesa_field_club'] = "Sectie";
+
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructeur";
 $lang['gvv_machinesa_short_field_macmodele'] = "Type";
