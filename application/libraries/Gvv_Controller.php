@@ -92,9 +92,8 @@ class Gvv_Controller extends CI_Controller {
 
     /**
      * Génération des éléments statiques à passer au formulaire en cas de création,
-     * modification ou réaffichage après erreur.
-     * Sont statiques les parties qui ne changent
-     * pas d'un élément sur l'autre.
+     * modification ou ré-affichage après erreur.
+     * Sont statiques les parties qui ne changent pas d'un élément sur l'autre.
      *
      * @param $action CREATION
      *            | MODIFICATION | VISUALISATION
@@ -386,10 +385,19 @@ class Gvv_Controller extends CI_Controller {
             foreach ($fields_list as $field) {
                 $processed_data[$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
             }
-        } else {
-            foreach ($this->fields as $field => $value) {
-                $processed_data[$field] = $this->input->post($field);
+
+            if (in_array('club', $fields_list)) {
+                $section_id = $this->gvv_model->section_id();
+                // $section = $this->gvv_model->section();
+                // echo "section_id=$section_id, section=$section";
+                // exit;
+                $processed_data['club'] = $section_id;
             }
+        } else {
+            // TODO: delete after validation
+            // foreach ($this->fields as $field => $value) {
+            //     $processed_data[$field] = $this->input->post($field);
+            // }
         }
         return $processed_data;
     }
@@ -441,11 +449,9 @@ class Gvv_Controller extends CI_Controller {
      *            | MODIFICATION | VISUALISATION
      */
     public function formValidation($action, $return_on_success = false) {
-        // $button = $_POST['button'];
         $button = $this->input->post('button');
         $numlign = $this->input->post('numlign');
         $button_photo = $this->input->post('button_photo');
-
 
         if ($button == $this->lang->line("gvv_button_show_list")) {
             $this->page();
@@ -477,19 +483,6 @@ class Gvv_Controller extends CI_Controller {
         } else {
             // Ancienne méthode
             // TODO: à supprimer après validation
-            // echo "Ancienne méthode de validation à migrer" . br();
-            // $data = array();
-            // foreach ($this->fields as $field => $value) {
-            //     $rules = array_key_exists('rules', $value) ? $value['rules'] : '';
-            //     $label = array_key_exists('label', $value) ? $value['label'] : $field;
-
-            //     if ($action == CREATION && ($field == $this->kid)) {
-            //         // On vérifie également que l'enregistrement n'existe pas déja
-            //         $rules .= "|callback_check_uniq";
-            //     }
-            //     $this->form_validation->set_rules($field, $label, $rules);
-            //     $this->data[$field] = $this->input->post($field);
-            // }
         }
 
         if ($this->form_validation->run($this)) {

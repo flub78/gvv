@@ -93,6 +93,19 @@ class Avions_model extends Common_Model {
     }
 
     /**
+     * Ajoute un élément
+     *
+     * @param $data hash
+     *            des valeurs
+     */
+    public function create($data) {
+        if (isset($data['fabrication']) && !$data['fabrication']) {
+            unset($data['fabrication']);
+        }
+        parent::create($data);
+    }
+
+    /**
      * Retourne un hash qui peut-être utilisé dans un menu drop-down
      *
      * @param $where selection
