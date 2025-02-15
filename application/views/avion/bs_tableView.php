@@ -90,7 +90,7 @@ $attrs = array(
 		'fabrication',
 		'section_name'
 	),
-	'mode' => ($has_modification_rights) ? "rw" : "ro",
+	'mode' => ($has_modification_rights && ($section)) ? "rw" : "ro",
 	'class' => "datatable table table-striped"
 );
 

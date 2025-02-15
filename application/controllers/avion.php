@@ -74,6 +74,7 @@ class Avion extends Gvv_Controller {
     function page($premier = 0, $message = '', $selection = array()) {
         $this->data['action'] = VISUALISATION;
         $this->load_filter($this->filter_variables);
+        $this->data['section'] = $this->gvv_model->section();
 
         $selection = $this->selection();
         parent::page($premier, $message, $selection);
