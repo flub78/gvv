@@ -172,7 +172,7 @@ class GVVMetadata extends Metadata {
                         'description',
                         'num_cheque',
                         'montant',
-                        // 'solde',
+                        'section',
                         'gel'
                 );
 

@@ -5,14 +5,14 @@ Description détaillée du travail de développement.
 ## Tâches
 
 - [x] Sélecteur de section
-- [ ] Enregistrer la section dans la session
-- [ ] afficher la section dans les tables de resources par section
-- [ ] Afficher la section courante dans le bandeau
-- [ ] N'afficher que les resources de la section courante
-- [ ] CRUD rôle des utilisateurs, ajout de rôle dans de nouvelle sections
-- [ ] affecter la section courante lors de la création d'une resource
+- [x] Enregistrer la section dans la session
+- [-] afficher la section dans les tables de resources par section
+- [x] Afficher la section courante dans le bandeau
+- [-] N'afficher que les resources de la section courante
+- [-] CRUD rôle des utilisateurs, ajout de rôle dans de nouvelle sections
+- [-] affecter la section courante lors de la création d'une resource
 - [ ] Vérifier les droits d'action basé sur les rôles par section
-- [ ] refuser la creation de resources sans section définie
+- [-] refuser la creation de resources sans section définie
 - [ ] Adapter les vues comptables par section
 - [ ] Clôture par section
 - [ ] Vue et export des données consolidées
@@ -65,3 +65,11 @@ Note : Il existe une section courante qui est la section dans laquelle l'utilisa
 Déploiement de quatre entités.
 
 Fusion manuelle des données.
+
+## Resources par section
+
+Ce sont toutes les resources qui doivent être modifiées pour prendre en compte la section.
+
+### Actions pour adapter une resource à la selection par section
+
+1. Afficher la section dans la vue table

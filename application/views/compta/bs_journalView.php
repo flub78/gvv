@@ -57,8 +57,8 @@ $this->lang->load('compta');
 
                             <div class="d-md-flex flex-row mb-2">
                                 <!-- date, jusqua, compte-->
-                                <div class="me-3 mb-2">
-                                    <?= $this->lang->line('gvv_compta_comptes') . ": " . dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' onchange='compte_selection();'") ?>
+                                <div class="me-3 mb-2" style='min-width: 400px'>
+                                    <?= $this->lang->line('gvv_compta_comptes') . ": " . dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='min-width: 300px' onchange='compte_selection();'") ?>
                                 </div>
                             </div>
 

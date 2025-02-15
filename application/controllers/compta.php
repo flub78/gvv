@@ -639,6 +639,7 @@ class Compta extends Gvv_Controller {
             'description',
             'num_cheque',
             'montant',
+            'section',
             'gel'
         );
 

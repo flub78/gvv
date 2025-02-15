@@ -61,7 +61,8 @@
 
         // to replace the select by an input that select values in the dropdown
         $('.big_select').select2({
-            placeholder: 'Search...',
+            placeholder: 'Filtre...',
+            width: '300px',
             allowClear: false
         });
 

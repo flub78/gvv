@@ -2,6 +2,10 @@
 if (! defined('BASEPATH'))
     exit('No direct script access allowed');
 
+$CI = &get_instance();
+$CI->load->model('common_model');
+$CI->load->model('sections_model');
+
 /**
  * Ecritures model
  *
@@ -9,9 +13,6 @@ if (! defined('BASEPATH'))
  * est de définir le nom de la table. Tous les méthodes sont
  * implémentés dans Common_Model
  */
-
-$CI = &get_instance();
-$CI->load->model('common_model');
 class Ecritures_model extends Common_Model {
     public $table = 'ecritures';
     protected $primary_key = 'id';
@@ -176,6 +177,7 @@ class Ecritures_model extends Common_Model {
      */
     public function select_page($nb = 1000, $debut = 0) {
         $select = $this->select_columns('id, annee_exercise, date_creation, date_op, compte1, compte2, montant, description, num_cheque', $nb, $debut);
+
         $this->gvvmetadata->store_table($this->table, $select);
         return $select;
     }
@@ -187,6 +189,7 @@ class Ecritures_model extends Common_Model {
      */
     public function select_journal($compte, $nb = 1000000, $debut = 0, $selection = array()) {
         $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
+
         if ($compte != '') {
             $where .= $this->_filtrage_compte($compte); // " and (ecritures.compte1 = \"$compte\" or ecritures.compte2 = \"$compte\") ";
             $individual = TRUE;
@@ -196,7 +199,7 @@ class Ecritures_model extends Common_Model {
         $filtrage = $this->filtrage('', $individual);
 
         $select = "ecritures.id, ecritures.annee_exercise, date_op, ";
-        $select .= "montant, ecritures.description, num_cheque, quantite, achat, prix, gel";
+        $select .= "montant, ecritures.description, num_cheque, quantite, achat, prix, gel, ecritures.club as club";
         $select .= ", ecritures.compte1, compte1.nom as nom_compte1, compte1.codec as code1";
         $select .= ", ecritures.compte2, compte2.nom as nom_compte2, compte2.codec as code2";
 
@@ -254,10 +257,11 @@ class Ecritures_model extends Common_Model {
 
         foreach ($result as $line => $row) {
             foreach ($row as $key => $field) {
-                // echo $key . " => " .$field . br();
+                // echo $key . " => " . $field . br();
             }
             $achat = $result[$line]['achat'];
             $result[$line]['image'] = "la ligne du " . date_db2ht($result[$line]['date_op']) . " " . $result[$line]['nom_compte1'] . "-" . $result[$line]['nom_compte2'] . " " . $result[$line]['montant'] . " " . $result[$line]['description'];
+            $result[$line]['section'] = $this->sections_model->image($result[$line]['club']);
         }
 
         $this->gvvmetadata->store_table("vue_journal", $result);
