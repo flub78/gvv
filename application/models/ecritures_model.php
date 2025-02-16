@@ -216,6 +216,10 @@ class Ecritures_model extends Common_Model {
             ->where($filtrage)
             ->where("YEAR(date_op) = \"$year\"");
 
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
         $db_res = $this->db->limit($nb, $debut)
             ->order_by($order_by)
             ->get();

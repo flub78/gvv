@@ -471,7 +471,7 @@ class Compta extends Gvv_Controller {
         $this->data['year_selector'] = $this->gvv_model->getYearSelector("date_op");
         $this->data['year'] = $year;
 
-        $this->data['compte_selector'] = $this->comptes_model->selector_with_all();
+        $this->data['compte_selector'] = $this->comptes_model->selector_with_all([], "asc", true);
 
         $this->selection_filter();
         $this->data['select_result'] = $this->gvv_model->select_journal('', $this->session->userdata('per_page'), $premier);

@@ -265,8 +265,8 @@ class Common_Model extends CI_Model {
      *
      * @param $where selection
      */
-    public function selector_with_all($where = array()) {
-        $result = $this->selector($where);
+    public function selector_with_all($where = array(), $filter_section = FALSE) {
+        $result = $this->selector($where, "asc", $filter_section);
         $result[''] = $this->lang->line("gvv_tous") . ' ...';
         return $result;
     }
@@ -277,8 +277,8 @@ class Common_Model extends CI_Model {
      *
      * @param $where selection
      */
-    public function selector_with_null($where = array()) {
-        $allkeys = $this->selector($where);
+    public function selector_with_null($where = array(), $filter_section = FALSE) {
+        $allkeys = $this->selector($where, "asc", $filter_section);
         $result = array();
         $result[''] = '';
         foreach ($allkeys as $key => $value) {

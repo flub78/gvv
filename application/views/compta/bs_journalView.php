@@ -35,9 +35,14 @@ $this->lang->load('compta');
         echo p($message) . br();
     }
     echo checkalert($this->session);
+
+    $title = $this->lang->line("gvv_comptes_title_journal");
+    if ($section) {
+        $title .= " section " . $section['nom'];
+    }
     ?>
 
-    <h3><?= $this->lang->line("gvv_comptes_title_journal") ?></h3>
+    <h3><?= $title ?></h3>
     <div class="mb-3">
         <?= year_selector($controller, $year, $year_selector) ?>
     </div>
