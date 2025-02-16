@@ -232,7 +232,7 @@ $this->lang->load('sections');
               </li>
             <?php endif; ?>
 
-            <?php if (has_role('tresorier')) : ?>
+            <?php if (has_role('tresorier') && ($section)) : ?>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_entries") ?></a>
                 <ul class="dropdown-menu">
