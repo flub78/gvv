@@ -485,7 +485,13 @@ class Compta extends Gvv_Controller {
         $this->data['compte'] = '';
         $this->data['tresorier'] = $this->dx_auth->is_role('tresorier', true, true);
 
-        $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $has_modification_rights = (!isset($this->modification_level)
+            || $this->dx_auth->is_role($this->modification_level, true, true));
+        $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
+
+        $this->data['has_modification_rights'] = $has_modification_rights;
+
+        $this->data['section'] = $this->gvv_model->section();
 
         load_last_view('compta/journalView', $this->data);
     }
@@ -572,12 +578,20 @@ class Compta extends Gvv_Controller {
         // gvv_debug("ajax result 1 =" . var_export($result, true));
 
         $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
-        $attrs = array(
-            // 'controller' => $controller,
-            'actions' => array(
+
+        $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
+
+        $actions = [];
+        if ($has_modification_rights) {
+            $actions = array(
                 'edit',
                 'delete'
-            ),
+            );
+        }
+
+        $attrs = array(
+            // 'controller' => $controller,
+            'actions' => $actions,
             'mode' => ($has_modification_rights) ? "rw" : "ro"
         );
 
@@ -643,10 +657,7 @@ class Compta extends Gvv_Controller {
             'gel'
         );
 
-        $actions = array(
-            'edit',
-            'delete'
-        );
+
 
         /* Indexed column(used for fast and accurate table cardinality) */
         $sIndexColumn = "id";

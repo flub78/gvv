@@ -142,7 +142,7 @@ $this->lang->load('compta');
         'actions' => array('edit', 'delete'),
         'count' => $count,
         'first' => $premier,
-        'mode' => ($has_modification_rights) ? "rw" : "ro",
+        'mode' => ($has_modification_rights && ($section)) ? "rw" : "ro",
         'class' => $classes
     );
 

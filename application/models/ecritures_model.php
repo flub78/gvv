@@ -208,14 +208,15 @@ class Ecritures_model extends Common_Model {
 
         $year = $this->session->userdata('year');
 
-        $db_res = $this->db
+        $this->db
             ->select($select)
             ->from($from)
             ->where($where, NULL)
             ->where($selection, NULL)
             ->where($filtrage)
-            ->where("YEAR(date_op) = \"$year\"")
-            ->limit($nb, $debut)
+            ->where("YEAR(date_op) = \"$year\"");
+
+        $db_res = $this->db->limit($nb, $debut)
             ->order_by($order_by)
             ->get();
         $result = $this->get_to_array($db_res);
@@ -261,6 +262,9 @@ class Ecritures_model extends Common_Model {
             }
             $achat = $result[$line]['achat'];
             $result[$line]['image'] = "la ligne du " . date_db2ht($result[$line]['date_op']) . " " . $result[$line]['nom_compte1'] . "-" . $result[$line]['nom_compte2'] . " " . $result[$line]['montant'] . " " . $result[$line]['description'];
+
+            // La gestion de la section n'est pas très élégante. Il aurait mieux value faire une jointure
+            // Mais la requête SQL est déjà assez compliquée pour ne pas en rajouter.
             $result[$line]['section'] = $this->sections_model->image($result[$line]['club']);
         }
 
