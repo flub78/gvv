@@ -897,7 +897,13 @@ abstract class Metadata {
 
         date_default_timezone_set('Europe/Paris');
         $dt = date("Y_m_d");
-        $filename = "gvv_" . $table . "_$dt.csv";
+        if (isset($attrs['title'])) {
+            $title = strtolower(str_replace([' ', '-'], ['_', ''], $attrs['title']));
+            $title = str_replace('__', '_', $title);
+            $filename = "gvv_" . $title . "_$dt.csv";
+        } else {
+            $filename = "gvv_" . $table . "_$dt.csv";
+        }
 
         # $res = iconv('UTF-8', 'windows-1252', $res);
         $CI = &get_instance();

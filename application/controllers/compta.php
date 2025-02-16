@@ -709,11 +709,17 @@ class Compta extends Gvv_Controller {
         }
 
         $year = $this->session->userdata('year');
+        $title = $this->lang->line('gvv_comptes_title_journal');
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $title .= " - section - " . $section['nom'];
+        }
+        $title .= " $year";
 
         $this->selection_filter();
         $selection = $this->gvv_model->select_journal('');
         if ($mode == 'csv') {
-            $this->gvvmetadata->csv("vue_journal", array());
+            $this->gvvmetadata->csv("vue_journal", array('title' => $title));
         } else if ($mode == 'gel') {
             foreach ($selection as $row) {
                 if (!$row['gel']) {
@@ -725,9 +731,8 @@ class Compta extends Gvv_Controller {
         } else {
             $this->load->library('Pdf');
             $pdf = new Pdf();
-
             $pdf->AddPage('L');
-            $pdf->title($this->lang->line('gvv_comptes_title_journal') . " $year", 1);
+            $pdf->title($title, 1);
 
             $attrs = array(
                 'fields' => array(
