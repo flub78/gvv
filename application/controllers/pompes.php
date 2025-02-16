@@ -22,19 +22,17 @@
  *
  * controleur de gestion des comptes.
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Pompes extends Gvv_Controller {
     protected $controller = 'pompes';
     protected $model = 'pompes_model';
     protected $modification_level = 'bureau';
 
     // régles de validation
-    protected $rules = array ();
+    protected $rules = array();
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct() {
         parent::__construct();
@@ -47,25 +45,25 @@ class Pompes extends Gvv_Controller {
      */
     function page($pompe = 0) {
         $selection = "pnum = $pompe ";
-        $this->data ['pnum'] = $pompe;
+        $this->data['pnum'] = $pompe;
 
-        $this->data ['action'] = VISUALISATION;
-        $this->data ['filter_active'] = $this->session->userdata('filter_active');
-        $this->data ['filter_date'] = '';
-        $this->data ['date_end'] = '';
-        $this->data ['filter_pilote'] = '';
-        $this->data ['filter_machine'] = '';
+        $this->data['action'] = VISUALISATION;
+        $this->data['filter_active'] = $this->session->userdata('filter_active');
+        $this->data['filter_date'] = '';
+        $this->data['date_end'] = '';
+        $this->data['filter_pilote'] = '';
+        $this->data['filter_machine'] = '';
         // $this->data['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
 
-        $pilote_selector = $this->membres_model->selector_with_null(array ());
-        $this->data ['pilote_selector'] = $pilote_selector;
+        $pilote_selector = $this->membres_model->selector_with_null(array());
+        $this->data['pilote_selector'] = $pilote_selector;
 
         if ($this->session->userdata('filter_active')) {
             $order = "asc";
 
             $filter_pilote = $this->session->userdata('filter_pilote');
             if ($filter_pilote) {
-                $this->data ['filter_pilote'] = $filter_pilote;
+                $this->data['filter_pilote'] = $filter_pilote;
                 $selection .= " and (ppilid = \"$filter_pilote\" )";
             }
 
@@ -73,7 +71,7 @@ class Pompes extends Gvv_Controller {
             $date_end = $this->session->userdata('date_end');
             if ($filter_date) {
                 $selection .= " and ";
-                $this->data ['filter_date'] = $filter_date;
+                $this->data['filter_date'] = $filter_date;
                 if ($date_end) {
                     $selection .= "pdatemvt >= \"" . date_ht2db($filter_date) . "\" ";
                 } else {
@@ -83,28 +81,28 @@ class Pompes extends Gvv_Controller {
 
             if ($date_end) {
                 $selection .= " and ";
-                $this->data ['date_end'] = $date_end;
+                $this->data['date_end'] = $date_end;
                 $selection .= "pdatemvt <= \"" . date_ht2db($date_end) . "\" ";
             }
         }
 
         $result = $this->gvv_model->select_page($selection);
 
-        $this->data ['select_result'] = $result;
-        $this->data ['kid'] = $this->kid;
-        $this->data ['controller'] = $this->controller;
-        $this->data ['count'] = $this->gvv_model->count();
-        $this->data ['premier'] = 0;
-        $this->data ['message'] = "";
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['select_result'] = $result;
+        $this->data['kid'] = $this->kid;
+        $this->data['controller'] = $this->controller;
+        $this->data['count'] = $this->gvv_model->count();
+        $this->data['premier'] = 0;
+        $this->data['message'] = "";
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
 
-        $this->data ['totaux'] = $this->gvv_model->select_totaux($selection);
+        $this->data['totaux'] = $this->gvv_model->select_totaux($selection);
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
     function create($pompe = 0) {
         parent::create(TRUE);
-        $this->data ['pnum'] = $pompe;
+        $this->data['pnum'] = $pompe;
 
         // et affiche le formulaire
         load_last_view('pompes/formView', $this->data);
@@ -120,13 +118,13 @@ class Pompes extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
         // @todo supprimer après validation
-        $this->CI = & get_instance();
+        $this->CI = &get_instance();
         // $this->CI->config->load('facturation');
         $this->load->model('tarifs_model');
 
-        $this->data ['saisie_par'] = $this->dx_auth->get_username();
+        $this->data['saisie_par'] = $this->dx_auth->get_username();
         $pil_selector = $this->membres_model->selector_with_null();
-        $this->data ['pil_selector'] = $pil_selector;
+        $this->data['pil_selector'] = $pil_selector;
         /*
          * // récupération des prix des tarif essence extérieurs, basés et ACES
          * $prodexte = $this->CI->config->item('essexte');
@@ -142,47 +140,47 @@ class Pompes extends Gvv_Controller {
         $today = date("Y-m-j");
         // récupération des prix des tarif essence extérieurs, basés et ACES
 
-        $idpomp = substr(current_url(), - 1);
+        $idpomp = substr(current_url(), -1);
 
         if ($idpomp == 0) {
             $prodexte = 'Essence Extérieurs';
             $product_info = $this->tarifs_model->get_tarif($prodexte, $today);
-            $pxexte = $product_info ['prix'];
+            $pxexte = $product_info['prix'];
 
             $prodbase = 'Essence Basés';
             $product_info = $this->tarifs_model->get_tarif($prodbase, $today);
-            $pxbase = $product_info ['prix'];
+            $pxbase = $product_info['prix'];
 
             $prodaces = 'Essence ACES';
             $product_info = $this->tarifs_model->get_tarif($prodaces, $today);
-            $pxaces = $product_info ['prix'];
+            $pxaces = $product_info['prix'];
 
-            $pu_selector = array (
-                    '' => '',
-                    $prodexte => '100LL extérieurs ' . $pxexte,
-                    $prodbase => '100LL basés ' . $pxbase,
-                    $prodaces => '100LL ACES ' . $pxaces
+            $pu_selector = array(
+                '' => '',
+                $prodexte => '100LL extérieurs ' . $pxexte,
+                $prodbase => '100LL basés ' . $pxbase,
+                $prodaces => '100LL ACES ' . $pxaces
             );
         }
 
         if ($idpomp == 1) {
             $prodexte = 'Essence ULM Extérieurs';
             $product_info = $this->tarifs_model->get_tarif($prodexte, $today);
-            $pxexte = $product_info ['prix'];
+            $pxexte = $product_info['prix'];
 
             $prodbase = 'Essence ULM Basés';
             $product_info = $this->tarifs_model->get_tarif($prodbase, $today);
-            $pxbase = $product_info ['prix'];
+            $pxbase = $product_info['prix'];
 
             $prodaces = 'Essence ULM ACES';
             $product_info = $this->tarifs_model->get_tarif($prodaces, $today);
-            $pxaces = $product_info ['prix'];
+            $pxaces = $product_info['prix'];
 
-            $pu_selector = array (
-                    '' => '',
-                    $prodexte => 'ULM extérieurs ' . $pxexte,
-                    $prodbase => 'ULM basés ' . $pxbase,
-                    $prodaces => 'ULM ACES ' . $pxaces
+            $pu_selector = array(
+                '' => '',
+                $prodexte => 'ULM extérieurs ' . $pxexte,
+                $prodbase => 'ULM basés ' . $pxbase,
+                $prodaces => 'ULM ACES ' . $pxaces
             );
         }
 
@@ -198,21 +196,23 @@ class Pompes extends Gvv_Controller {
         $num = $this->input->post('pnum');
         if ($button == "Filtrer") {
             // Enable filtering
-            $session ['filter_date'] = $this->input->post('filter_date');
-            $session ['date_end'] = $this->input->post('date_end');
-            $session ['filter_pilote'] = $this->input->post('filter_pilote');
-            $session ['pnum'] = $this->input->post('pnum');
+            $session['filter_date'] = $this->input->post('filter_date');
+            $session['date_end'] = $this->input->post('date_end');
+            $session['filter_pilote'] = $this->input->post('filter_pilote');
+            $session['pnum'] = $this->input->post('pnum');
 
-            $session ['filter_active'] = 1;
+            $session['filter_active'] = 1;
             $this->session->set_userdata($session);
             // var_dump($session);
         } else {
             // Disable filtering
-            foreach ( array (
+            foreach (
+                array(
                     'filter_date',
                     'date_end',
                     'filter_pilote'
-            ) as $field ) {
+                ) as $field
+            ) {
                 $this->session->unset_userdata($field);
             }
         }

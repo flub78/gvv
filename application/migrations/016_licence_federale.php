@@ -21,7 +21,7 @@
  */
 
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 /**
  * Passe les compteurs de tickets en décimal
@@ -36,11 +36,9 @@ class Migration_Licence_Federale extends CI_Migration {
 	/**
 	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
-		parent :: __construct();
+		parent::__construct();
 		$this->number = 16;
 	}
 
@@ -51,7 +49,9 @@ class Migration_Licence_Federale extends CI_Migration {
 		$errors = 0;
 		foreach ($sqls as $sql) {
 			// echo $sql . br();
-			if (!$this->db->query($sql)) {$errors += 1;}
+			if (!$this->db->query($sql)) {
+				$errors += 1;
+			}
 		}
 		return $errors;
 	}
@@ -60,12 +60,11 @@ class Migration_Licence_Federale extends CI_Migration {
 	/**
 	 * Apply the migration
 	 */
-	public function up()
-	{
+	public function up() {
 		$errors = 0;
 
 		$sqls = array(
-				"ALTER TABLE `membres` ADD `licfed` INT NULL COMMENT 'Numéro de licence fédérale' ;"
+			"ALTER TABLE `membres` ADD `licfed` INT NULL COMMENT 'Numéro de licence fédérale' ;"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -77,11 +76,10 @@ class Migration_Licence_Federale extends CI_Migration {
 	/**
 	 * Reverse the migration
 	 */
-	public function down()
-	{
+	public function down() {
 		$errors = 0;
 		$sqls = array(
-				"ALTER TABLE `membres` DROP `licfed`;"
+			"ALTER TABLE `membres` DROP `licfed`;"
 		);
 
 		$errors += $this->run_queries($sqls);

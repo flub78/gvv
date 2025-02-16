@@ -40,8 +40,6 @@ class User_roles_per_section extends Gvv_Controller {
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct() {
 

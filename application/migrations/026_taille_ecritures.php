@@ -36,8 +36,6 @@ class Migration_Taille_ecritures extends CI_Migration {
 	/**
 	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
 		parent::__construct();

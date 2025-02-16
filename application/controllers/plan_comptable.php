@@ -21,7 +21,7 @@
  * @package controllers
  * Controleur du plan comptable
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Plan_Comptable extends Gvv_Controller {
 
     protected $controller = 'plan_comptable';
@@ -29,25 +29,22 @@ class Plan_Comptable extends Gvv_Controller {
     protected $kid = 'pcode';
 
     // régles de validation
-    protected $fields = array (
-            'pcode' => array (
-                    'label' => 'Code',
-                    'default' => '',
-                    'rules' => 'trim||max_length[10]'
+    protected $fields = array(
+            'pcode' => array(
+                'label' => 'Code',
+                'default' => '',
+                'rules' => 'trim||max_length[10]'
             ),
 
-            'pdesc' => array (
-                    'label' => 'Description',
-                    'default' => '',
-                    'rules' => 'trim|required|max_length[50]'
+            'pdesc' => array(
+                'label' => 'Description',
+                'default' => '',
+                'rules' => 'trim|required|max_length[50]'
             )
-    )
-    ;
+        );
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct() {
         parent::__construct();
@@ -59,7 +56,7 @@ class Plan_Comptable extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $this->data ['code_selector'] = $this->gvv_model->selector();
+        $this->data['code_selector'] = $this->gvv_model->selector();
     }
 
     /**
@@ -72,14 +69,14 @@ class Plan_Comptable extends Gvv_Controller {
          * Array of database columns which should be read and sent back to DataTables. Use a space where
          * you want to insert a non-database field (for example a counter or static image)
          */
-        $aColumns = array (
-                'pcode',
-                'pdesc'
+        $aColumns = array(
+            'pcode',
+            'pdesc'
         );
 
-        $actions = array (
-                'edit',
-                'delete'
+        $actions = array(
+            'edit',
+            'delete'
         );
 
         /* Indexed column (used for fast and accurate table cardinality) */
@@ -95,24 +92,24 @@ class Plan_Comptable extends Gvv_Controller {
          * Paging
          */
         $sLimit = "";
-        if (isset($_GET ['iDisplayStart']) && $_GET ['iDisplayLength'] != '-1') {
-            $sLimit = "LIMIT " . mysql_real_escape_string($_GET ['iDisplayStart']) . ", " . mysql_real_escape_string($_GET ['iDisplayLength']);
+        if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
+            $sLimit = "LIMIT " . mysql_real_escape_string($_GET['iDisplayStart']) . ", " . mysql_real_escape_string($_GET['iDisplayLength']);
         }
 
         /*
          * Ordering
          */
         $sOrder = "";
-        if (isset($_GET ['iSortCol_0'])) {
+        if (isset($_GET['iSortCol_0'])) {
             $sOrder = "ORDER BY  ";
-            for($i = 0; $i < intval($_GET ['iSortingCols']); $i ++) {
-                if ($_GET ['bSortable_' . intval($_GET ['iSortCol_' . $i])] == "true") {
-                    $sOrder .= $aColumns [intval($_GET ['iSortCol_' . $i])] . "
-                                        " . mysql_real_escape_string($_GET ['sSortDir_' . $i]) . ", ";
+            for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
+                if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == "true") {
+                    $sOrder .= $aColumns[intval($_GET['iSortCol_' . $i])] . "
+                                        " . mysql_real_escape_string($_GET['sSortDir_' . $i]) . ", ";
                 }
             }
 
-            $sOrder = substr_replace($sOrder, "", - 2);
+            $sOrder = substr_replace($sOrder, "", -2);
             if ($sOrder == "ORDER BY") {
                 $sOrder = "";
             }
@@ -127,24 +124,24 @@ class Plan_Comptable extends Gvv_Controller {
          * on very large tables, and MySQL's regex functionality is very limited
          */
         $sWhere = "";
-        if ($_GET ['sSearch'] != "") {
+        if ($_GET['sSearch'] != "") {
             $sWhere = "WHERE (";
-            for($i = 0; $i < count($aColumns); $i ++) {
-                $sWhere .= $aColumns [$i] . " LIKE '%" . mysql_real_escape_string($_GET ['sSearch']) . "%' OR ";
+            for ($i = 0; $i < count($aColumns); $i++) {
+                $sWhere .= $aColumns[$i] . " LIKE '%" . mysql_real_escape_string($_GET['sSearch']) . "%' OR ";
             }
-            $sWhere = substr_replace($sWhere, "", - 3);
+            $sWhere = substr_replace($sWhere, "", -3);
             $sWhere .= ')';
         }
 
         /* Individual column filtering */
-        for($i = 0; $i < count($aColumns); $i ++) {
-            if ($_GET ['bSearchable_' . $i] == "true" && $_GET ['sSearch_' . $i] != '') {
+        for ($i = 0; $i < count($aColumns); $i++) {
+            if ($_GET['bSearchable_' . $i] == "true" && $_GET['sSearch_' . $i] != '') {
                 if ($sWhere == "") {
                     $sWhere = "WHERE ";
                 } else {
                     $sWhere .= " AND ";
                 }
-                $sWhere .= $aColumns [$i] . " LIKE '%" . mysql_real_escape_string($_GET ['sSearch_' . $i]) . "%' ";
+                $sWhere .= $aColumns[$i] . " LIKE '%" . mysql_real_escape_string($_GET['sSearch_' . $i]) . "%' ";
             }
         }
 
@@ -161,7 +158,7 @@ class Plan_Comptable extends Gvv_Controller {
             ";
         gvv_debug("ajax_page sql: " . $sQuery);
         $select = $this->database->sql($sQuery, true);
-        $result = $select [0];
+        $result = $select[0];
         gvv_debug(var_export($result, true));
         // $rResult = mysql_query($sQuery, $gaSql['link']) or die(mysql_error());
 
@@ -171,7 +168,7 @@ class Plan_Comptable extends Gvv_Controller {
             ";
         // $rResultFilterTotal = mysql_query($sQuery, $gaSql['link']) or die(mysql_error());
         $rResultFilterTotal = $this->database->sql($sQuery, true);
-        $iFilteredTotal = $rResultFilterTotal [0] [0] ['FOUND_ROWS()'];
+        $iFilteredTotal = $rResultFilterTotal[0][0]['FOUND_ROWS()'];
         gvv_debug("iFilteredTotal=$iFilteredTotal");
 
         /* Total data set length */
@@ -182,40 +179,40 @@ class Plan_Comptable extends Gvv_Controller {
 
         $rResultTotal = $this->database->sql($sQuery, true);
         // gvv_debug(var_export($rResultTotal, true));
-        $iTotal = $rResultTotal [0] [0] ['COUNT(pcode)'];
+        $iTotal = $rResultTotal[0][0]['COUNT(pcode)'];
         gvv_debug("\$iTotal = $iTotal");
 
         /*
          * Output
          */
-        $output = array (
-                "sEcho" => intval($_GET ['sEcho']),
-                "iTotalRecords" => $iTotal,
-                "iTotalDisplayRecords" => $iFilteredTotal,
-                "aaData" => array ()
+        $output = array(
+            "sEcho" => intval($_GET['sEcho']),
+            "iTotalRecords" => $iTotal,
+            "iTotalDisplayRecords" => $iFilteredTotal,
+            "aaData" => array()
         );
 
-        foreach ( $result as $select_row ) {
-            $row = array ();
-            foreach ( $actions as $action ) {
+        foreach ($result as $select_row) {
+            $row = array();
+            foreach ($actions as $action) {
                 $url = $this->controller . "/$action";
-                $elt_image = "la catégorie de compte " . $select_row ['pdesc'];
+                $elt_image = "la catégorie de compte " . $select_row['pdesc'];
                 $confirm = ($action == 'delete');
 
-                $image = $this->gvvmetadata->action($action, $url, $select_row [$sIndexColumn], $elt_image, $confirm);
-                $row [] = $image;
+                $image = $this->gvvmetadata->action($action, $url, $select_row[$sIndexColumn], $elt_image, $confirm);
+                $row[] = $image;
             }
-            for($i = 0; $i < count($aColumns); $i ++) {
-                if ($aColumns [$i] != ' ') {
+            for ($i = 0; $i < count($aColumns); $i++) {
+                if ($aColumns[$i] != ' ') {
                     /* General output */
-                    $row [] = $select_row [$aColumns [$i]];
+                    $row[] = $select_row[$aColumns[$i]];
                 } else {
-                    $row [] = "";
+                    $row[] = "";
                 }
             }
 
 
-            $output ['aaData'] [] = $row;
+            $output['aaData'][] = $row;
         }
 
         $json = json_encode($output);

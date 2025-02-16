@@ -21,7 +21,7 @@
  */
 
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 /**
  * Passe les compteurs de tickets en décimal
@@ -32,18 +32,16 @@ if (!defined('BASEPATH'))
 class Migration_Tarifs_Date_De_Fin extends CI_Migration {
 
 	protected $number;
-	
+
 	/**
 	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
-		parent :: __construct();
+		parent::__construct();
 		$this->number = 15;
 	}
-	
+
 	/*
 	 * Execute an array of sql requests
 	 */
@@ -51,44 +49,44 @@ class Migration_Tarifs_Date_De_Fin extends CI_Migration {
 		$errors = 0;
 		foreach ($sqls as $sql) {
 			// echo $sql . br();
-			if (!$this->db->query($sql)) {$errors += 1;}
+			if (!$this->db->query($sql)) {
+				$errors += 1;
+			}
 		}
 		return $errors;
 	}
-	
-	
+
+
 	/**
 	 * Apply the migration
 	 */
-	public function up()
-	{	
+	public function up() {
 		$errors = 0;
-		
+
 		$sqls = array(
-				"ALTER TABLE `tarifs` ADD `date_fin` DATE NULL DEFAULT '2099-12-31' COMMENT 'Date de fin' AFTER `date` ;",
-				"ALTER TABLE `tarifs` ADD `public` TINYINT NULL DEFAULT '1' COMMENT 'Permet le filtrage sur l''impression';"
+			"ALTER TABLE `tarifs` ADD `date_fin` DATE NULL DEFAULT '2099-12-31' COMMENT 'Date de fin' AFTER `date` ;",
+			"ALTER TABLE `tarifs` ADD `public` TINYINT NULL DEFAULT '1' COMMENT 'Permet le filtrage sur l''impression';"
 		);
 
-		$errors += $this->run_queries($sqls); 
+		$errors += $this->run_queries($sqls);
 		gvv_info("Migration database up to " . $this->number . ", errors=$errors");
-		
+
 		return !$errors;
 	}
 
 	/**
 	 * Reverse the migration
 	 */
-	public function down()
-	{
+	public function down() {
 		$errors = 0;
 		$sqls = array(
-				"ALTER TABLE `tarifs` DROP `date_fin`;",
-				"ALTER TABLE `tarifs` DROP `public`;"				
+			"ALTER TABLE `tarifs` DROP `date_fin`;",
+			"ALTER TABLE `tarifs` DROP `public`;"
 		);
-		
-		$errors += $this->run_queries($sqls); 
+
+		$errors += $this->run_queries($sqls);
 		gvv_info("Migration database down to " . $this->number - 1 . ", errors=$errors");
-		
-		return !$errors;	
+
+		return !$errors;
 	}
 }

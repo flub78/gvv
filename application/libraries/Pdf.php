@@ -18,7 +18,7 @@
 if (! defined('BASEPATH'))
     exit('No direct script access allowed');
 
-$CI = & get_instance();
+$CI = &get_instance();
 $CI->load->library('Fpdf');
 class PDF extends FPDF {
     protected $table_header = FALSE;
@@ -32,12 +32,10 @@ class PDF extends FPDF {
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct($orientation = "P", $unit = "mm", $format = "A4") {
         parent::__construct($orientation, $unit, $format);
-        $CI = & get_instance();
+        $CI = &get_instance();
         $nom_club = $CI->config->item('nom_club');
         $this->SetTitle($nom_club);
         $this->set_title($nom_club);
@@ -59,17 +57,17 @@ class PDF extends FPDF {
         // Check the number of real lines
         $col = 0;
         $ln = 1;
-        foreach ( $row as $field ) {
-            $width = $w [$col ++]; // colomn width
+        foreach ($row as $field) {
+            $width = $w[$col++]; // colomn width
             $sw = $this->GetStringWidth($field); // string width
-            $ratio = 1 + ( int ) ($sw / $width); // Compute number of line required
+            $ratio = 1 + (int) ($sw / $width); // Compute number of line required
             if ($ratio > $ln) {
                 $ln = $ratio;
             }
         }
 
         $col = 0;
-        foreach ( $row as $field ) {
+        foreach ($row as $field) {
 
             /*
              * Problem:
@@ -77,23 +75,23 @@ class PDF extends FPDF {
              * When some lines require at least three lines, single cells have the right height,
              * but multicell that do not require three lines are too small.
              */
-            $algn = ($ln == 1) ? $align [$col] : 'L';
-            $algn = $align [$col];
-            if ($this->GetStringWidth($field) <= $w [$col]) {
-                parent::Cell($w [$col], $height * $ln, $field, $border, 0, $algn);
+            $algn = ($ln == 1) ? $align[$col] : 'L';
+            $algn = $align[$col];
+            if ($this->GetStringWidth($field) <= $w[$col]) {
+                parent::Cell($w[$col], $height * $ln, $field, $border, 0, $algn);
             } else {
 
                 // fill with spaces to force the correc size
-                while ( $this->GetStringWidth($field) <= $w [$col] * ($ln - 1) ) {
+                while ($this->GetStringWidth($field) <= $w[$col] * ($ln - 1)) {
                     $field .= ' ';
                 }
 
                 $x = $this->GetX();
                 $y = $this->GetY();
-                $this->MultiCell($w [$col], $height, $field, $border, $algn);
-                $this->SetXY($x + $w [$col], $y);
+                $this->MultiCell($w[$col], $height, $field, $border, $algn);
+                $this->SetXY($x + $w[$col], $y);
             }
-            $col ++;
+            $col++;
         }
         $this->Ln();
         if ($ln > 1) {
@@ -116,7 +114,7 @@ class PDF extends FPDF {
         $this->border = $border;
         $this->fill = $fill;
         $this->link = $link;
-        $this->table_header_line = $data [0];
+        $this->table_header_line = $data[0];
         $this->table_header = TRUE;
         $this->table_header();
     }
@@ -142,13 +140,13 @@ class PDF extends FPDF {
      */
     public function table($w, $height, $align, $data, $border = 'LRTB', $fill = FALSE, $link = '') {
         $line = 0;
-        foreach ( $data as $row ) {
+        foreach ($data as $row) {
             if ($line == 0) {
                 $this->set_table_header($w, $height, $align, $data, $border, $fill, $link);
             } else {
                 $this->row($w, $height, $align, $row, $border, $fill, $link);
             }
-            $line ++;
+            $line++;
         }
         $this->table_header = FALSE;
     }
@@ -179,24 +177,24 @@ class PDF extends FPDF {
     function cell_block($list, $data) {
         $label_max = 0;
         // cherche le label le plus large
-        foreach ( $list as $row ) {
-            $len = strlen($row ['label']);
+        foreach ($list as $row) {
+            $len = strlen($row['label']);
             if ($len > $label_max) {
                 $label_max = $len;
             }
         }
 
         $width = 3;
-        foreach ( $list as $row ) {
-            $this->cell($label_max * 1.5, 1, $row ['label']);
+        foreach ($list as $row) {
+            $this->cell($label_max * 1.5, 1, $row['label']);
 
-            $field = $row ['field'];
-            $value = isset($data [$field]) ? $data [$field] : "";
+            $field = $row['field'];
+            $value = isset($data[$field]) ? $data[$field] : "";
             if ($value != "") {
                 $w = strlen($value) * $width;
             } else {
-                if (isset($row ['size'])) {
-                    $w = $row ['size'];
+                if (isset($row['size'])) {
+                    $w = $row['size'];
                 } else {
                     $w = 0;
                 }
@@ -217,7 +215,7 @@ class PDF extends FPDF {
 
     // En-tête
     function Header() {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
         // Logo
         $logofile = $CI->config->item('logo_club');
@@ -248,7 +246,7 @@ class PDF extends FPDF {
     // Pied de page
     function Footer() {
         // Positionnement à 1,5 cm du bas
-        $this->SetY(- 15);
+        $this->SetY(-15);
         // Police Arial italique 8
         $this->SetFont('Arial', 'I', 8);
         // Numéro de page

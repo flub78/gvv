@@ -21,7 +21,7 @@
  */
 
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 /**
  * Passe les compteurs de tickets en décimal
@@ -32,18 +32,16 @@ if (!defined('BASEPATH'))
 class Migration_Tickets_Decimaux extends CI_Migration {
 
 	protected $number;
-	
+
 	/**
 	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
-		parent :: __construct();
+		parent::__construct();
 		$this->number = 14;
 	}
-	
+
 	/*
 	 * Execute an array of sql requests
 	 */
@@ -51,44 +49,44 @@ class Migration_Tickets_Decimaux extends CI_Migration {
 		$errors = 0;
 		foreach ($sqls as $sql) {
 			// echo $sql . br();
-			if (!$this->db->query($sql)) {$errors += 1;}
+			if (!$this->db->query($sql)) {
+				$errors += 1;
+			}
 		}
 		return $errors;
 	}
-	
-	
+
+
 	/**
 	 * Apply the migration
 	 */
-	public function up()
-	{	
+	public function up() {
 		$errors = 0;
-		
+
 		// nettoyage de champs inutiles
 		$sqls = array(
-				"ALTER TABLE `tickets` CHANGE `quantite` `quantite` DECIMAL(11,2) NOT NULL DEFAULT '0' COMMENT 'Incrément';"
+			"ALTER TABLE `tickets` CHANGE `quantite` `quantite` DECIMAL(11,2) NOT NULL DEFAULT '0' COMMENT 'Incrément';"
 		);
 
-		$errors += $this->run_queries($sqls); 
+		$errors += $this->run_queries($sqls);
 		gvv_info("Migration database up to " . $this->number . ", errors=$errors");
-		
+
 		return !$errors;
 	}
 
 	/**
 	 * Reverse the migration
 	 */
-	public function down()
-	{
+	public function down() {
 		$errors = 0;
-		
+
 		$sqls = array(
-				"ALTER TABLE `tickets` CHANGE `quantite` `quantite` DECIMAL(11,0) NOT NULL DEFAULT '0' COMMENT 'Incrément';"
+			"ALTER TABLE `tickets` CHANGE `quantite` `quantite` DECIMAL(11,0) NOT NULL DEFAULT '0' COMMENT 'Incrément';"
 		);
-		
-		$errors += $this->run_queries($sqls); 
+
+		$errors += $this->run_queries($sqls);
 		gvv_info("Migration database down to " . $this->number - 1 . ", errors=$errors");
-		
-		return !$errors;	
+
+		return !$errors;
 	}
 }

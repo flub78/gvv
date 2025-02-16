@@ -21,7 +21,7 @@
  */
 
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 /**
  * Passe les compteurs de tickets en décimal
@@ -36,11 +36,9 @@ class Migration_Formation extends CI_Migration {
 	/**
 	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
-		parent :: __construct();
+		parent::__construct();
 		$this->number = 18;
 		$this->load->library('database');
 	}
@@ -52,7 +50,9 @@ class Migration_Formation extends CI_Migration {
 		$errors = 0;
 		foreach ($sqls as $sql) {
 			// echo $sql . br();
-			if (!$this->db->query($sql)) {$errors += 1;}
+			if (!$this->db->query($sql)) {
+				$errors += 1;
+			}
 		}
 		return $errors;
 	}
@@ -61,14 +61,13 @@ class Migration_Formation extends CI_Migration {
 	/**
 	 * Apply the migration
 	 */
-	public function up()
-	{
+	public function up() {
 		$errors = 0;
-		
+
 		$filename = getcwd() . '/application/migrations/formation.sql';
 		$res = $this->database->sqlfile($filename);
 		gvv_info("Migration database up to " . $this->number . ", errors=$errors");
-		
+
 
 		return !$errors;
 	}
@@ -76,20 +75,23 @@ class Migration_Formation extends CI_Migration {
 	/**
 	 * Reverse the migration
 	 */
-	public function down()
-	{
-		
+	public function down() {
+
 		$errors = 0;
 		$sql = 'SET FOREIGN_KEY_CHECKS=0;';
-		if (!$this->db->query($sql)) {$errors += 1;}
-		
+		if (!$this->db->query($sql)) {
+			$errors += 1;
+		}
+
 		$this->dbforge->drop_table('formation_chapitres', true);
 		$this->dbforge->drop_table('formation_item', true);
 		$this->dbforge->drop_table('formation_progres', true);
 
 		$sql = 'SET FOREIGN_KEY_CHECKS=1;';
-		if (!$this->db->query($sql)) {$errors += 1;}
-		
+		if (!$this->db->query($sql)) {
+			$errors += 1;
+		}
+
 		gvv_info("Migration database down to " . $this->number - 1 . ", errors=$errors");
 
 		return !$errors;

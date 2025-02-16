@@ -21,7 +21,7 @@
  */
 
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 /**
  * Passe les compteurs de tickets en décimal
@@ -34,13 +34,10 @@ class Migration_Ref_Achats extends CI_Migration {
 	protected $number;
 
 	/**
-	 *
 	 * Constructor
-	 *
-	 * Affiche header et menu
 	 */
 	function __construct() {
-		parent :: __construct();
+		parent::__construct();
 		$this->number = 17;
 	}
 
@@ -51,7 +48,9 @@ class Migration_Ref_Achats extends CI_Migration {
 		$errors = 0;
 		foreach ($sqls as $sql) {
 			// echo $sql . br();
-			if (!$this->db->query($sql)) {$errors += 1;}
+			if (!$this->db->query($sql)) {
+				$errors += 1;
+			}
 		}
 		return $errors;
 	}
@@ -60,12 +59,11 @@ class Migration_Ref_Achats extends CI_Migration {
 	/**
 	 * Apply the migration
 	 */
-	public function up()
-	{
+	public function up() {
 		$errors = 0;
 
 		$sqls = array(
-				"ALTER TABLE `achats` ADD `num_cheque` VARCHAR(50) NULL COMMENT 'Numéro de pièce comptable' ;"
+			"ALTER TABLE `achats` ADD `num_cheque` VARCHAR(50) NULL COMMENT 'Numéro de pièce comptable' ;"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -77,11 +75,10 @@ class Migration_Ref_Achats extends CI_Migration {
 	/**
 	 * Reverse the migration
 	 */
-	public function down()
-	{
+	public function down() {
 		$errors = 0;
 		$sqls = array(
-				"ALTER TABLE `achats` DROP `num_cheque`;"
+			"ALTER TABLE `achats` DROP `num_cheque`;"
 		);
 
 		$errors += $this->run_queries($sqls);

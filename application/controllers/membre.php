@@ -50,8 +50,6 @@ class Membre extends Gvv_Controller {
 
     /**
      * Constructor
-     *
-     * Affiche header et menu
      */
     function __construct() {
         parent::__construct();
