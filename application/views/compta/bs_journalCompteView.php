@@ -35,9 +35,13 @@ if (isset($message)) {
 }
 echo checkalert($this->session);
 
+$title = $this->lang->line("gvv_compta_title_entries");
+if ($section) {
+    $title .= " section " . $section['nom'];
+}
 ?>
 
-<h3><?= $this->lang->line("gvv_compta_title_entries") ?></h3>
+<h3><?= $title ?></h3>
 
 <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 

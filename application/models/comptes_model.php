@@ -85,7 +85,17 @@ class Comptes_model extends Common_Model {
     public function select_page($selection = array(), $date, $filter_solde = "") {
 
         // selectionne les comptes
-        $result = $this->db->select('id, nom, codec, actif, debit, credit')->from('comptes, planc')->where($selection)->where('codec = planc.pcode')->
+        $result = $this->db
+            ->select('id, nom, codec, actif, debit, credit, club')
+            ->from('comptes, planc')
+            ->where($selection)
+            ->where('codec = planc.pcode');
+
+        if ($this->sections_model->section()) {
+            $this->db->where('club', $this->sections_model->section_id());
+        }
+
+        $result = $this->db->
             // ->limit($nb, $debut)
             order_by('codec, nom')->get()->result_array();
 
@@ -147,7 +157,18 @@ class Comptes_model extends Common_Model {
     public function select_page_general($selection = array(), $date, $filter_solde = "") {
 
         // selectionne les comptes
-        $result = $this->db->select('pcode as codec, pdesc as nom')->from('planc, comptes')->where('codec = planc.pcode')->where($selection)->order_by('codec')->group_by('codec')->get()->result_array();
+        $this->db
+            ->select('pcode as codec, pdesc as nom, club')
+            ->from('planc, comptes')
+            ->where('codec = planc.pcode')
+            ->where($selection)->order_by('codec');
+
+        if ($this->sections_model->section()) {
+            $this->db->where('club', $this->sections_model->section_id());
+        }
+
+        $result = $this->db->group_by('codec')
+            ->get()->result_array();
 
         $balance_date = date_ht2db($date);
 

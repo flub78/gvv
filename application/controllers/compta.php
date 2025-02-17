@@ -888,6 +888,7 @@ class Compta extends Gvv_Controller {
      */
     private function journal_data($data, $compte = '', $premier = 0, $message = '') {
         $this->select_data($data, $compte, $premier, $message);
+        $this->data['section'] = $this->gvv_model->section();
         load_last_view('compta/journalCompteView', $this->data);
     }
 
@@ -905,12 +906,21 @@ class Compta extends Gvv_Controller {
         if (!preg_match("/favicon/", $current_url) && !preg_match("/filterValidation/", $current_url)) {
             $this->push_return_url("journal compte");
         }
+
         $data = $this->comptes_model->get_by_id('id', $compte);
+
+        // if no account is found
         if (count($data) == 0) {
-            return $this->page();
-        } else {
-            $this->journal_data($data, $compte, $premier, $message);
+            // better to return to comptes/general (balance)
+            redirect("comptes/general");
         }
+
+        // or it is not an account of the current section
+        if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
+            redirect("comptes/general");
+        }
+
+        $this->journal_data($data, $compte, $premier, $message);
     }
 
     /**

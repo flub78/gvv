@@ -38,6 +38,9 @@ $this->lang->load('comptes');
 	if ($codec2) {
 		$title .= nbs() . $this->lang->line('comptes_label_to') . nbs() . $codec2;
 	}
+	if ($section) {
+		$title .= " section " . $section['nom'];
+	}
 	?>
 	<h3><?= $title ?></h3>
 	<input type="hidden" name="controller_url" id="controller_url" value="<?= controller_url($controller) ?>" />
