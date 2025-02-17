@@ -369,6 +369,7 @@ class Comptes extends Gvv_Controller {
         // selection des codec
         // Titre
         $titre = $this->lang->line("gvv_comptes_title_balance");
+
         $selection = array();
         if ($codec != '') {
             // $selection['codec'] = $codec;
@@ -387,7 +388,11 @@ class Comptes extends Gvv_Controller {
         if (!$balance_date) {
             $balance_date = date('d/m/Y');
         }
-        $titre .= ", " . $this->lang->line("comptes_label_date") . "=$balance_date";
+        $titre .= "=$balance_date";
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $titre .= " section " . $section['nom'];
+        }
 
         if ($general) {
             $result = $this->gvv_model->select_page_general($selection, $balance_date);
@@ -421,6 +426,10 @@ class Comptes extends Gvv_Controller {
         // selection des codec
         // Titre
         $titre = $this->lang->line("gvv_comptes_title_balance");
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $titre .= " section " . $section['nom'];
+        }
         $selection = array();
         if ($codec != '') {
             // $selection['codec'] = $codec;

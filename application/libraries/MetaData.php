@@ -980,9 +980,14 @@ abstract class Metadata {
 
         date_default_timezone_set('Europe/Paris');
         $dt = date("Y_m_d");
-        $filename = "gvv_" . $table . "_$dt.csv";
+        if (isset($attrs['title'])) {
+            $title = strtolower(str_replace([' ', '-', ',', '='], ['_', '', '', '_'], $title));
 
-        # $res = iconv('UTF-8', 'windows-1252', $res);
+            $filename = "gvv_" . $title . ".csv";
+        } else {
+            $filename = "gvv_" . $table . "_$dt.csv";
+        }
+
         $CI = &get_instance();
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
