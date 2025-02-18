@@ -246,44 +246,45 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Ecriture Générale
+     * Ecriture entre un compte de charge et un compte de banque
      */
-    function create() {
+    function ecriture(string $title_key, $emploi_selection, $resource_selection, $message = "") {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
-        $this->data['title_key'] = "gvv_compta_title_line";
+        $title = $this->lang->line($title_key);
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $this->data['title'] = $title;
+        if ($message) $this->data['message'] = $message;
 
-        $where = [];
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($emploi_selection, "asc", TRUE));
 
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($resource_selection, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
+    }
+
+    /**
+     * Ecriture Générale
+     */
+    function create() {
+        $this->ecriture("gvv_compta_title_line", [], []);
     }
 
     /**
      * Ecriture entre un compte de charge et un compte de banque
      */
     function depenses() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-
-        $this->data['title_key'] = "gvv_compta_title_depense";
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_depense", [
             "codec >=" => "6",
             'codec <' => "7"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
+        ], [
             "codec >=" => "5",
             'codec <' => "6"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ]);
     }
 
     /**
@@ -291,23 +292,13 @@ class Compta extends Gvv_Controller {
      * sur un compte de produit.
      */
     function recettes() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_recette";
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_recette", [
             "codec >=" => "5",
             'codec <' => "6"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
+        ], [
             "codec >=" => "7",
             'codec <' => "8"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ]);
     }
 
     /**
@@ -315,66 +306,31 @@ class Compta extends Gvv_Controller {
      * compte produit
      */
     function factu_pilote() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_manual";
-        $this->data['message'] = $this->lang->line("gvv_compta_message_advice_manual");
-
-        $where = array(
-            "codec =" => "411"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_manual", ["codec =" => "411"], [
             "codec >=" => "7",
             'codec <' => "8"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ], $this->lang->line("gvv_compta_message_advice_manual"));
     }
 
     /**
      * Credit d'un compte pilote à partir d'un compte de charge
      */
     function credit_pilote() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_remboursement";
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_remboursement", [
             "codec >=" => "6",
             'codec <' => "7"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = "codec = '411'";
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ], ["codec = '411'"]);
     }
 
     /**
-     * Le reglement pilote est une opération entre un compte pilote et un compte
+     * Le règlement pilote est une opération entre un compte pilote et un compte
      * de caisse.
      */
     function reglement_pilote() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_paiement";
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_paiement", [
             "codec >=" => "5",
             'codec <' => "6"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
-            "codec" => "411"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ], ["codec" => "411"]);
     }
 
     /**
@@ -382,90 +338,37 @@ class Compta extends Gvv_Controller {
      * de caisse.
      */
     function debit_pilote() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_avance";
-
-        $where = array(
-            "codec" => "411"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_avance", ["codec" => "411"], [
             "codec >=" => "5",
             'codec <' => "6"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ]);
     }
 
     /**
      * Enregistrement d'un avoir fournisseur
      */
     function avoir_fournisseur() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-
-        $this->data['title_key'] = "gvv_compta_title_avoir";
-
-        $where = array(
-            "codec" => "401"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_avoir", ["codec" => "401"], [
             "codec >=" => "6",
             'codec <' => "7"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ]);
     }
 
     /**
      * Utilisation d'un avoir fournisseur
      */
     function utilisation_avoir_fournisseur() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-
-        $this->data['title_key'] = "gvv_compta_title_avoir_use";
-
-        $where = array(
+        $this->ecriture("gvv_compta_title_avoir_use", [
             "codec >=" => "6",
             'codec <' => "7"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
-            "codec" => "401"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        ], ["codec" => "401"]);
     }
 
     /**
      * Virement entre comptes bancaire
      */
     function virement() {
-        parent::create(FALSE);
-        $this->session->set_userdata('current_url', current_url());
-        $this->data['title_key'] = "gvv_compta_title_wire";
-        $this->data['message'] = $this->lang->line("gvv_compta_message_advice_wire");
-
-        $where = array(
-            "codec" => "512"
-        );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $where = array(
-            "codec" => "512"
-        );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        load_last_view('compta/formView', $this->data);
+        $this->ecriture("gvv_compta_title_wire", ["codec" => "512"], ["codec" => "512"]);
     }
 
     /**

@@ -30,9 +30,9 @@ $this->lang->load('attachments');
 echo '<div id="body" class="body container-fluid">';
 
 echo checkalert($this->session, isset($popup) ? $popup : "");
-echo heading($title_key, 3);
 
 ?>
+<h3><?= $title ?></h3>
 
 <div class="d-flex flex-row flex-wrap">
     <div>
