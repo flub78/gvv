@@ -28,6 +28,9 @@ $this->lang->load('admin');
 $this->lang->load('attachments');
 $this->lang->load('sections');
 
+$CI = &get_instance();
+$CI->load->model('sections_model');
+$section = $CI->sections_model->section();
 ?>
 
 <body>

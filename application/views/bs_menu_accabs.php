@@ -32,7 +32,7 @@
     <li><a class="dropdown-item" href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" rel="noopener noreferrer"><?= translation("GVV") ?></a></li>
     <li><a class="dropdown-item" href="http://aeroclub-abbeville.fr/" target="_blank" rel="noopener noreferrer"><?= translation("Site club") ?></a></li>
 
-    <li><a class="dropdown-item" href="https://moncompte.ffvp.fr/" target="_blank" rel="noopener noreferrer">Compte FFVP, GESASSO</a></li>
+    <li><a class="dropdown-item" href="https://moncompte.ffvp.fr/" target="_blank" rel="noopener noreferrer">Comptes FFVP, GESASSO</a></li>
 
     <li><a class="dropdown-item" href="https://www.ffvp.fr/" target="_blank" rel="noopener noreferrer"><?= translation("FFVP") ?></a></li>
     <li><a class="dropdown-item" href="https://www.ffvp.fr/les-rex" target="_blank" rel="noopener noreferrer"><?= translation("Retours d'expérience") ?></a></li>
