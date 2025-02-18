@@ -110,8 +110,8 @@ class Compta extends Gvv_Controller {
         parent::form_static_element($action);
 
         $this->data['title_key'] = "gvv_compta_title_line";
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector());
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector());
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector(), "asc", TRUE);
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector(), "asc", TRUE);
         $this->data['date_creation'] = date("d/m/Y");
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
@@ -246,6 +246,23 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Ecriture Générale
+     */
+    function create() {
+        parent::create(FALSE);
+        $this->session->set_userdata('current_url', current_url());
+
+        $this->data['title_key'] = "gvv_compta_title_line";
+
+        $where = [];
+
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
+
+        load_last_view('compta/formView', $this->data);
+    }
+
+    /**
      * Ecriture entre un compte de charge et un compte de banque
      */
     function depenses() {
@@ -258,13 +275,13 @@ class Compta extends Gvv_Controller {
             "codec >=" => "6",
             'codec <' => "7"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec >=" => "5",
             'codec <' => "6"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -282,13 +299,13 @@ class Compta extends Gvv_Controller {
             "codec >=" => "5",
             'codec <' => "6"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec >=" => "7",
             'codec <' => "8"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -306,13 +323,13 @@ class Compta extends Gvv_Controller {
         $where = array(
             "codec =" => "411"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec >=" => "7",
             'codec <' => "8"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -329,10 +346,10 @@ class Compta extends Gvv_Controller {
             "codec >=" => "6",
             'codec <' => "7"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = "codec = '411'";
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -350,12 +367,12 @@ class Compta extends Gvv_Controller {
             "codec >=" => "5",
             'codec <' => "6"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec" => "411"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -372,13 +389,13 @@ class Compta extends Gvv_Controller {
         $where = array(
             "codec" => "411"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec >=" => "5",
             'codec <' => "6"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -395,13 +412,13 @@ class Compta extends Gvv_Controller {
         $where = array(
             "codec" => "401"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec >=" => "6",
             'codec <' => "7"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -419,12 +436,12 @@ class Compta extends Gvv_Controller {
             "codec >=" => "6",
             'codec <' => "7"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec" => "401"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
@@ -441,12 +458,12 @@ class Compta extends Gvv_Controller {
         $where = array(
             "codec" => "512"
         );
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $where = array(
             "codec" => "512"
         );
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         load_last_view('compta/formView', $this->data);
     }
