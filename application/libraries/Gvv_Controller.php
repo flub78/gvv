@@ -771,10 +771,10 @@ class Gvv_Controller extends CI_Controller {
 
         $this->form_validation->set_message('section_selected', $this->lang->line("section_selected"));
         if ($section) {
-            gvv_debug("callback check section selected OK");
+            gvv_debug("validation callback check section selected OK");
             return TRUE;
         } else {
-            gvv_debug("callback check section selected Error, no section selected");
+            gvv_debug("validation callback check section selected Error, no section selected");
             return FALSE;
         }
     }
