@@ -429,15 +429,30 @@ class Ecritures_model extends Common_Model {
         }
         $where = "date_op $operation \"" . date_ht2db($date) . "\"";
 
-        $debit = $this->db->select('sum(montant) as montant, codec')->from('ecritures, comptes')->where($where)->where('ecritures.compte1 = comptes.id')->where(array(
-            'codec' => $codec
-        ))->get()->row()->montant;
+        $this->db->select('sum(montant) as montant, codec, ecritures.club')
+            ->from('ecritures, comptes')
+            ->where($where)
+            ->where('ecritures.compte1 = comptes.id')
+            ->where(array(
+                'codec' => $codec
+            ));
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $debit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
 
-        $credit = $this->db->select('sum(montant) as montant, codec')->from('ecritures, comptes')->where($where)->where('ecritures.compte2 = comptes.id')->where(array(
-            'codec' => $codec
-        ))->get()->row()->montant;
+        $this->db->select('sum(montant) as montant, codec, ecritures.club')
+            ->from('ecritures, comptes')
+            ->where($where)->where('ecritures.compte2 = comptes.id')
+            ->where(array(
+                'codec' => $codec
+            ));
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
         $solde = $credit - $debit;
