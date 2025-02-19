@@ -38,10 +38,7 @@ CREATE TABLE `sections` (
 --
 
 INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
-(1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville'),
-(2, 'ULM', 'Section ULM de l\'aéroclub d\'Abbeville'),
-(3, 'Avion', 'Section avion de l\'aéroclub d\'Abbeville'),
-(4, 'Général', 'Compte général de l\'aéroclub d\'Abbeville');
+(1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville');
 
 --
 -- Index pour les tables déchargées

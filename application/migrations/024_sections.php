@@ -39,7 +39,7 @@ class Migration_Sections extends CI_Migration {
 	 */
 	function __construct() {
 		parent::__construct();
-		$this->migration_number = 23;
+		$this->migration_number = 24;
 		$this->load->library('database');
 	}
 
