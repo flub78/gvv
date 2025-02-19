@@ -99,35 +99,6 @@
 		return $res;
 	}
 
-	echo "<H1>Installation de GVV</H1><br>";
-
-	echo "server user_id=" . get_current_user() . "<br/>";
-	echo 'PHP is running as: ' . exec('whoami') . "<br/>";
-	echo "current directory=" . getcwd() . "<br/>";
-
-
-	echo "<H2>Verification des fichiers sur le serveur</H2>";
-
-	/*
- * Verification de l'import de l'arborescence de GVV
-*
-*/
-	echo "<H3>Verification de l'arborescence</H3>";
-	check_all_files();
-
-	/*
- * Verification de la structure de la base de donn�es
-*/
-	echo "<H3>Verification de la base de données</H3>";
-
-
-	$configbase = "../application/config/database.php";
-	$db_params = read_db_parameters($configbase);
-	$serveur = $db_params['hostname'];
-	$nom = $db_params['username'];
-	$password = $db_params['password'];
-	$base = $db_params['database'];
-
 	/**
 	 * 
 	 * Affiche un message en cas d'erreur de base de données fatale
@@ -179,6 +150,56 @@
 		return $url;
 	}
 
+	function mysql_import($filename, $db) {
+
+		$file_content = file($filename);
+		$query = "";
+		foreach ($file_content as $sql_line) {
+			if (trim($sql_line) != "" && strpos($sql_line, "--") === false) {
+				$query .= $sql_line;
+				if (substr(rtrim($query), -1) == ';') {
+					// echo $query . '<br/>';
+					mysqli_query($db, $query)
+						or die(mysqli_error($db));
+					$query = "";
+				}
+			}
+		}
+	}
+
+	// ===========================================================================================
+	// Début du script
+	// ===========================================================================================
+	echo "<H1>Installation de GVV</H1><br>";
+
+	echo "server user_id=" . get_current_user() . "<br/>";
+	echo 'PHP is running as: ' . exec('whoami') . "<br/>";
+	echo "current directory=" . getcwd() . "<br/>";
+
+
+	echo "<H2>Verification des fichiers sur le serveur</H2>";
+
+	/*
+ * Verification de l'import de l'arborescence de GVV
+*
+*/
+	echo "<H3>Verification de l'arborescence</H3>";
+	check_all_files();
+
+	/*
+ * Verification de la structure de la base de donn�es
+*/
+	echo "<H3>Verification de la base de données</H3>";
+
+
+	$configbase = "../application/config/database.php";
+	$db_params = read_db_parameters($configbase);
+	$serveur = $db_params['hostname'];
+	$nom = $db_params['username'];
+	$password = $db_params['password'];
+	$base = $db_params['database'];
+
+
 	// Verification connexion BDD
 	$db = mysqli_connect($serveur, $nom, $password, $base) or fatal_db();
 
@@ -187,7 +208,6 @@
 	} else {
 		printf("Jeu de caractères courant : %s\n</br>", "utf8");
 	}
-
 
 	//Verification structure BDD
 	$sql = "SHOW TABLES FROM $base";
@@ -201,30 +221,19 @@
 		echo $data[0];
 	}
 
-	function mysql_import($filename, $db) {
-
-		$file_content = file($filename);
-		$query = "";
-		foreach ($file_content as $sql_line) {
-			if (trim($sql_line) != "" && strpos($sql_line, "--") === false) {
-				$query .= $sql_line;
-				if (substr(rtrim($query), -1) == ';') {
-					// echo $query . '<br/>';
-					$result = mysqli_query($db, $query)
-						or die(mysqli_error($db));
-					$query = "";
-				}
-			}
-		}
-	}
-
 	if (mysqli_num_rows($req) < 22) {
 		echo '<br>Structure inexistante';
-		echo '<br>Création des tables de la base de données<br>';
+		echo '<br>Initialisation de la base de données<br>';
 
-		mysql_import("./gvv_structure.sql", $db);
-		echo '<br>Initialisation des valeurs par défaut';
-		mysql_import("./gvv_defaut.sql", $db);
+		// Import éventuel de base de test
+		// http://localhost/gvv2/install/?db=dusk_tests.sql
+		if (array_key_exists('db', $_GET)) {
+			echo "<br>Import de la base " . $_GET['db'] . "<br/>";
+			mysql_import("./" . $_GET['db'], $db);
+		} else {
+			mysql_import("./gvv_init.sql", $db);
+		}
+
 		echo '<br>La base de données à été créée';
 	} else {
 		echo "<br><br>Les tables de la base existent déjà, aucune action effectuée.<br>";
@@ -234,7 +243,6 @@
 	$requete1 = ("SELECT * FROM users");
 	$resultat = mysqli_query($db, $requete1);
 
-
 	echo '<br><br>Detection des Utilisateurs:</i><br><br>';
 
 	while ($data = $resultat->fetch_assoc()) {
@@ -243,26 +251,6 @@
 	}
 
 
-	if (mysqli_num_rows($resultat) < 1) {
-		echo '<br>Aucun utilisateurs detectés</i>';
-		echo '<br>Création d utilisateurs: </i><br>';
-		mysql_import("./initial_users.sql", $db);
-		echo "<br>Après installation, vous pouvez vous connecter en utilisant
-   	     testadmin/password ou testuser/password<br>";
-	} else {
-		echo "<br>Les utilisateurs existent déjà, rien à faire.<br/>";
-	}
-
-	//Verification sécurité
-	if (mysqli_num_rows($resultat) > 2) {
-	}
-
-	// Import éventuel de base de test
-	// http://localhost/gvv2/install/?db=dusk_tests.sql
-	if (array_key_exists('db', $_GET)) {
-		echo "<br>Import de la base " . $_GET['db'] . "<br/>";
-		mysql_import("./" . $_GET['db'], $db);
-	}
 
 	mysqli_close($db);
 
