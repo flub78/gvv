@@ -31,7 +31,7 @@ class Comptes extends Gvv_Controller {
     protected $modification_level = 'tresorier';
 
     // régles de validation
-    protected $rules = array();
+    protected $rules = ['club' => "callback_section_selected"];
     protected $filter_variables = array(
         'filter_active',
         'filter_solde'

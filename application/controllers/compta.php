@@ -28,7 +28,7 @@ class Compta extends Gvv_Controller {
     protected $controller = 'compta';
     protected $model = 'ecritures_model';
     protected $modification_level = 'tresorier';
-    protected $rules = array();
+    protected $rules = ['club' => "callback_section_selected"];
 
     /**
      * Constructor
