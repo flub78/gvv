@@ -755,14 +755,18 @@ class Ecritures_model extends Common_Model {
         }
 
         // Selectionne les dépenses (écritures dans les comptes 600)
-        $db_res = $this->db
-            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, date_op")
+        $this->db
+            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, date_op, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
             ->where('compte1.codec >= "6" and compte1.codec < "7"')
-            ->where('compte2.codec != "120" and compte2.codec !=  "129"')
-            ->group_by($group_by)->order_by('code')->get();
+            ->where('compte2.codec != "120" and compte2.codec !=  "129"');
+
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->group_by($group_by)->order_by('code')->get();
         $depenses = $this->get_to_array($db_res);
 
         // création d'un index
@@ -775,14 +779,17 @@ class Ecritures_model extends Common_Model {
         if ($group_by == "compte1")
             $group_by = "compte2";
 
-        $db_res = $this->db
-            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, date_op")
+        $this->db
+            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, date_op, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
             ->where('compte2.codec >= "6" and compte2.codec < "7"')
-            ->where('compte1.codec != "120" and compte1.codec !=  "129"')
-            ->group_by($group_by)
+            ->where('compte1.codec != "120" and compte1.codec !=  "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->group_by($group_by)
             ->order_by('code')
             ->get();
         $no_depenses = $this->get_to_array($db_res);
@@ -830,14 +837,17 @@ class Ecritures_model extends Common_Model {
         }
 
         // selection des recettes
-        $db_res = $this->db
-            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant")
+        $this->db
+            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
             ->where('compte2.codec >= "7" and compte2.codec < "8"')
-            ->where('compte1.codec != "120" and compte1.codec !=  "129"')
-            ->group_by($group_by)
+            ->where('compte1.codec != "120" and compte1.codec !=  "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->group_by($group_by)
             ->order_by('code')
             ->get();
         $recettes = $this->get_to_array($db_res);
@@ -852,14 +862,17 @@ class Ecritures_model extends Common_Model {
         if ($group_by == "compte2")
             $group_by = "compte1";
 
-        $db_res = $this->db
-            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant")
+        $this->db
+            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
             ->where('compte1.codec >= "7" and compte1.codec < "8"')
-            ->where('compte2.codec != "120" and compte2.codec !=  "129"')
-            ->group_by($group_by)->order_by('code')
+            ->where('compte2.codec != "120" and compte2.codec !=  "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->group_by($group_by)->order_by('code')
             ->get();
         $no_recettes = $this->get_to_array($db_res);
 
