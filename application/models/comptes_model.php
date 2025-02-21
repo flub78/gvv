@@ -23,6 +23,7 @@ class Comptes_model extends Common_Model {
         $this->CI = &get_instance();
         $this->load->model("ecritures_model");
         $this->load->model("membres_model");
+        $this->load->model("sections_model");
     }
 
     /**
@@ -103,7 +104,8 @@ class Comptes_model extends Common_Model {
 
         // Va chercher les soldes à la date donnée pour chaque compte
         foreach ($result as $key => $row) {
-            // echo "$key => "; var_dump($row);
+            // echo "$key => ";
+            // var_dump($row);
 
             // Ajustement à la date donnée
             $soldes = $this->ecritures_model->solde_compte($row['id'], $balance_date, "<=", true);
@@ -114,6 +116,13 @@ class Comptes_model extends Common_Model {
             $result[$key]['debit'] = $row['debit'];
             $result[$key]['credit'] = $row['credit'];
             $result[$key]['image'] = 'le compte (' . $row['codec'] . ') ' . $row['nom'];
+
+            $section = $this->sections_model->get_by_id('id', $row['club']);
+            if ($section) {
+                $result[$key]['section_name'] = $section['nom'];
+            } else {
+                $result[$key]['section_name'] = '';
+            }
 
             if ($row['debit'] > $row['credit']) {
                 // Solde débiteur

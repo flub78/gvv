@@ -26,6 +26,7 @@ $lang['gvv_vue_comptes_short_field_id'] = "Rekening";
 $lang['gvv_vue_comptes_short_field_solde_debit'] = "Saldo debiteur";
 $lang['gvv_vue_comptes_short_field_solde_credit'] = "Saldo crediteur";
 $lang['gvv_vue_comptes_short_field_nom'] = "Rekening";
+$lang['gvv_vue_comptes_short_field_section_name'] = "Sectie";
 
 $lang['comptes_filter_active_select'] = array(0 => 'Alle', 1 => 'Debiteurs', 2 => 'Niet negatief', 3 => 'Crediteurs');
 
@@ -71,19 +72,24 @@ $lang['comptes_bilan_resultat'] = "Resultaat";
 
 $lang['comptes_button_cloture'] = "Sluiting boekjaar";
 
-$lang['comptes_table_header'] = array (
-				'N°',
-				'Rekening',
-				'Nb',
-				'Debet',
-				'Credit',
-				'Saldo debiteur',
-				'Saldo crediteur',
-				''
-		);
+$lang['comptes_table_header'] = array(
+	'N°',
+	'Rekening',
+	'Nb',
+	'Debet',
+	'Credit',
+	'Saldo debiteur',
+	'Saldo crediteur',
+	''
+);
 
-$lang['comptes_list_header'] = array (
-		'Code', 'Naam', 'Debet', 'Credit', 'Saldo debiteur', 'Saldo crediteur'
+$lang['comptes_list_header'] = array(
+	'Code',
+	'Naam',
+	'Debet',
+	'Credit',
+	'Saldo debiteur',
+	'Saldo crediteur'
 );
 
 $lang['comptes_cloture'] = "Sluiting boekjaar";

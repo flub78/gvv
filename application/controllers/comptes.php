@@ -181,7 +181,9 @@ class Comptes extends Gvv_Controller {
                     'solde_credit'
                 ) as $field
             ) {
-                $total[$field] += $row[$field];
+                if (is_numeric($row[$field])) {
+                    $total[$field] += $row[$field];
+                }
             }
         }
         $this->data['total'] = $total;

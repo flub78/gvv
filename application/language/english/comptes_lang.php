@@ -26,6 +26,7 @@ $lang['gvv_vue_comptes_short_field_id'] = "Account";
 $lang['gvv_vue_comptes_short_field_solde_debit'] = "Debit balance";
 $lang['gvv_vue_comptes_short_field_solde_credit'] = "Credit balance";
 $lang['gvv_vue_comptes_short_field_nom'] = "Account";
+$lang['gvv_vue_comptes_short_field_section_name'] = "Section";
 
 $lang['comptes_filter_active_select'] = array(0 => 'All', 1 => 'Debit', 2 => 'Not nuls', 3 => 'Credit');
 
@@ -71,19 +72,24 @@ $lang['comptes_bilan_resultat'] = "Budget year's results";
 
 $lang['comptes_button_cloture'] = "End or year operations";
 
-$lang['comptes_table_header'] = array (
-		'N°',
-		'Account',
-		'Nb',
-		'Debit',
-		'Credit',
-		'Debit balance',
-		'Credit balance',
-		''
+$lang['comptes_table_header'] = array(
+	'N°',
+	'Account',
+	'Nb',
+	'Debit',
+	'Credit',
+	'Debit balance',
+	'Credit balance',
+	''
 );
 
-$lang['comptes_list_header'] = array (
-		'Code', 'Name', 'Debit', 'Credit', 'Debit balance', 'Credit balance'
+$lang['comptes_list_header'] = array(
+	'Code',
+	'Name',
+	'Debit',
+	'Credit',
+	'Debit balance',
+	'Credit balance'
 );
 
 $lang['comptes_cloture'] = "Closing of the period";
@@ -102,4 +108,3 @@ $lang['comptes_cloture_error_120'] = "Closing impossible, no account 120";
 $lang['comptes_cloture_error_129'] = "Closing impossible, no account 129";
 
 $lang['comptes_balance_general'] = array('Detailed' => 0, 'General' => 1);
-

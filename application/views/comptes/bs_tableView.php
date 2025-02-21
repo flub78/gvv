@@ -139,7 +139,7 @@ $this->lang->load('comptes');
 		}
 		$select_result = $res;
 	} else {
-		$fields = array('codec', 'id', 'solde_debit', 'solde_credit');
+		$fields = array('codec', 'id', 'section_name', 'solde_debit', 'solde_credit');
 	}
 	$attrs = array(
 		'controller' => $controller,
