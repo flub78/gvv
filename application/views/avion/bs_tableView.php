@@ -82,13 +82,13 @@ $attrs = array(
 		'macmodele',
 		'macconstruc',
 		'macimmat',
+		'section_name',
 		'macplaces',
 		'macrem',
 		'maprive',
 		'actif',
 		'vols',
-		'fabrication',
-		'section_name'
+		'fabrication'
 	),
 	'mode' => ($has_modification_rights && ($section)) ? "rw" : "ro",
 	'class' => "datatable table table-striped"

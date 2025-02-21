@@ -50,8 +50,8 @@ class Sections_model extends Common_Model {
      *
      * @param $where selection
      */
-    public function selector_with_all($where = array()) {
-        $result = $this->selector($where);
+    public function selector_with_all($where = array(), $filter_section = false) {
+        $result = $this->selector($where, $filter_section);
         $result[] = $this->lang->line("all_sections");
         return $result;
     }
