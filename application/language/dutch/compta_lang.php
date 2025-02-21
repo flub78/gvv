@@ -92,6 +92,7 @@ $lang['gvv_compta_label_balance_before'] = 'Saldo voor';
 $lang['gvv_compta_label_debitor'] = 'Debiteur';
 $lang['gvv_compta_label_creditor'] = 'Crediteur';
 $lang['gvv_compta_label_balance_at'] = 'Saldo op';
+$lang['gvv_compta_label_section'] = 'Sectie';
 
 $lang['gvv_compta_purchase_headers'] =  array("Datum", "Product", "Aantal", "Opmerking", "");
 

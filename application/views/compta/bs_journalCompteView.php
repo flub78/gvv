@@ -185,6 +185,10 @@ if ($section) {
                             <input type="text" name="codec" value="<?= $codec ?>" size="10" readonly="readonly" />
                         </div>
                         <div class="me-3 mb-2">
+                            <?= $this->lang->line("gvv_compta_label_section") . ": " ?>
+                            <input type="text" name="section" value="<?= $section_name ?>" size="10" readonly="readonly" />
+                        </div>
+                        <div class="me-3 mb-2">
                             <?= $this->lang->line("gvv_compta_label_description") . ": " ?>
                             <input type="text" name="desc" value="<?= $desc ?>" size="80" readonly="readonly" />
                         </div>

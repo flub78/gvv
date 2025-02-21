@@ -92,6 +92,8 @@ $lang['gvv_compta_label_balance_before'] = 'Solde avant le';
 $lang['gvv_compta_label_debitor'] = 'débiteur';
 $lang['gvv_compta_label_creditor'] = 'créditeur';
 $lang['gvv_compta_label_balance_at'] = 'Solde au';
+$lang['gvv_compta_label_section'] = 'Section';
+
 
 $lang['gvv_compta_purchase_headers'] =  array("Date", "Produit", "Quantité", "Commentaire", "");
 

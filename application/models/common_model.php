@@ -93,8 +93,6 @@ class Common_Model extends CI_Model {
     /**
      * Retourne une ligne de base
      *
-     * @param
-     *            mlogin
      * @return hash des valeurs
      */
     public function get_by_id($keyid, $keyvalue) {

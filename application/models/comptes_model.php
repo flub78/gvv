@@ -27,6 +27,25 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Retourne une ligne de base
+     *
+     * @return hash des valeurs
+     */
+    public function get_by_id($keyid, $keyvalue) {
+
+        // every account should have a valid section/club so it is safe to make a joint
+
+        $this->db->select('comptes.*, sections.nom as section_name');
+        $this->db->from('comptes');
+        $this->db->join('sections', 'comptes.club = sections.id', 'left');
+        $this->db->where('comptes.id', $keyvalue);
+
+        $res = $this->db->get()->row_array();
+
+        return $res;
+    }
+
+    /**
      * Ajoute un élément
      *
      * @param $data hash
