@@ -128,7 +128,7 @@ class Tarifs_model extends Common_Model {
      * @param $order ordre
      *            de tri
      */
-    public function selector($where = array(), $order = "asc") {
+    public function selector($where = array(), $order = "asc", $filter_section = false) {
         $key = $this->primary_key;
 
         $allkeys = $this->db->select('*')->from($this->table)->where($where)->get()->result_array();

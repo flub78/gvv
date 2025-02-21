@@ -106,6 +106,8 @@ $lang['gvv_vue_journal_short_field_debit'] = "Debit";
 $lang['gvv_vue_journal_short_field_credit'] = "Credit";
 $lang['gvv_vue_journal_short_field_solde'] = "Solde";
 $lang['gvv_vue_journal_short_field_gel'] = "Frozen";
+$lang['gvv_vue_journal_short_field_section'] = "Section";
+
 
 $lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Account', 'Description', 'Reference', 'Debit', 'Credit');
 $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit');

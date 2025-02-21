@@ -105,6 +105,7 @@ $lang['gvv_vue_journal_short_field_debit'] = "Debet";
 $lang['gvv_vue_journal_short_field_credit'] = "Credit";
 $lang['gvv_vue_journal_short_field_solde'] = "Saldo";
 $lang['gvv_vue_journal_short_field_gel'] = "Locked";
+$lang['gvv_vue_journal_short_field_section'] = "Sectie";
 
 $lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijving', 'Referentie', 'Debet', 'Credit');
 $lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit');
