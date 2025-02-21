@@ -240,25 +240,24 @@ $section = $CI->sections_model->section();
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_entries") ?></a>
                 <ul class="dropdown-menu">
 
-                  <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_entries_income") ?> &raquo;</a>
-                    <ul class="submenu dropdown-menu">
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/recettes") ?>"><?= translation("gvv_menu_entries_income") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/reglement_pilote") ?>"><?= translation("gvv_menu_entries_pilot_payment") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><?= translation("gvv_menu_entries_pilot_billing") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><?= translation("gvv_menu_entries_supplier_credit") ?></a></li>
 
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/recettes") ?>"><?= translation("gvv_menu_entries_income") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/reglement_pilote") ?>"><?= translation("gvv_menu_entries_pilot_payment") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><?= translation("gvv_menu_entries_pilot_billing") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><?= translation("gvv_menu_entries_supplier_credit") ?></a></li>
-
-                    </ul>
+                  <li>
+                    <hr class="dropdown-divider">
                   </li>
 
-                  <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_entries_expense") ?> &raquo;</a>
-                    <ul class="submenu dropdown-menu">
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/depenses") ?>"><?= translation("gvv_menu_entries_expense") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/credit_pilote") ?>"><?= translation("gvv_menu_entries_expense_paid") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/debit_pilote") ?>"><?= translation("gvv_menu_entries_pilot_refund") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("compta/utilisation_avoir_fournisseur") ?>"><?= translation("gvv_menu_entries_pay_with_supplier_credit") ?></a></li>
-                    </ul>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/depenses") ?>"><?= translation("gvv_menu_entries_expense") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/credit_pilote") ?>"><?= translation("gvv_menu_entries_expense_paid") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/debit_pilote") ?>"><?= translation("gvv_menu_entries_pilot_refund") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("compta/utilisation_avoir_fournisseur") ?>"><?= translation("gvv_menu_entries_pay_with_supplier_credit") ?></a></li>
+
+                  <li>
+                    <hr class="dropdown-divider">
                   </li>
+
                   <li><a class="dropdown-item" href="<?= controller_url("compta/virement") ?>"><?= translation("gvv_menu_entries_wire_transfer") ?></a></li>
 
                 </ul>
