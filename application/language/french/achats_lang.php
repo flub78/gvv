@@ -11,3 +11,4 @@ $lang['gvv_vue_achats_per_year_short_field_produit'] = "Produit";
 $lang['gvv_vue_achats_per_year_short_field_prix_unit'] = "Prix unitaire";
 $lang['gvv_vue_achats_per_year_short_field_quantite'] = "Quantité";
 $lang['gvv_vue_achats_per_year_short_field_prix'] = "Total";
+$lang['gvv_vue_achats_per_year_short_field_section_name'] = "Section";

@@ -372,6 +372,14 @@ class Achats_model extends Common_Model {
             ->get();
 
         $res = $this->get_to_array($db_res);
+        foreach ($res as $key => $row) {
+            $section = $this->sections_model->get_by_id('id', $row['club']);
+            if ($section) {
+                $res[$key]['section_name'] = $section['nom'];
+            } else {
+                $res[$key]['section_name'] = "section " . $row['club'];
+            }
+        }
 
         $this->gvvmetadata->store_table("vue_achats_per_year", $res, $this->db->last_query());
         return $res;

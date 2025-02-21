@@ -42,7 +42,7 @@ if ($section) {
 
 	$attrs = array(
 		'controller' => $controller,
-		'fields' => array('produit', 'club', 'prix_unit', 'quantite', 'prix'),
+		'fields' => array('produit', 'section_name', 'prix_unit', 'quantite', 'prix'),
 		'mode' => "ro",
 		'class' => "sql_table fixed_datatable table"
 	);
