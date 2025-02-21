@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -27,39 +28,53 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('comptes');
 
-echo '<div id="body" class="body container-fluid">';
+echo '';
 
-echo heading( $this->lang->line("gvv_comptes_title_resultat"), 2, "");
-
-$url = controller_url($controller);
-echo '<input type="hidden" name="controller_url" value="' . $url . '" />';
-
-echo year_selector($controller, $year, $year_selector);
-
-echo br(2);
-	
-$table = new DataTable(array(
-	'title' => "",
-	'values' => $resultat_table,
-	'controller' => $controller,
-	'class' => "sql_table fixed_datatable table",
-	'create' => '',
-	'count' => '',
-	'first' => '',
-	'align' => array('left', 'left', 'right', 'right',
-        'center',
-		'right', 'left', 'right' , 'right')
-));
-
-$table->display();
-
-$bar = array(
-	array('label' => "Excel", 'url' =>"comptes/export_resultat/csv", 'role' => 'ca'),
-	array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
-	array('label' =>  $this->lang->line("comptes_button_cloture"), 'url' => "comptes/cloture", 'role' => 'tresorier'),
-	);
-echo button_bar4($bar);
-
-echo '</div>';
+$title = $this->lang->line("gvv_comptes_title_resultat");
+if ($section) {
+	$title .= " section " . $section['nom'];
+}
 ?>
-<script type="text/javascript" src="<?php echo js_url('balance'); ?>"></script>
+<div id="body" class="body container-fluid">
+	<h3><?= $title ?></h3>
+	<?php
+	$url = controller_url($controller);
+	echo '<input type="hidden" name="controller_url" value="' . $url . '" />';
+
+	echo year_selector($controller, $year, $year_selector);
+
+	echo br(2);
+
+	$table = new DataTable(array(
+		'title' => "",
+		'values' => $resultat_table,
+		'controller' => $controller,
+		'class' => "sql_table fixed_datatable table",
+		'create' => '',
+		'count' => '',
+		'first' => '',
+		'align' => array(
+			'left',
+			'left',
+			'right',
+			'right',
+			'center',
+			'right',
+			'left',
+			'right',
+			'right'
+		)
+	));
+
+	$table->display();
+
+	$bar = array(
+		array('label' => "Excel", 'url' => "comptes/export_resultat/csv", 'role' => 'ca'),
+		array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
+		array('label' =>  $this->lang->line("comptes_button_cloture"), 'url' => "comptes/cloture", 'role' => 'tresorier'),
+	);
+	echo button_bar4($bar);
+
+	echo '</div>';
+	?>
+	<script type="text/javascript" src="<?php echo js_url('balance'); ?>"></script>

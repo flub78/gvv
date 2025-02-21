@@ -63,6 +63,7 @@ class Achats extends Gvv_Controller {
         $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->selector());
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
+        $this->data['section'] = $this->gvv_model->section();
     }
 
     /**
@@ -290,6 +291,8 @@ class Achats extends Gvv_Controller {
         $data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
         $data['controller'] = $this->controller;
         $this->gvv_model->list_per_year($data['year']);
+        $data['section'] = $this->gvv_model->section();
+
         load_last_view('achats/TablePerYear', $data);
     }
 

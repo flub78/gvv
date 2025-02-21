@@ -356,13 +356,18 @@ class Achats_model extends Common_Model {
      */
     function list_per_year($year) {
 
-        $select = 'achats.id as id, achats.date as date, achats.produit as produit, sum(quantite) as quantite, '
+        $select = 'achats.id as id, club, achats.date as date, achats.produit as produit, sum(quantite) as quantite, '
             . "achats.prix as prix_unit, sum(achats.prix * quantite) as prix ";
 
-        $db_res = $this->db->select($select)
+        $this->db->select($select)
             ->from("achats")
-            ->where("YEAR(achats.date) = $year")
-            ->order_by('achats.produit')
+            ->where("YEAR(achats.date) = $year");
+
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+
+        $db_res = $this->db->order_by('achats.produit')
             ->group_by('achats.produit, prix_unit')
             ->get();
 

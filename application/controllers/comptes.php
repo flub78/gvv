@@ -235,6 +235,8 @@ class Comptes extends Gvv_Controller {
         $this->data['year'] = $this->session->userdata('year');
         $this->data['resultat_table'] = $this->ecritures_model->resultat_table($this->ecritures_model->select_resultat(), true, nbs(6), '.');
 
+        $this->data['section'] = $this->gvv_model->section();
+
         $this->push_return_url("resultat");
 
         load_last_view('comptes/resultatView', $this->data);
