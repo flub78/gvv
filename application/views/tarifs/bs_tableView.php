@@ -98,7 +98,7 @@ $this->lang->load('tarifs');
         'controller' => $controller,
         'actions' => array('edit', 'delete', 'clone_elt'),
         'title' => $tarifs,
-        'fields' => array('reference', 'description', 'date', 'date_fin', 'prix', 'nom_compte', 'public'),
+        'fields' => array('reference', 'description', 'date', 'section_name', 'date_fin', 'prix', 'nom_compte', 'public'),
         //    'count' => $count,
         'first' => $premier,
         'mode' => ($has_modification_rights) ? "rw" : "ro",

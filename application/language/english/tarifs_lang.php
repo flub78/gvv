@@ -26,6 +26,8 @@ $lang['gvv_vue_tarifs_short_field_description'] = "Description";
 $lang['gvv_vue_tarifs_short_field_prix'] = "Price";
 $lang['gvv_vue_tarifs_short_field_nom_compte'] = "Account";
 $lang['gvv_vue_tarifs_short_field_public'] = "Public";
+$lang['gvv_vue_tarifs_short_field_section_name'] = "Section";
+
 
 $lang['gvv_tarifs_clone_tooltip'] = "To update the price list, use the \"Clone\" button to copy a line with the date of the day as application  date. Then change the price of this new line and optionally the date if you do not want your new price to be applicable immediatly.";
 $lang['gvv_tarifs_warning'] = "Warning, references are used by the billing module. If you change the \"Reference\" field, you must modify the billing module accordingly.";

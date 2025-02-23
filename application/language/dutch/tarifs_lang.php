@@ -26,6 +26,7 @@ $lang['gvv_vue_tarifs_short_field_description'] = "Omschrijving";
 $lang['gvv_vue_tarifs_short_field_prix'] = "Prijs";
 $lang['gvv_vue_tarifs_short_field_nom_compte'] = "Aantal";
 $lang['gvv_vue_tarifs_short_field_public'] = "Openbaar";
+$lang['gvv_vue_tarifs_short_field_section_name'] = "Sectie";
 
 $lang['gvv_tarifs_clone_tooltip'] = "Gebruik de knop \"Clone\" om de tarieven bij te werken op een lijn waarvan je het tarief wil aanpassen van een bepaalde datum. Wijzig de prijs en datum van de nieuwe lijn om een nieuw tarief toe te passen.";
 $lang['gvv_tarifs_warning'] = "Opgelet de referenties worden gebruikt in de boekhoudmodule. Gelieve het veld \"Referentie product\" niet wijzigen.";

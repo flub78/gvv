@@ -20,12 +20,13 @@ $lang['gvv_tarifs_field_type_ticket'] = "Type de ticket à créditer";
 $lang['gvv_tarifs_field_public'] = "Public";
 
 $lang['gvv_vue_tarifs_short_field_reference'] = "Référence";
-$lang['gvv_vue_tarifs_short_field_date'] = "Date";
+$lang['gvv_vue_tarifs_short_field_date'] = "Début";
 $lang['gvv_vue_tarifs_short_field_date_fin'] = "Fin";
 $lang['gvv_vue_tarifs_short_field_description'] = "Description";
 $lang['gvv_vue_tarifs_short_field_prix'] = "Prix";
 $lang['gvv_vue_tarifs_short_field_nom_compte'] = "Compte";
 $lang['gvv_vue_tarifs_short_field_public'] = "Public";
+$lang['gvv_vue_tarifs_short_field_section_name'] = "Section";
 
 $lang['gvv_tarifs_clone_tooltip'] = "Pour mettre à jour les tarifs, utiliser le boutton \"Cloner\" sur une ligne pour en faire une copie avec la date du jour comme date de changement de tarif. Modifier le prix de cette nouvelle ligne et éventuellement la date si vous voulez que votre nouveau tarif prenne effet à une autre date.";
 $lang['gvv_tarifs_warning'] = "Attention les références sont utilisées par le module de facturation. Ne modifiez pas le champ \"Référence\".";

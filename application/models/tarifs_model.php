@@ -93,6 +93,9 @@ class Tarifs_model extends Common_Model {
             $kid = $this->primary_key;
             $image = $this->image($row[$kid], TRUE);
             $result[$key]['image'] = $image;
+
+            $section = $this->sections_model->get_by_id('id', $row['club']);
+            $result[$key]['section_name'] = $section['nom'];
         }
 
         $this->gvvmetadata->store_table("vue_tarifs", $result);
