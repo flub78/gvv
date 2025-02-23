@@ -31,6 +31,7 @@ $this->lang->load('sections');
 $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
+$section_count = $CI->sections_model->safe_count_all();
 ?>
 
 <body>
@@ -235,7 +236,7 @@ $section = $CI->sections_model->section();
               </li>
             <?php endif; ?>
 
-            <?php if (has_role('tresorier') && ($section)) : ?>
+            <?php if (has_role('tresorier') && ($section || ($section_count < 2))) : ?>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_entries") ?></a>
                 <ul class="dropdown-menu">
@@ -324,9 +325,13 @@ $section = $CI->sections_model->section();
             <div class="text-white me-1 text-center">
               <?= $gvv_role ?>
             </div>
-            <div>
-              <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="" onchange="updateSection(this.value)"') ?>
-            </div>
+
+            <?php if ($section_count > 1) : ?>
+              <div>
+                <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="" onchange="updateSection(this.value)"') ?>
+              </div>
+            <?php endif; ?>
+
           </div>
           <script>
             function updateSection(value) {
