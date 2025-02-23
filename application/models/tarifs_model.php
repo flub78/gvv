@@ -25,11 +25,23 @@ class Tarifs_model extends Common_Model {
         $session = $this->session->all_userdata();
         $tarif_tout = isset($session['filter_tarif_tout']) ? $session['filter_tarif_tout'] : true;
         $tarif_date = isset($session['filter_tarif_date']) ? $session['filter_tarif_date'] : '';
+
         gvv_debug("session=" . var_export($session, true));
         gvv_debug("tarifs select tout=" . $tarif_tout);
         gvv_debug("tarifs select date=" . $tarif_date);
+
         if ($tarif_tout) {
-            $result = $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, comptes.nom as nom_compte, nb_tickets, type_ticket')->from("tarifs, comptes")->where("tarifs.compte = comptes.id")->order_by('tarifs.reference', 'asc')->order_by('date', 'desc')->get()->result_array();
+            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket')
+                ->from("tarifs, comptes")
+                ->where("tarifs.compte = comptes.id")
+                ->order_by('tarifs.reference', 'asc')
+                ->order_by('date', 'desc');
+
+            if ($this->section) {
+                $this->db->where('tarifs.club', $this->section_id);
+            }
+
+            $result = $this->safe_get();
         } else {
             if (! $tarif_date) {
                 $tarif_date = date("d/m/Y");
@@ -50,12 +62,22 @@ class Tarifs_model extends Common_Model {
                 $public = "public >= 0"; // match everything
             }
 
-            // Je comprend pas les lignes suivantes: erreur de copier/coller ???
-            // $selection = $this->database->sql($sql, true);
-            // $result = $selection[0];
-
             // Select ordered by desc date
-            $tmp = $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, comptes.nom as nom_compte, nb_tickets, type_ticket')->from("tarifs, comptes")->where("tarifs.compte = comptes.id")->where("date <= '$filter_date'")->where($public)->order_by('tarifs.reference', 'asc')->order_by('date', 'desc')->get()->result_array();
+            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket')
+                ->from("tarifs, comptes")
+                ->where("tarifs.compte = comptes.id")
+                ->where("date <= '$filter_date'")
+                ->where($public);
+
+            if ($this->section) {
+                $this->db->where('tarifs.club', $this->section_id);
+            }
+
+            $this->db->order_by('tarifs.reference', 'asc')
+                ->order_by('date', 'desc');
+            // ->get()->result_array();
+            $tmp = $this->safe_get();
+
             // Take only the first one
             $result = array();
             $refs = array();

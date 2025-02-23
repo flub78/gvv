@@ -32,6 +32,27 @@ class Common_Model extends CI_Model {
         $this->section = $this->db->get('sections')->row_array();
     }
 
+    /**
+     * Safe query execution with error handling
+     * @param string|null $table Optional table name to override default
+     * @return array|false Returns false on error, array of results on success
+     */
+    protected function safe_get() {
+        // Execute the query
+        $query = $this->db->get();
+
+        // Check if query failed
+        if ($query === FALSE) {
+            // Log the error
+            gvv_error("sql error: " . $this->db->_error_message());
+            gvv_error("sql last query: " . $this->db->last_query());
+
+            return FALSE;
+        }
+
+        return $query->result_array();
+    }
+
     public function section_id() {
         return $this->section_id;
     }
