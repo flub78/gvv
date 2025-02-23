@@ -18,3 +18,21 @@ Un problème est que les requêtes à la base retourne un object résultat afin 
 
 La fonction safe_get() dans common model garantie que les erreurs sont bien décrite dans les fichiers log.
 
+## Enabling Database error reporting
+
+Enable database debugging in your database configuration file (application/config/database.php):
+
+    $db['default']['db_debug'] = TRUE;
+
+with that:
+
+    Une erreur de la base de données s'est produite.
+    Error Number: 1146
+
+    Table 'gvv2.sections' doesn't exist
+
+    SELECT * FROM (`sections`) WHERE `id` = 0
+
+    Filename: /var/www/html/gvv.net/models/common_model.php
+
+    Line Number: 32

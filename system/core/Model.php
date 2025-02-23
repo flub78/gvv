@@ -33,7 +33,7 @@ class CI_Model {
 	 */
 	function __construct() {
 		$class = get_class($this);
-		log_message('debug', "Model Class Initialized " . $class);
+		log_message('debug', "Model Class Initializing " . $class);
 	}
 
 	/**

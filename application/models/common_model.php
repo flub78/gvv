@@ -29,8 +29,14 @@ class Common_Model extends CI_Model {
 
         $this->section_id = $this->session->userdata('section');
         $this->db->where('id', $this->section_id);
+
         $section_query = $this->db->get('sections');
-        $this->section = ($section_query) ? $section_query->row_array() : array();
+        if ($this->db->_error_number()) {
+            gvv_error("sql error: " . $this->db->_error_message());
+            $this->section = array();
+        } else {
+            $this->section = $section_query->row_array();
+        }
     }
 
     /**
