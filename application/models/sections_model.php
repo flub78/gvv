@@ -56,6 +56,10 @@ class Sections_model extends Common_Model {
         return $result;
     }
 
+    public function safe_count_all($table = 'sections') {
+        return parent::safe_count_all($table);;
+    }
+
     /** 
      * For some reasons unit test library can only be invoked directly from the controller.
      * This test returns an array of test results.

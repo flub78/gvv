@@ -54,6 +54,29 @@ class Common_Model extends CI_Model {
         return $query->result_array();
     }
 
+    public function safe_count_all($table) {
+        try {
+            // First check if the table exists to prevent SQL errors
+            if (!$this->db->table_exists($table)) {
+                return -1;
+            }
+
+            // Perform the count query directly to avoid num_rows() issues
+            $query = $this->db->query("SELECT COUNT(*) as count FROM " . $this->db->protect_identifiers($table));
+
+            if ($query === FALSE) {
+                gvv_error('sql: Count query failed: ' . $this->db->_error_message());
+                return -1;
+            }
+
+            $row = $query->row();
+            return (int)$row->count;
+        } catch (Exception $e) {
+            gvv_error('error', 'Exception in safe_count_all: ' . $e->getMessage());
+            return -1;
+        }
+    }
+
     public function section_id() {
         return $this->section_id;
     }

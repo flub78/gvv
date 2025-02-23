@@ -68,9 +68,14 @@ class Auth extends CI_Controller {
 
     /* End of Callback function */
 
+    /**
+     * Login or display the login form
+     */
     function _login() {
         $data['url_club'] = $this->config->item('url_club');
         $data['sections_selector'] = $this->sections_model->selector_with_all();
+        $data['section_count'] =
+            $this->sections_model->safe_count_all();
 
         // I tried to setup the section selector in the GVV controller, but there are a lot of controllers which are not GVV controllers.
         // So it has to be done here
@@ -128,6 +133,8 @@ class Auth extends CI_Controller {
                     // Redirect to banned uri
                     $this->dx_auth->deny_access('banned');
                 } else {
+                    // Here we display the login form, either after a failure or at the first attempt
+
                     // Default is we don't show captcha until max login attempts eceeded
                     $data['show_captcha'] = FALSE;
 
