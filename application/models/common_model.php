@@ -87,6 +87,10 @@ class Common_Model extends CI_Model {
         return $this->section_id;
     }
 
+    /**
+     * 
+     * [id => "2", nom => "ULM", description => "Section ULM de l'aéroclub d'Abbeville"]
+     */
     public function section() {
         return $this->section;
     }

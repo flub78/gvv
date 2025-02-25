@@ -305,6 +305,14 @@ class Membre extends Gvv_Controller {
         if (! $data['compte']) {
             // Creation du compte comptable
             $id = $data['mlogin'];
+            $section = $this->membres_model->section();
+            if ($section)
+                $section_id = $section['id'];
+            else {
+                $section_id = null;
+                gvv_error("Nos section selected while creating a account for $id");
+            }
+
             $cpt = array(
                 'nom' => $data['mnom'] . " " . $data['mprenom'],
                 'pilote' => $id,
@@ -313,6 +321,7 @@ class Membre extends Gvv_Controller {
                 'actif' => 1,
                 'debit' => 0.0,
                 'credit' => 0.0,
+                'club' => $section_id,
                 'saisie_par' => $this->dx_auth->get_username()
             );
             $this->load->model('comptes_model');
@@ -325,7 +334,7 @@ class Membre extends Gvv_Controller {
             return;
         }
         if (! $user = $this->dx_auth->register($data['mlogin'], $data['mlogin'], $data['memail'])) {
-            echo "Erreur sur la création de l'utilisateur<br>";
+            gvv_error("Erreur sur la création de l'utilisateur");
         }
     }
 
