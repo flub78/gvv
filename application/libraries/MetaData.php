@@ -1216,6 +1216,7 @@ abstract class Metadata {
             return $value;
             // return auto_link($value);
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
+            if (!$value) return "";
             $url = site_url();
             $url = rtrim($url, '/index.php') . '/';
             if (file_exists($value)) {

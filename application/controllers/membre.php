@@ -236,6 +236,8 @@ class Membre extends Gvv_Controller {
                 // 'mbraval',
                 // 'mbrpdat',
                 // 'mbrpval',
+                'licfed',
+                'compte',
                 'mdaten'
             )
             // 'dateinstavion',
@@ -247,6 +249,7 @@ class Membre extends Gvv_Controller {
             if ($processed_data[$field] == '')
                 unset($processed_data[$field]);
         }
+        if (!$processed_data['photo']) unset($processed_data['photo']);
         return $processed_data;
     }
 
