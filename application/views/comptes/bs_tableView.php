@@ -144,7 +144,7 @@ $this->lang->load('comptes');
 	$attrs = array(
 		'controller' => $controller,
 		'actions' => array('edit', 'delete'),
-		'mode' => ($has_modification_rights && ! $general) ? "rw" : "ro",
+		'mode' => ($has_modification_rights && $section && ! $general) ? "rw" : "ro",
 		'footer' => $footer,
 		'fields' => $fields,
 		'class' => "datatable  table table-striped"

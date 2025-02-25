@@ -226,7 +226,7 @@ $attrs = array(
     'actions' => array('edit', 'delete'),
     'page' => "journal_compte/$compte",
     'uri_segment' => 4,
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
+    'mode' => ($has_modification_rights && $section) ? "rw" : "ro",
     'class' => "sql_table table"
 );
 
@@ -270,7 +270,7 @@ if ($solde_fin < 0) {
 
 <?php
 // Achats
-if ($codec == 411 && $navigation_allowed) {
+if ($codec == 411 && $navigation_allowed && $section) {
 ?>
 
     <div class="accordion accordion-flush collapsed" id="achat_panel">
