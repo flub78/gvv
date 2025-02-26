@@ -307,10 +307,15 @@ class Compta extends Gvv_Controller {
      * compte produit
      */
     function factu_pilote() {
-        $this->ecriture("gvv_compta_title_manual", ["codec =" => "411"], [
-            "codec >=" => "7",
-            'codec <' => "8"
-        ], $this->lang->line("gvv_compta_message_advice_manual"));
+        $this->ecriture(
+            "gvv_compta_title_manual",
+            ["codec =" => "411"],
+            [
+                "codec >=" => "7",
+                'codec <' => "8"
+            ],
+            $this->lang->line("gvv_compta_message_advice_manual")
+        );
     }
 
     /**
@@ -320,7 +325,7 @@ class Compta extends Gvv_Controller {
         $this->ecriture("gvv_compta_title_remboursement", [
             "codec >=" => "6",
             'codec <' => "7"
-        ], ["codec = '411'"]);
+        ], ["codec =" => "411"]);
     }
 
     /**
