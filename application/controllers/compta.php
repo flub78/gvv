@@ -54,6 +54,13 @@ class Compta extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
+
+        $section = $this->gvv_model->section();
+        if (!$section) {
+            $msg = $this->lang->line('gvv_compta_no_section');
+            $this->session->set_flashdata('message', $msg);
+            echo "Activez une section pour modifier l'écriture $msg";
+        }
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
         $this->session->set_userdata('back_url', current_url());
 
@@ -76,6 +83,13 @@ class Compta extends Gvv_Controller {
             ['referenced_table' => 'ecritures', 'referenced_id' => $id]
         );
         $this->data[$this->kid] = $id;
+        $this->data['title'] = $this->lang->line("gvv_compta_title_line");
+
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $this->data['title'] .= " section " . $section['nom'];
+        }
+
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
