@@ -309,7 +309,7 @@ class Achats_model extends Common_Model {
 
         $ecriture = array(
             'id' => 0,
-            'annee_exercise' => $this->config->item('annee_exercise'),
+            'annee_exercise' => date("Y"),
             'date_creation' => date("Y-m-d", time()),
             'date_op' => $data['date'],
             'compte1' => $compte_pilote,
@@ -322,6 +322,10 @@ class Achats_model extends Common_Model {
             'quantite' => $quantite,
             'prix' => $tarif['prix']
         );
+
+        if ($this->section) {
+            $ecriture['club'] = $this->section['id'];
+        }
 
         $this->ecritures_model->create_ecriture($ecriture);
     }
