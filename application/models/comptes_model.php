@@ -268,6 +268,12 @@ class Comptes_model extends Common_Model {
         $compte_cred = $this->get_by_id('id', $cred_id);
         // gvv_debug("sql: " . $this->db->last_query());
 
+        /**
+         * TODO: est-ce qu'il faut maintenir les soldes dans les comptes ?
+         * Je ne suis pas sûr qu'il y ai des endroits ou c'est utilisé, je pense que la plupart des soldes sont systématiquement recalculés...
+         * Et ca génére une duplication de l'information, donc des risques...
+         */
+
         if ($compte_deb['actif'] != $compte_cred['actif']) {
             $compte_deb['debit'] += $montant;
             $compte_cred['credit'] += $montant;
@@ -279,11 +285,19 @@ class Comptes_model extends Common_Model {
         // Patch pour certains contextes desc n'es pas analysé comme un champ et
         // provoque une erreur MySQL. Le plus bizarre est que ce n'est pas systématique.
         // peut-être les caractères d'échappement d'Active record
-        $compte_deb['comptes.desc'] = $compte_deb['desc'];
-        unset($compte_deb['desc']);
+        if (isset($compte_deb['desc'])) {
+            unset($compte_deb['desc']);
+        }
+        if (isset($compte_deb['section_name'])) {
+            unset($compte_deb['section_name']);
+        }
 
-        $compte_cred['comptes.desc'] = $compte_cred['desc'];
-        unset($compte_cred['desc']);
+        if (isset($compte_cred['desc'])) {
+            unset($compte_cred['desc']);
+        }
+        if (isset($compte_cred['section_name'])) {
+            unset($compte_cred['section_name']);
+        }
 
         $this->update('id', $compte_deb);
         // gvv_debug("sql: " . $this->db->last_query());

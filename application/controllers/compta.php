@@ -22,6 +22,7 @@
  * @packages controllers
  *
  * Controleur de gestion des écritures comptables
+ * TODO: renomer en Ecriture (ou pas pour limiter les risques)
  */
 include('./application/libraries/Gvv_Controller.php');
 class Compta extends Gvv_Controller {
