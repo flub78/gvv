@@ -51,7 +51,7 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Restauration de la base de données
+     * Affiche la page de restauration
      *
      * A completer. Peut-etre vaudrait-il mieux ne pas supporter
      * cela. C'est surement une faille de sécurité potentielle ???
@@ -161,10 +161,14 @@ class Admin extends CI_Controller {
             // remove the zip file
             $this->unlink_zip($filename);
 
+            // disable foreign key checks before restoring
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+
             if ($erase_db) {
                 $this->database->drop_all();
             }
             $this->database->sql($sql);
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
 
             load_last_view('admin/restore_success', $data);
         }
