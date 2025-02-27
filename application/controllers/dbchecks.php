@@ -18,28 +18,28 @@ if (! defined('BASEPATH'))
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Dbchecks extends Gvv_Controller {
-    
+
     protected $model = 'dbchecks_model';
-    
+
     function __construct() {
         date_default_timezone_set('Europe/Paris');
         parent::__construct();
-        
+
         // Check if user is logged in or not
         $this->load->library('DX_Auth');
         // if (!getenv('TEST') && !$this->dx_auth->is_logged_in()) {
         // redirect("auth/login");
         // }        
     }
-    
+
     function index() {
         $dt = $this->gvv_model->unreferenced_accounts();
-        $data ['wrong_lines'] = $dt['lines'];
-        $data ['wrong_accounts'] = $dt['accounts'];
-        $data ['wrong_purchases'] = $dt['bad_purchase_lines'];
-        
+        $data['wrong_lines'] = $dt['lines'];
+        $data['wrong_accounts'] = $dt['accounts'];
+        $data['wrong_purchases'] = $dt['bad_purchase_lines'];
+
         load_last_view('checks/dbchecks', $data);
     }
 
@@ -48,17 +48,24 @@ class Dbchecks extends Gvv_Controller {
         $dt['title'] = "Vols planeur";
         load_last_view('checks/volsp', $dt);
     }
-    
+
     function volsa() {
         $dt = $this->gvv_model->volsa_references();
-        $dt['title'] = "Vols avion/ULM";        
+        $dt['title'] = "Vols avion/ULM";
         load_last_view('checks/volsp', $dt);
     }
-    
-    function achats() {        
+
+    function achats() {
         $dt = $this->gvv_model->achats_references();
         $dt['title'] = "Achats";
         load_last_view('checks/achats', $dt);
+    }
+
+    function soldes() {
+        $dt = $this->gvv_model->soldes();
+        $dt['title'] = "Vérification des soldes des comptes (seuls les comptes en erreur sont affichés)";
+        echo $dt['title'];
+        exit;
     }
 }
 

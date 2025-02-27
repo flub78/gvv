@@ -4,14 +4,14 @@ if (! defined('BASEPATH'))
 
 $CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->model('ecritures_model');
 
 /**
  * Database verifications
  *
  * check the database coherency
  */
-class Dbchecks_model extends Common_Model
-{
+class Dbchecks_model extends Common_Model {
 
     /**
      * Recherche de comptes non existants dans les ecritures
@@ -19,8 +19,7 @@ class Dbchecks_model extends Common_Model
      *
      * @return boolean[][][]|NULL[][][]|mixed[][][]|unknown[][][]
      */
-    public function unreferenced_accounts()
-    {
+    public function unreferenced_accounts() {
 
         // Hash table pour les comptes
         $comptes = [];
@@ -33,7 +32,7 @@ class Dbchecks_model extends Common_Model
             ];
             $comptes[$id] = $elt;
         }
-        
+
         // Hash table pour les achats
         $achats = [];
         $query = $this->db->query('SELECT * FROM `achats`');
@@ -82,7 +81,7 @@ class Dbchecks_model extends Common_Model
         foreach ($non_existing_accounts as $key => $value) {
             $nea[] = [$key];
         }
-        
+
         $purchases = [];
         // Check for non existing purchases
         foreach ($query->result() as $row) {
@@ -99,7 +98,7 @@ class Dbchecks_model extends Common_Model
                 }
             }
         }
-        
+
         return [
             'lines' => $select,
             'accounts' => $nea,
@@ -110,8 +109,7 @@ class Dbchecks_model extends Common_Model
     /**
      * Looks for uncoherencies in glider flights
      */
-    public function volsp_references()
-    {
+    public function volsp_references() {
         // Hash table pour les comptes
         $comptes = [];
         $query = $this->db->query('SELECT * FROM `comptes`');
@@ -216,8 +214,7 @@ class Dbchecks_model extends Common_Model
     /**
      * Looks for uncoherencies in glider flights
      */
-    public function volsa_references()
-    {
+    public function volsa_references() {
         // Hash table pour les comptes
         $comptes = [];
         $query = $this->db->query('SELECT * FROM `comptes`');
@@ -322,9 +319,8 @@ class Dbchecks_model extends Common_Model
     /**
      * Looks for uncoherencies in glider flights
      */
-    public function achats_references()
-    {
-         
+    public function achats_references() {
+
         // Hash table pour les membres
         $members = [];
         $unknown_members = [];
@@ -335,7 +331,7 @@ class Dbchecks_model extends Common_Model
             $members[$id] = $elt;
         }
         echo "membres = " . count($members) . "\n";
-        
+
         // Hash table pour les vols planeurs
         $vols_planeur = [];
         $query = $this->db->query('SELECT * FROM `volsp`');
@@ -344,8 +340,8 @@ class Dbchecks_model extends Common_Model
             $vols_planeur[$row->vpid] = $elt;
         }
         echo "vols planeur = " . count($vols_planeur) . "\n";
-        
-        
+
+
         // Hash table pour les vols avion
         $vols_avion = [];
         $query = $this->db->query('SELECT * FROM `volsa`');
@@ -354,9 +350,9 @@ class Dbchecks_model extends Common_Model
             $vols_avion[$row->vaid] = $elt;
         }
         echo "vols avion = " . count($vols_avion) . "\n";
-        
+
         // Hash table pour les avions
-        $avions = [];   
+        $avions = [];
         $query = $this->db->query('SELECT * FROM `machinesa`');
         foreach ($query->result() as $row) {
             $id = $row->macimmat;
@@ -364,7 +360,7 @@ class Dbchecks_model extends Common_Model
             $avions[$id] = $elt;
         }
         echo "avions = " . count($avions) . "\n";
-        
+
         // Hash table pour les planeurs
         $planeurs = [];
         $query = $this->db->query('SELECT * FROM `machinesp`');
@@ -374,7 +370,7 @@ class Dbchecks_model extends Common_Model
             $planeurs[$id] = $elt;
         }
         echo "planeurs = " . count($planeurs) . "\n";
-        
+
         /**
          * Pour les achats on peut vérifier
          *      - qu'ils référencent un produit
@@ -391,38 +387,59 @@ class Dbchecks_model extends Common_Model
         foreach ($query->result() as $row) {
             $id = $row->id;
             //$elt = ['id' => $id, 'modele' => $row->macmodele];
-            
-            if ($row->pilote && ! array_key_exists($row->pilote, $members)) {                
+
+            if ($row->pilote && ! array_key_exists($row->pilote, $members)) {
                 echo "pilote inconnu " . $row->pilote;
             }
-            
+
             if ($row->vol_planeur) {
                 if (! array_key_exists($row->vol_planeur, $vols_planeur)) {
                     echo "vol planeur inconnu" . $row->vol_planeur;
                 }
-                
+
                 if (! array_key_exists($row->machine, $planeurs)) {
                     echo "planeur inconnu" . $row->machine;
                 }
             }
-            
+
             if ($row->vol_avion) {
                 if (! array_key_exists($row->vol_avion, $vols_avion)) {
                     echo "vol avion inconnu" . $row->vol_avion;
                 }
-                
+
                 if (! array_key_exists($row->machine, $avions)) {
                     echo "avion inconnu" . $row->machine;
                 }
             }
-            
         }
-        
+
         exit;
         return ['vols' => $select, 'pils' => $nepil, 'machines' => $nemach];
     }
-    
-    
+
+    public function soldes() {
+        $query = $this->db->query('SELECT * FROM `comptes`');
+        foreach ($query->result() as $row) {
+            $solde = $row->credit -  $row->debit;
+            $id = $row->id;
+
+            $solde_compte = $this->ecritures_model->solde_compte($id);
+
+            if ($solde != $solde_compte) {
+
+                echo "id=" . $row->id
+                    . " " . $row->nom
+                    . " " . $row->desc
+                    . ", debit=" . $row->debit
+                    . ", credit=" . $row->credit
+                    . ", solde=" . $solde
+                    . ", solde_compte=" . $solde_compte
+                    . "<br>";
+            }
+        }
+    }
+
+
     /*
      * 
      */

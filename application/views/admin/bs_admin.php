@@ -90,6 +90,8 @@ $list = array(
 	anchor(controller_url('dbchecks/volsp'), "Vols planeur", array("class" => "jbutton")),
 	anchor(controller_url('dbchecks/volsa'), "Vols avion", array("class" => "jbutton")),
 	anchor(controller_url('dbchecks/achats'), "Achats", array("class" => "jbutton")),
+	anchor(controller_url('dbchecks/soldes'), "Solde des comptes", array("class" => "jbutton")),
+
 );
 echo ul($list, $attributes);
 
