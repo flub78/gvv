@@ -89,6 +89,8 @@ class Tarifs extends Gvv_Controller {
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
         $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['section'] = $this->gvv_model->section();
+
 
         if ($this->session->userdata('filter_tarif_tout')) {
             $this->data['filter_tarif_date'] = "";
