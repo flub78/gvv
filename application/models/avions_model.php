@@ -106,6 +106,34 @@ class Avions_model extends Common_Model {
     }
 
     /**
+     * Edite un element existant
+     *
+     * @param integer $id
+     *            $id de l'élément
+     * @param hash $data
+     *            donnée à remplacer
+     * @return bool Le résultat de la requête
+     */
+    public function update($keyid, $data, $keyvalue = '') {
+        if ($keyvalue == '')
+            $keyvalue = $data[$keyid];
+        $this->db->where($keyid, $keyvalue);
+        unset($data[$keyid]);
+
+        if (isset($data['fabrication'])) {
+            if ($data['fabrication'] == '') {
+                unset($data['fabrication']);
+            }
+        }
+
+        if (!$this->db->update($this->table, $data)) {
+            // Get MySQL error message
+            $error = $this->db->_error_message();
+            gvv_error("MySQL Error #$errno: $error");
+        }
+    }
+
+    /**
      * Retourne un hash qui peut-être utilisé dans un menu drop-down
      *
      * @param $where selection

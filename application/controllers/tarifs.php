@@ -47,7 +47,7 @@ class Tarifs extends Gvv_Controller {
             "codec >=" => "7",
             'codec <' => "8"
         );
-        $this->gvvmetadata->set_selector('compte_selector', $this->comptes_model->selector($where));
+        $this->gvvmetadata->set_selector('compte_selector', $this->comptes_model->selector($where, "asc", TRUE));
 
         $this->gvvmetadata->set_selector('ticket_selector', $this->types_ticket_model->selector_with_null());
     }

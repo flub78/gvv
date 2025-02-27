@@ -133,6 +133,34 @@ class Tarifs_model extends Common_Model {
     }
 
     /**
+     * Edite un element existant
+     *
+     * @param integer $id
+     *            $id de l'élément
+     * @param hash $data
+     *            donnée à remplacer
+     * @return bool Le résultat de la requête
+     */
+    public function update($keyid, $data, $keyvalue = '') {
+        if ($keyvalue == '')
+            $keyvalue = $data[$keyid];
+        $this->db->where($keyid, $keyvalue);
+        unset($data[$keyid]);
+
+        if (isset($data['type_ticket'])) {
+            if ($data['type_ticket'] == '') {
+                unset($data['type_ticket']);
+            }
+        }
+
+        if (!$this->db->update($this->table, $data)) {
+            // Get MySQL error message
+            $error = $this->db->_error_message();
+            gvv_error("MySQL Error #$errno: $error");
+        }
+    }
+
+    /**
      * Retourne une chaine de caractère qui identifie une ligne de façon unique.
      * Cette chaine est utilisé dans les affichages.
      * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
@@ -156,7 +184,13 @@ class Tarifs_model extends Common_Model {
     public function selector($where = array(), $order = "asc", $filter_section = false) {
         $key = $this->primary_key;
 
-        $allkeys = $this->db->select('*')->from($this->table)->where($where)->get()->result_array();
+        $this->db->select('*')
+            ->from($this->table)
+            ->where($where);
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+        $allkeys = $this->db->get()->result_array();
 
         $result = array();
         foreach ($allkeys as $row) {
