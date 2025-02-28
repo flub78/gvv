@@ -1021,7 +1021,7 @@ class Vols_avion extends Gvv_Controller {
     /**
      * Hook activé avant la mise à jour
      */
-    function pre_update($id, $data = array()) {
+    function pre_update($id, &$data = array()) {
         gvv_debug($this->controller . " overwritten pre modification $id " . var_export($data, true));
         $this->event_model->delete(array(
             'evaid' => $data[$id]

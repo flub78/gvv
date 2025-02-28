@@ -34,8 +34,9 @@ $title = $this->lang->line("gvv_vols_avion_title_list");
 if ($section) {
     $title .= " section " . $section['nom'];
 }
-
-echo heading($title, 3);
+?>
+<h3><?php echo $title ?></h3>
+<?php
 
 $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this->config->item('categories_vol_avion'));
 

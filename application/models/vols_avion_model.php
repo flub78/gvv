@@ -375,7 +375,7 @@ class Vols_avion_model extends Common_Model {
      * @param $order ordre
      *            de tri
      */
-    public function selector($where = array(), $order = "asc") {
+    public function selector($where = array(), $order = "asc", $filter_section = false) {
         $key = $this->primary_key;
 
         $this->db
@@ -383,7 +383,7 @@ class Vols_avion_model extends Common_Model {
             ->from($this->table)
             ->where($where);
         // select per section
-        if ($this->section) {
+        if ($this->section && $filter_section) {
             $this->db->where('volsa.club', $this->section_id);
         }
         $allkeys = $this->db->order_by("vadate $order, vacdeb $order")
