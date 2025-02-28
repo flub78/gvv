@@ -486,6 +486,9 @@ class GVVMetadata extends Metadata {
                 $this->field['volsa']['valieuatt']['Subtype'] = 'selector';
                 $this->field['volsa']['valieuatt']['Selector'] = 'terrains_selector';
 
+                $this->field['volsa']['vahdeb']['Subtype'] = 'time';
+                $this->field['volsa']['vahfin']['Subtype'] = 'time';
+
                 $this->field['vue_vols_avion']['vadate']['Type'] = 'date';
 
                 $this->field['vue_vols_avion']['vapilid']['Subtype'] = 'key';
