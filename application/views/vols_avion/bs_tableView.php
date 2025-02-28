@@ -182,15 +182,16 @@ if ($this->dx_auth->is_role('planchiste') || $auto_planchiste) {
     $classes = "datatable_style datedtable_ro table table-striped";
 }
 
-$mode = (($has_modification_rights || $auto_planchiste) && ($section)) ? "rw" : "ro";
-$mode = "rw";
+$mode = (($has_modification_rights || $auto_planchiste) && (TRUE)) ? "rw" : "ro";
 $actions = ($mode == "rw") ? array('edit', 'delete') : [];
-$attrs = array(
-    'controller' => $controller,
-    'actions' => $actions,
-    'mode' => $mode,
-    'class' => $classes
-);
+$fields =
+    $attrs = array(
+        'controller' => $controller,
+        'actions' => $actions,
+        'mode' => $mode,
+        'class' => $classes,
+        //        'fields' => array('vadate', 'vapilid', 'vainst', 'vamacid', 'vacdeb', 'vacfin'),
+    );
 if ($auto_planchiste) {
     $attrs['autoplanchiste'] = $default_user;
     $attrs['autoplanchiste_id'] = 'vapilid';

@@ -119,30 +119,44 @@ $lang['gvv_vue_vols_avion_short_field_vpnumvi'] = "Nr Init";
 $lang['gvv_vue_vols_avion_short_field_remorqueur'] = "Motorvliegtuig";
 $lang['gvv_vue_vols_avion_short_field_type'] = "Type";
 $lang["gvv_vue_vols_avion_short_field_essence"] = "Brandstof";
+$lang["gvv_vue_vols_avion_short_field_section_name"] = "Sectie";
+
 
 $lang['gvv_vols_avion_logs_input'] = "Weergave plank van ";
 $lang['gvv_vols_avion_logs_at'] = "te";
 $lang['gvv_vols_avion_logs_no_flights'] = "Geen vluchten geregistreerd op ";
 
 $lang['gvv_vols_avion_stats_col'] = array(
-		'', 'Uren', 'Vluchten',
-		'Uren -25', 'Uren -25 %', 'Vluchten -25', 'Vluchten -25 %',
-		'Uren vrouwen', 'Uren vrouwen %', 'Vluchten vrouwen', 'Vluchten vrouwen %',
-		'Uren les', 'Uren les %', 'Lesvluchten', 'Lesvluchten %',
-		'VI');
+	'',
+	'Uren',
+	'Vluchten',
+	'Uren -25',
+	'Uren -25 %',
+	'Vluchten -25',
+	'Vluchten -25 %',
+	'Uren vrouwen',
+	'Uren vrouwen %',
+	'Vluchten vrouwen',
+	'Vluchten vrouwen %',
+	'Uren les',
+	'Uren les %',
+	'Lesvluchten',
+	'Lesvluchten %',
+	'VI'
+);
 
-$lang['gvv_vols_avion_pdf_header'] = array (
-		"Datum",
-		"Begin",
-		"Einde",
-		"Duur",
-		"Toestel",
-		"Landing",
-		"Piloot",
-		"Instructeur",
-		"Cat",
-		"DC",
-		"-25",
-		"Club",
-		"Opmerkingen"
-		);
+$lang['gvv_vols_avion_pdf_header'] = array(
+	"Datum",
+	"Begin",
+	"Einde",
+	"Duur",
+	"Toestel",
+	"Landing",
+	"Piloot",
+	"Instructeur",
+	"Cat",
+	"DC",
+	"-25",
+	"Club",
+	"Opmerkingen"
+);

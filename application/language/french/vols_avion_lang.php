@@ -93,30 +93,44 @@ $lang['gvv_vue_vols_avion_short_field_vpnumvi'] = "N° VI";
 $lang['gvv_vue_vols_avion_short_field_remorqueur'] = "Avion";
 $lang['gvv_vue_vols_avion_short_field_type'] = "Type";
 $lang["gvv_vue_vols_avion_short_field_essence"] = "Ess";
+$lang["gvv_vue_vols_avion_short_field_section_name"] = "Section";
+
 
 $lang['gvv_vols_avion_logs_input'] = "Saisie planche planeur du";
 $lang['gvv_vols_avion_logs_at'] = "à";
 $lang['gvv_vols_avion_logs_no_flights'] = "Pas de vol enregistré le";
 
 $lang['gvv_vols_avion_stats_col'] = array(
-		'', 'Heures', 'Vols',
-		'HDV -25', 'HDV -25 %', 'Vols -25', 'Vols -25 %',
-		'HDV féminines', 'HDV féminines %', 'Vols féminines', 'Vols féminines %',
-		'HDV Ecole', 'HDV Ecole %', 'Vols Ecole', 'Vols Ecole %',
-		'VI');
+	'',
+	'Heures',
+	'Vols',
+	'HDV -25',
+	'HDV -25 %',
+	'Vols -25',
+	'Vols -25 %',
+	'HDV féminines',
+	'HDV féminines %',
+	'Vols féminines',
+	'Vols féminines %',
+	'HDV Ecole',
+	'HDV Ecole %',
+	'Vols Ecole',
+	'Vols Ecole %',
+	'VI'
+);
 
-$lang['gvv_vols_avion_pdf_header'] = array (
-		"Date",
-		"Début",
-		"Fin",
-		"Durée",
-		"Avion",
-		"Att",
-		"Pilote",
-		"Inst",
-		"Cat",
-		"DC",
-		"-25",
-		"Club",
-		"Observations"
-		);
+$lang['gvv_vols_avion_pdf_header'] = array(
+	"Date",
+	"Début",
+	"Fin",
+	"Durée",
+	"Avion",
+	"Att",
+	"Pilote",
+	"Inst",
+	"Cat",
+	"DC",
+	"-25",
+	"Club",
+	"Observations"
+);

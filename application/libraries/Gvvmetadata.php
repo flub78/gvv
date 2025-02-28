@@ -511,6 +511,7 @@ class GVVMetadata extends Metadata {
                         'vapilid',
                         'instructeur',
                         'vamacid',
+                        'section_name',
                         'vacdeb',
                         'vacfin',
                         'vaduree',

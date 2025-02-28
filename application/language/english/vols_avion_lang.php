@@ -119,30 +119,44 @@ $lang['gvv_vue_vols_avion_short_field_vpnumvi'] = "N° VI";
 $lang['gvv_vue_vols_avion_short_field_remorqueur'] = "Plane";
 $lang['gvv_vue_vols_avion_short_field_type'] = "Type";
 $lang["gvv_vue_vols_avion_short_field_essence"] = "Fuel";
+$lang["gvv_vue_vols_avion_short_field_section_name"] = "Section";
+
 
 $lang['gvv_vols_avion_logs_input'] = "Input log flight of";
 $lang['gvv_vols_avion_logs_at'] = "at";
 $lang['gvv_vols_avion_logs_no_flights'] = "No flights recorded the";
 
 $lang['gvv_vols_avion_stats_col'] = array(
-		'', 'Hours', 'Flights',
-		'Hours -25', 'Hours -25 %', 'Flights -25', 'Flights -25 %',
-		'Hours women', 'Hours women %', 'Flights women', 'Flights women %',
-		'Instruction hours', 'Instruction hours %', 'Instruction flights', 'Instruction flights %',
-		'Scenic');
+	'',
+	'Hours',
+	'Flights',
+	'Hours -25',
+	'Hours -25 %',
+	'Flights -25',
+	'Flights -25 %',
+	'Hours women',
+	'Hours women %',
+	'Flights women',
+	'Flights women %',
+	'Instruction hours',
+	'Instruction hours %',
+	'Instruction flights',
+	'Instruction flights %',
+	'Scenic'
+);
 
-$lang['gvv_vols_avion_pdf_header'] = array (
-		"Date",
-		"Start",
-		"End",
-		"Time",
-		"Plane",
-		"Landings",
-		"Pilot",
-		"Inst",
-		"Cat",
-		"Dual",
-		"-25",
-		"Club",
-		"Comments"
+$lang['gvv_vols_avion_pdf_header'] = array(
+	"Date",
+	"Start",
+	"End",
+	"Time",
+	"Plane",
+	"Landings",
+	"Pilot",
+	"Inst",
+	"Cat",
+	"Dual",
+	"-25",
+	"Club",
+	"Comments"
 );

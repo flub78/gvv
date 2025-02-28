@@ -20,7 +20,7 @@
  * @filesource vols_avion.php
  * @package controllers
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 
 /**
  *
@@ -43,9 +43,9 @@ class Vols_avion extends Gvv_Controller {
     protected $pm_first_row;
 
     // régles de validation
-    protected $rules = array (
-            'vanbpax' => "is_natural|max_length[1]",
-            'vaatt' => "is_natural"
+    protected $rules = array(
+        'vanbpax' => "is_natural|max_length[1]",
+        'vaatt' => "is_natural"
     );
 
     /**
@@ -64,15 +64,15 @@ class Vols_avion extends Gvv_Controller {
         $this->load->helper('statistic');
 
         // prépare les entêtes pour les stats
-        $this->title_row = array_merge(array (
-                $this->lang->line("gvv_total")
+        $this->title_row = array_merge(array(
+            $this->lang->line("gvv_total")
         ), $this->lang->line("gvv_months"));
 
         $this->first_col = $this->lang->line("gvv_vols_avion_stats_col");
 
-        $this->pm_first_row = array_merge(array (
-                $this->lang->line("gvv_vue_vols_avion_short_field_type"),
-                $this->lang->line("gvv_vue_vols_avion_short_field_vamacid")
+        $this->pm_first_row = array_merge(array(
+            $this->lang->line("gvv_vue_vols_avion_short_field_type"),
+            $this->lang->line("gvv_vue_vols_avion_short_field_vamacid")
         ), $this->title_row);
     }
 
@@ -83,37 +83,37 @@ class Vols_avion extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $pilote_selector = $this->membres_model->selector_with_null(array (
-                'actif' => 1
+        $pilote_selector = $this->membres_model->selector_with_null(array(
+            'actif' => 1
         ));
-        $this->data ['saisie_par'] = $this->dx_auth->get_username();
+        $this->data['saisie_par'] = $this->dx_auth->get_username();
         if (CREATION == $action) {
 
-            $this->data ['vacdeb'] = $this->gvv_model->latest_horametre();
+            $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
         }
 
         $this->config->load('facturation');
-        $this->data ['payeur_selector'] = $pilote_selector;
-        $this->data ['payeur_non_pilote'] = $this->config->item('payeur_non_pilote');
-        $this->data ['partage'] = $this->config->item('partage');
+        $this->data['payeur_selector'] = $pilote_selector;
+        $this->data['payeur_non_pilote'] = $this->config->item('payeur_non_pilote');
+        $this->data['partage'] = $this->config->item('partage');
 
-        $this->data ['default_user'] = $this->membres_model->default_id();
+        $this->data['default_user'] = $this->membres_model->default_id();
         if (! $this->dx_auth->is_role('planchiste', true, true) && ($this->config->item('auto_planchiste'))) {
             // Si l'utilisateur n'est pas planchiste mais que le système est 'auto_planchiste'
-            $this->data ['auto_planchiste'] = true;
-            $this->data ['payeur_non_pilote'] = false;
-            $this->data ['partage'] = false;
-            $this->data ['pilote_name'] = $this->membres_model->image($this->data ['default_user']);
-            $pilote_selector = array (
-                    $this->data ['default_user'] => $this->data ['pilote_name']
+            $this->data['auto_planchiste'] = true;
+            $this->data['payeur_non_pilote'] = false;
+            $this->data['partage'] = false;
+            $this->data['pilote_name'] = $this->membres_model->image($this->data['default_user']);
+            $pilote_selector = array(
+                $this->data['default_user'] => $this->data['pilote_name']
             );
         } else {
-            $this->data ['auto_planchiste'] = false;
+            $this->data['auto_planchiste'] = false;
         }
 
         // Avec les méta-données
-        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector(array (
-                'actif' => 1
+        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector(array(
+            'actif' => 1
         )));
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
         $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->qualif_selector('mlogin', FI_AVION | FE_AVION));
@@ -121,31 +121,31 @@ class Vols_avion extends Gvv_Controller {
         $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
 
         // Checkboxes formation
-        $certificats = array ();
-        $select = $this->events_types_model->select_all(array (
-                'activite' => 2,
-                'en_vol' => 1
+        $certificats = array();
+        $select = $this->events_types_model->select_all(array(
+            'activite' => 2,
+            'en_vol' => 1
         ));
 
-        $date_values = array ();
-        foreach ( $select as $row ) {
-            $id = $row ['id'];
-            $certificats [] = array (
-                    'label' => $row ['name'],
-                    'id' => $id
+        $date_values = array();
+        foreach ($select as $row) {
+            $id = $row['id'];
+            $certificats[] = array(
+                'label' => $row['name'],
+                'id' => $id
             );
             // if ($cnt++ % 2)
             // $date_values [$id] = $id;
         }
 
-        $this->data ['certificats'] = $certificats;
-        $this->data ['certificat_values'] = $date_values;
+        $this->data['certificats'] = $certificats;
+        $this->data['certificat_values'] = $date_values;
 
-        $this->data ['machines'] = $this->avions_model->machine_list(array (
-                'actif' => 1
+        $this->data['machines'] = $this->avions_model->machine_list(array(
+            'actif' => 1
         ));
-        $this->data ['horametres_en_min'] = $this->avions_model->machine_list(array (
-                'actif' => 1
+        $this->data['horametres_en_min'] = $this->avions_model->machine_list(array(
+            'actif' => 1
         ), false);
 
         // ici la $this->data['vaduree'] contient la valuer en 1/100 eme
@@ -172,14 +172,14 @@ class Vols_avion extends Gvv_Controller {
      */
     function form2database($action = '') {
         $processed_data = parent::form2database($action);
-        $duree = $processed_data ['vaduree'];
+        $duree = $processed_data['vaduree'];
         $pattern = "\d+h\d+";
         // var_dump($processed_data);
         if (preg_match('/' . $pattern . '/', $duree, $matches)) {
-            $debut = $this->to_hundredth($processed_data ["vacdeb"]);
-            $fin = $this->to_hundredth($processed_data ["vacfin"]);
+            $debut = $this->to_hundredth($processed_data["vacdeb"]);
+            $fin = $this->to_hundredth($processed_data["vacfin"]);
             $duree = intval(($fin - $debut) * 1000) / 1000;
-            $processed_data ['vaduree'] = $duree;
+            $processed_data['vaduree'] = $duree;
         }
 
         return $processed_data;
@@ -195,19 +195,19 @@ class Vols_avion extends Gvv_Controller {
             $this->dx_auth->deny_access();
         }
         parent::create(TRUE);
-        $this->data ['vaid'] = 0;
-        $this->data ['vadate'] = date("Y-m-d");
+        $this->data['vaid'] = 0;
+        $this->data['vadate'] = date("Y-m-d");
 
         $year = $this->session->userdata('year');
-        $latestf = $this->gvv_model->latest_flight(array (
-                'year(vadate)' => $year
+        $latestf = $this->gvv_model->latest_flight(array(
+            'year(vadate)' => $year
         ));
         $flight_exist = (count($latestf) > 0);
 
         if ($flight_exist) {
-            $this->data ['vadate'] = $latestf [0] ['vadate'];
-            $this->data ['vapilid'] = $latestf [0] ['vapilid'];
-            $this->data ['vamacid'] = $latestf [0] ['vamacid'];
+            $this->data['vadate'] = $latestf[0]['vadate'];
+            $this->data['vapilid'] = $latestf[0]['vapilid'];
+            $this->data['vamacid'] = $latestf[0]['vamacid'];
         }
 
         // et affiche le formulaire
@@ -223,23 +223,23 @@ class Vols_avion extends Gvv_Controller {
         if (! $this->dx_auth->is_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
-        
+
         $this->load->model('ecritures_model');
         $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) ? VISUALISATION : MODIFICATION;
         $action = MODIFICATION;
         parent::edit($id, FALSE, $action);
 
         // Recharge les evénements de formation
-        $events = $this->event_model->flight_events(array (
-                'evaid' => $id,
-                'en_vol' => 1,
-                'activite' => 2
+        $events = $this->event_model->flight_events(array(
+            'evaid' => $id,
+            'en_vol' => 1,
+            'activite' => 2
         ));
-        $date_values = array ();
-        foreach ( $events as $event ) {
-            $date_values [$event ['etype']] = 1;
+        $date_values = array();
+        foreach ($events as $event) {
+            $date_values[$event['etype']] = 1;
         }
-        $this->data ['certificat_values'] = $date_values;
+        $this->data['certificat_values'] = $date_values;
 
         // affiche le formulaire
         load_last_view('vols_avion/formView', $this->data);
@@ -252,7 +252,7 @@ class Vols_avion extends Gvv_Controller {
         if (! $this->dx_auth->is_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
-        
+
         $this->load->model('ecritures_model');
         if (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) {
             // Il y a des lignes gelées la suppression est interdite
@@ -260,8 +260,8 @@ class Vols_avion extends Gvv_Controller {
         } else {
             // détruit en base
             $this->pre_delete($id);
-            $this->gvv_model->delete(array (
-                    $this->kid => $id
+            $this->gvv_model->delete(array(
+                $this->kid => $id
             ));
         }
         $this->pop_return_url();
@@ -278,47 +278,49 @@ class Vols_avion extends Gvv_Controller {
         if (! isset($per_page))
             $per_page = $this->session->userdata('per_page');
 
-        $this->data ['action'] = VISUALISATION;
-        $this->data ['filter_active'] = $this->session->userdata('filter_active');
-        $this->data ['filter_date'] = '';
-        $this->data ['date_end'] = '';
-        $this->data ['filter_pilote'] = '';
-        $this->data ['filter_machine'] = '';
-        $this->data ['filter_aero'] = '';
-        $this->data ['filter_25'] = 0;
-        $this->data ['filter_dc'] = 0;
-        $this->data ['filter_vi'] = 0;
-        $this->data ['filter_prive'] = 0;
-        $this->data ['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
+        $this->data['action'] = VISUALISATION;
+        $this->data['section'] = $this->gvv_model->section();
+
+        $this->data['filter_active'] = $this->session->userdata('filter_active');
+        $this->data['filter_date'] = '';
+        $this->data['date_end'] = '';
+        $this->data['filter_pilote'] = '';
+        $this->data['filter_machine'] = '';
+        $this->data['filter_aero'] = '';
+        $this->data['filter_25'] = 0;
+        $this->data['filter_dc'] = 0;
+        $this->data['filter_vi'] = 0;
+        $this->data['filter_prive'] = 0;
+        $this->data['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
         $selection = "YEAR(vadate) = \"$year\"";
 
-        $this->data ['machine_selector'] = '';
+        $this->data['machine_selector'] = '';
         $pilote_selector = $this->membres_model->selector_with_null();
-        $this->data ['pilote_selector'] = $pilote_selector;
+        $this->data['pilote_selector'] = $pilote_selector;
 
         $machine_selector = $this->avions_model->selector_with_null();
-        $this->data ['machine_selector'] = $machine_selector;
+        $this->data['machine_selector'] = $machine_selector;
 
         $aero_selector = $this->terrains_model->selector_with_all();
-        $this->data ['aero_selector'] = $aero_selector;
+        $this->data['aero_selector'] = $aero_selector;
 
-        $this->data ['year_selector'] = $this->gvv_model->getYearSelector("vadate");
-        $this->data ['year'] = $this->session->userdata('year');
+        $this->data['year_selector'] = $this->gvv_model->getYearSelector("vadate");
+        $this->data['year'] = $this->session->userdata('year');
 
         if ($this->session->userdata('filter_active')) {
             $order = "asc";
 
             $filter_pilote = $this->session->userdata('filter_pilote');
             if ($filter_pilote) {
-                $this->data ['filter_pilote'] = $filter_pilote;
+                $this->data['filter_pilote'] = $filter_pilote;
                 $selection .= " and (vapilid = \"$filter_pilote\" or vainst = \"$filter_pilote\" )";
             }
 
             $filter_machine = $this->session->userdata('filter_machine');
             if ($filter_machine) {
-                $this->data ['filter_machine'] = $filter_machine;
+                $this->data['filter_machine'] = $filter_machine;
                 if ($selection != '')
                     $selection .= " and ";
                 $selection .= "vamacid = \"$filter_machine\" ";
@@ -326,7 +328,7 @@ class Vols_avion extends Gvv_Controller {
 
             $filter_aero = $this->session->userdata('filter_aero');
             if ($filter_aero) {
-                $this->data ['filter_aero'] = $filter_aero;
+                $this->data['filter_aero'] = $filter_aero;
                 if ($selection != '')
                     $selection .= " and ";
                 $selection .= "valieudeco = \"$filter_aero\" ";
@@ -334,30 +336,30 @@ class Vols_avion extends Gvv_Controller {
 
             $filter_25 = $this->session->userdata('filter_25');
             if ($filter_25 == 1) {
-                $this->data ['filter_25'] = $filter_25;
+                $this->data['filter_25'] = $filter_25;
                 $selection .= " and (mdaten >= \"$date25\" )";
             } else if ($filter_25 == 2) {
-                $this->data ['filter_25'] = $filter_25;
+                $this->data['filter_25'] = $filter_25;
                 $selection .= " and (mdaten < \"$date25\" )";
             }
 
             $filter_dc = $this->session->userdata('filter_dc');
             if ($filter_dc) {
-                $this->data ['filter_dc'] = $filter_dc;
+                $this->data['filter_dc'] = $filter_dc;
                 $selection .= " and (vadc = \"$filter_dc\" )";
             }
 
             $filter_vi = $this->session->userdata('filter_vi');
             if ($filter_vi) {
-                $this->data ['filter_vi'] = $filter_vi;
+                $this->data['filter_vi'] = $filter_vi;
                 $categorie = $filter_vi - 1;
                 $selection .= " and (vacategorie = \"$categorie\" )";
             }
 
             $filter_prive = $this->session->userdata('filter_prive');
             if ($filter_prive) {
-                $this->data ['filter_prive'] = $filter_prive;
-                $filter_prive --;
+                $this->data['filter_prive'] = $filter_prive;
+                $filter_prive--;
                 $selection .= " and (machinesa.maprive = \"$filter_prive\" )";
             }
 
@@ -366,7 +368,7 @@ class Vols_avion extends Gvv_Controller {
             if ($filter_date) {
                 if ($selection != '')
                     $selection .= " and ";
-                $this->data ['filter_date'] = $filter_date;
+                $this->data['filter_date'] = $filter_date;
                 if ($date_end) {
                     $selection .= "vadate >= \"" . date_ht2db($filter_date) . "\" ";
                 } else {
@@ -377,83 +379,83 @@ class Vols_avion extends Gvv_Controller {
             if ($date_end) {
                 if ($selection != '')
                     $selection .= " and ";
-                $this->data ['date_end'] = $date_end;
+                $this->data['date_end'] = $date_end;
                 $selection .= "vadate <= \"" . date_ht2db($date_end) . "\" ";
             }
 
             if ($selection == "")
-                $selection = array ();
+                $selection = array();
         }
 
         // calcul des consommations
         // Doit être appelé avant le select_page
-        $this->data ['conso'] = $this->gvv_model->conso($year, $selection);
+        $this->data['conso'] = $this->gvv_model->conso($year, $selection);
 
-        $this->data ['select_result'] = $this->gvv_model->select_page($year, $per_page, $premier, $selection, $order);
-        $this->data ['kid'] = $this->kid;
-        $this->data ['controller'] = $this->controller;
-        $this->data ['lines'] = $this->gvv_model->count($selection);
-        $this->data ['count'] = $this->gvv_model->sum('vaatt', $selection);
-        $this->data ['total'] = $this->gvv_model->sum('vaduree', $selection);
-        $this->data ['m25ans'] = $this->gvv_model->sum('vaduree', $selection, array (
-                'mdaten >' => $date25
+        $this->data['select_result'] = $this->gvv_model->select_page($year, $per_page, $premier, $selection, $order);
+        $this->data['kid'] = $this->kid;
+        $this->data['controller'] = $this->controller;
+        $this->data['lines'] = $this->gvv_model->count($selection);
+        $this->data['count'] = $this->gvv_model->sum('vaatt', $selection);
+        $this->data['total'] = $this->gvv_model->sum('vaduree', $selection);
+        $this->data['m25ans'] = $this->gvv_model->sum('vaduree', $selection, array(
+            'mdaten >' => $date25
         ));
-        $this->data ['count_m25ans'] = $this->gvv_model->sum('vaatt', $selection, array (
-                'mdaten >' => $date25
+        $this->data['count_m25ans'] = $this->gvv_model->sum('vaatt', $selection, array(
+            'mdaten >' => $date25
         ));
-        $this->data ['remorquage'] = $this->gvv_model->sum('vaduree', $selection, array (
-                'vacategorie' => 3
+        $this->data['remorquage'] = $this->gvv_model->sum('vaduree', $selection, array(
+            'vacategorie' => 3
         ));
-        $this->data ['count_remorquage'] = $this->gvv_model->sum('vaatt', $selection, array (
-                'vacategorie' => 3
+        $this->data['count_remorquage'] = $this->gvv_model->sum('vaatt', $selection, array(
+            'vacategorie' => 3
         ));
-        $this->data ['premier'] = $premier;
-        $this->data ['message'] = $message;
+        $this->data['premier'] = $premier;
+        $this->data['message'] = $message;
 
         if ($this->session->userdata('filter_active') && $filter_pilote) {
             // Calcul aussi les heures CDB, et instructeurs
-            $this->data ['by_pilote'] = 1;
-            $this->data ['dc'] = $this->gvv_model->sum('vaduree', $selection, array (
-                    'vadc' => 1,
-                    'vapilid' => $filter_pilote
+            $this->data['by_pilote'] = 1;
+            $this->data['dc'] = $this->gvv_model->sum('vaduree', $selection, array(
+                'vadc' => 1,
+                'vapilid' => $filter_pilote
             ));
-            $this->data ['count_dc'] = $this->gvv_model->sum('vaatt', $selection, array (
-                    'vadc' => 1,
-                    'vapilid' => $filter_pilote
+            $this->data['count_dc'] = $this->gvv_model->sum('vaatt', $selection, array(
+                'vadc' => 1,
+                'vapilid' => $filter_pilote
             ));
-            $this->data ['inst'] = $this->gvv_model->sum('vaduree', $selection, array (
-                    'vadc' => 1,
-                    'vainst' => $filter_pilote
+            $this->data['inst'] = $this->gvv_model->sum('vaduree', $selection, array(
+                'vadc' => 1,
+                'vainst' => $filter_pilote
             ));
-            $this->data ['cdb'] = $this->data ['inst'] + $this->gvv_model->sum('vaduree', $selection, array (
-                    'vadc' => 0,
-                    'vapilid' => $filter_pilote
+            $this->data['cdb'] = $this->data['inst'] + $this->gvv_model->sum('vaduree', $selection, array(
+                'vadc' => 0,
+                'vapilid' => $filter_pilote
             ));
         } else {
-            $this->data ['by_pilote'] = 0;
-            $this->data ['dc'] = $this->gvv_model->sum('vaduree', $selection, array (
-                    'vadc' => 1
+            $this->data['by_pilote'] = 0;
+            $this->data['dc'] = $this->gvv_model->sum('vaduree', $selection, array(
+                'vadc' => 1
             ));
-            $this->data ['count_dc'] = $this->gvv_model->sum('vaatt', $selection, array (
-                    'vadc' => 1
+            $this->data['count_dc'] = $this->gvv_model->sum('vaatt', $selection, array(
+                'vadc' => 1
             ));
-            $this->data ['inst'] = 0;
-            $this->data ['cdb'] = 0;
+            $this->data['inst'] = 0;
+            $this->data['cdb'] = 0;
         }
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
 
-        $this->data ['default_user'] = $this->membres_model->default_id();
+        $this->data['default_user'] = $this->membres_model->default_id();
         if (! $this->dx_auth->is_role('planchiste', true, true) && ($this->config->item('auto_planchiste'))) {
             // Si l'utilisateur n'est pas planchiste mais que le système est 'auto_planchiste'
-            $this->data ['auto_planchiste'] = true;
-            $this->data ['payeur_non_pilote'] = false;
-            $this->data ['partage'] = false;
-            $this->data ['pilote_name'] = $this->membres_model->image($this->data ['default_user']);
-            $pilote_selector = array (
-                    $this->data ['default_user'] => $this->data ['pilote_name']
+            $this->data['auto_planchiste'] = true;
+            $this->data['payeur_non_pilote'] = false;
+            $this->data['partage'] = false;
+            $this->data['pilote_name'] = $this->membres_model->image($this->data['default_user']);
+            $pilote_selector = array(
+                $this->data['default_user'] => $this->data['pilote_name']
             );
         } else {
-            $this->data ['auto_planchiste'] = false;
+            $this->data['auto_planchiste'] = false;
         }
     }
 
@@ -462,7 +464,7 @@ class Vols_avion extends Gvv_Controller {
      *
      * @see Gvv_Controller::page()
      */
-    function page($premier = 0, $message = '', $selection = Array()) {
+    function page($premier = 0, $message = '', $selection = array()) {
         $this->push_return_url("vols avion page");
         $this->select_page($premier, $message);
         return load_last_view($this->table_view, $this->data, $this->unit_test);
@@ -490,51 +492,54 @@ class Vols_avion extends Gvv_Controller {
         $pdf->AddPage('L');
         $pdf->title($this->lang->line("gvv_vols_avion_title_list") . " $year", 1);
 
-        $tab = array ();
+        $tab = array();
 
-        $tab [0] = $this->lang->line("gvv_vols_avion_pdf_header");
+        $tab[0] = $this->lang->line("gvv_vols_avion_pdf_header");
 
         $data = $this->data;
-        $results = $this->data ['select_result'];
-        $pilots = $this->data ['pilote_selector'];
+        $results = $this->data['select_result'];
+        $pilots = $this->data['pilote_selector'];
         // print_r($data);
         $line = 1;
-        foreach ( $results as $row ) {
+        foreach ($results as $row) {
 
-            $row ['vadate'] = date_db2ht($row ['vadate']);
-            if (isset($row ['vainst'])) {
-                $row ['vainst'] = substr($pilots [$row ['vainst']], 0, 12);
+            $row['vadate'] = date_db2ht($row['vadate']);
+            if (isset($row['vainst'])) {
+                $row['vainst'] = substr($pilots[$row['vainst']], 0, 12);
             }
-            foreach ( array (
+            foreach (
+                array(
                     'vadc',
                     'm25ans'
-            ) as $field ) {
-                $row [$field] = ($row [$field]) ? 'X' : '';
+                ) as $field
+            ) {
+                $row[$field] = ($row[$field]) ? 'X' : '';
             }
             $categories = $this->config->item('categories_vol_avion_short');
-            $row ['vacategorie'] = $categories [$row ['vacategorie']];
+            $row['vacategorie'] = $categories[$row['vacategorie']];
 
             $fld = 0;
-            $fields = array (
-                    'vadate',
-                    'vacdeb',
-                    'vacfin',
-                    'vaduree',
-                    'vamacid',
-                    'vaatt',
-                    'pilote',
-                    'instructeur',
-                    'vacategorie',
-                    'vadc',
-                    'prive',
-                    'm25ans',
-                    'vaobs'
+            $fields = array(
+                'vadate',
+                'vacdeb',
+                'vacfin',
+                'vaduree',
+                'vamacid',
+                'vaatt',
+                'pilote',
+                'instructeur',
+                'vacategorie',
+                'vadc',
+                'prive',
+                'm25ans',
+                'vaobs'
             );
-            foreach ( $fields as $field ) {
-                $tab [$line] [$fld ++] = $row [$field];
+            foreach ($fields as $field) {
+                $tab[$line][$fld++] = $row[$field];
             }
-            $line ++;
-            foreach ( array (
+            $line++;
+            foreach (
+                array(
                     'vadate',
                     'vacdeb',
                     'vacfin',
@@ -546,40 +551,41 @@ class Vols_avion extends Gvv_Controller {
                     'vadc',
                     'prive',
                     'm25ans'
-            ) as $field ) {
+                ) as $field
+            ) {
                 // $backup .= $row[$field] . ";";
             }
             // $backup .= $row['vaobs'] . "\n";
         }
-        $w = array (
-                18,
-                15,
-                15,
-                15,
-                15,
-                16,
-                35,
-                16,
-                8,
-                8,
-                8,
-                10,
-                60
+        $w = array(
+            18,
+            15,
+            15,
+            15,
+            15,
+            16,
+            35,
+            16,
+            8,
+            8,
+            8,
+            10,
+            60
         );
-        $align = array (
-                'L',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'L',
-                'L',
-                'L',
-                'C',
-                'C',
-                'C',
-                'L'
+        $align = array(
+            'L',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'L',
+            'L',
+            'L',
+            'C',
+            'C',
+            'C',
+            'L'
         );
         $pdf->table($w, 8, $align, $tab);
         $pdf->Output();
@@ -593,22 +599,23 @@ class Vols_avion extends Gvv_Controller {
 
         if ($button == $this->lang->line("gvv_str_select")) {
             // Enable filtering
-            $session ['filter_date'] = $this->input->post('filter_date');
-            $session ['date_end'] = $this->input->post('date_end');
-            $session ['filter_pilote'] = $this->input->post('filter_pilote');
-            $session ['filter_machine'] = $this->input->post('filter_machine');
-            $session ['filter_aero'] = $this->input->post('filter_aero');
+            $session['filter_date'] = $this->input->post('filter_date');
+            $session['date_end'] = $this->input->post('date_end');
+            $session['filter_pilote'] = $this->input->post('filter_pilote');
+            $session['filter_machine'] = $this->input->post('filter_machine');
+            $session['filter_aero'] = $this->input->post('filter_aero');
 
-            $session ['filter_25'] = $this->input->post('filter_25');
-            $session ['filter_dc'] = $this->input->post('filter_dc');
-            $session ['filter_prive'] = $this->input->post('filter_prive');
-            $session ['filter_vi'] = $this->input->post('filter_vi');
+            $session['filter_25'] = $this->input->post('filter_25');
+            $session['filter_dc'] = $this->input->post('filter_dc');
+            $session['filter_prive'] = $this->input->post('filter_prive');
+            $session['filter_vi'] = $this->input->post('filter_vi');
 
-            $session ['filter_active'] = 1;
+            $session['filter_active'] = 1;
             $this->session->set_userdata($session);
         } else {
             // Disable filtering
-            foreach ( array (
+            foreach (
+                array(
                     'filter_date',
                     'date_end',
                     'filter_pilote',
@@ -619,7 +626,8 @@ class Vols_avion extends Gvv_Controller {
                     'filter_dc',
                     'filter_prive',
                     'filter_vi'
-            ) as $field ) {
+                ) as $field
+            ) {
                 $this->session->unset_userdata($field);
             }
         }
@@ -631,12 +639,12 @@ class Vols_avion extends Gvv_Controller {
      */
     public function vols_de_la_machine($machine) {
         // Enable filtering
-        $session ['filter_date'] = '';
-        $session ['date_end'] = '';
-        $session ['filter_pilote'] = '';
-        $session ['filter_machine'] = $machine;
-        $session ['filter_aero'] = '';
-        $session ['filter_active'] = 1;
+        $session['filter_date'] = '';
+        $session['date_end'] = '';
+        $session['filter_pilote'] = '';
+        $session['filter_machine'] = $machine;
+        $session['filter_aero'] = '';
+        $session['filter_active'] = 1;
         $this->session->set_userdata($session);
         $this->page();
     }
@@ -646,12 +654,12 @@ class Vols_avion extends Gvv_Controller {
      */
     public function vols_du_pilote($pilote) {
         // Enable filtering
-        $session ['filter_date'] = '';
-        $session ['date_end'] = '';
-        $session ['filter_pilote'] = $pilote;
-        $session ['filter_machine'] = '';
-        $session ['filter_aero'] = '';
-        $session ['filter_active'] = 1;
+        $session['filter_date'] = '';
+        $session['date_end'] = '';
+        $session['filter_pilote'] = $pilote;
+        $session['filter_machine'] = '';
+        $session['filter_aero'] = '';
+        $session['filter_active'] = 1;
         $this->session->set_userdata($session);
         $this->page();
     }
@@ -660,44 +668,44 @@ class Vols_avion extends Gvv_Controller {
      * Statistiques
      */
     public function stat_per_month($year) {
-        $selection = array (
-                'year(vadate)' => $year
+        $selection = array(
+            'year(vadate)' => $year
         );
         $date25 = date_m25ans($year);
 
-        $pm = array ();
+        $pm = array();
         $where = $selection;
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where);
-        $pm [] = $this->gvv_model->line_monthly('count', $where);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where);
+        $pm[] = $this->gvv_model->line_monthly('count', $where);
 
-        $where = array_merge($selection, array (
-                'mdaten >=' => $date25
+        $where = array_merge($selection, array(
+            'mdaten >=' => $date25
         ));
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where);
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where, $pm [1]);
-        $pm [] = $this->gvv_model->line_monthly('count', $where);
-        $pm [] = $this->gvv_model->line_monthly('count', $where, $pm [2]);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where, $pm[1]);
+        $pm[] = $this->gvv_model->line_monthly('count', $where);
+        $pm[] = $this->gvv_model->line_monthly('count', $where, $pm[2]);
 
-        $where = array_merge($selection, array (
-                'msexe' => 'F'
+        $where = array_merge($selection, array(
+            'msexe' => 'F'
         ));
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where);
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where, $pm [1]);
-        $pm [] = $this->gvv_model->line_monthly('count', $where);
-        $pm [] = $this->gvv_model->line_monthly('count', $where, $pm [2]);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where, $pm[1]);
+        $pm[] = $this->gvv_model->line_monthly('count', $where);
+        $pm[] = $this->gvv_model->line_monthly('count', $where, $pm[2]);
 
-        $where = array_merge($selection, array (
-                'vadc' => 1
+        $where = array_merge($selection, array(
+            'vadc' => 1
         ));
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where);
-        $pm [] = $this->gvv_model->line_monthly('centiemes', $where, $pm [1]);
-        $pm [] = $this->gvv_model->line_monthly('count', $where);
-        $pm [] = $this->gvv_model->line_monthly('count', $where, $pm [2]);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where);
+        $pm[] = $this->gvv_model->line_monthly('centiemes', $where, $pm[1]);
+        $pm[] = $this->gvv_model->line_monthly('count', $where);
+        $pm[] = $this->gvv_model->line_monthly('count', $where, $pm[2]);
 
-        $where = array_merge($selection, array (
-                'vacategorie' => 1
+        $where = array_merge($selection, array(
+            'vacategorie' => 1
         ));
-        $pm [] = $this->gvv_model->line_monthly('count', $where);
+        $pm[] = $this->gvv_model->line_monthly('count', $where);
         return $pm;
     }
 
@@ -705,26 +713,26 @@ class Vols_avion extends Gvv_Controller {
      * Calcul les statistiques par machine
      */
     public function stat_per_machine($year, $type = 'centiemes') {
-        $selection = array (
-                'year(vadate)' => $year
+        $selection = array(
+            'year(vadate)' => $year
         );
 
-        $pm = array ();
+        $pm = array();
 
-        $machines = $this->avions_model->select_all(array (), "macmodele");
-        foreach ( $machines as $machine ) {
-            $immat = $machine ['macimmat'];
-            $modele = $machine ['macmodele'];
-            $line = array (
-                    $modele,
-                    $immat
+        $machines = $this->avions_model->select_all(array(), "macmodele");
+        foreach ($machines as $machine) {
+            $immat = $machine['macimmat'];
+            $modele = $machine['macmodele'];
+            $line = array(
+                $modele,
+                $immat
             );
-            $where = array_merge($selection, array (
-                    'vamacid' => $immat
+            $where = array_merge($selection, array(
+                'vamacid' => $immat
             ));
             $line = array_merge($line, $this->gvv_model->line_monthly($type, $where));
-            if ($line [2] > 0) {
-                $pm [] = $line;
+            if ($line[2] > 0) {
+                $pm[] = $line;
             }
         }
         return $pm;
@@ -737,42 +745,42 @@ class Vols_avion extends Gvv_Controller {
         $this->load->helper('Statistic');
         $year = $this->session->userdata('year');
 
-        $data ['per_month'] = $this->stat_per_month($year);
-        $data ['per_machine'] = $this->stat_per_machine($year);
-        $data ['machines'] = $this->avions_model->list_of();
-        $data ['year'] = $year;
-        $data ['year_selector'] = $this->gvv_model->getYearSelector("vadate");
+        $data['per_month'] = $this->stat_per_month($year);
+        $data['per_machine'] = $this->stat_per_machine($year);
+        $data['machines'] = $this->avions_model->list_of();
+        $data['year'] = $year;
+        $data['year_selector'] = $this->gvv_model->getYearSelector("vadate");
         $this->push_return_url("vols avion statistiques");
 
         // var_dump($data['per_month']);
 
-        $data ['latest_flight'] = $this->gvv_model->latest_flight(array (
-                'year(vadate)' => $year
+        $data['latest_flight'] = $this->gvv_model->latest_flight(array(
+            'year(vadate)' => $year
         ));
-        $flight_exist = (count($data ['latest_flight']) > 0);
+        $flight_exist = (count($data['latest_flight']) > 0);
 
         if (false) {
-        if ($flight_exist || $force_regeneration) {
+            if ($flight_exist || $force_regeneration) {
 
-            $latest_date = $data ['latest_flight'] [0] ['vadate'];
-            $latest_time = $data ['latest_flight'] [0] ['vacdeb'];
-            $latest_epoch = strtotime($latest_date) + ( int ) ($latest_time * 3600);
+                $latest_date = $data['latest_flight'][0]['vadate'];
+                $latest_time = $data['latest_flight'][0]['vacdeb'];
+                $latest_epoch = strtotime($latest_date) + (int) ($latest_time * 3600);
 
-            $filename = image_dir() . "avion_mois_$year.png";
-            if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
-                month_chart($filename, $data ['per_month'], array (
+                $filename = image_dir() . "avion_mois_$year.png";
+                if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
+                    month_chart($filename, $data['per_month'], array(
                         1,
                         3,
                         7,
                         11
-                ), "Heures de vol");
-            }
+                    ), "Heures de vol");
+                }
 
-            $filename = image_dir() . "avion_machine_$year.png";
-            if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
-                # machine_barchart($filename, $data ['per_machine'], "Heures de vol");
+                $filename = image_dir() . "avion_machine_$year.png";
+                if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
+                    # machine_barchart($filename, $data ['per_machine'], "Heures de vol");
+                }
             }
-        }
         }
         load_last_view('vols_avion/statistic', $data);
     }
@@ -859,47 +867,47 @@ class Vols_avion extends Gvv_Controller {
 
         $pdf->title($title1);
 
-        $w = array (
-                15,
-                18,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12,
-                12
+        $w = array(
+            15,
+            18,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12
         );
-        $align = array (
-                'L',
-                'L',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R',
-                'R'
+        $align = array(
+            'L',
+            'L',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R',
+            'R'
         );
 
         $pdf->table($w, 8, $align, $data);
@@ -929,15 +937,15 @@ class Vols_avion extends Gvv_Controller {
 
         gvv_debug("machine=$machine");
         $avion = $this->avions_model->get_by_id('macimmat', $machine);
-        $id = $avion ['macimmat'];
-        $places = $avion ['macplaces'];
-        if ($avion ['horametre_en_minutes']) {
+        $id = $avion['macimmat'];
+        $places = $avion['macplaces'];
+        if ($avion['horametre_en_minutes']) {
             $unit = 'min';
         } else {
             $unit = 'cent';
         }
-        $hora = $this->gvv_model->latest_horametre(array (
-                'vamacid' => $id
+        $hora = $this->gvv_model->latest_horametre(array(
+            'vamacid' => $id
         ));
         gvv_debug("latest_horametre($id)=$hora");
 
@@ -959,12 +967,12 @@ class Vols_avion extends Gvv_Controller {
      * @param $data enregistrement
      *            crée
      */
-    function post_create($data = array ()) {
+    function post_create($data = array()) {
         gvv_debug($this->controller . " overwritten creation " . var_export($data, true));
 
         $certificats = $this->input->post('certificat_values');
 
-        $vaid = $data ['vaid'];
+        $vaid = $data['vaid'];
 
         if ($vaid < 1) {
             var_dump("Erreur vols_avion.post_create vaid = 0");
@@ -972,16 +980,16 @@ class Vols_avion extends Gvv_Controller {
             exit();
         }
 
-        $event = array (
-                'emlogin' => $data ['vapilid'],
-                'edate' => $data ['vadate'],
-                'evaid' => $data ['vaid'],
-                'ecomment' => $data ['vaobs']
+        $event = array(
+            'emlogin' => $data['vapilid'],
+            'edate' => $data['vadate'],
+            'evaid' => $data['vaid'],
+            'ecomment' => $data['vaobs']
         );
 
         if ($certificats)
-            foreach ( $certificats as $etype ) {
-                $event ['etype'] = $etype;
+            foreach ($certificats as $etype) {
+                $event['etype'] = $etype;
                 $this->event_model->replace($event);
             }
     }
@@ -994,8 +1002,8 @@ class Vols_avion extends Gvv_Controller {
      */
     function pre_delete($id) {
         gvv_debug($this->controller . " overwritten delete $id");
-        $this->event_model->delete(array (
-                'evaid' => $id
+        $this->event_model->delete(array(
+            'evaid' => $id
         ));
     }
 
@@ -1005,7 +1013,7 @@ class Vols_avion extends Gvv_Controller {
      * @param $data enregistrement
      *            modifié
      */
-    function post_update($data = array ()) {
+    function post_update($data = array()) {
         gvv_debug($this->controller . " overwritten post modification " . var_export($data, true));
         $this->post_create($data);
     }
@@ -1013,10 +1021,10 @@ class Vols_avion extends Gvv_Controller {
     /**
      * Hook activé avant la mise à jour
      */
-    function pre_update($id, $data = array ()) {
+    function pre_update($id, $data = array()) {
         gvv_debug($this->controller . " overwritten pre modification $id " . var_export($data, true));
-        $this->event_model->delete(array (
-                'evaid' => $data [$id]
+        $this->event_model->delete(array(
+            'evaid' => $data[$id]
         ));
     }
 
@@ -1025,21 +1033,21 @@ class Vols_avion extends Gvv_Controller {
      */
     public function cumuls() {
         $year = date("Y");
-        $first_flight = $this->gvv_model->latest_flight(array (), "asc");
+        $first_flight = $this->gvv_model->latest_flight(array(), "asc");
         if (count($first_flight) < 1) {
-            $data ['title'] = $this->lang->line("gvv_error");
-            $data ['text'] = $this->lang->line("gvv_no_flights");
+            $data['title'] = $this->lang->line("gvv_error");
+            $data['text'] = $this->lang->line("gvv_no_flights");
             return load_last_view('message', $data);
         }
-        $first_year = $first_flight [0] ['year'];
+        $first_year = $first_flight[0]['year'];
 
-        $data = array ();
-        $data ['controller'] = $this->controller;
-        $data ['jsonurl'] = base_url() . 'index.php/' . $this->controller . '/ajax_cumuls';
+        $data = array();
+        $data['controller'] = $this->controller;
+        $data['jsonurl'] = base_url() . 'index.php/' . $this->controller . '/ajax_cumuls';
 
-        $data ['year'] = $year;
-        $data ['first_year'] = $first_year;
-        $data ['title_key'] = "gvv_vols_avion_title_cumul";
+        $data['year'] = $year;
+        $data['first_year'] = $first_year;
+        $data['title_key'] = "gvv_vols_avion_title_cumul";
 
         return load_last_view('vols_planeur/cumuls', $data);
     }
@@ -1049,8 +1057,8 @@ class Vols_avion extends Gvv_Controller {
      */
     function ajax_cumuls() {
         $year = date("Y");
-        $first_flight = $this->gvv_model->latest_flight(array (), "asc");
-        $first_year = $first_flight [0] ['year'];
+        $first_flight = $this->gvv_model->latest_flight(array(), "asc");
+        $first_year = $first_flight[0]['year'];
         $json = $this->gvv_model->cumul_heures($year, $first_year);
 
         echo $json;
