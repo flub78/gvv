@@ -30,7 +30,12 @@ echo '<div id="body" class="body container-fluid">';
 
 echo checkalert($this->session);
 
-echo heading("gvv_vols_avion_title_list", 3);
+$title = $this->lang->line("gvv_vols_avion_title_list");
+if ($section) {
+    $title .= " section " . $section['nom'];
+}
+
+echo heading($title, 3);
 
 $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this->config->item('categories_vol_avion'));
 
@@ -176,10 +181,14 @@ if ($this->dx_auth->is_role('planchiste') || $auto_planchiste) {
 } else {
     $classes = "datatable_style datedtable_ro table table-striped";
 }
+
+$mode = (($has_modification_rights || $auto_planchiste) && ($section)) ? "rw" : "ro";
+$mode = "rw";
+$actions = ($mode == "rw") ? array('edit', 'delete') : [];
 $attrs = array(
     'controller' => $controller,
-    'actions' => array('edit', 'delete'),
-    'mode' => ($has_modification_rights || $auto_planchiste) ? "rw" : "ro",
+    'actions' => $actions,
+    'mode' => $mode,
     'class' => $classes
 );
 if ($auto_planchiste) {

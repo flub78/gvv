@@ -24,6 +24,7 @@ if (! defined('BASEPATH'))
 
 $CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->model('sections_model');
 
 /**
  * Modèle vols avion
@@ -46,7 +47,18 @@ class Vols_avion_model extends Common_Model {
     public function sum($field, $where = array(), $selection = array()) {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
 
-        $res = $this->db->select("MIN('vaduree'), MIN('mdaten')")->from('volsa, membres, machinesa')->select_sum($field)->where($where2)->where($where)->where($selection)->get();
+        $this->db->select("MIN('vaduree'), MIN('mdaten')")
+            ->from('volsa, membres, machinesa')
+            ->select_sum($field)
+            ->where($where2)
+            ->where($where)
+            ->where($selection);
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+
+        $res = $this->db->get();
 
         gvv_debug("sql: sum hours avion: " . $this->db->last_query());
         if ($this->db->_error_number()) {
@@ -69,7 +81,17 @@ class Vols_avion_model extends Common_Model {
      */
     public function count($where = array(), $selection = array()) {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
-        $count = $this->db->select('vaduree, mdaten')->from('volsa, membres, machinesa')->where($where2)->where($where)->count_all_results();
+
+        $this->db->select('vaduree, mdaten')
+            ->from('volsa, membres, machinesa')
+            ->where($where2)
+            ->where($where);
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $count = $this->db->count_all_results();
+
         return $count;
     }
 
@@ -77,7 +99,16 @@ class Vols_avion_model extends Common_Model {
      * return the latest value for the horameter
      */
     public function latest_horametre($where = array()) {
-        $row = $this->db->select('vacfin')->from('volsa')->where($where)->order_by('vacfin', 'desc')->limit(1)->get()->row();
+        $this->db
+            ->select('vacfin')
+            ->from('volsa')
+            ->where($where)
+            ->order_by('vacfin', 'desc');
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $row = $this->db->limit(1)->get()->row();
 
         gvv_debug("sql: " . $this->db->last_query());
         return isset($row->vacfin) ? $row->vacfin : 0;
@@ -89,7 +120,15 @@ class Vols_avion_model extends Common_Model {
      * @return objet La liste
      */
     public function latest_flight($where = array(), $order = "desc") {
-        $result = $this->db->select('vaid, vadate, vacdeb, vacfin, vamacid, vapilid, year(vadate) as year, vahdeb, vahfin, vaobs')->from('volsa')->order_by("vadate $order, vacfin $order")->limit(1)->get()->result_array();
+        $this->db
+            ->select('vaid, vadate, vacdeb, vacfin, vamacid, vapilid, year(vadate) as year, vahdeb, vahfin, vaobs')
+            ->from('volsa')
+            ->order_by("vadate $order, vacfin $order");
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $result = $this->db->limit(1)->get()->result_array();
 
         return $result;
     }
@@ -113,9 +152,17 @@ class Vols_avion_model extends Common_Model {
 
         // echo "select $select from $from where $where and $selection" . br(); exit;
 
-        $result = $this->db->select($select, FALSE)->from($from)->where($where)->where($selection)->
-            // ->limit($nb, $debut)
-            order_by("vadate $order, vacdeb $order")->get()->result_array();
+        $this->db
+            ->select($select, FALSE)
+            ->from($from)
+            ->where($where)
+            ->where($selection)
+            ->order_by("vadate $order, vacdeb $order");
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $result = $this->db->get()->result_array();
 
         gvv_debug("sql: " . $this->db->last_query());
 
@@ -125,6 +172,13 @@ class Vols_avion_model extends Common_Model {
             $image = $this->image($row[$kid], TRUE);
             $result[$key]['image'] = "le vol " . $image;
             $result[$key]['instructeur'] = $this->membres_model->image($row['instructeur'], true);
+
+            $section = $this->sections_model->get_by_id('id', $row['club']);
+            if ($section) {
+                $result[$key]['section_name'] = $section['nom'];
+            } else {
+                $result[$key]['section_name'] = '';
+            }
         }
 
         $this->gvvmetadata->store_table("vue_vols_avion", $result);
@@ -232,14 +286,24 @@ class Vols_avion_model extends Common_Model {
      * from volsp group by month;
      */
     public function monthly_sum($group_by = '', $where = array(), $selection = array()) {
-        $select = $this->db->select('count(*) as count, year(vadate) as current_year, month(vadate) as month, mdaten, msexe, vacategorie, vadc, vamacid')->from('volsa, membres')->select_sum('vaduree', 'centiemes')->where($where)->where($selection)->where('volsa.vapilid = membres.mlogin')->group_by($group_by)->get()->result_array();
+
+        $this->db
+            ->select('count(*) as count, year(vadate) as current_year, month(vadate) as month, mdaten, msexe, vacategorie, vadc, vamacid')
+            ->from('volsa, membres')
+            ->select_sum('vaduree', 'centiemes')
+            ->where($where)
+            ->where($selection)
+            ->where('volsa.vapilid = membres.mlogin');
+
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+
+        $select = $this->db->group_by($group_by)->get()->result_array();
 
         $query = $this->db->last_query();
-        /*
-         * var_dump('############################################################');
-         * var_dump($query);
-         * var_dump($select);
-         */
+
         return $select;
     }
 
@@ -250,20 +314,28 @@ class Vols_avion_model extends Common_Model {
     public function line_monthly($type = 'count', $where = array(), $percent = array()) {
         $what = 'count(*) as count, year(vadate) as current_year, month(vadate) as month, mdaten, msexe, vacategorie, vadc, vamacid';
 
-        $db_res = $this->db->select($what)
+        $this->db->select($what)
             ->from('volsa, membres')
             ->select_sum('vaduree', 'centiemes')
             ->where($where)
-            ->where('volsa.vapilid = membres.mlogin')
-            ->get();
+            ->where('volsa.vapilid = membres.mlogin');
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $db_res = $this->db->get();
         $total = $this->get_to_array($db_res);
 
-        $db_res = $this->db->select($what)
+        $this->db->select($what)
             ->from('volsa, membres')
             ->select_sum('vaduree', 'centiemes')
             ->where($where)
-            ->where('volsa.vapilid = membres.mlogin')
-            ->group_by('month')
+            ->where('volsa.vapilid = membres.mlogin');
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $db_res = $this->db->group_by('month')
             ->get();
         $per_month = $this->get_to_array($db_res);
 
@@ -292,12 +364,6 @@ class Vols_avion_model extends Common_Model {
             }
         }
 
-        /*
-         * var_dump('############################################################');
-         * var_dump($query);
-         * $query = $this->db->last_query();
-         * var_dump($res);
-         */
         array_shift($res);
         return $res;
     }
@@ -312,7 +378,16 @@ class Vols_avion_model extends Common_Model {
     public function selector($where = array(), $order = "asc") {
         $key = $this->primary_key;
 
-        $allkeys = $this->db->select($key)->from($this->table)->where($where)->order_by("vadate $order, vacdeb $order")->get()->result_array();
+        $this->db
+            ->select($key)
+            ->from($this->table)
+            ->where($where);
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $allkeys = $this->db->order_by("vadate $order, vacdeb $order")
+            ->get()->result_array();
 
         $result = array();
         foreach ($allkeys as $row) {
@@ -347,7 +422,7 @@ class Vols_avion_model extends Common_Model {
      */
     public function delete_facture($id) {
         $this->load->model('achats_model');
-        $achats = $this->achats_model->delete(array(
+        $this->achats_model->delete(array(
             'vol_avion' => $id
         ));
     }
@@ -485,7 +560,17 @@ class Vols_avion_model extends Common_Model {
      */
     function get($where = array()) {
 
-        $selection = $this->select_all($where);
+        // $selection = $this->select_all($where);
+
+        $selection = $this->db
+            ->from($this->table)
+            ->where($where);
+        // select per section
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $selection = $this->db->get()->result_array();
+
         foreach ($selection as $row) {
         }
         return $selection;

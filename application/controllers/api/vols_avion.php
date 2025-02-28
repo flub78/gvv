@@ -30,7 +30,7 @@
  *
  */
 class Vols_avion extends CI_Controller {
-    
+
     protected $controller = 'vols_avion';
     protected $model = 'vols_avion_model';
     protected $kid = 'vaid';
@@ -42,9 +42,9 @@ class Vols_avion extends CI_Controller {
     protected $pm_first_row;
 
     // régles de validation
-    protected $rules = array (
-            'vanbpax' => "is_natural|max_length[1]",
-            'vaatt' => "is_natural"
+    protected $rules = array(
+        'vanbpax' => "is_natural|max_length[1]",
+        'vaatt' => "is_natural"
     );
 
     /**
@@ -58,43 +58,42 @@ class Vols_avion extends CI_Controller {
         $this->load->model('events_types_model');
         $this->load->model('vols_avion_model');
         $this->config->load('program');
-        
     }
 
     function denied() {
         if (!$this->config->item('test_api')) {
             return $this->output
-            ->set_content_type('application/json')
-            ->set_status_header(405)
-            ->set_output(json_encode([
-                'text' => 'Error 405',
-                'type' => 'Access denied'
-            ]));
+                ->set_content_type('application/json')
+                ->set_status_header(405)
+                ->set_output(json_encode([
+                    'text' => 'Error 405',
+                    'type' => 'Access denied'
+                ]));
             $this->error("REQUEST_DENIED", "Test API");
         } else {
             return false;
         }
     }
-       
+
     /*
      * Latest flight
      */
     function ajax_latest() {
-        
+
         if ($this->denied()) return;
-        
-        $first_flight = $this->vols_avion_model->latest_flight(array (), "desc");
-        
+
+        $first_flight = $this->vols_avion_model->latest_flight(array(), "desc");
+
         $json = json_encode($first_flight);
         echo $json;
     }
-    
+
     function get($id = "") {
-        
+
         if ($this->denied()) return;
-        
+
         $flights = $this->vols_avion_model->get();
-        
+
         if ($id) {
             foreach ($flights as $flight) {
                 if ($id == $flight['vaid']) {
@@ -108,22 +107,22 @@ class Vols_avion extends CI_Controller {
         }
         echo $json;
     }
-    
+
     function delete($id) {
         echo "delete $id\n";
     }
-    
 
-    function post () {
+
+    function post() {
         echo "post\n";
     }
-    
+
     function put() {
         echo "put\n";
     }
-    
+
     /**
-     * Nombre de vol planeur
+     * Nombre de vol avion
      */
     function count() {
         $flights = $this->vols_avion_model->get();
