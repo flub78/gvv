@@ -306,7 +306,7 @@ class Comptes_model extends Common_Model {
     }
 
     /**
-     * Retourne l'identifiant du compte d'un pilote
+     * Retourne le compte d'un pilote
      *
      * @param
      *            $pilote
@@ -322,7 +322,18 @@ class Comptes_model extends Common_Model {
             'pilote' => $pilote
         ))->get()->result_array();
 
-        return $select[0]['id'];
+        return $select[0];
+    }
+
+    /**
+     * Retourne l'identifiant du compte d'un pilote
+     *
+     * @param
+     *            $pilote
+     */
+    public function compte_pilote_id($pilote) {
+        $res = $this->compte_pilote($pilote);
+        return $res['id'];
     }
 
     /**
@@ -332,7 +343,7 @@ class Comptes_model extends Common_Model {
      *            $pilote
      */
     public function solde_pilote($pilote) {
-        $compte_id = $this->compte_pilote($pilote, true);
+        $compte_id = $this->compte_pilote_id($pilote, true);
         $solde = $this->ecritures_model->solde_compte($compte_id);
         return $solde;
     }
@@ -353,9 +364,22 @@ class Comptes_model extends Common_Model {
      *            $user
      */
     public function has_compte($user) {
+        $section = $this->sections_model->section();
         $data = $this->comptes_model->get_by_id('pilote', $user);
         return (array_key_exists('id', $data));
     }
+
+
+    public function pilot_account($user) {
+        $data = $this->comptes_model->get_by_id('pilote', $user);
+        return $data['id'];
+    }
+
+    /**
+     * Calculate total of a list of values
+     * @param array $list List of values to sum
+     * @return float Total sum
+     */
     function total_of($list) {
         $total = 0;
         foreach ($list as $row) {
@@ -363,6 +387,7 @@ class Comptes_model extends Common_Model {
         }
         return $total;
     }
+
 
     /**
      * Selection globale de données pour le bilan

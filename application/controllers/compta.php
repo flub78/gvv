@@ -881,7 +881,7 @@ class Compta extends Gvv_Controller {
      */
     function compte_pilote($pilote) {
         if ($this->comptes_model->has_compte($pilote)) {
-            $compte = $this->comptes_model->compte_pilote($pilote);
+            $compte = $this->comptes_model->compte_pilote_id($pilote);
             $data = $this->comptes_model->get_by_id('id', $compte);
             $this->journal_data($data, $compte);
         } else {
@@ -1012,7 +1012,7 @@ class Compta extends Gvv_Controller {
             if (!$this->comptes_model->has_compte($user)) {
                 return;
             }
-            $compte = $this->comptes_model->compte_pilote($user);
+            $compte = $this->comptes_model->compte_pilote_id($user);
         }
 
         $height = 6;
@@ -1194,7 +1194,7 @@ class Compta extends Gvv_Controller {
             if (!$this->comptes_model->has_compte($user)) {
                 return;
             }
-            $compte = $this->comptes_model->compte_pilote($user);
+            $compte = $this->comptes_model->compte_pilote_id($user);
         }
 
         if ($_POST['button'] == 'Pdf') {

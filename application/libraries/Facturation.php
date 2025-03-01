@@ -71,7 +71,7 @@ class Facturation {
      * @return none
      */
     function __construct() {
-        $this->CI = & get_instance();
+        $this->CI = &get_instance();
         $this->CI->load->model('tarifs_model');
         $this->CI->config->load('facturation');
 
@@ -92,10 +92,10 @@ class Facturation {
      *
      * The constructor can be passed an array of attributes values
      */
-    public function Facturation($attrs = array ()) {
+    public function Facturation($attrs = array()) {
         // set object attributes
-        foreach ( $attrs as $key => $value ) {
-            $this->attr [$key] = $attrs [$key];
+        foreach ($attrs as $key => $value) {
+            $this->attr[$key] = $attrs[$key];
         }
     }
 
@@ -167,13 +167,13 @@ class Facturation {
 
         // On recherche les achats associés aux vols
         // On supprime ces achats
-        $this->CI->achats_model->delete(array (
-                'vol_planeur' => $vol_id,
-                'facture' => 0
+        $this->CI->achats_model->delete(array(
+            'vol_planeur' => $vol_id,
+            'facture' => 0
         ));
 
-        $this->CI->tickets_model->delete(array (
-                'vol' => $vol_id
+        $this->CI->tickets_model->delete(array(
+            'vol' => $vol_id
         ));
     }
 
@@ -292,29 +292,34 @@ class Facturation {
         gvv_debug("facture_vol_avion " . var_export($vol, true));
 
         // Quelques variables pour simplifier la systaxe
-        $date = $vol ['vadate']; // date du vol
-        $duree = $vol ['vaduree']; // durée du vol en heure
-        $machine = $vol ['vamacid']; // immatriculation de l'avion
-        $vol_id = $vol ['vaid']; // identifiant du vol
-        $payeur = $vol ['payeur']; // identifiant du payeur si ce n'est pas le pilote
-        $pourcentage = $vol ['pourcentage']; // pourcentage à la charge du payeur
-        $pilote = $vol ['vapilid'];
+        $date = $vol['vadate']; // date du vol
+        $duree = $vol['vaduree']; // durée du vol en heure
+        $machine = $vol['vamacid']; // immatriculation de l'avion
+        $vol_id = $vol['vaid']; // identifiant du vol
+        $payeur = $vol['payeur']; // identifiant du payeur si ce n'est pas le pilote
+        $pourcentage = $vol['pourcentage']; // pourcentage à la charge du payeur
+        $pilote = $vol['vapilid'];
 
         // On va chercher en base les informations suplémentaire sur le pilote,
         // l'avion, les tarifs à appliquer
-        $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $vol ['vapilid']);
+        $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $vol['vapilid']);
         $machine_info = $this->CI->avions_model->get_by_id('macimmat', $machine);
-        $tarif_info = $this->CI->tarifs_model->get_by_id('id', $machine_info ['maprix']);
-        $tarif_dc_info = $this->CI->tarifs_model->get_by_id('id', $machine_info ['maprixdc']);
+
+        // TODO: Code smell
+        // $tarif_inof n'est pas utilisé ...
+        // $tarif_info = est faux si on cherch desc by id, c'est toujours vide ...
+        // Pas impossible que ce soit buggè, on a jamais facturé de DC avion...
+        $tarif_info = $this->CI->tarifs_model->get_by_id('id', $machine_info['maprix']);
+        $tarif_dc_info = $this->CI->tarifs_model->get_by_id('id', $machine_info['maprixdc']);
 
         gvv_debug("facture_vol_avion pilote " . var_export($pilote_info, true));
         gvv_debug("facture_vol_avion machine " . var_export($machine_info, true));
 
         // On facture la double en sus si un tarif DC existe pour l'avion
-        $dc_a_facturer = ($vol ['vadc'] && $tarif_dc_info ['prix'] > 0);
+        $dc_a_facturer = ($vol['vadc'] && $tarif_dc_info['prix'] > 0);
 
         // Chaine de caractère identifiant le vol (date + machine)
-        $image = $this->CI->vols_avion_model->image($vol ['vaid']);
+        $image = $this->CI->vols_avion_model->image($vol['vaid']);
 
         // desc contient le commentaire qu'on affichera sur la facture
         // ce commentaire est enrichi en fonction des décisions prises pour la facturation
@@ -323,14 +328,14 @@ class Facturation {
         // Le vol est-il gratuit ?
         $free = FALSE;
 
-        if ($vol ['vacategorie'] == VI) {
+        if ($vol['vacategorie'] == VI) {
             $desc .= " " . $this->CI->lang->line("facturation_vi"); // est-ce un vol d'initiation ?
             $free = TRUE;
-        } elseif ($vol ['vacategorie'] == VE) {
+        } elseif ($vol['vacategorie'] == VE) {
             // est-ce un vol d'essai ?
             $desc .= " " . $this->CI->lang->line("facturation_ve");
             $free = TRUE;
-        } elseif ($vol ['vacategorie'] == REM) {
+        } elseif ($vol['vacategorie'] == REM) {
             // est-ce un remorquage ?
             $desc .= " " . $this->CI->lang->line("facturation_rem");
             $free = TRUE;
@@ -338,26 +343,26 @@ class Facturation {
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol
         // de l'avion. On génère une nouvelle ligne de facturation
-        $this->nouvel_achat_partage(array (
-                'date' => $date,
-                'produit' => $machine_info ['maprix'],
-                'quantite' => ($free) ? 0 : $duree,
-                'description' => $desc,
-                'pilote' => $pilote,
-                'machine' => $machine,
-                'vol_avion' => $vol_id
+        $this->nouvel_achat_partage(array(
+            'date' => $date,
+            'produit' => $machine_info['maprix'],
+            'quantite' => ($free) ? 0 : $duree,
+            'description' => $desc,
+            'pilote' => $pilote,
+            'machine' => $machine,
+            'vol_avion' => $vol_id
         ), $pilote, $payeur, $pourcentage);
 
         if ($dc_a_facturer) {
             // Si il y a un surcout pour la double commande
-            $this->nouvel_achat_partagee(array (
-                    'date' => $date,
-                    'produit' => $machine_info ['maprixdc'],
-                    'quantite' => ($free) ? 0 : $duree,
-                    'description' => $tarif_dc_info ['description'],
-                    'pilote' => $pilote,
-                    'machine' => $machine,
-                    'vol_avion' => $vol_id
+            $this->nouvel_achat_partagee(array(
+                'date' => $date,
+                'produit' => $machine_info['maprixdc'],
+                'quantite' => ($free) ? 0 : $duree,
+                'description' => $tarif_dc_info['description'],
+                'pilote' => $pilote,
+                'machine' => $machine,
+                'vol_avion' => $vol_id
             ), $pilote, $payeur, $pourcentage);
         }
     }
@@ -400,7 +405,7 @@ class Facturation {
         // acces au model des achats
         $this->CI->load->model('achats_model');
 
-        if ($data ['quantite'] < 0.0000001 || $data ['produit'] == $this->CI->lang->line("facturation_free_product")) {
+        if ($data['quantite'] < 0.0000001 || $data['produit'] == $this->CI->lang->line("facturation_free_product")) {
             gvv_debug("nouvel_achat gratuit non comptabilisé" . var_export($data, true));
             return;
         } else {
@@ -408,23 +413,23 @@ class Facturation {
         }
 
         // création de l'achat
-        $data ['facture'] = 0;
-        $data ['saisie_par'] = $this->CI->dx_auth->get_username();
-        $data ['club'] = 0;
+        $data['facture'] = 0;
+        $data['saisie_par'] = $this->CI->dx_auth->get_username();
+        $data['club'] = 0;
 
-        $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $data ['pilote']);
+        $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $data['pilote']);
         gvv_debug("pilote_info " . var_export($pilote_info, true));
-        if ($pilote_info ['compte']) {
+        if ($pilote_info['compte']) {
             // Si le pilote est facturé sur le compte d'un autre. (Cas des enfants facturés
             // sur le compte de leur parent)
 
-            $compte_info = $this->CI->comptes_model->get_by_id('id', $pilote_info ['compte']);
-            $pilote = $compte_info ['pilote'];
+            $compte_info = $this->CI->comptes_model->get_by_id('id', $pilote_info['compte']);
+            $pilote = $compte_info['pilote'];
 
             // On ajoute le nom du pilote à la description du produit
-            $data ['description'] .= ' ' . $this->CI->membres_model->image($data ['pilote']);
+            $data['description'] .= ' ' . $this->CI->membres_model->image($data['pilote']);
             // Et on remplace le compte à débiter
-            $data ['pilote'] = $pilote;
+            $data['pilote'] = $pilote;
         }
 
         $res = $this->CI->achats_model->create($data);
@@ -433,13 +438,13 @@ class Facturation {
         }
 
         $vol_id = "";
-        if (isset($data ['vol_avion'])) {
-            $vol_id = "avion " . $data ['vol_avion'];
+        if (isset($data['vol_avion'])) {
+            $vol_id = "avion " . $data['vol_avion'];
         }
-        if (isset($data ['vol_planeur'])) {
-            $vol_id = "planeur " . $data ['vol_planeur'];
+        if (isset($data['vol_planeur'])) {
+            $vol_id = "planeur " . $data['vol_planeur'];
         }
-        $msg = "Facturation: " . $data ['date'] . ", produit=" . $data ['produit'] . ", quantite=" . $data ['quantite'] . " a " . $data ['pilote'] . ", vol=$vol_id" . " sur " . $data ['machine'] . " " . $data ['description'];
+        $msg = "Facturation: " . $data['date'] . ", produit=" . $data['produit'] . ", quantite=" . $data['quantite'] . " a " . $data['pilote'] . ", vol=$vol_id" . " sur " . $data['machine'] . " " . $data['description'];
 
         gvv_info($msg);
         return $res;
@@ -475,24 +480,24 @@ class Facturation {
         gvv_debug("nouvel achat partagé pilote=$pilote, payeur=$payeur, pourcentage=$pourcentage");
 
         if ($name == "") {
-            $name = $this->CI->membres_model->image($data ['pilote']);
+            $name = $this->CI->membres_model->image($data['pilote']);
         }
 
         if (($payeur) && ($pourcentage == 100)) {
 
             // tout pour le payeur
-            $data ['description'] .= " " . $this->CI->lang->line("facturation_paid_for") . " " . $name;
-            $data ['pilote'] = $payeur;
+            $data['description'] .= " " . $this->CI->lang->line("facturation_paid_for") . " " . $name;
+            $data['pilote'] = $payeur;
 
             $this->nouvel_achat($data);
         } elseif (($payeur) && ($pourcentage == 50)) {
 
             // partagé à 50 %
-            $data ['description'] .= " " . $this->CI->lang->line("facturation_shared_50");
-            $data ['quantite'] /= 2;
+            $data['description'] .= " " . $this->CI->lang->line("facturation_shared_50");
+            $data['quantite'] /= 2;
             $this->nouvel_achat($data);
 
-            $data ['pilote'] = $payeur;
+            $data['pilote'] = $payeur;
             $this->nouvel_achat($data);
         } else {
             // pas de partage
@@ -512,41 +517,41 @@ class Facturation {
 
             $nb = $this->CI->tickets_model->solde($payeur, $ticket) - 1;
             $desc .= " decompté, pilote=$name";
-            $achat = $this->nouvel_achat(array (
-                    'date' => $date,
-                    'produit' => $produit,
-                    'quantite' => 0,
-                    'description' => $desc,
-                    'pilote' => $payeur,
-                    'machine' => $machine,
-                    'vol_planeur' => $vol_id
+            $achat = $this->nouvel_achat(array(
+                'date' => $date,
+                'produit' => $produit,
+                'quantite' => 0,
+                'description' => $desc,
+                'pilote' => $payeur,
+                'machine' => $machine,
+                'vol_planeur' => $vol_id
             ));
 
             // Décompte le ticket
-            $this->CI->tickets_model->create(array (
-                    'date' => $date,
-                    'pilote' => $payeur,
-                    'achat' => $achat,
-                    'quantite' => - 1,
-                    'description' => $desc,
-                    'saisie_par' => $this->CI->dx_auth->get_username(),
-                    'club' => 0,
-                    'type' => $ticket,
-                    'vol' => $vol_id
+            $this->CI->tickets_model->create(array(
+                'date' => $date,
+                'pilote' => $payeur,
+                'achat' => $achat,
+                'quantite' => -1,
+                'description' => $desc,
+                'saisie_par' => $this->CI->dx_auth->get_username(),
+                'club' => 0,
+                'type' => $ticket,
+                'vol' => $vol_id
             ));
 
             // il y a un payeur à 100 % mais il n'a plus de tickets
         } elseif (($payeur) && ($pourcentage == 100)) {
             // Le treuillé est payé à l'unité par le payeur
 
-            $this->nouvel_achat(array (
-                    'date' => $date,
-                    'produit' => $produit,
-                    'quantite' => 1,
-                    'description' => $desc,
-                    'pilote' => $payeur,
-                    'machine' => $machine,
-                    'vol_planeur' => $vol_id
+            $this->nouvel_achat(array(
+                'date' => $date,
+                'produit' => $produit,
+                'quantite' => 1,
+                'description' => $desc,
+                'pilote' => $payeur,
+                'machine' => $machine,
+                'vol_planeur' => $vol_id
             ));
 
             // il n'y a pas de payeur, ou il n'a plus de tickets
@@ -559,39 +564,39 @@ class Facturation {
 
             $nb = $this->CI->tickets_model->solde($pilote, $ticket) - 1;
             $desc .= " decompté";
-            $achat = $this->nouvel_achat(array (
-                    'date' => $date,
-                    'produit' => $produit,
-                    'quantite' => 0,
-                    'description' => $desc,
-                    'pilote' => $pilote,
-                    'machine' => $machine,
-                    'vol_planeur' => $vol_id
+            $achat = $this->nouvel_achat(array(
+                'date' => $date,
+                'produit' => $produit,
+                'quantite' => 0,
+                'description' => $desc,
+                'pilote' => $pilote,
+                'machine' => $machine,
+                'vol_planeur' => $vol_id
             ));
 
             // Décompte le ticket
-            $this->CI->tickets_model->create(array (
-                    'date' => $date,
-                    'pilote' => $pilote,
-                    'achat' => $achat,
-                    'quantite' => - 1,
-                    'description' => $desc,
-                    'saisie_par' => $this->CI->dx_auth->get_username(),
-                    'club' => 0,
-                    'type' => $ticket,
-                    'vol' => $vol_id
+            $this->CI->tickets_model->create(array(
+                'date' => $date,
+                'pilote' => $pilote,
+                'achat' => $achat,
+                'quantite' => -1,
+                'description' => $desc,
+                'saisie_par' => $this->CI->dx_auth->get_username(),
+                'club' => 0,
+                'type' => $ticket,
+                'vol' => $vol_id
             ));
         } else {
 
             // La prestation est payé à l'unité, eventuellement partagée
-            $this->nouvel_achat_partage(array (
-                    'date' => $date,
-                    'produit' => $produit,
-                    'quantite' => 1,
-                    'description' => $desc,
-                    'pilote' => $pilote,
-                    'machine' => $machine,
-                    'vol_planeur' => $vol_id
+            $this->nouvel_achat_partage(array(
+                'date' => $date,
+                'produit' => $produit,
+                'quantite' => 1,
+                'description' => $desc,
+                'pilote' => $pilote,
+                'machine' => $machine,
+                'vol_planeur' => $vol_id
             ), $pilote, $payeur, $pourcentage, $name);
         }
     }

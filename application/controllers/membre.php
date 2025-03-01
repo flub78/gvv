@@ -282,7 +282,7 @@ class Membre extends Gvv_Controller {
         ));
         $this->gvvmetadata->set_selector('compte_pilote_selector', $compte_selector);
         if ($action != CREATION)
-            $this->data['compte_pilote'] = $this->comptes_model->compte_pilote($this->data['mlogin']);
+            $this->data['compte_pilote'] = $this->comptes_model->compte_pilote_id($this->data['mlogin']);
 
         $this->data['cp'] = sprintf("%05d", $this->data['cp']);
         if ($this->data['compte']) {

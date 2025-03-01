@@ -179,7 +179,7 @@ class Achats extends Gvv_Controller {
         }
 
         $this->load->model('comptes_model');
-        // $compte_pilote = $this->comptes_model->compte_pilote($pilote);
+        // $compte_pilote = $this->comptes_model->compte_pilote_id($pilote);
         // redirect("compta/view/" . $compte_pilote);
     }
 
@@ -260,7 +260,7 @@ class Achats extends Gvv_Controller {
         }
 
         $this->load->model('comptes_model');
-        $compte_pilote = $this->comptes_model->compte_pilote($current['pilote']);
+        $compte_pilote = $this->comptes_model->compte_pilote_id($current['pilote']);
 
         if (count($this->ecritures_model->select_frozen_lines($id))) {
             // Il y a des lignes gelées la suppression est interdite

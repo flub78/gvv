@@ -299,7 +299,7 @@ class Achats_model extends Common_Model {
         $this->load->model('ecritures_model');
         $this->load->model('comptes_model');
 
-        $compte_pilote = $this->comptes_model->compte_pilote($data['pilote']);
+        $compte_pilote = $this->comptes_model->compte_pilote_id($data['pilote']);
 
         if (array_key_exists('is_time', $data)) {
             $quantite = ($data['is_time']) ? minute_to_time($data['quantite'] * 60) : $data['quantite'];

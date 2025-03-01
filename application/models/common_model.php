@@ -153,6 +153,7 @@ class Common_Model extends CI_Model {
     public function get_by_id($keyid, $keyvalue) {
         $this->db->where($keyid, $keyvalue);
         $res = $this->db->get($this->table)->row_array();
+        gvv_debug("sql: " . $this->db->last_query());
         return $res;
     }
 
