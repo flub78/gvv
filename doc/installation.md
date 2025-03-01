@@ -12,7 +12,7 @@ C'est un environment entièrement gratuit, à vie, sans publicité et sans limit
 
 ## Pré-requis
 
-* une machine avec PHP 7.4 et MySql 5.x (linux ou windows, linux recommandé)
+* une machine avec PHP 7.4 et MySql 5.x (linux, windows ou MacOS, linux recommandé)
 * un serveur web (Apache ou Nginx)
 
 ## Étapes d'installation

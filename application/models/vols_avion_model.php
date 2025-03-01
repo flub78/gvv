@@ -473,6 +473,8 @@ class Vols_avion_model extends Common_Model {
 
             return $id;
         } else {
+            gvv_error("sql error: " . $this->db->_error_message());
+
             return FALSE;
         }
     }

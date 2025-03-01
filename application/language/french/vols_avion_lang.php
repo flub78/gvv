@@ -75,6 +75,31 @@ $lang['gvv_vols_avion_label_whincher_towing_hours'] = "Heures remorquage";
 $lang['gvv_vols_avion_label_whincher_towing_flights'] = "Nombre de remorqués";
 $lang['gvv_vols_avion_label_whincher_dual_flights'] = "Vols DC";
 
+# $this->lang->line("")
+$lang['gvv_volsa_field_vadate'] = "Date";
+$lang['gvv_volsa_field_vahdeb'] = "Heure début";
+$lang['gvv_volsa_field_vahfin'] = "Heure fin";
+$lang['gvv_volsa_field_vacdeb'] = "Horamètre début";
+$lang['gvv_volsa_field_vacfin'] = "Horamètre fin";
+$lang['gvv_volsa_field_vaduree'] = "Durée";
+$lang['gvv_volsa_field_vamacid'] = "Immatriculation";
+$lang['gvv_volsa_field_vapilid'] = "Pilote";
+$lang['gvv_volsa_field_vainst'] = "Instructeur";
+$lang['gvv_volsa_field_vaobs'] = "Commentaire";
+$lang['gvv_volsa_field_valieudeco'] = "Aérodrome décollage";
+$lang['gvv_volsa_field_valieuatt'] = "Aérodrime d'atterissage";
+$lang['gvv_volsa_field_vadc'] = "Vol d'instruction";
+$lang['gvv_volsp_field_prive'] = "Propriétaire";
+$lang['gvv_volsa_field_vacategorie'] = "Categorie";
+$lang['gvv_volsa_field_vanumvi'] = "Type de vol";
+$lang['gvv_volsa_field_vanbpax'] = "Nombre de passagers";
+$lang['gvv_volsa_field_vaatt'] = "Nombre d'atterrissage";
+$lang['gvv_volsa_field_local'] = "Local";
+$lang['gvv_volsa_field_nuit'] = "Nuit";
+$lang['gvv_volsa_field_essence'] = "Essence";
+$lang['gvv_volsa_field_payer'] = "Payeur";
+$lang['gvv_volsa_field_reappro'] = "Avitaillement";
+
 $lang['gvv_vue_vols_avion_short_field_vadate'] = "Date";
 $lang['gvv_vue_vols_avion_short_field_vacdeb'] = "Début";
 $lang['gvv_vue_vols_avion_short_field_vacfin'] = "Fin";
