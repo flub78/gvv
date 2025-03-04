@@ -22,7 +22,7 @@ $lang['gvv_compta_title_entries'] = "Extrait du compte";
 
 $lang['gvv_ecritures_field_date_op'] = "Date de l'opération";
 $lang['gvv_ecritures_field_compte1'] = "Emploi";
-$lang['gvv_ecritures_field_compte2'] = "Resource";
+$lang['gvv_ecritures_field_compte2'] = "Ressource";
 $lang['gvv_ecritures_field_montant'] = "Montant de l'écriture";
 $lang['gvv_ecritures_field_description'] = "Libellé";
 $lang['gvv_ecritures_field_num_cheque'] = "Numéro de pièce comptable";
@@ -33,7 +33,7 @@ $lang['gvv_ecritures_field_gel'] = "Vérifié";
 $lang['gvv_compta_message_advice_manual'] = "Si possible utilisez plutôt l'achat de produit"
 	. " qui enregistrera aussi une vente.";
 
-$lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Resource est le compte à débiter";
+$lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Ressource est le compte à débiter";
 
 $lang['gvv_compta_comptes'] = "Comptes";
 $lang['gvv_compta_compte'] = "Compte";
@@ -41,7 +41,7 @@ $lang['gvv_compta_date'] = "Date";
 $lang['gvv_compta_jusqua'] = "Jusqu'a";
 $lang['gvv_compta_type_ecriture'] = array(0 => 'Tout', 1 => 'Vérifiés', 2 => 'Non vérifiés');
 $lang['gvv_compta_emploi'] = "Emploi";
-$lang['gvv_compta_resource'] = "Resource";
+$lang['gvv_compta_resource'] = "Ressource";
 $lang['gvv_compta_montant_min'] = "Montant minimum";
 $lang['gvv_compta_montant_max'] = "maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Débits et crédits', 1 => 'Débits', 2 => 'Crédits');

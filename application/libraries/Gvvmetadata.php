@@ -176,9 +176,10 @@ class GVVMetadata extends Metadata {
                         'gel'
                 );
 
+                // TODO supporter la traduction
                 $this->field['vue_journal']['autre_code']['Name'] = 'Code';
                 $this->field['vue_journal']['code1']['Name'] = 'Emploi';
-                $this->field['vue_journal']['code2']['Name'] = 'Resource';
+                $this->field['vue_journal']['code2']['Name'] = 'Ressource';
                 $this->field['vue_journal']['autre_compte']['Name'] = 'Compte';
                 $this->field['vue_journal']['prix']['Name'] = 'Prix unitaire';
                 $this->field['vue_journal']['quantite']['Name'] = 'Quantité';
