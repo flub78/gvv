@@ -17,7 +17,7 @@
  *
  * @package javascript
  * 
- * Fonctions Javascript de controle du formulaire de saisie des emails
+ * Fonctions Javascript de calcul sur la balance
  * 
  */
 
@@ -25,7 +25,7 @@
  * Changement de date de balance
  */
 function new_balance_date() {
-	
+
 	var balance_date = $("#balance_date").val();
 	var controllers = document.getElementsByName('controller_url');
 	if (controllers.length < 1) {
@@ -40,11 +40,11 @@ function new_balance_date() {
  * Bascule generale/détaillée
  */
 function balance_general() {
-	
+
 	var selectedVal = "";
 	var selected = $("input[type='radio'][name='general']:checked");
 	if (selected.length > 0) {
-	    selectedVal = selected.val();
+		selectedVal = selected.val();
 	}
 
 	var controllers = document.getElementsByName('controller_url');

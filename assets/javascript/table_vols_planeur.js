@@ -17,7 +17,7 @@
  *
  * @package javascript
  * 
- * Fonctions Javascript de controle du formulaire de saisie des emails
+ * Fonctions Javascript initialisationdattable planche planeur
  * 
  */
 

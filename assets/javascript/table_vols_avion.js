@@ -17,12 +17,12 @@
  *
  * @package javascript
  * 
- * Fonctions Javascript de controle du formulaire de saisie des emails
+ * Fonctions Javascript initialisation de la table des vols
  * 
  */
 
-$(document).ready(function(){
-     
+$(document).ready(function () {
+
     $('.datedtable').dataTable({
         "bFilter": true,
         "bPaginate": true,
@@ -30,27 +30,28 @@ $(document).ready(function(){
         "bSort": true,
         "bStateSave": true,
         "bInfo": true,
-         "bJQueryUI": true,
+        "bJQueryUI": true,
         "bAutoWidth": true,
         "sPaginationType": "full_numbers",
-        "aoColumns" : [
+        "aoColumns": [
             { "sType": "date-uk" },      // date "asSorting": [ "desc", "asc" ]
-            {"bSortable" : true},        // pilote
-            {"bSortable" : true},        // inst
-            {"bSortable" : true},        // immat
-            {"bSortable" : true},       // debut
-            {"bSortable" : false},       // fin
-            {"bSortable" : false},       // durée
-            {"bSortable" : false},       // att
-            {"bSortable" : false},       // obs
-            {"bSortable" : true},        // lieu     
-            {"bSortable" : false},       // - 25
-            {"bSortable" : false},       // DC
-            {"bSortable" : false},       // cat
-            {"bSortable" : false},       // Prv
-            {"bSortable" : false},       // Ess     
-            {"bSortable" : false},       // change
-            {"bSortable" : false}        // delete
+            { "bSortable": true },        // pilote
+            { "bSortable": true },        // inst
+            { "bSortable": true },        // immat
+            { "bSortable": true },        // Section
+            { "bSortable": true },       // debut
+            { "bSortable": false },       // fin
+            { "bSortable": false },       // durée
+            { "bSortable": false },       // att
+            { "bSortable": false },       // obs
+            { "bSortable": true },        // lieu     
+            { "bSortable": false },       // - 25
+            { "bSortable": false },       // DC
+            { "bSortable": false },       // cat
+            { "bSortable": false },       // Prv
+            { "bSortable": false },       // Ess     
+            { "bSortable": false },       // change
+            { "bSortable": false }        // delete
         ],
         "oLanguage": olanguage
     });
@@ -61,26 +62,27 @@ $(document).ready(function(){
         "iDisplayLength": 25,
         "bSort": true,
         "bInfo": true,
-         "bJQueryUI": true,
+        "bJQueryUI": true,
         "bStateSave": true,
         "bAutoWidth": true,
         "sPaginationType": "full_numbers",
-        "aoColumns" : [
-            { "sType": "date-uk", "asSorting": [ "desc", "asc" ] },      // date
-            {"bSortable" : true},        // pilote
-            {"bSortable" : true},        // inst
-            {"bSortable" : true},        // immat
-            {"bSortable" : false},       // debut
-            {"bSortable" : false},       // fin
-            {"bSortable" : false},       // durée
-            {"bSortable" : false},       // att
-            {"bSortable" : false},       // obs
-            {"bSortable" : true},        // lieu     
-            {"bSortable" : false},       // - 25
-            {"bSortable" : false},       // DC
-            {"bSortable" : false},       // cat
-            {"bSortable" : false},       // Prv
-            {"bSortable" : false},       // Ess     
+        "aoColumns": [
+            { "sType": "date-uk", "asSorting": ["desc", "asc"] },      // date
+            { "bSortable": true },        // pilote
+            { "bSortable": true },        // inst
+            { "bSortable": true },        // immat
+            { "bSortable": true },        // Section
+            { "bSortable": false },       // debut
+            { "bSortable": false },       // fin
+            { "bSortable": false },       // durée
+            { "bSortable": false },       // att
+            { "bSortable": false },       // obs
+            { "bSortable": true },        // lieu     
+            { "bSortable": false },       // - 25
+            { "bSortable": false },       // DC
+            { "bSortable": false },       // cat
+            { "bSortable": false },       // Prv
+            { "bSortable": false },       // Ess     
         ],
         "oLanguage": olanguage
     });
