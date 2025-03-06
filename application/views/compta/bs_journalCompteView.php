@@ -234,7 +234,7 @@ if ($count > 400) {
     $attrs['count'] = $count;
     $attrs['first'] = $premier;
 } else {
-    if ($has_modification_rights) {
+    if ($has_modification_rights && $section) {
         $attrs['class'] .= " datedtable";
     } else {
         $attrs['class'] .= " datedtable_ro";
