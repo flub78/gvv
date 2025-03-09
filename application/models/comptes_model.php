@@ -174,8 +174,7 @@ class Comptes_model extends Common_Model {
      * Retourne le tableau des comptes utilisé pour l'affichage par page
      * Les soldes sont calculés en fonction des sommes des écritures
      *
-     * @param $selection des
-     *            comptes à afficher
+     * @param $selection des comptes à afficher, codec ou codec range
      * @param $date des
      *            soldes en français
      * @param $filter_solde 0

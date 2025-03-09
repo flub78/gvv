@@ -161,8 +161,10 @@ class Comptes extends Gvv_Controller {
         $this->data['section'] = $this->gvv_model->section();
 
         if ($general) {
+            // général
             $result = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde);
         } else {
+            // détaillé
             $result = $this->gvv_model->select_page($selection, $this->data['balance_date'], $filter_solde);
         }
 
