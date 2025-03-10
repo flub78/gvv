@@ -32,23 +32,23 @@ $attributes = array(
 
 echo '<div id="body" class="body container-fluid">';
 
+$title = $this->lang->line("welcome_accounts_title");
+$title = 'A propos';
 
-// echo year_selector($controller, $year, $year_selector);
-
-echo heading("welcome_reports_title", 4);
 ?>
+<h2> <?= $title ?> </h2>
 <?php
-$list = array(
-	// anchor (controller_url('rapports/annuel'), "Rapport d'activité annuel", array("class" => "jbutton")),
-	anchor(controller_url('rapports/financier'), $this->lang->line("welcome_financial_title"), array("class" => "jbutton")),
-	anchor(controller_url('rapports/comptes'), $this->lang->line("welcome_accounts_title"), array("class" => "jbutton"))
-);
-if ($this->config->item('gestion_avion'))
-	$list[] = anchor(controller_url('vols_avion/pdf'), $this->lang->line("welcome_airplane_flightlog"), array("class" => "jbutton"));
-if ($this->config->item('gestion_planeur'))
-	$list[] = anchor(controller_url('vols_planeur/pdf'), $this->lang->line("welcome_glider_flightlog"), array("class" => "jbutton"));
+$list = [];
 
-echo year_selector($controller, $year, $year_selector);
+$list[] = '<a href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" >
+Site du projet GVV</a>';
+
+$list[] = "Version du : " . $commit_date;
+$list[] = "Identifiant de version : " . $commit;
+$list[] = "Dernier message git : " . $commit_message;
+$list[] = "Répertoire d'installation : " . getcwd();
+$list[] = "Who am I  : " . exec('whoami');
+
 echo ul($list, $attributes);
 
 

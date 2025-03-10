@@ -31,7 +31,9 @@ class Welcome extends CI_Controller {
 
         if ($this->config->item('calendar_id')) {
             gvv_debug('google account = ' . $this->config->item('calendar_id'));
-            $this->load->library('GoogleCal');
+            // Commenté ???
+            // Uncaught Exception: Google PHP API Client requires the CURL PHP extension
+            // $this->load->library('GoogleCal');
         }
 
         $this->load->helper('validation');
@@ -42,9 +44,9 @@ class Welcome extends CI_Controller {
     }
 
     function nyi() {
-        $data = array ();
-        $data ['title'] = $this->lang->line("welcome_nyi_title");
-        $data ['text'] = $this->lang->line("welcome_nyi_text");
+        $data = array();
+        $data['title'] = $this->lang->line("welcome_nyi_title");
+        $data['text'] = $this->lang->line("welcome_nyi_text");
         load_last_view('message', $data);
     }
 
@@ -55,7 +57,7 @@ class Welcome extends CI_Controller {
         if (! $this->dx_auth->is_role('tresorier')) {
             $this->dx_auth->deny_access();
         }
-        load_last_view('welcome/compta', array ());
+        load_last_view('welcome/compta', array());
     }
 
     /**
@@ -80,14 +82,28 @@ class Welcome extends CI_Controller {
             $year = Date("Y");
             $this->session->set_userdata('year', $year);
         }
-        $data = array ();
+        $data = array();
         $this->load->model('ecritures_model');
-        $data ['year'] = $year;
-        $data ['controller'] = 'welcome';
-        $data ['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+        $data['year'] = $year;
+        $data['controller'] = 'welcome';
+        $data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
         load_last_view('welcome/ca', $data);
     }
 
+    public function about() {
+
+        $this->config->load('version');
+
+        $data = [];
+        $data['pwd'] = getcwd();
+        $data['commit'] = $this->config->item('commit');
+        $data['commit_date'] = $this->config->item('commit_date');
+        $data['commit_message'] = $this->config->item('commit_message');
+
+        $data['user'] = exec('whoami');
+
+        load_last_view('welcome/about', $data);
+    }
 }
 
 /* End of file welcome.php */
