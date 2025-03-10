@@ -33,7 +33,7 @@ $attributes = array(
 echo '<div id="body" class="body container-fluid">';
 
 $title = $this->lang->line("welcome_accounts_title");
-$title = 'A propos';
+$title = 'A propos de GVV';
 
 ?>
 <h2> <?= $title ?> </h2>

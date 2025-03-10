@@ -45,5 +45,11 @@
       <li><a class="dropdown-item" href="https://www.credit-du-nord.fr/" target="_blank" rel="noopener noreferrer"><?= translation("CDN") ?></a></li>
     <?php endif; ?>
 
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+
+    <li><a class="dropdown-item" href="<?= controller_url("welcome/about") ?>"><?= "A propos de GVV" ?></a></li>
+
   </ul>
 </li>
