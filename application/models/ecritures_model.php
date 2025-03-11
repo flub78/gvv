@@ -452,7 +452,7 @@ class Ecritures_model extends Common_Model {
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
-        $this->db->get()->row()->montant;
+        $credit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
         $solde = $credit - $debit;

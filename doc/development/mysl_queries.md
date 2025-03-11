@@ -61,102 +61,112 @@ GROUP BY
 
 Voici une requête MySQL qui calcule le solde de tous les comptes ayant le même code comptable (codec) :
 
-
 SELECT 
-    c.codec AS code_comptable,
-    pc.pdesc AS description_plan_comptable,
+    c.codec AS codec,
+    pc.pdesc AS nom,
     COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
-    COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total
+    COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total,
+    CASE 
+        WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) < 0 
+        THEN ABS(COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+                 COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+        ELSE 0 
+    END AS solde_debit,
+    CASE 
+        WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) >= 0 
+        THEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+        ELSE 0 
+    END AS solde_credit
 FROM 
     comptes c
 LEFT JOIN 
-    ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id)
+    ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id) 
 LEFT JOIN
     planc pc ON c.codec = pc.pcode
-WHERE 
-    club=1
 GROUP BY 
     c.codec, pc.pdesc
 ORDER BY
     c.codec;
+
+
 
 La même avec une date limite.
 
 SELECT 
-    c.codec AS code_comptable,
-    pc.pdesc AS description_plan_comptable,
+    c.codec AS codec,
+    pc.pdesc AS nom,
     COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
-    COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total
+    COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total,
+    CASE 
+        WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) < 0 
+        THEN ABS(COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+                 COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+        ELSE 0 
+    END AS solde_debit,
+    CASE 
+        WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) >= 0 
+        THEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+              COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+        ELSE 0 
+    END AS solde_credit
 FROM 
     comptes c
 LEFT JOIN 
-    ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id) AND e.date_op <= :date_limite
+    ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id) AND e.date_op <= "2024-12-01"
 LEFT JOIN
     planc pc ON c.codec = pc.pcode
+
 GROUP BY 
     c.codec, pc.pdesc
 ORDER BY
     c.codec;
 
+
+
+
 La même en active record.
 
 ```
-    $query = DB::table('comptes AS c')
-        ->select(
-            'c.codec AS code_comptable',
-            'pc.pdesc AS description_plan_comptable',
-            DB::raw('COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
-                     COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total')
-        )
-        ->leftJoin('ecritures AS e', function($join) {
-            $join->on('e.compte1', '=', 'c.id')
-                 ->orOn('e.compte2', '=', 'c.id');
-        })
-        ->leftJoin('planc AS pc', 'c.codec', '=', 'pc.pcode')
-        ->groupBy('c.codec', 'pc.pdesc')
-        ->orderBy('c.codec');
+public function get_soldes_comptes($date_limite = '2025-12-01')
+{
+    $this->db->select("
+        c.codec AS codec,
+        pc.pdesc AS nom,
+        COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
+        COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total,
+        CASE
+            WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) -
+                  COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) < 0
+            THEN ABS(COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) -
+                     COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+            ELSE 0
+        END AS solde_debit,
+        CASE
+            WHEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) -
+                  COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0)) >= 0
+            THEN (COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) -
+                  COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0))
+            ELSE 0
+        END AS solde_credit");
     
-    // Exécution de la requête
-    $resultats = $query->get();
+    $this->db->from('comptes c');
+    
+    $this->db->join('ecritures e', '(e.compte1 = c.id OR e.compte2 = c.id) AND e.date_op <= "' . $date_limite . '"', 'left');
+    $this->db->join('planc pc', 'c.codec = pc.pcode', 'left');
+    
+    $this->db->group_by('c.codec, pc.pdesc');
+    $this->db->order_by('c.codec');
+    
+    return $this->db->get()->result();
+}
 ```
 
 
-```
-    // Préparation de la requête
-    $query = DB::table('comptes AS c')
-        ->select(
-            'c.codec AS code_comptable',
-            'pc.pdesc AS description_plan_comptable',
-            DB::raw('COALESCE(SUM(CASE WHEN e.compte2 = c.id THEN e.montant ELSE 0 END), 0) - 
-                     COALESCE(SUM(CASE WHEN e.compte1 = c.id THEN e.montant ELSE 0 END), 0) AS solde_total')
-        )
-        ->leftJoin(DB::raw('ecritures AS e ON ((e.compte1 = c.id OR e.compte2 = c.id) AND e.date_op <= :date_limite)'), 
-                  [], null, [':date_limite' => $dateLimite])
-        ->leftJoin('planc AS pc', 'c.codec', '=', 'pc.pcode');
-    
-    // Application des filtres de codec
-    if (!empty($codec)) {
-        // Filtre pour un codec spécifique
-        $query->where('c.codec', '=', $codec);
-    } elseif (!empty($codecStart) && !empty($codecEnd)) {
-        // Filtre pour une plage de codecs
-        $query->where('c.codec', '>=', $codecStart)
-              ->where('c.codec', '<=', $codecEnd);
-    } elseif (!empty($codecStart)) {
-        // Filtre à partir d'un codec de départ
-        $query->where('c.codec', '>=', $codecStart);
-    } elseif (!empty($codecEnd)) {
-        // Filtre jusqu'à un codec de fin
-        $query->where('c.codec', '<=', $codecEnd);
-    }
-    
-    // Groupement et tri
-    $query->groupBy('c.codec', 'pc.pdesc')
-          ->orderBy('c.codec');
-    
-    // Exécution de la requête
-    $resultats = $query->get();
-```
 ================================================================================================
 
 select * from volsp, membres where vppilid=mlogin
