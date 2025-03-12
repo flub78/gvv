@@ -115,7 +115,7 @@ class Attachments extends Gvv_Controller {
 
         $config['upload_path'] = $dirname;
         $config['allowed_types'] = '*';
-        $config['max_size']    = '10000';            // in kilobytes
+        $config['max_size']    = '20000';            // in kilobytes
         $config['file_name'] = $storage_file;
         // $config['encrypt_name']  = true;
 
