@@ -363,15 +363,31 @@ class Comptes_model extends Common_Model {
      *            $user
      */
     public function has_compte($user) {
-        $section = $this->sections_model->section();
-        $data = $this->comptes_model->get_by_id('pilote', $user);
-        return (array_key_exists('id', $data));
+
+        return $this->pilot_account($user);
     }
 
 
     public function pilot_account($user) {
-        $data = $this->comptes_model->get_by_id('pilote', $user);
-        return $data['id'];
+        $section = $this->sections_model->section();
+
+        $this->db
+            ->select('id, nom, codec, desc, actif, debit, credit, club')
+            ->from('comptes')
+            ->where("pilote = '$user'");
+
+        // On ne retourne rien s'il n'y a pas de section active 
+        $this->db->where('club', $this->sections_model->section_id());
+
+        $result = $this->db->get();
+        gvv_debug("sql: " . $this->db->last_query());
+
+
+        if ($result) {
+            return $result->row_array();
+        } else {
+            return false;
+        }
     }
 
     /**
