@@ -316,7 +316,7 @@ class Membre extends Gvv_Controller {
             $cpt = array(
                 'nom' => $data['mnom'] . " " . $data['mprenom'],
                 'pilote' => $id,
-                'desc' => "Compte pilote",
+                'desc' => "Compte pilote " . $section['nom'],
                 'codec' => 411,
                 'actif' => 1,
                 'debit' => 0.0,
@@ -325,6 +325,11 @@ class Membre extends Gvv_Controller {
                 'saisie_par' => $this->dx_auth->get_username()
             );
             $this->load->model('comptes_model');
+            $this->comptes_model->create($cpt);
+
+            // Et un second sur le compte général (4)
+            $cpt['club'] = '4';
+            $cpt['desc'] = "Compte pilote général";
             $this->comptes_model->create($cpt);
         }
 
