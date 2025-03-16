@@ -901,8 +901,6 @@ class Compta extends Gvv_Controller {
         $mlogin = $this->dx_auth->get_username();
         $info_pilote = $this->membres_model->get_by_id('mlogin', $mlogin);
         if (isset($info_pilote['compte']) && ($info_pilote['compte'] !== "0")) {
-            $compte = $info_pilote['compte'];
-            // $this->compte_pilote($mlogin);
             $this->journal_compte($info_pilote['compte']);
         } else {
             $this->compte_pilote($mlogin);

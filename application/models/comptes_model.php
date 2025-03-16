@@ -376,8 +376,10 @@ class Comptes_model extends Common_Model {
             ->from('comptes')
             ->where("pilote = '$user'");
 
-        // On ne retourne rien s'il n'y a pas de section active 
-        $this->db->where('club', $this->sections_model->section_id());
+        // On ne retourne rien s'il n'y a pas de section active
+        if ($section) {
+            $this->db->where('club', $section['id']);
+        }
 
         $result = $this->db->get();
         gvv_debug("sql: " . $this->db->last_query());
