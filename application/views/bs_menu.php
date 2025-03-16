@@ -157,37 +157,40 @@ $section_count = $CI->sections_model->safe_count_all();
               </ul>
             </li>
 
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_glider") ?></a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/page") ?>"><?= translation("gvv_menu_glider_list") ?></a></li>
-                <?php if (has_role('planchiste')) : ?>
-                  <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/create") ?>"><?= translation("gvv_menu_glider_input") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/plancheauto_select") ?>"><?= translation("gvv_menu_glider_input_automatic") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/gesasso") ?>"><?= translation("GESASSO") ?></a></li>
-                <?php endif; ?>
-                <li><a class="dropdown-item" href="<?= controller_url("planeur/page") ?>"><?= translation("gvv_menu_glider_machines") ?></a></li>
+            <?php if ($section && ($section['id'] == '1')) : ?>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_glider") ?></a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/page") ?>"><?= translation("gvv_menu_glider_list") ?></a></li>
+                  <?php if (has_role('planchiste')) : ?>
+                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/create") ?>"><?= translation("gvv_menu_glider_input") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/plancheauto_select") ?>"><?= translation("gvv_menu_glider_input_automatic") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/gesasso") ?>"><?= translation("GESASSO") ?></a></li>
+                  <?php endif; ?>
+                  <li><a class="dropdown-item" href="<?= controller_url("planeur/page") ?>"><?= translation("gvv_menu_glider_machines") ?></a></li>
 
-                <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_statistic") ?> &raquo;</a>
-                  <ul class="submenu dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/statistic") ?>"><?= translation("gvv_menu_statistic_monthly") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/cumuls") ?>"><?= translation("gvv_menu_statistic_yearly") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/histo") ?>"><?= translation("gvv_menu_statistic_history") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/age") ?>"><?= translation("gvv_menu_statistic_age") ?></a></li>
-                  </ul>
-                </li>
-                <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_formation") ?> &raquo;</a>
-                  <ul class="submenu dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= controller_url("event/stats") ?>"><?= translation("gvv_menu_formation_annuel") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("event/formation") ?>"><?= translation("gvv_menu_formation_club") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("event/fai") ?>"><?= translation("gvv_menu_formation_fai") ?></a></li>
-                    <?php if (has_role('ca')) : ?>
-                      <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/par_pilote_machine") ?>"><?= translation("gvv_menu_formation_pilote") ?></a></li>
-                    <?php endif; ?>
-                  </ul>
-                </li>
-              </ul>
-            </li>
+                  <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_statistic") ?> &raquo;</a>
+                    <ul class="submenu dropdown-menu">
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/statistic") ?>"><?= translation("gvv_menu_statistic_monthly") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/cumuls") ?>"><?= translation("gvv_menu_statistic_yearly") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/histo") ?>"><?= translation("gvv_menu_statistic_history") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/age") ?>"><?= translation("gvv_menu_statistic_age") ?></a></li>
+                    </ul>
+                  </li>
+                  <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_formation") ?> &raquo;</a>
+                    <ul class="submenu dropdown-menu">
+                      <li><a class="dropdown-item" href="<?= controller_url("event/stats") ?>"><?= translation("gvv_menu_formation_annuel") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("event/formation") ?>"><?= translation("gvv_menu_formation_club") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("event/fai") ?>"><?= translation("gvv_menu_formation_fai") ?></a></li>
+                      <?php if (has_role('ca')) : ?>
+                        <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/par_pilote_machine") ?>"><?= translation("gvv_menu_formation_pilote") ?></a></li>
+                      <?php endif; ?>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            <?php endif; ?>
+
 
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_airplane") ?></a>
