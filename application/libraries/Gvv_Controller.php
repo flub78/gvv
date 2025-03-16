@@ -482,7 +482,7 @@ class Gvv_Controller extends CI_Controller {
             $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
         } else {
             // Ancienne méthode
-            // TODO: à supprimer après validation
+            // TODO: à supprimer après vérification
         }
 
         if ($this->form_validation->run($this)) {
@@ -507,6 +507,13 @@ class Gvv_Controller extends CI_Controller {
                     $create_txt = $this->lang->line("gvv_button_create");
                     $upload_txt = $this->lang->line("gvv_button_upload");
                     if (($button != $create_txt) && ($button_photo != $upload_txt) && $table != 'achats') {
+                        gvv_debug("dialog? \$button=$button");
+                        gvv_debug("dialog? \$create_text=$create_txt");
+                        gvv_debug("dialog? \$button_photo=$button_photo");
+                        gvv_debug("dialog? \$upload_text=$upload_txt");
+                        gvv_debug("dialog? \$table=$table");
+
+
                         $image = $this->gvv_model->image($id);
                         $msg = $image . ' ' . $this->lang->line("gvv_succesful_creation");
                         $this->session->set_flashdata('popup', $msg);
