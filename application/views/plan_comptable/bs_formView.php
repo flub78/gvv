@@ -21,48 +21,53 @@
 $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
+$this->lang->load('planc');
+
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
-	echo p($message) .br();
+	echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo validation_errors(); 
+echo validation_errors();
 if ($action == CREATION) {
-	echo heading("Nouveau code comptable", 3);
+	echo heading("new_codec", 3);
 } elseif ($action == MODIFICATION) {
-	echo heading("Modification d'un code comptable", 3);
+	echo heading("update_codec", 3);
 } else {
-	echo heading("Visualisation d'un code comptable", 3);
+	echo heading("view_codec", 3);
 }
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie') );
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
-// hidden contrller url for java script access
+// hidden controller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
-// On affiche tous les champs dans un tableau. C'est plus simple de remplir d'abbord le tableau
+// On affiche tous les champs dans un tableau. C'est plus simple de remplir d'abord le tableau
 // et de l'afficher ensuite, surtout pour modifier l'affichage
 
 $table = array();
 $row = 0;
-$table [$row][] = "Code: ";
+$table[$row][] = $this->lang->line("codec") . ": ";
 if ($action == CREATION) {
-	$table [$row][] = input_field('pcode', $pcode, array('type'  => 'text', 'size' => '10'));
+	$table[$row][] = input_field('pcode', $pcode, array('type'  => 'text', 'size' => '10'));
 } else {
-	$table [$row][] = dropdown_field('pcode', $pcode, $code_selector, 
-	"id='selector' onchange='mlogin_changed();'");
+	$table[$row][] = dropdown_field(
+		'pcode',
+		$pcode,
+		$code_selector,
+		"id='selector' onchange='mlogin_changed();'"
+	);
 }
 
 $row++;
-$table [$row][] = "Description: ";
-$table [$row][] = input_field('pdesc', $pdesc, array('type'  => 'text', 'size' => '50'));
+$table[$row][] = $this->lang->line("codec_desc") . ": ";
+$table[$row][] = input_field('pdesc', $pdesc, array('type'  => 'text', 'size' => '50'));
 
 display_form_table($table);
 
-echo validation_button ($action);
+echo validation_button($action);
 echo form_close();
 
 echo '</div>';
-?>

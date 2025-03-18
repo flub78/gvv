@@ -551,6 +551,9 @@ class Gvv_Controller extends CI_Controller {
                 // load_last_view('message', $data);
                 $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
             }
+        } else {
+            // validation failed
+            gvv_debug("form validation failed");
         }
 
         // Display the form again

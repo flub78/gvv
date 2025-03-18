@@ -30,18 +30,23 @@ class Plan_Comptable extends Gvv_Controller {
 
     // régles de validation
     protected $fields = array(
-            'pcode' => array(
-                'label' => 'Code',
-                'default' => '',
-                'rules' => 'trim||max_length[10]'
-            ),
+        'pcode' => array(
+            'label' => 'Code',
+            'default' => '',
+            'rules' => 'trim||max_length[10]'
+        ),
 
-            'pdesc' => array(
-                'label' => 'Description',
-                'default' => '',
-                'rules' => 'trim|required|max_length[50]'
-            )
-        );
+        'pdesc' => array(
+            'label' => 'Description',
+            'default' => '',
+            'rules' => 'trim|required|max_length[50]'
+        )
+    );
+
+    protected $rules = array(
+        'pcode' => "required|is_uniq[planc.pcode]",
+        'pdesc' => "trim|required|max_length[50]"
+    );
 
     /**
      * Constructor
