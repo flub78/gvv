@@ -120,9 +120,9 @@ class GVVMetadata extends Metadata {
                  */
                 // $this->field['ecritures']['id']['Name'] = 'Id';
                 // $this->field['ecritures']['date_op']['Name'] = 'Date';
-                // $this->field['ecritures']['compte1']['Name'] = 'Débité';
+                // $this->field['ecritures']['compte1']['Name'] = 'Débit';
                 // $this->field['ecritures']['code2']['Name'] = 'Code';
-                // $this->field['ecritures']['compte2']['Name'] = 'Crédité';
+                // $this->field['ecritures']['compte2']['Name'] = 'Crédit';
                 // $this->field['ecritures']['montant']['Name'] = 'Montant';
                 // $this->field['ecritures']['description']['Name'] = 'Description';
                 // $this->field['ecritures']['num_cheque']['Name'] = 'Référence';
