@@ -405,6 +405,7 @@ class Comptes extends Gvv_Controller {
             $fields = array(
                 'codec',
                 'nom',
+                'section_name',
                 'solde_debit',
                 'solde_credit'
             );
@@ -413,6 +414,7 @@ class Comptes extends Gvv_Controller {
             $fields = array(
                 'codec',
                 'id',
+                'section_name',
                 'solde_debit',
                 'solde_credit'
             );
