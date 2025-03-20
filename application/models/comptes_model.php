@@ -87,7 +87,23 @@ class Comptes_model extends Common_Model {
      * @return objet La liste
      */
     public function list_of($where = array(), $order = "") {
-        return $this->db->select('*')->from($this->table)->where($where)->order_by($order)->get()->result_array();
+
+        $this->db->select('*')
+            ->from($this->table)
+            ->where($where)
+            ->order_by($order);
+
+        $section = $this->sections_model->section();
+        if ($section) {
+            $this->db->where('club', $section['id']);
+        }
+        $result = $this->db->get();
+
+        if ($result) {
+            return $result->result_array();
+        } else {
+            return [];
+        }
     }
 
     /**
