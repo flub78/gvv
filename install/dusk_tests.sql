@@ -586,6 +586,8 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('631', 'Impots sur rémunération'),
 ('635', 'Autres impôts et Taxes.'),
 ('64', 'Charges de Personnel'),
+('641', 'Rémunération du Personnel'),
+('645', 'Charges de sécurité sociale et de prévoyance'),
 ('65', 'Autres Charges de gestion courante'),
 ('651', 'Redevance pour concessions, brevets'),
 ('654', 'Pertes sur créances irrécouvrables'),
@@ -605,12 +607,16 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('753', 'Assurances licences FFVV.'),
 ('754', 'Retour des Fédérations (bourses).'),
 ('756', 'Cotisations'),
+('757', 'Cotisations code 757'),
+('758', 'Produits diverses de gestion courante'),
 ('76', 'Produits financiers'),
+('762', 'Produits des autres immobilisations financieres'),
 ('774', 'Autres produits exceptionnels'),
 ('775', 'Produits des cessions d’éléments d’actif'),
 ('778', 'Autres produits exceptionnels'),
 ('78', 'Reprise sur amortissements'),
-('781', 'Reprises sur amortissements et provisions');
+('781', 'Reprises sur amortissements et provisions'),
+('792', 'Transfer de charges');
 
 -- --------------------------------------------------------
 
