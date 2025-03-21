@@ -145,7 +145,48 @@ INSERT INTO `comptes` (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`,
 (306, 'Le Gaulois Goudurix', 'goudurix', 'Compte pilote', '411', 1, 50.13, 250.47, 'testadmin', 1),
 (307, 'Le Gaulois Panoramix', 'panoramix', 'Compte pilote', '411', 1, 0.00, 25.50, 'testadmin', 1),
 (308, 'Le Gaulois Abraracourcix', 'abraracourcix', 'Compte pilote', '411', 1, 0.00, 0.00, 'testadmin', 1),
-(309, 'Ventes diverses', '', 'Ventes goodies', '707', 1, 0.00, 0.00, 'testadmin', 1);
+(309, 'Ventes diverses', '', 'Ventes goodies', '707', 1, 0.00, 0.00, 'testadmin', 1),
+(310, 'Le Gaulois Asterix', 'asterix', 'Compte pilote ULM', '411', 1, 0.00, 0.00, 'testadmin', 2);
+
+-- Création des comptes du compte ULM, club = 2
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (343, 'Fonds associatifs ULM', 'Fonds associatifs ULM', '102', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (311, 'Report à nouveau créditeur ULM', 'Report à nouveau créditeur', '110', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (312, 'Report à nouveau débiteur ULM', 'Report à nouveau débiteur', '119', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (313, "Résultat de l'exercice ULM (excédent)", "Résultat de l'exercice (excédent)", '120', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (314, "Résultat de l'exercice ULM (déficit)", "Résultat de l'exercice (déficit)", '129', '2');
+
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (315, 'Salaires', 'Salaires', '421', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (316, 'URSSAF', 'URSSAF', '645', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (317, 'Taxes atterrissage', 'Taxes atterrissage', '651', '2');
+
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('318', 'Vols de découverte', 'Vols de découverte', '706', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('319', 'Compte général', 'Compte général', '181', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('320', 'Assurances ULM', 'Assurances ULM', '616', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('321', 'Maintenance F-JTVA', 'Maintenance Nynja F-JTVA', '615', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('322', 'Maintenance F-JHRV', 'Maintenance CTL F-JHRV', '615', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('323', 'Essence F-JTVA', 'Essence Nynja F-JTVA', '606', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('324', 'Essence F-JHRV', 'Essence CTL F-JHRV', '606', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('325', 'Emprunts CTL', 'Emprunts CTL', '164', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('326', 'Heures de vol F-JTVA', 'Heures de vol F-JTVA', '706', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('327', 'Heures de vol F-JHRV', 'Heures de vol F-JHRV', '706', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('328', 'Intérêts placements', 'Interêts placements', '762', '2');
+
+
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('329', 'Subventions', 'Subventions', '74', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('330', 'Immobilisation F-JTVA', 'Immobilisation F-JTVA', '215', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('331', 'Immobilisation F-JHRV', 'Immobilisation F-JHRV', '215', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('332', 'Ventes de produits finis', 'Ventes de produits finis', '701', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('333', 'Indemnités assurance F-JHRV', 'Indemnités assurance F-JHRV', '758', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('334', 'versement A Fauquembergue', 'versement A Fauquembergue', '792', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('335', 'Contributions versées', 'Contributions au compte général', '657', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('336', 'Rémunérations du personnel', 'Rémunérations du personnel', '641', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('337', 'Contributions reçues', 'Excédents du compte général', '757', '2');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES ('338', 'Compte courant SG ULM', 'FR76 3000 3028 4600 2500 3463 153', '512', '2');
+
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (339, 'Report à nouveau créditeur ULM', 'Report à nouveau créditeur', '110', '1');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (340, 'Report à nouveau débiteur ULM', 'Report à nouveau débiteur', '119', '1');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (341, "Résultat de l'exercice ULM (excédent)", "Résultat de l'exercice (excédent)", '120', '1');
+INSERT INTO `comptes` (`id`, `nom`, `desc`, `codec`, `club`) VALUES (342, "Résultat de l'exercice ULM (déficit)", "Résultat de l'exercice (déficit)", '129', '1');
 
 -- --------------------------------------------------------
 
@@ -505,6 +546,7 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('120', 'Résultat de l’exercice (excédent)'),
 ('129', 'Résultat de l’exercice (déficit)'),
 ('164', 'Emprunts auprès des établissements de crédit'),
+('181', 'Comptes de liaison des etablissements'),
 ('215', 'Matériel'),
 ('218', 'Mobilier.'),
 ('281', 'Amortissement des immobilisations corporelles'),
@@ -512,15 +554,16 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('401', 'Fournisseurs'),
 ('409', 'Fournisseurs débiteurs. Accomptes'),
 ('411', 'Clients'),
+('421', 'Personnels, rémunérations dues'),
 ('441', 'Etat - Subventions'),
 ('46', 'Débiteurs divers et créditeur divers'),
-('487', 'Produits constatés d\'avance'),
+('487', "Produits constatés d'avance"),
 ('512', 'Banque'),
 ('531', 'Caisse'),
 ('60', 'Achats'),
 ('601', 'Achats stockés - Matières premières et fournitures'),
 ('602', 'Achats stockés - Autres approvisionements'),
-('604', 'Achats d\'études et prestations de services'),
+('604', "Achats d'études et prestations de services"),
 ('605', 'Achat autres.'),
 ('606', 'Achats non stockés de matières et fournitures'),
 ('607', 'Achats de marchandises'),
@@ -531,7 +574,7 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('615', 'Entretien et réparations'),
 ('616', 'Assurances'),
 ('62', 'Autres services extérieurs'),
-('621', 'Personels extérieur à l\'association'),
+('621', "Personels extérieur à l'association"),
 ('622', 'Rémunérations et Honoraires.'),
 ('623', 'Publicité, Publications, Relations publiques'),
 ('624', 'Transport de bien et transport collectif du person'),
@@ -557,7 +600,7 @@ INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
 ('706', 'Prestations de services'),
 ('707', 'Ventes de marchandises'),
 ('708', 'Produit des activités annexes'),
-('74', 'Subventions d\'exploitation'),
+('74', "Subventions d'exploitation"),
 ('75', 'Autres produits de gestion courante'),
 ('753', 'Assurances licences FFVV.'),
 ('754', 'Retour des Fédérations (bourses).'),
@@ -689,7 +732,8 @@ INSERT INTO `tarifs` (`id`, `reference`, `date`, `date_fin`, `description`, `pri
 (88, 'Remorqué 300m', '2023-01-01', '2099-12-31', 'Remorqué 300m', 15.00, 302, 'testadmin', 1, 0.00, 0, 1),
 (89, 'Remorqué 100m', '2023-01-01', '2099-12-31', 'Remorqué 100m', 3.00, 302, 'testadmin', 1, 0.00, 0, 1),
 (90, 'bobr', '2023-01-01', '2099-12-31', 'Bob rouge', 20.00, 309, 'testadmin', 1, 0.00, 0, 1),
-(91, 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', 10.00, 309, 'testadmin', 1, 0.00, 0, 1);
+(91, 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', 10.00, 309, 'testadmin', 1, 0.00, 0, 1),
+(92, 'bobr', '2023-01-01', '2099-12-31', 'Casquette MAGA', 2.50, 309, 'testadmin', 1, 0.00, 0, 2);
 
 -- --------------------------------------------------------
 
