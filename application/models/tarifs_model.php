@@ -212,9 +212,27 @@ class Tarifs_model extends Common_Model {
     public function get_tarif($reference, $date = "") {
         gvv_debug("get_tarif(reference=$reference, date=$date)");
 
-        $result = $this->db->where('reference', $reference)->where("date <= \"$date\"")->order_by('date', 'desc')->limit(1)->get($this->table)->row_array();
+        $section = $this->gvv_model->section();
+
+        $this->db->where('reference', $reference)
+            ->where("date <= \"$date\"");
+
+        if ($this->section) {
+            $this->db->where('tarifs.club', $section['id']);
+        }
+
+        $result = $this->db->order_by('date', 'desc')
+            ->limit(1)
+            ->get($this->table);
+
         gvv_debug("get_tarif " . $this->db->last_query());
-        return $result;
+
+        if ($result) {
+            return $result->row_array();
+        } else {
+            gvv_error("get_tarif error: " . $this->table . ' - ' . $this->db->_error_message());
+            return FALSE;
+        }
     }
 }
 

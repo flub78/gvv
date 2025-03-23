@@ -333,11 +333,25 @@ class Comptes_model extends Common_Model {
             return $info_pilote['compte'];
         }
 
-        $select = $this->db->select('id, nom, debit, credit, actif')->from($this->table)->where(array(
-            'pilote' => $pilote
-        ))->get()->result_array();
+        $section = $this->gvv_model->section();
 
-        return $select[0];
+        $this->db
+            ->select('id, nom, debit, credit, actif')
+            ->from($this->table)
+            ->where(array('pilote' => $pilote));
+
+        if ($this->section) {
+            $this->db->where('comptes.club', $section['id']);
+        }
+
+        $result = $this->db->get();
+
+        if ($result) {
+            return $result->result_array()[0];
+        } else {
+            gvv_error("Erreur lors de la recherche du compte du pilote $pilote");
+            return null;
+        }
     }
 
     /**
