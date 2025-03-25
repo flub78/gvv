@@ -4,7 +4,9 @@
 */
 
 $lang['gvv_comptes_title'] = "Account";
-$lang['gvv_comptes_title_balance'] = "Accounts balance";
+$lang['gvv_comptes_title_balance'] = "Accounts general balance";
+$lang['gvv_comptes_title_detailed_balance'] = "Detailed balance of accounts";
+
 $lang['gvv_comptes_title_bilan'] = "Balance sheet";
 $lang['gvv_comptes_title_resultat'] = "End of year results";
 $lang['gvv_comptes_title_cloture'] = "Closing of the period";

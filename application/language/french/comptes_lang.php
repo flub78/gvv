@@ -4,7 +4,8 @@
 */
 
 $lang['gvv_comptes_title'] = "Compte";
-$lang['gvv_comptes_title_balance'] = "Balance des comptes";
+$lang['gvv_comptes_title_balance'] = "Balance générale des comptes";
+$lang['gvv_comptes_title_detailed_balance'] = "Balance détaillée des comptes";
 $lang['gvv_comptes_title_bilan'] = "Bilan de fin d'exercice";
 $lang['gvv_comptes_title_resultat'] = "Résultat d'exploitation de l'exercice";
 $lang['gvv_comptes_title_cloture'] = "Clôture de l'exercice comptable";

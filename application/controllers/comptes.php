@@ -154,7 +154,6 @@ class Comptes extends Gvv_Controller {
             }
         }
 
-        $this->data['title_key'] = "gvv_comptes_title_balance";
         $this->data['codec'] = $codec;
         $this->data['codec2'] = $codec2;
         $this->data['general'] = $general;
@@ -162,9 +161,13 @@ class Comptes extends Gvv_Controller {
 
         if ($general) {
             // général
+            $this->data['title_key'] = "gvv_comptes_title_balance";
+
             $result = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde);
         } else {
             // détaillé
+            $this->data['title_key'] = "gvv_comptes_title_detailed_balance";
+
             $result = $this->gvv_model->select_page($selection, $this->data['balance_date'], $filter_solde);
         }
 

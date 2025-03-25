@@ -5,6 +5,8 @@
 
 $lang['gvv_comptes_title'] = "Rekening";
 $lang['gvv_comptes_title_balance'] = "Balans der rekeningen";
+$lang['gvv_comptes_title_detailed_balance'] = "Gedetailleerde balans van rekeningen";
+
 $lang['gvv_comptes_title_bilan'] = "Balans";
 $lang['gvv_comptes_title_resultat'] = "Jaarresultaat";
 $lang['gvv_comptes_title_cloture'] = "Sluiting boekingen voor boekjaar";
