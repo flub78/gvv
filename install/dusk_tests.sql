@@ -399,6 +399,8 @@ CREATE TABLE `machinesa` (
 
 INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
 ('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
+('Robin', 'DR400', 'F-GSRP', 0.00, 4, 0, 0, 3, 1, '', 'gratuit', 'gratuit', 0, 0),
+('Flight Design', 'CTL', 'F-GHRP', 0.00, 2, 0, 0, 2, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Aeropol', 'Dynamic', 'F-JUFA', 0.00, 2, 1, 0, 1, 1, '', 'hdv-ULM', 'hdv-ULM', 0, 0);
 
 -- --------------------------------------------------------

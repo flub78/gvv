@@ -305,12 +305,7 @@ class Facturation {
         $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $vol['vapilid']);
         $machine_info = $this->CI->avions_model->get_by_id('macimmat', $machine);
 
-        // TODO: Code smell
-        // $tarif_inof n'est pas utilisé ...
-        // $tarif_info = est faux si on cherch desc by id, c'est toujours vide ...
-        // Pas impossible que ce soit buggè, on a jamais facturé de DC avion...
-        $tarif_info = $this->CI->tarifs_model->get_by_id('id', $machine_info['maprix']);
-        $tarif_dc_info = $this->CI->tarifs_model->get_by_id('id', $machine_info['maprixdc']);
+        $tarif_dc_info = $this->CI->tarifs_model->get_tarif($machine_info['maprixdc'], $date);
 
         gvv_debug("facture_vol_avion pilote " . var_export($pilote_info, true));
         gvv_debug("facture_vol_avion machine " . var_export($machine_info, true));
@@ -355,7 +350,7 @@ class Facturation {
 
         if ($dc_a_facturer) {
             // Si il y a un surcout pour la double commande
-            $this->nouvel_achat_partagee(array(
+            $this->nouvel_achat(array(
                 'date' => $date,
                 'produit' => $machine_info['maprixdc'],
                 'quantite' => ($free) ? 0 : $duree,
