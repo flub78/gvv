@@ -1579,7 +1579,8 @@ abstract class Metadata {
         } elseif ('time' == $subtype) {
             $rules = "trim|" . $required;
         } elseif ('decimal' == $type) {
-            $rules = "trim|" . $required . "numeric";
+            $rules = "trim|" . $required . "callback_valid_numeric";
+            // $rules = "trim|" . $required . "numeric";
         } elseif ('date' == $type) {
             if ($subtype == 'activity_date') {
                 $rules = "trim|callback_valid_activity_date";
@@ -1881,6 +1882,9 @@ abstract class Metadata {
             return date_ht2db($value);
         } elseif ("time" == $subtype) {
             return str_replace(":", ".", $value);
+        } elseif ("decimal" == $type) {
+            if ($value == "") return 0;
+            return str_replace(',', '.', $value);
         }
         return $value;
     }

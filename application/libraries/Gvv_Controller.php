@@ -278,6 +278,21 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
+     * Cette fonction accepte la virgule ou le point comme séparateur decimal
+     */
+    function valid_numeric($str) {
+        if ($str == "") return TRUE;
+        // Remplacer les virgules par des points pour la validation
+        $normalized = str_replace(',', '.', $str);
+        // Vérifier si la valeur est numérique
+        if (is_numeric($normalized)) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+    /**
      * Validation des heures
      *
      * Tout le boulot est fait dans le helper, mais je n'arrive pas à réferencer autre chose que des

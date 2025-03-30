@@ -113,3 +113,5 @@ $lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 
 $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit');
 
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
+
+$lang['valid_numeric'] = "Valeur non décimale";
