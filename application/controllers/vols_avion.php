@@ -134,8 +134,6 @@ class Vols_avion extends Gvv_Controller {
                 'label' => $row['name'],
                 'id' => $id
             );
-            // if ($cnt++ % 2)
-            // $date_values [$id] = $id;
         }
 
         $this->data['certificats'] = $certificats;

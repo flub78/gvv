@@ -400,7 +400,7 @@ CREATE TABLE `machinesa` (
 INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
 ('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Robin', 'DR400', 'F-GSRP', 0.00, 4, 0, 0, 3, 1, '', 'gratuit', 'gratuit', 0, 0),
-('Flight Design', 'CTL', 'F-GHRP', 0.00, 2, 0, 0, 2, 1, '', 'gratuit', 'gratuit', 0, 0),
+('Flight Design', 'CTL', 'F-JTRV', 0.00, 2, 0, 0, 2, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Aeropol', 'Dynamic', 'F-JUFA', 0.00, 2, 1, 0, 1, 1, '', 'hdv-ULM', 'hdv-ULM', 0, 0);
 
 -- --------------------------------------------------------
@@ -765,7 +765,10 @@ INSERT INTO `tarifs` (`id`, `reference`, `date`, `date_fin`, `description`, `pri
 (89, 'Remorqué 100m', '2023-01-01', '2099-12-31', 'Remorqué 100m', 3.00, 302, 'testadmin', 1, 0.00, 0, 1),
 (90, 'bobr', '2023-01-01', '2099-12-31', 'Bob rouge', 20.00, 309, 'testadmin', 1, 0.00, 0, 1),
 (91, 'tsb', '2023-01-01', '2099-12-31', 'T-Shirt blanc', 10.00, 309, 'testadmin', 1, 0.00, 0, 1),
-(92, 'bobr', '2023-01-01', '2099-12-31', 'Casquette MAGA', 2.50, 309, 'testadmin', 2, 0.00, 0, 1);
+(92, 'bobr', '2023-01-01', '2099-12-31', 'Casquette MAGA', 2.50, 309, 'testadmin', 2, 0.00, 0, 1),
+(93, 'gratuit', '2023-01-01', '2099-12-31', 'non facturé', 0.00, 301, 'testadmin', 2, 0.00, 0, 1),
+(94, 'gratuit', '2023-01-01', '2099-12-31', 'non facturé', 0.00, 301, 'testadmin', 3, 0.00, 0, 1),
+(95, 'gratuit', '2023-01-01', '2099-12-31', 'non facturé', 0.00, 301, 'testadmin', 4, 0.00, 0, 1);
 
 -- --------------------------------------------------------
 

@@ -236,7 +236,7 @@ if (! function_exists('decimal_to_time')) {
     function decimal_to_time($time) {
         $hours = floor($time);
         $minutes = ($time - floor($time)) * 100 + 0.0001;
-        return sprintf("%2d:%02d", $hours, $minutes);
+        return sprintf("%02d:%02d", $hours, $minutes);
     }
 }
 
