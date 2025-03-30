@@ -52,6 +52,8 @@ class Compta extends Gvv_Controller {
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::edit()
+     * 
+     * TODO: limiter les comptes possibles, au rechargement on perd le context de guidage
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
 
@@ -229,9 +231,8 @@ class Compta extends Gvv_Controller {
 
         $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
 
-        // Add to the form validation rules a rule to prevent the valous of compte1 and compte2 to be the same.
+        // Add to the form validation rules a rule to prevent the values of compte1 and compte2 to be the same.
         $this->form_validation->set_rules('compte1', 'Compte 1', 'callback_check_compte1_compte2');
-        # $this->form_validation->set_rules('compte2', 'Compte 2', 'callback_check_compte1_compte2');
 
         if ($this->form_validation->run()) {
             // get the processed data. It must not be done before because all the
@@ -242,15 +243,21 @@ class Compta extends Gvv_Controller {
                 unset($processed_data['id']);
                 $id = $this->gvv_model->create_ecriture($processed_data);
                 $this->data['popup'] = "Ecriture passée avec succés";
+
                 if ($button != "Créer") {
+                    // Créer et continuer, on reste sur la page de création
                     $image = $this->gvv_model->image($id);
                     $msg = "Ecriture $image créée avec succés.";
+                    // Todo remplacer le flash data par un message dans la page
                     $this->session->set_flashdata('popup', $msg);
                     redirect($this->session->userdata('current_url'));
                 } else {
-                    redirect("compta");
+                    // Créer il faut retourner sur qq chose de logique
+                    $target = "compta/journal_compte/" . $processed_data['compte1'];
+                    redirect($target);
                 }
             } else {
+                // Modification
                 $this->change_ecriture($processed_data);
                 $this->pop_return_url(1);
             }
