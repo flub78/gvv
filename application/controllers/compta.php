@@ -242,15 +242,16 @@ class Compta extends Gvv_Controller {
             if ($action == CREATION) {
                 unset($processed_data['id']);
                 $id = $this->gvv_model->create_ecriture($processed_data);
-                $this->data['popup'] = "Ecriture passée avec succés";
 
                 if ($button != "Créer") {
                     // Créer et continuer, on reste sur la page de création
                     $image = $this->gvv_model->image($id);
                     $msg = "Ecriture $image créée avec succés.";
-                    // Todo remplacer le flash data par un message dans la page
-                    $this->session->set_flashdata('popup', $msg);
-                    redirect($this->session->userdata('current_url'));
+                    $this->data['message'] = $msg;
+                    // Display the form again
+                    $this->form_static_element($action);
+                    load_last_view($this->form_view, $this->data);
+                    return;
                 } else {
                     // Créer il faut retourner sur qq chose de logique
                     $target = "compta/journal_compte/" . $processed_data['compte1'];
