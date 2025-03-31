@@ -247,7 +247,7 @@ class Compta extends Gvv_Controller {
                     // Créer et continuer, on reste sur la page de création
                     $image = $this->gvv_model->image($id);
                     $msg = "Ecriture $image créée avec succés.";
-                    $this->data['message'] = $msg;
+                    $this->data['message'] = '<div class="text-success">' . $msg . '</div>';
                     // Display the form again
                     $this->form_static_element($action);
                     load_last_view($this->form_view, $this->data);

@@ -531,7 +531,12 @@ class Gvv_Controller extends CI_Controller {
 
                         $image = $this->gvv_model->image($id);
                         $msg = $image . ' ' . $this->lang->line("gvv_succesful_creation");
-                        $this->session->set_flashdata('popup', $msg);
+                        $this->data['message'] = '<div class="text-success">' . $msg . '</div>';
+                        // $this->session->set_flashdata('popup', $msg);
+                        // Display the form again
+                        $this->form_static_element($action);
+                        load_last_view($this->form_view, $this->data);
+                        return;
                     }
                 } elseif ($action == MODIFICATION) {
 
