@@ -306,7 +306,16 @@ class Ecritures_model extends Common_Model {
         gvv_debug("sql count: from " . $from);
         gvv_debug("sql count: where " . $where);
 
-        $query = $this->db->from($from)->where($where)->where($filtrage)->where("YEAR(date_op) = \"$year\"");
+        $query = $this->db
+            ->from($from)
+            ->where($where)
+            ->where($filtrage)
+            ->where("YEAR(date_op) = \"$year\"");
+
+        if ($this->sections_model->section()) {
+            $query = $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
         if ($query) {
             gvv_debug("sql count: " . $this->db->last_query());
             $count = $query->count_all_results();
