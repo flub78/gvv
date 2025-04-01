@@ -48,7 +48,8 @@ $list[] = "Identifiant de version : " . $commit;
 $list[] = "Dernier message git : " . $commit_message;
 $list[] = "Répertoire d'installation : " . getcwd();
 $list[] = "Who am I  : " . exec('whoami');
-
+$list[] = '<a href="https://github.com/flub78/gvv/commits/main/" target="_blank" >
+Liste des modifications</a>';
 echo ul($list, $attributes);
 
 
