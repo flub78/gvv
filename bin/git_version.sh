@@ -6,5 +6,5 @@ echo "<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 \$config['commit'] = '$COMMIT';
 \$config['commit_date'] = '$DATE';
-\$config['commit_message'] = '$COMMIT_MESSAGE';
+\$config['commit_message'] = \"$COMMIT_MESSAGE\";
 " > application/config/version.php

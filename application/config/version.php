@@ -1,6 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-$config['commit'] = '6a457a9';
-$config['commit_date'] = '09/03/2025 14:43:47';
-$config['commit_message'] = 'Commentaires et documentation';
+$config['commit'] = '72b798e';
+$config['commit_date'] = '31/03/2025 09:34:31';
+$config['commit_message'] = "correction du nombre d'éléments du bandeau bas des journaux lors de la selection d'une section";
 
