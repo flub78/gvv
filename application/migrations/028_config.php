@@ -24,12 +24,12 @@ if (!defined('BASEPATH'))
 	exit('No direct script access allowed');
 
 /**
- * Passe les compteurs de tickets en décimal
+ * Augmente la taille des montants des écritures
  *    
  * @author frederic
  *
  */
-class Migration_Sections extends CI_Migration {
+class Migration_Config extends CI_Migration {
 
 	protected $migration_number;
 
@@ -39,8 +39,7 @@ class Migration_Sections extends CI_Migration {
 	 */
 	function __construct() {
 		parent::__construct();
-		$this->migration_number = 24;
-		$this->load->library('database');
+		$this->migration_number = 28;
 	}
 
 	/*
@@ -65,9 +64,10 @@ class Migration_Sections extends CI_Migration {
 	public function up() {
 		$errors = 0;
 
-		$filename = getcwd() . '/application/migrations/sections.sql';
+		$filename = getcwd() . '/application/migrations/config.sql';
 		$this->database->sqlfile($filename);
 		gvv_info("Migration database up to " . $this->migration_number . ", errors=$errors");
+
 		return !$errors;
 	}
 
@@ -76,8 +76,9 @@ class Migration_Sections extends CI_Migration {
 	 */
 	public function down() {
 		$errors = 0;
+
 		$sqls = array(
-			"DROP TABLE IF EXISTS sections"
+			"DROP TABLE IF EXISTS config"
 		);
 
 		$errors += $this->run_queries($sqls);
