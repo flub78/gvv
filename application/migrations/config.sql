@@ -25,7 +25,8 @@ CREATE TABLE `config` (
   `cle` varchar(128) NOT NULL,
   `valeur` varchar(255) DEFAULT NULL,
   `lang` varchar(6) DEFAULT NULL,
-  `categorie` varchar(64) DEFAULT NULL
+  `categorie` varchar(64) DEFAULT NULL, 
+  `club` tinyint(1)  NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

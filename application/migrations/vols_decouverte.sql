@@ -28,6 +28,7 @@ CREATE TABLE `vols_decouverte` (
   `product` varchar(32) NOT NULL,
   `destinataire` varchar(64) DEFAULT NULL,
   `de_la_part` varchar(64) DEFAULT NULL,
+  `dest_email` varchar(64) DEFAULT NULL,
   `qr_code` varchar(64) NOT NULL,
   `beneficiaire_tel` varchar(64) DEFAULT NULL,
   `accident_tel` varchar(64) DEFAULT NULL,
