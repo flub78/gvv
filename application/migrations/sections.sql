@@ -37,8 +37,8 @@ CREATE TABLE `sections` (
 -- Déchargement des données de la table `sections`
 --
 
-INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
-(1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville');
+-- INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
+-- (1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville');
 
 --
 -- Index pour les tables déchargées
@@ -62,15 +62,15 @@ ALTER TABLE `sections`
 
 
 -- Set the club default value
-UPDATE `achats` SET `club` = '1';
-UPDATE `comptes` SET `club` = '1';
-UPDATE `ecritures` SET `club` = '1';
-UPDATE `machinesa` SET `club` = '1';
-UPDATE `machinesp` SET `club` = '1';
-UPDATE `tarifs` SET `club` = '1';
-UPDATE `tickets` SET `club` = '1';
-UPDATE `volsa` SET `club` = '1';
-UPDATE `volsp` SET `club` = '1';
+-- UPDATE `achats` SET `club` = '1';
+-- UPDATE `comptes` SET `club` = '1';
+-- UPDATE `ecritures` SET `club` = '1';
+-- UPDATE `machinesa` SET `club` = '1';
+-- UPDATE `machinesp` SET `club` = '1';
+-- UPDATE `tarifs` SET `club` = '1';
+-- UPDATE `tickets` SET `club` = '1';
+-- UPDATE `volsa` SET `club` = '1';
+-- UPDATE `volsp` SET `club` = '1';
 
 COMMIT;
 
