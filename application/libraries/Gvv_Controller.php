@@ -403,9 +403,6 @@ class Gvv_Controller extends CI_Controller {
 
             if (in_array('club', $fields_list)) {
                 $section_id = $this->gvv_model->section_id();
-                // $section = $this->gvv_model->section();
-                // echo "section_id=$section_id, section=$section";
-                // exit;
                 $processed_data['club'] = $section_id;
             }
         } else {

@@ -157,7 +157,7 @@ $section_count = $CI->sections_model->safe_count_all();
               </ul>
             </li>
 
-            <?php if ($section && ($section['id'] == '1')) : ?>
+            <?php if (empty($section) || ($section && ($section['id'] == '1'))) : ?>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_glider") ?></a>
                 <ul class="dropdown-menu">
