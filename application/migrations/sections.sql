@@ -38,7 +38,7 @@ CREATE TABLE `sections` (
 --
 
 INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
-(1, '', 'Section par défaut');
+(1, 'Club', 'Section par défaut');
 
 --
 -- Index pour les tables déchargées
