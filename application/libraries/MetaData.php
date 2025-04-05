@@ -1232,7 +1232,7 @@ abstract class Metadata {
 
             // $img = (file_exists($filename)) ? img($filename) : '';
             // return $img;
-            return "Error XYZ: (bug should never happen)" . $value;
+            return "Error array_field($table, $field): type=$type, subtype=$subtype, value=" . $value;
         }
 
         if ($type == 'date') {

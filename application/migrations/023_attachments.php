@@ -72,7 +72,8 @@ class Migration_Attachments extends CI_Migration {
   				`user_id` varchar(25) DEFAULT NULL,
   				`filename` varchar(128) DEFAULT NULL,
   				`description` varchar(124) DEFAULT NULL,
-  				`file` varchar(255) DEFAULT NULL
+  				`file` varchar(255) DEFAULT NULL,
+				`club` tinyint(1) DEFAULT NULL,
 
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 			"ALTER TABLE `attachments` ADD PRIMARY KEY (`id`)",

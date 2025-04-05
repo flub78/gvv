@@ -52,10 +52,6 @@ class Attachments extends Gvv_Controller {
      * Affiche le formulaire de création
      */
     function create() {
-
-
-
-        // Méthode basée sur les méta-données
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
@@ -111,7 +107,7 @@ class Attachments extends Gvv_Controller {
         // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
 
-        $storage_file = rand(100000, 999999) . '_' . $_FILES['userfile']['name'];
+        $storage_file = rand(100000, 999999) . '_' . str_replace(' ', '_', $_FILES['userfile']['name']);
 
         $config['upload_path'] = $dirname;
         $config['allowed_types'] = '*';
