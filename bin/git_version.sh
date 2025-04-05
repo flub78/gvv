@@ -2,6 +2,7 @@
 COMMIT=$(git rev-parse --short HEAD)
 DATE=$(git log -1 --format=%cd --date=format:"%d/%m/%Y %H:%M:%S")
 COMMIT_MESSAGE=$(git log -1 --format=%s)
+
 echo "<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 \$config['commit'] = '$COMMIT';
