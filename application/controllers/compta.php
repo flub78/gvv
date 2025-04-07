@@ -747,7 +747,7 @@ class Compta extends Gvv_Controller {
 
         // The following line has to be first
         $this->data = $account_data;
-        $this->data['compte_selector'] = $this->comptes_model->selector_with_all();
+        $this->data['compte_selector'] = $this->comptes_model->selector_with_all([], true);
 
         $year = $this->session->userdata('year');
         $this->data['year_selector'] = $this->gvv_model->getYearSelector("date_op");

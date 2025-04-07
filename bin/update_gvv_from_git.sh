@@ -1,3 +1,7 @@
+
+# Supprime l'ancien message de version
+git checkout -- application/config/version.php
+
 git pull
 bin/git_version.sh
 echo "" >> installed.txt
