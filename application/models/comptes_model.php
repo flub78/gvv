@@ -286,7 +286,8 @@ class Comptes_model extends Common_Model {
      */
     public function image($key) {
         $vals = $this->get_by_id('id', $key);
-        return '(' . $vals['codec'] . ") " . $vals['nom'];
+        $image = '(' . $vals['codec'] . ':' . $vals['section_name'] . ") " . $vals['nom'];
+        return $image;
     }
 
     /**
