@@ -52,7 +52,16 @@ $list[] = '<a href="https://github.com/flub78/gvv/commits/main/" target="_blank"
 Liste des modifications</a>';
 echo ul($list, $attributes);
 
+echo '<hr>';
+$list = [];
+$list[] = "Date de gel : " . $date_gel;
+echo ul($list, $attributes);
 
+echo '<hr>';
+$list = [];
+$list[] = "Version de schéma requise par le programme : " . $program_level;
+$list[] = "Version du schéma de la base de données : " . $base_level;
 
+echo ul($list, $attributes);
 ?>
 </div>

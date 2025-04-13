@@ -41,6 +41,9 @@ class Welcome extends CI_Controller {
         $this->session->set_userdata('return_url', current_url());
 
         $this->lang->load('welcome');
+
+        $this->load->library('migration');
+        $this->config->load('migration');
     }
 
     function nyi() {
@@ -101,6 +104,11 @@ class Welcome extends CI_Controller {
         $data['commit_message'] = $this->config->item('commit_message');
 
         $data['user'] = exec('whoami');
+
+        $data['date_gel'] = $this->config->item('date_gel');
+
+        $data['program_level'] = $this->config->item('migration_version');
+        $data['base_level'] = $this->migration->get_version();
 
         load_last_view('welcome/about', $data);
     }
