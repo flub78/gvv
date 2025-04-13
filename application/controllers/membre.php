@@ -329,11 +329,14 @@ class Membre extends Gvv_Controller {
                 $this->comptes_model->create($cpt);
             }
 
-            // Et un second sur le compte général (4)
-            $cpt['club'] = '4';
-            $cpt['desc'] = "Compte client 411 général " . $data['mnom'] . " " . $data['mprenom'];
-            if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $cpt['club'])) {
-                $this->comptes_model->create($cpt);
+            // Et un second sur le compte général 
+            $section_general = $this->config->item('section_general');
+            if ($section_general) {
+                $cpt['club'] = $section_general;
+                $cpt['desc'] = "Compte client 411 général " . $data['mnom'] . " " . $data['mprenom'];
+                if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $cpt['club'])) {
+                    $this->comptes_model->create($cpt);
+                }
             }
         }
 

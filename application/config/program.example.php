@@ -1,4 +1,5 @@
-<?php  
+<?php
+
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -19,7 +20,7 @@
  *	Configuration du programme
  */
 
-if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+if (! defined('BASEPATH')) exit('No direct script access allowed');
 /*
 |--------------------------------------------------------------------------
 | Titre des pages HTML
@@ -55,17 +56,17 @@ $config['test_api'] = TRUE;
 		  2 => 'Etranger'
 );
 */
-$config['categories_pilote'] = array (		  
-		  0 => 'Membre',
-		  1 => 'Extérieur',
-		  2 => 'Etranger',
-		  3 => 'Convention lycée'
-		);
+$config['categories_pilote'] = array(
+  0 => 'Membre',
+  1 => 'Extérieur',
+  2 => 'Etranger',
+  3 => 'Convention lycée'
+);
 
 /*
  * Catégories des vols avion
  */
-$config['categories_vol_avion'] = array (
+$config['categories_vol_avion'] = array(
   0 => 'Standard',
   1 => "Vol d'initiation",
   2 => "Vol d'essai",
@@ -76,7 +77,7 @@ $config['categories_vol_avion'] = array (
 /*
  * Catégories des vols avion, version courte utilisée dans les tables
  */
-$config['categories_vol_avion_short'] = array (
+$config['categories_vol_avion_short'] = array(
   0 => 'Std',
   1 => "VI",
   2 => "VE",
@@ -87,7 +88,7 @@ $config['categories_vol_avion_short'] = array (
 /*
  * Catégories des vols planeurs
  */
-$config['categories_vol_planeur'] = array (
+$config['categories_vol_planeur'] = array(
   0 => 'Standard',
   1 => "Vol d'initiation",
   2 => "Vol d'essai",
@@ -97,7 +98,7 @@ $config['categories_vol_planeur'] = array (
 /*
  * Catégories des vols planeur, version courte utilisée dans les tables
  */
-$config['categories_vol_planeur_short'] = array (
+$config['categories_vol_planeur_short'] = array(
   0 => 'Std',
   1 => "VI",
   2 => "VE",
@@ -110,15 +111,15 @@ $config['categories_vol_planeur_short'] = array (
 // Selection des destinataires, cette lsite définie les options qui sont
 // proposées dans le formulaire de mail. A chaque fois que le sélecteur est modifié
 // La liste des destinataires est remplacée.
-$config['listes_de_destinataires'] = array (
-	'0' => 'Tous les membres actif',
-    '1' => 'Tous les pilotes débiteurs',
-    '2' => 'Les instructeurs',
-    '3' => 'Les membres du conseil',
-	'4' => 'le conseil et les instructeurs',
-    '5' => 'les propriétaires'
+$config['listes_de_destinataires'] = array(
+  '0' => 'Tous les membres actif',
+  '1' => 'Tous les pilotes débiteurs',
+  '2' => 'Les instructeurs',
+  '3' => 'Les membres du conseil',
+  '4' => 'le conseil et les instructeurs',
+  '5' => 'les propriétaires'
 );
-        
+
 /*
  * A chaque valeur de la liste ci-dessus doit correspondre un segment de requête SQL qui
  * selectionne les membres dont on veut garder les adresses emails
@@ -146,13 +147,13 @@ $config['listes_de_destinataires'] = array (
  */
 $instructeurs = 65536 + 32768 + 131072 + 262144;
 $ca = 64;            // membres du conseil d'adminstration       
-$config['listes_de_requetes'] = array (
-	'0' => '',
-    '1' => 'solde < 0',
-    '2' => "(mniveaux & ($instructeurs)) != 0",
-    '3' => "(mniveaux & ($ca)) != 0",
-	'4' => "(mniveaux & ($ca + $instructeurs)) != 0",
-	'5' => 'categorie = 3'
+$config['listes_de_requetes'] = array(
+  '0' => '',
+  '1' => 'solde < 0',
+  '2' => "(mniveaux & ($instructeurs)) != 0",
+  '3' => "(mniveaux & ($ca)) != 0",
+  '4' => "(mniveaux & ($ca + $instructeurs)) != 0",
+  '5' => 'categorie = 3'
 );
 
 /*
@@ -189,6 +190,13 @@ $config['gui_library'] = "bootstrap5";
 // $config['gui_library'] = "";
 
 $config['dev_menu'] = true;
+
+$config['multi_sections'] = false;
+
+/**
+ * Ce paramètre s'il existe détermine une section dans laquelle créer un compte 411 supplémentaire 
+ */
+$config['section_general'] = '0';
 
 /* End of file program.php */
 /* Location: .application/config/program.php */
