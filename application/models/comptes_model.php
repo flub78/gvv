@@ -46,6 +46,26 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Retourne un compte par pilote codec
+     * 
+     * @param string $pilote_codec Le code du pilote
+     * @return array Le compte trouvé
+     */
+    public function get_by_pilote_codec($pilote, $codec, $section) {
+        $this->db->select('comptes.*, sections.nom as section_name');
+        $this->db->from('comptes');
+        $this->db->join('sections', 'comptes.club = sections.id', 'left');
+        $this->db->where('comptes.pilote', $pilote);
+        $this->db->where('comptes.codec', $codec);
+        $this->db->where('comptes.club', $section);
+
+        $res = $this->db->get()->row_array();
+
+        return $res;
+    }
+
+
+    /**
      * Ajoute un élément
      *
      * @param $data hash

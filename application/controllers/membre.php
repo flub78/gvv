@@ -325,12 +325,16 @@ class Membre extends Gvv_Controller {
                 'saisie_par' => $this->dx_auth->get_username()
             );
             $this->load->model('comptes_model');
-            $this->comptes_model->create($cpt);
+            if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $section_id)) {
+                $this->comptes_model->create($cpt);
+            }
 
             // Et un second sur le compte général (4)
             $cpt['club'] = '4';
             $cpt['desc'] = "Compte client 411 général " . $data['mnom'] . " " . $data['mprenom'];
-            $this->comptes_model->create($cpt);
+            if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $cpt['club'])) {
+                $this->comptes_model->create($cpt);
+            }
         }
 
         // Creation de l'utilisateur
