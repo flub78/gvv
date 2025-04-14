@@ -1,4 +1,5 @@
 <?php
+
 /**
  *    Project {$PROJECT}
  *    Copyright (C) 2015 {$AUTHOR}
@@ -24,17 +25,17 @@
  * during development. Could be disabled in production.
  *
  */
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 // First, include Requests
 include(APPPATH . '/third_party/Requests.php');
 
 function addstr(&$str, $hash, $field, $label) {
-	if (isset($hash[$field])) {
-		$str .= $label . ':' . nbs() . $hash[$field] .br();
-	} else {
-		$str .= $label . ':' . nbs() . 'undefined' . br();
-	}
+    if (isset($hash[$field])) {
+        $str .= $label . ':' . nbs() . $hash[$field] . br();
+    } else {
+        $str .= $label . ':' . nbs() . 'undefined' . br();
+    }
 }
 
 // Next, make sure Requests can load internal classes
@@ -49,45 +50,45 @@ class FFVV extends CI_Controller {
 
     var $controller = 'FFVV';
 
-	function __construct() {
-		parent :: __construct();
+    function __construct() {
+        parent::__construct();
 
-	    $this->load->library('DX_Auth');
+        $this->load->library('DX_Auth');
         if (getenv('TEST') != '1') {
             // Checks to be done only when not controlled by PHPUnit
             $this->dx_auth->check_login();
         }
-		
+
         $this->load->config('club');
-		$this->load->helper('wsse');
-		$this->load->helper('form_elements');
-		
-		$this->load->model('membres_model');
-		$this->load->model('achats_model');
-		$this->load->model('comptes_model');
-		
-		// To have full var_dump
-		ini_set('xdebug.var_display_max_depth', 5);
-		ini_set('xdebug.var_display_max_children', 256);
-		ini_set('xdebug.var_display_max_data', 1024);
-	}
+        $this->load->helper('wsse');
+        $this->load->helper('form_elements');
 
-	/**
-	 * Get licences information from HEVA
-	 */
-	public function licences() {
-	    $request = heva_request("/persons");
+        $this->load->model('membres_model');
+        $this->load->model('achats_model');
+        $this->load->model('comptes_model');
 
-	    if (!$request->success) {
-		  echo "status_code = " . $request->status_code . br();
-		  echo "success = " . $request->success . br();
-		  return;
-	    }
+        // To have full var_dump
+        ini_set('xdebug.var_display_max_depth', 5);
+        ini_set('xdebug.var_display_max_children', 256);
+        ini_set('xdebug.var_display_max_data', 1024);
+    }
 
-		$result = json_decode($request->body, true);
+    /**
+     * Get licences information from HEVA
+     */
+    public function licences() {
+        $request = heva_request("/persons");
 
-		/**
-		 * array (size=79)
+        if (!$request->success) {
+            echo "licences status_code = " . $request->status_code . br();
+            echo "success = " . $request->success . br();
+            return;
+        }
+
+        $result = json_decode($request->body, true);
+
+        /**
+         * array (size=79)
   0 =>
     array (size=17)
       'civility' => string 'M.' (length=2)
@@ -131,67 +132,82 @@ class FFVV extends CI_Controller {
             array (size=7)
               ...
 
-		 */
+         */
 
-		$table = array();
-		foreach ($result as $row) {
-		    if (isset($row['first_name']) && isset($row['last_name'])) {
-		        $row['image'] = $row['first_name'] . ' ' . $row['last_name'];
-		    }
-		    $row['linked'] = false;
-		    $row['info'] = anchor(controller_url($this->controller) . "/edit/" . $row['licence_number'], 'Info');
-		    $row['sales'] = anchor(controller_url($this->controller) . "/sales_pilote/" . $row['licence_number'], 'Ventes');
-		    $row['qualifs'] = anchor(controller_url($this->controller) . "/qualif_pilote/" . $row['licence_number'], 'Qualifications');
+        $table = array();
+        foreach ($result as $row) {
+            if (isset($row['first_name']) && isset($row['last_name'])) {
+                $row['image'] = $row['first_name'] . ' ' . $row['last_name'];
+            }
+            $row['linked'] = false;
+            $row['info'] = anchor(controller_url($this->controller) . "/edit/" . $row['licence_number'], 'Info');
+            $row['sales'] = anchor(controller_url($this->controller) . "/sales_pilote/" . $row['licence_number'], 'Ventes');
+            $row['qualifs'] = anchor(controller_url($this->controller) . "/qualif_pilote/" . $row['licence_number'], 'Qualifications');
 
-		    // cherche les membres avec ce numéro de licence
-		    $licence_number = $row['licence_number'];
-		    $this->membres_model->default_id();
-		    $membre = $this->membres_model->get_first(array('licfed' => $licence_number));
-		    if ($membre) {
-		    	$row['linked'] = true;
-		    	$row['linked'] = anchor(controller_url('membre') . "/edit/" . $membre['mlogin'], $row['image']);
-		    } else {
-		    	// Pas de membre associé, proposer création ou association
-		    	$create = anchor(controller_url('membre') . "/heva_create/" . $row['licence_number'], 'Créer');
-		    	$associe = anchor(controller_url('membre') . "/associe_licence/" . $row['licence_number'] 
-		    			. '/' . $row['image'], 'Associe', array("class" => "jbutton"));
-		    	$row['linked'] = $associe;
-		    	
-		    }
-		    // var_dump($membre);
-		    
-		    $actions = array(
-		            'Info' => $row['info'],
-		            'Ventes' => $row['sales']
-		    );
+            // cherche les membres avec ce numéro de licence
+            $licence_number = $row['licence_number'];
+            $this->membres_model->default_id();
+            $membre = $this->membres_model->get_first(array('licfed' => $licence_number));
+            if ($membre) {
+                $row['linked'] = true;
+                $row['linked'] = anchor(controller_url('membre') . "/edit/" . $membre['mlogin'], $row['image']);
+            } else {
+                // Pas de membre associé, proposer création ou association
+                $create = anchor(controller_url('membre') . "/heva_create/" . $row['licence_number'], 'Créer');
+                $associe = anchor(controller_url('membre') . "/associe_licence/" . $row['licence_number']
+                    . '/' . $row['image'], 'Associe', array("class" => "jbutton"));
+                $row['linked'] = $associe;
+            }
+            // var_dump($membre);
 
-		    $row['actions'] = form_dropdown('target_level', $actions);
-		    $table[] = $row;
-		}
+            $actions = array(
+                'Info' => $row['info'],
+                'Ventes' => $row['sales']
+            );
 
-		$attrs ['fields'] = array('civility', 'first_name', 'last_name', 'licence_number', 'date_of_birth',
-		        'comment', 'linked', 'sales', 'qualifs');
-		$attrs ['headers'] = array('Civilité', 'Prénom', 'Nom', 'N° licence', 'Date de naissance',
-		        'Commentaire', 'Membre', 'Licences', 'Qualifs');
-		$attrs['controller'] = $this->controller;
-		$data ['controller'] = $this->controller;
-		
-		$table = flatten($table, $attrs);
-		// var_dump($table);
-		
-		$data ['data_table'] = $table; // datatable('heva_licences', $table, $attrs);
-		$data['table_title'] = 'Licenciés HEVA';
+            $row['actions'] = form_dropdown('target_level', $actions);
+            $table[] = $row;
+        }
 
-		//$this->load->view('default_table', $data);
-		return load_last_view('default_table', $data, false);
+        $attrs['fields'] = array(
+            'civility',
+            'first_name',
+            'last_name',
+            'licence_number',
+            'date_of_birth',
+            'comment',
+            'linked',
+            'sales',
+            'qualifs'
+        );
+        $attrs['headers'] = array(
+            'Civilité',
+            'Prénom',
+            'Nom',
+            'N° licence',
+            'Date de naissance',
+            'Commentaire',
+            'Membre',
+            'Licences',
+            'Qualifs'
+        );
+        $attrs['controller'] = $this->controller;
+        $data['controller'] = $this->controller;
 
+        $table = flatten($table, $attrs);
+        // var_dump($table);
 
-	}
+        $data['data_table'] = $table; // datatable('heva_licences', $table, $attrs);
+        $data['table_title'] = 'Licenciés HEVA';
 
-	/**
-	 * Retourne les informations sur l'association
-	 * @param string $id
-	 */
+        //$this->load->view('default_table', $data);
+        return load_last_view('default_table', $data, false);
+    }
+
+    /**
+     * Retourne les informations sur l'association
+     * @param string $id
+     */
     public function association() {
         $id = $this->config->item('ffvv_id');
         $request = heva_request("/associations/$id");
@@ -203,14 +219,14 @@ class FFVV extends CI_Controller {
         }
 
         $result = json_decode($request->body, true);
-        
+
         // var_dump($result);
-        
+
         $txt = "Nom:" . nbs() . $result['name'] . br();
         addstr($txt, $result, 'code', 'Code');
         addstr($txt, $result, 'website', 'Site WEB');
         addstr($txt, $result, 'type', 'Type');
-        
+
         $txt .= br() . 'Banque' . br();
         addstr($txt, $result, 'transfer_info', 'Coordonnées bancaire');
 
@@ -218,11 +234,11 @@ class FFVV extends CI_Controller {
         $txt .= $result['address']['delivery_point'] . br();
         $txt .= $result['address']['localisation'] . br();
         $txt .= $result['address']['postal_code'] . nbs() . $result['address']['city'] . br();
-        
+
         $txt .= br();
         $txt .= br() . 'Courriel:' . $result['email']['value'] . br();
         $txt .= br() . 'Mobile:' . $result['mobile']['value'] . br();
-        
+
         $data['title'] = "Information fédérale sur l'association";
         $data['text'] = $txt;
         return load_last_view('message', $data, false);
@@ -233,26 +249,26 @@ class FFVV extends CI_Controller {
      * 
      * @param unknown $row
      */
-    private function format_sale_row ($row, $attrs = array()) {
-		$row ['assoc_name'] = isset ( $row ['association'] ['name'] ) ? $row ['association'] ['name'] : "";
-		$row ['reference'] = isset ( $row ['payment'] ['reference'] ) ? $row ['payment'] ['reference'] : "";
-		$row ['collecting_assoc'] = isset ( $row ['collecting_association'] ['name'] ) ? $row ['collecting_association'] ['name'] : "";
-		$row ['year'] = isset ( $row ['season'] ['short_name'] ) ? $row ['season'] ['short_name'] : "";
-		if (isset($attrs['to_merge'])) {
-			$row = array_merge($row, $attrs['to_merge']);
-		}
-		if (isset($attrs['year'])) {
-			if ($row ['year'] != $attrs['year']) {
-				$row = array();
-			}
-		}
-		if (isset($attrs['ref_only'])) {
-			if (!isset($row ['reference']) || $row ['reference'] == "") {
-				$row = array();
-			}
-		}
-		
-    	return $row;
+    private function format_sale_row($row, $attrs = array()) {
+        $row['assoc_name'] = isset($row['association']['name']) ? $row['association']['name'] : "";
+        $row['reference'] = isset($row['payment']['reference']) ? $row['payment']['reference'] : "";
+        $row['collecting_assoc'] = isset($row['collecting_association']['name']) ? $row['collecting_association']['name'] : "";
+        $row['year'] = isset($row['season']['short_name']) ? $row['season']['short_name'] : "";
+        if (isset($attrs['to_merge'])) {
+            $row = array_merge($row, $attrs['to_merge']);
+        }
+        if (isset($attrs['year'])) {
+            if ($row['year'] != $attrs['year']) {
+                $row = array();
+            }
+        }
+        if (isset($attrs['ref_only'])) {
+            if (!isset($row['reference']) || $row['reference'] == "") {
+                $row = array();
+            }
+        }
+
+        return $row;
     }
     /**
      * transforme résultat en un tableau a deux dimensions
@@ -338,14 +354,13 @@ class FFVV extends CI_Controller {
 
         $table = $this->format_sales($result);
 
-        $attrs ['fields'] = array('created_at', 'year', 'total_amount', 'assoc_name', 'collecting_assoc', 'type', 'reference');
-        $attrs ['headers'] = array('Créé le', 'Année', 'Montant', 'Association', 'Fédération', 'Type', 'Référence');
-        $data ['controller'] = $this->controller;
-        $data ['data_table'] = flatten($table, $attrs);
+        $attrs['fields'] = array('created_at', 'year', 'total_amount', 'assoc_name', 'collecting_assoc', 'type', 'reference');
+        $attrs['headers'] = array('Créé le', 'Année', 'Montant', 'Association', 'Fédération', 'Type', 'Référence');
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($table, $attrs);
         $data['table_title'] = 'Facturation HEVA';
 
-        return load_last_view('default_table', $data, false);        
-
+        return load_last_view('default_table', $data, false);
     }
 
     /**
@@ -356,91 +371,91 @@ class FFVV extends CI_Controller {
      * @param string $id
      */
     public function fetch_sales($licence_number = 0, $year = 0) {
-    	$id = $this->config->item('ffvv_id');
-    	
-    	if ($licence_number != 0) {
-    		# cherche les ventes pour un pilote
-    		// echo "cherche les ventes pour un pilote" . br();
-    		$pilot_list = array($licence_number);
-    	} else {
-    		
-    		if ($this->session->userdata('sales_ffvv')) {
-    			return $this->session->userdata('sales_ffvv');
-    		}
-    		# cherche les ventes pour tous les pilotes
-	    	$request = heva_request("/persons");
+        $id = $this->config->item('ffvv_id');
 
-	    	if (!$request->success) {
-		  		echo "status_code = " . $request->status_code . br();
-		  		echo "success = " . $request->success . br();
-		  		return;
-	    	}
+        if ($licence_number != 0) {
+            # cherche les ventes pour un pilote
+            // echo "cherche les ventes pour un pilote" . br();
+            $pilot_list = array($licence_number);
+        } else {
 
-			$result = json_decode($request->body, true);
-			$pilot_list = array();
-			foreach ($result as $row) {
-				$pilot_list[] = $row['licence_number'];
-			}
-    	}
-    	
-    	
-    	$sales = array();
-    	foreach ($pilot_list as $licence_number) {
-    		// fetch les informations pilotes
-    		$request = heva_request("/persons/$licence_number");
-    		if (!$request->success) {
-    			echo "status_code = " . $request->status_code . br();
-    			echo "success = " . $request->success . br();
-    			return;
-    		}
-    		$info_pilot = json_decode($request->body, true);
-    		$first_name = isset($info_pilot['first_name']) ? $info_pilot['first_name'] : "";
-    		$last_name = isset($info_pilot['last_name']) ? $info_pilot['last_name'] : "";
-    		$pilot_name = $first_name . ' ' . $last_name;
-    		
-    		$status = '';
-    		$membre = $this->membres_model->get_first(array('licfed' => $licence_number)); 
+            if ($this->session->userdata('sales_ffvv')) {
+                return $this->session->userdata('sales_ffvv');
+            }
+            # cherche les ventes pour tous les pilotes
+            $request = heva_request("/persons");
 
-    		if ($membre) {
-    			$mlogin = $membre['mlogin'];
-    			$compte = $membre['compte'];
-    		} else {
-    			$status = 'Licencié inconnu';
-    			$mlogin = "";
-    			$compte = 0;
-    		}
-    		
-    		// fetch les sales
-    		$request = heva_request("/persons/$licence_number/sales");
-    		if (!$request->success) {
-    			echo "status_code = " . $request->status_code . br();
-    			echo "success = " . $request->success . br();
-    			return;
-    		}
-    		
-    		$result = json_decode($request->body, true);
-    		
-    		foreach ($result as $row) {
-    			// var_dump($row);
-    			$attrs = array('ref_only' => true);
-    			if ($year) {
-    				$attrs['year'] = $year;
-    			}
-    			$attrs['to_merge'] = array('status' => $status, 
-    					'pilot_name' => $pilot_name, 
-    					'mlogin' => $mlogin,
-    					'compte' => $compte
-    			);
-    			$whole_row = $this->format_sale_row($row, $attrs);
-    			if ($whole_row) {
-    				$sales[] = $whole_row;
-    				// var_dump($whole_row);
-    			}
-    		}
-    		
-    	}
-    	$this->session->set_userdata('sales_ffvv', $sales);
-    	return $sales;
+            if (!$request->success) {
+                echo "status_code = " . $request->status_code . br();
+                echo "success = " . $request->success . br();
+                return;
+            }
+
+            $result = json_decode($request->body, true);
+            $pilot_list = array();
+            foreach ($result as $row) {
+                $pilot_list[] = $row['licence_number'];
+            }
+        }
+
+
+        $sales = array();
+        foreach ($pilot_list as $licence_number) {
+            // fetch les informations pilotes
+            $request = heva_request("/persons/$licence_number");
+            if (!$request->success) {
+                echo "status_code = " . $request->status_code . br();
+                echo "success = " . $request->success . br();
+                return;
+            }
+            $info_pilot = json_decode($request->body, true);
+            $first_name = isset($info_pilot['first_name']) ? $info_pilot['first_name'] : "";
+            $last_name = isset($info_pilot['last_name']) ? $info_pilot['last_name'] : "";
+            $pilot_name = $first_name . ' ' . $last_name;
+
+            $status = '';
+            $membre = $this->membres_model->get_first(array('licfed' => $licence_number));
+
+            if ($membre) {
+                $mlogin = $membre['mlogin'];
+                $compte = $membre['compte'];
+            } else {
+                $status = 'Licencié inconnu';
+                $mlogin = "";
+                $compte = 0;
+            }
+
+            // fetch les sales
+            $request = heva_request("/persons/$licence_number/sales");
+            if (!$request->success) {
+                echo "status_code = " . $request->status_code . br();
+                echo "success = " . $request->success . br();
+                return;
+            }
+
+            $result = json_decode($request->body, true);
+
+            foreach ($result as $row) {
+                // var_dump($row);
+                $attrs = array('ref_only' => true);
+                if ($year) {
+                    $attrs['year'] = $year;
+                }
+                $attrs['to_merge'] = array(
+                    'status' => $status,
+                    'pilot_name' => $pilot_name,
+                    'mlogin' => $mlogin,
+                    'compte' => $compte
+                );
+                $whole_row = $this->format_sale_row($row, $attrs);
+                if ($whole_row) {
+                    $sales[] = $whole_row;
+                    // var_dump($whole_row);
+                }
+            }
+        }
+        $this->session->set_userdata('sales_ffvv', $sales);
+        return $sales;
     }
 
     /**
@@ -449,76 +464,75 @@ class FFVV extends CI_Controller {
      */
     public function facturation($licence_number = 0, $year = 0) {
 
-    	// $this->push_return_url("Facturation licences");
-    	$this->session->set_userdata('back_url', current_url());
-    	gvv_debug("push back_url facturation licences: " . current_url());
-    	 
-    	$sales = $this->fetch_sales($licence_number, $year);
-    	// var_dump($sales);
-    	$i = 0;
-    	foreach ($sales as $row) {
-    		if ($row['status'] == '') {
-    			// pas d'erreur détectée
-    			
-    			// est-ce que la référence à déja été facturé ?
-    			$num_cheque = $row['reference'];
-    			if (isset($row['compte']) && $row['compte']) {
-    				$compte_info = $this->comptes_model->get_by_id('id', $row['compte']);
-    				$payeur = $compte_info['pilote'];
-    			} else {
-    				$payeur = $row['mlogin'];
-    			}
-    			 
-    			$facture = $this->achats_model->get_first(array('num_cheque' => $num_cheque, 'pilote' => $payeur));
-    			 
-    			if ($facture) {
-    				$sales[$i]['status'] = "facturé";
-    			} else {
-    				// var_dump($row);
-    				// build information to pre-fill a billing form
-    				$date = substr($row['created_at'], 0, 10);
-    				$amount = $row['total_amount'];
-    				$mlogin = $row['mlogin'];
-    				
-    				$description = $row['type'];
-    				if ($description == "Player") {
-    					$description = "Licence FFVV " . $row['year'];
-    				} elseif ($description == "BadgeSale") {
-    					$description = "Badge FAI FFVV";
-    				}
-    				
-    				if ($row['compte']) {
-    					// pilote à facturer sur un autre compte
-    					$compte_info = $this->comptes_model->get_by_id('id', $row['compte']);
-    					$name = $this->membres_model->image($mlogin);
-    					$mlogin = $compte_info['pilote'];
-    					$description .= ' de ' . $name;
-    				}
-    				
-    				$url = controller_url('achats') . '/create'
-    				. '?amount=' . urlencode($amount)
-    				. '&date=' . urlencode($date)
-    				. '&pilot=' . urlencode($mlogin)
-    				. '&description=' . urlencode($description)
-    				. '&num_cheque=' . urlencode($num_cheque);
-    				
-    				// var_dump($url);
-    				$sales[$i]['status'] = anchor($url, "Facturation", array("class" => "jbutton"));
-    			}
-    		}
-    		$i++;
-    	}
-    	
-    	$attrs ['fields'] = array('created_at', 'year', 'total_amount', 'pilot_name', 'status', 'type', 'reference');
-    	$attrs ['headers'] = array('Créé le', 'Année', 'Montant', 'Membre', 'Status', 'Type', 'Référence');
-    	$data ['controller'] = $this->controller;
-    	$data ['data_table'] = flatten($sales, $attrs);
-    	$data['table_title'] = 'Facturation HEVA';
-    
-    	return load_last_view('default_table', $data, false);
-    
+        // $this->push_return_url("Facturation licences");
+        $this->session->set_userdata('back_url', current_url());
+        gvv_debug("push back_url facturation licences: " . current_url());
+
+        $sales = $this->fetch_sales($licence_number, $year);
+        // var_dump($sales);
+        $i = 0;
+        foreach ($sales as $row) {
+            if ($row['status'] == '') {
+                // pas d'erreur détectée
+
+                // est-ce que la référence à déja été facturé ?
+                $num_cheque = $row['reference'];
+                if (isset($row['compte']) && $row['compte']) {
+                    $compte_info = $this->comptes_model->get_by_id('id', $row['compte']);
+                    $payeur = $compte_info['pilote'];
+                } else {
+                    $payeur = $row['mlogin'];
+                }
+
+                $facture = $this->achats_model->get_first(array('num_cheque' => $num_cheque, 'pilote' => $payeur));
+
+                if ($facture) {
+                    $sales[$i]['status'] = "facturé";
+                } else {
+                    // var_dump($row);
+                    // build information to pre-fill a billing form
+                    $date = substr($row['created_at'], 0, 10);
+                    $amount = $row['total_amount'];
+                    $mlogin = $row['mlogin'];
+
+                    $description = $row['type'];
+                    if ($description == "Player") {
+                        $description = "Licence FFVV " . $row['year'];
+                    } elseif ($description == "BadgeSale") {
+                        $description = "Badge FAI FFVV";
+                    }
+
+                    if ($row['compte']) {
+                        // pilote à facturer sur un autre compte
+                        $compte_info = $this->comptes_model->get_by_id('id', $row['compte']);
+                        $name = $this->membres_model->image($mlogin);
+                        $mlogin = $compte_info['pilote'];
+                        $description .= ' de ' . $name;
+                    }
+
+                    $url = controller_url('achats') . '/create'
+                        . '?amount=' . urlencode($amount)
+                        . '&date=' . urlencode($date)
+                        . '&pilot=' . urlencode($mlogin)
+                        . '&description=' . urlencode($description)
+                        . '&num_cheque=' . urlencode($num_cheque);
+
+                    // var_dump($url);
+                    $sales[$i]['status'] = anchor($url, "Facturation", array("class" => "jbutton"));
+                }
+            }
+            $i++;
+        }
+
+        $attrs['fields'] = array('created_at', 'year', 'total_amount', 'pilot_name', 'status', 'type', 'reference');
+        $attrs['headers'] = array('Créé le', 'Année', 'Montant', 'Membre', 'Status', 'Type', 'Référence');
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($sales, $attrs);
+        $data['table_title'] = 'Facturation HEVA';
+
+        return load_last_view('default_table', $data, false);
     }
-    
+
     /**
      * Retourne les informations sur les licences
      * @param string $id
@@ -534,9 +548,9 @@ class FFVV extends CI_Controller {
         }
 
         $result = json_decode($request->body, true);
-        
+
         /**
-          */
+         */
 
         $table = array();
         foreach ($result as $row) {
@@ -550,17 +564,33 @@ class FFVV extends CI_Controller {
             // var_dump($row);
             $table[] = $row;
         }
-        $attrs ['fields'] = array('licence_number', 'starting_at', 'ending_at', 'first_name', 'last_name', 'lic_fed', 'assoc',
-                'year', 'type_name');
-        $attrs ['headers'] = array('N° licence', 'Début', 'Fin', 'Prénom', 'Nom', 'N° licencié', 'Association',
-                'Année', 'Type');
-        $data ['controller'] = $this->controller;
-        $data ['data_table'] = flatten($table, $attrs);
+        $attrs['fields'] = array(
+            'licence_number',
+            'starting_at',
+            'ending_at',
+            'first_name',
+            'last_name',
+            'lic_fed',
+            'assoc',
+            'year',
+            'type_name'
+        );
+        $attrs['headers'] = array(
+            'N° licence',
+            'Début',
+            'Fin',
+            'Prénom',
+            'Nom',
+            'N° licencié',
+            'Association',
+            'Année',
+            'Type'
+        );
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($table, $attrs);
         $data['table_title'] = 'Licences HEVA';
 
         return load_last_view('default_table', $data, false);
-        
-
     }
 
     /**
@@ -577,12 +607,12 @@ class FFVV extends CI_Controller {
         }
 
         $result = json_decode($request->body, true);
-        
+
         // var_dump($result); ;
-         
+
     }
 
-    public function edit ($pilot) {
+    public function edit($pilot) {
         $this->info_pilote($pilot);
     }
 
@@ -616,13 +646,13 @@ class FFVV extends CI_Controller {
 
         $table = $this->format_sales($result);
 
-        $attrs ['fields'] = array('created_at', 'year', 'total_amount', 'assoc_name', 'collecting_assoc', 'type', 'reference');
-        $attrs ['headers'] = array('Créé le', 'Année', 'Montant', 'Association', 'Fédération', 'Type', 'Référence');
-        $data ['controller'] = $this->controller;
-        $data ['data_table'] = flatten($table, $attrs); 
+        $attrs['fields'] = array('created_at', 'year', 'total_amount', 'assoc_name', 'collecting_assoc', 'type', 'reference');
+        $attrs['headers'] = array('Créé le', 'Année', 'Montant', 'Association', 'Fédération', 'Type', 'Référence');
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($table, $attrs);
         $data['table_title'] = 'Licences HEVA du pilote ' . $first_name . ' ' . $last_name;
 
-        return load_last_view('default_table', $data, false);        
+        return load_last_view('default_table', $data, false);
     }
 
     /**
@@ -641,13 +671,13 @@ class FFVV extends CI_Controller {
 
         $result = json_decode($request->body, true);
 
-		$attrs ['fields'] = array('id', 'category', 'name', 'is_date_required');
-		$attrs ['headers'] = array('Id', 'Categorie', 'Nom', 'Avec date');
-		$data ['controller'] = $this->controller;
-		$data ['data_table'] = flatten( $result, $attrs);
-		$data['table_title'] = 'Types de qualification HEVA';
+        $attrs['fields'] = array('id', 'category', 'name', 'is_date_required');
+        $attrs['headers'] = array('Id', 'Categorie', 'Nom', 'Avec date');
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($result, $attrs);
+        $data['table_title'] = 'Types de qualification HEVA';
 
-		return load_last_view('default_table', $data, false);
+        return load_last_view('default_table', $data, false);
     }
 
     /**
@@ -685,24 +715,25 @@ class FFVV extends CI_Controller {
 
             $table[] = $row;
         }
-        $attrs ['fields'] = array('awarded_at', 'type_name');
-        $attrs ['headers'] = array('Date', 'Type');
-        $data ['controller'] = $this->controller;
-        $data ['data_table'] = flatten($table, $attrs); 
-        $data['table_title'] = 'Qualifications pour '. $first_name . ' ' . $last_name;
+        $attrs['fields'] = array('awarded_at', 'type_name');
+        $attrs['headers'] = array('Date', 'Type');
+        $data['controller'] = $this->controller;
+        $data['data_table'] = flatten($table, $attrs);
+        $data['table_title'] = 'Qualifications pour ' . $first_name . ' ' . $last_name;
 
-		return load_last_view('default_table', $data, false);
+        return load_last_view('default_table', $data, false);
     }
 
-	/**
-	 * Fonction de test
-	 */
-	function echo_params () {
-	    echo "echo_params" . br();
-	    echo "\$_SERVER"; var_dump($_SERVER);
-	    echo "\$_GET"; var_dump($_GET);
-	    echo "\$_POST"; var_dump($_POST);
-	}
-
-
+    /**
+     * Fonction de test
+     */
+    function echo_params() {
+        echo "echo_params" . br();
+        echo "\$_SERVER";
+        var_dump($_SERVER);
+        echo "\$_GET";
+        var_dump($_GET);
+        echo "\$_POST";
+        var_dump($_POST);
+    }
 }
