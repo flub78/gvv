@@ -155,7 +155,7 @@ class FFVV extends CI_Controller {
                 // Pas de membre associé, proposer création ou association
                 $create = anchor(controller_url('membre') . "/heva_create/" . $row['licence_number'], 'Créer');
                 $associe = anchor(controller_url('membre') . "/associe_licence/" . $row['licence_number']
-                    . '/' . $row['image'], 'Associe', array("class" => "jbutton"));
+                    . '/' . $row['image'], 'Associe', array("class" => "btn btn-primary"));
                 $row['linked'] = $associe;
             }
             // var_dump($membre);
@@ -518,7 +518,7 @@ class FFVV extends CI_Controller {
                         . '&num_cheque=' . urlencode($num_cheque);
 
                     // var_dump($url);
-                    $sales[$i]['status'] = anchor($url, "Facturation", array("class" => "jbutton"));
+                    $sales[$i]['status'] = anchor($url, "Facturation", array("class" => "btn btn-primary"));
                 }
             }
             $i++;
