@@ -39,6 +39,6 @@ echo "Avec le membre : " . form_dropdown('mlogin', $selector, "", "");
 echo nbs() . form_input(array('type' => 'submit', 'name' => 'button', 'value' => $this->lang->line("gvv_button_validate"))) . br(2);
 
 echo "Si le membre n'existe pas : "
-	. anchor(controller_url('membre/heva_create/' . $licence_number), "Création", array("class" => "jbutton"));
+	. anchor(controller_url('membre/heva_create/' . $licence_number), "Création", array("class" => "btn btn-success"));
 
 echo form_close('</div>');
