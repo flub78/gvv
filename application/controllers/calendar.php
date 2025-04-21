@@ -44,36 +44,39 @@ class Calendar extends CI_Controller {
         if (! $info = get_file_info($config_file)) {
             echo "$filename non trouvé" . br();
         }
-        $mod_date = $info ['date'];
+        $mod_date = $info['date'];
         $this->load->helper('cookie');
 
-        $this->input->set_cookie(array (
-                'name' => 'mod_date',
-                'value' => $mod_date,
-                'expire' => 86500 * 7,
-                'prefix' => 'gvv_'
+        $this->input->set_cookie(array(
+            'name' => 'mod_date',
+            'value' => $mod_date,
+            'expire' => 86500 * 7,
+            'prefix' => 'gvv_'
         ));
 
-        $json = json_encode(array (
-                'status' => "OK",
-                'action' => 'set_cookie'
+        $json = json_encode(array(
+            'status' => "OK",
+            'action' => 'set_cookie'
         ));
         gvv_debug("json = $json");
         echo $json;
     }
 
+    /**
+     * Affiche le calendrier
+     */
     function index() {
         $this->load->model('membres_model');
         $this->lang->load('membre');
 
-        $data = array ();
-        $data ['pilote_selector'] = $this->membres_model->selector_with_null(array (
-                'actif' => "1"
+        $data = array();
+        $data['pilote_selector'] = $this->membres_model->selector_with_null(array(
+            'actif' => "1"
         ));
 
-        $data ['is_ca'] = $this->dx_auth->is_role('ca', true, true);
-        $data ['mlogin'] = $this->membres_model->default_id();
-        $data ['event_id'] = "";
+        $data['is_ca'] = $this->dx_auth->is_role('ca', true, true);
+        $data['mlogin'] = $this->membres_model->default_id();
+        $data['event_id'] = "";
 
         // MOD
         $this->load->helper('file');
@@ -82,7 +85,7 @@ class Calendar extends CI_Controller {
         if (! $info = get_file_info($config_file)) {
             echo "$filename non trouvé" . br();
         }
-        $mod_date = $info ['date'];
+        $mod_date = $info['date'];
         $this->load->helper('cookie');
 
         $cookie = get_cookie('gvv_mod_date');
@@ -90,13 +93,13 @@ class Calendar extends CI_Controller {
         if ($cookie && ($mod_date <= $cookie)) {
             // Cookie set et mod est plus vieux
             // on affiche rien
-            $data ['mod'] = '';
+            $data['mod'] = '';
         } else {
             // pas de cookie ou MOD est plus récent
-            $data ['mod'] = $this->config->item('mod');
+            $data['mod'] = $this->config->item('mod');
         }
 
-        $data ['cal_id'] = $this->config->item('calendar_id');
+        $data['cal_id'] = $this->config->item('calendar_id');
         load_last_view('calendar', $data);
     }
 }
