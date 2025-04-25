@@ -28,6 +28,7 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 
 ## Reste à faire
 
+* [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
 * [] tester les téléchargements avec espace (upload->do_upload)
