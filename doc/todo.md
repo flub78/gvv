@@ -28,6 +28,9 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 
 ## Reste à faire
 
+* [] bilan et clôture par section
+* [] gestion des vols de découverte
+
 * [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
@@ -37,10 +40,8 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
-* [] bilan et clôture par section
 * [] gestion des droits multi sections
 * [] Vérifier les photos des membres sur le site déployé
-* [] gestion des vols de découverte
 * [] synchro avec OpenFlyers
 * [] Gestion de l'inscription, y compris les autorisations parentales
 * [] supprimer les trucs orienté planeur dans les formulaires

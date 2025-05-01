@@ -1,6 +1,6 @@
 # Development workflow
 
-Ce fichier pour documenter les étapes de développement.
+Ce fichier pour documenter les étapes de développement, typiquement la création d'une nouvelle resource avec son contrôleur, son modèle et ses vues.
 
 ## Génération de la migration
 
@@ -16,11 +16,11 @@ Naming conventions for CodeIgniter 2.x Migration Classes:
 * Class Names: CamelCase prefixed with Migration_.
 Methods: Classes must define up() and down() methods.
 
-Update application/config/migration.php
+Incrémenter application/config/migration.php
 
 ## Génération du modèle
 
-dans application/models. Attention select_page doit retourner également la colonne de la clé primaire même si elle n'est jamais affichée.
+Dans application/models. Attention select_page doit retourner également la colonne de la clé primaire même si elle n'est jamais affichée.
 
 
 ## Génération des fichiers de traduction

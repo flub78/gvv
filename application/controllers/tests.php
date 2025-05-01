@@ -19,6 +19,8 @@ if (! defined('BASEPATH'))
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 set_include_path(getcwd() . "/..:" . get_include_path());
+include(APPPATH . '/third_party/phpqrcode/qrlib.php');
+
 class Tests extends CI_Controller {
     function __construct() {
         date_default_timezone_set('Europe/Paris');
@@ -583,6 +585,12 @@ class Tests extends CI_Controller {
 
     function error() {
         show_error("GVV error");
+    }
+
+    function qr() {
+        //echo "QR code";
+        QRcode::png('https://example.com');
+        //QRcode::png('https://example.com', 'qrcode.png');
     }
 }
 

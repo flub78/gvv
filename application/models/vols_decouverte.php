@@ -12,16 +12,16 @@ $CI->load->model('common_model');
  *  est de définir le nom de la table. Tous les méthodes sont 
  *  implémentés dans Common_Model
  */
-class Terrains_model extends Common_Model {
-    public $table = 'terrains';
-    protected $primary_key = 'oaci';
+class Vols_decouverte_model extends Common_Model {
+    public $table = 'vols_decouverte';
+    protected $primary_key = 'id';
 
     /**
      *	Retourne le tableau tableau utilisé pour l'affichage par page
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('oaci, nom, freq1, freq2, comment');
+        $select = $this->select_columns('date_vente, club, product, destinatiaire, de_la_part, dest_email, comment, qr_code');
         $this->gvvmetadata->store_table("vue_terrains", $select);
         return $select;
     }

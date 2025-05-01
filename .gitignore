@@ -19,3 +19,4 @@ setenv.sh
 results/*
 captcha/*
 .htaccess
+application/third_party/phpqrcode/cache/*

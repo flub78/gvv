@@ -26,13 +26,14 @@ CREATE TABLE `vols_decouverte` (
   `date_vente` date NOT NULL,
   `club` tinyint(1) NOT NULL,
   `product` varchar(32) NOT NULL,
-  `destinataire` varchar(64) DEFAULT NULL,
+  `saisie_par` varchar(32) NOT NULL,
+  `beneficiaire` varchar(64) DEFAULT NULL,
   `de_la_part` varchar(64) DEFAULT NULL,
-  `dest_email` varchar(64) DEFAULT NULL,
-  `qr_code` varchar(64) NOT NULL,
+  `beneficiaire_email` varchar(64) DEFAULT NULL,
   `beneficiaire_tel` varchar(64) DEFAULT NULL,
   `accident_tel` varchar(64) DEFAULT NULL,
   `accident_name` varchar(64) DEFAULT NULL,
+  `qr_code` varchar(64) NOT NULL,
   `parental` varchar(64) DEFAULT NULL,
   `date_plannig` date DEFAULT NULL,
   `time_planning` time DEFAULT NULL,
@@ -40,7 +41,7 @@ CREATE TABLE `vols_decouverte` (
   `time_vol` time DEFAULT NULL,
   `pilote` varchar(64) DEFAULT NULL,
   `airplane_type` varchar(64) DEFAULT NULL,
-  `airplaine_immat` varchar(10) DEFAULT NULL,
+  `airplane_immat` varchar(10) DEFAULT NULL,
   `cancelled` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
