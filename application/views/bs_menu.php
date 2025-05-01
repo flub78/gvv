@@ -53,6 +53,9 @@ $section_count = $CI->sections_model->safe_count_all();
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_admin") ?></a>
                 <ul class="dropdown-menu">
 
+                  <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><?= translation("gvv_menu_vols_decouverte") ?></a></li>
+
+
                   <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_reports") ?> &raquo;</a>
                     <ul class="submenu dropdown-menu">
 
