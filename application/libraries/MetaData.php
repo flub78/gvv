@@ -1862,8 +1862,17 @@ abstract class Metadata {
             ));
             $input = form_input($attrs);
             return $input;
+        } elseif ('time' == $type) {
+            $attrs = array_merge($attrs, array(
+                'type' => $type,
+                'name' => $field,
+                'value' => set_value($field, $value),
+                'size' => (int) $size
+            ));
+            $input = form_input($attrs);
+            return $input;
         }
-        echo "input_field ($table, $field, $value) unknown type=$type, size=$size";
+        echo "input_field ($table, $field, $value) undefined type=$type, size=$size";
         return '';
     }
 
@@ -1878,13 +1887,24 @@ abstract class Metadata {
     function post2database($table, $field, $value = '') {
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
+        $may_be_null = $this->field_attr($table, $field, 'Null');
+
         if ('date' == $type) {
-            return date_ht2db($value);
+            $formated = date_ht2db($value);
+            if (!$formated && $may_be_null) {
+                return null;
+            }
+            return $formated;
         } elseif ("time" == $subtype) {
             return str_replace(":", ".", $value);
         } elseif ("decimal" == $type) {
             if ($value == "") return 0;
             return str_replace(',', '.', $value);
+        } elseif ("time" == $type) {
+            if (!$value && $may_be_null) {
+                return null;
+            }
+            return $value;
         }
         return $value;
     }

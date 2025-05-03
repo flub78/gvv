@@ -17,9 +17,9 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @filesource avion.php
+ * @filesource vols_decouverte.php
  * @package controllers
- * Controleur de gestion des avions.
+ * Contrôleur de gestion des avions.
  */
 include('./application/libraries/Gvv_Controller.php');
 class Vols_decouverte extends Gvv_Controller {
@@ -29,6 +29,26 @@ class Vols_decouverte extends Gvv_Controller {
     protected $model = 'vols_decouverte_model';
     protected $modification_level = 'ca';
     protected $rules = array();
+
+    /**
+     * Génération des éléments statiques à passer au formulaire en cas de création,
+     * modification ou ré-affichage après erreur.
+     * Sont statiques les parties qui ne changent pas d'un élément sur l'autre.
+     *
+     * @param $action CREATION
+     *            | MODIFICATION | VISUALISATION
+     * @see constants.php
+     */
+    protected function form_static_element($action) {
+        $this->data['action'] = $action;
+        $this->data['fields'] = $this->fields;
+        $this->data['controller'] = $this->controller;
+        if ($action == "visualisation") {
+            $this->data['readonly'] = "readonly";
+        }
+
+        $this->data['saisie_par'] = $this->dx_auth->get_username();
+    }
 
     /**
      * Test unitaire

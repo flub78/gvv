@@ -6,7 +6,7 @@ $CI = &get_instance();
 $CI->load->model('common_model');
 
 /**
- *	Accès base Terrains
+ *	Accès base vols_decouverte
  *
  *  C'est un CRUD de base, la seule chose que fait cette classe
  *  est de définir le nom de la table. Tous les méthodes sont 
@@ -21,11 +21,21 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, comment, qr_code');
-        $this->gvvmetadata->store_table("vue_terrains", $select);
+        $select = $this->select_columns('date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, qr_code');
+        $this->gvvmetadata->store_table("vue_vols_decouverte", $select);
         return $select;
     }
 
+    /**
+     * Ajoute un élément
+     *
+     * @param $data hash
+     *            des valeurs
+     */
+    public function create($data) {
+        $data['saisie_par'] = $this->dx_auth->get_username();
+        parent::create($data);
+    }
 
     /**
      * Retourne une chaîne de caractère qui identifie une ligne de façon unique.
@@ -36,11 +46,11 @@ class Vols_decouverte_model extends Common_Model {
     public function image($key) {
         if ($key == "")
             return "";
-        $vals = $this->get_by_id('oaci', $key);
-        if (array_key_exists('oaci', $vals) && array_key_exists('nom', $vals)) {
-            return $vals['oaci'] . " " . $vals['nom'];
+        $vals = $this->get_by_id('id', $key);
+        if (array_key_exists('date_vente', $vals) && array_key_exists('beneficiaire', $vals)) {
+            return $vals['date_vente'] . " " . $vals['beneficiaire'];
         } else {
-            return "terrain inconnu $key";
+            return "vols_decouverte inconnu $key";
         }
     }
 }

@@ -570,6 +570,8 @@ class Gvv_Controller extends CI_Controller {
             }
         } else {
             // validation failed
+            var_dump(validation_errors());
+            echo form_error('qr_code');
             gvv_debug("form validation failed");
         }
 
