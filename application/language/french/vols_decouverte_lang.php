@@ -24,8 +24,7 @@ $lang['gvv_vols_decouverte_field_time_planning'] = "Heure prévues";
 $lang['gvv_vols_decouverte_field_date_vol'] = "Date du vol";
 $lang['gvv_vols_decouverte_field_time_vol'] = "Heure du vol";
 $lang['gvv_vols_decouverte_field_pilote'] = "Pilote";
-$lang['gvv_vols_decouverte_field_airplane_type'] = "Type de machine";
-$lang['gvv_vols_decouverte_field_airplane_immat'] = "Immatriculation";
+$lang['gvv_vols_decouverte_field_airplane_immat'] = "Appareil";
 $lang['gvv_vols_decouverte_field_cancelled'] = "Annulé";
 
 
@@ -44,8 +43,7 @@ $lang['gvv_vue_vols_decouverte_short_field_time_planning'] = "Heure prévues";
 $lang['gvv_vue_vols_decouverte_short_field_date_vol'] = "Date du vol";
 $lang['gvv_vue_vols_decouverte_short_field_time_vol'] = "Heure du vol";
 $lang['gvv_vue_vols_decouverte_short_field_pilote'] = "Pilote";
-$lang['gvv_vue_vols_decouverte_short_field_airplane_type'] = "Type";
-$lang['gvv_vue_vols_decouverte_short_field_airplane_immat'] = "Immatriculation";
+$lang['gvv_vue_vols_decouverte_short_field_airplane_immat'] = "Appareil";
 $lang['gvv_vue_vols_decouverte_short_field_cancelled'] = "Annulé";
 
 $lang['gvv_vols_decouverte_filtre_done'] = "Effectués";

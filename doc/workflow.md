@@ -76,13 +76,13 @@ Les champs sont affichés par la fonction array_field de la classe Metadata.
 
 ### Métadonnées
 
-Les metadonnées doivent être renseignées pour un affichage correcte des vues.
+Les metadonnées doivent être renseignées pour un affichage correcte des vues. Elle sont gérées dans Gvvmetadata.php. La tenttive de les répartir ans plusieurs fichiers n'a jamais abouti.
 
 Par exemple:
 
 La page des vols avion affiche des pilotes et des machines (vapilid et vamacid).
 
-Pour identifier les champs pour lesquels il faut définit les metadonnées:
+On peut utiliser les logs, pour identifier les champs pour lesquels il faut définit les metadonnées:
 ```
 DEBUG - 2025-02-10 14:28:09 --> GVV: input_field(user_roles_per_section, user_id, 58, ro) type=int, subtype=
 DEBUG - 2025-02-10 14:28:09 --> GVV: input_field(user_roles_per_section, types_roles_id, 5, ro) type=int, subtype=
@@ -93,6 +93,8 @@ DEBUG - 2025-02-10 14:33:18 --> GVV: array_field (vue_user_roles_per_section, em
 DEBUG - 2025-02-10 14:33:18 --> GVV: array_field (vue_user_roles_per_section, section_name), id=1, type=varchar, subtype=, value=Planeur
 DEBUG - 2025-02-10 14:33:18 --> GVV: array_field (vue_user_roles_per_section, role_type), id=1, type=varchar, subtype=, value=user
 ```
+
+Définir les métadonnees:
 
 ```
    $this->field['volsa']['vapilid']['Subtype'] = 'selector';

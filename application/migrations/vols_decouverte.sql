@@ -39,7 +39,6 @@ CREATE TABLE `vols_decouverte` (
   `date_vol` date DEFAULT NULL,
   `time_vol` time DEFAULT NULL,
   `pilote` varchar(64) DEFAULT NULL,
-  `airplane_type` varchar(64) DEFAULT NULL,
   `airplane_immat` varchar(10) DEFAULT NULL,
   `cancelled` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

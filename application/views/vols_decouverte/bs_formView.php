@@ -55,7 +55,6 @@ echo ($this->gvvmetadata->form('vols_decouverte', array(
 	'date_vol' => $date_vol,
 	'time_vol' => $time_vol,
 	'pilote' => $pilote,
-	'airplane_type' => $airplane_type,
 	'airplane_immat' => $airplane_immat,
 	'cancelled' => $cancelled
 )));

@@ -48,6 +48,9 @@ class Vols_decouverte extends Gvv_Controller {
         }
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
+
+        $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
+        $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
     }
 
     /**
