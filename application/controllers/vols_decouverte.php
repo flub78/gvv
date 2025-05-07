@@ -30,125 +30,14 @@ class Vols_decouverte extends Gvv_Controller {
     protected $modification_level = 'ca';
     protected $rules = array();
 
-    /**
-     * Transforme un entier en un autre entier de façon réversible mais difficile à inverser
-     * sans connaître l'algorithme et les clés utilisées
-     * 
-     * @param int $input L'entier à transformer
-     * @param int $key1 Première clé secrète
-     * @param int $key2 Deuxième clé secrète
-     * @return int L'entier transformé
-     */
-    function transformInteger($input, $key1 = 12345, $key2 = 67890) {
-        // Validation de l'entrée
-        if (!is_int($input) || $input < 0) {
-            throw new InvalidArgumentException("L'entrée doit être un entier positif");
-        }
-
-        // Limite pour rester dans un intervalle gérable
-        $prime = 1000000007; // Nombre premier souvent utilisé en cryptographie
-
-        // Étape 1: Mélange initial avec XOR
-        $result = $input ^ $key1;
-
-        // Étape 2: Permutation avec multiplication
-        $result = ($result * $key2) % $prime;
-
-        // Étape 3: Autre mélange avec XOR et décalage
-        $result = $result ^ ($key1 << 4);
-
-        // Étape 4: Ajout d'une constante dérivée des clés
-        $mix = (($key1 + $key2) % $prime);
-        $result = ($result + $mix) % $prime;
-
-        return $result;
-    }
 
     /**
-     * Fonction inverse qui permet de retrouver l'entier original
-     * 
-     * @param int $encoded L'entier transformé
-     * @param int $key1 Première clé secrète (doit être identique à celle utilisée pour l'encodage)
-     * @param int $key2 Deuxième clé secrète (doit être identique à celle utilisée pour l'encodage)
-     * @return int L'entier original
+     * Constructeur
      */
-    function reverseTransform($encoded, $key1 = 12345, $key2 = 67890) {
-        $prime = 1000000007;
+    function __construct() {
+        parent::__construct();
 
-        // Étape 4 inverse: Soustraction de la constante
-        $mix = (($key1 + $key2) % $prime);
-        $result = ($encoded - $mix) % $prime;
-        if ($result < 0) $result += $prime;
-
-        // Étape 3 inverse: Annulation du XOR avec décalage
-        $result = $result ^ ($key1 << 4);
-
-        // Étape 2 inverse: Annulation de la multiplication en utilisant l'inverse modulaire
-        $inverseKey2 = $this->modInverse($key2, $prime);
-        $result = ($result * $inverseKey2) % $prime;
-
-        // Étape 1 inverse: Annulation du XOR initial
-        $result = $result ^ $key1;
-
-        return $result;
-    }
-
-    /**
-     * Calcule l'inverse modulaire (a^-1 mod m)
-     * Utilise l'algorithme d'Euclide étendu
-     * 
-     * @param int $a Le nombre dont on cherche l'inverse
-     * @param int $m Le modulo
-     * @return int L'inverse modulaire de a mod m
-     */
-    function modInverse($a, $m) {
-        // Cas spécial
-        if ($a == 0) {
-            throw new InvalidArgumentException("L'inverse modulaire de 0 n'existe pas");
-        }
-
-        // Garde a positif et dans le bon intervalle
-        $a = $a % $m;
-        if ($a < 0) {
-            $a += $m;
-        }
-
-        // Algorithme d'Euclide étendu
-        $s = 0;
-        $oldS = 1;
-        $t = 1;
-        $oldT = 0;
-        $r = $m;
-        $oldR = $a;
-
-        while ($r != 0) {
-            $quotient = intdiv($oldR, $r);
-
-            // Mise à jour des valeurs
-            $temp = $r;
-            $r = $oldR - $quotient * $r;
-            $oldR = $temp;
-
-            $temp = $s;
-            $s = $oldS - $quotient * $s;
-            $oldS = $temp;
-
-            $temp = $t;
-            $t = $oldT - $quotient * $t;
-            $oldT = $temp;
-        }
-
-        // Si le PGCD n'est pas 1, l'inverse n'existe pas
-        if ($oldR != 1) {
-            throw new InvalidArgumentException("L'inverse modulaire n'existe pas car $a et $m ne sont pas premiers entre eux");
-        }
-
-        // Ajustement pour obtenir une valeur positive
-        if ($oldS < 0) {
-            $oldS += $m;
-        }
-
-        return $oldS;
+        $this->load->helper('crypto');
     }
 
     /**
@@ -174,6 +63,29 @@ class Vols_decouverte extends Gvv_Controller {
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
     }
 
+
+    /**
+     * Affiche les différentes action possibles sur un vol de découverte
+     */
+    function action($id) {
+        $unobfuscated_id = reverseTransform($id);
+
+        // echo "action = $id";
+
+        $vd = $this->gvv_model->get_by_id($this->kid, $unobfuscated_id);
+
+        if (!count($vd)) {
+            $data = [];
+            $data['msg'] = "Le vol de découverte $id n'existe pas";
+
+            load_last_view('error', $data);
+
+            return;
+        }
+
+        var_dump($vd);
+    }
+
     /**
      * Test unitaire
      */
@@ -189,8 +101,8 @@ class Vols_decouverte extends Gvv_Controller {
     function qr() {
 
         $originalNumber = 12345;
-        $transformed = $this->transformInteger($originalNumber);
-        $recovered = $this->reverseTransform($transformed);
+        $transformed = transformInteger($originalNumber);
+        $recovered = reverseTransform($transformed);
 
         echo "QR:";
         echo "Nombre original: " . $originalNumber . "\n";
@@ -200,9 +112,9 @@ class Vols_decouverte extends Gvv_Controller {
         // Test avec quelques autres valeurs
         $testValues = [0, 1, 42, 99999, 1000000];
         foreach ($testValues as $value) {
-            $transformed = $this->transformInteger($value);
-            $recovered = $this->reverseTransform($transformed);
-            echo "Test avec $value: transformé = $transformed, récupéré = $recovered\n";
+            $transformed = transformInteger($value);
+            $recovered = reverseTransform($transformed);
+            echo "<br> Test avec $value: transformé = $transformed, récupéré = $recovered\n";
         }
     }
 }

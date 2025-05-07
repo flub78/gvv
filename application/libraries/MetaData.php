@@ -109,6 +109,8 @@ abstract class Metadata {
             return;
         }
 
+        $this->CI->load->helper('crypto');
+
         foreach ($res->result_array() as $row) {
             foreach ($row as $key => $table) {
                 $this->tables[] = $table;
@@ -541,7 +543,8 @@ abstract class Metadata {
             $res .= "<table><tr><td>" . "Afficher par page: " . form_dropdown('perpage', array(
                 25 => 25,
                 50 => 50,
-                100 => 100
+                100 => 100,
+                500 => 500
             ), $per_page, "id='per_page' onchange=per_page();") . nbs(4) . $pagination . "</td></tr></table>";
         }
 
@@ -609,6 +612,7 @@ abstract class Metadata {
             $cnt++;
 
             $elt_id = isset($row[$this->table_key($table)]) ? $row[$this->table_key($table)] : 'XXX';
+
 
             // and the actions
             if ($mode == "rw") {
@@ -1290,6 +1294,16 @@ abstract class Metadata {
                 'title' => $label
             );
             $label = img($image_properties);
+        } elseif ($action == 'action') {
+            $image = theme() . "/images/information.png";
+            $image_properties = array(
+                'src' => $image,
+                'class' => 'icon',
+                'title' => $label
+            );
+            $label = img($image_properties);
+            $obfuscated = transformInteger($elt_id);
+            return anchor($url . "/$obfuscated", $label, $attrs);
         } elseif ($action == 'csv') {
             $image = theme() . "/images/page-excel-icon.png";
             $image_properties = array(
