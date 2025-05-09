@@ -47,14 +47,14 @@ class Admin extends CI_Controller {
      *            string type structure | "" = sauvegarde complète
      */
     public function backup($type = "") {
-        $this->database->backup($type);
+        $this->database->backup2($type);
     }
 
     /**
      * Affiche la page de restauration
      *
-     * A completer. Peut-etre vaudrait-il mieux ne pas supporter
-     * cela. C'est surement une faille de sécurité potentielle ???
+     * A completer. Peut-être vaudrait-il mieux ne pas supporter
+     * cela. C'est sûrement une faille de sécurité potentielle ???
      */
     public function restore() {
         $dir = getcwd() . '/backups/';
@@ -62,7 +62,7 @@ class Admin extends CI_Controller {
         $backups = array();
         foreach ($files as $file) {
             $name = basename($file);
-            $url = base_url() . '/backups/' . $name;
+            $url = base_url() . 'backups/' . $name;
             $anchor = anchor($url, $name);
             $backups[] = $anchor;
         }

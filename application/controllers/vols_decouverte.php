@@ -86,6 +86,22 @@ class Vols_decouverte extends Gvv_Controller {
         var_dump($vd);
     }
 
+    function print($id) {
+        $unobfuscated_id = reverseTransform($id);
+    }
+
+    function email($id) {
+        $unobfuscated_id = reverseTransform($id);
+    }
+
+    function edit_pre_flight_info($id) {
+        $unobfuscated_id = reverseTransform($id);
+    }
+
+    function done($id) {
+        $unobfuscated_id = reverseTransform($id);
+    }
+
     /**
      * Test unitaire
      */
