@@ -67,39 +67,41 @@ class Vols_decouverte extends Gvv_Controller {
     /**
      * Affiche les différentes action possibles sur un vol de découverte
      */
-    function action($id) {
-        $unobfuscated_id = reverseTransform($id);
+    function action($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
 
         // echo "action = $id";
 
-        $vd = $this->gvv_model->get_by_id($this->kid, $unobfuscated_id);
+        $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
-        if (!count($vd)) {
+        if (!count($this->data)) {
             $data = [];
-            $data['msg'] = "Le vol de découverte $id n'existe pas";
+            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
 
             load_last_view('error', $data);
 
             return;
         }
 
-        var_dump($vd);
+        $this->data['obfuscated_id'] = $obfuscated_id;
+
+        return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
 
-    function print($id) {
-        $unobfuscated_id = reverseTransform($id);
+    function print($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
     }
 
-    function email($id) {
-        $unobfuscated_id = reverseTransform($id);
+    function email($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
     }
 
-    function edit_pre_flight_info($id) {
-        $unobfuscated_id = reverseTransform($id);
+    function edit_pre_flight_info($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
     }
 
-    function done($id) {
-        $unobfuscated_id = reverseTransform($id);
+    function done($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
     }
 
     /**

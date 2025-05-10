@@ -9,4 +9,8 @@ Quand tout ne se passe pas comme prévu.
 
 * On peut changer le niveau de verbosité dans index.php
 
-* Et vous pouvez également utiliser [xdebug](xdebug.md)    
+* Et vous pouvez également utiliser [xdebug](xdebug.md)   
+
+## Error 500
+
+Souvent lié à des erreurs de syntaxe dans les fichiers php mais pas que...

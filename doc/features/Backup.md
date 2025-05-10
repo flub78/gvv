@@ -13,3 +13,12 @@ Il y a un script tools/autobackup.py qui fait cela. Il doit être installé dans
 Pour lister les tâches cron :
 
     crontab -l 
+
+
+## Sauvegarde des media
+
+All files are under gvv/uploads
+
+Il y a des références dans la base de données sur les fichiers chargés.
+
+

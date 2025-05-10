@@ -50,6 +50,8 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 * [] Reservation des avions                                  10j
 * [] Fixer la date de gel lors de la cloture (par section quand la dernière section a clôturé)
 * [] Support du markdown
+* [] Sauvegarde/restuauraion des medias et attachements
+* [] Attachements sur les achats
 
 
 ## Dette technique

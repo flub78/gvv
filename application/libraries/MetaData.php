@@ -1699,7 +1699,7 @@ abstract class Metadata {
             $attrsv = "id=\"$field\"";
 
             # if there are more than 8 values in the selector,
-            if (count($selector) > 8) {
+            if ($selector && count($selector) > 8) {
                 $attrsv .= " class=\"big_select\" ";
             }
 
@@ -1944,6 +1944,30 @@ abstract class Metadata {
             $res .= "</tr>\n";
         }
         $res .= "</table>\n";
+        return $res;
+    }
+
+    /**
+     * Basic form
+     *
+     * @param string $table name
+     * @param mixed[] $fields hash of field names with initial values
+     * @return mixed[]
+     */
+    function form_flexbox($table, $fields = array()) {
+        $res = "";
+        $res .= form_error('club') . "\n";
+        $res .= '<div class="d-flex flex-wrap">';
+        foreach ($fields as $field => $init) {
+            $label = $this->field_long_name($table, $field) . ":";
+            $field_value = $this->input_field($table, $field, $init);
+            $res .= '<div class="form-floating mb-2 border">';
+            $res .= $label;
+            $res .= $field_value;
+            $res .= form_error($field);
+            $res .= "</div>\n";
+        }
+        $res .= "</div>\n";
         return $res;
     }
 
