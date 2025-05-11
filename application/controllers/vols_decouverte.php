@@ -22,6 +22,10 @@
  * Contrôleur de gestion des avions.
  */
 include('./application/libraries/Gvv_Controller.php');
+include(APPPATH . '/third_party/phpqrcode/qrlib.php');
+include(APPPATH . '/third_party/tcpdf/tcpdf.php');
+
+
 class Vols_decouverte extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
@@ -77,19 +81,65 @@ class Vols_decouverte extends Gvv_Controller {
         if (!count($this->data)) {
             $data = [];
             $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
-
             load_last_view('error', $data);
-
             return;
         }
 
+        // $tempDir = sys_get_temp_dir(); 
+
         $this->data['obfuscated_id'] = $obfuscated_id;
+        $qr_url = 'https://example.com';
+        $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
+        $qr_name = 'qrcode_' . $id . '.png';
+        QRcode::png($qr_url);
+        QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
 
-    function print($obfuscated_id) {
+    function pdf($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
+
+        $this->data = $this->gvv_model->get_by_id($this->kid, $id);
+
+        if (!count($this->data)) {
+            $data = [];
+            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
+            load_last_view('error', $data);
+            return;
+        }
+
+        $pdf = new TCPDF('L', 'mm', 'A5', true, 'UTF-8', false);
+        // Set document information
+        $pdf->SetCreator('VolDecouvertePDFGenerator');
+        $pdf->SetAuthor('Aéro-Club');
+        $pdf->SetTitle('Vol de Découverte - ' . ($this->data['obfuscated_id'] ?? ''));
+        $pdf->SetSubject('Information Vol de Découverte');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins (left, top, right)
+        $pdf->SetMargins(10, 10, 10);
+
+        // Set auto page breaks
+        $pdf->SetAutoPageBreak(true, 10);
+
+        // Set image scale factor
+        $pdf->setImageScale(1.25);
+
+        // Set default font
+        $pdf->SetFont('helvetica', '', 11);
+        $pdf->AddPage();
+
+        // $html = '<table border="1">
+        //     <tr><td>Hello</td><td>World</td></tr>
+        //  </table>';
+
+        // $pdf->writeHTML($html, true, false, true, false, '');
+
+        $pdf->Output('table.pdf', 'I');
     }
 
     function email($obfuscated_id) {
@@ -134,5 +184,8 @@ class Vols_decouverte extends Gvv_Controller {
             $recovered = reverseTransform($transformed);
             echo "<br> Test avec $value: transformé = $transformed, récupéré = $recovered\n";
         }
+
+        QRcode::png('https://example.com');
+        QRcode::png('https://example.com', 'qrcode.png');
     }
 }
