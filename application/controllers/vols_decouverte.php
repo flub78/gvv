@@ -85,18 +85,20 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
-        // $tempDir = sys_get_temp_dir(); 
+        $tempDir = sys_get_temp_dir();
 
         $this->data['obfuscated_id'] = $obfuscated_id;
-        $qr_url = 'https://example.com';
         $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
-        $qr_name = 'qrcode_' . $id . '.png';
+        $qr_name =  $tempDir . 'qrcode_' . $id . '.png';
         QRcode::png($qr_url);
         QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
 
+    /**
+     * Generation du pdf
+     */
     function pdf($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
 
@@ -109,6 +111,14 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
+        $tempDir = sys_get_temp_dir();
+        $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
+        $qr_name =  $tempDir . '/qrcode_' . $id . '.png';
+        QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
+
+
+        $contentWidth = 120; // Leave space for QR code
+
         $pdf = new TCPDF('L', 'mm', 'A5', true, 'UTF-8', false);
         // Set document information
         $pdf->SetCreator('VolDecouvertePDFGenerator');
@@ -120,9 +130,6 @@ class Vols_decouverte extends Gvv_Controller {
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
 
-        // Set margins (left, top, right)
-        $pdf->SetMargins(10, 10, 10);
-
         // Set auto page breaks
         $pdf->SetAutoPageBreak(true, 10);
 
@@ -133,11 +140,83 @@ class Vols_decouverte extends Gvv_Controller {
         $pdf->SetFont('helvetica', '', 11);
         $pdf->AddPage();
 
-        // $html = '<table border="1">
-        //     <tr><td>Hello</td><td>World</td></tr>
-        //  </table>';
+        // Set margins (left, top, right)
+        $pdf->SetMargins(0, 0, 0);
 
-        // $pdf->writeHTML($html, true, false, true, false, '');
+        $background = image_dir() . "vd_recto.jpg";
+        if (file_exists($background)) {
+            // Get page dimensions
+            $pageWidth = $pdf->getPageWidth();      // 210 mm
+            $pageHeight = $pdf->getPageHeight();    // 148 mm
+
+            // Add background image (x, y, width, height)
+            //            $pdf->Image($background, 0, 0, $pageWidth - 20, $pageHeight - 20, '', '', '', false, 300, '', false, false, 0);
+            // Create a template ID for the background
+            $pdf->Image($background, 0, 0, $pageWidth, $pageHeight, '', '', '', false, 300, '', false, false, 0);
+            $pdf->setPageMark();
+        }
+
+        // Set margins (left, top, right)
+        $pdf->SetMargins(4, 4, 4);
+
+        // Set content position (after background image)
+        $pdf->SetXY(15, 15);
+
+        // Add title
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Vol de Découverte', 0, 1, 'L');
+        $pdf->Ln(2);
+
+        // Reset font for normal content
+        $pdf->SetFont('helvetica', '', 11);
+
+        // Add dynamic content from data array
+        $startX = 15;
+        $contentWidth = 120; // Leave space for QR code
+
+        // Flight information - customize based on your actual data structure
+        $flightInfo = [
+            'Reference' => $id,
+            'Date' => $this->data['date_vente'],
+            'Time' => date("YMD "),
+            'Produit' => $this->data['product'],
+        ];
+
+        foreach ($flightInfo as $key => $value) {
+            if (empty($value)) continue;
+
+            $pdf->SetFont('helvetica', 'B', 11);
+            $pdf->Cell(40, 7, $key . ':', 0, 0);
+            $pdf->SetFont('helvetica', '', 10);
+            $pdf->Cell($contentWidth - 40, 7, $value, 0, 1);
+        }
+
+        // Add notes or additional information if available
+        if (isset($this->data['notes']) && !empty($this->data['notes'])) {
+            $pdf->Ln(5);
+            $pdf->SetFont('helvetica', 'B', 11);
+            $pdf->Cell($contentWidth, 7, 'Notes:', 0, 1);
+            $pdf->SetFont('helvetica', '', 10);
+            $pdf->MultiCell($contentWidth, 7, $this->data['notes'], 0, 'L');
+        }
+
+        // Add footer information
+        $pdf->Ln(20);
+        $pdf->SetFont('helvetica', 'I', 9);
+        $pdf->MultiCell($contentWidth, 5, 'Ce document doit être présenter lors de votre arrivée à l\'aérodrome.', 0, 'L');
+
+        // Check if QR code image exists
+        if (file_exists($qr_name)) {
+            // Position QR code at the right side of the page
+            $qrX = 175;
+            $qrY = 5;
+            $qrSize = 30;
+
+            // Add QR code
+            $pdf->Image($qr_name, $qrX, $qrY, $qrSize, $qrSize, 'PNG', '', 'T', false, 300, '', false, false, 0, 'CM');
+
+        }
+
 
         $pdf->Output('table.pdf', 'I');
     }
