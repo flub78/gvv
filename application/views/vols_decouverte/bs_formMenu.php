@@ -35,11 +35,11 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 
 echo heading("gvv_vols_decouverte_element", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
+// echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
-// hidden controller url for java script access
-echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
-echo form_hidden('saisie_par', $saisie_par, '');
+// // hidden controller url for java script access
+// echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+// echo form_hidden('saisie_par', $saisie_par, '');
 
 
 // echo validation_errors();
@@ -55,7 +55,25 @@ $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 
 echo $form;
 
-echo validation_button($action);
-echo form_close();
+// echo validation_button($action);
+// echo form_close();
 
-echo '</div>';
+$pdf_url = base_url() . "vols_decouverte/pdf2/" . $obfuscated_id;
+$email_url = base_url() . "vols_decouverte/email/" . $obfuscated_id;
+$pre_flight_url = base_url() . "vols_decouverte/pre_flight/" . $obfuscated_id;
+$done_url = base_url() . "vols_decouverte/done/" . $obfuscated_id;
+
+?>
+</div>
+
+<div class="container mt-4">
+
+	<!-- Anchors styled as buttons in flex container -->
+
+	<div class="d-flex flex-column flex-lg-row gap-3">
+            <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Impression</a>
+            <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Email le bon</a>
+            <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajout contact d'urgence</a>
+            <a href="<?= $pdf_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
+        </div>
+</div>
