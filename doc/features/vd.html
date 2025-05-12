@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bon pour le Survol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .voucher {
+            width: 700px;
+            border: 1px solid #000;
+            margin: 20px auto;
+        }
+        .header {
+            padding: 10px;
+            border-bottom: 1px solid #000;
+        }
+        .header-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .header-col1 {
+            flex: 3;
+        }
+        .header-col2 {
+            flex: 1;
+            text-align: right;
+        }
+        .options {
+            display: flex;
+        }
+        .options-col {
+            flex: 1;
+            padding: 10px;
+            border-right: 1px solid #000;
+        }
+        .options-col:last-child {
+            border-right: none;
+        }
+        .options-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .option {
+            margin-bottom: 10px;
+        }
+        .footer {
+            padding: 10px;
+            border-top: 1px solid #000;
+        }
+        .contact {
+            padding: 10px;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+        .flight-info {
+            display: flex;
+            padding: 10px;
+            background-color: #ddd;
+        }
+        .flight-info div {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="voucher">
+        <div class="header">
+            <div class="header-row">
+                <div class="header-col1">Ce bon pour le survol de la région défini ci-après est offert à</div>
+                <div class="header-col2">N°</div>
+            </div>
+            <div class="header-row">
+                <div class="header-col1">à l'occasion de</div>
+                <div class="header-col2">de la part de</div>
+            </div>
+            <div class="header-row">
+                <div class="header-col1">Ce bon est valable 1 an jusqu'au</div>
+                <div class="header-col2">Date, signature et cachet :</div>
+            </div>
+        </div>
+        
+        <div class="options">
+            <div class="options-col">
+                <div class="options-title">Pour l'avion</div>
+                <div class="option">
+                    <input type="checkbox" id="abbeville"> 
+                    <label for="abbeville">Tour d'Abbeville (15 mn environ) pour 2 personnes</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="baie"> 
+                    <label for="baie">Baie de Somme (30 mn environ) pour 2 personnes</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="falaises"> 
+                    <label for="falaises">Falaises ou Marquenterre (40 mn) pour 2 personnes</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="autre"> 
+                    <label for="autre">Autre (à détailler) :</label>
+                </div>
+            </div>
+            
+            <div class="options-col">
+                <div class="options-title">Pour le planeur</div>
+
+                <div class="option">
+                    <input type="checkbox" id="promenade1"> 
+                    <label for="promenade1">Promenade (500 m et 20 mn environ)</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="promenade2"> 
+                    <label for="promenade2">Promenade (500 m et 30 mn environ)</label>
+                </div>
+            </div>
+            
+                        <div class="options-col">
+                <div class="options-title">Pour l'ULM</div>
+                <div class="option">
+                    <input type="checkbox" id="abbeville"> 
+                    <label for="abbeville">Tour d'Abbeville (15 mn environ) pour 1 personne</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="baie"> 
+                    <label for="baie">Baie de Somme (30 mn environ) pour 1 personne</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="falaises"> 
+                    <label for="falaises">Falaises ou Marquenterre (40 mn) pour 1 personne</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="autre"> 
+                    <label for="autre">Autre (à détailler) :</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contact">
+            <p>Pour prendre rendez-vous et organiser votre vol, vous devez contacter</p>
+            <p>- Pour un vol avion <strong>Jean-Pierre LIGNIER (06 75 29 84 90)</strong> </strong></p>
+            <p>- Pour un vol planeur <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong></p>
+            <p>- Pour un vol ULM <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong></p>
+        </div>
+        
+        <div class="flight-info">
+            <div>Vol effectué le :</div>
+            <div>sur (nom de l'appareil) :</div>
+            <div>par (nom du pilote) :</div>
+        </div>
+    </div>
+</body>
+</html>

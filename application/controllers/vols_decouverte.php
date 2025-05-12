@@ -100,146 +100,26 @@ class Vols_decouverte extends Gvv_Controller {
     /**
      * Generation du pdf
      */
-    function pdf($obfuscated_id) {
-        $id = reverseTransform($obfuscated_id);
 
+    function pdf($obfuscated_id) {
+
+        $id = reverseTransform($obfuscated_id);
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
-        if (!count($this->data)) {
-            $data = [];
-            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
-            load_last_view('error', $data);
-            return;
-        }
-
-        $tempDir = sys_get_temp_dir();
-        $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
-        $qr_name =  $tempDir . '/qrcode_' . $id . '.png';
-        QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
-
-
-        $contentWidth = 120; // Leave space for QR code
-
-        $pdf = new TCPDF('L', 'mm', 'A5', true, 'UTF-8', false);
-        // Set document information
-        $pdf->SetCreator('VolDecouvertePDFGenerator');
-        $pdf->SetAuthor('Aéro-Club');
-        $pdf->SetTitle('Vol de Découverte - ' . ($this->data['obfuscated_id'] ?? ''));
-        $pdf->SetSubject('Information Vol de Découverte');
-
-        // Remove default header/footer
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-
-        // Set auto page breaks
-        $pdf->SetAutoPageBreak(true, 10);
-
-        // Set image scale factor
-        $pdf->setImageScale(1.25);
-
-        // Set default font
-        $pdf->SetFont('helvetica', '', 11);
-        $pdf->AddPage();
-
-        // Set margins (left, top, right)
-        $pdf->SetMargins(0, 0, 0);
-
-        $background = image_dir() . "vd_recto.jpg";
-        if (file_exists($background)) {
-            // Get page dimensions
-            $pageWidth = $pdf->getPageWidth();      // 210 mm
-            $pageHeight = $pdf->getPageHeight();    // 148 mm
-
-            // Add background image (x, y, width, height)
-            //            $pdf->Image($background, 0, 0, $pageWidth - 20, $pageHeight - 20, '', '', '', false, 300, '', false, false, 0);
-            // Create a template ID for the background
-            $pdf->Image($background, 0, 0, $pageWidth, $pageHeight, '', '', '', false, 300, '', false, false, 0);
-            $pdf->setPageMark();
-        }
-
-        // Set margins (left, top, right)
-        $pdf->SetMargins(4, 4, 4);
-
-        // Set content position (after background image)
-        $pdf->SetXY(15, 15);
-
-        // Add title
-        $pdf->SetFont('helvetica', 'B', 16);
-        $pdf->Cell(0, 10, 'Vol de Découverte', 0, 1, 'L');
-        $pdf->Ln(2);
-
-        // Reset font for normal content
-        $pdf->SetFont('helvetica', '', 11);
-
-        // Add dynamic content from data array
-        $startX = 15;
-        $contentWidth = 120; // Leave space for QR code
-
-        // Flight information - customize based on your actual data structure
-        $flightInfo = [
-            'Reference' => $id,
-            'Date' => $this->data['date_vente'],
-            'Time' => date("YMD "),
-            'Produit' => $this->data['product'],
-        ];
-
-        foreach ($flightInfo as $key => $value) {
-            if (empty($value)) continue;
-
-            $pdf->SetFont('helvetica', 'B', 11);
-            $pdf->Cell(40, 7, $key . ':', 0, 0);
-            $pdf->SetFont('helvetica', '', 10);
-            $pdf->Cell($contentWidth - 40, 7, $value, 0, 1);
-        }
-
-        // Add notes or additional information if available
-        if (isset($this->data['notes']) && !empty($this->data['notes'])) {
-            $pdf->Ln(5);
-            $pdf->SetFont('helvetica', 'B', 11);
-            $pdf->Cell($contentWidth, 7, 'Notes:', 0, 1);
-            $pdf->SetFont('helvetica', '', 10);
-            $pdf->MultiCell($contentWidth, 7, $this->data['notes'], 0, 'L');
-        }
-
-        // Add footer information
-        $pdf->Ln(20);
-        $pdf->SetFont('helvetica', 'I', 9);
-        $pdf->MultiCell($contentWidth, 5, 'Ce document doit être présenter lors de votre arrivée à l\'aérodrome.', 0, 'L');
-
-        // Check if QR code image exists
-        if (file_exists($qr_name)) {
-            // Position QR code at the right side of the page
-            $qrX = 175;
-            $qrY = 5;
-            $qrSize = 30;
-
-            // Add QR code
-            $pdf->Image($qr_name, $qrX, $qrY, $qrSize, $qrSize, 'PNG', '', 'T', false, 300, '', false, false, 0, 'CM');
-        }
-
-
-        $pdf->Output('table.pdf', 'I');
-    }
-
-    function pdf2() {
-
-        $obfuscated_id = "137";
         $tempDir = sys_get_temp_dir();
         $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
         $qr_name =  $tempDir . '/qrcode_' . $id . '.png';
         QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
         // create new PDF document
-        //$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $pdf = new TCPDF('L', 'mm', 'A5', true, 'UTF-8', false);
-
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor('Nicola Asuni');
-        $pdf->SetTitle('TCPDF Example 051');
-        $pdf->SetSubject('TCPDF Tutorial');
-        $pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+        $pdf->SetAuthor("Aéroclub d'Abbeville");
+        $pdf->SetTitle('Vol de découverte');
+        $pdf->SetSubject('Bon cadeau');
+        $pdf->SetKeywords('Abbeville, vol, découverte');
 
         // set header and footer fonts
         $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -251,6 +131,8 @@ class Vols_decouverte extends Gvv_Controller {
         $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
         $pdf->SetHeaderMargin(0);
         $pdf->SetFooterMargin(0);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
 
         // remove default footer
         $pdf->setPrintFooter(false);
@@ -263,15 +145,11 @@ class Vols_decouverte extends Gvv_Controller {
 
         // ---------------------------------------------------------
 
-        // set font
-        $pdf->SetFont('times', '', 48);
-
 
         // add a page
         $pdf->AddPage();
 
-
-        // -- set new background ---
+        // -- set background ---
 
         // get the current page break margin
         $bMargin = $pdf->getBreakMargin();
@@ -279,20 +157,13 @@ class Vols_decouverte extends Gvv_Controller {
         $auto_page_break = $pdf->getAutoPageBreak();
         // disable auto-page-break
         $pdf->SetAutoPageBreak(false, 0);
-        // set bacground image
-        $img_file = K_PATH_IMAGES . 'image_demo.jpg';
+        // set background image
         $img_file = image_dir() . "vd_recto.jpg";
-        // $pdf->Image($img_file, 0, 0, 210, 297, '', '', '', false, 300, '', false, false, 0);
         $pdf->Image($img_file, 0, 0, 210, 150, '', '', '', false, 300, '', false, false, 0);
         // restore auto-page-break status
         $pdf->SetAutoPageBreak($auto_page_break, $bMargin);
         // set the starting point for the page content
         $pdf->setPageMark();
-
-
-        // Print a text
-        $html = '<span style="color:white;text-align:center;font-weight:bold;font-size:80pt;">PAGE A5</span>';
-        $pdf->writeHTML($html, true, false, true, false, '');
 
         // ---------------------------------------------------------
         // Check if QR code image exists
@@ -305,6 +176,118 @@ class Vols_decouverte extends Gvv_Controller {
             // Add QR code
             $pdf->Image($qr_name, $qrX, $qrY, $qrSize, $qrSize, 'PNG', '', 'T', false, 300, '', false, false, 0, 'CM');
         }
+
+        // skipp a page for easier printing
+        $pdf->AddPage();
+
+        /** Verso */
+        $pdf->AddPage();
+
+        // Set content position 
+        $pdf->SetXY(5, 5);
+        $pdf->SetMargins(5, 5, 5);
+
+        // Reset font for normal content
+        $pdf->SetFont('helvetica', '', 11);
+
+
+        // Flight information - customize based on your actual data structure
+        $flightInfo = [
+            'Numéro' => $id,
+            'Date' => $this->data['date_vente'],
+            'Time' => date("YMD "),
+            'Produit' => $this->data['product'],
+        ];
+
+        // foreach ($flightInfo as $key => $value) {
+        //     if (empty($value)) continue;
+
+        //     $pdf->SetFont('helvetica', 'B', 11);
+        //     $pdf->Cell(40, 7, $key . ':', 0, 0);
+        //     $pdf->SetFont('helvetica', '', 10);
+        //     $pdf->Cell($contentWidth - 40, 7, $value, 0, 1);
+        // }
+
+        // Set font
+        $pdf->SetFont('helvetica', '', 10);
+
+
+        // Header section
+        $header_html = <<<EOD
+<table cellspacing="0" cellpadding="3" border="1">
+    <tr>
+        <td width="75%">Ce bon pour le survol de la région défini ci-après est offert à</td>
+        <td width="25%">N°</td>
+    </tr>
+    <tr>
+        <td width="75%">à l'occasion de</td>
+        <td width="25%">de la part de</td>
+    </tr>
+    <tr>
+        <td width="75%">Ce bon est valable 1 an jusqu'au</td>
+        <td width="25%">Date, signature et cachet :</td>
+    </tr>
+</table>
+EOD;
+
+        $pdf->writeHTML($header_html, true, false, false, false, '');
+
+        // Options section - Airplane and Glider and Ultralight
+        $options_html = <<<EOD
+<table cellspacing="0" cellpadding="5" border="1">
+    <tr>
+        <td width="33%" align="center"><strong>Pour l'avion</strong></td>
+        <td width="34%" align="center"><strong>Pour le planeur</strong></td>
+        <td width="33%" align="center"><strong>Pour l'ULM</strong></td>
+    </tr>
+    <tr>
+        <td width="33%" style="height: 120px; vertical-align: top;">
+            <br /><input type="checkbox" name="abbeville" value="1" /> Tour d'Abbeville (15 mn environ) pour 2 personnes
+            <br /><br /><input type="checkbox" name="baie" value="1" /> Baie de Somme (30 mn environ) pour 2 personnes
+            <br /><br /><input type="checkbox" name="falaises" value="1" /> Falaises ou Marquenterre (40 mn) pour 2 personnes
+            <br /><br /><input type="checkbox" name="autre" value="1" /> Autre (à détailler) :
+        </td>
+        <td width="34%" style="vertical-align: top;">
+
+            <br /><br /><input type="checkbox" name="promenade1" value="1" /> Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
+
+            <br /><br />
+        </td>
+        <td width="33%" style="height: 120px; vertical-align: top;">
+            <br /><input type="checkbox" name="abbeville" value="1" /> Tour d'Abbeville (15 mn environ) pour 1 personne
+            <br /><br /><input type="checkbox" name="baie" value="1" /> Baie de Somme (30 mn environ) pour 1 personne
+            <br /><br /><input type="checkbox" name="falaises" value="1" /> Falaises ou Marquenterre (40 mn) pour 1 personne
+            <br /><br /><input type="checkbox" name="autre" value="1" /> Autre (à détailler) :
+        </td>
+    </tr>
+</table>
+EOD;
+
+        $pdf->writeHTML($options_html, true, false, false, false, '');
+
+        // Contact section
+        $contact_html = <<<EOD
+<table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
+    <tr>
+        <td>
+            Pour prendre rendez-vous et organiser votre vol, vous devez contacter
+            <br />- pour l'Avion <strong>Jean-Pierre LIGNIER (06 75 29 84 90)</strong> ou <strong>Daniel TELLIER (06 12 01 37 22)</strong>
+            <br />- pour le planeur <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong>
+            <br />- pour l'ULM <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong>
+
+        </td>
+    </tr>
+
+    <tr style="width: 100%; background-color: #dddddd;">
+        <td width="33%">Vol effectué le :</td>
+        <td width="33%">sur (nom de l'appareil) :</td>
+        <td width="34%">par (nom du pilote) :</td>
+    </tr>
+</table>
+EOD;
+
+        $pdf->writeHTML($contact_html, true, false, false, false, '');
+
 
 
         //Close and output PDF document
