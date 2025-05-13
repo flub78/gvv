@@ -32,7 +32,7 @@ class Vols_decouverte extends Gvv_Controller {
     protected $controller = 'vols_decouverte';
     protected $model = 'vols_decouverte_model';
     protected $modification_level = 'ca';
-    protected $rules = array();
+    protected $rules = array('club' => "callback_section_selected");
 
 
     /**

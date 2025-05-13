@@ -21,7 +21,19 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email');
+        // select per section
+        if ($this->section) {
+            // select elements from vols_decouverte where product has club equal to $this->section_id
+            $select = $this->db
+                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled')
+                ->from('vols_decouverte')
+                ->where('club', $this->section_id)
+                ->get()->result_array();
+            
+
+        } else {
+            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled');
+        }
         $this->gvvmetadata->store_table("vue_vols_decouverte", $select);
         return $select;
     }
@@ -34,6 +46,12 @@ class Vols_decouverte_model extends Common_Model {
      */
     public function create($data) {
         $data['saisie_par'] = $this->dx_auth->get_username();
+        $current_year = date('Y');
+
+        $count =  $this->gvv_model->count(array(
+            "YEAR(date_vente)" => $current_year
+    ));
+        $data['id'] =  intval($current_year . "00" . $count) + 1;
         parent::create($data);
     }
 
@@ -54,5 +72,4 @@ class Vols_decouverte_model extends Common_Model {
         }
     }
 }
-
 /* End of file */

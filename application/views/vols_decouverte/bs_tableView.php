@@ -36,7 +36,7 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete', 'action'),
-    'fields' => array('date_vente', 'produit', 'beneficiaire', 'date_vol', 'urgence', 'time_vol'),
+    'fields' => array('id', 'date_vente', 'product', 'beneficiaire', 'date_vol', 'urgence', 'cancelled'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable table table-striped"
 );

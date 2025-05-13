@@ -201,7 +201,10 @@ class Common_Model extends CI_Model {
         $this->db->where($where);
         if (isset($where2))
             $this->db->where($where2);
-        return $this->db->count_all_results($this->table);
+        $res = $this->db->count_all_results($this->table);
+        gvv_debug("sql: count: " . $this->db->last_query());
+
+        return $res;
     }
 
     /**
