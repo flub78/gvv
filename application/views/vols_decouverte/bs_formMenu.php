@@ -35,6 +35,10 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 
 echo heading("gvv_vols_decouverte_element", 3);
 
+?>
+
+<?php
+
 // echo validation_errors();
 $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 	'date_vente' => $date_vente,
@@ -60,7 +64,7 @@ $done_url = base_url() . "vols_decouverte/done/" . $obfuscated_id;
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
             <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Impression</a>
-            <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Email le bon</a>
+            <!--a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Envoi par mail</!--a -->
             <a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajout contact d'urgence</a>
             <a href="<?= $pdf_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
         </div>

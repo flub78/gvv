@@ -74,8 +74,6 @@ class Vols_decouverte extends Gvv_Controller {
     function action($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
 
-        // echo "action = $id";
-
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         if (!count($this->data)) {
@@ -85,25 +83,48 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
-        $tempDir = sys_get_temp_dir();
-
         $this->data['obfuscated_id'] = $obfuscated_id;
-
-        // $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
-        // $qr_name =  $tempDir . 'qrcode_' . $id . '.png';
-        // QRcode::png($qr_url);
-        // QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
 
     /**
-     * Generation du pdf
+     * pdf request
      */
-
-    function pdf($obfuscated_id) {
-
+    function pdf ($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
+        $vd = $this->gvv_model->get_by_id($this->kid, $id);
+
+        if (!count($vd)) {
+            $data = [];
+            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
+            load_last_view('error', $data);
+            return;
+        }
+
+        $data = [];
+        $data['obfuscated_id'] = $obfuscated_id;
+        $data['id'] = $id;
+
+        $data['offer_a'] = $vd['beneficiaire'];
+        $data['occasion'] = $vd['occasion'];
+        $data['de_la_part'] = $vd['de_la_part'];
+
+        $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+
+        $data[$vd['product']] = true;
+
+        $this->generate_pdf($data);
+    }
+
+    /**
+     * Génération du bon cadeau
+     */
+    function generate_pdf($data) {
+
+        $obfuscated_id = $data['obfuscated_id'];
+
+        $id = $data['id'];
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         $tempDir = sys_get_temp_dir();
@@ -117,7 +138,7 @@ class Vols_decouverte extends Gvv_Controller {
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
         $pdf->SetAuthor("Aéroclub d'Abbeville");
-        $pdf->SetTitle('Vol de découverte');
+        $pdf->SetTitle('Vol de découverte ' . $id);
         $pdf->SetSubject('Bon cadeau');
         $pdf->SetKeywords('Abbeville, vol, découverte');
 
@@ -177,62 +198,64 @@ class Vols_decouverte extends Gvv_Controller {
             $pdf->Image($qr_name, $qrX, $qrY, $qrSize, $qrSize, 'PNG', '', 'T', false, 300, '', false, false, 0, 'CM');
         }
 
-        // skipp a page for easier printing
-        $pdf->AddPage();
-
         /** Verso */
         $pdf->AddPage();
 
         // Set content position 
         $pdf->SetXY(5, 5);
         $pdf->SetMargins(5, 5, 5);
+        $pdf->setAutoPageBreak(false);
 
         // Reset font for normal content
         $pdf->SetFont('helvetica', '', 11);
 
-
-        // Flight information - customize based on your actual data structure
-        $flightInfo = [
-            'Numéro' => $id,
-            'Date' => $this->data['date_vente'],
-            'Time' => date("YMD "),
-            'Produit' => $this->data['product'],
-        ];
-
-        // foreach ($flightInfo as $key => $value) {
-        //     if (empty($value)) continue;
-
-        //     $pdf->SetFont('helvetica', 'B', 11);
-        //     $pdf->Cell(40, 7, $key . ':', 0, 0);
-        //     $pdf->SetFont('helvetica', '', 10);
-        //     $pdf->Cell($contentWidth - 40, 7, $value, 0, 1);
-        // }
-
         // Set font
         $pdf->SetFont('helvetica', '', 10);
 
-
         // Header section
+
+
+        $offer_a = $data['offer_a'];
+        $occasion = $data['occasion'];
+        $de_la_part = $data['de_la_part'];
+        $validity = $data['validity'];
+
         $header_html = <<<EOD
 <table cellspacing="0" cellpadding="3" border="1">
     <tr>
-        <td width="75%">Ce bon pour le survol de la région défini ci-après est offert à</td>
-        <td width="25%">N°</td>
+        <td width="67%">Ce bon pour le survol de la région défini ci-après</td>
+        <td width="33%">N° <strong>{$id}</strong></td>
     </tr>
     <tr>
-        <td width="75%">à l'occasion de</td>
-        <td width="25%">de la part de</td>
+        <td width="67%">Offert à <strong>{$offer_a}</strong></td>
+        <td width="33%"></td>
     </tr>
     <tr>
-        <td width="75%">Ce bon est valable 1 an jusqu'au</td>
-        <td width="25%">Date, signature et cachet :</td>
+        <td width="67%">à l'occasion de {$occasion}</td>
+        <td width="33%">de la part de {$de_la_part}</td>
+    </tr>
+    <tr>
+        <td width="67%">Ce bon est valable 1 an jusqu'au <strong>{$validity}</strong></td>
+        <td width="33%"></td>
     </tr>
 </table>
 EOD;
-
         $pdf->writeHTML($header_html, true, false, false, false, '');
 
         // Options section - Airplane and Glider and Ultralight
+        $checked = '<img src="checked.png" width="10" height="10" alt="Checked checkbox" >';
+        $unchecked = '<img src="unchecked.png" width="10" height="10" alt="Unchecked checkbox" >';
+
+        $abbeville = isset($data['abbeville']) ? $checked : $unchecked;
+        $baie = isset($data['baie']) ? $checked : $unchecked;
+        $falaise = isset($data['falaise']) ? $checked : $unchecked;
+        $autre = isset($data['autre']) ? $checked : $unchecked;
+        $planeur = isset($data['planeur']) ? $checked : $unchecked;
+        $abbeville_ulm = isset($data['abbeville_ulm']) ? $checked : $unchecked;
+        $baie_ulm = isset($data['baie_ulm']) ? $checked : $unchecked;
+        $falaise_ulm = isset($data['falaise_ulm']) ? $checked : $unchecked;
+        $autre_ulm = isset($data['autre_ulm']) ? $checked : $unchecked;
+
         $options_html = <<<EOD
 <table cellspacing="0" cellpadding="5" border="1">
     <tr>
@@ -242,27 +265,24 @@ EOD;
     </tr>
     <tr>
         <td width="33%" style="height: 120px; vertical-align: top;">
-            <br /><input type="checkbox" name="abbeville" value="1" /> Tour d'Abbeville (15 mn environ) pour 2 personnes
-            <br /><br /><input type="checkbox" name="baie" value="1" /> Baie de Somme (30 mn environ) pour 2 personnes
-            <br /><br /><input type="checkbox" name="falaises" value="1" /> Falaises ou Marquenterre (40 mn) pour 2 personnes
-            <br /><br /><input type="checkbox" name="autre" value="1" /> Autre (à détailler) :
+            <br /> {$abbeville} Tour d'Abbeville (15 mn environ) pour 2 personnes
+            <br /><br />{$baie} Baie de Somme (30 mn environ) pour 2 personnes
+            <br /><br />{$falaise} Falaises ou Marquenterre (40 mn) pour 2 personnes
+            <br /><br />{$autre} Autre (à détailler) :
         </td>
         <td width="34%" style="vertical-align: top;">
-
-            <br /><br /><input type="checkbox" name="promenade1" value="1" /> Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
-
+            <br /><br />{$planeur} Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
             <br /><br />
         </td>
         <td width="33%" style="height: 120px; vertical-align: top;">
-            <br /><input type="checkbox" name="abbeville" value="1" /> Tour d'Abbeville (15 mn environ) pour 1 personne
-            <br /><br /><input type="checkbox" name="baie" value="1" /> Baie de Somme (30 mn environ) pour 1 personne
-            <br /><br /><input type="checkbox" name="falaises" value="1" /> Falaises ou Marquenterre (40 mn) pour 1 personne
-            <br /><br /><input type="checkbox" name="autre" value="1" /> Autre (à détailler) :
+            <br />{$abbeville_ulm} Tour d'Abbeville (15 mn environ) pour 1 personne
+            <br /><br />{$baie_ulm} Baie de Somme (30 mn environ) pour 1 personne
+            <br /><br />{$falaise_ulm} Falaises ou Marquenterre (40 mn) pour 1 personne
+            <br /><br />{$autre_ulm} Autre (à détailler) :
         </td>
     </tr>
 </table>
 EOD;
-
         $pdf->writeHTML($options_html, true, false, false, false, '');
 
         // Contact section
@@ -270,16 +290,17 @@ EOD;
 <table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
     <tr>
         <td>
-            Pour prendre rendez-vous et organiser votre vol, vous devez contacter
-            <br />- pour l'Avion <strong>Jean-Pierre LIGNIER (06 75 29 84 90)</strong> ou <strong>Daniel TELLIER (06 12 01 37 22)</strong>
-            <br />- pour le planeur <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong>
-            <br />- pour l'ULM <strong>Mathieu CAUDRELIER</strong> au <strong>06 07 23 09 75</strong>
+            Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
+            <br />- pour l'Avion <strong>Patrice Maignan (06 62 47 31 10)</strong> 
+            <br />- pour le planeur <strong>Thibault Dugardin (06 77 61 06 16)</strong>
+            <br />- pour l'ULM <strong>Guillaume Montois (06 81 20 20 69)</strong>
+            <br>
 
         </td>
     </tr>
 
-    <tr style="width: 100%; background-color: #dddddd;">
-        <td width="33%">Vol effectué le :</td>
+    <tr style="width: 100%; background-color: #ddddd">
+        <td width="33%" height="1.5cm">Vol effectué le :</td>
         <td width="33%">sur (nom de l'appareil) :</td>
         <td width="34%">par (nom du pilote) :</td>
     </tr>
@@ -288,10 +309,8 @@ EOD;
 
         $pdf->writeHTML($contact_html, true, false, false, false, '');
 
-
-
         //Close and output PDF document
-        $pdf->Output('example_051.pdf', 'I');
+        $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", 'I');
     }
 
     function email($obfuscated_id) {
