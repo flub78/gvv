@@ -77,6 +77,9 @@ class Auth extends CI_Controller {
         $data['section_count'] =
             $this->sections_model->safe_count_all();
 
+        // default = planeur, I should use a better strategy
+        $data['section'] = 1;
+
         // I tried to setup the section selector in the GVV controller, but there are a lot of controllers which are not GVV controllers.
         // So it has to be done here
         if (! $this->session->userdata('section_selector')) {
