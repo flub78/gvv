@@ -68,7 +68,8 @@ if (! function_exists('dropdown_field')) {
         if (!$attrs) {
             $attrs = 'class="form-control big_select" ';
         }
-        $res = ($value) ? form_dropdown($name, $options, $value, $attrs) : "";
+        // $res = ($value) ? form_dropdown($name, $options, $value, $attrs) : "";
+        $res = form_dropdown($name, $options, $value, $attrs);
         return $res;
     }
 }

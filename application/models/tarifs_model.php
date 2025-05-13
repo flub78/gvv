@@ -168,7 +168,8 @@ class Tarifs_model extends Common_Model {
      */
     public function image($key) {
         $vals = $this->get_by_id('id', $key);
-        return $vals['reference'] . ' : ' . $vals['prix'];
+        return $vals['description'] . ' : ' . $vals['prix'];
+        // return $vals['reference'] . ' : ' . $vals['prix'];
     }
 
     /**

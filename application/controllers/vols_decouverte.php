@@ -42,6 +42,8 @@ class Vols_decouverte extends Gvv_Controller {
         parent::__construct();
 
         $this->load->helper('crypto');
+        $this->load->model('tarifs_model');
+        $this->load->model('avions_model');
     }
 
     /**
@@ -63,8 +65,16 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
 
+        $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
+        $this->gvvmetadata->set_selector('product_selector', $product_selector);
+
         $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
+
+        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector(array(
+            'actif' => 1
+        )));
+
     }
 
 
@@ -94,6 +104,7 @@ class Vols_decouverte extends Gvv_Controller {
     function pdf ($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
         $vd = $this->gvv_model->get_by_id($this->kid, $id);
+        // var_dump($vd);exit;
 
         if (!count($vd)) {
             $data = [];

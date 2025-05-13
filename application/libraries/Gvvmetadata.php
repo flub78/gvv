@@ -756,8 +756,13 @@ class GVVMetadata extends Metadata {
 
                 $this->field['vols_decouverte']['cancelled']['Subtype'] = 'checkbox';
                 $this->field['vols_decouverte']['beneficiaire_email']['Subtype'] = 'email';
+
+                $this->field['vols_decouverte']['product']['Subtype'] = 'selector';
+                $this->field['vols_decouverte']['product']['Selector'] = 'product_selector';
+
                 $this->field['vols_decouverte']['pilote']['Subtype'] = 'selector';
                 $this->field['vols_decouverte']['pilote']['Selector'] = 'pilote_selector';
+
                 $this->field['vols_decouverte']['airplane_immat']['Subtype'] = 'selector';
                 $this->field['vols_decouverte']['airplane_immat']['Selector'] = 'machine_selector';
 

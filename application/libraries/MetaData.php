@@ -1712,7 +1712,8 @@ abstract class Metadata {
             // $field = $this->field[$table][$field]['Alias'];
             // $attrsv="id=\"$field\"";
             // }
-            return dropdown_field($field, $value, $selector, $attrsv);
+            $input_fld = dropdown_field($field, $value, $selector, $attrsv);
+            return $input_fld;
         } elseif ($subtype == 'image') {
             $filename = "assets/uploads/$value";
             if (file_exists($filename)) {
