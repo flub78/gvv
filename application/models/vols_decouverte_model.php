@@ -6,6 +6,7 @@ $CI = &get_instance();
 $CI->load->model('common_model');
 $CI->load->model('avions_model');
 $CI->load->model('planeurs_model');
+$CI->load->model('tarifs_model');
 
 /**
  *	Accès base vols_decouverte
@@ -33,6 +34,15 @@ class Vols_decouverte_model extends Common_Model {
                 ->get()->result_array();
         } else {
             $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation');
+        }
+        $i = 0;
+        foreach ($select as $elt) {
+            $product = $elt['product'];
+            $tarif = $this->tarifs_model->get_by_id('reference', $product);
+            if ($tarif) {
+                $select[$i]['product'] = $tarif['description'];
+            }
+            $i += 1;
         }
         $this->gvvmetadata->store_table("vue_vols_decouverte", $select);
         return $select;

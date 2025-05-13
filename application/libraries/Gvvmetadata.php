@@ -737,7 +737,6 @@ class GVVMetadata extends Metadata {
                 $this->field['attachments']['file']['Subtype'] = 'upload_image';
 
 
-
                 /**
                  * Rôles par section
                  */
@@ -753,6 +752,7 @@ class GVVMetadata extends Metadata {
                 /**
                  * Vols de découverte
                  */
+                $this->alias_table["vue_vols_decouverte"] = "vols_decouverte";
 
                 $this->field['vols_decouverte']['cancelled']['Subtype'] = 'checkbox';
                 $this->field['vols_decouverte']['beneficiaire_email']['Subtype'] = 'email';
