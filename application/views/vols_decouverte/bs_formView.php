@@ -57,7 +57,10 @@ echo ($this->gvvmetadata->form('vols_decouverte', array(
 	// 'time_vol' => $time_vol,
 	'pilote' => $pilote,
 	'airplane_immat' => $airplane_immat,
-	'cancelled' => $cancelled
+	'cancelled' => $cancelled,
+	'paiement' => $paiement,
+	'participation' => $participation,
+
 )));
 
 echo validation_button($action);

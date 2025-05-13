@@ -1597,9 +1597,9 @@ abstract class Metadata {
             // $rules = "trim|" . $required . "numeric";
         } elseif ('date' == $type) {
             if ($subtype == 'activity_date') {
-                $rules = "trim|callback_valid_activity_date";
+                $rules = $required . "trim|callback_valid_activity_date";
             } else {
-                $rules = "trim|callback_valid_date";
+                $rules = $required . "trim|callback_valid_date";
             }
         }
 

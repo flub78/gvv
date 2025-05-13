@@ -43,7 +43,6 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
-        $this->load->model('avions_model');
     }
 
     /**
@@ -71,9 +70,7 @@ class Vols_decouverte extends Gvv_Controller {
         $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
 
-        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector(array(
-            'actif' => 1
-        )));
+        $this->gvvmetadata->set_selector('machine_selector', $this->gvv_model->machine_selector());
 
     }
 

@@ -4,6 +4,8 @@ if (!defined('BASEPATH'))
 
 $CI = &get_instance();
 $CI->load->model('common_model');
+$CI->load->model('avions_model');
+$CI->load->model('planeurs_model');
 
 /**
  *	Accès base vols_decouverte
@@ -25,14 +27,12 @@ class Vols_decouverte_model extends Common_Model {
         if ($this->section) {
             // select elements from vols_decouverte where product has club equal to $this->section_id
             $select = $this->db
-                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled')
+                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation')
                 ->from('vols_decouverte')
                 ->where('club', $this->section_id)
                 ->get()->result_array();
-            
-
         } else {
-            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled');
+            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation');
         }
         $this->gvvmetadata->store_table("vue_vols_decouverte", $select);
         return $select;
@@ -48,10 +48,14 @@ class Vols_decouverte_model extends Common_Model {
         $data['saisie_par'] = $this->dx_auth->get_username();
         $current_year = date('Y');
 
-        $count =  $this->gvv_model->count(array(
-            "YEAR(date_vente)" => $current_year
-    ));
+        // les VD sont numérotés de façon croissante à partir de l'année courante
+        $count =  $this->gvv_model->count(array("YEAR(date_vente)" => $current_year));
         $data['id'] =  intval($current_year . "00" . $count) + 1;
+        // pour prendre en compte les suppressions
+        // qui ne devraient pas arriver
+        while ($this->get_by_id('id', $data['id'])) {
+            $data['id'] += 1;
+        }
         parent::create($data);
     }
 
@@ -69,6 +73,23 @@ class Vols_decouverte_model extends Common_Model {
             return $vals['date_vente'] . " " . $vals['beneficiaire'];
         } else {
             return "vols_decouverte inconnu $key";
+        }
+    }
+
+    /**
+     * Suivant que la section planeur est active ou pas
+     * le selecteur retourne
+     *      - toutes les machines actives
+     *      - les planeurs biplace actifs
+     */
+    public function machine_selector() {
+        if ($this->section) {
+            // var_dump($this->section['nom']); exit;
+            if ($this->section['nom'] == "Planeur") {
+                return $this->planeurs_model->selector(array('actif' => 1, 'mpbiplace' => 2));               
+            } else {
+                return $this->avions_model->selector(array('actif' => 1));
+            }
         }
     }
 }
