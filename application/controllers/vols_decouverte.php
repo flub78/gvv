@@ -136,7 +136,10 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
         $tempDir = sys_get_temp_dir();
-        $qr_url = base_url() . 'vols_decouverte/action/' . $obfuscated_id;
+        $index_page = $this->config->item('index_page');
+        $index = ($index_page) ? "$index_page/" : "";
+
+        $qr_url = base_url() . $index .'vols_decouverte/action/' . $obfuscated_id;
         $qr_name =  $tempDir . '/qrcode_' . $id . '.png';
         QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
