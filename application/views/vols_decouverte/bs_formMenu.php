@@ -52,10 +52,13 @@ $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 
 echo $form;
 
-$pdf_url = base_url() . "vols_decouverte/pdf/" . $obfuscated_id;
-$email_url = base_url() . "vols_decouverte/email/" . $obfuscated_id;
-$pre_flight_url = base_url() . "vols_decouverte/pre_flight/" . $obfuscated_id;
-$done_url = base_url() . "vols_decouverte/done/" . $obfuscated_id;
+$index_page = $this->config->item('index_page');
+ 
+$index = ($index_page) ? "$index_page/" : "";
+$pdf_url = base_url() . $index . "vols_decouverte/pdf/" . $obfuscated_id;
+$email_url = base_url() . $index . "vols_decouverte/email/" . $obfuscated_id;
+$pre_flight_url = base_url() . $index . "vols_decouverte/pre_flight/" . $obfuscated_id;
+$done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 
 ?>
 </div>
