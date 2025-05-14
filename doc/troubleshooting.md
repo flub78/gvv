@@ -45,7 +45,7 @@ Certains marabous résolvent les problèmes informatiques, on peut trouver leur 
 
 ## Error 500
 
-* Souvent lié à des erreurs de syntaxe dans les fichiers php mais pas que...
+* Souvent lié à des erreurs de syntaxe dans les fichiers php, mais pas uniquement.
 
 ### dé-référencements de requêtes active record sur la base de données.
 
