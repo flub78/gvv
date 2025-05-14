@@ -42,3 +42,45 @@ define('ENVIRONMENT', 'production');
 * En cas de bug avéré, vous pouvez me contacter, mais je ne garantie plus les corrections sur cette version. 
 
 Certains marabous résolvent les problèmes informatiques, on peut trouver leur adresse sur les flyers qu'ils distribuent dans les boites aux lettres...
+
+## Error 500
+
+* Souvent lié à des erreurs de syntaxe dans les fichiers php mais pas que...
+
+### dé-référencements de requêtes active record sur la base de données.
+
+```
+$select = $this->db->select($columns)->from("machinesp")
+        	->where($selection)
+            ->get()->result_array();
+```
+
+est une très mauvaise idée si la fonction get() retourne null cela génère une erreur 500. (47 occurrences à nettoyer ...)
+
+Privilégier:
+
+```
+    public function get_to_array($res) {
+        gvv_debug("sql: " . $this->db->last_query());
+
+        if ($res) {
+            return $res->result_array();
+        } else {
+            if ($this->db->_error_number()) {
+                gvv_debug("sql: error: " .  $this->db->_error_number() . " - " . $this->db->_error_message());
+            }
+            return array();
+        }
+    }
+
+    $db_res = $this->db
+            ->select($select)
+            ->from("achats, tarifs, membres")
+            ->where("achats.produit = tarifs.reference")
+            ->where("achats.pilote = membres.mlogin")
+            ->where(array("facture" => 0))
+            ->group_by('pilote')
+            ->order_by("mnom, mprenom")
+            ->get();
+        $res = $this->get_to_array($db_res);
+```
