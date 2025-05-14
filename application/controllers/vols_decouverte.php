@@ -259,12 +259,12 @@ EOD;
 
         $abbeville = isset($data['abbeville']) ? $checked : $unchecked;
         $baie = isset($data['baie']) ? $checked : $unchecked;
-        $falaise = isset($data['falaise']) ? $checked : $unchecked;
+        $falaise = isset($data['falaises']) ? $checked : $unchecked;
         $autre = isset($data['autre']) ? $checked : $unchecked;
         $planeur = isset($data['planeur']) ? $checked : $unchecked;
         $abbeville_ulm = isset($data['abbeville_ulm']) ? $checked : $unchecked;
         $baie_ulm = isset($data['baie_ulm']) ? $checked : $unchecked;
-        $falaise_ulm = isset($data['falaise_ulm']) ? $checked : $unchecked;
+        $falaise_ulm = isset($data['falaises_ulm']) ? $checked : $unchecked;
         $autre_ulm = isset($data['autre_ulm']) ? $checked : $unchecked;
 
         $options_html = <<<EOD
