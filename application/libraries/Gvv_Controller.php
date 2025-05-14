@@ -57,6 +57,12 @@ class Gvv_Controller extends CI_Controller {
 
         date_default_timezone_set("Europe/Paris");
 
+        $current_url = current_url();
+        $this->session->set_userdata('requested_url', $current_url);
+
+        gvv_debug("URL: " . $current_url);
+        gvv_info("Login requested url set to : " . $current_url);
+        
         $this->load->library('DX_Auth');
         if (getenv('TEST') != '1') {
             // Checks to be done only when not controlled by PHPUnit
@@ -86,8 +92,8 @@ class Gvv_Controller extends CI_Controller {
             $this->session->set_userdata('licence_type', 0);
         }
 
-        $current_url = current_url();
-        gvv_debug("URL: " . $current_url);
+
+
     }
 
     /**

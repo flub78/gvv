@@ -129,7 +129,18 @@ class Auth extends CI_Controller {
                 }
                 $this->session->set_userdata($session);
 
-                redirect('', 'location');
+                $requested_url =  $this->session->userdata('requested_url');
+
+                if ($requested_url) {
+                    $this->session->unset_userdata('requested_url');
+                    gvv_info("Login requested url redirecting to: " . $requested_url);
+
+                    redirect($requested_url, 'location');                   
+                } else {
+                    gvv_info("Login no requested url: ");
+                    redirect('', 'location');
+                }
+
             } else {
                 // Check if the user is failed logged in because user is banned user or not
                 if ($this->dx_auth->is_banned()) {
