@@ -91,6 +91,12 @@ class Vols_decouverte extends Gvv_Controller {
         }
 
         $this->data['obfuscated_id'] = $obfuscated_id;
+        $product = $this->data['product'];
+        $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
+        $this->data['description'] = ($tarif['description'] != "") ? $tarif['description'] : $product;
+        // $this->data['expired'] = true;
+
+        // var_dump($this->data);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
@@ -302,7 +308,7 @@ EOD;
     <tr>
         <td>
             Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
-            <br />- pour l'Avion <strong>Patrice Maignan (06 62 47 31 10)</strong> 
+            <br />- pour l'avion <strong>Patrice Maignan (06 62 47 31 10)</strong> 
             <br />- pour le planeur <strong>Thibault Dugardin (06 77 61 06 16)</strong>
             <br />- pour l'ULM <strong>Guillaume Montois (06 81 20 20 69)</strong>
             <br>

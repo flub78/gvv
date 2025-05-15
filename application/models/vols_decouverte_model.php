@@ -32,7 +32,7 @@ class Vols_decouverte_model extends Common_Model {
                 ->from('vols_decouverte')
                 ->where('club', $this->section_id)
                 ->get();
-                $select = $this->get_to_array($db_res);
+            $select = $this->get_to_array($db_res);
         } else {
             $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation');
         }
@@ -43,6 +43,11 @@ class Vols_decouverte_model extends Common_Model {
             if ($tarif) {
                 $select[$i]['product'] = $tarif['description'];
             }
+
+            // Compute validity date (1 year from date_vente)
+            $date_vente = new DateTime($elt['date_vente']);
+            $select[$i]['validite'] = $date_vente->modify('+1 year')->format('Y-m-d');
+
             $i += 1;
         }
         $this->gvvmetadata->store_table("vue_vols_decouverte", $select);
@@ -60,13 +65,9 @@ class Vols_decouverte_model extends Common_Model {
         $current_year = date('Y');
 
         // les VD sont numérotés de façon croissante à partir de l'année courante
-        $count =  $this->gvv_model->count(array("YEAR(date_vente)" => $current_year));
-        $data['id'] =  intval($current_year . "00" . $count) + 1;
-        // pour prendre en compte les suppressions
-        // qui ne devraient pas arriver
-        while ($this->get_by_id('id', $data['id'])) {
-            $data['id'] += 1;
-        }
+        $highest_id = $this->highest_id_by_year($current_year);
+        $data['id'] = $highest_id   + 1;
+
         parent::create($data);
     }
 
@@ -97,11 +98,28 @@ class Vols_decouverte_model extends Common_Model {
         if ($this->section) {
             // var_dump($this->section['nom']); exit;
             if ($this->section['nom'] == "Planeur") {
-                return $this->planeurs_model->selector(array('actif' => 1, 'mpbiplace' => 2));               
+                return $this->planeurs_model->selector(array('actif' => 1, 'mpbiplace' => 2));
             } else {
                 return $this->avions_model->selector(array('actif' => 1));
             }
         }
+    }
+
+    /**
+     * Retrieves the highest ID for a given year from the vols_decouverte table
+     *
+     * @param int $year The year to search for the highest ID
+     * @return int The highest ID found for the specified year
+     */
+    function highest_id_by_year($year) {
+        $this->db->select_max('id', 'highest_id');
+        $this->db->from('vols_decouverte');
+        $this->db->where('YEAR(date_vente)', $year);
+        $query = $this->db->get();
+
+        $highest = $query->row()->highest_id;
+        if (!$highest) $highest = $year * 100;
+        return $highest;
     }
 }
 /* End of file */

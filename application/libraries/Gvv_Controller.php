@@ -61,7 +61,6 @@ class Gvv_Controller extends CI_Controller {
         $this->session->set_userdata('requested_url', $current_url);
 
         gvv_debug("URL: " . $current_url);
-        gvv_info("Login requested url set to : " . $current_url);
         
         $this->load->library('DX_Auth');
         if (getenv('TEST') != '1') {

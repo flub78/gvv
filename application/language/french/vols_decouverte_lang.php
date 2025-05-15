@@ -47,6 +47,7 @@ $lang['gvv_vols_decouverte_short_field_airplane_immat'] = "Appareil";
 $lang['gvv_vols_decouverte_short_field_cancelled'] = "Annulé";
 $lang['gvv_vols_decouverte_short_field_paiement'] = "Paiement";
 $lang['gvv_vols_decouverte_short_field_participation'] = "Participation";
+$lang['gvv_vols_decouverte_short_field_validite'] = "Validité";
 
 $lang['gvv_vols_decouverte_filtre_done'] = "Effectués";
 $lang['gvv_vols_decouverte_filtre_todo'] = "A faire";

@@ -133,11 +133,11 @@ class Auth extends CI_Controller {
 
                 if ($requested_url) {
                     $this->session->unset_userdata('requested_url');
-                    gvv_info("Login requested url redirecting to: " . $requested_url);
+                    // gvv_info("Login requested url redirecting to: " . $requested_url);
 
                     redirect($requested_url, 'location');                   
                 } else {
-                    gvv_info("Login no requested url: ");
+                    // gvv_info("Login no requested url: ");
                     redirect('', 'location');
                 }
 
