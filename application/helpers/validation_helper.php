@@ -19,6 +19,7 @@
  */
 if (! defined('BASEPATH'))
     exit('No direct script access allowed');
+
 function date_db2ht($datedb) // retourne une date depuis MySQL au format aaaa-mm-dd vers le format d'affichage dd/mm/aaaa
 {
     $str = $datedb;

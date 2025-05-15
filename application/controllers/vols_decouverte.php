@@ -94,7 +94,8 @@ class Vols_decouverte extends Gvv_Controller {
         $product = $this->data['product'];
         $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
         $this->data['description'] = ($tarif['description'] != "") ? $tarif['description'] : $product;
-        // $this->data['expired'] = true;
+
+        $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
 
         // var_dump($this->data);
 

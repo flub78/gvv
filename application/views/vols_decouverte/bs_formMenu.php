@@ -66,24 +66,29 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 
 <?php if ($cancelled): ?>
 <div class="alert alert-danger" role="alert">
-    Ce vol a été annulé
+    Ce bon a été annulé
 </div>
 <?php endif; ?>
+
 <?php if ($date_vol): ?>
 <div class="alert alert-success" role="alert">
-    Ce vol a été effectué le <?= $date_vol ?>
+    Ce vol de découverte a été effectué le <?= date_db2ht($date_vol) ?>
 </div>
-<?php endif; ?>
+<?php else: ?>
+
 <?php if ($expired): ?>
 <div class="alert alert-warning" role="alert">
     La date de validité est expirée
 </div>
 <?php endif; ?>
 
+<?php endif; ?>
+
+
 <div class="d-flex flex-wrap">
 	<div  class="m-2 ">
 		<div class="mb-2 ">Numéro: <?= $id ?> </div>
-		<div class="mb-2 ">Date de vente: <?= $date_vente ?> </div>
+		<div class="mb-2 ">Date de vente: <?= date_db2ht($date_vente) ?> </div>
 		<div class="mb-2 ">Description: <?= $description ?></div>
 		<div class="mb-2 ">Bénéficiaire: <?= $beneficiaire ?></div>
 	</div>
@@ -95,6 +100,7 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 
 </div>
 
+<?php if (!$cancelled && !$expired && !$date_vol): ?>
 <div class="container mt-4">
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
@@ -104,3 +110,4 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 		<a href="<?= $pdf_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
 	</div>
 </div>
+<?php endif; ?>

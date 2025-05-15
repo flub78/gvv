@@ -62,10 +62,10 @@ class Vols_decouverte_model extends Common_Model {
      */
     public function create($data) {
         $data['saisie_par'] = $this->dx_auth->get_username();
-        $current_year = date('Y');
+        $year = date('Y', strtotime($data['date_vente']));
 
-        // les VD sont numérotés de façon croissante à partir de l'année courante
-        $highest_id = $this->highest_id_by_year($current_year);
+        // les VD sont numérotés de façon croissante chaque année
+        $highest_id = $this->highest_id_by_year($year);
         $data['id'] = $highest_id   + 1;
 
         parent::create($data);
@@ -112,14 +112,21 @@ class Vols_decouverte_model extends Common_Model {
      * @return int The highest ID found for the specified year
      */
     function highest_id_by_year($year) {
+
+        $min_id = $year * 1000;
+        $max_id = ($year + 1) * 1000 - 1;
+
         $this->db->select_max('id', 'highest_id');
         $this->db->from('vols_decouverte');
-        $this->db->where('YEAR(date_vente)', $year);
+        $this->db->where('id >=', $min_id);
+        $this->db->where('id <=', $max_id);
         $query = $this->db->get();
 
-        $highest = $query->row()->highest_id;
-        if (!$highest) $highest = $year * 100;
-        return $highest;
+        // Check if any results were found
+        if ($query->num_rows() > 0 && $query->row()->highest_id !== null) {
+            return $query->row()->highest_id;
+        } else {
+            return $year * 1000;
+        }
     }
-}
-/* End of file */
+}/* End of file */
