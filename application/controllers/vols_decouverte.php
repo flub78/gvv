@@ -79,6 +79,8 @@ class Vols_decouverte extends Gvv_Controller {
      * Affiche les différentes action possibles sur un vol de découverte
      */
     function action($obfuscated_id) {
+        $this->push_return_url("action");
+
         $id = reverseTransform($obfuscated_id);
 
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
@@ -331,16 +333,15 @@ EOD;
         $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", 'I');
     }
 
-    function email($obfuscated_id) {
-        $id = reverseTransform($obfuscated_id);
-    }
 
-    function edit_pre_flight_info($obfuscated_id) {
+    function pre_flight($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
+        $this->edit($id);
     }
 
     function done($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
+        $this->edit($id);
     }
 
     /**

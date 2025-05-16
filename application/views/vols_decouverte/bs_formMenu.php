@@ -55,8 +55,6 @@ $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 $index_page = $this->config->item('index_page');
 
 $index = ($index_page) ? "$index_page/" : "";
-$pdf_url = base_url() . $index . "vols_decouverte/pdf/" . $obfuscated_id;
-$email_url = base_url() . $index . "vols_decouverte/email/" . $obfuscated_id;
 $pre_flight_url = base_url() . $index . "vols_decouverte/pre_flight/" . $obfuscated_id;
 $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 
@@ -104,9 +102,8 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 <div class="container mt-4">
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
-		<!--a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Envoi par mail</!--a -->
-		<a href="<?= $pdf_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajout contact d'urgence</a>
-		<a href="<?= $pdf_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
+		<a href="<?= $pre_flight_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajout contact d'urgence</a>
+		<a href="<?= $done_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
 	</div>
 </div>
 <?php endif; ?>
