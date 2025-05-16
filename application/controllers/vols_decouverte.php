@@ -105,7 +105,7 @@ class Vols_decouverte extends Gvv_Controller {
     /**
      * pdf request
      */
-    function pdf ($obfuscated_id) {
+    function print_vd ($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
         $vd = $this->gvv_model->get_by_id($this->kid, $id);
         // var_dump($vd);exit;

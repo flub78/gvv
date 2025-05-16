@@ -35,7 +35,7 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 
 $attrs = array(
     'controller' => $controller,
-    'actions' => array('edit', 'delete', 'action'),
+    'actions' => array('edit', 'delete', 'print_vd', 'action'),
     'fields' => array('id', 'validite', 'product', 'beneficiaire', 'date_vol', 'urgence', 'cancelled', 'paiement', 'participation'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable table table-striped"
@@ -43,11 +43,11 @@ $attrs = array(
 
 echo $this->gvvmetadata->table("vue_vols_decouverte", $attrs, "");
 
+
 $bar = array(
     array('label' => "Excel", 'url' => "$controller/export/csv", 'role' => 'ca'),
     array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
 );
-echo button_bar4($bar);
-
+// echo button_bar4($bar);
 
 echo '</div>';
