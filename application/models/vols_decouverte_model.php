@@ -126,7 +126,7 @@ class Vols_decouverte_model extends Common_Model {
         if ($query->num_rows() > 0 && $query->row()->highest_id !== null) {
             return $query->row()->highest_id;
         } else {
-            return $year * 1000;
+            return ($year - 2000) * 1000;
         }
     }
 }/* End of file */
