@@ -28,13 +28,13 @@ class Vols_decouverte_model extends Common_Model {
         if ($this->section) {
             // select elements from vols_decouverte where product has club equal to $this->section_id
             $db_res = $this->db
-                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation')
+                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix')
                 ->from('vols_decouverte')
                 ->where('club', $this->section_id)
                 ->get();
             $select = $this->get_to_array($db_res);
         } else {
-            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, urgence, cancelled, paiement, participation');
+            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix');
         }
         $i = 0;
         foreach ($select as $elt) {
