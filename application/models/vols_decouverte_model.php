@@ -24,17 +24,24 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
+        $to_select = 'id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix';
         // select per section
         if ($this->section) {
             // select elements from vols_decouverte where product has club equal to $this->section_id
             $db_res = $this->db
-                ->select('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix')
+                ->select($to_select)
                 ->from('vols_decouverte')
                 ->where('club', $this->section_id)
+                ->order_by('date_vente desc')
                 ->get();
             $select = $this->get_to_array($db_res);
         } else {
-            $select = $this->select_columns('id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix');
+            $db_res = $this->db
+            ->select($to_select)
+            ->from('vols_decouverte')
+            ->order_by('date_vente desc')
+            ->get();
+        $select = $this->get_to_array($db_res);
         }
         $i = 0;
         foreach ($select as $elt) {
@@ -113,8 +120,9 @@ class Vols_decouverte_model extends Common_Model {
      */
     function highest_id_by_year($year) {
 
-        $min_id = $year * 1000;
-        $max_id = ($year + 1) * 1000 - 1;
+        $year2 = $year - 2000;
+        $min_id = $year2 * 10000;
+        $max_id = ($year2 + 1) * 10000 - 1;
 
         $this->db->select_max('id', 'highest_id');
         $this->db->from('vols_decouverte');
@@ -126,7 +134,7 @@ class Vols_decouverte_model extends Common_Model {
         if ($query->num_rows() > 0 && $query->row()->highest_id !== null) {
             return $query->row()->highest_id;
         } else {
-            return ($year - 2000) * 1000;
+            return ($year - 2000) * 10000;
         }
     }
 }/* End of file */
