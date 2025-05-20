@@ -105,6 +105,29 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
+     * Action when the flight is selected by the selector
+     */
+    function action_clear() {
+        if ($this->input->post('vd_id')) {
+            $this->push_return_url("action");
+
+            $id = $this->input->post('vd_id');
+            $obfuscated = transformInteger($id);
+            redirect("vols_decouverte/action/" . $obfuscated);
+
+        }
+    }
+
+    /**
+     * Accés à un vol de découverte par numéro
+     */
+    function select_by_id () {
+
+        $this->data['vd_selector'] = $this->gvv_model->selector();
+        return load_last_view("vols_decouverte/formSelector", $this->data, $this->unit_test);
+    }
+
+    /**
      * pdf request
      */
     function print_vd ($obfuscated_id) {

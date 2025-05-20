@@ -51,9 +51,17 @@ $section_count = $CI->sections_model->safe_count_all();
             <?php if (has_role('ca')) : ?>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_admin") ?></a>
-                <ul class="dropdown-menu">
+                  <ul class="dropdown-menu">
 
-                  <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><?= translation("gvv_menu_vols_decouverte") ?></a></li>
+                  <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_vols_decouverte") ?>&raquo;</a>
+                  <ul class="submenu dropdown-menu">
+
+                    <?php if (has_role('ca')) : ?>
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><?= translation("gvv_menu_vols_decouverte") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
+                    <?php endif; ?>
+                  </li>
+                  </ul>
 
 
                   <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_reports") ?> &raquo;</a>

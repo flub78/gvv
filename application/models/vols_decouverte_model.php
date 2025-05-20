@@ -89,7 +89,8 @@ class Vols_decouverte_model extends Common_Model {
             return "";
         $vals = $this->get_by_id('id', $key);
         if (array_key_exists('date_vente', $vals) && array_key_exists('beneficiaire', $vals)) {
-            return $vals['date_vente'] . " " . $vals['beneficiaire'];
+            $date = date_db2ht($vals['date_vente']);
+            return $vals['id'] . " " . $date . " " . $vals['beneficiaire'];
         } else {
             return "vols_decouverte inconnu $key";
         }
