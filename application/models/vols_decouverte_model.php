@@ -105,9 +105,9 @@ class Vols_decouverte_model extends Common_Model {
         if ($this->section) {
             // var_dump($this->section['nom']); exit;
             if ($this->section['nom'] == "Planeur") {
-                return $this->planeurs_model->selector(array('actif' => 1, 'mpbiplace' => 2));
+                return $this->planeurs_model->selector_with_null(array('actif' => 1, 'mpbiplace' => 2));
             } else {
-                return $this->avions_model->selector(array('actif' => 1));
+                return $this->avions_model->selector_with_null(array('actif' => 1));
             }
         }
     }

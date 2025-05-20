@@ -1,10 +1,7 @@
 # Liste des choses à faire
 
-Cela peut paraître paradoxal de maintenir une liste de chose à faire pour un logiciel qui doit être remplacé.
+Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail lour, et le GVV actuel doit être maintenu pour s'adapter aux nouveaux besoins des utilisateurs.
 
-Néanmoins, la date de sortie probable du remplacement est loin et j'ai deja incorporé dans cette version certaines des améliorations prévues pour la prochaine version. C'est assez désagréable d'avoir à maintenir quelque chose dont les défauts semblent maintenant plus évidents lorsqu'on compare à la nouvelle version. Lorsque j'ai commencé le travail sur la nouvelle je m'étais juré que je ne ferais pas de concessions même au détriment du temps de développement. Et quelle plus grande concession pour un développeur que de travailler à la maintenance d'un projet legacy aux dépends de la grande et glorieuse nouvelle version ? :-).
-
-Cependant le fait que ce projet soit utile et utilisé est une part de ma motivation et pour mes utilisateurs, certaines fonctionnalités sont plus utiles livrées dans quelques semaines que dans quelques années. Ceci d'autant plus que les limitations de GVV sont plus dues à l’obsolescence de l’environnement et à certains choix d'architecture douteux plutôt qu'aux fonctionnalités proprement dites. En d'autre termes c'est plutôt moi qui pense qu'on peut faire mieux que les utilisateurs qui se plaignent. 
 
 ## Fait récemment
 
@@ -30,6 +27,10 @@ Cependant le fait que ce projet soit utile et utilisé est une part de ma motiva
 
 * [] bilan et clôture par section
 * [] gestion des vols de découverte
+  * [x] Fonctionnalité minimum
+  * [ ] filtre
+  * [ ] présentation par année
+  * [ ] export CSV et Pdf
 
 * [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
