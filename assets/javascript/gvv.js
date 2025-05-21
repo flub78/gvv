@@ -246,11 +246,18 @@ function new_year() {
 	var selector = document.getElementById('year_selector');
 	var selected = selector.options[selector.selectedIndex].value;
 
+	// alert('new_year |' + selected + '|'); 
+
 	var controllers = document.getElementsByName('controller_url');
 	if (controllers.length < 1) {
 		alert('controller_url not found');
 	} else {
-		var url = controllers[0].value + "/new_year/" + selected;
+		if (selected == '') {
+			var url = controllers[0].value + "/all_year/";
+		} else {
+			var url = controllers[0].value + "/new_year/" + selected;
+		}
+		// alert ("url = " + url);
 		window.location.href = url;
 	}
 }

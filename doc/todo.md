@@ -32,6 +32,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [ ] présentation par année
   * [ ] export CSV et Pdf
 
+* [] Vue compte, autoriser les vues sur plusieurs années
 * [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture

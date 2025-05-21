@@ -740,13 +740,17 @@ if (! function_exists('year_selector')) {
      * @param unknown_type $year_selector
      * @return string
      */
-    function year_selector($controller, $year, $year_selector) {
+    function year_selector($controller, $year, $year_selector, $with_all = false) {
         if (! array_key_exists($year, $year_selector)) {
             $year_selector[$year] = (string) $year;
         }
+        $CI = &get_instance();
+
+        if ($with_all) {
+            $year_selector['all'] =  $CI->lang->line("gvv_toutes") . "..."; 
+        }
         $url = controller_url($controller);
         $res = '<input type="hidden" name="controller_url" value="' . $url . '" />';
-        $CI = &get_instance();
         $res .= nbs() . $CI->lang->line("gvv_year") . " "
             . dropdown_field('year', $year, $year_selector, "id='year_selector' onchange=new_year();");
 

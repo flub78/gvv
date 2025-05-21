@@ -213,8 +213,10 @@ class Ecritures_model extends Common_Model {
             ->from($from)
             ->where($where, NULL)
             ->where($selection, NULL)
-            ->where($filtrage)
-            ->where("YEAR(date_op) = \"$year\"");
+            ->where($filtrage);
+
+        if ($year != "all")
+            $this->db->where("YEAR(date_op) = \"$year\"");
 
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
