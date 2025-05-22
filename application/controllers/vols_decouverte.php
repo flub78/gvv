@@ -334,11 +334,10 @@ EOD;
     <tr>
         <td>
             Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
-            <br />- pour l'avion <strong>Patrice Maignan (06 62 47 31 10)</strong> 
+            <br />- pour l'avion <strong>Daniel Tellier (06 12 01 37 22)</strong> 
             <br />- pour le planeur <strong>Thibault Dugardin (06 77 61 06 16)</strong>
             <br />- pour l'ULM <strong>Guillaume Montois (06 81 20 20 69)</strong>
             <br>
-
         </td>
     </tr>
 
