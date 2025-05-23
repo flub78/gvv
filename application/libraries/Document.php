@@ -60,12 +60,28 @@ class Document {
     }
 
     /**
+     * Calcul le titre en fonction de la section
+     */
+    function title($language_key, $year) {
+        $section = $this->CI->gvv_model->section();
+        $title = $this->CI->lang->line($language_key);
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " " . $year;
+        return $title;
+    }
+
+    /**
      * Génération de la page résultats
      * @param unknown_type $year
      */
     function pagesResultats($year) {
+
+        $title = $this->title("gvv_comptes_title_resultat", $year);
+
         $this->pdf->AddPage();
-        $this->pdf->title($this->CI->lang->line("gvv_comptes_title_resultat") . " " . $year, 2);
+        $this->pdf->title($title, 2);
 
         $resultat = $this->CI->ecritures_model->select_resultat();
         $tab = $this->CI->ecritures_model->resultat_table($resultat, false, '', ',', 'pdf');
@@ -101,7 +117,9 @@ class Document {
      */
     function pagesResultatsCategorie($year) {
         $this->pdf->AddPage();
-        $this->pdf->title($this->CI->lang->line("gvv_comptes_title_resultat") . " " . $year . " par catégorie", 2);
+
+        $title = $this->title("gvv_comptes_title_resultat", $year) . " par catégorie";
+        $this->pdf->title($title, 2);
 
         $results = $this->CI->ecritures_model->select_categorie('code1 >= "6" and code1 < "7"');
 
@@ -155,8 +173,11 @@ class Document {
 
         $balance_date = "31/12/$year";
 
+        $title = $this->title("gvv_comptes_title_balance", $balance_date);
+
         $this->pdf->AddPage('P');
-        $this->pdf->title($this->CI->lang->line("gvv_comptes_title_balance") . " $balance_date", 1);
+        
+        $this->pdf->title($title, 1);
 
         $this->CI->session->set_userdata('balance_date', $balance_date);
 
@@ -267,12 +288,14 @@ class Document {
      */
     function pagesComptes($year) {
 
+        $title = $this->title("gvv_comptes_title_journaux", $year);
+
         $this->pdf->AddPage('P');
         for ($i = 0; $i < 5; $i++) {
             $this->pdf->Ln();
         }
         $this->pdf->title($this->CI->config->item('nom_club'));
-        $this->pdf->title($this->CI->lang->line("gvv_comptes_title_journaux") . " $year", 1);
+        $this->pdf->title($title, 1);
         $this->pdf->AddPage('P');
 
         $first_day = "01/01/$year";
@@ -287,25 +310,32 @@ class Document {
         }
     }
 
-
     /**
      * Entête du rapport
      * @param unknown_type $year
      */
     function pagesRapportFinancier($year) {
 
+
+        $section = $this->CI->gvv_model->section();
+        $title = $this->CI->lang->line("gvv_comptes_title_financial");
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " " . $year;
+
         $this->pdf->AddPage('P');
         for ($i = 0; $i < 5; $i++) {
             $this->pdf->Ln();
         }
         $this->pdf->title($this->CI->config->item('nom_club'));
-        $this->pdf->title($this->CI->lang->line("gvv_comptes_title_financial") . " $year", 1);
+        $this->pdf->title($title, 1);
         $this->pdf->Ln();
 
-        $this->pdf->title("                    " . $this->CI->lang->line("gvv_comptes_title_resultat"), 2);
-        $this->pdf->title("                    " . $this->CI->lang->line("gvv_comptes_title_bilan"), 2);
-        $this->pdf->title("                    " . $this->CI->lang->line("gvv_comptes_title_balance"), 2);
-        $this->pdf->title("                    " . $this->CI->lang->line("gvv_comptes_title_sales"), 2);
+        $this->pdf->title("                    " . $this->title("gvv_comptes_title_resultat", $year), 2);
+        $this->pdf->title("                    " . $this->title("gvv_comptes_title_bilan", $year), 2);
+        $this->pdf->title("                    " . $this->title("gvv_comptes_title_balance", $year), 2);
+        $this->pdf->title("                    " . $this->title("gvv_comptes_title_sales", $year), 2);
     }
 
     /**
@@ -317,7 +347,7 @@ class Document {
         $this->CI->lang->load('achats');
 
         $this->pdf->AddPage('P');
-        $this->pdf->title($this->CI->lang->line("gvv_achats_title_year") . " $year", 1);
+        $this->pdf->title($this->title("gvv_achats_title_year", $year), 1);
         // $this->pdf->AddPage('P');
 
         // Fetch the data
@@ -348,8 +378,7 @@ class Document {
      */
     function pagesBilan($year) {
 
-        $title = $this->CI->lang->line('gvv_comptes_title_bilan');
-        $title .= " $year";
+        $title = $this->title('gvv_comptes_title_bilan', $year);
 
         $this->pdf->AddPage('P');
         $this->pdf->title($title, 1);

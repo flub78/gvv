@@ -54,6 +54,8 @@ $lang['gvv_menu_reports_user_reports'] = "Rapports utilisateur";
 $lang['gvv_menu_reports_federal_report'] = "FFVV";
 $lang['gvv_menu_reports_admin_report'] = "DGAC";
 $lang['gvv_menu_validities'] = "Validité licence";
+$lang['gvv_menu_reports_financial_reports'] = "Rapports financier";
+
 
 $lang['gvv_menu_accounting'] = "Compta";
 $lang['gvv_menu_accounting_journal'] = "Journaux";

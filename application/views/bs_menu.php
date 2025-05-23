@@ -70,6 +70,7 @@ $section_count = $CI->sections_model->safe_count_all();
                       <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><?= translation("gvv_menu_validities") ?></a></li>
                       <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
                       <?php if (has_role('bureau')) : ?>
+                        <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><?= translation("gvv_menu_reports_financial_reports") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("tickets/solde") ?>"><?= translation("gvv_menu_reports_remaining_tickets") ?></a></li>
                       <?php endif; ?>
                       <?php if (has_role('ca')) : ?>
