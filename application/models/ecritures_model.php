@@ -940,25 +940,35 @@ array (size=2)
 
         // if ($codec_min == 1) echo "select_solde($date_op, $codec_min, $codec_max, $group)" . br();
         $group_by = ($group) ? "" : "compte1";
-        $db_res = $this->db
+        $this->db
             ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as debit")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where("date_op <= \"$date_op\"")
-            ->where("compte1.codec >= \"$codec_min\" and compte1.codec < \"$codec_max\"")
-            ->group_by($group_by)
+            ->where("compte1.codec >= \"$codec_min\" and compte1.codec < \"$codec_max\"");
+
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
+        $db_res = $this->db->group_by($group_by)
             ->order_by('code')
             ->get();
         $debit = $this->get_to_array($db_res);
 
         $group_by = ($group) ? "" : "compte2";
-        $db_res = $this->db
+        $this->db
             ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as credit")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where("date_op <= \"$date_op\"")
-            ->where("compte2.codec >= \"$codec_min\" and compte2.codec < \"$codec_max\"")
-            ->group_by($group_by)
+            ->where("compte2.codec >= \"$codec_min\" and compte2.codec < \"$codec_max\"");
+
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
+        $db_res = $this->db->group_by($group_by)
             ->order_by('code')
             ->get();
         $credit = $this->get_to_array($db_res);

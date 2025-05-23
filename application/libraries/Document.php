@@ -42,6 +42,10 @@ class Document {
         $this->CI->load->helper('validation');
         $this->CI->lang->load('comptes');
         $this->CI->lang->load('compta');
+        $this->CI->load->model('ecritures_model');
+        $this->CI->load->model('comptes_model');
+        $this->CI->load->model('sections_model');
+
 
         // Il est obligatoire de vérifier l'existence du paramètre parce que
         // Le chargement de la librairie crée un objet par défaut (sans paramères)
@@ -63,7 +67,6 @@ class Document {
         $this->pdf->AddPage();
         $this->pdf->title($this->CI->lang->line("gvv_comptes_title_resultat") . " " . $year, 2);
 
-        $this->CI->load->model('ecritures_model');
         $resultat = $this->CI->ecritures_model->select_resultat();
         $tab = $this->CI->ecritures_model->resultat_table($resultat, false, '', ',', 'pdf');
 
@@ -100,7 +103,6 @@ class Document {
         $this->pdf->AddPage();
         $this->pdf->title($this->CI->lang->line("gvv_comptes_title_resultat") . " " . $year . " par catégorie", 2);
 
-        $this->CI->load->model('ecritures_model');
         $results = $this->CI->ecritures_model->select_categorie('code1 >= "6" and code1 < "7"');
 
         $tab = array();
@@ -158,7 +160,6 @@ class Document {
 
         $this->CI->session->set_userdata('balance_date', $balance_date);
 
-        $this->CI->load->model('comptes_model');
         $result = $this->CI->comptes_model->select_page_general(array(), $balance_date);
 
         $fields = array('codec', 'nom', 'solde_debit', 'solde_credit');
@@ -213,7 +214,6 @@ class Document {
         $this->pdf->title($this->CI->lang->line("gvv_compta_title_entries")
             . " $nom " . $this->CI->lang->line("gvv_year") . " $year", 1);
 
-        $this->CI->load->model('ecritures_model');
         $results = $this->CI->ecritures_model->select_journal($compte);
 
         $this->CI->gvvmetadata->store_table("ecritures", $results);
@@ -275,11 +275,9 @@ class Document {
         $this->pdf->title($this->CI->lang->line("gvv_comptes_title_journaux") . " $year", 1);
         $this->pdf->AddPage('P');
 
-        $this->CI->load->model('comptes_model');
         $first_day = "01/01/$year";
         $date = "31/12/$year";
         $results = $this->CI->comptes_model->select_page(array(), $date);
-        $this->CI->load->model('ecritures_model');
         foreach ($results as $row) {
             $compte = $row['id'];
             $nom = $row['nom'];
@@ -350,10 +348,12 @@ class Document {
      */
     function pagesBilan($year) {
 
-        $this->pdf->AddPage('P');
-        $this->pdf->title($this->CI->lang->line('gvv_comptes_title_bilan') . " $year", 1);
+        $title = $this->CI->lang->line('gvv_comptes_title_bilan');
+        $title .= " $year";
 
-        $this->CI->load->model('comptes_model');
+        $this->pdf->AddPage('P');
+        $this->pdf->title($title, 1);
+
         $bilan = $this->CI->comptes_model->select_all_for_bilan($year);
         $bilan_prec = $this->CI->comptes_model->select_all_for_bilan($year - 1);
         $data = bilan_table($bilan, $bilan_prec, false);

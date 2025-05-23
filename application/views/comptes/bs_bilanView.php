@@ -28,7 +28,12 @@ $this->lang->load('comptes');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line('gvv_comptes_title_bilan'), 2, "");
+$title = $this->lang->line('gvv_comptes_title_bilan');
+if ($section) {
+	$title .= " section " . $section['nom'];
+}
+
+echo heading($title, 2, "");
 echo year_selector($controller, $year, $year_selector);
 echo br(2);
 echo heading("date: $date", 3, "");

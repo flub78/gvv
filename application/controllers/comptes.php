@@ -506,6 +506,8 @@ class Comptes extends Gvv_Controller {
         $bilan_prec = $this->gvv_model->select_all_for_bilan($year - 1);
         $this->data = $bilan;
         $this->data['bilan_table'] = bilan_table($bilan, $bilan_prec, true);
+        $this->data['section'] = $this->gvv_model->section();
+
         load_last_view('comptes/bilanView', $this->data);
     }
 
@@ -523,8 +525,13 @@ class Comptes extends Gvv_Controller {
         $bilan_table = bilan_table($bilan, $bilan_prec, false);
 
         $year = $this->session->userdata('year');
+        $section = $this->gvv_model->section();
 
-        csv_file($this->lang->line('gvv_comptes_title_bilan') . " $year", $bilan_table);
+        $title = $this->lang->line('gvv_comptes_title_bilan');
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        csv_file($title . " $year", $bilan_table);
     }
 
     /**
