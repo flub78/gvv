@@ -765,7 +765,12 @@ class Comptes extends Gvv_Controller {
         $date_fin = "31/12/$year";
         $date_gel = $this->config->item('date_gel');
 
-        $comment = $this->lang->line("gvv_comptes_title_cloture") . " $year";
+        $section = $this->gvv_model->section();
+        // $comment = $this->lang->line("gvv_comptes_title_cloture");
+        // if ($section) {
+        //     $comment .= " section " . $section['nom'];
+        // }
+        // $comment .= " $year";
 
         $this->data['controller'] = 'comptes';
         $this->data['action'] = $action;
@@ -773,6 +778,7 @@ class Comptes extends Gvv_Controller {
         $this->data['year'] = $year;
         $this->data['date_fin'] = $date_fin;
         $this->data['date_gel'] = $date_gel;
+        $this->data['section'] = $section;
 
         if (french_date_compare($date_gel, $date_fin, '>=')) {
             $error = $this->lang->line("comptes_cloture_impossible") . " $date_gel.";

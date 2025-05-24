@@ -67,7 +67,9 @@ class Migration_Alter_config extends CI_Migration {
 		$sqls = array(
             "ALTER TABLE `config` DROP PRIMARY KEY;",
             "ALTER TABLE `config` ADD COLUMN `id` INT AUTO_INCREMENT PRIMARY KEY FIRST;",
-            "ALTER TABLE `config` ADD INDEX `idx_cle` (`id`);"
+            "ALTER TABLE `config` ADD INDEX `idx_cle` (`id`);",
+			"ALTER TABLE `config` ADD `description` VARCHAR(128) NOT NULL AFTER `club`;",
+			"RENAME TABLE config TO configuration;"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -86,9 +88,12 @@ class Migration_Alter_config extends CI_Migration {
 	public function down() {
 		$errors = 0;
 		$sqls = array(
+			"ALTER TABLE `configuration` DROP `club`;",
+			"RENAME TABLE configuration TO config;",
             "ALTER TABLE `config` DROP INDEX `idx_cle`;",
             "ALTER TABLE `config` DROP COLUMN `id`;",
             "ALTER TABLE `config` ADD PRIMARY KEY (`cle`);"
+			
 		);
 
 		$errors += $this->run_queries($sqls);

@@ -17,42 +17,37 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Formulaire de saisie des terrains
+ * Vue table pour les terrains
+ * 
  * @package vues
  */
-$this->load->view('header');
-$this->load->view('banner');
-$this->load->view('sidebar');
-$this->load->view('menu');
 
-$this->lang->load('terrains');
+$this->load->view('bs_header');
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
 
-echo '<div id="body" class="body ui-widget-content">';
+$this->lang->load('configuration');
 
-if (isset($message)) {
-	echo p($message) . br();
-}
-echo checkalert($this->session, isset($popup) ? $popup : "");
+echo '<div id="body" class="body container-fluid">';
 
-echo heading("gvv_terrains_title", 3);
-
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
-
-// hidden contrller url for java script access
+echo heading("gvv_terrains_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
-// echo form_hidden('macimmat', $macimmat);
+$attrs = array(
+    'controller' => $controller,
+    'actions' => array('edit', 'delete'),
+    'fields' => array('oaci', 'nom', 'freq1', 'freq2', 'comment'),
+    'mode' => ($has_modification_rights) ? "rw" : "ro",
+    'class' => "datatable table table-striped"
+);
 
-// echo validation_errors();
-echo ($this->gvvmetadata->form('terrains', array(
-	'oaci' => $oaci,
-	'nom' => $nom,
-	'freq1' => $freq1,
-	'freq2' => $freq2,
-	'comment' => $comment
-)));
-
-echo validation_button($action);
-echo form_close();
+echo $this->gvvmetadata->table("vue_terrains", $attrs, "");
+/*
+$bar = array(
+	array('label' => "Excel", 'url' =>"$controller/export/csv", 'role' => 'ca'),
+	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
+	);
+echo button_bar4($bar);
+*/
 
 echo '</div>';

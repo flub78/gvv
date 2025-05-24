@@ -26,19 +26,23 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 ## Reste à faire
 
 * [] bilan et clôture par section
+  * [x] bilan par section
+  * [ ] clôture par section
+  
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
   * [ ] présentation par année
   * [ ] export CSV et Pdf
+  * [ ] Import des informations planeur
 
 * [x] Vue compte, autoriser les vues sur plusieurs années
 * [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
-* [] tester les téléchargements avec espace (upload->do_upload)
-* [] Les attachements devrait-être listé par section et par années
-* [] compression des attachements
+  * [] tester les téléchargements avec espace (upload->do_upload)
+  * [] Les attachements devrait-être listé par section et par années
+  * [] compression des attachements
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
@@ -46,11 +50,12 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Vérifier les photos des membres sur le site déployé
 * [] synchro avec OpenFlyers
 * [] Gestion de l'inscription, y compris les autorisations parentales
-* [] supprimer les trucs orienté planeur sur les pages
+* [] supprimer les textes orienté planeur sur les pages
 * [] Gérer la configuration dans la base.
+* [] Compte d'exploitation
   
-* [] Online Payments                                         10j
 * [] Reservation des avions                                  10j
+* [] Online Payments                                         10j
 * [] Fixer la date de gel lors de la cloture (par section quand la dernière section a clôturé)
 * [] Support du markdown
 * [] Sauvegarde/restauration des medias et attachements
