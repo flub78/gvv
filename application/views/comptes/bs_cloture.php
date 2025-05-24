@@ -38,7 +38,7 @@ echo form_open(controller_url($controller) . "/cloture/" . VALIDATION, array (
     'name' => 'saisie'
 ));
 
-// hidden contrller url for java script access
+// hidden controller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 echo br();
