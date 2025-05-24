@@ -684,15 +684,18 @@ class Comptes extends Gvv_Controller {
          * [description] => heure de vol en fauconet
          * [num_cheque] => xxx
          * [saisie_par] => fpeignot )
+         * [club] => 1
          */
 
+        $section = $this->gvv_model->section();
         $line = array(
             'annee_exercise' => $year,
             'date_creation' => $date,
             'date_op' => $date,
             'description' => $comment,
             'num_cheque' => "Clôture exercice $year",
-            'saisie_par' => $this->dx_auth->get_username()
+            'saisie_par' => $this->dx_auth->get_username(),
+            'club' => $section['id']
         );
 
         foreach ($result as $row) {
@@ -722,13 +725,15 @@ class Comptes extends Gvv_Controller {
         $result = $this->gvv_model->select_page($selection, $date);
         // var_dump($result);
 
+        $section = $this->gvv_model->section();
         $line = array(
             'annee_exercise' => $year,
             'date_creation' => $date,
             'date_op' => $date,
             'description' => $comment,
             'num_cheque' => "Clôture exercice $year",
-            'saisie_par' => $this->dx_auth->get_username()
+            'saisie_par' => $this->dx_auth->get_username(),
+            'club' => $section['id']
         );
 
         foreach ($result as $row) {
@@ -766,11 +771,6 @@ class Comptes extends Gvv_Controller {
         $date_gel = $this->config->item('date_gel');
 
         $section = $this->gvv_model->section();
-        // $comment = $this->lang->line("gvv_comptes_title_cloture");
-        // if ($section) {
-        //     $comment .= " section " . $section['nom'];
-        // }
-        // $comment .= " $year";
 
         $this->data['controller'] = 'comptes';
         $this->data['action'] = $action;
@@ -789,10 +789,12 @@ class Comptes extends Gvv_Controller {
         $error_120 = $this->lang->line("comptes_cloture_error_120");
         $error_129 = $this->lang->line("comptes_cloture_error_129");
 
-        if (count($this->db->select('*')->from('comptes')->where('codec = "120"')->order_by('codec')->get()->result_array()) == 0)
-            $error .= "<BR>$error_120";
-        if (count($this->db->select('*')->from('comptes')->where('codec = "129"')->order_by('codec')->get()->result_array()) == 0)
-            $error .= "<BR>$error_129";
+        $where = [];
+        if ($section) $where['club'] = $section['id'];
+        $where["codec"] = "120";
+        if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_120";
+        $where["codec"] = "129";
+        if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_129";
 
         $this->data['error'] = $error;
 
@@ -802,10 +804,13 @@ class Comptes extends Gvv_Controller {
             "codec >=" => "10",
             'codec <' => "11"
         );
+        if ($section) $where['club'] = $section['id'];
+
         // $this->gvvmetadata->set_selector('capital_selector', $this->gvv_model->selector($where));
         $this->data['capital_selector'] = $this->gvv_model->selector($where);
         $this->data['capital'] = '';
 
+        // liste_compte prend déjà la section active en compte
         $this->data['a_integrer'] = $this->liste_comptes("codec >= \"110\" and codec < \"130\"", $balance_date);
         $this->data['charges'] = $this->liste_comptes("codec >= \"6\" and codec < \"7\"", $balance_date);
         $this->data['produits'] = $this->liste_comptes("codec >= \"7\" and codec < \"8\"", $balance_date);
@@ -831,6 +836,7 @@ class Comptes extends Gvv_Controller {
             $this->charges_integration("codec >= \"7\" and codec < \"8\"", $date_op, $year, $resultat_debiteur, $resultat_crediteur, $comment);
 
             // Modifie la date de gel
+            // Uniquement si toutes les sections ont clôturé
             $this->load->helper('update_config');
             $this->load->helper('file');
 
@@ -842,7 +848,6 @@ class Comptes extends Gvv_Controller {
         }
         return load_last_view($this->controller . "/cloture", $this->data, $this->unit_test);
     }
-
     /**
      * Test unitaire
      */

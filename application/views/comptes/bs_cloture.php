@@ -27,7 +27,12 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 echo '<div id="body" class="body container-fluid">';
 
-echo heading($this->lang->line("gvv_comptes_title_cloture") . " $year", 2, "");
+$title = $this->lang->line("gvv_comptes_title_cloture");
+if ($section) {
+    $title .= " section " . $section['nom'];
+}
+$title .= " $year";
+echo heading($title, 2, "");
 
 echo form_open(controller_url($controller) . "/cloture/" . VALIDATION, array (
     'name' => 'saisie'
@@ -41,12 +46,17 @@ if ($error) {
     echo p($error, 'class="error"') . br();
 }
 
+if (!$section) {
+    $msg = "La clôture doit être faite section par section.";
+    echo p($msg, 'class="error"') . br();
+}
 echo $this->lang->line("comptes_cloture_date_fin") . " = $date_fin" . br(); 
 echo $this->lang->line("comptes_cloture_date_gel") . " = $date_gel" . br();
  
 echo br();
 echo heading($this->lang->line("comptes_cloture_title_result"), 4, "");
 echo dropdown_field('capital', $capital, $capital_selector, "id='selector' ");
+echo br(2);
 
 echo heading($this->lang->line("comptes_cloture_title_previous"), 4, "");
 $attrs = array(
@@ -66,7 +76,7 @@ echo heading($this->lang->line("comptes_cloture_title_produits_a_integrer"), 4, 
 echo table_from_array($produits, $attrs);
 
 echo br();
-if ($action == MODIFICATION && !$error) {
+if ($action == MODIFICATION && !$error && $section) {
 	echo validation_button($action);
 }
 echo form_close();

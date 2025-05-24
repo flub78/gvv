@@ -193,6 +193,8 @@ class Common_Model extends CI_Model {
     /**
      * Retourne le nombre de membres
      *
+     * Il y a deux paramètres $where pour pouvoir passer des chaines de caractère et des tableaux ...
+     * 
      * @param array $where
      *            Tableau associatif permettant de définir des conditions
      * @return integer Le nombre de news satisfaisant la condition
