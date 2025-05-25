@@ -53,7 +53,6 @@ Liste des modifications</a>';
 echo ul($list, $attributes);
 
 echo '<hr>';
-// echo heading("Date de gel : " . $date_gel, 5);
 
 echo "<table class='table'>";
 echo "<tr><th>Section</th><th>Date de clôture</th></tr>";

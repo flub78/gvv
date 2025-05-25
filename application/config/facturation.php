@@ -31,6 +31,6 @@ $config['gestion_pompes'] = TRUE;
 | Date de gel, les vols et écritures avant cette date sont rejetés
 |--------------------------------------------------------------------------
 */
-$config['date_gel'] = '31/12/2024';
+// $config['date_gel'] = '31/12/2024';
 
 /* End of file facturation.php */

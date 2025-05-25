@@ -90,9 +90,7 @@ class Gvv_Controller extends CI_Controller {
         if (! $this->session->userdata('licence_type')) {
             $this->session->set_userdata('licence_type', 0);
         }
-
-
-
+        $this->load->model('clotures_model');
     }
 
     /**
@@ -225,7 +223,7 @@ class Gvv_Controller extends CI_Controller {
             return false;
         }
 
-        $date_gel = $this->config->item('date_gel');
+        $date_gel = $this->clotures_model->freeze_date(true);
         $this->form_validation->set_message('valid_activity_date', "Date antérieure au " . $date_gel);
 
         if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date, $matches)) {

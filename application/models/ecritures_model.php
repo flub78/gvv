@@ -608,7 +608,7 @@ class Ecritures_model extends Common_Model {
         $montant = $previous['montant'];
 
         $date = $previous['date_op'];
-        $date_gel = $this->config->item('date_gel');
+        $date_gel = $this->clotures_model->freeze_date(true);
 
         // format database
         if (preg_match('/(\d+)\-(\d+)\-(\d+)/', $date, $matches)) {
@@ -1060,7 +1060,7 @@ array (size=2)
      *            $achat
      */
     function select_frozen_lines($achat) {
-        $date_gel = date_ht2db($this->config->item('date_gel'));
+        $date_gel = $this->clotures_model->freeze_date();
 
         $db_res = $this->db
             ->select("achat, gel, date_op")
@@ -1083,7 +1083,7 @@ array (size=2)
      *            du champ 'vol_planeur', 'vol_avion'
      */
     function select_flight_frozen_lines($vol, $field) {
-        $date_gel = date_ht2db($this->config->item('date_gel'));
+        $date_gel = $this->clotures_model->freeze_date();
 
         $db_res = $this->db
             ->select("achat, gel, $field, date_op")

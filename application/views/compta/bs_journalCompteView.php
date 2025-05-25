@@ -422,7 +422,7 @@ echo '</div>';
             // Add the page length menu options
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
-                [10, 25, 50, 100, 500, 1000, "All"]
+                [10, 25, 50, 100, 500, 1000, "Tous les"]
             ]
         });
 
@@ -472,7 +472,7 @@ echo '</div>';
             // Add the page length menu options
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
-                [10, 25, 50, 100, 500, 1000, "All"]
+                [10, 25, 50, 100, 500, 1000, "Tous les"]
             ]
         });
     });

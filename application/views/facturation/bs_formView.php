@@ -51,8 +51,7 @@ echo ($this->gvvmetadata->form('facturation', array(
     'payeur_non_pilote' => $payeur_non_pilote,
     'partage' => $partage,
     'gestion_pompes' => $gestion_pompes,
-    'remorque_100eme' => $remorque_100eme,
-    'date_gel' => $date_gel
+    'remorque_100eme' => $remorque_100eme
 )));
 
 echo validation_button($action);

@@ -57,48 +57,6 @@ class Facturation extends Gvv_Controller {
         parent::form_static_element($action);
     }
 
-    /**
-     * Affichage de l'écran de configuration
-     */
-    // function config($display = true) {
-    //     $this->load->model('tarifs_model');
-    //     $this->gvvmetadata->set_selector('tarif_selector', $this->tarifs_model->selector());
-
-    //     $data = array(
-    //         'controller' => $this->controller,
-    //         'action' => MODIFICATION
-    //     );
-    //     foreach ($this->fields as $field) {
-    //         $data[$field] = $this->config->item($field);
-    //     }
-    //     return load_last_view('facturation/formView', $data, ! $display);
-    // }
-
-    /**
-     * (non-PHPdoc)
-     *
-     * @see Gvv_Controller::formValidation()
-     */
-    // public function formValidation($action) {
-    //     $this->load->helper('update_config');
-    //     $this->load->helper('file');
-
-    //     foreach ($this->fields as $key) {
-    //         $config[$key] = (isset($_POST[$key])) ? $_POST[$key] : false;
-    //         $this->config->set_item($key, $config[$key]);
-    //     }
-    //     $config['date_gel'] = "'" . $config['date_gel'] . "'";
-    //     update_config("./application/config/facturation.php", $config, array(
-    //         'payeur_non_pilote',
-    //         'gestion_pompes',
-    //         'remorque_100eme',
-    //         'partage'
-    //     ));
-
-    //     $data['title'] = 'Configuration de la facturation';
-    //     $data['text'] = 'Configuration modifiée avec succès.';
-    //     load_last_view('message', $data);
-    // }
 
     /**
      * Test facturation
