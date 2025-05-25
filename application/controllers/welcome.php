@@ -44,6 +44,8 @@ class Welcome extends CI_Controller {
 
         $this->load->library('migration');
         $this->config->load('migration');
+
+        $this->load->model('clotures_model');
     }
 
     function nyi() {
@@ -106,6 +108,7 @@ class Welcome extends CI_Controller {
         $data['user'] = exec('whoami');
 
         $data['date_gel'] = $this->config->item('date_gel');
+        $data['dates_gel'] = $this->clotures_model->section_freeze_dates(true);
 
         $data['program_level'] = $this->config->item('migration_version');
         $data['base_level'] = $this->migration->get_version();

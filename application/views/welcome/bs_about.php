@@ -53,9 +53,15 @@ Liste des modifications</a>';
 echo ul($list, $attributes);
 
 echo '<hr>';
-$list = [];
-$list[] = "Date de gel : " . $date_gel;
-echo ul($list, $attributes);
+// echo heading("Date de gel : " . $date_gel, 5);
+
+echo "<table class='table'>";
+echo "<tr><th>Section</th><th>Date de clôture</th></tr>";
+foreach ($dates_gel as $sect) {
+	echo "<tr><td>" . $sect->nom . "</td><td>" . $sect->latest_cloture_date . "</td></tr>";
+}
+echo "</table>";
+
 
 echo '<hr>';
 $list = [];

@@ -45,6 +45,7 @@ class Comptes extends Gvv_Controller {
 
         $this->load->model('plan_comptable_model');
         $this->load->model('ecritures_model');
+        $this->load->model('clotures_model');
         $this->load->helper('csv');
         $this->lang->load('comptes');
     }
@@ -756,8 +757,6 @@ class Comptes extends Gvv_Controller {
 
     /**
      * Clôture de l'exercice
-     *
-     * todo: il faudra réfélchir à quoi faire si l'utilisateur ne cloture pas tous ses exercices.
      */
     function cloture($action = MODIFICATION) {
 
@@ -768,7 +767,8 @@ class Comptes extends Gvv_Controller {
         }
         $year = substr($balance_date, 6, 4);
         $date_fin = "31/12/$year";
-        $date_gel = $this->config->item('date_gel');
+        $db_date_fin = "$year-12-31";
+        $date_gel = $this->clotures_model->freeze_date(true);
 
         $section = $this->gvv_model->section();
 
@@ -780,10 +780,10 @@ class Comptes extends Gvv_Controller {
         $this->data['date_gel'] = $date_gel;
         $this->data['section'] = $section;
 
-        if (french_date_compare($date_gel, $date_fin, '>=')) {
+        if ($this->clotures_model->before_freeze_date($db_date_fin)) {
             $error = $this->lang->line("comptes_cloture_impossible") . " $date_gel.";
         } else {
-            $error = "";
+            $error = "";           
         }
 
         $error_120 = $this->lang->line("comptes_cloture_error_120");
@@ -836,13 +836,8 @@ class Comptes extends Gvv_Controller {
             $this->charges_integration("codec >= \"7\" and codec < \"8\"", $date_op, $year, $resultat_debiteur, $resultat_crediteur, $comment);
 
             // Modifie la date de gel
-            // Uniquement si toutes les sections ont clôturé
-            $this->load->helper('update_config');
-            $this->load->helper('file');
-
-            $config['date_gel'] = "'" . $date_fin . "'";
-            update_config("./application/config/facturation.php", $config);
-            $this->config->load('facturation', TRUE, TRUE);
+            $description = "Clôture $year - " . $section['nom'];
+            $this->clotures_model->create_freeze_date($db_date_fin, $description);
 
             redirect($this->controller . "/cloture/" . VISUALISATION);
         }
