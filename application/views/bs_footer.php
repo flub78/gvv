@@ -35,7 +35,7 @@
         $('.datatable').dataTable({
             "bFilter": true,
             "bPaginate": true,
-            "iDisplayLength": 25,
+            "iDisplayLength": 100,
             "bStateSave": false,
             "bSort": false,
             "bInfo": true,
@@ -46,7 +46,13 @@
             "search": {
                 "caseInsensitive": true
             },
-            "oLanguage": olanguage
+            "oLanguage": olanguage,
+
+            // Add the page length menu options
+            "aLengthMenu": [
+                [10, 25, 50, 100, 500, 1000, -1],
+                [10, 25, 50, 100, 500, 1000, "All"]
+            ]
         });
 
         $('.fixed_datatable').dataTable({

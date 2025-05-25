@@ -181,7 +181,7 @@ $this->lang->load('compta');
                 "bServerSide": true,
                 "sAjaxSource": "ajax_page",
                 "bFilter": true,
-                "iDisplayLength": 25,
+                "iDisplayLength": 100,
                 "bPaginate": true,
                 "bStateSave": false,
                 "bJQueryUI": true,
@@ -189,7 +189,13 @@ $this->lang->load('compta');
                 "bInfo": true,
                 "bAutoWidth": true,
                 "sPaginationType": "full_numbers",
-                "oLanguage": olanguage
+                "oLanguage": olanguage,
+
+                // Add the page length menu options
+                "aLengthMenu": [
+                    [10, 25, 50, 100, 500, 1000, -1],
+                    [10, 25, 50, 100, 500, 1000, "All"]
+                ]
             });
 
         });

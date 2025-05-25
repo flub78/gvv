@@ -373,7 +373,7 @@ echo '</div>';
         $('.datedtable').dataTable({
             "bFilter": true,
             "bPaginate": true,
-            "iDisplayLength": 25,
+            "iDisplayLength": 100,
             "bSort": false,
             "bStateSave": false,
             "bInfo": true,
@@ -417,13 +417,19 @@ echo '</div>';
                     "bSortable": false
                 }
             ],
-            "oLanguage": olanguage
+            "oLanguage": olanguage,
+
+            // Add the page length menu options
+            "aLengthMenu": [
+                [10, 25, 50, 100, 500, 1000, -1],
+                [10, 25, 50, 100, 500, 1000, "All"]
+            ]
         });
 
         $('.datedtable_ro').dataTable({
             "bFilter": true,
             "bPaginate": true,
-            "iDisplayLength": 25,
+            "iDisplayLength": 100,
             "bSort": false,
             "bInfo": true,
             "bJQueryUI": true,
@@ -461,7 +467,13 @@ echo '</div>';
                     "bSortable": false
                 }
             ],
-            "oLanguage": olanguage
+            "oLanguage": olanguage,
+
+            // Add the page length menu options
+            "aLengthMenu": [
+                [10, 25, 50, 100, 500, 1000, -1],
+                [10, 25, 50, 100, 500, 1000, "All"]
+            ]
         });
     });
 
