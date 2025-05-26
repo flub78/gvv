@@ -731,6 +731,28 @@ if (! function_exists('validation_button')) {
     }
 }
 
+if (! function_exists('filter_buttons')) {
+    function filter_buttons() {
+        $CI = &get_instance();
+
+        $filter_active = $CI->session->userdata('filter_active');
+
+        $res = "";
+        $res .= '<!-- Bouttons filtrer, afficher tout -->';
+
+        $lab1 = $CI->lang->line("gvv_str_select");
+        $lab2 = $CI->lang->line("gvv_str_display");
+        if ($filter_active) {
+            $res .= '<input type="submit" name="button" disabled value="' . $lab1 . '" />';
+            $res .= '<input type="submit" name="button" value="' . $lab2 . '" />';
+        } else {
+            $res .= '<input type="submit" name="button"  value="' . $lab1 . '" />';
+            $res .= '<input type="submit" name="button" disabled value="' . $lab2 . '" />';
+        }
+        return $res;
+    }
+}
+
 if (! function_exists('year_selector')) {
     /**
      * Affiche un sélécteur d'année
@@ -747,7 +769,7 @@ if (! function_exists('year_selector')) {
         $CI = &get_instance();
 
         if ($with_all) {
-            $year_selector['all'] =  $CI->lang->line("gvv_toutes") . "..."; 
+            $year_selector['all'] =  $CI->lang->line("gvv_toutes") . "...";
         }
         $url = controller_url($controller);
         $res = '<input type="hidden" name="controller_url" value="' . $url . '" />';

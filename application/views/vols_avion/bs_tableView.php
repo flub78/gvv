@@ -117,9 +117,7 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
                         </div>
 
                         <div class="d-md-flex flex-row">
-                            <!-- Bouttons filtrer, afficher tout -->
-                            <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" />
-                            <input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" />
+                            <?= filter_buttons() ?>
                         </div>
 
                     </form>
