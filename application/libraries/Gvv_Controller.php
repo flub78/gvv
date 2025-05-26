@@ -755,16 +755,15 @@ class Gvv_Controller extends CI_Controller {
      * @param unknown_type $year
      */
     function new_year($year) {
-        $this->session->set_userdata('year', $year);
-        $this->session->set_userdata('balance_date', "31/12/$year");
-        // $this->session->unset_userdata('all_year');
+        if ($year != "all") {
+            $this->session->set_userdata('year', $year);
+            $this->session->set_userdata('balance_date', "31/12/$year");      
+            $this->session->set_userdata('all_year', $year);
+        } else {
+            $this->session->unset_userdata('all_year');
+        }
         $this->pop_return_url();
     }
-
-    // function all_year() {
-    //     $this->session->set_userdata('all_year', true);
-    //     $this->pop_return_url();
-    // }
 
     /**
      * Test d'affichage du contrôleur

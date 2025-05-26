@@ -27,6 +27,8 @@ class Ecritures_model extends Common_Model {
      */
     function filtrage($when = '', $individual = FALSE) {
         $selection = "";
+        $year = $this->session->userdata('year');
+        $selection = "YEAR(date_op) = \"$year\"";
         if ($this->session->userdata('filter_active')) {
 
             $filter_date = $this->session->userdata('filter_date');
@@ -146,7 +148,8 @@ class Ecritures_model extends Common_Model {
                     }
                 }
             }
-        }
+        } 
+       
         // var_dump($selection);
         return ($selection == "") ? array() : $selection;
     }
@@ -196,6 +199,9 @@ class Ecritures_model extends Common_Model {
         } else {
             $individual = FALSE;
         }
+
+        $year = $this->session->userdata('year');
+
         $filtrage = $this->filtrage('', $individual);
 
         $select = "ecritures.id, ecritures.annee_exercise, date_op, ";
@@ -206,7 +212,6 @@ class Ecritures_model extends Common_Model {
         $from = 'ecritures, comptes as compte1, comptes as compte2';
         $order_by = 'date_op, ecritures.id';
 
-        $year = $this->session->userdata('year');
 
         $this->db
             ->select($select)
@@ -214,9 +219,6 @@ class Ecritures_model extends Common_Model {
             ->where($where, NULL)
             ->where($selection, NULL)
             ->where($filtrage);
-
-        if ($year != "all")
-            $this->db->where("YEAR(date_op) = \"$year\"");
 
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
@@ -311,8 +313,8 @@ class Ecritures_model extends Common_Model {
         $query = $this->db
             ->from($from)
             ->where($where)
-            ->where($filtrage)
-            ->where("YEAR(date_op) = \"$year\"");
+            ->where($filtrage);
+            // ->where("YEAR(date_op) = \"$year\"");
 
         if ($this->sections_model->section()) {
             $query = $this->db->where('ecritures.club', $this->sections_model->section_id());

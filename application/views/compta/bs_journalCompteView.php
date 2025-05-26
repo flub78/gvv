@@ -46,7 +46,7 @@ if ($section) {
 <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
 <div class='mb-3'>
-    <?= year_selector($controller, $year, $year_selector, true) ?>
+    <?= year_selector($controller, $year, $year_selector) ?>
 </div>
 <input type="hidden" name="filter_active" value="<?= $filter_active ?>" />
 

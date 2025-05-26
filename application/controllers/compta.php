@@ -771,10 +771,6 @@ class Compta extends Gvv_Controller {
                 $date_fin = $this->data['date_end'];
             }
         }
-        if ($year = "all") {
-            $date_deb = "01/01/2000";       // before GVV
-            $date_fin = date("d/m/Y");
-        }
 
         $solde_previous_year = $this->ecritures_model->solde_compte($compte, $date_deb, "<");
 

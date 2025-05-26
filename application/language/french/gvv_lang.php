@@ -111,7 +111,7 @@ $lang['gvv_label_menu'] = "Menu";
 $lang['gvv_str_filter'] = "Filtre";
 $lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères de selection";
 $lang['gvv_str_select'] = "Filtrer";
-$lang['gvv_str_display'] = "Afficher tout";
+$lang['gvv_str_display'] = "Ne pas filtrer";
 
 $lang['gvv_owner_type'] = array(
     0 => 'Club',
