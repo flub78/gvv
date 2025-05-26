@@ -67,6 +67,8 @@ class Migration_Clotures extends CI_Migration {
 		$errors = 0;
 
         $date = date_ht2db($this->config->item('date_gel'));
+		if (!$date) $date = "2024-12-31";
+
         $init = "INSERT INTO `clotures` (`section`, `date`, `description`) 
 SELECT 
     `id` as section,
