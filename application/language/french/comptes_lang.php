@@ -13,6 +13,8 @@ $lang['gvv_comptes_title_cash'] = "Trésorerie";
 $lang['gvv_comptes_title_journaux'] = "Journaux des comptes";
 $lang['gvv_comptes_title_financial'] = "Rapport financier pour l'exercice";
 $lang['gvv_comptes_title_sales'] = "Ventes et facturation";
+$lang['gvv_comptes_title_dashboard'] = "Synthèse financière";
+
 
 $lang['gvv_comptes_field_nom'] = "Nom du compte";
 $lang['gvv_comptes_field_codec'] = "Code comptable";

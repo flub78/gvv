@@ -21,22 +21,23 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] ne pas créer deux comptes 411 depuis la section générale
 * [x] verifier la synchro HEVA
 * [x] vérifier qu'il n'y a pas d'écriture entre deux sections dans la validation
-
+* [x] bilan et clôture par section
+  * [x] bilan par section
+  * [x] clôture par section
+* [x] Vue compte, autoriser les vues sur plusieurs années
 
 ## Reste à faire
 
-* [] bilan et clôture par section
-  * [x] bilan par section
-  * [ ] clôture par section
-  
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
   * [ ] présentation par année
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
+* [] synchro avec OpenFlyers
+* [] Compte d'exploitation
+* [] Gérer la configuration dans la base.
 
-* [x] Vue compte, autoriser les vues sur plusieurs années
 * [] la page de retour après une modification des écritures est discutable
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
@@ -48,11 +49,8 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   - à vérifier aussi sur les vols avions
 * [] gestion des droits multi sections
 * [] Vérifier les photos des membres sur le site déployé
-* [] synchro avec OpenFlyers
 * [] Gestion de l'inscription, y compris les autorisations parentales
 * [] supprimer les textes orienté planeur sur les pages
-* [] Gérer la configuration dans la base.
-* [] Compte d'exploitation
   
 * [] Reservation des avions                                  10j
 * [] Online Payments                                         10j

@@ -244,6 +244,7 @@ $section_count = $CI->sections_model->safe_count_all();
                     <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><?= translation("gvv_menu_accounting_sales") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><?= translation("gvv_menu_accounting_cash") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("gvv_attachments_title") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><?= translation("gvv_menu_accounting_dashboard") ?></a></li>
 
                   <?php endif; ?>
 

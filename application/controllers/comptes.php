@@ -249,6 +249,42 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Affiche un résultat synthétique de l'exercice
+     * 
+     * Charges par sections
+     * Produits par section
+     * Résultat avant répartition
+     * 
+     * Disponible
+     *      Créances de tiers
+     *      Comptes de banque et financier
+     *
+     * Dettes
+     *      Dettes envers des tiers
+     *      Emprunts bancaires
+     */
+    function dashboard() {
+        $this->data['controller'] = "comptes";
+        $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+
+        $year = $this->session->userdata('year');
+        $this->data['year'] = $year;
+        // $this->data['resultat_table'] = $this->ecritures_model->resultat_table($this->ecritures_model->select_resultat(), true, nbs(6), '.');
+
+        //$this->data['charges'] = $this->ecritures_model->charges_par_sections($year);
+        $this->data['produits'] = [];
+        $this->data['resultat_avant'] = [];
+        $this->data['creances_tiers'] = [];
+        $this->data['banque'] = [];
+        $this->data['dettes_tiers'] = [];
+        $this->data['emprunt'] = [];
+
+        $this->push_return_url("resultat");
+
+        load_last_view('comptes/dashboardView', $this->data);
+    }
+
+    /**
      * Activé par la barre de boutons de résultats
      */
     function export_resultat($mode = "csv") {

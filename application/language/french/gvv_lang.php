@@ -65,6 +65,8 @@ $lang['gvv_menu_accounting_results'] = "Résultats";
 $lang['gvv_menu_accounting_bilan'] = "Bilan";
 $lang['gvv_menu_accounting_sales'] = "Ventes";
 $lang['gvv_menu_accounting_cash'] = "Trésorerie";
+$lang['gvv_menu_accounting_dashboard'] = "Synthèse";
+
 
 $lang['gvv_menu_entries'] = "Ecritures";
 $lang['gvv_menu_entries_income'] = "Recettes";
