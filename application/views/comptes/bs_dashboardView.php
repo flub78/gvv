@@ -68,6 +68,30 @@ $url = controller_url($controller);
         $table->display();
     ?>    
     <h3><?= "Produits" ?></h3>
+    <?php
+    	$table = new DataTable(array(
+            'title' => "",
+            'values' => $produits,
+            'controller' => $controller,
+            'class' => "sql_table fixed_datatable table",
+            // 'create' => '',
+            // 'count' => '',
+            // 'first' => '',
+            // 'align' => array(
+            // 	'left',
+            // 	'left',
+            // 	'right',
+            // 	'right',
+            // 	'center',
+            // 	'right',
+            // 	'left',
+            // 	'right',
+            // 	'right'
+            // )
+        ));
+    
+        $table->display();
+    ?>    
     <h3><?= "Résultat avant répartition" ?></h3>
     <h3><?= "Disponible" ?></h3>
     <h4><?= "Créances de tiers" ?></h4>

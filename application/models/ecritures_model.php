@@ -436,7 +436,7 @@ class Ecritures_model extends Common_Model {
      * @param boolean $all
      *            si vrai retourne un tableau ['debit', 'credit'] si faux retourne le solde (scalaire)
      */
-    public function solde_compte_general($codec, $date = '', $operation = "<=", $all = FALSE) {
+    public function solde_compte_general($codec, $date = '', $operation = "<=", $all = FALSE, $section_id = 0) {
         if ($date == '') {
             $date = date("d/m/Y");
         }
@@ -449,9 +449,15 @@ class Ecritures_model extends Common_Model {
             ->where(array(
                 'codec' => $codec
             ));
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
+
+        if ($section_id) {
+            $this->db->where('ecritures.club', $section_id);
+        } else {
+            if ($this->sections_model->section()) {
+                $this->db->where('ecritures.club', $this->sections_model->section_id());
+            }
         }
+
         $debit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
@@ -462,9 +468,16 @@ class Ecritures_model extends Common_Model {
             ->where(array(
                 'codec' => $codec
             ));
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
+
+
+        if ($section_id) {
+            $this->db->where('ecritures.club', $section_id);
+        } else {
+            if ($this->sections_model->section()) {
+                $this->db->where('ecritures.club', $this->sections_model->section_id());
+            }
         }
+
         $credit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
@@ -1434,6 +1447,10 @@ array (size=2)
 
         $date = date_db2ht($vals['date_op']);
         return $vals['id'] . ': ' . $date . " " . $vals['montant'] . "€ " . $vals['description'];
+    }
+
+    function charges_par_sections($year) {
+echo "charges_par_sections $year"; exit;
     }
 }
 

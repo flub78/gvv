@@ -217,7 +217,7 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page_general($selection = array(), $date, $filter_solde = "") {
+    public function select_page_general($selection = array(), $date, $filter_solde = "", $with_sections = true) {
 
         // selectionne les comptes
         $this->db
@@ -226,7 +226,7 @@ class Comptes_model extends Common_Model {
             ->where('codec = planc.pcode')
             ->where($selection)->order_by('codec');
 
-        if ($this->sections_model->section()) {
+        if ($this->sections_model->section() && $with_sections) {
             $this->db->where('club', $this->sections_model->section_id());
         }
 
@@ -527,6 +527,65 @@ class Comptes_model extends Common_Model {
 
         // var_dump($data); exit;
         return $data;
+    }
+
+    function select_par_section($selection, $year) {
+
+        $table = [];
+        $title = ["Code", "Comptes"];
+
+        $balance_date = "13/12/$year";
+        // selectionne les codec de comptes de charges
+        $this->db
+            ->select('pcode as codec, pdesc as nom, club')
+            ->from('planc, comptes')
+            ->where('codec = planc.pcode')
+            ->where($selection)->order_by('codec');
+
+        if ($this->sections_model->section() && $with_sections) {
+            $this->db->where('club', $this->sections_model->section_id());
+        }
+
+        $res = $this->db->group_by('codec')
+            ->get()->result_array();
+
+        // $depenses = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
+        // $recettes = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
+
+        $sections = $this->sections_model->select_columns('id, nom, description');
+        foreach ($sections as $section) {
+            $title[] = $section['nom'];
+        }
+        $title[] = "Total";
+        $table[] = $title;
+
+        foreach ($res as $codec) {
+
+            $row = [$codec['codec'], $codec['nom']];
+
+            $total = 0;
+            foreach ($sections as $section) {
+                $solde = $this->ecritures_model->solde_compte_general($codec['codec'], $balance_date, "<=", false, $section['id']);
+
+                $total += $solde;
+                $row[] = $solde;
+            }
+            $row[] = $total;
+
+            $table[] = $row;
+
+        }
+        return $table;
+    }
+
+    function select_charges_et_produits($year) {
+        // listes des comptes de dépenses et de recettes
+        $this->load->model('comptes_model');
+
+        $tables = [];
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $year);
+        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $year);
+        return $tables;
     }
 }
 

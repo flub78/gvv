@@ -271,8 +271,9 @@ class Comptes extends Gvv_Controller {
         $this->data['year'] = $year;
         // $this->data['resultat_table'] = $this->ecritures_model->resultat_table($this->ecritures_model->select_resultat(), true, nbs(6), '.');
 
-        //$this->data['charges'] = $this->ecritures_model->charges_par_sections($year);
-        $this->data['produits'] = [];
+        $tables = $this->gvv_model->select_charges_et_produits($year);
+        $this->data['charges'] = $tables['charges'];
+        $this->data['produits'] = $tables['produits'];
         $this->data['resultat_avant'] = [];
         $this->data['creances_tiers'] = [];
         $this->data['banque'] = [];
