@@ -269,17 +269,22 @@ class Comptes extends Gvv_Controller {
 
         $year = $this->session->userdata('year');
         $this->data['year'] = $year;
-        // $this->data['resultat_table'] = $this->ecritures_model->resultat_table($this->ecritures_model->select_resultat(), true, nbs(6), '.');
+  
+        // gestion de la date d'affichage
+        $balance_date = $this->session->userdata('balance_date');
+        if ($balance_date) {
+            $this->data['balance_date'] = $balance_date;
+        } else {
+            $this->data['balance_date'] = date('d/m/Y');
+        }
 
-        $tables = $this->gvv_model->select_charges_et_produits($year);
+        $tables = $this->gvv_model->select_charges_et_produits($balance_date);
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
         $this->data['resultat'] = $tables['resultat'];
 
-        $this->data['creances_tiers'] = [];
-        $this->data['banque'] = [];
-        $this->data['dettes_tiers'] = [];
-        $this->data['emprunt'] = [];
+        $this->data['disponible'] = $tables['disponible'];
+        $this->data['dettes'] = $tables['dettes'];
 
         $this->push_return_url("resultat");
 
@@ -821,7 +826,7 @@ class Comptes extends Gvv_Controller {
         if ($this->clotures_model->before_freeze_date($db_date_fin)) {
             $error = $this->lang->line("comptes_cloture_impossible") . " $date_gel.";
         } else {
-            $error = "";           
+            $error = "";
         }
 
         $error_120 = $this->lang->line("comptes_cloture_error_120");

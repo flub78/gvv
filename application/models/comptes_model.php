@@ -529,12 +529,11 @@ class Comptes_model extends Common_Model {
         return $data;
     }
 
-    function select_par_section($selection, $year, $factor = 1) {
+    function select_par_section($selection, $balance_date, $factor = 1) {
 
         $table = [];
         $title = ["Code", "Comptes"];
 
-        $balance_date = "13/12/$year";
         // selectionne les codec de comptes de charges
         $this->db
             ->select('pcode as codec, pdesc as nom, club')
@@ -605,7 +604,7 @@ class Comptes_model extends Common_Model {
         $header_count = 2;
 
         $resultat = [];
-        $resultat[] = $charges['charges'][0];    // titre
+        $resultat[] = ['', '', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
         $resultat[] = $this->compute_total(["", "Total des charges"], $charges);
         $resultat[] = $this->compute_total(["", "Total des Produits"], $produits);
 
@@ -619,15 +618,38 @@ class Comptes_model extends Common_Model {
         return $resultat;
     }
 
-    function select_charges_et_produits($year) {
+    function compute_disponible($charges, $produits) {
+        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections_count = count($sections);
+        $header_count = 2;
+
+        $resultat = [];
+        $resultat[] = $charges[0];    // titre
+        $resultat[] = $this->compute_total(["", "Créances de tiers"], $charges);
+        $resultat[] = $this->compute_total(["", "Comptes de banque"], $produits);
+
+        $total_row = ["", "Total"];
+
+        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+            $total = $resultat[2][$i] - $resultat[1][$i];
+            $total_row[] = number_format((float) $total, 2, ",", "");
+        }
+        $resultat[] = $total_row;
+        return $resultat;
+    }
+
+    function select_charges_et_produits($balance_date) {
         // listes des comptes de dépenses et de recettes
         $this->load->model('comptes_model');
 
         $tables = [];
-        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $year, -1);
-        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $year);
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1);
+        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date);
 
         $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits']);
+
+        $tables['disponible'] = $this->compute_disponible($tables['charges'], $tables['produits']);
+        $tables['dettes'] = $this->compute_disponible($tables['charges'], $tables['produits']);
 
         return $tables;
     }
