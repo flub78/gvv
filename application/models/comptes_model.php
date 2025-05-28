@@ -529,7 +529,7 @@ class Comptes_model extends Common_Model {
         return $data;
     }
 
-    function select_par_section($selection, $year) {
+    function select_par_section($selection, $year, $factor = 1) {
 
         $table = [];
         $title = ["Code", "Comptes"];
@@ -568,14 +568,55 @@ class Comptes_model extends Common_Model {
                 $solde = $this->ecritures_model->solde_compte_general($codec['codec'], $balance_date, "<=", false, $section['id']);
 
                 $total += $solde;
-                $row[] = $solde;
+                $row[] = number_format((float) $solde * $factor, 2, ",", "");
             }
-            $row[] = $total;
+            $row[] = number_format((float) $total * $factor, 2, ",", "");
 
             $table[] = $row;
-
         }
         return $table;
+    }
+
+    function compute_total($header, $table) {
+
+        $res = $header;
+        $header_count = count($header);
+        $line = 0;
+        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections_count = count($sections);
+
+
+        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+            $total = 0;
+            foreach ($table as $elt) {
+                if ($line) {
+                    $total += $elt[$i];
+                }
+                $line += 1;
+            }
+            $res[] = number_format((float) $total, 2, ",", "");
+        }
+        return $res;
+    }
+
+    function compute_resultat($charges, $produits) {
+        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections_count = count($sections);
+        $header_count = 2;
+
+        $resultat = [];
+        $resultat[] = $charges['charges'][0];    // titre
+        $resultat[] = $this->compute_total(["", "Total des charges"], $charges);
+        $resultat[] = $this->compute_total(["", "Total des Produits"], $produits);
+
+        $total_row = ["", "Résultat"];
+
+        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+            $total = $resultat[2][$i] - $resultat[1][$i];
+            $total_row[] = number_format((float) $total, 2, ",", "");
+        }
+        $resultat[] = $total_row;
+        return $resultat;
     }
 
     function select_charges_et_produits($year) {
@@ -583,8 +624,11 @@ class Comptes_model extends Common_Model {
         $this->load->model('comptes_model');
 
         $tables = [];
-        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $year);
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $year, -1);
         $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $year);
+
+        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits']);
+
         return $tables;
     }
 }

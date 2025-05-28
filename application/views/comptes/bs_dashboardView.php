@@ -52,17 +52,15 @@ $url = controller_url($controller);
             // 'create' => '',
             // 'count' => '',
             // 'first' => '',
-            // 'align' => array(
-            // 	'left',
-            // 	'left',
-            // 	'right',
-            // 	'right',
-            // 	'center',
-            // 	'right',
-            // 	'left',
-            // 	'right',
-            // 	'right'
-            // )
+            'align' => array(
+            	'center',
+            	'left',
+            	'right',
+            	'right',
+            	'right',
+            	'right',
+            	'right'
+            )
         ));
     
         $table->display();
@@ -74,25 +72,42 @@ $url = controller_url($controller);
             'values' => $produits,
             'controller' => $controller,
             'class' => "sql_table fixed_datatable table",
-            // 'create' => '',
-            // 'count' => '',
-            // 'first' => '',
-            // 'align' => array(
-            // 	'left',
-            // 	'left',
-            // 	'right',
-            // 	'right',
-            // 	'center',
-            // 	'right',
-            // 	'left',
-            // 	'right',
-            // 	'right'
-            // )
+
+            'align' => array(
+            	'center',
+            	'left',
+            	'right',
+            	'right',
+            	'right',
+            	'right',
+            	'right'
+            )
         ));
     
         $table->display();
     ?>    
     <h3><?= "Résultat avant répartition" ?></h3>
+
+    <?php
+    	$table = new DataTable(array(
+            'title' => "",
+            'values' => $resultat,
+            'controller' => $controller,
+            'class' => "sql_table fixed_datatable table",
+            'align' => array(
+            	'center',
+            	'left',
+            	'right',
+            	'right',
+            	'right',
+            	'right',
+            	'right'
+            )
+        ));
+    
+        $table->display();
+    ?>
+            
     <h3><?= "Disponible" ?></h3>
     <h4><?= "Créances de tiers" ?></h4>
     <h4><?= "Comptes de banque" ?></h4>
