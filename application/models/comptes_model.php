@@ -591,7 +591,7 @@ class Comptes_model extends Common_Model {
      * @param array $table The table data to compute totals for
      * @return array A row with computed totals for each section
      */
-    function compute_total($header, $table) {
+    function compute_total($header, $table, $html = false) {
 
         $res = $header;
         $header_count = count($header);
@@ -608,7 +608,7 @@ class Comptes_model extends Common_Model {
                 }
                 $line += 1;
             }
-            $res[] = number_format((float) $total, 2, ",", "");
+            $res[] = $this->format_currency ($total, $html); 
         }
         return $res;
     }
@@ -620,31 +620,34 @@ class Comptes_model extends Common_Model {
      * @param array $produits The list of income/product entries for each section
      * @return array A table representing the financial result with totals per section
      */
-    function compute_resultat($charges, $produits) {
+    function compute_resultat($charges, $produits, $html = false) {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
         $header_count = 2;
 
         $resultat = [];
-        $resultat[] = ['', '', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
-        $resultat[] = $this->compute_total(["", "Total des charges"], $charges);
-        $resultat[] = $this->compute_total(["", "Total des Produits"], $produits);
+        $resultat[] = [ '', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
+        $resultat[] = $this->compute_total([ "Total des charges"], $charges);
+        $resultat[] = $this->compute_total([ "Total des Produits"], $produits);
 
-        $total_row = ["", "Résultat"];
+        $total_row = [ "Résultat"];
 
         for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
             $total = $resultat[2][$i] - $resultat[1][$i];
-            $total_row[] = number_format((float) $total, 2, ",", "");
+            $total_row[] = $this->format_currency ($total, $html); 
         }
         $resultat[] = $total_row;
         return $resultat;
     }
 
     public function format_currency($value, $html = false) {
+        $negative = ($value < 0);
         $value = number_format((float) $value , 2, ",", "");
         if ($html) {
-            $value = "$value €";
+            $value = euro($value);
+            //         <p class="text-danger">This text is displayed in Bootstrap danger color</p>
 
+            if ($negative) $value = '<p class="text-danger">' . $value . '</p>'; 
         }
         return $value;
     }
@@ -655,7 +658,7 @@ class Comptes_model extends Common_Model {
      * @param string $balance_date The date for which to calculate available funds
      * @return array A table representing available financial resources by section
      */
-    function compute_disponible($balance_date, $html = true) {
+    function compute_disponible($balance_date, $html = false) {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
         $header_count = 2;
@@ -726,9 +729,9 @@ class Comptes_model extends Common_Model {
         $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1);
         $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date);
 
-        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits']);
+        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], true);
 
-        $dispo = $this->compute_disponible($balance_date);
+        $dispo = $this->compute_disponible($balance_date, true);
         $tables['disponible'] = $dispo['disponible'];
         $tables['dettes'] = $dispo['dettes'];
 

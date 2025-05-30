@@ -98,11 +98,19 @@ class DataTable extends Widget {
         $res .= "\t<thead>";
         $res .= "<tr>\n";
         $title_row = $values[0];
+        $col = 0;
         if ($create != "") {
             $title_row[count($title_row) - 1] = $create;
+            $col++;
         }
         foreach ($title_row as $colName) {
-            $res .= "\t\t<th>$colName</th>\n";
+            if (array_key_exists($col, $this->attr['align'])) {
+                $align = 'align="' . $this->attr['align'][$col] . '"';
+            } else {
+                $align = "";
+            }
+            $res .= "\t\t<th $align>$colName</th>\n";
+            $col++;
         }
         //		$res .=  "\t\t<th>$create</th>\n";
         $res .= "</tr>";

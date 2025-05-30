@@ -122,7 +122,6 @@ $url = controller_url($controller);
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
         'align' => array(
-            'center',
             'left',
             'right',
             'right',
@@ -143,7 +142,6 @@ $url = controller_url($controller);
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
         'align' => array(
-            'center',
             'left',
             'right',
             'right',
@@ -164,7 +162,6 @@ $url = controller_url($controller);
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
         'align' => array(
-            'center',
             'left',
             'right',
             'right',
