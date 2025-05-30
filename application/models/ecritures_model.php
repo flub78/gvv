@@ -148,8 +148,8 @@ class Ecritures_model extends Common_Model {
                     }
                 }
             }
-        } 
-       
+        }
+
         // var_dump($selection);
         return ($selection == "") ? array() : $selection;
     }
@@ -314,7 +314,7 @@ class Ecritures_model extends Common_Model {
             ->from($from)
             ->where($where)
             ->where($filtrage);
-            // ->where("YEAR(date_op) = \"$year\"");
+        // ->where("YEAR(date_op) = \"$year\"");
 
         if ($this->sections_model->section()) {
             $query = $this->db->where('ecritures.club', $this->sections_model->section_id());
@@ -951,7 +951,7 @@ array (size=2)
       'debit' => float 0
       'solde' => float 0
      */
-    function select_solde($date_op, $codec_min, $codec_max, $group = TRUE) {
+    function select_solde($date_op, $codec_min, $codec_max, $group = TRUE, $section_id = 0) {   
 
         // if ($codec_min == 1) echo "select_solde($date_op, $codec_min, $codec_max, $group)" . br();
         $group_by = ($group) ? "" : "compte1";
@@ -962,8 +962,13 @@ array (size=2)
             ->where("date_op <= \"$date_op\"")
             ->where("compte1.codec >= \"$codec_min\" and compte1.codec < \"$codec_max\"");
 
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
+
+        if ($section_id) {
+            $this->db->where('ecritures.club', $section_id);
+        } else {
+            if ($this->sections_model->section()) {
+                $this->db->where('ecritures.club', $this->sections_model->section_id());
+            }
         }
 
         $db_res = $this->db->group_by($group_by)
@@ -979,8 +984,12 @@ array (size=2)
             ->where("date_op <= \"$date_op\"")
             ->where("compte2.codec >= \"$codec_min\" and compte2.codec < \"$codec_max\"");
 
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        if ($section_id) {
+            $this->db->where('ecritures.club', $section_id);
+        } else {
+            if ($this->sections_model->section()) {
+                $this->db->where('ecritures.club', $this->sections_model->section_id());
+            }
         }
 
         $db_res = $this->db->group_by($group_by)
@@ -1450,7 +1459,8 @@ array (size=2)
     }
 
     function charges_par_sections($year) {
-echo "charges_par_sections $year"; exit;
+        echo "charges_par_sections $year";
+        exit;
     }
 }
 

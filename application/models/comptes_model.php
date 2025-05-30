@@ -529,6 +529,14 @@ class Comptes_model extends Common_Model {
         return $data;
     }
 
+    /**
+     * Retrieves and formats account data grouped by sections
+     *
+     * @param array $selection Filtering criteria for selecting accounts
+     * @param string $balance_date Date for calculating account balances
+     * @param float $factor Multiplication factor for balance values (default: 1)
+     * @return array Table of account data with sections and totals
+     */
     function select_par_section($selection, $balance_date, $factor = 1) {
 
         $table = [];
@@ -576,6 +584,13 @@ class Comptes_model extends Common_Model {
         return $table;
     }
 
+    /**
+     * Computes the total for a given table with a header
+     * 
+     * @param array $header The header row for the table
+     * @param array $table The table data to compute totals for
+     * @return array A row with computed totals for each section
+     */
     function compute_total($header, $table) {
 
         $res = $header;
@@ -598,6 +613,13 @@ class Comptes_model extends Common_Model {
         return $res;
     }
 
+    /**
+     * Computes the financial result by comparing charges and products across different sections
+     * 
+     * @param array $charges The list of expense entries for each section
+     * @param array $produits The list of income/product entries for each section
+     * @return array A table representing the financial result with totals per section
+     */
     function compute_resultat($charges, $produits) {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
@@ -618,26 +640,84 @@ class Comptes_model extends Common_Model {
         return $resultat;
     }
 
-    function compute_disponible($charges, $produits) {
+    public function format_currency($value, $html = false) {
+        $value = number_format((float) $value , 2, ",", "");
+        if ($html) {
+            $value = "$value €";
+
+        }
+        return $value;
+    }
+
+    /**
+     * Computes the available financial resources for a given balance date
+     * 
+     * @param string $balance_date The date for which to calculate available funds
+     * @return array A table representing available financial resources by section
+     */
+    function compute_disponible($balance_date, $html = true) {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
         $header_count = 2;
 
-        $resultat = [];
-        $resultat[] = $charges[0];    // titre
-        $resultat[] = $this->compute_total(["", "Créances de tiers"], $charges);
-        $resultat[] = $this->compute_total(["", "Comptes de banque"], $produits);
+        $date_op = date_ht2db($balance_date);
 
-        $total_row = ["", "Total"];
+        // La colonne de gauche
+        $title = [""];
+        $banques = ["Comptes de banque et financiers"];
+        $creances = [""];
+        $dettes_tiers = [""];
+        $emprunts = ["Emprunts bancaires"];
 
-        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-            $total = $resultat[2][$i] - $resultat[1][$i];
-            $total_row[] = number_format((float) $total, 2, ",", "");
+        foreach ($sections as $section) {
+            // Les colonnes de section
+            $title[] = $section['nom'];
+
+            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id']));
+            $banques[] = $this->format_currency($solde , $html);
+            
+            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id']));
+            $emprunts[] = $this->format_currency($solde, $html);
         }
-        $resultat[] = $total_row;
-        return $resultat;
+
+        // la colonne Total
+        $title[] = "Total";
+        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE));
+        $banques[] =  $this->format_currency($solde, $html);
+
+        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE));
+        $emprunts[] =  $this->format_currency($solde, $html);
+
+
+        // ===============================
+        $disponible = [];
+        $disponible[] = $title;
+        $disponible[] = $banques;
+
+
+        $dettes = [];
+        $dettes[] = $title;
+        $dettes[] = $emprunts;
+
+        $res = [];
+        $res['disponible'] = $disponible;
+        $res['dettes'] = $dettes;
+
+        // Créances de tiers
+        // http://gvv.net/comptes/page/4/5/1
+ 
+        // Comptes de banque et financiers
+        // http://gvv.net/comptes/page/512
+
+        return $res;
     }
 
+    /**
+     * Retrieves and processes expense and income entries for a specific balance date
+     * 
+     * @param string $balance_date The date for which to retrieve financial entries
+     * @return array A collection of financial tables including charges, products, results, and available funds
+     */
     function select_charges_et_produits($balance_date) {
         // listes des comptes de dépenses et de recettes
         $this->load->model('comptes_model');
@@ -648,8 +728,9 @@ class Comptes_model extends Common_Model {
 
         $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits']);
 
-        $tables['disponible'] = $this->compute_disponible($tables['charges'], $tables['produits']);
-        $tables['dettes'] = $this->compute_disponible($tables['charges'], $tables['produits']);
+        $dispo = $this->compute_disponible($balance_date);
+        $tables['disponible'] = $dispo['disponible'];
+        $tables['dettes'] = $dispo['dettes'];
 
         return $tables;
     }
