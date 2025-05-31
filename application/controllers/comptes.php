@@ -278,7 +278,7 @@ class Comptes extends Gvv_Controller {
             $this->data['balance_date'] = date('d/m/Y');
         }
 
-        $tables = $this->gvv_model->select_charges_et_produits($this->data['balance_date']);
+        $tables = $this->gvv_model->select_charges_et_produits($this->data['balance_date'], true);
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
         $this->data['resultat'] = $tables['resultat'];

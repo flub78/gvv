@@ -530,19 +530,22 @@ class Comptes_model extends Common_Model {
     }
 
     /**
-     * Retrieves and formats account data grouped by sections
+     * Liste par codec des solde par sections plus total
      *
      * @param array $selection Filtering criteria for selecting accounts
      * @param string $balance_date Date for calculating account balances
      * @param float $factor Multiplication factor for balance values (default: 1)
      * @return array Table of account data with sections and totals
      */
-    function select_par_section($selection, $balance_date, $factor = 1) {
+    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
+
+        // $depenses = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
+        // $recettes = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
 
         $table = [];
         $title = ["Code", "Comptes"];
 
-        // selectionne les codec de comptes de charges
+        // selectionne les codec de comptes de la selection
         $this->db
             ->select('pcode as codec, pdesc as nom, club')
             ->from('planc, comptes')
@@ -556,9 +559,6 @@ class Comptes_model extends Common_Model {
         $res = $this->db->group_by('codec')
             ->get()->result_array();
 
-        // $depenses = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
-        // $recettes = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
-
         $sections = $this->sections_model->select_columns('id, nom, description');
         foreach ($sections as $section) {
             $title[] = $section['nom'];
@@ -568,16 +568,32 @@ class Comptes_model extends Common_Model {
 
         foreach ($res as $codec) {
 
-            $row = [$codec['codec'], $codec['nom']];
+            // http://gvv.net/comptes/page/606
+            if ($html) {
+                $url = controller_url("comptes") . "/page/" . $codec['codec'];
+                $anchor = anchor($url, $codec['codec']);
+
+                $row = [$anchor, $codec['nom']];
+            } else {
+                $row = [$codec['codec'], $codec['nom']];
+            }
 
             $total = 0;
             foreach ($sections as $section) {
                 $solde = $this->ecritures_model->solde_compte_general($codec['codec'], $balance_date, "<=", false, $section['id']);
 
                 $total += $solde;
-                $row[] = number_format((float) $solde * $factor, 2, ",", "");
+                if ($html) {
+                    $row[] = euro($solde * $factor);
+                } else {
+                    $row[] = number_format((float) $solde * $factor, 2, ",", "");
+                }
             }
-            $row[] = number_format((float) $total * $factor, 2, ",", "");
+            if ($html) {
+                $row[] = euro($total * $factor);
+            } else {
+                $row[] = number_format((float) $total * $factor, 2, ",", "");
+            }
 
             $table[] = $row;
         }
@@ -594,7 +610,7 @@ class Comptes_model extends Common_Model {
     function compute_total($header, $table, $html = false) {
 
         $res = $header;
-        $header_count = count($header);
+        $header_count = 2;      // columns to skip tin the table
         $line = 0;
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
@@ -608,7 +624,11 @@ class Comptes_model extends Common_Model {
                 }
                 $line += 1;
             }
-            $res[] = $this->format_currency ($total, $html); 
+            if ($html) {
+                $res[] = euro ($total); 
+            } else {
+                $res[] = $this->format_currency ($total, $html); 
+            }
         }
         return $res;
     }
@@ -623,18 +643,25 @@ class Comptes_model extends Common_Model {
     function compute_resultat($charges, $produits, $html = false) {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
-        $header_count = 2;
+        $header_count = 1;
 
         $resultat = [];
         $resultat[] = [ '', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
-        $resultat[] = $this->compute_total([ "Total des charges"], $charges);
-        $resultat[] = $this->compute_total([ "Total des Produits"], $produits);
+        $resultat[] = $this->compute_total([ "Total des Produits"], $produits, false);
+        $resultat[] = $this->compute_total([ "Total des charges"], $charges, false);
 
         $total_row = [ "Résultat"];
 
         for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-            $total = $resultat[2][$i] - $resultat[1][$i];
+            $total = $resultat[1][$i] - $resultat[2][$i];
             $total_row[] = $this->format_currency ($total, $html); 
+        }
+   
+        if ($html) {
+            for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+                $resultat[1][$i] = euro($resultat[1][$i]);
+                $resultat[2][$i] = euro($resultat[2][$i]);
+            }
         }
         $resultat[] = $total_row;
         return $resultat;
@@ -676,19 +703,19 @@ class Comptes_model extends Common_Model {
             // Les colonnes de section
             $title[] = $section['nom'];
 
-            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id']));
+            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id'])) * -1;
             $banques[] = $this->format_currency($solde , $html);
             
-            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id']));
+            $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, $section['id']));
             $emprunts[] = $this->format_currency($solde, $html);
         }
 
         // la colonne Total
         $title[] = "Total";
-        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE));
+        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, -1)) * -1;
         $banques[] =  $this->format_currency($solde, $html);
 
-        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE));
+        $solde = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, -1));
         $emprunts[] =  $this->format_currency($solde, $html);
 
 
@@ -721,17 +748,17 @@ class Comptes_model extends Common_Model {
      * @param string $balance_date The date for which to retrieve financial entries
      * @return array A collection of financial tables including charges, products, results, and available funds
      */
-    function select_charges_et_produits($balance_date) {
+    function select_charges_et_produits($balance_date, $html = false) {
         // listes des comptes de dépenses et de recettes
         $this->load->model('comptes_model');
 
         $tables = [];
-        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1);
-        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date);
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1, false, true);
+        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date, 1, false, true);
 
-        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], true);
+        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], $html);
 
-        $dispo = $this->compute_disponible($balance_date, true);
+        $dispo = $this->compute_disponible($balance_date, $html);
         $tables['disponible'] = $dispo['disponible'];
         $tables['dettes'] = $dispo['dettes'];
 

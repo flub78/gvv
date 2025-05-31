@@ -106,7 +106,6 @@ class DataTable extends Widget {
         foreach ($title_row as $colName) {
             if (array_key_exists($col, $this->attr['align'])) {
                 $directive = $this->attr['align'][$col];
-                echo $directive;
                 if ($directive == "right") {
                     $align = 'class="text-end"';                   
                 } elseif ($directive == "left") {
