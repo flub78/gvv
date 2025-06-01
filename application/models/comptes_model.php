@@ -696,13 +696,36 @@ class Comptes_model extends Common_Model {
 
         // La colonne de gauche
         $title = [""];
-        $banques = ["Comptes de banque et financiers"];
-        $creances = ["Créances de tiers"];
-        $dettes_tiers = ["Dettes envers des tiers"];
-        $emprunts = ["Emprunts bancaires"];
+        if ($html) {
+            // http://gvv.net/comptes/page/512
+            $url = controller_url("comptes") . "/page/512";
+            $banques = [anchor($url, "Comptes de banque et financiers")];
+
+            // http://gvv.net/comptes/page/4/5/1
+            $url = controller_url("comptes") . "/page/4/5/1";
+            $creances = [anchor($url, "Créances de tiers")];
+            
+            // http://gvv.net/comptes/page/4/5/1
+            $url = controller_url("comptes") . "/page/4/5/1";
+            $dettes_tiers = [anchor($url, "Dettes envers des tiers")];
+            
+            // http://gvv.net/comptes/page/16/17/1
+            $url = controller_url("comptes") . "/page/16/17/1";
+            $emprunts = [anchor($url, "Emprunts bancaires")];     
+        } else {
+            $banques = ["Comptes de banque et financiers"]; 
+            $creances = ["Créances de tiers"];      
+            $dettes_tiers = ["Dettes envers des tiers"];    
+            $emprunts = ["Emprunts bancaires"];     
+        }
+
         $total_dispo = ["Total disponible"];
         $total_dettes = ["Total des dettes"];
 
+        $tot_banque = 0;
+        $tot_creances = 0;
+        $tot_emprunt = 0;
+        $tot_dettes = 0;
 
         foreach ($sections as $section) {
             // Les colonnes de section
@@ -710,9 +733,11 @@ class Comptes_model extends Common_Model {
 
             $solde_banque = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id'])) * -1;
             $banques[] = $this->format_currency($solde_banque, false);
+            $tot_banque += $solde_banque;
 
             $solde_emprunt = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, $section['id']));
             $emprunts[] = $this->format_currency($solde_emprunt, false);
+            $tot_emprunt += $solde_emprunt;
 
             // La liste des comptes de tiers
             $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE, $section['id']);
@@ -730,39 +755,37 @@ class Comptes_model extends Common_Model {
 
             $solde_creances = $creances_pilotes;
             $creances[] = $solde_creances;
+            $tot_creances += $solde_creances;
 
             $solde_dette_tiers = $dettes_pilotes;
             $dettes_tiers[] = $solde_dette_tiers;
+            $tot_dettes += $solde_dette_tiers;
 
-            $total_dispo[] = $this->format_currency($solde_banque + $solde_creances, $html);
-            $total_dettes[] = $this->format_currency($solde_dette_tiers + $solde_emprunt, $html);
+            $total_dispo[] = $solde_banque + $solde_creances;
+            $total_dettes[] = $solde_dette_tiers + $solde_emprunt;
         }
 
         // la colonne Total
         $title[] = "Total";
-        $solde_banque = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, -1)) * -1;
-        $banques[] =  $this->format_currency($solde_banque, $html);
+        $banques[] =  $tot_banque;
+        $emprunts[] =  $tot_emprunt;
 
-        $solde_emprunt = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, -1));
-        $emprunts[] =  $this->format_currency($solde_emprunt, $html);
+        $creances[] = $tot_creances;
+        $dettes_tiers[] = $tot_dettes;
 
-        $solde_creances = 0;
-        $creances[] = $solde_creances;
-
-        $solde_dette_tiers = 0;
-        $dettes_tiers[] = $solde_dette_tiers;
-
-        $total_dispo[] = $this->format_currency($solde_banque + $solde_creances, $html);
-        $total_dettes[] = $this->format_currency($solde_dette_tiers + $solde_emprunt, $html);
+        $total_dispo[] = $tot_banque + $tot_creances;
+        $total_dettes[] = $tot_emprunt + $tot_dettes;
 
         // Mise en forme
         if ($html) {
             for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
                 $banques[$i] = $this->format_currency($banques[$i], $html);
                 $creances[$i] = $this->format_currency($creances[$i], $html);
+                $total_dispo[$i] = $this->format_currency($total_dispo[$i], $html);
 
                 $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
                 $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
+                $total_dettes[$i]  = $this->format_currency($total_dettes[$i] , $html);
             }
         }
 
