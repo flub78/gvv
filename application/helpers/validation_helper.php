@@ -266,7 +266,13 @@ if (! function_exists('euro')) {
             $thousand_sep = ' ';
             $symbol = '';
         }
-        return number_format(floatval($montant), 2, $separator, $thousand_sep) . $symbol;
+        // Normalize the input by converting any decimal separator to dot
+        $normalized_montant = str_replace(',', '.', $montant);
+
+        // Convert to float using the normalized value
+        $float_value = floatval($normalized_montant);
+
+        return number_format($float_value, 2, $separator, $thousand_sep) . $symbol;
     }
 }
 

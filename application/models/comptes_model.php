@@ -625,9 +625,9 @@ class Comptes_model extends Common_Model {
                 $line += 1;
             }
             if ($html) {
-                $res[] = euro ($total); 
+                $res[] = euro($total);
             } else {
-                $res[] = $this->format_currency ($total, $html); 
+                $res[] = $this->format_currency($total, $html);
             }
         }
         return $res;
@@ -646,17 +646,17 @@ class Comptes_model extends Common_Model {
         $header_count = 1;
 
         $resultat = [];
-        $resultat[] = [ '', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
-        $resultat[] = $this->compute_total([ "Total des Produits"], $produits, false);
-        $resultat[] = $this->compute_total([ "Total des charges"], $charges, false);
+        $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
+        $resultat[] = $this->compute_total(["Total des produits"], $produits, false);
+        $resultat[] = $this->compute_total(["Total des charges"], $charges, false);
 
-        $total_row = [ "Résultat"];
+        $total_row = ["Résultat"];
 
         for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
             $total = $resultat[1][$i] - $resultat[2][$i];
-            $total_row[] = $this->format_currency ($total, $html); 
+            $total_row[] = $this->format_currency($total, $html);
         }
-   
+
         if ($html) {
             for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
                 $resultat[1][$i] = euro($resultat[1][$i]);
@@ -669,12 +669,12 @@ class Comptes_model extends Common_Model {
 
     public function format_currency($value, $html = false) {
         $negative = ($value < 0);
-        
+
         if ($html) {
             $value = euro($value);
-            if ($negative) $value = '<p class="text-danger">' . $value . '</p>'; 
+            if ($negative) $value = '<p class="text-danger">' . $value . '</p>';
         } else {
-            $value = number_format((float) $value , 2, ",", "");
+            $value = number_format((float) $value, 2, ",", "");
         }
         return $value;
     }
@@ -692,14 +692,16 @@ class Comptes_model extends Common_Model {
 
         $date_op = date_ht2db($balance_date);
 
+
+
         // La colonne de gauche
         $title = [""];
         $banques = ["Comptes de banque et financiers"];
         $creances = ["Créances de tiers"];
         $dettes_tiers = ["Dettes envers des tiers"];
         $emprunts = ["Emprunts bancaires"];
-        $total_dispo = ["Total"];
-        $total_dettes = ["Total"];
+        $total_dispo = ["Total disponible"];
+        $total_dettes = ["Total des dettes"];
 
 
         foreach ($sections as $section) {
@@ -707,20 +709,33 @@ class Comptes_model extends Common_Model {
             $title[] = $section['nom'];
 
             $solde_banque = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id'])) * -1;
-            $banques[] = $this->format_currency($solde_banque , false);
-            
+            $banques[] = $this->format_currency($solde_banque, false);
+
             $solde_emprunt = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, $section['id']));
             $emprunts[] = $this->format_currency($solde_emprunt, false);
 
-            $solde_creances = 0;
+            // La liste des comptes de tiers
+            $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE, $section['id']);
+
+            $creances_pilotes = 0.0;
+            $dettes_pilotes = 0.0;
+            foreach ($tiers as $row) {
+                // var_dump($row);
+                if ($row['solde'] > 0) {
+                    $dettes_pilotes += $row['solde'];
+                } else {
+                    $creances_pilotes -= $row['solde'];
+                }
+            }
+
+            $solde_creances = $creances_pilotes;
             $creances[] = $solde_creances;
 
-            $solde_dette_tiers = 0;
+            $solde_dette_tiers = $dettes_pilotes;
             $dettes_tiers[] = $solde_dette_tiers;
 
             $total_dispo[] = $this->format_currency($solde_banque + $solde_creances, $html);
             $total_dettes[] = $this->format_currency($solde_dette_tiers + $solde_emprunt, $html);
-
         }
 
         // la colonne Total
@@ -736,19 +751,19 @@ class Comptes_model extends Common_Model {
 
         $solde_dette_tiers = 0;
         $dettes_tiers[] = $solde_dette_tiers;
-        
+
         $total_dispo[] = $this->format_currency($solde_banque + $solde_creances, $html);
-        $total_dettes[] = $this->format_currency($solde_dette_tiers + $solde_emprunt, $html);    
-        
+        $total_dettes[] = $this->format_currency($solde_dette_tiers + $solde_emprunt, $html);
+
         // Mise en forme
         if ($html) {
             for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-                $banques[$i] = $this->format_currency($banques[$i], $html); 
-                $creances[$i] = $this->format_currency($creances[$i], $html); 
+                $banques[$i] = $this->format_currency($banques[$i], $html);
+                $creances[$i] = $this->format_currency($creances[$i], $html);
 
-                $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html); 
-                $emprunts[$i] = $this->format_currency($emprunts[$i], $html); 
-            }           
+                $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
+                $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
+            }
         }
 
         // ===============================
@@ -757,7 +772,7 @@ class Comptes_model extends Common_Model {
         $disponible[] = $banques;
         $disponible[] = $creances;
         $disponible[] = $total_dispo;
-        
+
         $dettes = [];
         $dettes[] = $title;
         $dettes[] = $emprunts;
@@ -770,7 +785,7 @@ class Comptes_model extends Common_Model {
 
         // Créances de tiers
         // http://gvv.net/comptes/page/4/5/1
- 
+
         // Comptes de banque et financiers
         // http://gvv.net/comptes/page/512
 
