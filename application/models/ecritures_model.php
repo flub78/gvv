@@ -229,6 +229,8 @@ class Ecritures_model extends Common_Model {
             ->get();
         $result = $this->get_to_array($db_res);
 
+        // gvv_debug("sql: select_journal: " . $this->db->last_query());
+
         $solde = "";
         $current_solde = "";
         $date_change_line = 0;

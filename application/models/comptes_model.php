@@ -351,7 +351,9 @@ class Comptes_model extends Common_Model {
         $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
 
         if ($info_pilote['compte']) {
-            return $info_pilote['compte'];
+            $compte_id = $info_pilote['compte'];
+            $compte= $this->comptes_model->get_by_id('id', $compte_id);
+            return $compte;
         }
 
         $section = $this->gvv_model->section();

@@ -82,6 +82,7 @@ class Facturation {
         $this->CI->load->model('avions_model');
         $this->CI->load->model('vols_avion_model');
         $this->CI->load->model('tickets_model');
+        $this->CI->load->model('sections_model');
 
         $this->CI->lang->load('facturation');
         // $this->CI->lang->line("")
@@ -410,7 +411,9 @@ class Facturation {
         // création de l'achat
         $data['facture'] = 0;
         $data['saisie_par'] = $this->CI->dx_auth->get_username();
-        $data['club'] = 0;
+        $section = $this->CI->sections_model->section();
+
+        $data['club'] = ($section) ? $section['id'] : 0;
 
         $pilote_info = $this->CI->membres_model->get_by_id('mlogin', $data['pilote']);
         gvv_debug("pilote_info " . var_export($pilote_info, true));
@@ -505,6 +508,8 @@ class Facturation {
      */
     protected function decompte_ou_facture($produit, $ticket, $desc, $vol_id, $date, $debut, $machine, $alt_rem, $vi, $pilote, $payeur, $pourcentage, $name) {
 
+        $section = $this->CI->sections_model->section();
+
         // payeur à 100 % qui a assez de tickets
         if (($payeur) && ($this->CI->tickets_model->solde($payeur, $ticket) >= 1) && ($pourcentage == 100)) {
 
@@ -530,7 +535,7 @@ class Facturation {
                 'quantite' => -1,
                 'description' => $desc,
                 'saisie_par' => $this->CI->dx_auth->get_username(),
-                'club' => 0,
+                'club' => ($section) ? $section['id'] : 0,
                 'type' => $ticket,
                 'vol' => $vol_id
             ));
@@ -577,7 +582,7 @@ class Facturation {
                 'quantite' => -1,
                 'description' => $desc,
                 'saisie_par' => $this->CI->dx_auth->get_username(),
-                'club' => 0,
+                'club' => ($section) ? $section['id'] : 0,
                 'type' => $ticket,
                 'vol' => $vol_id
             ));
