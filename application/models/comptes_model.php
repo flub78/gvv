@@ -609,7 +609,7 @@ class Comptes_model extends Common_Model {
      * @param array $table The table data to compute totals for
      * @return array A row with computed totals for each section
      */
-    function compute_total($header, $table, $html = false) {
+    function compute_total($header, $table) {
 
         $res = $header;
         $header_count = 2;      // columns to skip tin the table
@@ -626,11 +626,7 @@ class Comptes_model extends Common_Model {
                 }
                 $line += 1;
             }
-            if ($html) {
-                $res[] = euro($total);
-            } else {
-                $res[] = $this->format_currency($total, $html);
-            }
+            $res[] = $total;
         }
         return $res;
     }
@@ -650,8 +646,8 @@ class Comptes_model extends Common_Model {
         $resultat = [];
         // todo aller chercher la liste des titres dans les sections
         $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
-        $resultat[] = $this->compute_total(["Total des produits"], $produits, false);
-        $resultat[] = $this->compute_total(["Total des charges"], $charges, false);
+        $resultat[] = $this->compute_total(["Total des produits"], $produits);
+        $resultat[] = $this->compute_total(["Total des charges"], $charges);
 
         $total_row = ["Résultat"];
 
@@ -694,8 +690,6 @@ class Comptes_model extends Common_Model {
         $header_count = 1;
 
         $date_op = date_ht2db($balance_date);
-
-
 
         // La colonne de gauche
         $title = [""];
