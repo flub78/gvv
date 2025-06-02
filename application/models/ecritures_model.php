@@ -1351,17 +1351,17 @@ array (size=2)
         // Totaux
         $total = euro(max($solde_charges, $solde_produits), $decimal_sep, $target);
         $total_prec = euro(max($solde_charges_prec, $solde_produits_prec), $decimal_sep, $target);
-        $tbl[] = array(
-            $tab,
-            $this->lang->line("comptes_label_total"),
-            $total,
-            $total_prec,
-            $tab,
-            $tab,
-            $this->lang->line("comptes_label_total"),
-            $total,
-            $total_prec
-        );
+        // $tbl[] = array(
+        //     $tab,
+        //     $this->lang->line("comptes_label_total"),
+        //     $total,
+        //     $total_prec,
+        //     $tab,
+        //     $tab,
+        //     $this->lang->line("comptes_label_total"),
+        //     $total,
+        //     $total_prec
+        // );
 
         return $tbl;
     }

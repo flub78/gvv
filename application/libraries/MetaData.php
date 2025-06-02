@@ -1158,10 +1158,9 @@ abstract class Metadata {
     protected function array_field($table, $field, $value, &$row, $mode = "ro", $id = '') {
         $this->resolve($table, $field);
 
-        // gvv_debug("array_field ($table, $field, $value");
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
-        gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
+        // gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
 
         if ($subtype == 'boolean') {
             if ($mode == 'csv')

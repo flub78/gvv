@@ -537,7 +537,7 @@ class Comptes_model extends Common_Model {
      * @param float $factor Multiplication factor for balance values (default: 1)
      * @return array Table of account data with sections and totals
      */
-    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
+    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true) {
 
         // $depenses = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
         // $recettes = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
@@ -615,12 +615,12 @@ class Comptes_model extends Common_Model {
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
 
-
         for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-            $total = 0;
+            $total = 0.0;
             foreach ($table as $elt) {
                 if ($line) {
-                    $total += $elt[$i];
+                    $val = str_replace(',', '.', $elt[$i]);
+                    $total += $val;
                 }
                 $line += 1;
             }
@@ -646,6 +646,7 @@ class Comptes_model extends Common_Model {
         $header_count = 1;
 
         $resultat = [];
+        // todo aller chercher la liste des titres dans les sections
         $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
         $resultat[] = $this->compute_total(["Total des produits"], $produits, false);
         $resultat[] = $this->compute_total(["Total des charges"], $charges, false);
@@ -704,19 +705,19 @@ class Comptes_model extends Common_Model {
             // http://gvv.net/comptes/page/4/5/1
             $url = controller_url("comptes") . "/page/4/5/1";
             $creances = [anchor($url, "Créances de tiers")];
-            
+
             // http://gvv.net/comptes/page/4/5/1
             $url = controller_url("comptes") . "/page/4/5/1";
             $dettes_tiers = [anchor($url, "Dettes envers des tiers")];
-            
+
             // http://gvv.net/comptes/page/16/17/1
             $url = controller_url("comptes") . "/page/16/17/1";
-            $emprunts = [anchor($url, "Emprunts bancaires")];     
+            $emprunts = [anchor($url, "Emprunts bancaires")];
         } else {
-            $banques = ["Comptes de banque et financiers"]; 
-            $creances = ["Créances de tiers"];      
-            $dettes_tiers = ["Dettes envers des tiers"];    
-            $emprunts = ["Emprunts bancaires"];     
+            $banques = ["Comptes de banque et financiers"];
+            $creances = ["Créances de tiers"];
+            $dettes_tiers = ["Dettes envers des tiers"];
+            $emprunts = ["Emprunts bancaires"];
         }
 
         $total_dispo = ["Total disponible"];
@@ -785,7 +786,7 @@ class Comptes_model extends Common_Model {
 
                 $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
                 $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
-                $total_dettes[$i]  = $this->format_currency($total_dettes[$i] , $html);
+                $total_dettes[$i]  = $this->format_currency($total_dettes[$i], $html);
             }
         }
 
@@ -815,6 +816,23 @@ class Comptes_model extends Common_Model {
         return $res;
     }
 
+    function format_table_html(&$table) {
+
+        $line = 0;
+        foreach ($table as $row) {
+            if ($line != 0) {
+                $url = controller_url("comptes") . "/page/" . $row[0];
+                $anchor = anchor($url, $row[0]);
+                $table[$line][0] = $anchor;
+
+                for ($i = 2; $i <= 6; $i++) {
+                    $table[$line][$i] = euro($table[$line][$i] ); 
+                }
+            }
+            $line++;
+        }
+    }
+
     /**
      * Retrieves and processes expense and income entries for a specific balance date
      * 
@@ -822,14 +840,20 @@ class Comptes_model extends Common_Model {
      * @return array A collection of financial tables including charges, products, results, and available funds
      */
     function select_charges_et_produits($balance_date, $html = false) {
-        // listes des comptes de dépenses et de recettes
+
         $this->load->model('comptes_model');
 
+        // listes des comptes de dépenses et de recettes
         $tables = [];
-        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1, false, true);
-        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date, 1, false, true);
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1, false, false);
+        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date, 1, false, false);
 
         $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], $html);
+
+        if ($html) {
+            $this->format_table_html($tables['charges']);
+            $this->format_table_html($tables['produits']);
+        }
 
         $dispo = $this->compute_disponible($balance_date, $html);
         $tables['disponible'] = $dispo['disponible'];
