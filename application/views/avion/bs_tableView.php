@@ -43,7 +43,7 @@ $this->lang->load('avion');
 					<?= $this->lang->line("gvv_str_filter") ?>
 				</button>
 			</h2>
-			<div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingOne">
+			<div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panelsStayOpen-headingOne">
 				<div class="accordion-body">
 					<div>
 						<form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
@@ -59,8 +59,8 @@ $this->lang->load('avion');
 								?>
 
 								<div class="mb-2 mt-2">
-									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" class="btn bg-primary text-white" />
-									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" class="btn bg-primary text-white" />
+									<?= filter_buttons() ?>
+
 								</div>
 							</div>
 						</form>

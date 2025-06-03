@@ -62,8 +62,7 @@ $gvv_role = $CI->dx_auth->get_role_name();
 								echo $this->lang->line("planeur_filter_owner") . ": " .  enumerate_radio_fields($this->lang->line("planeur_filter_owner_select"), 'filter_proprio', $filter_proprio);
 								?>
 								<div class="mb-2 mt-2">
-									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_select") ?>" class="btn bg-primary text-white" />
-									<input type="submit" name="button" value="<?= $this->lang->line("gvv_str_display") ?>" class="btn bg-primary text-white" />
+									<?= filter_buttons() ?>
 								</div>
 							</div>
 						</form>

@@ -44,7 +44,7 @@ $this->lang->load('membre');
                     <?= $this->lang->line("gvv_str_filter") ?>
                 </button>
             </h3>
-            <div id="panel_filter_id" class="accordion-collapse collapse" aria-labelledby="panel-filtre">
+            <div id="panel_filter_id" class="accordion-collapse collapse <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panel-filtre">
                 <div class="accordion-body">
                     <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
 
