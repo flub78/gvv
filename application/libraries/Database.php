@@ -205,8 +205,10 @@ class Database {
 
 		$database = $this->CI->db->database;
 
-		$filename = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration . ".sql";
-		$zipname = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration . ".zip";
+		$base_name = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration;
+		$base_name = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $base_name);
+		$filename =  $base_name . ".sql";
+		$zipname = $base_name . ".zip";
 
 		gvv_debug("backup: filename=$filename");
 		gvv_debug("backup: zipame=$zipname");
