@@ -22,3 +22,10 @@ All files are under gvv/uploads
 Il y a des références dans la base de données sur les fichiers chargés.
 
 
+## Problèmes liés à la sauvegarde
+
+Les sauvegardes et restaurations peuvent être des opérations lourdes (relativement aux requêtes habituelles sur GVV) à la fois en mémoire, en taille de fichiers chargés et en CPU. Avec une base de données qui grossit on dépasse facilement les valeurs par défaut.
+
+
+
+

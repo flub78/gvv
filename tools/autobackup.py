@@ -67,9 +67,19 @@ cmd += " > "  + backup_script
 print(cmd)
 os.system(cmd)
 
-cmd = "zip " + zipname + " " + backup_script
+# Change to backup directory and zip only the filename (not the full path)
+original_dir = os.getcwd()
+os.chdir(backup_dir)
+sql_filename = backup_basename + '.sql'
+zip_filename = backup_basename + ".zip"
+
+cmd = "zip " + zip_filename + " " + sql_filename
+
 print(cmd)
 os.system(cmd)
+
+# Return to original directory
+os.chdir(original_dir)
 
 # Supprime les fichiers temporaires
 os.remove(backup_script)

@@ -20,3 +20,4 @@ results/*
 captcha/*
 .htaccess
 application/third_party/phpqrcode/cache/*
+autobackup.sh
