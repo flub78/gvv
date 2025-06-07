@@ -13,13 +13,13 @@ Description détaillée du travail de développement.
 - [-] affecter la section courante lors de la création d'une resource
 - [ ] Vérifier les droits d'action basé sur les rôles par section
 - [-] refuser la creation de resources sans section définie
-- [ ] Adapter les vues comptables par section
-- [ ] Clôture par section
-- [ ] Vue et export des données consolidées
+- [x] Adapter les vues comptables par section
+- [x] Clôture par section
+- [x] Vue et export des données consolidées
 - [ ] possibilité pour un utilisateur multi-section de selectionner une autre section
 
-- [ ] Création d'un compte client par section
-- [ ] Gestion de la facturation
+- [x] Création d'un compte client par section
+- [x] Gestion de la facturation
 
 - [ ] Gestion des réservations
   - [ ] Visualisation du calendrier des réservations

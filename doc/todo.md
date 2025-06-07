@@ -43,7 +43,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
-  * [] Les attachements devrait-être listé par section et par années
+  * [] Les attachements devraient-être listé par section et par années
   * [] compression des attachements
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
