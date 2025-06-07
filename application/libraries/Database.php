@@ -164,6 +164,8 @@ class Database {
 
 	public function backup2() {
 
+		gvv_info("backup: ");
+
 		if (PHP_OS == "WINNT") {
 			$mysqldump = 'c:\xampp_php8\mysql\bin\mysqldump.exe';
 		} else {
@@ -176,6 +178,8 @@ class Database {
 			throw new Exception("mysqldump $mysqldump not found");
 		}
 
+		gvv_debug("backup: $mysqldump found");
+
 		// compute the directory name
 		$dirname = getcwd() . "/backups/";
 
@@ -183,6 +187,8 @@ class Database {
 		if (!file_exists($dirname)) {
 			mkdir($dirname, 0777, true);
 		}
+
+		gvv_debug("backup: backup dir $dirname exist");
 
 		// Change directory to backup location
 		chdir($dirname);
@@ -204,8 +210,8 @@ class Database {
 		$filename = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration . ".sql";
 		$zipname = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration . ".zip";
 
-		// $fullname = $dirname . $filename;
-		// $fullzipname = $dirname . $zipname;
+		gvv_debug("backup: filename=$filename");
+		gvv_debug("backup: zipame=$zipname");
 
 		// Get database credentials from config
 		$db_user = $this->CI->db->username;
@@ -213,41 +219,37 @@ class Database {
 		$db_host = $this->CI->db->hostname;
 
 		// Build the command
-		// $cmd = $mysqldump . " --host=" . $db_host;
-		// $cmd .= " --user=" . $db_user . " --password=" . $db_password;
-		// $cmd .= " --default-character-set=utf8  --no-tablespaces ";
-		// $cmd .=  $database;
-		// $cmd  .= " > " . $dirname . $filename;
-		// $cmd .= " | zip > " . $dirname . $zipname;
-
 		$cmd = "$mysqldump --user=$db_user --password=$db_password --host=$db_host $database  > $filename";
 
-		gvv_info("cmd: " . $cmd);
+		gvv_debug("backup: " . $cmd);
 		exec($cmd, $output, $returnVar);
 		if ($output) {
-			gvv_error("mysqldump output: $output\n");
+			gvv_error("backup: mysqldump output: $output\n");
 		}
 		if ($returnVar != 0) {
-			gvv_error("mysqldump returns: $returnVar\n");
+			gvv_error("backup: mysqldump returns: $returnVar\n");
 		}
 
 		// check if backup file exists
 		if (!file_exists($filename)) {
-			throw new Exception("mysqldump backup file $filename not found");
+			gvv_error("backup: $filename does not exist");
+			throw new Exception("mysqldump backup file $filename does not exist");
 		}
 
 		$cmd = "zip $zipname $filename";
-		gvv_info("cmd: " . $cmd);
+		gvv_debug("backup: cmd: " . $cmd);
+
 		exec($cmd, $output, $returnVar);
 		if ($output) {
-			gvv_error("zip output: $output\n");
+			gvv_error("backup: zip output: $output\n");
 		}
 		if ($returnVar != 0) {
-			gvv_error("zip returns: $returnVar\n");
+			gvv_error("backup: zip returns: $returnVar\n");
 		}
 
 		// check if zip file exists
 		if (!file_exists($zipname)) {
+			gvv_error("backup: $zipname does not exist");
 			throw new Exception("mysqldump backup file $zipname not found");
 		}
 
