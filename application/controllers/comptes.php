@@ -286,6 +286,9 @@ class Comptes extends Gvv_Controller {
         $this->data['disponible'] = $tables['disponible'];
         $this->data['dettes'] = $tables['dettes'];
 
+        $this->data['immos'] = $tables['immos'];
+
+
         $this->push_return_url("resultat");
 
         load_last_view('comptes/dashboardView', $this->data);

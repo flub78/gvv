@@ -685,6 +685,7 @@ class Comptes_model extends Common_Model {
      * @return array A table representing available financial resources by section
      */
     function compute_disponible($balance_date, $html = false) {
+        // les sections
         $sections = $this->sections_model->select_columns('id, nom, description');
         $sections_count = count($sections);
         $header_count = 1;
@@ -709,11 +710,29 @@ class Comptes_model extends Common_Model {
             // http://gvv.net/comptes/page/16/17/1
             $url = controller_url("comptes") . "/page/16/17/1";
             $emprunts = [anchor($url, "Emprunts bancaires")];
+
+            // https://gvv.planeur-abbeville.fr/index.php/comptes/page/2/28
+            $url = controller_url("comptes") . "/page/2/28/1";
+            $immos_brutes = [anchor($url, "Valeur brute")]; 
+
+            // https://gvv.planeur-abbeville.fr/index.php/comptes/page/281
+            $url = controller_url("comptes") . "/page/281/281/1";
+            $immos_cumul_amortissements = [anchor($url, "Cumul ammortissements")];
+
+            $immos_depreciations = ["Dépréciations"];
+            $immos_nettes = ["Valeur nette"];
+
+
         } else {
             $banques = ["Comptes de banque et financiers"];
             $creances = ["Créances de tiers"];
             $dettes_tiers = ["Dettes envers des tiers"];
             $emprunts = ["Emprunts bancaires"];
+
+            $immos_brutes = ["Valeur brute"];
+            $immos_cumul_amortissements = ["Cumul ammortissements"];
+            $immos_depreciations = ["Dépréciations"];
+            $immos_nettes = ["Valeur nette"];
         }
 
         $total_dispo = ["Total disponible"];
@@ -723,6 +742,7 @@ class Comptes_model extends Common_Model {
         $tot_creances = 0;
         $tot_emprunt = 0;
         $tot_dettes = 0;
+
 
         foreach ($sections as $section) {
             // Les colonnes de section
@@ -760,6 +780,8 @@ class Comptes_model extends Common_Model {
 
             $total_dispo[] = $solde_banque + $solde_creances;
             $total_dettes[] = $solde_dette_tiers + $solde_emprunt;
+
+
         }
 
         // la colonne Total
@@ -854,6 +876,8 @@ class Comptes_model extends Common_Model {
         $dispo = $this->compute_disponible($balance_date, $html);
         $tables['disponible'] = $dispo['disponible'];
         $tables['dettes'] = $dispo['dettes'];
+
+        $tables['immos'] = $dispo['immos'];
 
         return $tables;
     }
