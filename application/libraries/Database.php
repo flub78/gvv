@@ -190,8 +190,6 @@ class Database {
 
 		gvv_debug("backup: backup dir $dirname exist");
 
-		// Change directory to backup location
-		chdir($dirname);
 
 		// compute a filename
 		date_default_timezone_set('Europe/Paris');
@@ -222,34 +220,53 @@ class Database {
 		$cmd = "$mysqldump --user=$db_user --password=$db_password --host=$db_host $database  > $filename";
 
 		gvv_debug("backup: " . $cmd);
+
+		// Change directory to backup location
+		$original_dir = getcwd();
+		chdir($dirname);
+
 		exec($cmd, $output, $returnVar);
 		if ($output) {
+			chdir($original_dir);
 			gvv_error("backup: mysqldump output: $output\n");
+			chdir($dirname);
 		}
 		if ($returnVar != 0) {
+			chdir($original_dir);
 			gvv_error("backup: mysqldump returns: $returnVar\n");
+			chdir($dirname);
 		}
 
 		// check if backup file exists
 		if (!file_exists($filename)) {
+			chdir($original_dir);
 			gvv_error("backup: $filename does not exist");
+			chdir($dirname);
 			throw new Exception("mysqldump backup file $filename does not exist");
 		}
 
 		$cmd = "zip $zipname $filename";
+		chdir($original_dir);
 		gvv_debug("backup: cmd: " . $cmd);
+		chdir($dirname);
 
 		exec($cmd, $output, $returnVar);
 		if ($output) {
-			gvv_error("backup: zip output: $output\n");
+			chdir($original_dir);
+			gvv_error("backup: zip output: " .var_export($output, true) ."\n");
+			chdir($dirname);
 		}
 		if ($returnVar != 0) {
+			chdir($original_dir);
 			gvv_error("backup: zip returns: $returnVar\n");
+			chdir($dirname);
 		}
 
 		// check if zip file exists
 		if (!file_exists($zipname)) {
+			chdir($original_dir);
 			gvv_error("backup: $zipname does not exist");
+			chdir($dirname);
 			throw new Exception("mysqldump backup file $zipname not found");
 		}
 
