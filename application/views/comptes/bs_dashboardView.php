@@ -174,6 +174,26 @@ $url = controller_url($controller);
     $table->display();
     ?>
 
+    <h3 class="mt-3"><?= "Immobilisations" ?></h3>
+    <?php
+    $table = new DataTable(array(
+        'title' => "",
+        'values' => $immos,
+        'controller' => $controller,
+        'class' => "sql_table fixed_datatable table",
+        'align' => array(
+            'left',
+            'right',
+            'right',
+            'right',
+            'right',
+            'right'
+        )
+    ));
+
+    $table->display();
+    ?>
+
     <?php
 
     echo br(2);

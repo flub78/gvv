@@ -716,7 +716,7 @@ class Comptes_model extends Common_Model {
             $immos_brutes = [anchor($url, "Valeur brute")]; 
 
             // https://gvv.planeur-abbeville.fr/index.php/comptes/page/281
-            $url = controller_url("comptes") . "/page/281/281/1";
+            $url = controller_url("comptes") . "/page/281";
             $immos_cumul_amortissements = [anchor($url, "Cumul ammortissements")];
 
             $immos_depreciations = ["Dépréciations"];
@@ -743,6 +743,10 @@ class Comptes_model extends Common_Model {
         $tot_emprunt = 0;
         $tot_dettes = 0;
 
+        $tot_immos_brutes = 0;
+        $tot_immos_cumul_amortissements = 0;
+        $tot_immos_depreciations = 0; 
+        $tot_immos_nettes = 0; 
 
         foreach ($sections as $section) {
             // Les colonnes de section
@@ -781,7 +785,19 @@ class Comptes_model extends Common_Model {
             $total_dispo[] = $solde_banque + $solde_creances;
             $total_dettes[] = $solde_dette_tiers + $solde_emprunt;
 
+            $solde_immos_brutes = $this->total_of($this->ecritures_model->select_solde($date_op, 2, 28, TRUE, $section['id'])) * -1;
+            $immos_brutes[] = $solde_immos_brutes;
+            $tot_immos_brutes += $solde_immos_brutes;
 
+            $solde_immos_cumul_amortissements = $this->total_of($this->ecritures_model->select_solde($date_op, 28, 29, TRUE, $section['id']));
+            $immos_cumul_amortissements[] = $solde_immos_cumul_amortissements;
+            $tot_immos_cumul_amortissements += $solde_immos_cumul_amortissements;
+
+            $tot_immos_depreciations = 0; 
+            
+            $solde_immos_nettes = $solde_immos_brutes - $solde_immos_cumul_amortissements;
+            $immos_nettes[] = $solde_immos_nettes; 
+            $tot_immos_nettes += $solde_immos_nettes;
         }
 
         // la colonne Total
@@ -795,6 +811,10 @@ class Comptes_model extends Common_Model {
         $total_dispo[] = $tot_banque + $tot_creances;
         $total_dettes[] = $tot_emprunt + $tot_dettes;
 
+        $immos_brutes[] = $tot_immos_brutes;
+        $immos_cumul_amortissements[] = $tot_immos_cumul_amortissements;
+        $immos_nettes[] = $tot_immos_nettes;
+
         // Mise en forme
         if ($html) {
             for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
@@ -805,6 +825,10 @@ class Comptes_model extends Common_Model {
                 $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
                 $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
                 $total_dettes[$i]  = $this->format_currency($total_dettes[$i], $html);
+
+                $immos_brutes[$i] = $this->format_currency($immos_brutes[$i], $html);
+                $immos_cumul_amortissements[$i] = $this->format_currency($immos_cumul_amortissements[$i], $html);
+                $immos_nettes[$i] = $this->format_currency($immos_nettes[$i], $html);     
             }
         }
 
@@ -821,9 +845,16 @@ class Comptes_model extends Common_Model {
         $dettes[] = $dettes_tiers;
         $dettes[] = $total_dettes;
 
+        $immos =[];
+        $immos[] = $title;
+        $immos[] = $immos_brutes;
+        $immos[] = $immos_cumul_amortissements;
+        $immos[] = $immos_nettes; 
+
         $res = [];
         $res['disponible'] = $disponible;
         $res['dettes'] = $dettes;
+        $res['immos'] = $immos;
 
         // Créances de tiers
         // http://gvv.net/comptes/page/4/5/1
