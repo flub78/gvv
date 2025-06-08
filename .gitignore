@@ -21,3 +21,4 @@ captcha/*
 .htaccess
 application/third_party/phpqrcode/cache/*
 autobackup.sh
+.vscode/launch.json
