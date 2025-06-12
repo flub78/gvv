@@ -26,15 +26,15 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [x] clôture par section
 * [x] Vue compte, autoriser les vues sur plusieurs années
 * [*] Compte d'exploitation (tableau de bord comptable)
+* [x] En mode édition d'écritures les comptes ne sont pas filtrés par section
+* [x] Supprimer les choix par défaut pour les écritures
 
 ## Bugs
 
-* [] En mode édition d'écritures les comptes ne sont pas filtrés par section
 * [] Prise en compte des comptes de caisse dans le bilan
 
 ## Reste à faire
 
-* [] Supprimer les choix par défaut pour les écritures
 * [] Gérer les suggestions de saisie par section
 * [] Ecriture spéciale de remise de liquide en banque
 
@@ -48,7 +48,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Gérer la configuration dans la base.
 * [] Vérifier le cadrage à droite pour tous les chiffres
 
-* [] la page de retour après une modification des écritures est discutable
+* [] **la page de retour après une modification des écritures est discutable**
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
