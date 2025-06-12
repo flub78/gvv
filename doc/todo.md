@@ -27,7 +27,16 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] Vue compte, autoriser les vues sur plusieurs années
 * [*] Compte d'exploitation (tableau de bord comptable)
 
+## Bugs
+
+* [] En mode édition d'écritures les comptes ne sont pas filtrés par section
+* [] Prise en compte des comptes de caisse dans le bilan
+
 ## Reste à faire
+
+* [] Supprimer les choix par défaut pour les écritures
+* [] Gérer les suggestions de saisie par section
+* [] Ecriture spéciale de remise de liquide en banque
 
 * [] synchro avec OpenFlyers
 * [] gestion des vols de découverte
