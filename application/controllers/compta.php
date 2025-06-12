@@ -127,8 +127,8 @@ class Compta extends Gvv_Controller {
         parent::form_static_element($action);
 
         $this->data['title_key'] = "gvv_compta_title_line";
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector(), "asc", TRUE);
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector(), "asc", TRUE);
+        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector([], "asc", TRUE));
+        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector([], "asc", TRUE));
         $this->data['date_creation'] = date("d/m/Y");
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
