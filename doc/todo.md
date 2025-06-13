@@ -28,6 +28,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [*] Compte d'exploitation (tableau de bord comptable)
 * [x] En mode édition d'écritures les comptes ne sont pas filtrés par section
 * [x] Supprimer les choix par défaut pour les écritures
+* [x] Ecriture spéciale de remise de liquide en banque
 
 ## Bugs
 
@@ -36,7 +37,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 ## Reste à faire
 
 * [] Gérer les suggestions de saisie par section
-* [] Ecriture spéciale de remise de liquide en banque
+* [] Ne pas afficher les comptes inactifs dont le solde est null.
 
 * [] synchro avec OpenFlyers
 * [] gestion des vols de découverte

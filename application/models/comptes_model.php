@@ -696,7 +696,7 @@ class Comptes_model extends Common_Model {
         $title = [""];
         if ($html) {
             // http://gvv.net/comptes/page/512
-            $url = controller_url("comptes") . "/page/512";
+            $url = controller_url("comptes") . "/page/512/600";
             $banques = [anchor($url, "Comptes de banque et financiers")];
 
             // http://gvv.net/comptes/page/4/5/1
