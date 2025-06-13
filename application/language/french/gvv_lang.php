@@ -8,7 +8,7 @@ $lang['gvv_language'] = "french";    // doit être identique a la valeur dans co
 # Menus
 # $this->lang->line("")
 $lang['gvv_menu_vols_decouverte'] = "Vols de découverte";
-$lang['gvv_menu_vols_decouverte_select'] = "Selectionnez";
+$lang['gvv_menu_vols_decouverte_select'] = "Sélectionnez";
 
 $lang['gvv_menu_admin'] = "Gestion";
 $lang['gvv_menu_admin_club'] = "Club";
@@ -70,7 +70,7 @@ $lang['gvv_menu_accounting_dashboard'] = "Tableau de bord";
 
 $lang['gvv_menu_entries'] = "Ecritures";
 $lang['gvv_menu_entries_income'] = "Recettes";
-$lang['gvv_menu_entries_pilot_payment'] = "Reglement par pilote";
+$lang['gvv_menu_entries_pilot_payment'] = "Règlement par pilote";
 $lang['gvv_menu_entries_pilot_billing'] = "Facturation manuelle d'un pilote";
 $lang['gvv_menu_entries_supplier_credit'] = "Enregistrement avoir fournisseur";
 $lang['gvv_menu_entries_expense'] = "Dépenses";
@@ -78,6 +78,8 @@ $lang['gvv_menu_entries_expense_paid'] = "Dépenses payées par un pilote";
 $lang['gvv_menu_entries_pilot_refund'] = "Remboursement d'avance pilote";
 $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Paiement par avoir fournisseur";
 $lang['gvv_menu_entries_wire_transfer'] = "Virement bancaire";
+$lang['gvv_menu_entries_wire_deposit'] = "Dépôt d’espèces";
+$lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
 
 # Buttons
 $lang['gvv_button_member'] = "Membre";
@@ -96,8 +98,8 @@ $lang['gvv_button_delete'] = "Supprimer";
 $lang['gvv_button_cancel'] = "Annuler";
 $lang['gvv_button_clone'] = "Cloner";
 $lang['gvv_button_new'] = "Ajouter";
-$lang['gvv_button_confirm'] = "Etes vous sur de vouloir supprimer l'élément?";
-$lang['gvv_button_delete_confirm'] = "Etes vous sûr de vouloir supprimer";
+$lang['gvv_button_confirm'] = "Êtes vous sur de vouloir supprimer l'élément?";
+$lang['gvv_button_delete_confirm'] = "Êtes vous sûr de vouloir supprimer";
 $lang['gvv_button_print'] = "Imprimer";
 $lang['gvv_button_logs_submitbutton'] = "Valider vol";
 $lang['gvv_button_upload'] = "Télécharger";
@@ -236,12 +238,10 @@ $lang['CodeIgniter'] = "CodeIgniter";
 $lang['Dump Metadata'] = "Dump Metadata";
 $lang['Attachments'] = "Attachments";
 $lang['Tests des librairies et helpers'] = "Tests des librairies et helpers";
-$lang['Tests controleurs et models'] = "Tests controleurs et models";
-$lang['Tests fonctionels'] = "Tests fonctionels";
+$lang['Tests controleurs et models'] = "Tests contrôleurs et models";
+$lang['Tests fonctionels'] = "Tests fonctionnels";
 $lang['HEVA'] = "HEVA";
-$lang['HEVA'] = "HEVA";
-$lang['HEVA'] = "HEVA";
-$lang['HEVA'] = "HEVA";
+
 
 $lang['datatable_no_data'] = 'Aucune donnée disponible dans le tableau';
 

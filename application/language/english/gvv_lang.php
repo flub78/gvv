@@ -69,6 +69,8 @@ $lang['gvv_menu_entries_expense_paid'] = "Expense paid by a pilot";
 $lang['gvv_menu_entries_pilot_refund'] = "Pilot refund";
 $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Payment with supplier credit";
 $lang['gvv_menu_entries_wire_transfer'] = "Wire transfer";
+$lang['gvv_menu_entries_wire_deposit'] = "Cash deposit";
+$lang['gvv_menu_entries_wire_withdrawal'] = "Cash withdrawal";
 
 # Buttons
 $lang['gvv_button_member'] = "Members";

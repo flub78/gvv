@@ -400,6 +400,24 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Dépot d'especes en banque
+     */
+    function depot_especes() {
+        $this->ecriture("gvv_compta_title_depot", 
+        ["codec" => "512"],
+        ["codec" => "531"]);
+    }
+
+   /**
+     * Retrait d'argent en liquide
+     */
+    function retrait_liquide() {
+        $this->ecriture("gvv_compta_title_retrait", 
+        ["codec" => "531"],
+        ["codec" => "512"]);
+    }
+
+    /**
      * journal
      *
      * @param $premier élément

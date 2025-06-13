@@ -64,6 +64,8 @@ $lang['gvv_menu_entries_expense_paid'] = "Uitgaven betaald piloot";
 $lang['gvv_menu_entries_pilot_refund'] = "Terugbetaling piloot";
 $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Betalingen met leverancierskrediet";
 $lang['gvv_menu_entries_wire_transfer'] = "Overschrijving";
+$lang['gvv_menu_entries_wire_deposit'] = "Contante storting";
+$lang['gvv_menu_entries_wire_withdrawal'] = "Vloeistofonttrekking";
 
 # Buttons
 $lang['gvv_button_member'] = "Leden";
