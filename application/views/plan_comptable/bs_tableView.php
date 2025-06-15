@@ -55,7 +55,7 @@ $(document).ready(function(){
         "iDisplayLength": 25,
         "bStateSave": false,
         "bJQueryUI": true,
-        "bSort": false,
+        "bSort": true,
         "bInfo": true,
         "bAutoWidth": true,
         "sPaginationType": "full_numbers",
