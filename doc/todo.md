@@ -29,11 +29,16 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] En mode édition d'écritures les comptes ne sont pas filtrés par section
 * [x] Supprimer les choix par défaut pour les écritures
 * [x] Ecriture spéciale de remise de liquide en banque
+* [x] Prise en compte des comptes de caisse dans le bilan
+* [x] Fixer la date de gel par section
+
 
 ## Bugs
 
-* [] Prise en compte des comptes de caisse dans le bilan
+* [] Réactiver les tris par colonnes dans les datatable
+* [] Vérifier le cadrage à droite pour tous les chiffres
 
+  
 ## Reste à faire
 
 * [] Gérer les suggestions de saisie par section
@@ -47,7 +52,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
 * [] Gérer la configuration dans la base.
-* [] Vérifier le cadrage à droite pour tous les chiffres
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
@@ -65,7 +69,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   
 * [] Reservation des avions                                  10j
 * [] Online Payments                                         10j
-* [] Fixer la date de gel lors de la cloture (par section quand la dernière section a clôturé)
 * [] Support du markdown
 * [] Sauvegarde/restauration des medias et attachements
 * [] Attachements sur les achats

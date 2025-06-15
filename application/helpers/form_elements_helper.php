@@ -312,7 +312,7 @@ if (! function_exists('result_rows')) {
                     if ($actif[$i]['nom'] == "Immobilisations corporelles") {
                         $table[$i][] = anchor(controller_url("comptes/page/2/28"), "Immobilisations corporelles");
                     } else if ($actif[$i]['nom'] == "Comptes financiers") {
-                        $table[$i][] = anchor(controller_url("comptes/page/512"), "Comptes de banque et financiers");
+                        $table[$i][] = anchor(controller_url("comptes/page/5/6"), "Comptes de banque et financiers");
                     } else {
                         $table[$i][] = anchor(controller_url("compta/journal_compte/$compte"), $actif[$i]['nom']);
                     }
