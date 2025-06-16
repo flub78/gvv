@@ -80,6 +80,7 @@ $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Paiement par avoir fournis
 $lang['gvv_menu_entries_wire_transfer'] = "Virement bancaire";
 $lang['gvv_menu_entries_wire_deposit'] = "Dépôt d’espèces";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
+$lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital";
 
 # Buttons
 $lang['gvv_button_member'] = "Membre";

@@ -418,6 +418,15 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Remboursement capital d'un emprunt
+     */
+    function remb_capital() {
+        $this->ecriture("gvv_compta_title_remb_capital", 
+        ["codec" => "164"],
+        ["codec" => "512"]);
+    }
+
+    /**
      * journal
      *
      * @param $premier élément

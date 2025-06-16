@@ -71,6 +71,7 @@ $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Payment with supplier cred
 $lang['gvv_menu_entries_wire_transfer'] = "Wire transfer";
 $lang['gvv_menu_entries_wire_deposit'] = "Cash deposit";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Cash withdrawal";
+$lang['gvv_menu_entries_wire_remb_capital'] = "Repayment of loan capital";
 
 # Buttons
 $lang['gvv_button_member'] = "Members";

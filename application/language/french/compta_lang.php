@@ -17,6 +17,7 @@ $lang['gvv_compta_title_avoir'] = "Enregistrement d'un avoir fournisseur";
 $lang['gvv_compta_title_avoir_use'] = "Dépense avec utilisation d'un avoir fournisseur";
 $lang['gvv_compta_title_depot'] = "Dépôt d'espèces";
 $lang['gvv_compta_title_retrait'] = "Retrait de liquide";
+$lang['gvv_compta_title_remb_capital'] = "Remboursement de capital d'emprunt";
 $lang['gvv_comptes_title_journal'] = "Grand journal";
 $lang['gvv_comptes_title_error'] = "Erreur";
 $lang['gvv_comptes_error_no_account'] = "Il n'y a pas de compte associé à l'identifiant de connexion";

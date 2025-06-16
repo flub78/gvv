@@ -281,6 +281,11 @@ $section_count = $CI->sections_model->safe_count_all();
 
               <li><a class="dropdown-item" href="<?= controller_url("compta/retrait_liquide") ?>"><?= translation("gvv_menu_entries_wire_withdrawal") ?></a></li>
 
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+
+              <li><a class="dropdown-item" href="<?= controller_url("compta/remb_capital") ?>"><?= translation("gvv_menu_entries_wire_remb_capital") ?></a></li>
             </ul>
           </li>
         <?php endif; ?>

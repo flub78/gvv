@@ -66,6 +66,7 @@ $lang['gvv_menu_entries_pay_with_supplier_credit'] = "Betalingen met leverancier
 $lang['gvv_menu_entries_wire_transfer'] = "Overschrijving";
 $lang['gvv_menu_entries_wire_deposit'] = "Contante storting";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Vloeistofonttrekking";
+$lang['gvv_menu_entries_wire_remb_capital'] = "Terugbetaling van vreemd vermogen";
 
 # Buttons
 $lang['gvv_button_member'] = "Leden";
