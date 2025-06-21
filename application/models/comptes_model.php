@@ -486,14 +486,14 @@ class Comptes_model extends Common_Model {
         // Fonds associatif = solde des comptes de classe 1 et 11
         $data['capital_2'] = $this->ecritures_model->select_solde($date_op, 1, 12, FALSE);
 
-        $data['ammortissements_corp'] = $this->total_of($this->ecritures_model->select_solde($date_op, "28", "29", TRUE));
+        $data['amortissements_corp'] = $this->total_of($this->ecritures_model->select_solde($date_op, "28", "29", TRUE));
 
         $data['fonds_associatifs'] = $this->total_of($this->ecritures_model->select_solde($date_op, 102, 103, TRUE));
         $data['reports_cred'] = $this->total_of($this->ecritures_model->select_solde($date_op, 110, 111, TRUE));
         $data['reports_deb'] = $this->total_of($this->ecritures_model->select_solde($date_op, 119, 120, TRUE));
 
         $data['valeur_brute_immo_corp'] = -$this->total_of($data['immo']);
-        $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['ammortissements_corp'];
+        $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['amortissements_corp'];
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
 
         $creances_pilotes = 0.0;

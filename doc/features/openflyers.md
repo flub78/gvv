@@ -38,3 +38,91 @@ Cela peut se résumer au principe d'hygiène de "la marche en avant" appliqué d
 
 https://doc4-fr.openflyers.com/R%C3%A9cup%C3%A9ration-des-vols-par-un-logiciel-tiers
 
+Il faut enregistrer une clé de service WEB dans Admin - Structure - Paramétrage - Général
+
+Puis on peut récupérer les vols.
+
+```
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test récupération des vols</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+    <form action="https://openflyers.com/abbeville/actionOnDemand.php" method="post">
+
+        <input type="hidden" name="arguments[0]" value="getActivityList" />
+        <label>Clé :</label>
+        <input type="text" name="key" value="cleopenflyers" />
+        <label>Limite :</label>
+        <input type="text" name="maxNumber" value="1" />
+        <label>Date de début (AAAA-MM-JJ hh:mm:ss) :</label>
+        <input type="text" name="startDate" value="2020-04-01 00:00:00" />
+        <label>Date de fin (AAAA-MM-JJ hh:mm:ss) :</label>
+        <input type="text" name="endDate" value="2020-05-01 00:00:00" />
+        <input type="submit" value="Test" />
+    </form>
+</body>
+
+</html>
+```
+
+```
+[
+  {
+    "flight_id": "16546",
+    "first_person": "Rémy Frédéric",
+    "start_date": "2025-06-21 08:48:00",
+    "second_person": "PEIGNOT ULM Frédéric",
+    "departure_location_name": "LFOI",
+    "end_date": "2025-06-21 09:46:00",
+    "arrival_location_name": "",
+    "duration": "0:58",
+    "landing_number": "1",
+    "resource_name": "F-JTVA"
+  },
+  {
+    "flight_id": "16547",
+    "first_person": "LARTISIEN ulm Xavier",
+    "start_date": "2025-06-21 08:16:00",
+    "second_person": "PRUVOST Guillaume ULM",
+    "departure_location_name": "LFOI",
+    "end_date": "2025-06-21 09:16:00",
+    "arrival_location_name": "",
+    "duration": "1:00",
+    "landing_number": "3",
+    "resource_name": "F-JHRV"
+  },
+  {
+    "flight_id": "16545",
+    "first_person": "MICHALCZYK PASCAL",
+    "start_date": "2025-06-21 07:30:00",
+    "second_person": "PRUVOST Guillaume ULM",
+    "departure_location_name": "LFOI",
+    "end_date": "2025-06-21 08:14:00",
+    "arrival_location_name": "",
+    "duration": "0:44",
+    "landing_number": "6",
+    "resource_name": "F-JTVA"
+  },
+  {
+    "flight_id": "16543",
+    "first_person": "DUVOLLET François ULM",
+    "start_date": "2025-06-19 15:36:00",
+    "second_person": "",
+    "departure_location_name": "LFOI",
+    "end_date": "2025-06-19 16:06:00",
+    "arrival_location_name": "",
+    "duration": "0:30",
+    "landing_number": "1",
+    "resource_name": "F-JHRV"
+  },
+...
+```
+
+C'est facile à mettre en oeuvre mais on a pas assez d'informations pour refacturer les vols, entre autre on ne sait pas si un vol est un vol de découverte.
+
+## Démonstration de client OAuth 2.0

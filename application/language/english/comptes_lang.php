@@ -52,7 +52,7 @@ $lang['comptes_pilot_warning'] = "Only specify a pilot for customer account (411
 
 $lang['comptes_bilan_actif'] = "Financial assets";
 $lang['comptes_bilan_valeur_brute'] = "Gross value";
-$lang['comptes_bilan_ammortissement'] = "Amortization";
+$lang['comptes_bilan_amortissement'] = "Amortization";
 $lang['comptes_bilan_valeur_nette'] = "Net value";
 $lang['comptes_bilan_passif'] = "Liabilities";
 $lang['comptes_bilan_immobilise'] = "Fixed assets";

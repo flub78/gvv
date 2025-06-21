@@ -406,7 +406,7 @@ if (! function_exists('bilan_table')) {
         $table[] = array(
             $CI->lang->line('comptes_bilan_actif'),
             $CI->lang->line('comptes_bilan_valeur_brute'),
-            $CI->lang->line('comptes_bilan_ammortissement'),
+            $CI->lang->line('comptes_bilan_amortissement'),
             $CI->lang->line('comptes_bilan_valeur_nette'),
             $CI->lang->line('comptes_bilan_valeur_nette'),
             $tab,
@@ -461,7 +461,7 @@ if (! function_exists('bilan_table')) {
             $report_cred_label = anchor(controller_url("comptes/page/110"), $report_cred_label);
         }
 
-        $amo = euro($bilan['ammortissements_corp'], $sep, $output_format);
+        $amo = euro($bilan['amortissements_corp'], $sep, $output_format);
         if ($html) {
             $amo = anchor(controller_url("comptes/page/281"), $amo);
         }

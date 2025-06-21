@@ -52,7 +52,7 @@ $lang['comptes_pilot_warning'] = "Enkel een piloot kiezen voor een klantenrekeni
 
 $lang['comptes_bilan_actif'] = "Actief";
 $lang['comptes_bilan_valeur_brute'] = "Brutto waarde";
-$lang['comptes_bilan_ammortissement'] = "Afschrijvingen";
+$lang['comptes_bilan_amortissement'] = "Afschrijvingen";
 $lang['comptes_bilan_valeur_nette'] = "Netto waarde";
 $lang['comptes_bilan_passif'] = "Passief";
 $lang['comptes_bilan_immobilise'] = "Vastgoed";

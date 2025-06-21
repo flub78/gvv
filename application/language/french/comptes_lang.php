@@ -53,7 +53,7 @@ $lang['comptes_pilot_warning'] = "Ne saisir un pilote que pour les comptes clien
 
 $lang['comptes_bilan_actif'] = "Actif";
 $lang['comptes_bilan_valeur_brute'] = "Valeur brute";
-$lang['comptes_bilan_ammortissement'] = "Amortissements";
+$lang['comptes_bilan_amortissement'] = "Amortissements";
 $lang['comptes_bilan_valeur_nette'] = "Valeur nette";
 $lang['comptes_bilan_passif'] = "Passif";
 $lang['comptes_bilan_immobilise'] = "Immobilisé";
