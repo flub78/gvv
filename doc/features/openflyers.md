@@ -34,3 +34,7 @@ Ce qui doit être saisi dans OpenFlyers est saisi avant tout export
 On n'importe jamais dans OpenFlyers des données saisies dans un logiciel de comptabilité
 Cela peut se résumer au principe d'hygiène de "la marche en avant" appliqué dans les cuisines pour les aliments : les données ne doivent jamais rebrousser chemin et ne doivent jamais se croiser.
 
+## Récupération des vols par un logiciel tiers
+
+https://doc4-fr.openflyers.com/R%C3%A9cup%C3%A9ration-des-vols-par-un-logiciel-tiers
+

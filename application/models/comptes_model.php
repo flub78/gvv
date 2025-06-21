@@ -741,7 +741,7 @@ class Comptes_model extends Common_Model {
             $immos_nettes = ["Valeur nette"];
         }
 
-        $total_dispo = ["Total disponible"];
+        $total_dispo = ["Total des actifs financiers"];
         $total_dettes = ["Total des dettes"];
 
         $tot_banque = 0;
