@@ -134,7 +134,7 @@ $url = controller_url($controller);
     $table->display();
     ?>
 
-    <h3 class="mt-3"><?= "Disponible" ?></h3>
+    <h3 class="mt-3"><?= "Actifs financiers" ?></h3>
     <?php
     $table = new DataTable(array(
         'title' => "",

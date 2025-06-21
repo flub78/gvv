@@ -717,10 +717,15 @@ class Comptes_model extends Common_Model {
 
             // https://gvv.planeur-abbeville.fr/index.php/comptes/page/281
             $url = controller_url("comptes") . "/page/281";
-            $immos_cumul_amortissements = [anchor($url, "Cumul ammortissements")];
+            $immos_cumul_amortissements = [anchor($url, "Cumul amortissements")];
+
+            $url = controller_url("comptes") . "/page/274";
+            $prets = [anchor($url, "Prêts")];
 
             $immos_depreciations = ["Dépréciations"];
             $immos_nettes = ["Valeur nette"];
+
+
 
 
         } else {
@@ -728,9 +733,10 @@ class Comptes_model extends Common_Model {
             $creances = ["Créances de tiers"];
             $dettes_tiers = ["Dettes envers des tiers"];
             $emprunts = ["Emprunts bancaires"];
+            $prets = ["Prêts"];
 
             $immos_brutes = ["Valeur brute"];
-            $immos_cumul_amortissements = ["Cumul ammortissements"];
+            $immos_cumul_amortissements = ["Cumul amortissements"];
             $immos_depreciations = ["Dépréciations"];
             $immos_nettes = ["Valeur nette"];
         }
@@ -742,6 +748,7 @@ class Comptes_model extends Common_Model {
         $tot_creances = 0;
         $tot_emprunt = 0;
         $tot_dettes = 0;
+        $tot_prets = 0;
 
         $tot_immos_brutes = 0;
         $tot_immos_cumul_amortissements = 0;
@@ -759,6 +766,10 @@ class Comptes_model extends Common_Model {
             $solde_emprunt = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE, $section['id']));
             $emprunts[] = $this->format_currency($solde_emprunt, false);
             $tot_emprunt += $solde_emprunt;
+
+            $solde_prets = $this->total_of($this->ecritures_model->select_solde($date_op, 274, 275, TRUE, $section['id'])) * - 1;
+            $prets[] = $this->format_currency($solde_prets, false);
+            $tot_prets += $solde_prets;
 
             // La liste des comptes de tiers
             $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE, $section['id']);
@@ -782,7 +793,7 @@ class Comptes_model extends Common_Model {
             $dettes_tiers[] = $solde_dette_tiers;
             $tot_dettes += $solde_dette_tiers;
 
-            $total_dispo[] = $solde_banque + $solde_creances;
+            $total_dispo[] = $solde_banque + $solde_creances + $solde_prets;
             $total_dettes[] = $solde_dette_tiers + $solde_emprunt;
 
             $solde_immos_brutes = $this->total_of($this->ecritures_model->select_solde($date_op, 2, 28, TRUE, $section['id'])) * -1;
@@ -804,6 +815,7 @@ class Comptes_model extends Common_Model {
         $title[] = "Total";
         $banques[] =  $tot_banque;
         $emprunts[] =  $tot_emprunt;
+        $prets[] = $tot_prets;
 
         $creances[] = $tot_creances;
         $dettes_tiers[] = $tot_dettes;
@@ -818,6 +830,7 @@ class Comptes_model extends Common_Model {
         // Mise en forme
         if ($html) {
             for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+                $prets[$i] = $this->format_currency($prets[$i], $html);
                 $banques[$i] = $this->format_currency($banques[$i], $html);
                 $creances[$i] = $this->format_currency($creances[$i], $html);
                 $total_dispo[$i] = $this->format_currency($total_dispo[$i], $html);
@@ -835,6 +848,7 @@ class Comptes_model extends Common_Model {
         // ===============================
         $disponible = [];
         $disponible[] = $title;
+        $disponible[] = $prets;
         $disponible[] = $banques;
         $disponible[] = $creances;
         $disponible[] = $total_dispo;

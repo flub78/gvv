@@ -59,7 +59,7 @@
             "bFilter": false,
             "bPaginate": false,
             "bStateSave": false,
-            "bSort": true,
+            "bSort": false,
             "bInfo": false,
             "bAutoWidth": true,
             "bJQueryUI": true,
