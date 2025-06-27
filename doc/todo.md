@@ -35,16 +35,20 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 ## Bugs
 
-* [] Réactiver les tris par colonnes dans les datatable
-* [] Vérifier le cadrage à droite pour tous les chiffres
+* [x] Réactiver les tris par colonnes dans les datatable
+* [ ] gérer les prêts dans le bilan
+* [ ] Plus d'affichage des petites flèches quand le tri par collone est actif
+* [] Vérifier le cadrage à droite pour tous les chiffres, 
+  * grand journal, montants
+  * Ventes, cadrer Produit à gauche
 
   
 ## Reste à faire
 
+* [] synchro avec OpenFlyers
 * [] Gérer les suggestions de saisie par section
 * [] Ne pas afficher les comptes inactifs dont le solde est null.
 
-* [] synchro avec OpenFlyers
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
@@ -83,3 +87,4 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
 * [x] utiliser les accordéons bootstrap sur la vue compte pilote
+* [ ] Traduire la vue dashboard

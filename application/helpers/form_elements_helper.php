@@ -532,6 +532,19 @@ if (! function_exists('bilan_table')) {
             $tab
         );
 
+        // Ligne Prêts 
+        $table[] = array(
+            ($html) ? anchor(controller_url("comptes/page/274"), $CI->lang->line('comptes_bilan_prets')) : $CI->lang->line('comptes_bilan_creances_prets'),
+            $tab,
+            $tab,
+            euro($bilan['prets'], $sep, $output_format),
+            euro($bilan_prec['prets'], $sep, $output_format),
+            $tab,
+            $tab,
+            $tab,
+            $tab
+        );
+
         // ligne Créances et dettes de tiers
         $table[] = array(
             ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_creances_tiers')) : $CI->lang->line('comptes_bilan_creances_tiers'),
@@ -747,8 +760,8 @@ if (! function_exists('filter_buttons')) {
             $res .= '<input type="submit" name="button" value="' . $lab1 . '" class="btn btn-warning rounded me-2" />';
             $res .= '<input type="submit" name="button"  value="' . $lab2 . '" class="btn btn-secondary rounded" />';
             $res .= '<p class="mb-0 ms-3">Filtre actif</p>';
-            $res .= '</div>';       
-         } else {
+            $res .= '</div>';
+        } else {
             $res .= '<input type="submit" name="button"  value="' . $lab1 . '" class="btn btn-secondary rounded me-2" />';
             $res .= '<input type="submit" name="button"  value="' . $lab2 . '" class="btn btn-secondary rounded" />';
         }

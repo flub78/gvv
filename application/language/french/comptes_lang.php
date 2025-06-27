@@ -62,7 +62,7 @@ $lang['comptes_bilan_immobilisations_corp'] = "Immobilisations corporelles";
 $lang['comptes_bilan_fonds_associatifs'] = "Fonds associatifs";
 $lang['comptes_bilan_report_debt'] = "Reports à nouveau débiteurs";
 $lang['comptes_bilan_report_cred'] = "Reports à nouveau créditeurs";
-$lang['comptes_bilan_dispo'] = "Disponible";
+$lang['comptes_bilan_dispo'] = "Actifs financiers";
 $lang['comptes_bilan_dettes_court_terme'] = "Dettes à court terme";
 $lang['comptes_bilan_creances_tiers'] = "Créances de tiers";
 $lang['comptes_bilan_dettes_tiers'] = "Dettes envers des tiers";
@@ -72,6 +72,8 @@ $lang['comptes_bilan_total'] = "Total";
 $lang['comptes_bilan_total_actif'] = "Total actif";
 $lang['comptes_bilan_total_passif'] = "Total passif";
 $lang['comptes_bilan_resultat'] = "Résultat";
+$lang['comptes_bilan_prets'] = "Prêts";
+
 
 $lang['comptes_button_cloture'] = "Clôture";
 

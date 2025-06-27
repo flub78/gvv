@@ -492,6 +492,8 @@ class Comptes_model extends Common_Model {
         $data['reports_cred'] = $this->total_of($this->ecritures_model->select_solde($date_op, 110, 111, TRUE));
         $data['reports_deb'] = $this->total_of($this->ecritures_model->select_solde($date_op, 119, 120, TRUE));
 
+        $data['prets'] = $this->total_of($this->ecritures_model->select_solde($date_op, 274, 275, TRUE)) * - 1;
+
         $data['valeur_brute_immo_corp'] = -$this->total_of($data['immo']);
         $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['amortissements_corp'];
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
@@ -519,7 +521,7 @@ class Comptes_model extends Common_Model {
         $data['resultat'] = $total_produits - $total_charges;
 
         $total_dispo = $this->total_of($data['dispo']);
-        $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo;
+        $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo + $data['prets'];
 
         $total_capital = $this->total_of($data['capital_2']);
         $data['total_passif'] = $dettes_pilotes + $total_capital + $data['resultat'];
@@ -724,9 +726,6 @@ class Comptes_model extends Common_Model {
 
             $immos_depreciations = ["Dépréciations"];
             $immos_nettes = ["Valeur nette"];
-
-
-
 
         } else {
             $banques = ["Comptes de banque et financiers"];
