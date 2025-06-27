@@ -126,3 +126,82 @@ Puis on peut récupérer les vols.
 C'est facile à mettre en oeuvre mais on a pas assez d'informations pour refacturer les vols, entre autre on ne sait pas si un vol est un vol de découverte.
 
 ## Démonstration de client OAuth 2.0
+
+    Créer un client à partir du code source
+        le dossier ssl doit respecter la structure
+.
+├── AuthCodeDemo
+│   ├── auth_cert.crt
+│   ├── auth.key
+│   ├── config.authcode.json
+│   ├── passphrase.txt
+│   ├── sign_cert.crt
+│   └── sign.key
+├── ca.crt
+├── ClientCredDemo
+│   ├── auth_cert.crt
+│   ├── auth.key
+│   ├── config.clientcred.json
+│   ├── passphrase.txt
+│   ├── sign_cert.crt
+│   └── sign.key
+└── sign_cert_server.crt
+
+    Générer les certificats
+        remplacer les clé privées auth.key et sign.key dans ssl.AuthCodeDemo et ssl/ClientCredDemo
+        
+    
+    http://localhost/oauth2-demo/index.php
+    
+    Regeneration des certificats avec le domain openflyers.com
+    
+        cd ~/OF    
+        openssl req -sha256 -newkey rsa -keyout sign.key -out sign_cert.csr.pem -outform PEM -config sign_cert.conf
+        openssl req -sha256 -newkey rsa -keyout auth.key -out auth_cert.csr.pem -outform PEM -config auth_cert.conf
+        
+  222  cp ~frederic/OF/auth.key AuthCodeDemo/
+  223  cp ~frederic/OF/auth.key ClientCredDemo/
+  224  cp ~frederic/OF/sign.key AuthCodeDemo/
+  225  cp ~frederic/OF/sign.key ClientCredDemo/
+
+Télécharger le certificat du CA OpenFlyers en cliquant sur le bouton Télécharger le certificat CA de la page de gestion. Télécharger aussi le certificat de signature du serveur en cliquant sur le bouton Télécharger le certificat de signature du serveur de la page de gestion. Placer les deux certificats téléchargés à la racine du dossier ssl.
+
+cp ~frederic/Téléchargements/*.crt .
+    
+    Creation des clients
+    
+    AuthCodeGVV
+        id: xxxxxxxxxxxxxxxx
+        secret: yyyyyyyyyyyyyyyyy
+
+    ClientCredGVV
+        id: zzzzzzzzzzzzzzzzz
+        secret: tttttttttttt
+ 
+ Télécharger les deux certificats Certificat d'authentification et Certificat de signature du client Authorization Code et les placer dans le répertoire ssl/AuthCodeDemo.
+        
+  234  cd AuthCodeDemo/
+  235  ls
+  236  ls ~frederic/Téléchargements/AuthCodeGVV/
+  237  ls
+  238  cp ~frederic/Téléchargements/AuthCodeGVV/*.crt .
+  239  cd ../ClientCredDemo/
+  240  cp ~frederic/Téléchargements/ClientCredGVV/*.crt .
+
+Authentication code : {"error":"invalid_client","error_description":"Client authentication failed","message":"Client authentication failed"}
+
+Client Credential, ca marche, je retrouve les rapport :-)
+
+<select id="reportCombo" name="reportCombo">
+    <option value="generic_report">Rapport générique de démonstration</option>
+    <option value="report">Rapport personnalisé de démonstration</option>
+</select>
+
+141 ... client ID mais pas complet ....
+
+https://openflyers.com/abbeville/index.php?menuAction=admin_favorite_generic_report&menuParameter=customer
+donne la liste des rapports
+
+95 = carnet de vol
+
+116 = Résultat - Ecritures validées ou non pour un compte entre deux dates
