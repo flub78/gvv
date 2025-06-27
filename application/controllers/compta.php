@@ -283,9 +283,23 @@ class Compta extends Gvv_Controller {
         $this->data['title'] = $title;
         if ($message) $this->data['message'] = $message;
 
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector_with_null($emploi_selection, TRUE));
+        $compte1_selector = $this->comptes_model->selector_with_null($emploi_selection, TRUE);
+        $this->gvvmetadata->set_selector('compte1_selector', $compte1_selector);
 
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector_with_null($resource_selection, TRUE));
+        $compte2_selector = $this->comptes_model->selector_with_null($resource_selection, TRUE);
+        $this->gvvmetadata->set_selector('compte2_selector', $compte2_selector);
+
+        $count_compte1_selector = count($compte1_selector) - 1;
+        $count_compte2_selector = count($compte2_selector) - 1;
+
+        $errors = "";
+        if ($count_compte1_selector < 1) {
+            $errors = "Pas de comptes d'emploi correspondant à ce type d'écriture. Il faut créer les comptes.";
+        }
+        if ($count_compte2_selector < 1) {
+            $errors .= " Pas de comptes de ressource correspondant à ce type d'écriture. Il faut créer les comptes.";
+        }
+        if ($errors) $this->data['errors'] = $errors;
 
         load_last_view('compta/formView', $this->data);
     }
