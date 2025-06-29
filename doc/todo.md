@@ -1,46 +1,50 @@
 # Liste des choses à faire
 
-Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail lour, et le GVV actuel doit être maintenu pour s'adapter aux nouveaux besoins des utilisateurs.
+Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail lourd, et le GVV actuel doit être maintenu pour s'adapter aux nouveaux besoins des utilisateurs.
 
 
 ## Fait récemment
 
-* [x] Fix the photo upload                                  
+* [x] Correction du téléchargement des photos                                  
 * [x] Documentation de la sauvegarde automatique            
-* [x] Adapt the membre view to show the picture             
-* [x] Analyse and document auto backup mechanism             2j
-* [x] Implement attachments                                  5j
-* [x] les écritures devraient accepter les dates en 1/1/2025
-* [x] les écritures devraient accepter les montants avec virgule comme séparateur
-* [x] retour vers le compte emploi après passage des écritures
-* [x] les heures de début et de fin ne sont pas rechargés sur les vols avion
-* [x] avec créer et continuer, afficher le message dans la page plutôt que comme popup, Les popups doivent être réserver pour les demandes de confirmation ou action utilisateur 
+* [x] Vue des photos dans la fiche membre            
+* [x] Analyse et documentation du mécanisme de sauvegarde automatique
+* [x] Support des attachments                                  5j
+* [x] Les écritures devraient accepter les dates en 1/1/2025
+* [x] Les écritures devraient accepter les montants avec virgule comme séparateur
+* [x] Retour vers le compte emploi après passage des écritures
+* [x] Les heures de début et de fin ne sont pas rechargés sur les vols avion
+* [x] avec créer et continuer, afficher le message dans la page plutôt que comme popup, Les popups doivent être réservés pour les demandes de confirmation ou action utilisateur 
 * [x] correction du nombre d'éléments du bandeau bas des journaux lors de la selection d'une section
-* [x] A propos ne fonctionne plus en production HTTP ERROR 500
+* [x] "A propos" ne fonctionne plus en production HTTP ERROR 500
 * [x] Le sélecteur de compte n'est pas filtré par section..
-* [x] ne pas créer deux comptes 411 depuis la section générale
-* [x] verifier la synchro HEVA
-* [x] vérifier qu'il n'y a pas d'écriture entre deux sections dans la validation
+* [x] Ne pas créer deux comptes 411 depuis la section générale
+* [x] Verifier la synchro HEVA
+* [x] Vérifier qu'il n'y a pas d'écriture entre deux sections dans la validation
 * [x] bilan et clôture par section
   * [x] bilan par section
   * [x] clôture par section
 * [x] Vue compte, autoriser les vues sur plusieurs années
-* [*] Compte d'exploitation (tableau de bord comptable)
+* [x] Tableau de bord comptable
 * [x] En mode édition d'écritures les comptes ne sont pas filtrés par section
 * [x] Supprimer les choix par défaut pour les écritures
 * [x] Ecriture spéciale de remise de liquide en banque
 * [x] Prise en compte des comptes de caisse dans le bilan
 * [x] Fixer la date de gel par section
+* [x] Gestion des prêts dans le bilan
+* [x] Réactiver les tris par colonnes dans les datatable
+* [x] utiliser les accordéons bootstrap sur la vue compte pilote
+* [x] Supprimer watir
 
 
 ## Bugs
 
-* [x] Réactiver les tris par colonnes dans les datatable
-* [ ] gérer les prêts dans le bilan
-* [ ] Plus d'affichage des petites flèches quand le tri par collone est actif
+* [] Plus d'affichage des petites flèches quand le tri par colone est actif
 * [] Vérifier le cadrage à droite pour tous les chiffres, 
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
+* [] **la page de retour après une modification des écritures est discutable**
+* [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 
   
 ## Reste à faire
@@ -58,8 +62,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [ ] Import des informations planeur
 * [] Gérer la configuration dans la base.
 
-* [] **la page de retour après une modification des écritures est discutable**
-* [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
   * [] Les attachements devraient-être listé par section et par années
@@ -73,7 +75,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] supprimer les textes orienté planeur sur les pages
   
 * [] Reservation des avions                                  10j
-* [] Online Payments                                         10j
+* [] Payments en ligne                                        10j
 * [] Support du markdown
 * [] Sauvegarde/restauration des medias et attachements
 * [] Attachements sur les achats
@@ -81,11 +83,9 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 ## Dette technique
 
-* [] Supprimer les vues non bootstrap
+* [] Supprimer les vues non bootstrap (emails)
 * [] Utiliser les flexbox plutôt que les tableaux
 * [] Warnings en mode développement
-* [x] Supprimer watir
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
-* [x] utiliser les accordéons bootstrap sur la vue compte pilote
-* [ ] Traduire la vue dashboard
+* [] Traduire la vue dashboard
