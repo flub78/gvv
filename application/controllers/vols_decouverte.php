@@ -214,16 +214,19 @@ class Vols_decouverte extends Gvv_Controller {
         $temp_file = tempnam(sys_get_temp_dir(), 'pdf_');
         file_put_contents($temp_file, $pdf_content);
         $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
-        unlink($temp_file); // Clean up after sending
         
         // Send email
         if ($this->email->send()) {
             // Success message
             $data['msg'] = "Email envoyé avec succès";
+            unlink($temp_file); // Clean up after sending
+
             load_last_view('success', $data);
         } else {
             // Error message
             $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
+            unlink($temp_file); // Clean up after sending
+
             load_last_view('error', $data);
         }
     }
