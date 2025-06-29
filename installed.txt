@@ -1,0 +1,9 @@
+
+commit da5f851991bd074effea06779aae1ad94f39529b
+Author: Flub78 <frederic.peignot@free.fr>
+Date:   Sun Jun 29 11:50:58 2025 +0200
+
+    club en cc des emails VD
+
+ application/controllers/vols_decouverte.php | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)

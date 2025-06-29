@@ -218,8 +218,8 @@ class Vols_decouverte extends Gvv_Controller {
         // Set email parameters
         $this->email->from($sender, 'Aéroclub d\'Abbeville');
         $this->email->to($vd['beneficiaire_email']);
-        $this->email->cc($sender);
-        
+        $this->email->bcc($sender);
+
         $this->email->subject('Votre bon de vol de découverte');
 
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
