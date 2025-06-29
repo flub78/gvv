@@ -224,8 +224,8 @@ class Vols_decouverte extends Gvv_Controller {
 
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
 
-        $message .= "Il est valable un an à partir de la date d'achat.<br><br>";
-        $message .= "Cordialement,<br>L'équipe de l'Aéroclub d'Abbeville";
+        $message .= "Voici votre bon pour un vol de découverte. Il est valable un an à partir de la date d'achat.<br><br>";
+        $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville";
 
         $this->email->message($message);
 
@@ -239,7 +239,7 @@ class Vols_decouverte extends Gvv_Controller {
             // Success message
             $data['title'] = "Succès";
             $data['text'] = "Email envoyé avec succès à " . $vd['beneficiaire_email'];
-            // unlink($temp_file); // Clean up after sending
+            unlink($temp_file); // Clean up after sending
 
             load_last_view('message', $data);
         } else {
