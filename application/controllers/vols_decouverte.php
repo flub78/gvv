@@ -197,15 +197,29 @@ class Vols_decouverte extends Gvv_Controller {
         // Configure email settings
         $this->email->clear();
         $config['mailtype'] = 'html';
+        // Configure SMTP settings for Ionos
+        $config = array(
+            'protocol'    => 'smtp',
+            'smtp_host'   => 'smtp.ionos.fr',  // or smtp.ionos.com depending on your account
+            'smtp_port'   => 587,
+            'smtp_user'   => 'info@aeroclub-abbeville.fr',  // Your full email address
+            'smtp_pass'   => $this->config->item('email_password'), // config/config.php
+            'smtp_crypto' => 'tls',
+            'mailtype'    => 'html',
+            'charset'     => 'utf-8',
+            'wordwrap'    => TRUE,
+            'newline'     => "\r\n"
+        );
+
         $this->email->initialize($config);
 
         // Set email parameters
         $this->email->from('info@aeroclub-abbeville.fr', 'Aéroclub d\'Abbeville');
-        $this->email->to($vd['beneficiaire_email']); 
+        $this->email->to($vd['beneficiaire_email']);
         $this->email->subject('Votre bon de vol de découverte');
 
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
-        
+
         $message .= "Il est valable un an à partir de la date d'achat.<br><br>";
         $message .= "Cordialement,<br>L'équipe de l'Aéroclub d'Abbeville";
 
@@ -215,7 +229,7 @@ class Vols_decouverte extends Gvv_Controller {
         $temp_file = tempnam(sys_get_temp_dir(), 'pdf_');
         file_put_contents($temp_file, $pdf_content);
         $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
-        
+
         // Send email
         if ($this->email->send()) {
             // Success message

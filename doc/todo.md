@@ -44,6 +44,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
 * [] **la page de retour après une modification des écritures est discutable**
+* [] **la page après changement de la checkbox gel est incorrecte**
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 
   
