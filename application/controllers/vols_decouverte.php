@@ -211,8 +211,11 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->message($message);
 
         // Attach PDF
-        $this->email->attach($pdf_content, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
-
+        $temp_file = tempnam(sys_get_temp_dir(), 'pdf_');
+        file_put_contents($temp_file, $pdf_content);
+        $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
+        unlink($temp_file); // Clean up after sending
+        
         // Send email
         if ($this->email->send()) {
             // Success message
@@ -420,7 +423,8 @@ EOD;
         $pdf->writeHTML($contact_html, true, false, false, false, '');
 
         //Close and output PDF document
-        $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", $output);
+        $res = $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", $output);
+        if ($output == "S") return $res;
     }
 
 
