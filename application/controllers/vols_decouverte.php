@@ -71,7 +71,6 @@ class Vols_decouverte extends Gvv_Controller {
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
 
         $this->gvvmetadata->set_selector('machine_selector', $this->gvv_model->machine_selector());
-
     }
 
 
@@ -114,14 +113,13 @@ class Vols_decouverte extends Gvv_Controller {
             $id = $this->input->post('vd_id');
             $obfuscated = transformInteger($id);
             redirect("vols_decouverte/action/" . $obfuscated);
-
         }
     }
 
     /**
      * Accés à un vol de découverte par numéro
      */
-    function select_by_id () {
+    function select_by_id() {
 
         $this->data['vd_selector'] = $this->gvv_model->selector();
         return load_last_view("vols_decouverte/formSelector", $this->data, $this->unit_test);
@@ -130,7 +128,7 @@ class Vols_decouverte extends Gvv_Controller {
     /**
      * pdf request
      */
-    function print_vd ($obfuscated_id) {
+    function print_vd($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
         $vd = $this->gvv_model->get_by_id($this->kid, $id);
         // var_dump($vd);exit;
@@ -158,9 +156,79 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
+     * email un bon
+     */
+    function email_vd($obfuscated_id) {
+        $id = reverseTransform($obfuscated_id);
+        $vd = $this->gvv_model->get_by_id($this->kid, $id);
+        // var_dump($vd);exit;
+
+        if (!count($vd)) {
+            $data = [];
+            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
+            load_last_view('error', $data);
+            return;
+        }
+
+        $data = [];
+        $data['obfuscated_id'] = $obfuscated_id;
+        $data['id'] = $id;
+
+        $data['offer_a'] = $vd['beneficiaire'];
+        $data['occasion'] = $vd['occasion'];
+        $data['de_la_part'] = $vd['de_la_part'];
+
+        $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+
+        $data[$vd['product']] = true;
+
+        $pdf_content = $this->generate_pdf($data, 'S');
+
+        // Send email with PDF attachment
+        $this->send_email_with_pdf($vd, $pdf_content, $id);
+    }
+
+    /**
+     * Send email with PDF attachment
+     */
+    function send_email_with_pdf($vd, $pdf_content, $id) {
+        $this->load->library('email');
+
+        // Configure email settings
+        $config['mailtype'] = 'html';
+        $this->email->initialize($config);
+
+        // Set email parameters
+        $this->email->from('info@aeroclub-abbeville', 'Aéroclub d\'Abbeville');
+        $this->email->to($vd['beneficiaire_email']); 
+        $this->email->subject('Votre bon de vol de découverte');
+
+        $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
+        
+        $message .= "Il est valable un an à partir de la date d'achat.<br><br>";
+        $message .= "Cordialement,<br>L'équipe de l'Aéroclub d'Abbeville";
+
+        $this->email->message($message);
+
+        // Attach PDF
+        $this->email->attach($pdf_content, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
+
+        // Send email
+        if ($this->email->send()) {
+            // Success message
+            $data['msg'] = "Email envoyé avec succès";
+            load_last_view('success', $data);
+        } else {
+            // Error message
+            $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
+            load_last_view('error', $data);
+        }
+    }
+
+    /**
      * Génération du bon cadeau
      */
-    function generate_pdf($data) {
+    function generate_pdf($data, $output = "I") {
 
         $obfuscated_id = $data['obfuscated_id'];
 
@@ -171,7 +239,7 @@ class Vols_decouverte extends Gvv_Controller {
         $index_page = $this->config->item('index_page');
         $index = ($index_page) ? "$index_page/" : "";
 
-        $qr_url = base_url() . $index .'vols_decouverte/action/' . $obfuscated_id;
+        $qr_url = base_url() . $index . 'vols_decouverte/action/' . $obfuscated_id;
         $qr_name =  $tempDir . '/qrcode_' . $id . '.png';
         QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
 
@@ -352,7 +420,7 @@ EOD;
         $pdf->writeHTML($contact_html, true, false, false, false, '');
 
         //Close and output PDF document
-        $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", 'I');
+        $pdf->Output("vol_decouverte_acs_" . $id . ".pdf", $output);
     }
 
 

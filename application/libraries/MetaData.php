@@ -1314,7 +1314,18 @@ abstract class Metadata {
             $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
             return anchor($url . "/$obfuscated", $label, $attrs);
-                        
+
+        } elseif ($action == 'email_vd') {
+            $image = theme() . "/images/email.png";
+            $image_properties = array(
+                'src' => $image,
+                'class' => 'icon',
+                'title' => $label
+            );
+            $label = img($image_properties);
+            $obfuscated = transformInteger($elt_id);
+            return anchor($url . "/$obfuscated", $label, $attrs);
+
         } elseif ($action == 'csv') {
             $image = theme() . "/images/page-excel-icon.png";
             $image_properties = array(

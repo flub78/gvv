@@ -52,6 +52,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
+  * [ ] emails
   * [ ] présentation par année
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur

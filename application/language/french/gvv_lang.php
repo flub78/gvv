@@ -8,7 +8,7 @@ $lang['gvv_language'] = "french";    // doit être identique a la valeur dans co
 # Menus
 # $this->lang->line("")
 $lang['gvv_menu_vols_decouverte'] = "Vols de découverte";
-$lang['gvv_menu_vols_decouverte_select'] = "Sélectionnez";
+$lang['gvv_menu_vols_decouverte_select'] = "Rechercher un bon";
 
 $lang['gvv_menu_admin'] = "Gestion";
 $lang['gvv_menu_admin_club'] = "Club";
