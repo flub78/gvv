@@ -40,7 +40,10 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
         if (isset($message)) {
             echo p($message) . br();
         }
-
+        if (isset($errors)) {
+            // Not a validation error but manual checks
+            echo p($errors, 'class="text-danger"') . br();
+        }
         echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
         // hidden contrller url for java script access
@@ -49,7 +52,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
         echo form_hidden('annee_exercise', $annee_exercise, '');
 
 
-        // On affiche tous les champs dans un tableau. C'est plus simple de remplir d'abbord le tableau
+        // On affiche tous les champs dans un tableau. C'est plus simple de remplir d’abord le tableau
         // et de l'afficher ensuite, surtout pour modifier l'affichage
 
         echo form_hidden('id', $id);
@@ -70,7 +73,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             'gel' => $gel
         )));
 
-        echo validation_button($action);
+        if (!$errors) echo validation_button($action);
         echo form_close();
         ?>
     </div>
