@@ -219,10 +219,10 @@ class Vols_decouverte extends Gvv_Controller {
         // Send email
         if ($this->email->send()) {
             // Success message
-            $data['msg'] = "Email envoyé avec succès";
+            $data['msg'] = "Email envoyé avec succès à " . $vd['beneficiaire_email'];
             unlink($temp_file); // Clean up after sending
 
-            load_last_view('success', $data);
+            load_last_view('message', $data);
         } else {
             // Error message
             $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
