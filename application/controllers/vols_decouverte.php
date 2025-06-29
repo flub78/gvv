@@ -226,7 +226,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->message($message);
 
         // Attach PDF
-        $temp_file = tempnam(sys_get_temp_dir(), 'pdf_');
+        $temp_file = "/tmp/vol_decouverte_acs_" . $id . ".pdf";
         file_put_contents($temp_file, $pdf_content);
         $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
 
@@ -235,13 +235,13 @@ class Vols_decouverte extends Gvv_Controller {
             // Success message
             $data['title'] = "Succès";
             $data['text'] = "Email envoyé avec succès à " . $vd['beneficiaire_email'];
-            unlink($temp_file); // Clean up after sending
+            // unlink($temp_file); // Clean up after sending
 
             load_last_view('message', $data);
         } else {
             // Error message
             $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
-            unlink($temp_file); // Clean up after sending
+            // unlink($temp_file); // Clean up after sending
 
             load_last_view('error', $data);
         }
