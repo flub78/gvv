@@ -28,13 +28,14 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] Tableau de bord comptable
 * [x] En mode édition d'écritures les comptes ne sont pas filtrés par section
 * [x] Supprimer les choix par défaut pour les écritures
-* [x] Ecriture spéciale de remise de liquide en banque
+* [x] Écriture spéciale de remise de liquide en banque
 * [x] Prise en compte des comptes de caisse dans le bilan
 * [x] Fixer la date de gel par section
 * [x] Gestion des prêts dans le bilan
 * [x] Réactiver les tris par colonnes dans les datatable
 * [x] utiliser les accordéons bootstrap sur la vue compte pilote
 * [x] Supprimer watir
+* [x] emails des vols de découverte
 
 
 ## Bugs
@@ -57,10 +58,10 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
-  * [ ] emails
   * [ ] présentation par année
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
+  
 * [] Gérer la configuration dans la base.
 
 * [] Attachements lors de la création d'écriture
@@ -73,7 +74,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] gestion des droits multi sections
 * [] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
-* [] supprimer les textes orienté planeur sur les pages
+* [] supprimer les textes orientés planeur sur les pages
   
 * [] Reservation des avions                                  10j
 * [] Payments en ligne                                        10j

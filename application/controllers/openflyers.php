@@ -38,13 +38,16 @@ class OpenFlyers extends CI_Controller {
         $this->lang->load('welcome');
     }
 
-    function echo() {
-        echo "hello";
-        exit;
+    function select_file() {
         $data = array();
         $data['title'] = $this->lang->line("welcome_nyi_title");
         $data['text'] = $this->lang->line("welcome_nyi_text");
-        load_last_view('message', $data);
+    
+        load_last_view('openflyers/select_import_file', $data);
+    }
+
+    function do_import() {
+        echo "do_import";
     }
 }
 
