@@ -2,6 +2,20 @@
 
 /**
  * Classe pour parser le fichier CSV du Grand Livre comptable
+ * 
+ * Parsing 
+ * 
+ * 
+ * 
+ * @startuml
+ * [*] --> Lecture_Date : Grand livre
+ * Lecture_Date -> Lecture_Compte : Date édition
+ * Lecture_Compte -> Lecture_Export : Nom de compte
+ * Lecture_Export -> Lecture_compte_OF : Compte d'export
+ * Lecture_compte_OF -> Lecture_contrepartie : Numéro de compte OF
+ * Lecture_contrepartie -> Lecture_Compte_Contrepartie : Compte de contrepartie
+ * @enduml
+ * 
  */
 class GrandLivreParser {
     private $data = [];
@@ -25,10 +39,11 @@ class GrandLivreParser {
         $this->data = [
             'header' => [],
             'comptes' => [],
-            'totaux' => []
         ];
 
         $currentCompte = null;
+        $currentMovement = null;
+
         $lineNumber = 0;
 
         while (($line = fgets($handle)) !== false) {
@@ -65,22 +80,24 @@ class GrandLivreParser {
             }
 
             // Si c'est une ligne de mouvement
-            elseif ($this->isMovementLine($fields)) {
+            elseif ($this->isMovementFirstLine($fields)) {
                 if ($currentCompte) {
-                    $movement = $this->parseMovement($fields);
-                    if ($movement) {
-                        $currentCompte['mouvements'][] = $movement;
-                    }
+                    $currentMovement = $this->parseMovementFirstLine($fields);
+                    // if ($currentMovement) {
+                    //     $currentCompte['mouvements'][] = $currentMovement;
+                    // }
                 }
             }
 
-            // Si c'est une ligne de total
-            elseif ($this->isTotalLine($fields)) {
-                $total = $this->parseTotal($fields);
-                if ($currentCompte && $total) {
-                    $currentCompte['totaux'][] = $total;
-                } elseif ($total && $this->isGlobalTotal($fields)) {
-                    $this->data['totaux'][] = $total;
+            // Si c'est une ligne de mouvement
+            elseif ($this->isMovementSecondLine($fields)) {
+                if ($currentCompte) {
+                    if ($currentMovement) {
+                        $currentMovement = $this->parseMovementSecondLine($fields, $currentMovement);
+                    }
+                    if ($currentMovement) {
+                        $currentCompte['mouvements'][] = $currentMovement;
+                    }
                 }
             }
         }
@@ -116,21 +133,28 @@ class GrandLivreParser {
      * Vérifie si c'est une nouvelle ligne de compte
      */
     private function isNewAccount($fields) {
-        return isset($fields[0]) && strpos($fields[0], 'Nom de compte') === 0;
+        if (!isset($fields[0])) return false;
+        if (!isset($fields[1])) return false;
+        if (trim($fields[0] != "Nom de compte")) return false;
+        if (trim($fields[1] == "")) return false;
+
+        $field1 = trim($fields[1]);
+        if ($field1 == "Numéro de compte OF") return false;
+
+        return true;
     }
 
     /**
      * Initialise un nouveau compte
      */
     private function initializeAccount($fields) {
-        $nomCompte = str_replace('Nom de compte;', '', $fields[0]);
+        $nomCompte = $fields[1];
 
         return [
             'nom_compte' => $nomCompte,
             'compte_export' => '',
             'numero_compte_of' => '',
             'mouvements' => [],
-            'totaux' => []
         ];
     }
 
@@ -138,8 +162,7 @@ class GrandLivreParser {
      * Vérifie si c'est une ligne de détails du compte
      */
     private function isAccountDetails($fields) {
-        return (isset($fields[0]) && ($fields[0] === 'Compte d\'export' || $fields[0] === 'Numéro de compte OF')) ||
-            (isset($fields[1]) && is_numeric($fields[1]) && count(array_filter($fields)) <= 3);
+        return (isset($fields[0]) && ($fields[0] === 'Compte d\'export' || $fields[0] === 'Numéro de compte OF'));
     }
 
     /**
@@ -162,72 +185,69 @@ class GrandLivreParser {
     /**
      * Vérifie si c'est une ligne de mouvement
      */
-    private function isMovementLine($fields) {
-        // Une ligne de mouvement a généralement une date au format dd/mm/yyyy
-        foreach ($fields as $field) {
-            if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $field)) {
-                return true;
+    private function isMovementFirstLine($fields) {
+
+        if (!isset($fields[4])) return false;
+        if (trim($fields[0]) != "") return false;
+        if (trim($fields[1]) != "") return false;
+
+        if (trim($fields[4]) == "") return false;
+        if (trim($fields[4]) == "Mouvements") return false;
+
+        return true;
+    }
+
+    /**
+     * Vérifie si c'est une ligne de mouvement
+     */
+    private function isMovementSecondLine($fields) {
+
+            foreach ([0, 1, 2, 4] as $index) {
+                if (!isset($fields[$index]) || trim($fields[$index]) === "") {
+                    return false;
+                }
             }
-        }
-        return false;
+        return true;
     }
 
     /**
      * Parse une ligne de mouvement
      */
-    private function parseMovement($fields) {
+    private function parseMovementFirstLine($fields) {
         $movement = [
             'intitule' => '',
             'numero_flux' => '',
             'date' => '',
             'description' => '',
             'debit' => 0.0,
-            'credit' => 0.0,
-            'solde' => 0.0,
-            'compte_contrepartie' => ''
+            'credit' => 0.0
         ];
 
-        // Recherche de la date pour identifier la structure
-        $dateIndex = -1;
-        foreach ($fields as $index => $field) {
-            if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $field)) {
-                $dateIndex = $index;
-                break;
-            }
-        }
-
+        $dateIndex = 6;
         if ($dateIndex !== -1) {
             $movement['date'] = $fields[$dateIndex];
 
-            // Les champs avant la date
-            if ($dateIndex > 0) {
-                $movement['intitule'] = $fields[0] ?? '';
-            }
+            $movement['intitule'] = ($fields[7]) ? $fields[7] : $fields[3];
+
             if ($dateIndex > 1) {
                 $movement['numero_flux'] = $fields[$dateIndex - 1] ?? '';
             }
-
-            // Les champs après la date
-            if (isset($fields[$dateIndex + 1])) {
-                $movement['description'] = $fields[$dateIndex + 1];
-            }
-
-            // Montants (généralement les 3 derniers champs numériques)
-            $numericFields = [];
-            for ($i = $dateIndex + 2; $i < count($fields); $i++) {
-                if (is_numeric(str_replace(',', '.', $fields[$i]))) {
-                    $numericFields[] = floatval(str_replace(',', '.', $fields[$i]));
-                }
-            }
-
-            if (count($numericFields) >= 3) {
-                $movement['debit'] = $numericFields[0];
-                $movement['credit'] = $numericFields[1];
-                $movement['solde'] = $numericFields[2];
-            }
-        }
+            $movement['debit'] = str_replace(',', '.', $fields[8]); 
+            $movement['credit'] = str_replace(',', '.', $fields[9]);         }
 
         return $movement['date'] ? $movement : null;
+    }
+
+    /**
+     * Parse une ligne de mouvement
+     */
+    private function parseMovementSecondLine($fields, $movement) {
+
+        $movement['nom_compte2'] = $fields[0];
+        $movement['id_compte2'] = $fields[1];
+        $movement['export_compte2'] = $fields[2];
+
+        return $movement;
     }
 
     /**
