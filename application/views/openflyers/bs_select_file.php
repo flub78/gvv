@@ -26,7 +26,9 @@ $this->lang->load('openflyers');
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_admin_title_synchro", 3);
-echo $error . "<br>";
+if (!empty($error)) {
+    echo '<div class="alert alert-danger">' . $error . '</div>';
+}
 
 echo p($this->lang->line("gvv_of_explain"));
 ?>

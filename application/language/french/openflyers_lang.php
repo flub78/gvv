@@ -3,8 +3,8 @@
  * GVV French translation
 */
 
-# Admin view
-# $this->lang->line("gvv_admin_")
+# OpenFLyers
+# $this->lang->line("")
 
 $lang['gvv_admin_title_synchro'] = "Synchronisation OpenFlyers";
 $lang['gvv_of_explain'] = "Il est possible de synchroniser les comptes clients entre OpenFlyers et GVV. Pour cela vous devez charger un fichier CSV au format export du grand livre OpenFLyers. Une fois connecté sur Openflyers vous pouvez le générer.";

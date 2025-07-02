@@ -29,8 +29,6 @@ class OpenFlyers extends CI_Controller {
         // Check if user is logged in or not
         $this->dx_auth->check_login();
 
-
-
         $this->load->helper('validation');
         // Store current URL to reload it after the certificate is granted
         $this->session->set_userdata('return_url', current_url());
@@ -38,16 +36,92 @@ class OpenFlyers extends CI_Controller {
         $this->lang->load('welcome');
     }
 
+    /**
+     * Selection du fichier journal
+     */
     function select_file() {
         $data = array();
         $data['title'] = $this->lang->line("welcome_nyi_title");
         $data['text'] = $this->lang->line("welcome_nyi_text");
-    
-        load_last_view('openflyers/select_import_file', $data);
+
+        load_last_view('openflyers/select_file', $data);
     }
 
-    function do_import() {
-        echo "do_import";
+    /**
+     * Import a CSV journal
+     */
+    public function do_import() {
+        $upload_path = './uploads/restore/';
+        if (! file_exists($upload_path)) {
+            if (! mkdir($upload_path)) {
+                die("Cannot create " . $upload_path);
+            }
+        }
+
+        // delete all files in the uploads/restore directory
+        // these files are temporary, there is no need to keep them
+        // I only keep the last one for debugging
+        $files = glob($upload_path . '*'); // get all file names
+        foreach ($files as $file) { // iterate files
+            if (is_file($file))
+                unlink($file); // delete file
+        }
+
+        // upload archive
+        $config['upload_path'] = $upload_path;
+        $config['allowed_types'] = '*';
+        $config['max_size'] = '1500'; // in kilobytes (KB)
+        $config['overwrite'] = TRUE;
+
+        $this->load->library('upload', $config);
+
+
+        if (! $this->upload->do_upload()) {
+            // On a pas réussi à recharger la sauvegarde
+            $error = array(
+                'error' => $this->upload->display_errors()
+            );
+            load_last_view('openflyers/select_file', $error);
+        } else {
+
+            // on a chargé le fichier
+            $data = $this->upload->data();
+
+            // $this->load->library('unzip');
+            $filename = $config['upload_path'] . $data['file_name'];
+
+            // $file_content = file_get_contents($filename);
+            // echo $file_content;
+
+            $this->load->library('GrandLivreParser');
+
+            try {
+                $parser = new GrandLivreParser();
+                $grand_journal = $parser->parseGrandLivre($filename);
+
+                // Afficher un résumé
+                echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
+                $summary = $parser->getSummary();
+                echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
+                echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
+
+                // Afficher les comptes
+                echo "=== COMPTES ===\n";
+                foreach ($summary['comptes_resume'] as $compte) {
+                    echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n";
+                }
+
+                // Sauvegarder en JSON
+                file_put_contents('grand_livre_parsed.json', $parser->toJson());
+                echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
+            } catch (Exception $e) {
+                echo "Erreur: " . $e->getMessage() . "\n";
+            }
+
+            exit;
+
+            load_last_view('admin/restore_success', $data);
+        }
     }
 }
 
