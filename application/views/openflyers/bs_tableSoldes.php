@@ -32,10 +32,17 @@ echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_of_title_soldes", 3);
 
+// Utilisé pour les comptes clients
 echo table_from_array ($soldes, array(
     'fields' => array('Compte OF', 'Nom', 'Profil', 'Type', 'Solde'),
     'align' => array('right', 'left', 'left', 'left', 'right'),
     'class' => 'datatable table'
 ));
 
+// Le format de la balance générale des comptes n'est pas identique ...
+// echo table_from_array ($soldes, array(
+//     'fields' => array('Compte OF', 'Export', 'Nom', 'Solde'),
+//     'align' => array('right', 'left', 'left', 'right'),
+//     'class' => 'datatable table'
+// ));
 echo '</div>';
