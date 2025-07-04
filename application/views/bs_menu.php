@@ -122,10 +122,20 @@ $section_count = $CI->sections_model->safe_count_all();
                       <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><?= translation("welcome_ticket_types_title") ?></a></li>
                     <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><?= translation("welcome_global_entries_title") ?></a></li>
+
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><?= translation("welcome_global_financial_report") ?></a></li>
+
+                    <li><a class="dropdown-item" href="#">Synchronisation OpenFlyers</a>
+                      <ul class="submenu dropdown-menu">
+                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import des soldes</a></li>
+                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>">Import des opérations</a></li>
+                      </ul>
+                    </li>
 
                   </ul>
                 </li>
+
+
 
               <?php endif; ?>
 

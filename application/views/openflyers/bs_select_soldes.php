@@ -25,20 +25,20 @@ $this->lang->load('openflyers');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading("gvv_admin_title_synchro", 3);
+echo heading("gvv_of_synchro_soldes", 3);
 if (!empty($error)) {
     echo '<div class="alert alert-danger">' . $error . '</div>';
 }
 
-echo p($this->lang->line("gvv_of_explain"));
+echo p($this->lang->line("gvv_of_explain_soldes"));
 ?>
-<a href="https://openflyers.com/abbeville/index.php?menuAction=admin_general_ledger_csv">Export grand journal OF</a>
+<a href="https://openflyers.com/abbeville/index.php?menuAction=admin_view_favorite_generic_report&menuParameter=141">Balance des comptes utilisateurs</a>
 <?php
-echo p($this->lang->line("gvv_of_warning"), 'class="error"');
+echo p($this->lang->line("gvv_of_warning2"), 'class="error"');
 
 echo br();
 echo p($this->lang->line("gvv_of_select"));
-echo form_open_multipart('openflyers/do_import');
+echo form_open_multipart('openflyers/import_soldes');
 echo '<input type="file" name="userfile" size="50" /><br><br>';
 
 echo form_input(array(
