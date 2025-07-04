@@ -771,6 +771,9 @@ class GVVMetadata extends Metadata {
 
                 $this->field['vols_decouverte']['prix']['Subtype'] = 'currency';
 
+                /**
+                 * Associations des comptes OpenFLyers
+                 */
 
                 // $this->dump();
         }

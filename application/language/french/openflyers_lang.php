@@ -18,5 +18,7 @@ $lang['gvv_of_select'] = "Choisissez le journal que vous voulez synchroniser.";
 
 
 $lang['gvv_of_title_soldes'] = "OpenFlyers soldes des comptes clients";
+$lang['gvv_of_title_associations'] = "Associations des comptes OpenFlyers";
+$lang['gvv_of_title_association'] = "Association de compte OpenFlyers";
 
 
