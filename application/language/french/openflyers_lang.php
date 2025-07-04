@@ -17,5 +17,6 @@ $lang['gvv_of_warning2'] = "Attention à la date d'export.";
 $lang['gvv_of_select'] = "Choisissez le journal que vous voulez synchroniser.";
 
 
+$lang['gvv_of_title_soldes'] = "OpenFlyers soldes des comptes clients";
 
 
