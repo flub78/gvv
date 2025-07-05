@@ -774,7 +774,11 @@ class GVVMetadata extends Metadata {
                 /**
                  * Associations des comptes OpenFLyers
                  */
+                $this->field['associations_of']['club']['Subtype'] = 'selector';
+                $this->field['associations_of']['club']['Selector'] = 'section_selector';
 
+                $this->field['associations_of']['id_compte_gvv']['Subtype'] = 'selector';
+                $this->field['associations_of']['id_compte_gvv']['Selector'] = 'compte_selector';
                 // $this->dump();
         }
 }
