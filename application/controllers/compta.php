@@ -874,7 +874,7 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Display acount extract
+     * Display account extract
      */
     private function journal_data($data, $compte = '', $premier = 0, $message = '') {
         $this->select_data($data, $compte, $premier, $message);

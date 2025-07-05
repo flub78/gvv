@@ -21,7 +21,14 @@ class Associations_of_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
+        $this->load->model('comptes_model');
+
         $select = $this->select_columns('id, id_compte_of, nom_of, id_compte_gvv');
+        foreach ($select as $key => $row) {
+            $image = $this->comptes_model->image($row["id_compte_gvv"]);
+            $select[$key]['nom_compte'] = $image;
+        }
+
         $this->gvvmetadata->store_table("vue_associations_of", $select);
         return $select;
     }
