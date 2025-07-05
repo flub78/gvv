@@ -21,7 +21,7 @@ class Associations_of_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, id_compte_of, nom_of, club, id_compte_gvv');
+        $select = $this->select_columns('id, id_compte_of, nom_of, id_compte_gvv');
         $this->gvvmetadata->store_table("vue_associations_of", $select);
         return $select;
     }
@@ -38,7 +38,7 @@ class Associations_of_model extends Common_Model {
             return "";
         $vals = $this->get_by_id('id', $key);
         if (array_key_exists('id', $vals) && array_key_exists('nom_of', $vals)) {
-            return $vals['id_compte_of'] . " " . $vals['nom_of'] . " " . $vals['club'];
+            return $vals['id'] . " - " . $vals['id_compte_of'] . " : " . $vals['nom_of'];
         } else {
             return "association inconnue $key";
         }

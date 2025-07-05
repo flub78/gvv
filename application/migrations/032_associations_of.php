@@ -69,7 +69,6 @@ class Migration_Associations_of extends CI_Migration {
   				`id` bigint(20) UNSIGNED NOT NULL,
                 `id_compte_of` int(11) NOT NULL,
   				`nom_of` varchar(60) NOT NULL,
-				`club` tinyint(1) DEFAULT NULL,
                 `id_compte_gvv` int(11) DEFAULT NULL
 
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",

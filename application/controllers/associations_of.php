@@ -49,9 +49,9 @@ class Associations_OF extends Gvv_Controller {
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
 
-        $this->load->model('sections_model');
-        $section_selector = $this->sections_model->selector_with_null();
-        $this->gvvmetadata->set_selector('section_selector', $section_selector);
+        // $this->load->model('sections_model');
+        // $section_selector = $this->sections_model->selector_with_null();
+        // $this->gvvmetadata->set_selector('section_selector', $section_selector);
 
         $this->load->model('comptes_model');
         $compte_selector = $this->comptes_model->selector_with_null([], TRUE);

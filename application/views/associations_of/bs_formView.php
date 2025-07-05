@@ -40,13 +40,10 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
-// echo form_hidden('macimmat', $macimmat);
-
 // echo validation_errors();
 echo ($this->gvvmetadata->form('associations_of', array(
 	'id_compte_of' => $id_compte_of,
 	'nom_of' => $nom_of,
-	'club' => $club,
 	'id_compte_gvv' => $id_compte_gvv
 )));
 
