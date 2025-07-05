@@ -73,8 +73,13 @@ class Migration_Associations_of extends CI_Migration {
 
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 			"ALTER TABLE `associations_of` ADD PRIMARY KEY (`id`)",
+			"ALTER TABLE `associations_of` MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT",
 			"ALTER TABLE `associations_of`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT"
+			ADD CONSTRAINT `fk_associations_of_comptes` 
+			FOREIGN KEY (`id_compte_gvv`) 
+			REFERENCES `comptes` (`id`) 
+			ON UPDATE CASCADE 
+			ON DELETE SET NULL"
 		);
 
 		$errors += $this->run_queries($sqls);

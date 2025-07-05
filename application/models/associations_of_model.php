@@ -23,7 +23,19 @@ class Associations_of_model extends Common_Model {
     public function select_page($nb = 1000, $debut = 0) {
         $this->load->model('comptes_model');
 
-        $select = $this->select_columns('id, id_compte_of, nom_of, id_compte_gvv');
+        $db_res = $this->db
+            ->select('a.id, a.id_compte_of, a.nom_of, a.id_compte_gvv, c.club')
+            ->from("associations_of as a, comptes as c")
+            ->where("a.id_compte_gvv = c.id");
+
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $this->db->where('c.club', $section['id']);
+        }
+
+        $db_res = $this->db->get();
+        $select = $this->get_to_array($db_res);
+
         foreach ($select as $key => $row) {
             $image = $this->comptes_model->image($row["id_compte_gvv"]);
             $select[$key]['nom_compte'] = $image;

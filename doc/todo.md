@@ -51,7 +51,12 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   
 ## Reste à faire
 
-* [] synchro avec OpenFlyers
+* [] synchro avec OpenFlyer
+  * [] Vérifier les pages de retour des associations
+  * [x] Filtrer les associations par sections
+  * [] Mécanisme d'association des comptes de soldes 
+  * [] import des écritures
+  
 * [] Gérer les suggestions de saisie par section
 * [] Ne pas afficher les comptes inactifs dont le solde est null.
 
