@@ -33,6 +33,12 @@ echo '<div id="body" class="body container-fluid">';
 echo heading("gvv_of_title_associations", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+echo table_from_array ($soldes, array(
+    'fields' => array('Compte OF', 'Nom', 'Profil', 'Type', 'Solde'),
+    'align' => array('right', 'left', 'left', 'left', 'right'),
+    'class' => 'datatable table'
+));
+
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete'),

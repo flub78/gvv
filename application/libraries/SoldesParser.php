@@ -39,11 +39,16 @@ class SoldesParser {
             }
 
             // Ignorer l'entête
-            if ($lineNumber < 1) {
+            if ($lineNumber < 2) {
                 continue;
             }
 
             $fields = $this->parseCsvLine($line);
+
+            // Ignore les soldes null
+            if (!$fields[4]) {
+                continue;
+            }
 
             $this->data[] = $fields;
         }
@@ -65,6 +70,33 @@ class SoldesParser {
      */
     public function toJson() {
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function arrayWithControls($filePath) {
+        $CI = &get_instance();
+        $CI->load->library('gvvmetadata');
+        $CI->load->model('comptes_model');
+        // values for the compte selector select
+        $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+
+        $table = $this->parse($filePath);
+        $line = 0;
+        $result = [];
+        foreach ($table as $row) {
+            $checkbox = '<input type="checkbox"'
+                . ' id="cb_' . $line . '"' 
+                . ' onchange="toggleRowSelection(this)">';
+            $id_of = $row[0];
+            $nom_of = $row[1];
+            $profil = $row[2];
+            $type = $row[3];
+            $solde = $row[4];
+
+            $compte_gvv = dropdown_field("compte_" . $line, "", $compte_selector, []);
+            $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
+            $line++;
+        }
+        return $result;
     }
 
 }

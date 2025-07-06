@@ -30,6 +30,7 @@ class Associations_OF extends Gvv_Controller {
     protected $modification_level = 'ca';
     protected $rules = array();
 
+
     /**
      * Génération des éléments statiques à passer au formulaire en cas de création,
      * modification ou ré-affichage après erreur.

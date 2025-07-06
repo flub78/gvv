@@ -136,7 +136,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Import a CSV journal
+     * Import les soldes en CSV
      */
     public function import_soldes() {
         $upload_path = './uploads/restore/';
@@ -186,7 +186,7 @@ class OpenFlyers extends CI_Controller {
 
             try {
                 $parser = new SoldesParser();
-                $soldes = $parser->parse($filename);
+                $soldes = $parser->arrayWithControls($filename);
                 // // Sauvegarder en JSON
                 // file_put_contents('grand_livre_parsed.json', $parser->toJson());
                 // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
