@@ -35,9 +35,9 @@ echo heading("gvv_of_title_soldes", 3);
 ?>
 	<p>Seuls les comptes au solde non null sont affichés.</p>
     <div class="actions mb-3">
-        <button onclick="selectAll()">Sélectionnez tout</button>
-        <button onclick="deselectAll()">Dé-sélectionnez tout</button>
-        <button onclick="getSelectedRows()">Get Selected Rows</button>
+        <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        <!-- button onclick="getSelectedRows()">Get Selected Rows</!-->
     </div>
 <?php
 
@@ -63,32 +63,19 @@ echo '</div>';
 
 ?>
     <script>
-        // Store table data
-        let tableData = [
-            { id: '001', name: 'John Doe', category: 'electronics', status: 'Active', date: '2024-01-15' },
-            { id: '002', name: 'Jane Smith', category: 'clothing', status: 'Pending', date: '2024-01-20' },
-            { id: '003', name: 'Bob Johnson', category: 'books', status: 'Inactive', date: '2024-01-25' },
-            { id: '004', name: 'Alice Brown', category: 'home', status: 'Active', date: '2024-02-01' },
-            { id: '005', name: 'Charlie Wilson', category: 'electronics', status: 'Pending', date: '2024-02-05' }
-        ];
+
 
         // Callback function called when select changes
-        function updateRow(selectElement, rowIndex) {
-            const newValue = selectElement.value;
-            const oldValue = tableData[rowIndex].category;
-            
-            // Update the data
-            tableData[rowIndex].category = newValue;
-            
-            // Log the change
-            addLogEntry(`Row ${rowIndex + 1}: Category changed from "${oldValue}" to "${newValue}"`);
-            
-            // You can add more logic here, such as:
-            // - Making an API call to update the backend
-            // - Updating other parts of the UI
-            // - Validating the change
-            
-            console.log(`Row ${rowIndex + 1} updated:`, tableData[rowIndex]);
+        function updateRow(selectElement, id_of, nom_of) {
+            const cptGVV = selectElement.value;
+
+			console.log("updateRow, cpt GVV=" + cptGVV + ", id_of=" + id_of + ", nom=" + nom_of);
+			
+			// Call server to associate account
+			fetch('<?= base_url() ?>associations_of/associate?id_of=' + id_of + '&nom_of=' + encodeURIComponent(nom_of) + '&cptGVV=' + encodeURIComponent(cptGVV))
+			    .then(response => response.json())
+			    .then(data => console.log('Association response:', data))
+			    .catch(error => console.error('Error:', error));
         }
 
         // Toggle row selection

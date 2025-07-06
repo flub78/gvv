@@ -60,6 +60,35 @@ class Associations_OF extends Gvv_Controller {
     }
 
     /**
+     * Create an association and return a json status
+     */
+    public function associate () {
+
+            $nom_of = $this->input->get('nom_of');
+            $id_of = $this->input->get('id_of');
+            $cptGVV = $this->input->get('cptGVV');
+
+            // $this->load->model('associations_of_model');
+
+            $data = array(
+                'id_compte_of' => $id_of,
+                'nom_of' => $nom_of,
+                'id_compte_gvv' => $cptGVV
+            );
+        
+            $result = $this->gvv_model->create($data);
+        
+            $response = array(
+                'status' => $result ? 'success' : 'error',
+                'message' => $result ? 'Association created successfully' : 'Failed to create association'
+            );
+        
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($response));
+    }
+
+    /**
      * Test unitaire
      */
     function test($format = "html") {

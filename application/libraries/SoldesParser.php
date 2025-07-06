@@ -76,6 +76,8 @@ class SoldesParser {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
+        $CI->load->model('associations_of_model');
+
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
 
@@ -91,8 +93,14 @@ class SoldesParser {
             $profil = $row[2];
             $type = $row[3];
             $solde = $row[4];
-
-            $compte_gvv = dropdown_field("compte_" . $line, "", $compte_selector, []);
+            $associated_gvv = 1119;
+            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+            $attrs = 'class="form-control big_select" onchange="updateRow(this, ' 
+                . $id_of . ',\'' . $nom_of  . '\')"';
+            $compte_gvv = dropdown_field("compte_" . $line, $associated_gvv, 
+                $compte_selector, $attrs
+                
+            );
             $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
             $line++;
         }

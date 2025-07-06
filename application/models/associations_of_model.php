@@ -45,6 +45,16 @@ class Associations_of_model extends Common_Model {
         return $select;
     }
 
+    public function get_gvv_account ($of_id) {
+        $result = $this->db
+                    ->select('id_compte_gvv')
+                    ->where('id_compte_of', $of_id)
+                    ->get($this->table)
+                    ->row();
+                    
+        return ($result) ? $result->id_compte_gvv : '';
+        
+    }
 
     /**
      * Retourne une chaîne de caractère qui identifie une ligne de façon unique.
