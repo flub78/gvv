@@ -34,8 +34,8 @@ class OpenFlyers extends CI_Controller {
         $this->session->set_userdata('return_url', current_url());
 
         $this->lang->load('welcome');
-        // $this->load->model('comptes_model');
-        // $this->load->model('ecritures_model');
+        $this->load->model('comptes_model');
+        $this->load->model('ecritures_model');
 
     }
 
@@ -215,47 +215,39 @@ class OpenFlyers extends CI_Controller {
      */
     public function solde_init($compte_gvv, $solde) {
 
+        // echo "solde_init($compte_gvv, $solde)<br>";
+
         // Get club info from compte_gvv
-        // $compte = $this->comptes_model->get_by_id('id', $compte_gvv);
-        // if (!$compte) {
-        //     throw new Exception("Compte GVV $compte_gvv non trouvé");
-        // }
+        $compte = $this->comptes_model->get_by_id('id', $compte_gvv);
+        if (!$compte) {
+            throw new Exception("Compte GVV $compte_gvv non trouvé");
+        }
         
         // // Find fonds associatif account for this section
-        // $fonds_associatif = $this->comptes_model->get_by_section_and_codec($compte->club, '102');
-        // if (!$fonds_associatif) {
-        //     throw new Exception("Compte de fonds associatif non trouvé pour la section " . $compte->id_section);
-        // }
+        $fonds_associatif = $this->comptes_model->get_by_section_and_codec($compte['club'], '102');
+        if (!$fonds_associatif) {
+            throw new Exception("Compte de fonds associatif non trouvé pour la section " . $compte->id_section);
+        }
 
+        // $fonds_associatif['id']
         // Generate accounting entries
-        return;
-        // $data = array(
-        //     'annee_exercise' => "2025",
-        //     'date_op' => "2025-01-01",
-        //     'club' => $compte->id_section,
-        //     'compte1' => $compte_gvv,
-        //     'compte2' => '',
-        //     'libelle' => 'Initialisation du solde',
-        //     'id_exercice' => get_current_exercice()
-        // );
+        $data = array(
+            'annee_exercise' => "2025",
+            'date_op' => "2025-01-01",
+            'date_creation' => date("Y-m-d"),
+            'club' => $compte['club'],
+            'compte2' => $compte_gvv,
+            'compte1' => $fonds_associatif['id'],
+            'montant' => $solde,
+            'description' => 'Initialisation du solde',
+            'saisie_par' => $this->dx_auth->get_username()
+        );
+        // var_dump($data);
         
-        // $id_ecriture = $this->ecritures_model->insert($data);
-        
-        // // First line - debit/credit depends on solde sign
-        // $this->ecritures_model->insert_ligne(array(
-        //     'id_ecriture' => $id_ecriture,
-        //     'id_compte' => $compte_gvv,
-        //     'debit' => $solde > 0 ? abs($solde) : 0,
-        //     'credit' => $solde < 0 ? abs($solde) : 0
-        // ));
-        
-        // // Second line - opposite of first line
-        // $this->ecriture_model->insert_ligne(array(
-        //     'id_ecriture' => $id_ecriture,
-        //     'id_compte' => $fonds_associatif->id,
-        //     'debit' => $solde < 0 ? abs($solde) : 0,
-        //     'credit' => $solde > 0 ? abs($solde) : 0
-        // ));
+        $ecriture = $this->ecritures_model->create($data);
+        if (!$ecriture) {
+            throw new Exception("Erreur pendant le passage d'écriture de solde:");
+        }
     }
 
     /**
@@ -279,7 +271,7 @@ class OpenFlyers extends CI_Controller {
                 $type = $row[3];
                 $solde = $row[4];
 
-                echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
+                // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
                 $this->solde_init($compte_value, $solde);
             }
         }

@@ -46,6 +46,24 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+         * Récupère un compte par section et code codec
+         * 
+         * @param string $club L'identifiant de la section/club
+         * @param string $codec Le code codec du compte
+         * @return array Le compte correspondant aux critères
+         */
+    public function get_by_section_and_codec($club, $codec) {
+        $this->db->select('comptes.*');
+        $this->db->from('comptes');
+        $this->db->where('comptes.club', $club);
+        $this->db->where('comptes.codec', $codec);
+
+        $res = $this->db->get()->row_array();
+
+        return $res;
+    }
+
+    /**
      * Retourne un compte par pilote codec
      * 
      * @param string $pilote_codec Le code du pilote
