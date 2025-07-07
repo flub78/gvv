@@ -34,7 +34,9 @@ Import de la balance dans GVV
 
 ![OpenFlyers Balance des comptes utilisateurs](../images/select_balance_import.png)
 
-Voici la fenêtre des soldes clients.
+Voici la fenêtre des soldes clients. La vous allez pouvoir:
+* choisir le compte GVV à associer pour les comptes non associés.
+* sélectionner les comptes que vous voulez initialiser avec leur solde initial. Les balances initiales seront équilibré avec une écriture sur le compte 102 (Fonds associatifs) de la section. Si un compte à déjà été initialisé il n'y a plus de checkbox pour le sélectionner.
 
 ![Soldes client](../images/soldes_client.png)
 

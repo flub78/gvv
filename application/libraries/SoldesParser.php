@@ -79,7 +79,6 @@ class SoldesParser {
         $CI->load->model('associations_of_model');
         $CI->load->model('ecritures_model');
 
-
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
 

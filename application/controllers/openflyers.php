@@ -237,6 +237,13 @@ class OpenFlyers extends CI_Controller {
             'description' => 'Initialisation du solde',
             'saisie_par' => $this->dx_auth->get_username()
         );
+        if ($solde < 0) {
+            // On inverse 
+            $data['compte1'] = $compte_gvv;
+            $data['compte2'] = $fonds_associatif['id'];
+            $data['montant'] = - $solde;
+        } 
+
         // var_dump($data);
 
         $ecriture = $this->ecritures_model->create($data);

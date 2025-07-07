@@ -122,8 +122,8 @@ $this->lang->load('comptes');
 
 
 	if ($detail) {
-		$footer[] = ['', $this->lang->line("comptes_label_totals"), euro($total['debit']), euro($total['credit']), euro($total['solde_debit']), euro($total['solde_credit']), '', ''];
-		$footer[] = ['', $this->lang->line("comptes_label_totals_balance"), euro($total['solde_debit']), euro($total['solde_credit']), '', ''];
+		// $footer[] = ['', $this->lang->line("comptes_label_totals"), euro($total['debit']), euro($total['credit']), euro($total['solde_debit']), euro($total['solde_credit']), '', ''];
+		$footer[] = ['', $this->lang->line("comptes_label_totals_balance"), '', euro($total['solde_debit']), euro($total['solde_credit']), ''];
 	}
 
 	if ($general) {
