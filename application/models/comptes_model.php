@@ -760,6 +760,7 @@ class Comptes_model extends Common_Model {
 
         $total_dispo = ["Total des actifs financiers"];
         $total_dettes = ["Total des dettes"];
+        $diff_actif_passif = ["Total des actifs - total des dettes"];
 
         $tot_banque = 0;
         $tot_creances = 0;
@@ -810,8 +811,11 @@ class Comptes_model extends Common_Model {
             $dettes_tiers[] = $solde_dette_tiers;
             $tot_dettes += $solde_dette_tiers;
 
-            $total_dispo[] = $solde_banque + $solde_creances + $solde_prets;
-            $total_dettes[] = $solde_dette_tiers + $solde_emprunt;
+            $t_dispo = $solde_banque + $solde_creances + $solde_prets;
+            $total_dispo[] = $t_dispo;
+            $t_dettes = $solde_dette_tiers + $solde_emprunt;
+            $total_dettes[] = $t_dettes;
+            $diff_actif_passif[] = $t_dispo - $t_dettes;
 
             $solde_immos_brutes = $this->total_of($this->ecritures_model->select_solde($date_op, 2, 28, TRUE, $section['id'])) * -1;
             $immos_brutes[] = $solde_immos_brutes;
@@ -826,6 +830,7 @@ class Comptes_model extends Common_Model {
             $solde_immos_nettes = $solde_immos_brutes - $solde_immos_cumul_amortissements;
             $immos_nettes[] = $solde_immos_nettes; 
             $tot_immos_nettes += $solde_immos_nettes;
+
         }
 
         // la colonne Total
@@ -855,6 +860,7 @@ class Comptes_model extends Common_Model {
                 $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
                 $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
                 $total_dettes[$i]  = $this->format_currency($total_dettes[$i], $html);
+                $diff_actif_passif[$i]  = $this->format_currency($diff_actif_passif[$i], $html);
 
                 $immos_brutes[$i] = $this->format_currency($immos_brutes[$i], $html);
                 $immos_cumul_amortissements[$i] = $this->format_currency($immos_cumul_amortissements[$i], $html);
@@ -875,6 +881,7 @@ class Comptes_model extends Common_Model {
         $dettes[] = $emprunts;
         $dettes[] = $dettes_tiers;
         $dettes[] = $total_dettes;
+        $dettes[] = $diff_actif_passif;
 
         $immos =[];
         $immos[] = $title;
