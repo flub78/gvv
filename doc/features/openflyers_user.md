@@ -20,10 +20,22 @@ Il faut associer chaque compte OpenFLyers qu'on envisage d'importer au compte co
 Si vous connaissez l'identifiant du compte OpenFlyers il suffit de lui associer le compte GVV correspondant dans la table des associations. Il est possible de réaliser l'association de façon plus pratique lors de l'import des balances initiales.
 
 ### Table des associations
-[Table des associations](./images/table_association_of.png)
+![Table des associations](../images/table_associations_of.png)
 
 ### Saisie/modification d'une association
 
 ## Import des balances initiales des comptes clients
+
+Exporter la balance en CSV depuis OpenFLyers
+
+![OpenFlyers Balance des comptes utilisateurs](../images/export_balance_users.png)
+
+Import de la balance dans GVV
+
+![OpenFlyers Balance des comptes utilisateurs](../images/select_balance_import.png)
+
+Voici la fenêtre des soldes clients.
+
+![Soldes client](../images/soldes_client.png)
 
 ## Import des écritures entre deux dates
