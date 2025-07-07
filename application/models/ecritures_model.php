@@ -1124,6 +1124,24 @@ array (size=2)
     }
 
     /**
+     * return true when there is at least one row in the ecritures
+     * table with $account_id as $compte1 or $compte2 ant the other 
+     * compte in the row being a compte with codec=102
+     */
+    function is_account_initialized($account_id) {
+        $db_res = $this->db
+            ->select("ecritures.id")
+            ->from("ecritures")
+            ->join("comptes as c1", "c1.id = ecritures.compte1", "left")
+            ->join("comptes as c2", "c2.id = ecritures.compte2", "left")
+            ->where("(compte1 = '$account_id' AND c2.codec = '102') OR (compte2 = '$account_id' AND c1.codec = '102')")
+            ->limit(1)
+            ->get();
+            
+        return $db_res->num_rows() > 0;
+    }
+
+    /**
      * Retourne un hash des montants par comptes
      * $list: list of array (size=5)
      * 'code' => string '654' (length=3)
