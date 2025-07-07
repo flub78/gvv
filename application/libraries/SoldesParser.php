@@ -72,7 +72,7 @@ class SoldesParser {
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
-    public function arrayWithControls($filePath) {
+    public function arrayWithControls($table) {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -81,12 +81,12 @@ class SoldesParser {
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
 
-        $table = $this->parse($filePath);
+        // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
         foreach ($table as $row) {
             $checkbox = '<input type="checkbox"'
-                . ' id="cb_' . $line . '"' 
+                . ' name="cb_' . $line . '"' 
                 . ' onchange="toggleRowSelection(this)">';
             $id_of = $row[0];
             $nom_of = $row[1];
