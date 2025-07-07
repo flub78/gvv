@@ -26,4 +26,6 @@ $lang['gvv_associations_of_field_nom_of'] = "Nom OpenFlyers";
 $lang['gvv_associations_of_field_club'] = "Section";
 $lang['gvv_associations_of_field_id_compte_gvv'] = "Compte GVV";
 
+$lang['gvv_of_init_soldes'] = "Initialisez les comptes";
+
 

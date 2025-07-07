@@ -56,7 +56,7 @@ echo "Date d'import des soldes: " . '<input type="date" name="import_date" size=
 echo form_input(array(
 	'type' => 'submit',
 	'name' => 'button',
-	'value' => $this->lang->line("gvv_button_validate"),
+	'value' => $this->lang->line("gvv_of_init_soldes"),
 	'class' => 'btn btn-primary mb-4'
 ));
 echo form_close('</div>');

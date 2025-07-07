@@ -1,13 +1,14 @@
-# Intégration OpenFLyers
+# Intégration OpenFLyers, discussion technique
 
 La comptabilité de la section planeur qui gère ses comptes bancaires, ses comptes de produits, ses comptes clients et sa facturation est cohérente.
 
-Néanmoins le sections avions utilisent OpenFlyers pour gérer les comptes clients et la facturation.
+Néanmoins les sections avion et ULM utilisent OpenFlyers pour gérer les comptes clients et la facturation.
 
 * Quand un pilote crédite son compte, son compte OpenFLyers est crédité.
-* Quand vol est facturé le compte client est débité.
+* Quand vol est facturé le compte client OpenFLyers est débité.
 
-Le problème pour garantir la cohérence est qu'il faudrait qu'à chaque fois qu'un pilote crédite son compte ou est remboursé, le compte client devrait être ajusté.
+  
+Pour garantir la cohérence est qu'il faut qu'à chaque fois qu'un pilote crédite son compte ou est remboursé, le compte client soit ajusté.
 
 De la même façon quand un vol est facturé, GVV devrait ête synchronisé.
 
