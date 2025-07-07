@@ -36,7 +36,7 @@ class OpenFlyers extends CI_Controller {
         $this->lang->load('welcome');
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
-
+        $this->load->library('SoldesParser');
     }
 
     /**
@@ -168,7 +168,7 @@ class OpenFlyers extends CI_Controller {
 
 
         if (! $this->upload->do_upload()) {
-            // On a pas réussi à recharger la sauvegarde
+            // On a pas réussi à charger le fichier
             $error = array(
                 'error' => $this->upload->display_errors()
             );
@@ -177,37 +177,32 @@ class OpenFlyers extends CI_Controller {
 
             // on a chargé le fichier
             $data = $this->upload->data();
-
             $filename = $config['upload_path'] . $data['file_name'];
-
-            // $file_content = file_get_contents($filename);
-            // echo $file_content;
-            // exit;
-
-            $this->load->library('SoldesParser');
-
-            try {
-                $parser = new SoldesParser();
-                $soldes = $parser->parse($filename);
-                $soldes_html = $parser->arrayWithControls($soldes);
-
-                $line = 0;
-                foreach ($soldes as $row) {
-                    $this->session->set_userdata('soldes_' . $line, $row);
-                    $line++;
-                }
-
-                // // Sauvegarder en JSON
-                // file_put_contents('grand_livre_parsed.json', $parser->toJson());
-                // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
-            } catch (Exception $e) {
-                echo "Erreur: " . $e->getMessage() . "\n";
-            }
-
-            $data['soldes'] = $soldes_html;
-
-            load_last_view('openflyers/tableSoldes', $data);
+            $this->session->set_userdata('file_soldes', $filename);
+            $this->import_soldes_from_file($filename);
         }
+    }
+
+    /**
+     * Imports account balances from a specified file
+     *
+     * @param string $filename Path to the file containing account balance data
+     * @throws Exception If there are parsing or processing errors during import
+     */
+    public function import_soldes_from_file($filename) {
+
+        try {
+            $parser = new SoldesParser();
+            $soldes = $parser->parse($filename);
+
+        } catch (Exception $e) {
+            echo "Erreur: " . $e->getMessage() . "\n";
+        }
+
+        $soldes_html = $parser->arrayWithControls($soldes);
+        $data['soldes'] = $soldes_html;
+
+        load_last_view('openflyers/tableSoldes', $data);
     }
 
     /**
@@ -222,7 +217,7 @@ class OpenFlyers extends CI_Controller {
         if (!$compte) {
             throw new Exception("Compte GVV $compte_gvv non trouvé");
         }
-        
+
         // // Find fonds associatif account for this section
         $fonds_associatif = $this->comptes_model->get_by_section_and_codec($compte['club'], '102');
         if (!$fonds_associatif) {
@@ -243,7 +238,7 @@ class OpenFlyers extends CI_Controller {
             'saisie_par' => $this->dx_auth->get_username()
         );
         // var_dump($data);
-        
+
         $ecriture = $this->ecritures_model->create($data);
         if (!$ecriture) {
             throw new Exception("Erreur pendant le passage d'écriture de solde:");
@@ -255,30 +250,38 @@ class OpenFlyers extends CI_Controller {
      */
     public function creates_soldes() {
 
-        $posts = $this->input->post();
-        foreach ($posts as $key => $value) {
-            // echo "$key => $value<br>";
-            if (strpos($key, 'cb_') === 0) {
-                // Key starts with "cb_"
-                $line = str_replace("cb_", "", $key);
-                $compte_key = "compte_" . $line;
-                $compte_value = $posts[$compte_key ];
+        $file_soldes = $this->session->userdata('file_soldes');
+        try {
+            $parser = new SoldesParser();
+            $soldes = $parser->parse($file_soldes);
 
-                $row = $this->session->userdata('soldes_' . $line);
-                $id_of = $row[0];
-                $nom_of = $row[1];
-                $profil = $row[2];
-                $type = $row[3];
-                $solde = $row[4];
+            $posts = $this->input->post();
+            foreach ($posts as $key => $value) {
+                // echo "$key => $value<br>";
+                if (strpos($key, 'cb_') === 0) {
+                    // Key starts with "cb_"
+                    $line = str_replace("cb_", "", $key);
+                    $compte_key = "compte_" . $line;
+                    $compte_value = $posts[$compte_key];
+    
+                    $row = $soldes[$line];
 
-                // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
-                $this->solde_init($compte_value, $solde);
+                    // $id_of = $row[0];
+                    // $nom_of = $row[1];
+                    // $profil = $row[2];
+                    // $type = $row[3];
+                    $solde = $row[4];
+    
+                    // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
+                    $this->solde_init($compte_value, $solde);
+                }
             }
-        }
-        // print_r($this->input->post());
-        // var_dump($_POST);
 
-        exit;
+            $this->import_soldes_from_file($file_soldes);
+
+        } catch (Exception $e) {
+            echo "Erreur: " . $e->getMessage() . "\n";
+        }
     }
 }
 
