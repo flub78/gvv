@@ -328,7 +328,7 @@ class GrandLivreParser {
         return $summary;
     }
 
-    public function arrayWithControls($table) {
+    public function HTMLTableWithControls($table) {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -342,6 +342,8 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
+        $html = "";
+        $html .= '<table class="datatable3 table">';
 
         foreach ($table['comptes'] as $row) {
 
@@ -362,7 +364,7 @@ class GrandLivreParser {
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
             if ($section) {
                 $associated_gvv_all = $CI->associations_of_model->get_gvv_account($id_of);
-                if ($associated_gvv_all && ! $associated_gvv ) {
+                if ($associated_gvv_all && ! $associated_gvv) {
                     // le compte est associé à une autre section on saute la ligne
                     continue;
                 }
@@ -383,16 +385,35 @@ class GrandLivreParser {
                 );
             }
 
-            $result[] = [$id_of, $nom_of, $compte_gvv, '', '', '', ''];
-            $result[] = ["Nombre d'opérations", $mvt_count, '', '', '', '', ''];
-            $result[] = ['Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
+            $lst = [$id_of, $nom_of, $compte_gvv, '', '', '', ''];
+            $result[] = $lst;
+            $html .= html_row($lst, ['class' => 'compte']);
 
+            $lst = ["Nombre d'opérations", $mvt_count, '', '', '', '', ''];
+            $result[] = $lst;
+            $html .= html_row($lst, ['class' => 'number_op']);
+
+            $lst = ['Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
+            $result[] = $lst;
+            $html .= html_row($lst, ['class' => 'row_title']);
+
+            $n = 1;
             foreach ($row['mouvements'] as $mvt) {
-                $result[] = [$mvt['date'], $mvt['intitule'], $mvt['description'], $mvt['debit'], $mvt['credit'], $mvt['id_compte2'], $mvt['nom_compte2']];
-
+                $lst = [$mvt['date'], $mvt['intitule'], $mvt['description'], $mvt['debit'], $mvt['credit'], $mvt['id_compte2'], $mvt['nom_compte2']];
+                $result[] = $lst;
+                $class = 'mouvement';
+                if ($n % 2 == 0) {
+                    $class .= " even";
+                } else {
+                    $class .= " odd";
+                }
+                $html .= html_row($lst, ['class' => $class]);
+                $n++;
             }
             $line++;
         }
+        $html .= "</table>";
+        return $html;
         return $result;
     }
 }

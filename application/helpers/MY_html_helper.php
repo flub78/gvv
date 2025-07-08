@@ -101,6 +101,23 @@ if (! function_exists('e_heading')) {
     }
 }
 
+if (! function_exists('html_row')) {
+
+    function html_row(array $cols, array $attrs = []) {
+        $res = '';
+        $res .= "<tr";
+        foreach ($attrs as $key => $value) {
+            $res .= " $key=\"$value\"";
+        }
+        $res .= ">";
+        foreach ($cols as $col) {
+            $res .= "\t<td>$col</td>\n";
+        }        
+        $res .= "</tr>\n";
+        return $res;
+    } 
+}
+
 if (! function_exists('table_from_array')) {
     /**
      * Generates a html table from an array of rows
@@ -111,7 +128,7 @@ if (! function_exists('table_from_array')) {
     function table_from_array($table, $attrs = array()) {
         $class = isset($attrs['class']) ? $attrs['class'] : '';
         $res = "";
-        // $res .= '<div class="fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"></div>';
+ 
         $res .= "<table class=\"$class\">\n";
 
         if (array_key_exists('title', $attrs)) {

@@ -126,18 +126,18 @@ class OpenFlyers extends CI_Controller {
             $data ['titre'] = $grand_journal['header']['titre'];
             $data ['date_edition'] = $grand_journal['header']['date_edition'];
 
-            $comptes_html = $parser->arrayWithControls($grand_journal);
-            $data['comptes'] = $comptes_html;
-
+            $comptes_html = $parser->HTMLTableWithControls($grand_journal);
+            $data['comptes_html'] = $comptes_html;
+            
             // Sauvegarder en JSON
             file_put_contents('grand_livre_parsed.json', $parser->toJson());
-            echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
+            // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
 
-            // Afficher un résumé
-            echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
-            $summary = $parser->getSummary();
-            echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
-            echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
+            // // Afficher un résumé
+            // echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
+            // $summary = $parser->getSummary();
+            // echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
+            // echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
 
             // // Afficher les comptes
             // echo "=== COMPTES ===\n";

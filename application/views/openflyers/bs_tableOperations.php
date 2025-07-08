@@ -45,11 +45,13 @@ echo heading("gvv_of_title_operations", 3);
 echo form_open_multipart('openflyers/creates_soldes');
 
 // Utilisé pour les comptes clients
-echo table_from_array ($comptes, array(
-    'fields' => array('Compte OF', 'Nom',  'Compte GVV', '', '', '', ''),
-    'align' => array('right', 'left',  'right', '', '', '', ''),
-    'class' => 'datatable3 table'
-));
+// echo table_from_array ($comptes_html, array(
+//     'fields' => array('Compte OF', 'Nom',  'Compte GVV', '', '', '', ''),
+//     'align' => array('right', 'left',  'right', '', '', '', ''),
+//     'class' => 'datatable3 table'
+// ));
+
+echo $comptes_html;
 
 
 echo "Date d'import des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
