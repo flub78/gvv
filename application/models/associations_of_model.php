@@ -45,15 +45,19 @@ class Associations_of_model extends Common_Model {
         return $select;
     }
 
-    public function get_gvv_account ($of_id) {
-        $result = $this->db
-                    ->select('id_compte_gvv')
-                    ->where('id_compte_of', $of_id)
-                    ->get($this->table)
-                    ->row();
-                    
+    public function get_gvv_account($of_id, $section_id = 0) {
+
+        $this->db->select('associations_of.id_compte_gvv')
+            ->from($this->table)
+            ->where('id_compte_of', $of_id);
+
+        if ($section_id) {
+            $this->db->join('comptes', 'comptes.id = associations_of.id_compte_gvv')
+                ->where('comptes.club', $section_id);
+        }
+
+        $result = $this->db->get()->row();
         return ($result) ? $result->id_compte_gvv : '';
-        
     }
 
     /**

@@ -202,11 +202,11 @@ class GrandLivreParser {
      */
     private function isMovementSecondLine($fields) {
 
-            foreach ([0, 1, 2, 4] as $index) {
-                if (!isset($fields[$index]) || trim($fields[$index]) === "") {
-                    return false;
-                }
+        foreach ([0, 1, 2, 4] as $index) {
+            if (!isset($fields[$index]) || trim($fields[$index]) === "") {
+                return false;
             }
+        }
         return true;
     }
 
@@ -232,8 +232,9 @@ class GrandLivreParser {
             if ($dateIndex > 1) {
                 $movement['numero_flux'] = $fields[$dateIndex - 1] ?? '';
             }
-            $movement['debit'] = str_replace(',', '.', $fields[8]); 
-            $movement['credit'] = str_replace(',', '.', $fields[9]);         }
+            $movement['debit'] = str_replace(',', '.', $fields[8]);
+            $movement['credit'] = str_replace(',', '.', $fields[9]);
+        }
 
         return $movement['date'] ? $movement : null;
     }
@@ -333,6 +334,7 @@ class GrandLivreParser {
         $CI->load->model('comptes_model');
         $CI->load->model('associations_of_model');
         $CI->load->model('ecritures_model');
+        $CI->load->model('sections_model');
 
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
@@ -340,41 +342,41 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
-        // foreach ($table as $row) {
-        //     $checkbox = '<input type="checkbox"'
-        //         . ' name="cb_' . $line . '"' 
-        //         . ' onchange="toggleRowSelection(this)">';
-        //     $id_of = $row[0];
-        //     $nom_of = $row[1];
-        //     $profil = $row[2];
-        //     $type = $row[3];
-        //     $solde = euro($row[4]);
-        //     $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
-        //     $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
-        //     if ($associated_gvv && !$initialized) {
-        //         $checkbox = '<input type="checkbox"'
-        //         . ' name="cb_' . $line . '"' 
-        //         . ' onchange="toggleRowSelection(this)">';
-        //     } else {
-        //         $checkbox = "";
-        //     }
+        foreach ($table['comptes'] as $row) {
 
-        //     if ($initialized) {
-        //         $compte_gvv = $associated_gvv;
-        //         $image = $CI->comptes_model->image($compte_gvv);
-        //         $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
-        //     } else {
-        //         $attrs = 'class="form-control big_select" onchange="updateRow(this, ' 
-        //         . $id_of . ',\'' . $nom_of  . '\')"';
-        //     $compte_gvv = dropdown_field("compte_" . $line, $associated_gvv, 
-        //         $compte_selector, $attrs
-                
-        //     );
-        //     }
+            if (!$row['mouvements']) continue;
 
-        //     $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
-        //     $line++;
-        // }
+            $id_of = $row['numero_compte_of'];
+            $nom_of = $row['nom_compte'];
+
+            $section = $CI->sections_model->section();
+            $section_id = ($section) ? $section['id'] : 0;
+
+            /**
+             * Quand une section est active on ne veut pas afficher les comptes d'autres sections
+             */
+
+            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+            // $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
+
+            if ($associated_gvv) {
+                $compte_gvv = $associated_gvv;
+                $image = $CI->comptes_model->image($compte_gvv);
+                $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+            } else {
+                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                    . $id_of . ',\'' . $nom_of  . '\')"';
+                $compte_gvv = dropdown_field(
+                    "compte_" . $line,
+                    $associated_gvv,
+                    $compte_selector,
+                    $attrs
+                );
+            }
+
+            $result[] = [$id_of, $nom_of, $compte_gvv];
+            $line++;
+        }
         return $result;
     }
 }

@@ -119,6 +119,7 @@ class OpenFlyers extends CI_Controller {
         $this->load->library('GrandLivreParser');
 
         try {
+
             $parser = new GrandLivreParser();
             $grand_journal = $parser->parseGrandLivre($filename);
 
@@ -138,11 +139,11 @@ class OpenFlyers extends CI_Controller {
             echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
             echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
 
-            // Afficher les comptes
-            echo "=== COMPTES ===\n";
-            foreach ($summary['comptes_resume'] as $compte) {
-                echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n" . '<br>';
-            }
+            // // Afficher les comptes
+            // echo "=== COMPTES ===\n";
+            // foreach ($summary['comptes_resume'] as $compte) {
+            //     echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n" . '<br>';
+            // }
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
