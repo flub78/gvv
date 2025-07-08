@@ -104,37 +104,49 @@ class OpenFlyers extends CI_Controller {
             // $this->load->library('unzip');
             $filename = $config['upload_path'] . $data['file_name'];
 
-            // $file_content = file_get_contents($filename);
-            // echo $file_content;
+            $this->import_operations_from_files($filename);
+        }
+    }
 
-            $this->load->library('GrandLivreParser');
+    /**
+     * Import a CSV journal from a file
+     */
+    public function import_operations_from_files($filename) {
 
-            try {
-                $parser = new GrandLivreParser();
-                $grand_journal = $parser->parseGrandLivre($filename);
+        // $file_content = file_get_contents($filename);
+        // echo $file_content;
 
-                // Afficher un résumé
-                echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
-                $summary = $parser->getSummary();
-                echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
-                echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
+        $this->load->library('GrandLivreParser');
 
-                // Afficher les comptes
-                echo "=== COMPTES ===\n";
-                foreach ($summary['comptes_resume'] as $compte) {
-                    echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n";
-                }
+        try {
+            $parser = new GrandLivreParser();
+            $grand_journal = $parser->parseGrandLivre($filename);
 
-                // Sauvegarder en JSON
-                file_put_contents('grand_livre_parsed.json', $parser->toJson());
-                echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
-            } catch (Exception $e) {
-                echo "Erreur: " . $e->getMessage() . "\n";
+            $data ['titre'] = $grand_journal['header']['titre'];
+            $data ['date_edition'] = $grand_journal['header']['date_edition'];
+
+            $comptes_html = $parser->arrayWithControls($grand_journal);
+            $data['comptes'] = $comptes_html;
+
+            // Sauvegarder en JSON
+            file_put_contents('grand_livre_parsed.json', $parser->toJson());
+            echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
+
+            // Afficher un résumé
+            echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
+            $summary = $parser->getSummary();
+            echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
+            echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
+
+            // Afficher les comptes
+            echo "=== COMPTES ===\n";
+            foreach ($summary['comptes_resume'] as $compte) {
+                echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n" . '<br>';
             }
 
-            exit;
-
-            load_last_view('admin/restore_success', $data);
+            load_last_view('openflyers/tableOperations', $data);
+        } catch (Exception $e) {
+            echo "Erreur: " . $e->getMessage() . "\n";
         }
     }
 
@@ -194,7 +206,6 @@ class OpenFlyers extends CI_Controller {
         try {
             $parser = new SoldesParser();
             $soldes = $parser->parse($filename);
-
         } catch (Exception $e) {
             echo "Erreur: " . $e->getMessage() . "\n";
         }
@@ -241,8 +252,8 @@ class OpenFlyers extends CI_Controller {
             // On inverse 
             $data['compte1'] = $compte_gvv;
             $data['compte2'] = $fonds_associatif['id'];
-            $data['montant'] = - $solde;
-        } 
+            $data['montant'] = -$solde;
+        }
 
         // var_dump($data);
 
@@ -270,7 +281,7 @@ class OpenFlyers extends CI_Controller {
                     $line = str_replace("cb_", "", $key);
                     $compte_key = "compte_" . $line;
                     $compte_value = $posts[$compte_key];
-    
+
                     $row = $soldes[$line];
 
                     // $id_of = $row[0];
@@ -278,14 +289,13 @@ class OpenFlyers extends CI_Controller {
                     // $profil = $row[2];
                     // $type = $row[3];
                     $solde = $row[4];
-    
+
                     // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
                     $this->solde_init($compte_value, $solde);
                 }
             }
 
             $this->import_soldes_from_file($file_soldes);
-
         } catch (Exception $e) {
             echo "Erreur: " . $e->getMessage() . "\n";
         }

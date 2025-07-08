@@ -326,4 +326,55 @@ class GrandLivreParser {
 
         return $summary;
     }
+
+    public function arrayWithControls($table) {
+        $CI = &get_instance();
+        $CI->load->library('gvvmetadata');
+        $CI->load->model('comptes_model');
+        $CI->load->model('associations_of_model');
+        $CI->load->model('ecritures_model');
+
+        // values for the compte selector select
+        $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+
+        // $table = $this->parse($filePath);
+        $line = 0;
+        $result = [];
+        // foreach ($table as $row) {
+        //     $checkbox = '<input type="checkbox"'
+        //         . ' name="cb_' . $line . '"' 
+        //         . ' onchange="toggleRowSelection(this)">';
+        //     $id_of = $row[0];
+        //     $nom_of = $row[1];
+        //     $profil = $row[2];
+        //     $type = $row[3];
+        //     $solde = euro($row[4]);
+        //     $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+        //     $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
+        //     if ($associated_gvv && !$initialized) {
+        //         $checkbox = '<input type="checkbox"'
+        //         . ' name="cb_' . $line . '"' 
+        //         . ' onchange="toggleRowSelection(this)">';
+        //     } else {
+        //         $checkbox = "";
+        //     }
+
+        //     if ($initialized) {
+        //         $compte_gvv = $associated_gvv;
+        //         $image = $CI->comptes_model->image($compte_gvv);
+        //         $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+        //     } else {
+        //         $attrs = 'class="form-control big_select" onchange="updateRow(this, ' 
+        //         . $id_of . ',\'' . $nom_of  . '\')"';
+        //     $compte_gvv = dropdown_field("compte_" . $line, $associated_gvv, 
+        //         $compte_selector, $attrs
+                
+        //     );
+        //     }
+
+        //     $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
+        //     $line++;
+        // }
+        return $result;
+    }
 }
