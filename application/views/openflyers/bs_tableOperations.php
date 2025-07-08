@@ -46,9 +46,9 @@ echo form_open_multipart('openflyers/creates_soldes');
 
 // Utilisé pour les comptes clients
 echo table_from_array ($comptes, array(
-    'fields' => array('Compte OF', 'Nom',  'Compte GVV'),
-    'align' => array('right', 'left',  'right'),
-    'class' => 'datatable table'
+    'fields' => array('Compte OF', 'Nom',  'Compte GVV', '', '', '', ''),
+    'align' => array('right', 'left',  'right', '', '', '', ''),
+    'class' => 'datatable3 table'
 ));
 
 

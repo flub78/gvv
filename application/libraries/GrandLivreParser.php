@@ -342,8 +342,10 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
+
         foreach ($table['comptes'] as $row) {
 
+            $mvt_count = count($row['mouvements']);
             if (!$row['mouvements']) continue;
 
             $id_of = $row['numero_compte_of'];
@@ -358,7 +360,13 @@ class GrandLivreParser {
              */
 
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
-            // $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
+            if ($section) {
+                $associated_gvv_all = $CI->associations_of_model->get_gvv_account($id_of);
+                if ($associated_gvv_all && ! $associated_gvv ) {
+                    // le compte est associé à une autre section on saute la ligne
+                    continue;
+                }
+            }
 
             if ($associated_gvv) {
                 $compte_gvv = $associated_gvv;
@@ -375,7 +383,14 @@ class GrandLivreParser {
                 );
             }
 
-            $result[] = [$id_of, $nom_of, $compte_gvv];
+            $result[] = [$id_of, $nom_of, $compte_gvv, '', '', '', ''];
+            $result[] = ["Nombre d'opérations", $mvt_count, '', '', '', '', ''];
+            $result[] = ['Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
+
+            foreach ($row['mouvements'] as $mvt) {
+                $result[] = [$mvt['date'], $mvt['intitule'], $mvt['description'], $mvt['debit'], $mvt['credit'], $mvt['id_compte2'], $mvt['nom_compte2']];
+
+            }
             $line++;
         }
         return $result;
