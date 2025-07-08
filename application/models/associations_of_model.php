@@ -45,6 +45,13 @@ class Associations_of_model extends Common_Model {
         return $select;
     }
 
+    /**
+     * Récupère l'identifiant du compte GVV associé à un compte OF
+     * 
+     * @param int $of_id Identifiant du compte OF
+     * @param int $section_id Identifiant optionnel de la section
+     * @return string Identifiant du compte GVV, ou chaîne vide si non trouvé
+     */
     public function get_gvv_account($of_id, $section_id = 0) {
 
         $this->db->select('associations_of.id_compte_gvv')

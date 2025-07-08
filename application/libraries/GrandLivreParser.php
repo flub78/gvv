@@ -354,9 +354,10 @@ class GrandLivreParser {
 
             /**
              * Quand une section est active on ne veut pas afficher les comptes d'autres sections
+             * Attention, le compte de banque OF peut-être associé à plusieurs comptes GVV avec différentes sections.
              */
 
-            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
             // $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
 
             if ($associated_gvv) {
