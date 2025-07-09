@@ -125,14 +125,6 @@ $section_count = $CI->sections_model->safe_count_all();
 
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><?= translation("welcome_global_financial_report") ?></a></li>
 
-                    <li><a class="dropdown-item" href="#">Synchronisation OpenFlyers</a>
-                      <ul class="submenu dropdown-menu">
-                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import des soldes</a></li>
-                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>">Import des opérations</a></li>
-                        <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>">Associations des comptes OpenFlyers</a></li>
-                      </ul>
-                    </li>
-
                   </ul>
                 </li>
 
@@ -257,6 +249,15 @@ $section_count = $CI->sections_model->safe_count_all();
                 <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("gvv_attachments_title") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><?= translation("gvv_menu_accounting_dashboard") ?></a></li>
 
+                <?php if (has_role('ca')) : ?>
+                  <li><a class="dropdown-item" href="#">Synchronisation OpenFlyers</a>
+                    <ul class="submenu dropdown-menu">
+                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import des soldes</a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>">Import des opérations</a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>">Associations des comptes OpenFlyers</a></li>
+                    </ul>
+                  </li>
+                <?php endif; ?>
               <?php endif; ?>
 
             </ul>

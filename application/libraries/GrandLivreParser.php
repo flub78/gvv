@@ -362,6 +362,8 @@ class GrandLivreParser {
             /**
              * Quand une section est active on ne veut pas afficher les comptes d'autres sections
              * Attention, le compte de banque OF peut-être associé à plusieurs comptes GVV avec différentes sections.
+             * 
+             * Si un compte est associé et que tous les comptes d'écriture sont associés OK
              */
 
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
@@ -418,28 +420,33 @@ class GrandLivreParser {
                 $associated_gvv_compte2 = $CI->associations_of_model->get_gvv_account($mvt['id_compte2'], $section_id);
 
                 // Si le compte est associé
-                // if ($associated_gvv) {
-                //     // On affiche un lien vers le journal du compte
-                //     $compte2_gvv = $associated_gvv_compte2;
-                //     $image = $CI->comptes_model->image($compte_gvv);
-                //     $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
-                // } else {
-                //     // On affiche un sélecteur
-                //     $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                //         . $id_of . ',\'' . $nom_of  . '\')"';
-                //     $compte_gvv = dropdown_field(
-                //         "compte_" . $line,
-                //         $associated_gvv,
-                //         $compte_selector,
-                //         $attrs
-                //     );
-                // }
+                if ($associated_gvv_compte2) {
+                    // On affiche un lien vers le journal du compte
+                    $compte2_gvv = $associated_gvv_compte2;
+                    $image = $CI->comptes_model->image($compte2_gvv);
+                    $compte2_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv_compte2), $image);
+                } else {
+                    // On affiche un sélecteur
+                    $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                        . $id_of . ',\'' . $nom_of  . '\')"';
+                    $compte2_gvv = dropdown_field(
+                        "compte_" . $line,
+                        $associated_gvv,
+                        $compte_selector,
+                        $attrs
+                    );
+                }
 
-                $checkbox = '<input type="checkbox"'
-                    . ' name="cb_' . $line . '"'
-                    . ' onchange="toggleRowSelection(this)">';
+                if ($associated_gvv) {
+                    $checkbox = '<input type="checkbox"'
+                        . ' name="cb_' . $line . '"'
+                        . ' onchange="toggleRowSelection(this)">';
+                } else {
+                    $checkbox = "";
+                }
 
-                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['description'], euro($mvt['debit']), euro($mvt['credit']), $mvt['id_compte2'], $mvt['nom_compte2']];
+                $id_compte2 = $mvt['id_compte2'] . ' ' . $compte2_gvv;
+                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['description'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $mvt['nom_compte2']];
                 $result[] = $lst;
                 $class = 'mouvement';
                 if ($n % 2 == 0) {

@@ -21,7 +21,7 @@ $lang['gvv_compta_title_remb_capital'] = "Remboursement de capital d'emprunt";
 $lang['gvv_comptes_title_journal'] = "Grand journal";
 $lang['gvv_comptes_title_error'] = "Erreur";
 $lang['gvv_comptes_error_no_account'] = "Il n'y a pas de compte associé à l'identifiant de connexion";
-$lang['gvv_compta_title_entries'] = "Extrait du compte";
+$lang['gvv_compta_title_entries'] = "Extrait de compte";
 
 $lang['gvv_ecritures_field_date_op'] = "Date de l'opération";
 $lang['gvv_ecritures_field_compte1'] = "Emploi";
