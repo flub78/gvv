@@ -126,7 +126,7 @@ class OpenFlyers extends CI_Controller {
             $data ['titre'] = $grand_journal['header']['titre'];
             $data ['date_edition'] = $grand_journal['header']['date_edition'];
 
-            $comptes_html = $parser->HTMLTableWithControls($grand_journal);
+            $comptes_html = $parser->OperationsTableToHTML($grand_journal);
             $data['comptes_html'] = $comptes_html;
             
             // Sauvegarder en JSON

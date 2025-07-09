@@ -328,7 +328,7 @@ class GrandLivreParser {
         return $summary;
     }
 
-    public function HTMLTableWithControls($table) {
+    public function OperationsTableToHTML($table) {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -343,16 +343,19 @@ class GrandLivreParser {
         $line = 0;
         $result = [];
         $html = "";
-        $html .= '<table class="datatable3 table">';
 
+        // Début d'une section pour un compte
         foreach ($table['comptes'] as $row) {
 
-            $mvt_count = count($row['mouvements']);
-            if (!$row['mouvements']) continue;
 
-            $id_of = $row['numero_compte_of'];
-            $nom_of = $row['nom_compte'];
+            // D'abort on va chercher les informations relatives au compte
+            $mvt_count = count($row['mouvements']); // le nombre de mouvements
+            if (!$row['mouvements']) continue; // s'il n'y a pas d'écritures on saute
 
+            $id_of = $row['numero_compte_of'];      // numéro de compte OF
+            $nom_of = $row['nom_compte'];           // nom OF
+
+            // Quel est la section courante?
             $section = $CI->sections_model->section();
             $section_id = ($section) ? $section['id'] : 0;
 
@@ -365,16 +368,19 @@ class GrandLivreParser {
             if ($section) {
                 $associated_gvv_all = $CI->associations_of_model->get_gvv_account($id_of);
                 if ($associated_gvv_all && ! $associated_gvv) {
-                    // le compte est associé à une autre section on saute la ligne
+                    // le compte est associé à une autre section on saute le compte
                     continue;
                 }
             }
 
+            // Si le compte est associé
             if ($associated_gvv) {
+                // On affiche un lien vers le journal du compte
                 $compte_gvv = $associated_gvv;
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
             } else {
+                // On affiche un sélecteur
                 $attrs = 'class="form-control big_select" onchange="updateRow(this, '
                     . $id_of . ',\'' . $nom_of  . '\')"';
                 $compte_gvv = dropdown_field(
@@ -385,21 +391,55 @@ class GrandLivreParser {
                 );
             }
 
-            $lst = [$id_of, $nom_of, $compte_gvv, '', '', '', ''];
+            // Ici les comptes qu'on affiche
+
+            $html .= '<div class="mt-3 mb-3 border border-primary rounded">';
+            $html .= '<table class="table operations">';
+
+            // Affichage de la première ligne du compte
+            $lst = [$id_of, $nom_of, $compte_gvv, '', '', '', '', ''];
             $result[] = $lst;
             $html .= html_row($lst, ['class' => 'compte']);
 
-            $lst = ["Nombre d'opérations", $mvt_count, '', '', '', '', ''];
+            // Affichage du nombre d'opération et du bouton de masquage
+            $lst = ["Nombre d'opérations", $mvt_count, '', '', '', '', '', ''];
             $result[] = $lst;
             $html .= html_row($lst, ['class' => 'number_op']);
 
-            $lst = ['Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
+            // Entête de la ligne des écritures
+            $lst = ['', 'Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
             $result[] = $lst;
             $html .= html_row($lst, ['class' => 'row_title']);
 
+            // Affiche les lignes d'écriture
             $n = 1;
             foreach ($row['mouvements'] as $mvt) {
-                $lst = [$mvt['date'], $mvt['intitule'], $mvt['description'], $mvt['debit'], $mvt['credit'], $mvt['id_compte2'], $mvt['nom_compte2']];
+
+                $associated_gvv_compte2 = $CI->associations_of_model->get_gvv_account($mvt['id_compte2'], $section_id);
+
+                // Si le compte est associé
+                // if ($associated_gvv) {
+                //     // On affiche un lien vers le journal du compte
+                //     $compte2_gvv = $associated_gvv_compte2;
+                //     $image = $CI->comptes_model->image($compte_gvv);
+                //     $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+                // } else {
+                //     // On affiche un sélecteur
+                //     $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                //         . $id_of . ',\'' . $nom_of  . '\')"';
+                //     $compte_gvv = dropdown_field(
+                //         "compte_" . $line,
+                //         $associated_gvv,
+                //         $compte_selector,
+                //         $attrs
+                //     );
+                // }
+
+                $checkbox = '<input type="checkbox"'
+                    . ' name="cb_' . $line . '"'
+                    . ' onchange="toggleRowSelection(this)">';
+
+                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['description'], euro($mvt['debit']), euro($mvt['credit']), $mvt['id_compte2'], $mvt['nom_compte2']];
                 $result[] = $lst;
                 $class = 'mouvement';
                 if ($n % 2 == 0) {
@@ -411,8 +451,9 @@ class GrandLivreParser {
                 $n++;
             }
             $line++;
+            $html .= "</table>";
+            $html .= "</div>";
         }
-        $html .= "</table>";
         return $html;
         return $result;
     }

@@ -53,9 +53,6 @@ echo form_open_multipart('openflyers/creates_soldes');
 
 echo $comptes_html;
 
-
-echo "Date d'import des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
-
 echo form_input(array(
 	'type' => 'submit',
 	'name' => 'button',
