@@ -42,7 +42,7 @@ echo heading("gvv_of_title_operations", 3);
     </div>
 <?php
 
-echo form_open_multipart('openflyers/creates_soldes');
+echo form_open_multipart('openflyers/create_soldes');
 
 // Utilisé pour les comptes clients
 // echo table_from_array ($comptes_html, array(

@@ -32,6 +32,10 @@ echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_of_title_soldes", 3);
 
+if ($error) {
+    echo '<p class="text-danger">' . $error . "</p>\n";
+}
+
 ?>
 	<p>Seuls les comptes au solde non null sont affichés.</p>
     <div class="actions mb-3">
@@ -41,7 +45,7 @@ echo heading("gvv_of_title_soldes", 3);
     </div>
 <?php
 
-echo form_open_multipart('openflyers/creates_soldes');
+echo form_open_multipart('openflyers/create_soldes');
 
 // Utilisé pour les comptes clients
 echo table_from_array ($soldes, array(

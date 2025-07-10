@@ -57,7 +57,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [x] Mécanisme d'association des comptes de soldes 
   * [x] Import des soldes
   * [] import des écritures
-  * [] prendre la date en compte pour l'import des soldes
+  * [x] prendre la date en compte pour l'import des soldes
   
 * [] Gérer les suggestions de saisie par section
 * [] Ne pas afficher les comptes inactifs dont le solde est null.

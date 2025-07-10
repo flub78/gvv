@@ -123,12 +123,12 @@ class OpenFlyers extends CI_Controller {
             $parser = new GrandLivreParser();
             $grand_journal = $parser->parseGrandLivre($filename);
 
-            $data ['titre'] = $grand_journal['header']['titre'];
-            $data ['date_edition'] = $grand_journal['header']['date_edition'];
+            $data['titre'] = $grand_journal['header']['titre'];
+            $data['date_edition'] = $grand_journal['header']['date_edition'];
 
             $comptes_html = $parser->OperationsTableToHTML($grand_journal);
             $data['comptes_html'] = $comptes_html;
-            
+
             // Sauvegarder en JSON
             file_put_contents('grand_livre_parsed.json', $parser->toJson());
             // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
@@ -220,9 +220,7 @@ class OpenFlyers extends CI_Controller {
     /**
      * Génère une écriture d'initialisation de solde pilote
      */
-    public function solde_init($compte_gvv, $solde, $date="2025-01-01") {
-
-        // echo "solde_init($compte_gvv, $solde)<br>";
+    public function solde_init($compte_gvv, $solde, $date = "2025-01-01") {
 
         // Get club info from compte_gvv
         $compte = $this->comptes_model->get_by_id('id', $compte_gvv);
@@ -267,13 +265,22 @@ class OpenFlyers extends CI_Controller {
     /**
      * Scan les parametres post et génère les écritures d'initialisation de solde
      */
-    public function creates_soldes() {
+    public function create_soldes() {
 
         $file_soldes = $this->session->userdata('file_soldes');
         try {
             $parser = new SoldesParser();
             $soldes = $parser->parse($file_soldes);
 
+            $import_date = $this->input->post("import_date");
+            if (!$import_date) {
+                $soldes_html = $parser->arrayWithControls($soldes);
+                $data["error"] = "Date d'import non définie";
+                $data['soldes'] = $soldes_html;
+                load_last_view('openflyers/tableSoldes', $data);
+                return;
+            }
+            $date = date_ht2db($import_date);
             $posts = $this->input->post();
             foreach ($posts as $key => $value) {
                 // echo "$key => $value<br>";
@@ -292,7 +299,7 @@ class OpenFlyers extends CI_Controller {
                     $solde = $row[4];
 
                     // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
-                    $this->solde_init($compte_value, $solde);
+                    $this->solde_init($compte_value, $solde, $date);
                 }
             }
 
