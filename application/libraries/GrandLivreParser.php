@@ -442,10 +442,22 @@ class GrandLivreParser {
                     );
                 }
 
+                $mvt_data = array(
+                    'date' => $mvt['date'],
+                    'intitule' => $mvt['intitule'],
+                    'description' => $mvt['description'],
+                    'debit' => $mvt['debit'],
+                    'credit' => $mvt['credit']
+                );
+                $mvt_data_json = json_encode($mvt_data);
+
+                // $hidden_input = '<input type="hidden" name="import_' . $line . '" value="' . $mvt_data_json . '">';
+                $hidden_input = form_hidden('import_' . $line, $mvt_data_json);
+
                 if ($associated_gvv) {
                     $checkbox = '<input type="checkbox"'
                         . ' name="cb_' . $line . '"'
-                        . ' onchange="toggleRowSelection(this)">';
+                        . ' onchange="toggleRowSelection(this)">' . $hidden_input;
                 } else {
                     $checkbox = "";
                 }
@@ -453,6 +465,8 @@ class GrandLivreParser {
                 $id_compte2 = $mvt['id_compte2'] . ' ' . $compte2_gvv;
                 $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['description'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $mvt['nom_compte2']];
                 $result[] = $lst;
+
+                // génère la ligne de tableau HTML
                 $class = 'mouvement';
                 if ($n % 2 == 0) {
                     $class .= " even";
@@ -461,8 +475,8 @@ class GrandLivreParser {
                 }
                 $html .= html_row($lst, ['class' => $class]);
                 $n++;
+                $line++;
             }
-            $line++;
             $html .= "</table>";
             $html .= "</div>";
         }

@@ -42,7 +42,7 @@ echo heading("gvv_of_title_operations", 3);
     </div>
 <?php
 
-echo form_open_multipart('openflyers/create_soldes');
+echo form_open_multipart('openflyers/create_operations');
 
 // Utilisé pour les comptes clients
 // echo table_from_array ($comptes_html, array(
@@ -56,7 +56,7 @@ echo $comptes_html;
 echo form_input(array(
 	'type' => 'submit',
 	'name' => 'button',
-	'value' => $this->lang->line("gvv_of_init_soldes"),
+	'value' => $this->lang->line("gvv_of_import_opérations"),
 	'class' => 'btn btn-primary mb-4'
 ));
 echo form_close('</div>');

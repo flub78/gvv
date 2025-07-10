@@ -308,6 +308,24 @@ class OpenFlyers extends CI_Controller {
             echo "Erreur: " . $e->getMessage() . "\n";
         }
     }
+
+    /**
+     * Scan les paramètres post et génère les écritures d'import d'écritures
+     */
+    function create_operations() {
+        echo "create_operations<br>";
+        $posts = $this->input->post();
+        foreach ($posts as $key => $value) {
+            // echo "$key => $value<br>";
+            if (strpos($key, 'cb_') === 0) {
+                // Key starts with "cb_"
+                $line = str_replace("cb_", "", $key);
+                $import_key = "import_" . $line;
+                $import_params = $posts[$import_key];
+                echo "$key, $import_params<br>";      
+            }
+        }
+    }
 }
 
 /* End of file welcome.php */
