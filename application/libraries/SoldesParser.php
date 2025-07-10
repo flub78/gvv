@@ -101,7 +101,7 @@ class SoldesParser {
                 . ' name="cb_' . $line . '"' 
                 . ' onchange="toggleRowSelection(this)">';
             } else {
-                $checkbox = "";
+                $checkbox = ($initialized) ? "Initialisé" : "";
             }
 
             if ($initialized) {

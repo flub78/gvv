@@ -381,6 +381,8 @@ class GrandLivreParser {
                 $compte_gvv = $associated_gvv;
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+                $compte = $CI->comptes_model->get_by_id('id', $associated_gvv);
+                $is_411 = ($compte['codec'] == "411");
             } else {
                 // On affiche un sélecteur
                 $attrs = 'class="form-control big_select" onchange="updateRow(this, '
@@ -391,7 +393,10 @@ class GrandLivreParser {
                     $compte_selector,
                     $attrs
                 );
+                $is_411 = false;
             }
+
+            // if ($section && ! $is_411) continue;
 
             // Ici les comptes qu'on affiche
 

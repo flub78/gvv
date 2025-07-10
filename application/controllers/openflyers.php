@@ -220,7 +220,7 @@ class OpenFlyers extends CI_Controller {
     /**
      * Génère une écriture d'initialisation de solde pilote
      */
-    public function solde_init($compte_gvv, $solde) {
+    public function solde_init($compte_gvv, $solde, $date="2025-01-01") {
 
         // echo "solde_init($compte_gvv, $solde)<br>";
 
@@ -239,8 +239,8 @@ class OpenFlyers extends CI_Controller {
         // $fonds_associatif['id']
         // Generate accounting entries
         $data = array(
-            'annee_exercise' => "2025",
-            'date_op' => "2025-01-01",
+            'annee_exercise' => date('Y', strtotime($date)),
+            'date_op' => $date,
             'date_creation' => date("Y-m-d"),
             'club' => $compte['club'],
             'compte2' => $compte_gvv,
