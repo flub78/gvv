@@ -20,6 +20,7 @@
  * Vue table pour les terrains
  * 
  * @package vues
+ * @file bs_tableOperations.php
  */
 
 $this->load->view('bs_header');
@@ -53,7 +54,7 @@ echo form_open_multipart('openflyers/create_operations');
 
 echo $comptes_html;
 
-echo form_input(array(
+if ($section) echo form_input(array(
 	'type' => 'submit',
 	'name' => 'button',
 	'value' => $this->lang->line("gvv_of_import_opérations"),

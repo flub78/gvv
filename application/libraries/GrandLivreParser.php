@@ -443,13 +443,15 @@ class GrandLivreParser {
                 }
 
                 $mvt_data = array(
-                    'date' => $mvt['date'],
+                    'date' => date_ht2db($mvt['date']),
                     'intitule' => $mvt['intitule'],
-                    'description' => $mvt['description'],
+                    'description' => $mvt['numero_flux'],
                     'debit' => $mvt['debit'],
-                    'credit' => $mvt['credit']
+                    'credit' => $mvt['credit'],
+                    'compte1' => $associated_gvv,
+                    'compte2' => $associated_gvv_compte2
                 );
-                $mvt_data_json = json_encode($mvt_data);
+                $mvt_data_json = json_encode($mvt_data, JSON_UNESCAPED_UNICODE);
 
                 // $hidden_input = '<input type="hidden" name="import_' . $line . '" value="' . $mvt_data_json . '">';
                 $hidden_input = form_hidden('import_' . $line, $mvt_data_json);
@@ -463,7 +465,7 @@ class GrandLivreParser {
                 }
 
                 $id_compte2 = $mvt['id_compte2'] . ' ' . $compte2_gvv;
-                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['description'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $mvt['nom_compte2']];
+                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['numero_flux'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $mvt['nom_compte2']];
                 $result[] = $lst;
 
                 // génère la ligne de tableau HTML

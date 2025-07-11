@@ -36,6 +36,7 @@ class OpenFlyers extends CI_Controller {
         $this->lang->load('welcome');
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
+        $this->load->model('sections_model');
         $this->load->library('SoldesParser');
     }
 
@@ -128,6 +129,7 @@ class OpenFlyers extends CI_Controller {
 
             $comptes_html = $parser->OperationsTableToHTML($grand_journal);
             $data['comptes_html'] = $comptes_html;
+            $data['section'] = $this->sections_model->section();
 
             // Sauvegarder en JSON
             file_put_contents('grand_livre_parsed.json', $parser->toJson());
@@ -263,6 +265,67 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
+     * Inserts a movement with the given parameters
+     *
+     * @param array $params Associative array of movement parameters
+     * 
+... date => 2025-02-19
+... intitule => ASSELIN Philippe - Virement - hdv avion (virt par erreur CG)
+... description => 60997
+... debit => 0.00
+... credit => 156.00
+... compte1 => 1119
+... compte2 => 679
+     */
+    public function insert_movement(array $params) {
+
+        // Quel est la section courante?
+        $section = $this->sections_model->section();
+
+        // Il faut une section active pour importer les écritures
+        if (!$section) return;
+
+        $section_id = ($section) ? $section['id'] : 0;
+
+        echo "<br>mouvement:<br>";
+        foreach ($params as $mkey => $mvalue) {
+            echo "... $mkey => $mvalue<br>";
+        }
+
+        $montant = 0;
+        $data = array(
+            'annee_exercise' => date('Y', $params['date']),
+            'date_op' => $params['date'],
+            'date_creation' => date("Y-m-d"),
+            'club' => $section['id'],
+            'compte1' => $params['compte1'],
+            'compte2' => $params['compte2'],
+            'montant' => $montant,
+            'description' => $params['intitule'],
+            'num_cheque' => $params['description'],
+            'saisie_par' => $this->dx_auth->get_username()
+        );
+
+        // if ($solde < 0) {
+        //     // On inverse 
+        //     $data['compte1'] = $compte_gvv;
+        //     $data['compte2'] = $fonds_associatif['id'];
+        //     $data['montant'] = -$solde;
+        // }
+
+        // var_dump($data);
+
+        // Si elle existe détruit l'écriture avec le même numéro de flux OpenFlyers
+
+        // Insert l'écriture
+
+        // $ecriture = $this->ecritures_model->create($data);
+        // if (!$ecriture) {
+        //     throw new Exception("Erreur pendant le passage d'écriture de solde:");
+        // }        
+    }
+
+    /**
      * Scan les parametres post et génère les écritures d'initialisation de solde
      */
     public function create_soldes() {
@@ -311,9 +374,14 @@ class OpenFlyers extends CI_Controller {
 
     /**
      * Scan les paramètres post et génère les écritures d'import d'écritures
+     * 
+     * Les écritures qui n'existent pas sont crée
+     * Les écritures qui existent sont remplacées
+     * 
+     * Si toutes les écritures 411 pour une section sont fournies entre deux dates,
+     * on peut les supprimer pour garantir la synchronisation.
      */
     function create_operations() {
-        echo "create_operations<br>";
         $posts = $this->input->post();
         foreach ($posts as $key => $value) {
             // echo "$key => $value<br>";
@@ -321,8 +389,10 @@ class OpenFlyers extends CI_Controller {
                 // Key starts with "cb_"
                 $line = str_replace("cb_", "", $key);
                 $import_key = "import_" . $line;
-                $import_params = $posts[$import_key];
-                echo "$key, $import_params<br>";      
+                $import_params = html_entity_decode($posts[$import_key]);
+                $params = json_decode($import_params, true);
+
+                $this->insert_movement($params);
             }
         }
     }
