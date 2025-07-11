@@ -63,10 +63,11 @@ class Associations_OF extends Gvv_Controller {
      * Create an association and return a json status
      */
     public function associate () {
-
             $nom_of = $this->input->get('nom_of');
             $id_of = $this->input->get('id_of');
             $cptGVV = $this->input->get('cptGVV');
+
+            gvv_debug("associate (id_of=$id_of, nom_of=$nom_of, gvv=$cptGVV)");
 
             // $this->load->model('associations_of_model');
 

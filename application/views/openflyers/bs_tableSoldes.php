@@ -20,6 +20,7 @@
  * Vue table pour les terrains
  * 
  * @package vues
+ * @file bs_tableSoldes.php
  */
 
 $this->load->view('bs_header');

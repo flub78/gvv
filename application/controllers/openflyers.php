@@ -41,7 +41,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Selection du fichier journal
+     * Page de selection du fichier journal
      */
     function select_operations() {
         $data = array();
@@ -52,7 +52,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Selection des soldes de compte clients
+     * Page de selection des soldes de compte clients
      */
     function select_soldes() {
         $data = array();
@@ -215,6 +215,7 @@ class OpenFlyers extends CI_Controller {
 
         $soldes_html = $parser->arrayWithControls($soldes);
         $data['soldes'] = $soldes_html;
+        $data['error'] = '';
 
         load_last_view('openflyers/tableSoldes', $data);
     }
