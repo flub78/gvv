@@ -16,6 +16,11 @@ class Clotures_model extends Common_Model {
     public $table = 'clotures';
     protected $primary_key = 'id';
 
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('sections_model');
+    }
+
     /**
      *	Retourne le tableau tableau utilisé pour l'affichage par page
      *	@return objet		  La liste
@@ -57,10 +62,10 @@ class Clotures_model extends Common_Model {
 
         $this->db->select('*');
         $this->db->from('clotures');
-        if ($section_id = "") {
+        if ($section_id != "") {
             $this->db->where('section', $section_id);
         } else {
-            $section = $this->gvv_model->section();
+            $section = $this->sections_model->section();
             if ($section) {
                 $this->db->where('section', $section['id']);
             }
@@ -107,7 +112,7 @@ class Clotures_model extends Common_Model {
     public function create_freeze_date($date, $description = "") {
         $data['date'] = $date;
         $data['description'] = $description;
-        $section = $this->gvv_model->section();
+        $section = $this->sections_model->section();
 
         if ($section) {
             $data['section'] = $section['id'];

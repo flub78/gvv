@@ -23,7 +23,7 @@ if (! defined('BASEPATH'))
  *          Page d'acceuil
  */
 class OpenFlyers extends CI_Controller {
-
+    
     function __construct() {
         parent::__construct();
         // Check if user is logged in or not
@@ -307,16 +307,18 @@ class OpenFlyers extends CI_Controller {
         }
 
         // Si elle existe détruit l'écriture avec le même numéro de flux OpenFlyers
-        // $this->db->where('num_cheque', $num_cheque);
-        // $this->db->where('club', $data['club']); 
-        // $this->db->delete('ecritures');
+        $this->ecritures_model->delete_all(["club" => $data['club'], 'num_cheque' =>  $data['num_cheque']]);
+        echo "deleted<br>";
         
-
         // Insert l'écriture
         $ecriture = $this->ecritures_model->create($data);
+
         if (!$ecriture) {
+            echo "error<br>";
             throw new Exception("Erreur pendant le passage d'écriture de solde:");
-        }        
+        } else {
+            echo "created<br>";
+        }       
     }
 
     /**

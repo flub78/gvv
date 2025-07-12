@@ -17,6 +17,11 @@ class Ecritures_model extends Common_Model {
     public $table = 'ecritures';
     protected $primary_key = 'id';
 
+    public function __construct() {
+        parent::__construct();
+        $this->load->model('clotures_model');
+    }
+
     /**
      * Génère le filtre des écritures à prendre en compte
      *
@@ -953,7 +958,7 @@ array (size=2)
       'debit' => float 0
       'solde' => float 0
      */
-    function select_solde($date_op, $codec_min, $codec_max, $group = TRUE, $section_id = 0) {   
+    function select_solde($date_op, $codec_min, $codec_max, $group = TRUE, $section_id = 0) {
 
         // if ($codec_min == 1) echo "select_solde($date_op, $codec_min, $codec_max, $group)" . br();
         $group_by = ($group) ? "" : "compte1";
@@ -1137,7 +1142,7 @@ array (size=2)
             ->where("(compte1 = '$account_id' AND c2.codec = '102') OR (compte2 = '$account_id' AND c1.codec = '102')")
             ->limit(1)
             ->get();
-            
+
         return $db_res->num_rows() > 0;
     }
 
