@@ -79,7 +79,7 @@ echo '</div>';
 			console.log("updateRow, cpt GVV=" + cptGVV + ", id_of=" + id_of + ", nom=" + nom_of);
 			
 			// Call server to associate account
-			fetch('<?= site_url() ?>associations_of/associate?id_of=' + id_of + '&nom_of=' + encodeURIComponent(nom_of) + '&cptGVV=' + encodeURIComponent(cptGVV))
+			fetch('<?= site_url() ?>/associations_of/associate?id_of=' + id_of + '&nom_of=' + encodeURIComponent(nom_of) + '&cptGVV=' + encodeURIComponent(cptGVV))
 			    .then(response => response.json())
 			    .then(data => console.log('Association response:', data))
 			    .catch(error => console.error('Error:', error));
