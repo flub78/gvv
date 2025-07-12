@@ -393,10 +393,11 @@ class GrandLivreParser {
                     $compte_selector,
                     $attrs
                 );
-                $is_411 = false;
+                // On veut aussi afficher les comptes non assignés
+                $is_411 = true;
             }
 
-            // if ($section && ! $is_411) continue;
+            if ($section && ! $is_411) continue;
 
             // Ici les comptes qu'on affiche
 

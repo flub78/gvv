@@ -132,20 +132,8 @@ class OpenFlyers extends CI_Controller {
             $data['section'] = $this->sections_model->section();
 
             // Sauvegarder en JSON
-            file_put_contents('grand_livre_parsed.json', $parser->toJson());
+            // file_put_contents('grand_livre_parsed.json', $parser->toJson());
             // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
-
-            // // Afficher un résumé
-            // echo "=== RÉSUMÉ DU GRAND LIVRE ===\n";
-            // $summary = $parser->getSummary();
-            // echo "Nombre de comptes: " . $summary['nombre_comptes'] . "\n";
-            // echo "Total des mouvements: " . $summary['total_mouvements'] . "\n\n";
-
-            // // Afficher les comptes
-            // echo "=== COMPTES ===\n";
-            // foreach ($summary['comptes_resume'] as $compte) {
-            //     echo "- {$compte['nom']} (OF: {$compte['numero_of']}) - {$compte['nb_mouvements']} mouvements\n" . '<br>';
-            // }
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
@@ -286,14 +274,13 @@ class OpenFlyers extends CI_Controller {
         // Il faut une section active pour importer les écritures
         if (!$section) return;
 
-        $section_id = ($section) ? $section['id'] : 0;
-
         echo "<br>mouvement:<br>";
-        foreach ($params as $mkey => $mvalue) {
-            echo "... $mkey => $mvalue<br>";
-        }
+        // foreach ($params as $mkey => $mvalue) {
+        //     echo "... $mkey => $mvalue<br>";
+        // }
 
         $montant = 0;
+        $num_cheque = "OpenFlyers : " . $params['description'];
         $data = array(
             'annee_exercise' => date('Y', $params['date']),
             'date_op' => $params['date'],
@@ -303,27 +290,33 @@ class OpenFlyers extends CI_Controller {
             'compte2' => $params['compte2'],
             'montant' => $montant,
             'description' => $params['intitule'],
-            'num_cheque' => $params['description'],
+            'num_cheque' => $num_cheque,
             'saisie_par' => $this->dx_auth->get_username()
         );
 
-        // if ($solde < 0) {
-        //     // On inverse 
-        //     $data['compte1'] = $compte_gvv;
-        //     $data['compte2'] = $fonds_associatif['id'];
-        //     $data['montant'] = -$solde;
-        // }
+        if ($params['debit'] != "0.00") {
+            $data['montant'] = $params['debit'];
+        } else {
+            $data['montant'] = $params['credit'];
+            $data['compte1'] = $params['compte2'];
+            $data['compte2'] = $params['compte1'];
+        }
 
-        // var_dump($data);
+        foreach ($data as $mkey => $mvalue) {
+            echo "... $mkey => $mvalue<br>";
+        }
 
         // Si elle existe détruit l'écriture avec le même numéro de flux OpenFlyers
+        // $this->db->where('num_cheque', $num_cheque);
+        // $this->db->where('club', $data['club']); 
+        // $this->db->delete('ecritures');
+        
 
         // Insert l'écriture
-
-        // $ecriture = $this->ecritures_model->create($data);
-        // if (!$ecriture) {
-        //     throw new Exception("Erreur pendant le passage d'écriture de solde:");
-        // }        
+        $ecriture = $this->ecritures_model->create($data);
+        if (!$ecriture) {
+            throw new Exception("Erreur pendant le passage d'écriture de solde:");
+        }        
     }
 
     /**
