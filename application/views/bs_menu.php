@@ -57,7 +57,7 @@ $section_count = $CI->sections_model->safe_count_all();
                     <ul class="submenu dropdown-menu">
 
                       <?php if (has_role('ca')) : ?>
-                        <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><?= translation("gvv_menu_vols_decouverte") ?></a></li>
+                        <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><?= translation("gvv_menu_liste_des_bons") ?></a></li>
                         <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
                       <?php endif; ?>
                   </li>

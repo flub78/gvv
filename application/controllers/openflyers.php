@@ -104,7 +104,7 @@ class OpenFlyers extends CI_Controller {
 
             // $this->load->library('unzip');
             $filename = $config['upload_path'] . $data['file_name'];
-
+            $this->session->set_userdata('file_operations', $filename);
             $this->import_operations_from_files($filename);
         }
     }
@@ -272,12 +272,7 @@ class OpenFlyers extends CI_Controller {
         $section = $this->sections_model->section();
 
         // Il faut une section active pour importer les écritures
-        if (!$section) return;
-
-        echo "<br>mouvement:<br>";
-        // foreach ($params as $mkey => $mvalue) {
-        //     echo "... $mkey => $mvalue<br>";
-        // }
+        if (!$section) return false;
 
         $montant = 0;
         $num_cheque = "OpenFlyers : " . $params['description'];
@@ -302,22 +297,16 @@ class OpenFlyers extends CI_Controller {
             $data['compte2'] = $params['compte1'];
         }
 
-        foreach ($data as $mkey => $mvalue) {
-            echo "... $mkey => $mvalue<br>";
-        }
-
         // Si elle existe détruit l'écriture avec le même numéro de flux OpenFlyers
         $this->ecritures_model->delete_all(["club" => $data['club'], 'num_cheque' =>  $data['num_cheque']]);
-        echo "deleted<br>";
         
         // Insert l'écriture
         $ecriture = $this->ecritures_model->create($data);
 
         if (!$ecriture) {
-            echo "error<br>";
             throw new Exception("Erreur pendant le passage d'écriture de solde:");
         } else {
-            echo "created<br>";
+            return true;
         }       
     }
 
@@ -388,9 +377,25 @@ class OpenFlyers extends CI_Controller {
                 $import_params = html_entity_decode($posts[$import_key]);
                 $params = json_decode($import_params, true);
 
-                $this->insert_movement($params);
+                $date = date_db2ht($params['date']);
+                $intitule = $params['intitule'];
+                $description = $params['description'];
+                if ($params['debit'] == "0.00") {
+                    $montant = euro($params['credit']);
+                } else {
+                    $montant = euro($params['debit']);
+                }
+                $msg = "$date : $intitule ,OpenFleyrs=$description, montant=$montant<br>";
+                if ($this->insert_movement($params)) {
+                    echo "Import OK - " . $msg;
+                } else {
+                    echo "Erreur - " . $msg;
+                }                
             }
         }
+
+        $file_operations = $this->session->userdata('file_operations');
+        $this->import_operations_from_files($file_operations);
     }
 }
 

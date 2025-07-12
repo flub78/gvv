@@ -425,6 +425,8 @@ class GrandLivreParser {
 
                 $associated_gvv_compte2 = $CI->associations_of_model->get_gvv_account($mvt['id_compte2'], $section_id);
 
+                $compte2 = $CI->comptes_model->get_by_id('id', $associated_gvv_compte2);
+
                 // Si le compte est associé
                 if ($associated_gvv_compte2) {
                     // On affiche un lien vers le journal du compte
@@ -457,10 +459,20 @@ class GrandLivreParser {
                 // $hidden_input = '<input type="hidden" name="import_' . $line . '" value="' . $mvt_data_json . '">';
                 $hidden_input = form_hidden('import_' . $line, $mvt_data_json);
 
-                if ($associated_gvv) {
+                if ($associated_gvv_compte2 && $associated_gvv) {
                     $checkbox = '<input type="checkbox"'
                         . ' name="cb_' . $line . '"'
                         . ' onchange="toggleRowSelection(this)">' . $hidden_input;
+
+                    $num_cheque = "OpenFlyers : " . $mvt['numero_flux'];
+                    $club = $compte2['club'];
+                    $where = ["club" => $club, 'num_cheque' =>  $num_cheque];
+
+                    $ecriture = $CI->ecritures_model->get_first($where);
+
+                    if ($ecriture) $checkbox .= nbs(2) . "synchronisé"; 
+                    // var_dump($ecriture);
+
                 } else {
                     $checkbox = "";
                 }
