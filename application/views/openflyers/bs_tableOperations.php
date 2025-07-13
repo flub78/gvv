@@ -35,7 +35,7 @@ echo heading("gvv_of_title_operations", 3);
 
 ?>
 
-    <h2><?=$titre?></h2>
+    <h5><?=$titre?></h5>
 	<p><?=$date_edition?></p>
     <div class="actions mb-3">
         <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>

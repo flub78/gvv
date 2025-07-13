@@ -112,7 +112,7 @@ class OpenFlyers extends CI_Controller {
     /**
      * Import a CSV journal from a file
      */
-    public function import_operations_from_files($filename) {
+    public function import_operations_from_files($filename, $status="") {
 
         // $file_content = file_get_contents($filename);
         // echo $file_content;
@@ -130,7 +130,7 @@ class OpenFlyers extends CI_Controller {
             $comptes_html = $parser->OperationsTableToHTML($grand_journal);
             $data['comptes_html'] = $comptes_html;
             $data['section'] = $this->sections_model->section();
-
+            $data['status'] = $status;
             // Sauvegarder en JSON
             // file_put_contents('grand_livre_parsed.json', $parser->toJson());
             // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
@@ -395,7 +395,7 @@ class OpenFlyers extends CI_Controller {
         }
 
         $file_operations = $this->session->userdata('file_operations');
-        $this->import_operations_from_files($file_operations);
+        $this->import_operations_from_files($file_operations, $msg);
     }
 }
 

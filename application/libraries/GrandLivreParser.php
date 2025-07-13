@@ -415,7 +415,7 @@ class GrandLivreParser {
             $html .= html_row($lst, ['class' => 'number_op']);
 
             // Entête de la ligne des écritures
-            $lst = ['', 'Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'ID_compte2', 'Nom_compte2'];
+            $lst = ['', 'Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'Compte OF', 'Compte GVV'];
             $result[] = $lst;
             $html .= html_row($lst, ['class' => 'row_title']);
 
@@ -470,15 +470,15 @@ class GrandLivreParser {
 
                     $ecriture = $CI->ecritures_model->get_first($where);
 
-                    if ($ecriture) $checkbox .= nbs(2) . "synchronisé"; 
+                    if ($ecriture) $checkbox .= nbs(2) . '<span class="text-light bg-success p-1 rounded">synchronisé</span>'; 
                     // var_dump($ecriture);
 
                 } else {
                     $checkbox = "";
                 }
 
-                $id_compte2 = $mvt['id_compte2'] . ' ' . $compte2_gvv;
-                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['numero_flux'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $mvt['nom_compte2']];
+                $id_compte2 = $mvt['id_compte2'] . ' : ' . $mvt['nom_compte2'];
+                $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['numero_flux'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $compte2_gvv];
                 $result[] = $lst;
 
                 // génère la ligne de tableau HTML
