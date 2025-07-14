@@ -368,10 +368,12 @@ class OpenFlyers extends CI_Controller {
      */
     function create_operations() {
         $posts = $this->input->post();
+
+        $status = "";
         foreach ($posts as $key => $value) {
             // echo "$key => $value<br>";
             if (strpos($key, 'cb_') === 0) {
-                // Key starts with "cb_"
+                // Key starts with "cb_" ce sont les checkboxes actives
                 $line = str_replace("cb_", "", $key);
                 $import_key = "import_" . $line;
                 $import_params = html_entity_decode($posts[$import_key]);
@@ -385,17 +387,18 @@ class OpenFlyers extends CI_Controller {
                 } else {
                     $montant = euro($params['debit']);
                 }
-                $msg = "$date : $intitule ,OpenFleyrs=$description, montant=$montant<br>";
+                $msg = "$date : $intitule ,OpenFleyrs=$description, montant=$montant";
+
                 if ($this->insert_movement($params)) {
-                    echo "Import OK - " . $msg;
+                    $status .= '<div class="text-success">Import OK - ' . $msg . '</div>';
                 } else {
-                    echo "Erreur - " . $msg;
+                    $status .= '<div class="text-danger">Erreur - ' . $msg . '</div>';
                 }                
             }
         }
 
         $file_operations = $this->session->userdata('file_operations');
-        $this->import_operations_from_files($file_operations, $msg);
+        $this->import_operations_from_files($file_operations, $status);
     }
 }
 

@@ -33,10 +33,16 @@ echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_of_title_operations", 3);
 
+if ($status) {
+    echo '<div class="border border-primary border-3 rounded p-2">';
+    echo $status;
+    echo '</div>';
+}
 ?>
 
     <h5><?=$titre?></h5>
 	<p><?=$date_edition?></p>
+
     <div class="actions mb-3">
         <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
         <button class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
