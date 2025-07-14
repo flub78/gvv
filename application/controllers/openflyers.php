@@ -54,12 +54,18 @@ class OpenFlyers extends CI_Controller {
     /**
      * Page de selection des soldes de compte clients
      */
-    function select_soldes() {
+    function select_soldes($compare = false) {
         $data = array();
-        $data['title'] = $this->lang->line("welcome_nyi_title");
-        $data['text'] = $this->lang->line("welcome_nyi_text");
-
+        $data['compare'] = $compare;
         load_last_view('openflyers/select_soldes', $data);
+    }
+
+    /**
+     * Selection des dates d'annulation d'import opérations
+     */
+    function select_annulation() {
+        $data = array();
+        load_last_view('openflyers/select_annulation', $data);
     }
 
     /**
@@ -96,7 +102,7 @@ class OpenFlyers extends CI_Controller {
             $error = array(
                 'error' => $this->upload->display_errors()
             );
-            load_last_view('openflyers/select_file', $error);
+            load_last_view('openflyers/select_operations', $error);
         } else {
 
             // on a chargé le fichier
@@ -144,12 +150,24 @@ class OpenFlyers extends CI_Controller {
     /**
      * Import les soldes en CSV
      */
-    public function import_soldes() {
+    public function import_soldes($compare=false) {
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
             if (! mkdir($upload_path)) {
                 die("Cannot create " . $upload_path);
             }
+        }
+
+        if ($compare) {
+            $compare_date = $this->input->post('compare_date');
+            if (!$compare_date) {
+                $error = array(
+                    'error' => "Date de comparaison manquante ou incorrecte.",
+                    'compare' => true
+                );
+                load_last_view('openflyers/select_soldes', $error);
+            }
+
         }
 
         // delete all files in the uploads/restore directory
@@ -169,20 +187,18 @@ class OpenFlyers extends CI_Controller {
 
         $this->load->library('upload', $config);
 
-
         if (! $this->upload->do_upload()) {
             // On a pas réussi à charger le fichier
             $error = array(
                 'error' => $this->upload->display_errors()
             );
-            load_last_view('openflyers/select_file', $error);
+            load_last_view('openflyers/select_soldes', $error);
         } else {
-
             // on a chargé le fichier
             $data = $this->upload->data();
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_soldes', $filename);
-            $this->import_soldes_from_file($filename);
+            $this->import_soldes_from_file($filename, $compare);
         }
     }
 
@@ -192,7 +208,7 @@ class OpenFlyers extends CI_Controller {
      * @param string $filename Path to the file containing account balance data
      * @throws Exception If there are parsing or processing errors during import
      */
-    public function import_soldes_from_file($filename) {
+    public function import_soldes_from_file($filename, $compare=false) {
 
         try {
             $parser = new SoldesParser();

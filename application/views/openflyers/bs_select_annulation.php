@@ -25,33 +25,27 @@ $this->lang->load('openflyers');
 
 echo '<div id="body" class="body container-fluid">';
 
-if ($compare) {
-	echo heading("gvv_of_compare_soldes", 3);
-} else {
-	echo heading("gvv_of_synchro_soldes", 3);
-}
+echo heading("gvv_of_annulation", 3);
+
 if (!empty($error)) {
 	echo '<div class="alert alert-danger">' . $error . '</div>';
 }
-if ($compare) {
-	echo p($this->lang->line("gvv_of_explain_compare"));
-} else {
-	echo p($this->lang->line("gvv_of_explain_soldes"));
-}
+echo p($this->lang->line("gvv_of_explain_annulation"));
+
 ?>
+<p>Cependant il peut arriver qu'un administrateur modifie une opération après la synchronisation, en remontant parfois plusieurs semaines en arrière et introduise une désynchronisation. Si la modification est une modification de valeur, il suffit de resynchroniser les opérations concernées. S'il s'agit d'un ajout, il suffit de synchroniser les opérations ajoutées. S'il s'agit d'une suppression il faut alors supprimer toutes les opérations synchronisées dans GVV pour la période concernée, puis resynchroniser la période.</p>
+
 <a href="https://openflyers.com/abbeville/index.php?menuAction=admin_view_favorite_generic_report&menuParameter=141">Balance des comptes utilisateurs</a>
 <?php
 echo p($this->lang->line("gvv_of_warning2"), 'class="error"');
 
-// echo br();
-if ($compare) {
-echo form_open_multipart('openflyers/import_soldes/compare');
-echo "Date de comparaison: " . '<input type="date" name="compare_date" size="50" class="mt-4"/><br><br>';
+echo form_open_multipart('openflyers/cancel_soldes');
+echo "Date de debut: " . '<input type="date" name="start_date" size="50" class="mt-4"/><br>';
+echo "Date de fin: " . '<input type="date" name="end_date" size="50" class="mt-4"/><br>';
+echo "Supprime aussi les écritures non issues d'OpenFlyers: " . '<input type="checkbox"'
+                        . ' name="cb_all"'
+                        . ' ><br><br>';
 
-} else {
-echo form_open_multipart('openflyers/import_soldes');
-}
-echo '<input type="file" name="userfile" size="50" /><br><br>';
 
 echo form_input(array(
 	'type' => 'submit',

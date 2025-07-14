@@ -8,9 +8,19 @@
 
 $lang['gvv_of_synchro_operations'] = "OpenFlyers synchronisation des opérations";
 $lang['gvv_of_synchro_soldes'] = "OpenFlyers synchronisation des soldes clients";
+$lang['gvv_of_compare_soldes'] = "OpenFlyers vérification des soldes clients";
+$lang['gvv_of_annulation'] = "Annulation des opérations synchronisées";
+
 $lang['gvv_of_explain'] = "Il est possible de synchroniser les opérations des comptes clients entre OpenFlyers et GVV. Pour cela vous devez charger un fichier CSV au format export du grand livre OpenFLyers. Une fois connecté sur Openflyers vous pouvez le générer.";
 
-$lang['gvv_of_explain_soldes'] = "Il est possible de synchroniser les soldes des comptes clients entre OpenFlyers et GVV. Pour cela vous devez charger un fichier CSV au format export des balances clients OpenFLyers. Une fois connecté sur Openflyers vous pouvez le générer.";
+$lang['gvv_of_explain_soldes'] = "Il est possible d'initialiser les soldes des comptes clients à partir de l'export OpenFlyers à une date donnée. Pour cela exportez les soldes depuis OpenFLyers et importez les dans GVV";
+
+$lang['gvv_of_explain_compare'] = "Vous pouvez comparer les soldes des comptes client entre OpenFlyers et GVV. Normalement il doivent rester synchronisés.";
+
+$lang['gvv_of_explain_annulation'] = "Les comptes clients doivent rester synchronisés. Dans GVV il doit exister une opération sur les comptes client pour chaque opération équivalente dans OpenFLyers. Il ne doit pas avoir dans les comptes clients GVV d' opérations qui n'existent pas dans OpenFLyers (à part l'initialisation du solde). Les opérations OpenFLyers ne devraient pas être modifiées après la synchronisation.";
+
+$lang['gvv_of_explain_annulation2'] = "";
+
 
 $lang['gvv_of_warning'] = "Attention aux dates d'export.";
 $lang['gvv_of_warning2'] = "Attention à la date d'export.";
