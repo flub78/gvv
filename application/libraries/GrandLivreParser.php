@@ -122,9 +122,20 @@ class GrandLivreParser {
      * Parse l'en-tête du document
      */
     private function parseHeader($fields, $lineNumber) {
+        $error = "Format de fichier invalide. Le fichier n'est pas un export du grand journal OpenFlyers.";
         if ($lineNumber == 1) {
             $this->data['header']['titre'] = $fields[0] ?? '';
+            // Check that $fields[0] match Grand livre du 01/01/2025  au  31/01/2025
+            if (!preg_match('/^Grand livre du \d{2}\/\d{2}\/\d{4}\s+au\s+\d{2}\/\d{2}\/\d{4}$/', $fields[0])) {
+
+                throw new Exception($error);
+            }
         } elseif ($lineNumber == 2) {
+            // Check that $fields[0] matches Edité le 13/07/2025
+            if (!preg_match('/^Edité le \d{2}\/\d{2}\/\d{4}$/', $fields[0])) {
+                throw new Exception($error);
+            }
+
             $this->data['header']['date_edition'] = $fields[0] ?? '';
         }
     }
@@ -254,48 +265,48 @@ class GrandLivreParser {
     /**
      * Vérifie si c'est une ligne de total
      */
-    private function isTotalLine($fields) {
-        $firstField = $fields[0] ?? '';
-        return strpos($firstField, 'Total') !== false ||
-            strpos($firstField, 'Solde au') !== false ||
-            strpos($firstField, 'Cumul') !== false;
-    }
+    // private function isTotalLine($fields) {
+    //     $firstField = $fields[0] ?? '';
+    //     return strpos($firstField, 'Total') !== false ||
+    //         strpos($firstField, 'Solde au') !== false ||
+    //         strpos($firstField, 'Cumul') !== false;
+    // }
 
     /**
      * Vérifie si c'est un total global
      */
-    private function isGlobalTotal($fields) {
-        $firstField = $fields[0] ?? '';
-        return strpos($firstField, 'Cumul des mouvements') !== false;
-    }
+    // private function isGlobalTotal($fields) {
+    //     $firstField = $fields[0] ?? '';
+    //     return strpos($firstField, 'Cumul des mouvements') !== false;
+    // }
 
     /**
      * Parse une ligne de total
      */
-    private function parseTotal($fields) {
-        $total = [
-            'type' => $fields[0] ?? '',
-            'debit' => 0.0,
-            'credit' => 0.0,
-            'solde' => 0.0
-        ];
+    // private function parseTotal($fields) {
+    //     $total = [
+    //         'type' => $fields[0] ?? '',
+    //         'debit' => 0.0,
+    //         'credit' => 0.0,
+    //         'solde' => 0.0
+    //     ];
 
-        // Recherche des montants numériques
-        $numericFields = [];
-        foreach ($fields as $field) {
-            if (is_numeric(str_replace(',', '.', $field))) {
-                $numericFields[] = floatval(str_replace(',', '.', $field));
-            }
-        }
+    //     // Recherche des montants numériques
+    //     $numericFields = [];
+    //     foreach ($fields as $field) {
+    //         if (is_numeric(str_replace(',', '.', $field))) {
+    //             $numericFields[] = floatval(str_replace(',', '.', $field));
+    //         }
+    //     }
 
-        if (count($numericFields) >= 3) {
-            $total['debit'] = $numericFields[count($numericFields) - 3];
-            $total['credit'] = $numericFields[count($numericFields) - 2];
-            $total['solde'] = $numericFields[count($numericFields) - 1];
-        }
+    //     if (count($numericFields) >= 3) {
+    //         $total['debit'] = $numericFields[count($numericFields) - 3];
+    //         $total['credit'] = $numericFields[count($numericFields) - 2];
+    //         $total['solde'] = $numericFields[count($numericFields) - 1];
+    //     }
 
-        return $total;
-    }
+    //     return $total;
+    // }
 
     /**
      * Retourne les données parsées sous forme de JSON
@@ -470,7 +481,7 @@ class GrandLivreParser {
 
                     $ecriture = $CI->ecritures_model->get_first($where);
 
-                    if ($ecriture) $checkbox .= nbs(2) . '<span class="text-light bg-success p-1 rounded">synchronisé</span>'; 
+                    if ($ecriture) $checkbox .= nbs(2) . '<span class="text-light bg-success p-1 rounded">synchronisé</span>';
                     // var_dump($ecriture);
 
                 } else {

@@ -199,6 +199,7 @@ class OpenFlyers extends CI_Controller {
             $soldes = $parser->parse($filename);
         } catch (Exception $e) {
             echo "Erreur: " . $e->getMessage() . "\n";
+            exit;
         }
 
         $soldes_html = $parser->arrayWithControls($soldes);

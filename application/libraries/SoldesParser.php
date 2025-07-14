@@ -40,6 +40,12 @@ class SoldesParser {
 
             // Ignorer l'entête
             if ($lineNumber < 2) {
+
+                // Vérifier que l'en-tête correspond au format attendu
+                if ($lineNumber === 1 && $line !== "ID;Nom;Profil;Type de compte;Balance") {
+                    throw new Exception("Format de fichier incorrect. Ce n'est pas un export de solde OpenFlyers");
+                }
+
                 continue;
             }
 
@@ -87,7 +93,7 @@ class SoldesParser {
         $result = [];
         foreach ($table as $row) {
             $checkbox = '<input type="checkbox"'
-                . ' name="cb_' . $line . '"' 
+                . ' name="cb_' . $line . '"'
                 . ' onchange="toggleRowSelection(this)">';
             $id_of = $row[0];
             $nom_of = $row[1];
@@ -98,8 +104,8 @@ class SoldesParser {
             $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
             if ($associated_gvv && !$initialized) {
                 $checkbox = '<input type="checkbox"'
-                . ' name="cb_' . $line . '"' 
-                . ' onchange="toggleRowSelection(this)">';
+                    . ' name="cb_' . $line . '"'
+                    . ' onchange="toggleRowSelection(this)">';
             } else {
                 $checkbox = ($initialized) ? "Initialisé" : "";
             }
@@ -109,12 +115,15 @@ class SoldesParser {
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
             } else {
-                $attrs = 'class="form-control big_select" onchange="updateRow(this, ' 
-                . $id_of . ',\'' . $nom_of  . '\')"';
-            $compte_gvv = dropdown_field("compte_" . $line, $associated_gvv, 
-                $compte_selector, $attrs
-                
-            );
+                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                    . $id_of . ',\'' . $nom_of  . '\')"';
+                $compte_gvv = dropdown_field(
+                    "compte_" . $line,
+                    $associated_gvv,
+                    $compte_selector,
+                    $attrs
+
+                );
             }
 
             $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
@@ -122,5 +131,4 @@ class SoldesParser {
         }
         return $result;
     }
-
 }
