@@ -23,7 +23,7 @@ if (! defined('BASEPATH'))
  *          Page d'acceuil
  */
 class OpenFlyers extends CI_Controller {
-    
+
     function __construct() {
         parent::__construct();
         // Check if user is logged in or not
@@ -118,7 +118,7 @@ class OpenFlyers extends CI_Controller {
     /**
      * Import a CSV journal from a file
      */
-    public function import_operations_from_files($filename, $status="") {
+    public function import_operations_from_files($filename, $status = "") {
 
         // $file_content = file_get_contents($filename);
         // echo $file_content;
@@ -150,7 +150,7 @@ class OpenFlyers extends CI_Controller {
     /**
      * Import les soldes en CSV
      */
-    public function import_soldes($compare=false) {
+    public function import_soldes($compare = false) {
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
             if (! mkdir($upload_path)) {
@@ -167,7 +167,6 @@ class OpenFlyers extends CI_Controller {
                 );
                 load_last_view('openflyers/select_soldes', $error);
             }
-
         }
 
         // delete all files in the uploads/restore directory
@@ -208,7 +207,7 @@ class OpenFlyers extends CI_Controller {
      * @param string $filename Path to the file containing account balance data
      * @throws Exception If there are parsing or processing errors during import
      */
-    public function import_soldes_from_file($filename, $compare=false) {
+    public function import_soldes_from_file($filename, $compare = false) {
 
         try {
             $parser = new SoldesParser();
@@ -316,7 +315,7 @@ class OpenFlyers extends CI_Controller {
 
         // Si elle existe détruit l'écriture avec le même numéro de flux OpenFlyers
         $this->ecritures_model->delete_all(["club" => $data['club'], 'num_cheque' =>  $data['num_cheque']]);
-        
+
         // Insert l'écriture
         $ecriture = $this->ecritures_model->create($data);
 
@@ -324,7 +323,7 @@ class OpenFlyers extends CI_Controller {
             throw new Exception("Erreur pendant le passage d'écriture de solde:");
         } else {
             return true;
-        }       
+        }
     }
 
     /**
@@ -410,12 +409,55 @@ class OpenFlyers extends CI_Controller {
                     $status .= '<div class="text-success">Import OK - ' . $msg . '</div>';
                 } else {
                     $status .= '<div class="text-danger">Erreur - ' . $msg . '</div>';
-                }                
+                }
             }
         }
 
         $file_operations = $this->session->userdata('file_operations');
         $this->import_operations_from_files($file_operations, $status);
+    }
+
+    public function cancel_operations() {
+        $start_date = $this->input->post('start_date');
+        $end_date = $this->input->post('end_date');
+        $all = $this->input->post('cb_all');
+        $error = "";
+
+        $section = $this->sections_model->section();
+        if (!$section) {
+            $error = "Une section doit être active pour supprimer ses opérations. ";
+        }
+        if (!$start_date) {
+            $error .= "<br>Date de début manquante ou incorrecte.";
+        }
+        if (!$end_date) {
+            $error .= "<br>Date de fin manquante ou incorrecte.";
+        }
+
+        if ($error) {
+            $error = array(
+                'error' => $error
+            );
+            load_last_view('openflyers/select_annulation', $error);
+            return;
+        }
+
+        $this->display_operations_to_delete($start_date, $end_date, $all, $section['id']);
+    }
+
+    public function display_operations_to_delete($start_date, $end_date, $all, $section_id) {
+        echo "display_operations_to_delete($start_date, $end_date, $all, $section_id)";
+
+
+        $ecritures = $this->ecritures_model->select_ecritures_to_delete($start_date, $end_date, $section_id, $all);
+        // var_dump($ecritures);
+        foreach ($ecritures as $elt) {
+
+            foreach ($elt as $key => $value) {
+                echo "$key => $value <br>";
+            }
+            echo '<br>';
+        }
     }
 }
 

@@ -39,7 +39,7 @@ echo p($this->lang->line("gvv_of_explain_annulation"));
 <?php
 echo p($this->lang->line("gvv_of_warning2"), 'class="error"');
 
-echo form_open_multipart('openflyers/cancel_soldes');
+echo form_open_multipart('openflyers/cancel_operations');
 echo "Date de debut: " . '<input type="date" name="start_date" size="50" class="mt-4"/><br>';
 echo "Date de fin: " . '<input type="date" name="end_date" size="50" class="mt-4"/><br>';
 echo "Supprime aussi les écritures non issues d'OpenFlyers: " . '<input type="checkbox"'

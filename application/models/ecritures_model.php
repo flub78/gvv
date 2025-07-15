@@ -752,6 +752,29 @@ class Ecritures_model extends Common_Model {
         return $this->get_to_array($db_res);
     }
 
+    function select_ecritures_to_delete($start_date, $end_date, $section_id, $all) {
+        $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.codec, compte1.nom, compte2.codec, compte2.nom")
+            ->from("ecritures")
+            ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
+            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")
+
+            ->where("(compte1.codec = '411' OR compte2.codec = '411')")
+            ->where("ecritures.club", $section_id)
+            ->where("ecritures.date_op BETWEEN '$start_date' AND '$end_date'");
+
+        if (!$all) {
+            $this->db->where("ecritures.num_cheque LIKE 'OpenFlyers : %'");
+        }
+
+        $db_res = $this->db->group_by('compte1')
+            ->get();
+
+
+
+        return $this->get_to_array($db_res);
+        echo $this->db->last_query();
+    }
+
     /**
      * Pointe les écritures
      *
