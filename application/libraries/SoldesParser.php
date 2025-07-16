@@ -91,9 +91,12 @@ class SoldesParser {
         $CI->load->model('comptes_model');
         $CI->load->model('associations_of_model');
         $CI->load->model('ecritures_model');
+        $CI->load->model('sections_model');
 
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+
+        $section = $CI->sections_model->section();
 
         // $table = $this->parse($filePath);
         $line = 0;
@@ -109,6 +112,12 @@ class SoldesParser {
             $solde = euro($row[4]);
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
             $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
+            if ($associated_gvv && $section) {
+                $gvv_cpt = $CI->comptes_model->get_by_id('id', $associated_gvv);
+                if ($section['id'] != $gvv_cpt['club']) {
+                    continue;
+                }
+            }
             if ($associated_gvv && !$initialized) {
                 $checkbox = '<input type="checkbox"'
                     . ' name="cb_' . $line . '"'
