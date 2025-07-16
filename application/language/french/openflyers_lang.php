@@ -32,6 +32,7 @@ $lang['gvv_of_title_associations'] = "Associations des comptes OpenFlyers";
 $lang['gvv_of_title_association'] = "Association de compte OpenFlyers";
 $lang['gvv_of_title_operations'] = "OpenFlyers import des opérations des comptes clients";
 $lang['gvv_of_title_confirm_delete'] = "Confirmez les opérations à supprimer";
+$lang['gvv_of_title_soldes_compare'] = "Comparaison des soldes des comptes clients";
 
 
 

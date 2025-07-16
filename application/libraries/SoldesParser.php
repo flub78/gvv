@@ -78,7 +78,14 @@ class SoldesParser {
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
-    public function arrayWithControls($table) {
+    /**
+     * Converts parsed table data into an array with additional controls and metadata
+     *
+     * @param array $table The parsed table data to process
+     * @param mixed $compare_date Optional date for comparing account balances
+     * @return array Processed table data with additional metadata and controls
+     */
+    public function arrayWithControls($table, $compare_date = false) {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -126,7 +133,23 @@ class SoldesParser {
                 );
             }
 
-            $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
+            if ($compare_date) {
+                if ($associated_gvv) {
+                    $solde_gvv = euro($CI->ecritures_model->solde_compte($associated_gvv, date_db2ht($compare_date)));
+                } else {
+                    $solde_gvv = "0.00 €";
+                }
+
+                if ($solde != $solde_gvv) {
+                    $solde = '<div class="text-danger">' . $solde . '</div>';
+                    $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
+                    $id_of = "diff " . $id_of;
+               }
+                
+                $result[] = [$id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
+            } else {
+                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
+            }
             $line++;
         }
         return $result;

@@ -197,17 +197,18 @@ class OpenFlyers extends CI_Controller {
             $data = $this->upload->data();
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_soldes', $filename);
-            $this->import_soldes_from_file($filename, $compare);
+            $this->import_soldes_from_file($filename, $compare_date);
         }
     }
 
     /**
-     * Imports account balances from a specified file
-     *
-     * @param string $filename Path to the file containing account balance data
-     * @throws Exception If there are parsing or processing errors during import
-     */
-    public function import_soldes_from_file($filename, $compare = false) {
+         * Imports account balances from a file and processes them
+         *
+         * @param string $filename Path to the file containing account balance data
+         * @param string $compare_date Optional date for comparing account balances (database format)
+         * @throws Exception If there are parsing or processing errors during import
+         */
+    public function import_soldes_from_file($filename, $compare_date = "") {
 
         try {
             $parser = new SoldesParser();
@@ -217,11 +218,16 @@ class OpenFlyers extends CI_Controller {
             exit;
         }
 
-        $soldes_html = $parser->arrayWithControls($soldes);
+        $soldes_html = $parser->arrayWithControls($soldes, $compare_date);
         $data['soldes'] = $soldes_html;
         $data['error'] = '';
 
-        load_last_view('openflyers/tableSoldes', $data);
+        if ($compare_date) {
+            $data['compare_date'] = $compare_date;
+            load_last_view('openflyers/tableCompareSoldes', $data);
+        } else {
+            load_last_view('openflyers/tableSoldes', $data);
+        }
     }
 
     /**

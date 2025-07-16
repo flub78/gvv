@@ -395,7 +395,7 @@ class Ecritures_model extends Common_Model {
      * @param unknown_type $compte
      *            identifiant du compte
      * @param $date du
-     *            solde, si non spécifié, retourne le dernier solde du compte
+     *            solde (localisée), si non spécifié, retourne le dernier solde du compte
      * @param $operation ">="
      *            | "<"
      * @param boolean $all
