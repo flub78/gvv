@@ -167,6 +167,25 @@ if ( ! function_exists('anchor'))
 	}
 }
 
+if ( ! function_exists('anchor_compte')) {
+	function anchor_compte($compte, $attributes = '')
+	{
+		$url = controller_url("compta/journal_compte/") . $compte;
+		$CI =& get_instance();
+		$CI->load->model('comptes_model');
+		$image = $CI->comptes_model->image($compte);
+		return anchor($url, $image, $attributes);
+	}	
+}
+
+if ( ! function_exists('anchor_of')) {
+	function anchor_of($compte, $attributes = '')
+	{
+		$url = 'https://openflyers.com/abbeville/index.php?menuAction=account_journal&menuParameter=' . $compte;
+		return anchor($url, $compte, $attributes);
+	}	
+}
+
 // ------------------------------------------------------------------------
 
 /**

@@ -389,9 +389,7 @@ class GrandLivreParser {
             // Si le compte est associé
             if ($associated_gvv) {
                 // On affiche un lien vers le journal du compte
-                $compte_gvv = $associated_gvv;
-                $image = $CI->comptes_model->image($compte_gvv);
-                $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+                $compte_gvv = anchor_compte($associated_gvv);
                 $compte = $CI->comptes_model->get_by_id('id', $associated_gvv);
                 $is_411 = ($compte['codec'] == "411");
             } else {
@@ -441,9 +439,7 @@ class GrandLivreParser {
                 // Si le compte est associé
                 if ($associated_gvv_compte2) {
                     // On affiche un lien vers le journal du compte
-                    $compte2_gvv = $associated_gvv_compte2;
-                    $image = $CI->comptes_model->image($compte2_gvv);
-                    $compte2_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv_compte2), $image);
+                    $compte2_gvv = anchor_compte($associated_gvv_compte2);
                 } else {
                     // On affiche un sélecteur
                     $attrs = 'class="form-control big_select" onchange="updateRow(this, '

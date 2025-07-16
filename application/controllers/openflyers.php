@@ -473,13 +473,8 @@ class OpenFlyers extends CI_Controller {
                 . ' onchange="toggleRowSelection(this)">';
             $date = date_db2ht($elt['date_op']);
 
-            $url1 = controller_url("compta/journal_compte/" . $elt['compte1']);
-            $image1 = $this->comptes_model->image($elt['compte1']);
-            $anchor1 = anchor($url1, $image1);
-
-            $url2 = controller_url("compta/journal_compte/" . $elt['compte2']);
-            $image2 = $this->comptes_model->image($elt['compte2']);
-            $anchor2 = anchor($url2, $image2);
+            $anchor1 = anchor_compte($elt['compte1']);
+            $anchor2 = anchor_compte($elt['compte2']);
 
             $lst = [$checkbox, $elt['id'], $date, $elt['codec1'], $anchor1, $elt['codec2'], $anchor2, $elt['description'], $elt['num_cheque'], euro($elt['montant'])];
             $table[] = $lst;

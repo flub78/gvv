@@ -108,7 +108,6 @@ class SoldesParser {
             $id_of = $row[0];
             $nom_of = $row[1];
             $profil = $row[2];
-            $type = $row[3];
             $solde = euro($row[4]);
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
             $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
@@ -149,7 +148,9 @@ class SoldesParser {
                     if ($solde != $solde_gvv) {
                         $solde = '<div class="text-danger">' . $solde . '</div>';
                         $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
-                        $id_of = "diff " . $id_of;
+                        $id_of = "diff " . anchor_of($id_of);
+                    } else {
+                        $id_of = anchor_of($id_of);
                     }
                 } else {
                     $solde_gvv = "0.00 €";
@@ -157,7 +158,7 @@ class SoldesParser {
 
                 $result[] = [$id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
             } else {
-                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde];
+                $result[] = [$checkbox, anchor_of($id_of), $nom_of, $profil, $compte_gvv, $solde];
             }
             $line++;
         }
