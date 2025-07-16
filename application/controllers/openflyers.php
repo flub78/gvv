@@ -451,21 +451,22 @@ class OpenFlyers extends CI_Controller {
         $this->display_operations_to_delete($start_date, $end_date, $all, $section['id']);
     }
 
+    /**
+     * Displays a table of operations that can be deleted within a specified date range
+     * 
+     * @param string $start_date The beginning date of the operations to be deleted
+     * @param string $end_date The end date of the operations to be deleted
+     * @param bool $all Flag to indicate if all operations should be considered
+     * @param int $section_id The ID of the section for which operations will be displayed
+     */
     public function display_operations_to_delete($start_date, $end_date, $all, $section_id) {
         // echo "display_operations_to_delete($start_date, $end_date, $all, $section_id)";
 
-
         $ecritures = $this->ecritures_model->select_ecritures_to_delete($start_date, $end_date, $section_id, $all);
 
-        $html = "";
-        $html .= '<table class="table datatable">';
+        $table = [];
 
         foreach ($ecritures as $elt) {
-
-            // foreach ($elt as $key => $value) {
-            //     echo "$key => $value <br>";                
-            // }
-            // echo '<br>';
 
             $checkbox = '<input type="checkbox"'
                 . ' name="cb_' . $elt['id'] . '"'
@@ -481,11 +482,10 @@ class OpenFlyers extends CI_Controller {
             $anchor2 = anchor($url2, $image2);
 
             $lst = [$checkbox, $elt['id'], $date, $elt['codec1'], $anchor1, $elt['codec2'], $anchor2, $elt['description'], $elt['num_cheque'], euro($elt['montant'])];
-            $html .= html_row($lst, ['class' => $class]);
+            $table[] = $lst;
         }
-        $html .= "</table>";
 
-        $data['html_table'] = $html;
+        $data['to_delete'] = $table;
         $data['section'] = $this->sections_model->section();
 
         load_last_view('openflyers/operationsToDelete', $data);

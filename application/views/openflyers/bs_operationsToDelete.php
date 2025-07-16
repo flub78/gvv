@@ -52,13 +52,11 @@ if ($status) {
 echo form_open_multipart('openflyers/delete_operations');
 
 // Utilisé pour les comptes clients
-// echo table_from_array ($comptes_html, array(
-//     'fields' => array('Compte OF', 'Nom',  'Compte GVV', '', '', '', ''),
-//     'align' => array('right', 'left',  'right', '', '', '', ''),
-//     'class' => 'datatable3 table'
-// ));
-
-echo $html_table;
+echo table_from_array ($to_delete, array(
+    'fields' => array('', 'Id', 'Date', 'Codec1',  'Compte1', 'Codec2', 'Compte2', 'Description', 'Référence', 'Montant'),
+    'align' => array('center', 'right', 'right', 'left',  'left', 'right', 'left', 'left', 'left', 'right'),
+    'class' => 'datatable table'
+));
 
 if ($section) echo form_input(array(
 	'type' => 'submit',

@@ -752,6 +752,15 @@ class Ecritures_model extends Common_Model {
         return $this->get_to_array($db_res);
     }
 
+    /**
+     * Selects accounting entries to be deleted based on specific criteria
+     *
+     * @param string $start_date The start date for filtering entries
+     * @param string $end_date The end date for filtering entries
+     * @param int $section_id The ID of the section/club
+     * @param bool $all Flag to determine whether to include all entries or filter specific entries
+     * @return array Filtered accounting entries
+     */
     function select_ecritures_to_delete($start_date, $end_date, $section_id, $all) {
         $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.id as compte1, compte1.codec as codec1, compte1.nom as nom1, compte2.codec as codec2, compte2.nom as nom2, compte2.id as compte2")
             ->from("ecritures")
@@ -766,13 +775,10 @@ class Ecritures_model extends Common_Model {
             $this->db->where("ecritures.num_cheque LIKE 'OpenFlyers : %'");
         }
 
-        $db_res = $this->db->group_by('compte1')
-            ->get();
-
-
+        $db_res = $this->db->get();
+        // echo $this->db->last_query();
 
         return $this->get_to_array($db_res);
-        echo $this->db->last_query();
     }
 
     /**
