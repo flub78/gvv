@@ -202,12 +202,12 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-         * Imports account balances from a file and processes them
-         *
-         * @param string $filename Path to the file containing account balance data
-         * @param string $compare_date Optional date for comparing account balances (database format)
-         * @throws Exception If there are parsing or processing errors during import
-         */
+     * Imports account balances from a file and processes them
+     *
+     * @param string $filename Path to the file containing account balance data
+     * @param string $compare_date Optional date for comparing account balances (database format)
+     * @throws Exception If there are parsing or processing errors during import
+     */
     public function import_soldes_from_file($filename, $compare_date = "") {
 
         try {
@@ -234,6 +234,8 @@ class OpenFlyers extends CI_Controller {
      * Génère une écriture d'initialisation de solde pilote
      */
     public function solde_init($compte_gvv, $solde, $date = "2025-01-01") {
+
+        gvv_debug("solde_init($compte_gvv, $solde, $date)");
 
         // Get club info from compte_gvv
         $compte = $this->comptes_model->get_by_id('id', $compte_gvv);
@@ -357,19 +359,15 @@ class OpenFlyers extends CI_Controller {
                 if (strpos($key, 'cb_') === 0) {
                     // Key starts with "cb_"
                     $line = str_replace("cb_", "", $key);
-                    $compte_key = "compte_" . $line;
-                    $compte_value = $posts[$compte_key];
+                    // $compte_key = "compte_" . $line;
+                    // $compte_value = $posts[$compte_key];
 
-                    $row = $soldes[$line];
-
-                    // $id_of = $row[0];
-                    // $nom_of = $row[1];
-                    // $profil = $row[2];
-                    // $type = $row[3];
-                    $solde = $row[4];
+                    $import_key = "import_" . $line;
+                    $import_params = html_entity_decode($posts[$import_key]);
+                    $params = json_decode($import_params, true);
 
                     // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
-                    $this->solde_init($compte_value, $solde, $date);
+                    $this->solde_init($params['compte_gvv'], $params['solde'], $date);
                 }
             }
 

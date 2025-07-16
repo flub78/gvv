@@ -110,6 +110,12 @@ class SoldesParser {
             $profil = $row[2];
             $solde = euro($row[4]);
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+            $hidden = [
+                "solde" => $row[4],
+                "compte_gvv" =>  $associated_gvv
+            ];
+            $solde_json = json_encode($hidden, JSON_UNESCAPED_UNICODE);
+
             $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
             if ($associated_gvv && $section) {
                 $gvv_cpt = $CI->comptes_model->get_by_id('id', $associated_gvv);
@@ -121,6 +127,10 @@ class SoldesParser {
                 $checkbox = '<input type="checkbox"'
                     . ' name="cb_' . $line . '"'
                     . ' onchange="toggleRowSelection(this)">';
+                $hidden_input = form_hidden('import_' . $line, $solde_json);
+
+                $checkbox .= $hidden_input;
+
             } else {
                 $checkbox = ($initialized) ? "Initialisé" : "";
             }
@@ -137,7 +147,6 @@ class SoldesParser {
                     $associated_gvv,
                     $compte_selector,
                     $attrs
-
                 );
             }
 
