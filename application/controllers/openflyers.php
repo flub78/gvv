@@ -446,17 +446,64 @@ class OpenFlyers extends CI_Controller {
     }
 
     public function display_operations_to_delete($start_date, $end_date, $all, $section_id) {
-        echo "display_operations_to_delete($start_date, $end_date, $all, $section_id)";
+        // echo "display_operations_to_delete($start_date, $end_date, $all, $section_id)";
 
 
         $ecritures = $this->ecritures_model->select_ecritures_to_delete($start_date, $end_date, $section_id, $all);
-        // var_dump($ecritures);
+
+        $html = "";
+        $html .= '<table class="table datatable">';
+
         foreach ($ecritures as $elt) {
 
-            foreach ($elt as $key => $value) {
-                echo "$key => $value <br>";
+            // foreach ($elt as $key => $value) {
+            //     echo "$key => $value <br>";                
+            // }
+            // echo '<br>';
+
+            $checkbox = '<input type="checkbox"'
+                . ' name="cb_' . $elt['id'] . '"'
+                . ' onchange="toggleRowSelection(this)">';
+            $date = date_db2ht($elt['date_op']);
+
+            $url1 = controller_url("compta/journal_compte/" . $elt['compte1']);
+            $image1 = $this->comptes_model->image($elt['compte1']);
+            $anchor1 = anchor($url1, $image1);
+
+            $url2 = controller_url("compta/journal_compte/" . $elt['compte2']);
+            $image2 = $this->comptes_model->image($elt['compte2']);
+            $anchor2 = anchor($url2, $image2);
+
+            $lst = [$checkbox, $elt['id'], $date, $elt['codec1'], $anchor1, $elt['codec2'], $anchor2, $elt['description'], $elt['num_cheque'], euro($elt['montant'])];
+            $html .= html_row($lst, ['class' => $class]);
+        }
+        $html .= "</table>";
+
+        $data['html_table'] = $html;
+        $data['section'] = $this->sections_model->section();
+
+        load_last_view('openflyers/operationsToDelete', $data);
+    }
+
+    /**
+     * Scan les paramètres post et supprime les écritures d'import d'écritures
+     * 
+     */
+    function delete_operations() {
+        $posts = $this->input->post();
+
+        $status = "";
+        $cnt = 0;
+        foreach ($posts as $key => $value) {
+            // echo "$key => $value<br>";
+            if (strpos($key, 'cb_') === 0) {
+                // Key starts with "cb_" ce sont les checkboxes actives
+                $id = str_replace("cb_", "", $key);
+                $image = $this->ecritures_model->image($id);
+                echo "deleting $image<br>";
+                $cnt++;
+                $this->ecritures_model->delete_ecriture($id);
             }
-            echo '<br>';
         }
     }
 }

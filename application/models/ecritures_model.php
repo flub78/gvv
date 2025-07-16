@@ -753,7 +753,7 @@ class Ecritures_model extends Common_Model {
     }
 
     function select_ecritures_to_delete($start_date, $end_date, $section_id, $all) {
-        $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.codec, compte1.nom, compte2.codec, compte2.nom")
+        $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.id as compte1, compte1.codec as codec1, compte1.nom as nom1, compte2.codec as codec2, compte2.nom as nom2, compte2.id as compte2")
             ->from("ecritures")
             ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
             ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")

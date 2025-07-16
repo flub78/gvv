@@ -172,7 +172,7 @@ if ($section) {
                         <div class="me-3 mb-2">
                             <?= $this->lang->line("gvv_compta_compte") . ": " ?>
                             <?php if ($navigation_allowed) : ?>
-                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:300px' onchange='compte_selection();'") ?>
+                                <?= dropdown_field('id', $id, $compte_selector, "id='selector' class='big_select' style='width:400px' onchange='compte_selection();'") ?>
                             <?php else : ?>
                                 <input type="text" name="id" ivalue="<?= $nom ?>" size="30" readonly="readonly" />
                             <?php endif; ?>
@@ -306,7 +306,7 @@ if ($codec == 411 && $navigation_allowed && $section) {
                                 'produit',
                                 $produit,
                                 $produit_selector,
-                                "id='product_selector' class='big_select' style='width:300px' "
+                                "id='product_selector' class='big_select' style='width:400px' "
                             ) ?>
                         </div>
 
