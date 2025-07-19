@@ -249,6 +249,10 @@ class OpenFlyers extends CI_Controller {
             throw new Exception("Compte de fonds associatif non trouvé pour la section " . $compte->id_section);
         }
 
+        // On détruit les initialisations pour ce compte
+        $this->ecritures_model->delete_all(["club" => $compte['club'], 'compte1' =>  $compte_gvv, 'compte2' => $fonds_associatif['id']]);
+        $this->ecritures_model->delete_all(["club" => $compte['club'], 'compte1' =>  $fonds_associatif['id'], 'compte2' => $compte_gvv]);
+
         // $fonds_associatif['id']
         // Generate accounting entries
         $data = array(
