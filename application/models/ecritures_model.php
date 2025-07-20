@@ -517,7 +517,8 @@ class Ecritures_model extends Common_Model {
         if ($date == '') {
             $date = date("d/m/Y");
         }
-        $where = "date_op $operation \"" . date_ht2db($date) . "\" and id < \"$id\"";
+        $date_db = date_ht2db($date); // date_ht2db est transparent si le format est déjà db
+        $where = "date_op $operation \"" . $date_db . "\" and id < \"$id\"";
 
         $debit = $this->db->select_sum('montant')->from($this->table)->where($where)->where(array(
             'compte1' => $compte
@@ -530,9 +531,9 @@ class Ecritures_model extends Common_Model {
         ))->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
-        $solde = $credit - $debit;
+        $solde = $credit - $debit;  // $debut and $credit could be null...
 
-        gvv_debug("solde_jour compte=$compte, date=$date, id=$id");
+        gvv_debug("solde_jour compte=$compte, date=$date, id=$id, solde=$solde");
         // echo "solde compte=$compte, date=$date, operation=$operation, debit=$debit, credit=$credit, solde=$solde" . br();
         return $solde;
     }
@@ -768,7 +769,7 @@ class Ecritures_model extends Common_Model {
             ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")
 
             ->where("(compte1.codec = '411' OR compte2.codec = '411')")
-            ->where("ecritures.club", $section_id)
+            // ->where("ecritures.club", $section_id)
             ->where("ecritures.date_op BETWEEN '$start_date' AND '$end_date'");
 
         if (!$all) {

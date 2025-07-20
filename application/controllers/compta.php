@@ -866,7 +866,8 @@ class Compta extends Gvv_Controller {
             $this->data['pilote_name'] = $this->membres_model->image($pilote);
             $this->data['pilote_info'] = $this->membres_model->get_by_id('mlogin', $pilote);
         } else if ($codec >= 600 && $codec < 800) {
-            // recette ou dépense
+            // recette ou dépense, ce sont des comptes remis à 0 en fin d'exercice
+            // donc on ajuste pour ne prendre que l'exercice en compte
             $this->data['solde_avant'] -= $solde_previous_year;
             $this->data['solde_fin'] -= $solde_previous_year;
         }
