@@ -767,14 +767,14 @@ class Ecritures_model extends Common_Model {
         $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.id as compte1, compte1.codec as codec1, compte1.nom as nom1, compte2.codec as codec2, compte2.nom as nom2, compte2.id as compte2")
             ->from("ecritures")
             ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
-            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left");
+            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")
+            ->where("(compte1.codec = '411' OR compte2.codec = '411')");
 
         if ($section_id) {
-            $this->db->where("(compte1.codec = '411' OR compte2.codec = '411')");
+            $this->db->where("ecritures.club", $section_id);
         }
 
-        $this->db->where("ecritures.club", $section_id)
-            ->where("ecritures.date_op BETWEEN '$start_date' AND '$end_date'");
+        $this->db->where("ecritures.date_op BETWEEN '$start_date' AND '$end_date'");
 
         if (!$all) {
             $this->db->where("ecritures.num_cheque LIKE 'OpenFlyers : %'");
