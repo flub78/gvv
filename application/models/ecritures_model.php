@@ -664,10 +664,11 @@ class Ecritures_model extends Common_Model {
             $this->load->model("comptes_model");
             $this->comptes_model->maj_comptes($compte1, $compte2, -$montant);
 
-            $this->db->delete($this->table, array(
+            $res =$this->db->delete($this->table, array(
                 'id' => $id
             ));
             $this->db->trans_complete();
+            return $res;
         } else {
             if (! $this->session->userdata('popup')) {
                 $this->session->set_flashdata('popup', "Suppression impossible, écriture gelée");
@@ -762,14 +763,17 @@ class Ecritures_model extends Common_Model {
      * @param bool $all Flag to determine whether to include all entries or filter specific entries
      * @return array Filtered accounting entries
      */
-    function select_ecritures_to_delete($start_date, $end_date, $section_id, $all) {
+    function select_ecritures_to_delete($start_date, $end_date, $section_id = 0, $all) {
         $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.id as compte1, compte1.codec as codec1, compte1.nom as nom1, compte2.codec as codec2, compte2.nom as nom2, compte2.id as compte2")
             ->from("ecritures")
             ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
-            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")
+            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left");
 
-            ->where("(compte1.codec = '411' OR compte2.codec = '411')")
-            // ->where("ecritures.club", $section_id)
+        if ($section_id) {
+            $this->db->where("(compte1.codec = '411' OR compte2.codec = '411')");
+        }
+
+        $this->db->where("ecritures.club", $section_id)
             ->where("ecritures.date_op BETWEEN '$start_date' AND '$end_date'");
 
         if (!$all) {

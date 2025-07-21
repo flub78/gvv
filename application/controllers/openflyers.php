@@ -433,7 +433,12 @@ class OpenFlyers extends CI_Controller {
 
         $section = $this->sections_model->section();
         if (!$section) {
-            $error = "Une section doit être active pour supprimer ses opérations. ";
+            // Violation du principe que les modifications ne sont possibles qu'avec une section active
+            // Mais cela permet de corriger des corruptions de la base de données
+            // $error = "Une section doit être active pour supprimer ses opérations. ";
+            $section_id = 0;
+        } else {
+            $section_id = $section['id'];
         }
         if (!$start_date) {
             $error .= "<br>Date de début manquante ou incorrecte.";
@@ -450,7 +455,7 @@ class OpenFlyers extends CI_Controller {
             return;
         }
 
-        $this->display_operations_to_delete($start_date, $end_date, $all, $section['id']);
+        $this->display_operations_to_delete($start_date, $end_date, $all, $section_id);
     }
 
     /**
@@ -503,11 +508,16 @@ class OpenFlyers extends CI_Controller {
                 // Key starts with "cb_" ce sont les checkboxes actives
                 $id = str_replace("cb_", "", $key);
                 $image = $this->ecritures_model->image($id);
-                echo "deleting $image<br>";
                 $cnt++;
                 $this->ecritures_model->delete_ecriture($id);
+                $status .= "$image supprimée<br>";
             }
         }
+
+        $data['section'] = $this->sections_model->section();
+        $data['status'] = $status;
+
+        load_last_view('openflyers/operationsToDelete', $data);
     }
 }
 
