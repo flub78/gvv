@@ -74,8 +74,8 @@ class OpenFlyers extends CI_Controller {
     public function import_operations() {
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
-            if (! mkdir($upload_path)) {
-                die("Cannot create " . $upload_path);
+            if (! mkdir($upload_path, 0755)) {
+                die("Cannot create " . $upload_path . " with proper permissions.");
             }
         }
 
@@ -85,7 +85,9 @@ class OpenFlyers extends CI_Controller {
         $files = glob($upload_path . '*'); // get all file names
         foreach ($files as $file) { // iterate files
             if (is_file($file))
-                unlink($file); // delete file
+                if (!unlink($file)) {
+                    gvv_error("Failed to delete file: $file");
+                }
         }
 
         // upload archive
@@ -143,7 +145,7 @@ class OpenFlyers extends CI_Controller {
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
-            echo "Erreur: " . $e->getMessage() . "\n";
+            gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
     }
 
@@ -214,7 +216,7 @@ class OpenFlyers extends CI_Controller {
             $parser = new SoldesParser();
             $soldes = $parser->parse($filename);
         } catch (Exception $e) {
-            echo "Erreur: " . $e->getMessage() . "\n";
+            gvv_error("Erreur: " . $e->getMessage() . "\n");
             exit;
         }
 
@@ -377,7 +379,7 @@ class OpenFlyers extends CI_Controller {
 
             $this->import_soldes_from_file($file_soldes);
         } catch (Exception $e) {
-            echo "Erreur: " . $e->getMessage() . "\n";
+            gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
     }
 
@@ -434,7 +436,7 @@ class OpenFlyers extends CI_Controller {
         $section = $this->sections_model->section();
         if (!$section) {
             // J'ai envisagé de ne pas faire ce test et supporter la suppression
-            // sur plusieurs sections. C'était une erreur très grave qui pourrait impacter des
+            // sur plusieurs sections. C'était une erreur grave qui pourrait impacter des
             // sections qui n'utilisent pas OpenFlyers.
             $error = "Une section doit être active pour supprimer ses opérations. ";
         } 

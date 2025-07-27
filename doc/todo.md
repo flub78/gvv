@@ -3,6 +3,63 @@
 Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail lourd, et le GVV actuel doit être maintenu pour s'adapter aux nouveaux besoins des utilisateurs.
 
 
+## Bugs
+
+* [] Plus d'affichage des petites flèches quand le tri par colone est actif
+* [] Vérifier le cadrage à droite pour tous les chiffres, 
+  * grand journal, montants
+  * Ventes, cadrer Produit à gauche
+* [] **la page de retour après une modification des écritures est discutable**
+* [] **la page après changement de la checkbox gel est incorrecte**
+* [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
+
+  
+## Reste à faire
+
+* [] Openflyers fusioner import et vérification des soldes
+* [] OpenFlyers afficher les vols non existant dans les imports OF
+
+* [] Gérer les suggestions de saisie par section
+* [] Ne pas afficher les comptes inactifs dont le solde est null.
+
+* [] gestion des vols de découverte
+  * [x] Fonctionnalité minimum
+  * [ ] filtre
+  * [ ] présentation par année
+  * [ ] export CSV et Pdf
+  * [ ] Import des informations planeur
+  
+* [] Gérer la configuration dans la base.
+
+* [] Attachements lors de la création d'écriture
+  * [] tester les téléchargements avec espace (upload->do_upload)
+  * [] Les attachements devraient-être listé par section et par années
+  * [] compression des attachements
+* [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
+* [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
+  - à vérifier aussi sur les vols avions
+* [] gestion des droits multi sections
+* [] Vérifier les photos des membres sur le site déployé
+* [] Gestion de l'inscription, y compris les autorisations parentales
+* [] supprimer les textes orientés planeur sur les pages
+  
+* [] Reservation des avions                                   10j
+* [] Payments en ligne                                        10j
+* [] Support du markdown
+* [] Sauvegarde/restauration des medias et attachements
+* [] Attachements sur les achats
+
+
+## Dette technique
+
+* [] Supprimer les vues non bootstrap (emails)
+* [] Utiliser les flexbox plutôt que les tableaux
+* [] Warnings en mode développement
+* [] Supprimer les anciens modes de validation de formulaires
+* [] IA revues et refactoring
+* [] Traduire la vue dashboard
+
+
 ## Fait récemment
 
 * [x] Correction du téléchargement des photos                                  
@@ -37,66 +94,12 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] Supprimer watir
 * [x] emails des vols de découverte
 
-
-## Bugs
-
-* [] Plus d'affichage des petites flèches quand le tri par colone est actif
-* [] Vérifier le cadrage à droite pour tous les chiffres, 
-  * grand journal, montants
-  * Ventes, cadrer Produit à gauche
-* [] **la page de retour après une modification des écritures est discutable**
-* [] **la page après changement de la checkbox gel est incorrecte**
-* [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
-
-  
-## Reste à faire
-
-* [] synchro avec OpenFlyer
+* [x] synchro avec OpenFlyer
   * [] Vérifier les pages de retour des associations
   * [x] Filtrer les associations par sections
   * [x] Mécanisme d'association des comptes de soldes 
   * [x] Import des soldes
-  * [ ] Vérification des soldes
+  * [x] Vérification des soldes
   * [x] import des écritures
-  * [ ] Annulation des imports
+  * [x] Annulation des imports
   * [x] prendre la date en compte pour l'import des soldes
-  
-* [] Gérer les suggestions de saisie par section
-* [] Ne pas afficher les comptes inactifs dont le solde est null.
-
-* [] gestion des vols de découverte
-  * [x] Fonctionnalité minimum
-  * [ ] filtre
-  * [ ] présentation par année
-  * [ ] export CSV et Pdf
-  * [ ] Import des informations planeur
-  
-* [] Gérer la configuration dans la base.
-
-* [] Attachements lors de la création d'écriture
-  * [] tester les téléchargements avec espace (upload->do_upload)
-  * [] Les attachements devraient-être listé par section et par années
-  * [] compression des attachements
-* [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
-* [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
-  - à vérifier aussi sur les vols avions
-* [] gestion des droits multi sections
-* [] Vérifier les photos des membres sur le site déployé
-* [] Gestion de l'inscription, y compris les autorisations parentales
-* [] supprimer les textes orientés planeur sur les pages
-  
-* [] Reservation des avions                                  10j
-* [] Payments en ligne                                        10j
-* [] Support du markdown
-* [] Sauvegarde/restauration des medias et attachements
-* [] Attachements sur les achats
-
-
-## Dette technique
-
-* [] Supprimer les vues non bootstrap (emails)
-* [] Utiliser les flexbox plutôt que les tableaux
-* [] Warnings en mode développement
-* [] Supprimer les anciens modes de validation de formulaires
-* [] IA revues et refactoring
-* [] Traduire la vue dashboard
