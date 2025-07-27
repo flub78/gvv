@@ -39,11 +39,7 @@ if ($error) {
 
 ?>
 	<p>Seuls les comptes au solde non null sont affichés.</p>
-    <div class="actions mb-3">
-        <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-        <button class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-        <!-- button onclick="getSelectedRows()">Get Selected Rows</!-->
-    </div>
+
 <?php
 
 echo form_open_multipart('openflyers/create_soldes');
@@ -55,7 +51,13 @@ echo table_from_array ($soldes, array(
     'class' => 'datatable table'
 ));
 
-
+?>
+    <div class="actions mt-3">
+        <button type="button"  class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button"  class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        <!-- button onclick="getSelectedRows()">Get Selected Rows</!-->
+    </div>
+<?php
 echo "Date d'import des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
 
 echo form_input(array(
