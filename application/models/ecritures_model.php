@@ -664,7 +664,7 @@ class Ecritures_model extends Common_Model {
             $this->load->model("comptes_model");
             $this->comptes_model->maj_comptes($compte1, $compte2, -$montant);
 
-            $res =$this->db->delete($this->table, array(
+            $res = $this->db->delete($this->table, array(
                 'id' => $id
             ));
             $this->db->trans_complete();
@@ -1435,15 +1435,21 @@ array (size=2)
             'achat' => 0
         );
 
-        $db_res = $this->db
+        $this->db
             ->select($field . ", date_op")
             ->from("ecritures")
             ->where($where)
-            ->like($field, $term)
-            ->group_by($field)
+            ->like($field, $term);
+            
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
+        $db_res = $this->db->group_by($field)
             ->order_by("date_op desc")
             ->limit(20)
             ->get();
+
         $select = $this->get_to_array($db_res);
 
         $res = array();

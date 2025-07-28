@@ -41,7 +41,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Gestion de l'inscription, y compris les autorisations parentales
 * [] supprimer les textes orientés planeur sur les pages
   
-* [] Gérer les suggestions de saisie par section
 
 * [] Support du markdown
 * [] Reservation des avions                                   10j
@@ -105,3 +104,5 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [x] prendre la date en compte pour l'import des soldes
   * [x] Openflyers fusionner import et vérification des soldes
 * [x] Export CSV du tableau de bord
+* [x] Gérer les suggestions de saisie par section
+
