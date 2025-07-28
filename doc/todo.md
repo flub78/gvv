@@ -19,7 +19,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] OpenFlyers afficher les vols non existant dans les imports OF
 * [] Ne pas afficher les comptes inactifs dont le solde est null.
   
-
+* [] Compléter les exports CSV manquants
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre

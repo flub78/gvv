@@ -311,6 +311,7 @@ class Comptes extends Gvv_Controller {
         $title = $this->lang->line("gvv_comptes_title_dashboard");
 
         $csv_data = array();
+        $csv_data[] = [$this->config->item('nom_club')];
         $csv_data[] = array(
             $this->lang->line("comptes_label_date"),
             $data['balance_date'],
