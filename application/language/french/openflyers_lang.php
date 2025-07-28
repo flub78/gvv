@@ -10,6 +10,8 @@ $lang['gvv_of_synchro_operations'] = "OpenFlyers synchronisation des opérations
 $lang['gvv_of_synchro_soldes'] = "OpenFlyers synchronisation des soldes clients";
 $lang['gvv_of_compare_soldes'] = "OpenFlyers vérification des soldes clients";
 $lang['gvv_of_annulation'] = "Annulation des opérations synchronisées";
+$lang['gvv_of_submit_compare'] = "Comparer les soldes";
+
 
 $lang['gvv_of_explain'] = "Il est possible de synchroniser les opérations des comptes clients entre OpenFlyers et GVV. Pour cela vous devez charger un fichier CSV au format export du grand livre OpenFLyers. Une fois connecté sur Openflyers vous pouvez le générer.";
 

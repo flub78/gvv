@@ -157,7 +157,8 @@ class SoldesParser {
                     if ($solde != $solde_gvv) {
                         $solde = '<div class="text-danger">' . $solde . '</div>';
                         $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
-                        $id_of = "diff " . anchor_of($id_of);
+                        $diff = '<div class="text-white bg-danger rounded d-inline-block px-2 me-2">' . "diff " . '</div>';
+                        $id_of = $diff . anchor_of($id_of);
                     } else {
                         $id_of = anchor_of($id_of);
                     }
@@ -165,9 +166,11 @@ class SoldesParser {
                     $solde_gvv = "0.00 €";
                 }
 
-                $result[] = [$id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
+                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
             } else {
-                $result[] = [$checkbox, anchor_of($id_of), $nom_of, $profil, $compte_gvv, $solde];
+                $id_of = anchor_of($id_of);
+                $solde_gvv = "";
+                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
             }
             $line++;
         }

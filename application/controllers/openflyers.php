@@ -41,7 +41,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Page de selection du fichier journal
+     * Page de selection du fichier journal OpenFLyers
      */
     function select_operations() {
         $data = array();
@@ -52,7 +52,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Page de selection des soldes de compte clients
+     * Page de selection des soldes de compte clients OpenFLyers
      */
     function select_soldes($compare = false) {
         $data = array();
@@ -69,7 +69,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     /**
-     * Import a CSV journal
+     * Import a CSV journal 
      */
     public function import_operations() {
         $upload_path = './uploads/restore/';
@@ -100,7 +100,8 @@ class OpenFlyers extends CI_Controller {
 
 
         if (! $this->upload->do_upload()) {
-            // On a pas réussi à recharger la sauvegarde
+            // On a pas réussi à recharger le fichier
+            // On affiche le message d'erreur
             $error = array(
                 'error' => $this->upload->display_errors()
             );
@@ -110,7 +111,6 @@ class OpenFlyers extends CI_Controller {
             // on a chargé le fichier
             $data = $this->upload->data();
 
-            // $this->load->library('unzip');
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_operations', $filename);
             $this->import_operations_from_files($filename);
@@ -121,9 +121,6 @@ class OpenFlyers extends CI_Controller {
      * Import a CSV journal from a file
      */
     public function import_operations_from_files($filename, $status = "") {
-
-        // $file_content = file_get_contents($filename);
-        // echo $file_content;
 
         $this->load->library('GrandLivreParser');
 
@@ -224,18 +221,14 @@ class OpenFlyers extends CI_Controller {
         $data['soldes'] = $soldes_html;
         $data['error'] = '';
 
-        if ($compare_date) {
-            $data['compare_date'] = $compare_date;
-            load_last_view('openflyers/tableCompareSoldes', $data);
-        } else {
-            load_last_view('openflyers/tableSoldes', $data);
-        }
+        $data['import_date'] = $compare_date;
+        load_last_view('openflyers/tableSoldes', $data);
     }
 
     /**
      * Génère une écriture d'initialisation de solde pilote
      */
-    public function solde_init($compte_gvv, $solde, $date = "2025-01-01") {
+    public function solde_init($compte_gvv, $solde, $date = "") {
 
         gvv_debug("solde_init($compte_gvv, $solde, $date)");
 
@@ -245,7 +238,7 @@ class OpenFlyers extends CI_Controller {
             throw new Exception("Compte GVV $compte_gvv non trouvé");
         }
 
-        // // Find fonds associatif account for this section
+        // Find fonds associatif account for this section
         $fonds_associatif = $this->comptes_model->get_by_section_and_codec($compte['club'], '102');
         if (!$fonds_associatif) {
             throw new Exception("Compte de fonds associatif non trouvé pour la section " . $compte->id_section);
@@ -255,7 +248,6 @@ class OpenFlyers extends CI_Controller {
         $this->ecritures_model->delete_all(["club" => $compte['club'], 'compte1' =>  $compte_gvv, 'compte2' => $fonds_associatif['id']]);
         $this->ecritures_model->delete_all(["club" => $compte['club'], 'compte1' =>  $fonds_associatif['id'], 'compte2' => $compte_gvv]);
 
-        // $fonds_associatif['id']
         // Generate accounting entries
         $data = array(
             'annee_exercise' => date('Y', strtotime($date)),
@@ -275,8 +267,6 @@ class OpenFlyers extends CI_Controller {
             $data['montant'] = -$solde;
         }
 
-        // var_dump($data);
-
         $ecriture = $this->ecritures_model->create($data);
         if (!$ecriture) {
             throw new Exception("Erreur pendant le passage d'écriture de solde:");
@@ -287,14 +277,7 @@ class OpenFlyers extends CI_Controller {
      * Inserts a movement with the given parameters
      *
      * @param array $params Associative array of movement parameters
-     * 
-... date => 2025-02-19
-... intitule => ASSELIN Philippe - Virement - hdv avion (virt par erreur CG)
-... description => 60997
-... debit => 0.00
-... credit => 156.00
-... compte1 => 1119
-... compte2 => 679
+     * @throws Exception If there is an error during the insertion of the movement 
      */
     public function insert_movement(array $params) {
 
@@ -345,19 +328,42 @@ class OpenFlyers extends CI_Controller {
      */
     public function create_soldes() {
 
+        // $posts = $this->input->post();
+        // echo "<pre>";
+        // print_r($posts);
+        // echo "</pre>";
+        // exit;
+
+        $compare_soldes = $this->input->post('compare_soldes');
+        $import_date = $this->input->post("import_date");
+
         $file_soldes = $this->session->userdata('file_soldes');
+
         try {
             $parser = new SoldesParser();
             $soldes = $parser->parse($file_soldes);
 
-            $import_date = $this->input->post("import_date");
+            // Quelque soit le mode il faut une date
             if (!$import_date) {
+                // On recharge la page
                 $soldes_html = $parser->arrayWithControls($soldes);
-                $data["error"] = "Date d'import non définie";
+                $data["error"] = "Date non définie";
                 $data['soldes'] = $soldes_html;
                 load_last_view('openflyers/tableSoldes', $data);
                 return;
             }
+
+            // On a une date, on peut continuer
+            if ($compare_soldes) {
+                // On compare les soldes
+                $data['import_date'] = $import_date;
+                $data['soldes'] = $parser->arrayWithControls($soldes, $import_date);
+                load_last_view('openflyers/tableSoldes', $data);
+                return;
+            }
+
+            // On n'est pas en mode comparaison
+            // On initialise les soldes
             $date = date_ht2db($import_date);
             $posts = $this->input->post();
             foreach ($posts as $key => $value) {
@@ -365,8 +371,6 @@ class OpenFlyers extends CI_Controller {
                 if (strpos($key, 'cb_') === 0) {
                     // Key starts with "cb_"
                     $line = str_replace("cb_", "", $key);
-                    // $compte_key = "compte_" . $line;
-                    // $compte_value = $posts[$compte_key];
 
                     $import_key = "import_" . $line;
                     $import_params = html_entity_decode($posts[$import_key]);
@@ -377,7 +381,7 @@ class OpenFlyers extends CI_Controller {
                 }
             }
 
-            $this->import_soldes_from_file($file_soldes);
+            $this->import_soldes_from_file($file_soldes, $import_date);
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
@@ -435,11 +439,11 @@ class OpenFlyers extends CI_Controller {
 
         $section = $this->sections_model->section();
         if (!$section) {
-            // J'ai envisagé de ne pas faire ce test et supporter la suppression
-            // sur plusieurs sections. C'était une erreur grave qui pourrait impacter des
-            // sections qui n'utilisent pas OpenFlyers.
+            // J'avais envisagé de ne pas faire ce test et supporter la suppression
+            // sur plusieurs sections. C'était une erreur, cela peut amener à des
+            // suppressions d'écritures non voulues dans des sections qui n'utilisent pas OF.
             $error = "Une section doit être active pour supprimer ses opérations. ";
-        } 
+        }
         if (!$start_date) {
             $error .= "<br>Date de début manquante ou incorrecte.";
         }

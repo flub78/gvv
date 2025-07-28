@@ -46,8 +46,8 @@ echo form_open_multipart('openflyers/create_soldes');
 
 // Utilisé pour les comptes clients
 echo table_from_array ($soldes, array(
-    'fields' => array('', 'Compte OF', 'Nom', 'Profil',  'Compte GVV', 'Solde'),
-    'align' => array('center', 'right', 'left', 'left', 'center', 'right'),
+    'fields' => array('', 'Compte OF', 'Nom', 'Profil',  'Compte GVV', 'Solde OF', 'Solde GVV'),
+    'align' => array('center', 'right', 'left', 'left', 'center', 'right', 'right'),
     'class' => 'datatable table'
 ));
 
@@ -58,14 +58,23 @@ echo table_from_array ($soldes, array(
         <!-- button onclick="getSelectedRows()">Get Selected Rows</!-->
     </div>
 <?php
-echo "Date d'import des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
+echo 'Date d\'import ou comparaison des soldes: <input type="date" name="import_date" size="50" class="mt-4" value="' . set_value('import_date', isset($import_date) ? $import_date : '') . '"><br><br>';
 
+echo '<div class="d-flex gap-3 mb-4">';
 echo form_input(array(
-	'type' => 'submit',
-	'name' => 'button',
-	'value' => $this->lang->line("gvv_of_init_soldes"),
-	'class' => 'btn btn-primary mb-4'
+    'type' => 'submit',
+    'name' => 'init_soldes',
+    'value' => $this->lang->line("gvv_of_init_soldes"),
+    'class' => 'btn btn-primary'
 ));
+echo form_input(array(
+    'type' => 'submit',
+    'name' => 'compare_soldes',
+    'value' => $this->lang->line("gvv_of_submit_compare"),
+    'class' => 'btn btn-primary'
+));
+echo '</div>';
+
 echo form_close('</div>');
 
 echo '</div>';

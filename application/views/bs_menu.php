@@ -257,8 +257,7 @@ $section_count = $CI->sections_model->safe_count_all();
                       <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_annulation") ?>">Annulation d'imports d'opérations</a></li>
 
 
-                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import des soldes</a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes/compare") ?>">Vérification des soldes</a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import/vérification des soldes</a></li>
 
                       <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>">Associations des comptes OpenFlyers</a></li>
                     </ul>
