@@ -263,13 +263,14 @@ class Comptes extends Gvv_Controller {
      *      Dettes envers des tiers
      *      Emprunts bancaires
      */
-    function dashboard() {
+    function dashboard($mode = "html") {
+
         $this->data['controller'] = "comptes";
         $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
 
         $year = $this->session->userdata('year');
         $this->data['year'] = $year;
-  
+
         // gestion de la date d'affichage
         $balance_date = $this->session->userdata('balance_date');
         if ($balance_date) {
@@ -278,7 +279,8 @@ class Comptes extends Gvv_Controller {
             $this->data['balance_date'] = date('d/m/Y');
         }
 
-        $tables = $this->gvv_model->select_charges_et_produits($this->data['balance_date'], true);
+        $html = ($mode == "html");
+        $tables = $this->gvv_model->select_charges_et_produits($this->data['balance_date'], $html);
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
         $this->data['resultat'] = $tables['resultat'];
@@ -288,11 +290,63 @@ class Comptes extends Gvv_Controller {
 
         $this->data['immos'] = $tables['immos'];
 
-
+        if ($mode == "csv") {
+            $this->csv_dashboard($this->data);
+        }
         $this->push_return_url("resultat");
 
         load_last_view('comptes/dashboardView', $this->data);
     }
+
+    /**
+     * Export du dashboard en CSV
+     */
+    function csv_dashboard($data) {
+
+        // echo "<pre>";
+        // print_r($data);
+        // echo "</pre>";
+        // exit;
+
+        $title = $this->lang->line("gvv_comptes_title_dashboard");
+
+        $csv_data = array();
+        $csv_data[] = array(
+            $this->lang->line("comptes_label_date"),
+            $data['balance_date'],
+            '',
+            '',
+            '',
+            ''
+        );
+
+        $csv_data[] = [];
+        $csv_data[] = ["Charges par sections"];
+        $csv_data = array_merge($csv_data, $data['charges']);
+
+        $csv_data[] = [];
+        $csv_data[] = ["Produits par sections"];
+        $csv_data = array_merge($csv_data, $data['produits']);
+
+        $csv_data[] = [];
+        $csv_data[] = ["Résultat avant répartition"];
+        $csv_data = array_merge($csv_data, $data['resultat']);
+
+        $csv_data[] = [];
+        $csv_data[] = ["Actifs financiers"];
+        $csv_data = array_merge($csv_data, $data['disponible']);
+
+        $csv_data[] = [];
+        $csv_data[] = ["Dettes"];
+        $csv_data = array_merge($csv_data, $data['dettes']);
+
+        $csv_data[] = [];
+        $csv_data[] = ["Immobilisations"];
+        $csv_data = array_merge($csv_data, $data['immos']);
+
+        csv_file($title, $csv_data);
+    }
+
 
     /**
      * Activé par la barre de boutons de résultats
@@ -320,7 +374,6 @@ class Comptes extends Gvv_Controller {
             '',
             ''
         );
-        $csv_data = array_merge($csv_data, $this->ecritures_model->resultat_table($resultat, false, '', ',', 'csv'));
 
         csv_file($title, $csv_data);
     }

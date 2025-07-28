@@ -222,10 +222,10 @@ $url = controller_url($controller);
     $table->display();
 
     $bar = array(
-        array('label' => "Excel", 'url' => "comptes/export_resultat/csv", 'role' => 'ca'),
-        array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
+        array('label' => "Excel", 'url' => "comptes/dashboard/csv", 'role' => 'ca'),
+        // array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
     );
-    // echo button_bar4($bar);
+    echo button_bar4($bar);
 
     echo '</div>';
     ?>

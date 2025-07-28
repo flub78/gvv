@@ -5,22 +5,20 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 ## Bugs
 
+* [] **la page de retour après une modification des écritures est discutable**
+* [] **la page après changement de la checkbox gel est incorrecte**
 * [] Plus d'affichage des petites flèches quand le tri par colone est actif
 * [] Vérifier le cadrage à droite pour tous les chiffres, 
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
-* [] **la page de retour après une modification des écritures est discutable**
-* [] **la page après changement de la checkbox gel est incorrecte**
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 
   
 ## Reste à faire
 
-* [] Openflyers fusioner import et vérification des soldes
 * [] OpenFlyers afficher les vols non existant dans les imports OF
-
-* [] Gérer les suggestions de saisie par section
 * [] Ne pas afficher les comptes inactifs dont le solde est null.
+  
 
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
@@ -43,9 +41,11 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Gestion de l'inscription, y compris les autorisations parentales
 * [] supprimer les textes orientés planeur sur les pages
   
+* [] Gérer les suggestions de saisie par section
+
+* [] Support du markdown
 * [] Reservation des avions                                   10j
 * [] Payments en ligne                                        10j
-* [] Support du markdown
 * [] Sauvegarde/restauration des medias et attachements
 * [] Attachements sur les achats
 
@@ -103,3 +103,5 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [x] import des écritures
   * [x] Annulation des imports
   * [x] prendre la date en compte pour l'import des soldes
+  * [x] Openflyers fusionner import et vérification des soldes
+* [x] Export CSV du tableau de bord

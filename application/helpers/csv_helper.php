@@ -58,7 +58,8 @@ if (!function_exists('csv_file')) {
                 $header = False;
             }
             foreach ($row as $cell) {
-                $str .= $cell . ";";
+                $formatted_cell = is_numeric($cell) ? str_replace('.', ',', $cell) : $cell;
+                $str .= $formatted_cell . ";";
             }
             $str .= "\n";
         }
