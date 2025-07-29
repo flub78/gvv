@@ -30,18 +30,18 @@ $this->lang->load('configuration');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading("gvv_terrains_title_list", 3);
+echo heading("gvv_configuration_title_list", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete'),
-    'fields' => array('oaci', 'nom', 'freq1', 'freq2', 'comment'),
+    'fields' => array('cle', 'valeur', 'lang', 'categorie', 'club', 'description'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable table table-striped"
 );
 
-echo $this->gvvmetadata->table("vue_terrains", $attrs, "");
+echo $this->gvvmetadata->table("vue_configuration", $attrs, "");
 /*
 $bar = array(
 	array('label' => "Excel", 'url' =>"$controller/export/csv", 'role' => 'ca'),

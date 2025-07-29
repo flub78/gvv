@@ -40,7 +40,7 @@ class Configuration_model extends Common_Model {
         if (array_key_exists('cle', $vals) && array_key_exists('valeur', $vals)) {
             return $vals['cle'] . " " . $vals['description'];
         } else {
-            return "terrain inconnu $key";
+            return "configuration inconnue $key";
         }
     }
 }

@@ -17,14 +17,14 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Formulaire de saisie des terrains
+ * Formulaire de saisie des paramètres de configuration
  * @package vues
  */
 $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
-$this->lang->load('terrains');
+$this->lang->load('configuration');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -33,22 +33,21 @@ if (isset($message)) {
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
-echo heading("gvv_terrains_title", 3);
+echo heading("gvv_configuration_title", 3);
 
 echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
-// echo form_hidden('macimmat', $macimmat);
-
 // echo validation_errors();
-echo ($this->gvvmetadata->form('terrains', array(
-	'oaci' => $oaci,
-	'nom' => $nom,
-	'freq1' => $freq1,
-	'freq2' => $freq2,
-	'comment' => $comment
+echo ($this->gvvmetadata->form('configuration', array(
+	'cle' => $cle,
+	'valeur' => $valeur,
+	'lang' => $lang,
+	'categorie' => $categorie,
+	'club' => $club,
+	'description' => $description,
 )));
 
 echo validation_button($action);

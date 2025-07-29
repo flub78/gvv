@@ -90,6 +90,7 @@ class Gvv_Controller extends CI_Controller {
         if (! $this->session->userdata('licence_type')) {
             $this->session->set_userdata('licence_type', 0);
         }
+        // Pourquoi le charger pour tous les contrôleurs GVV ?
         $this->load->model('clotures_model');
     }
 

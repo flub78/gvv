@@ -1909,7 +1909,7 @@ abstract class Metadata {
             $input = form_input($attrs);
             return $input;
         }
-        echo "input_field ($table, $field, $value) undefined type=$type, size=$size";
+        echo "input_field ($table, $field, $value) undefined type=$type, size=$size<br>";
         return '';
     }
 

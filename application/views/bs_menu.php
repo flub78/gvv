@@ -100,6 +100,7 @@ $section_count = $CI->sections_model->safe_count_all();
                 <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><?= translation("gvv_admin_menu_config") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><?= translation("gvv_configuration_title_list") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><?= translation("welcome_history_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><?= translation("welcome_reports_title") ?></a></li>

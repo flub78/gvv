@@ -17,7 +17,9 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 ## Reste à faire
 
 * [] OpenFlyers afficher les vols non existant dans les imports OF
-* [] Ne pas afficher les comptes inactifs dont le solde est null.
+
+* [] Gérer la configuration dans la base.
+* [] Support du markdown
   
 * [] Compléter les exports CSV manquants
 * [] gestion des vols de découverte
@@ -27,12 +29,11 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
   
-* [] Gérer la configuration dans la base.
-
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
   * [] Les attachements devraient-être listé par section et par années
   * [] compression des attachements
+  
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
@@ -42,7 +43,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] supprimer les textes orientés planeur sur les pages
   
 
-* [] Support du markdown
 * [] Reservation des avions                                   10j
 * [] Payments en ligne                                        10j
 * [] Sauvegarde/restauration des medias et attachements
