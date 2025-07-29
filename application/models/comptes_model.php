@@ -666,8 +666,8 @@ class Comptes_model extends Common_Model {
         $resultat = [];
         // todo aller chercher la liste des titres dans les sections
         $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
-        $resultat[] = $this->compute_total(["Total des produits"], $produits);
-        $resultat[] = $this->compute_total(["Total des charges"], $charges);
+        $resultat[] = $this->compute_total(["Total des recettes"], $produits);
+        $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
 
         $total_row = ["Résultat"];
 
@@ -844,7 +844,9 @@ class Comptes_model extends Common_Model {
 
         $total_dispo[] = $tot_banque + $tot_creances;
         $total_dettes[] = $tot_emprunt + $tot_dettes;
+        $diff_actif_passif[] = $tot_banque + $tot_creances - $tot_emprunt - $tot_dettes;
 
+        
         $immos_brutes[] = $tot_immos_brutes;
         $immos_cumul_amortissements[] = $tot_immos_cumul_amortissements;
         $immos_nettes[] = $tot_immos_nettes;
