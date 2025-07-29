@@ -508,7 +508,13 @@ class Gvv_Controller extends CI_Controller {
                 $processed_data = $this->form2database($action);
                 if ($action == CREATION) {
                     # var_dump($processed_data); exit();
-                    $id = $this->gvv_model->create($processed_data);
+                    try {
+                        $id = $this->gvv_model->create($processed_data);
+                    } catch (Exception $e) {
+                        $msg = $e->getMessage();
+                        $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
+                        throw $e;
+                    }
                     // only replace autoincremented id
                     if ($id) {
                         gvv_debug("autoincremented id=$id, key=" . $this->kid);

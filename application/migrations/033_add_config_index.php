@@ -65,7 +65,8 @@ class Migration_Add_config_index extends CI_Migration {
 		$errors = 0;
 
 		$sqls = array(
-			"ALTER TABLE `configuration` ADD INDEX `idx_cle_lang_club` (`cle`, `lang`, `club`);"
+			"ALTER TABLE `configuration` ADD UNIQUE INDEX `idx_cle_lang_club` (`cle`, `lang`, `club`);",
+			"ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;"
 		);
 
 		$errors += $this->run_queries($sqls);
@@ -84,7 +85,8 @@ class Migration_Add_config_index extends CI_Migration {
 	public function down() {
 		$errors = 0;
 		$sqls = array(
-			"ALTER TABLE `configuration` DROP INDEX `idx_cle_lang_club`;"
+			"ALTER TABLE `configuration` DROP INDEX `idx_cle_lang_club`;",
+			"ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;"
 		);
 
 		$errors += $this->run_queries($sqls);

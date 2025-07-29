@@ -123,7 +123,7 @@ class Common_Model extends CI_Model {
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
 
-            gvv_debug("create succesful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
+            gvv_debug("create successful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
             if (! $last_id) {
                 $last_id = $data[$this->primary_key];
                 gvv_debug("\$last_id=$last_id (\$data[primary_key])");
