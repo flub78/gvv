@@ -96,7 +96,7 @@ class DataTable extends Widget {
         $res .= "\t<caption>$title</caption>\n";
 
         $res .= "\t<thead>";
-        $res .= "<tr>\n";
+        $res .= '<tr class="first_row">' . "\n";
         $title_row = $values[0];
         $col = 0;
         if ($create != "") {

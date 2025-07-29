@@ -11,3 +11,22 @@
 .operations tr.compte  {
     background-color: #e9a45a;
 }
+
+.first_row {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #d4dbcf;
+    background-color: rgb(5, 136, 5);
+}
+
+.first_row th {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #d4dbcf;
+}
+
+.first_row .DataTables_sort_wrapper {
+    font-weight: bold;
+    color: #d4dbcf;
+
+}
