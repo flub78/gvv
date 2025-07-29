@@ -585,7 +585,7 @@ class Comptes_model extends Common_Model {
         foreach ($sections as $section) {
             $title[] = $section['nom'];
         }
-        $title[] = "Total";
+        $title[] = "Total Club";
         $table[] = $title;
 
         foreach ($res as $codec) {
@@ -665,7 +665,7 @@ class Comptes_model extends Common_Model {
 
         $resultat = [];
         // todo aller chercher la liste des titres dans les sections
-        $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total'];
+        $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total Club'];
         $resultat[] = $this->compute_total(["Total des recettes"], $produits);
         $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
 
@@ -834,7 +834,7 @@ class Comptes_model extends Common_Model {
         }
 
         // la colonne Total
-        $title[] = "Total";
+        $title[] = "Total Club";
         $banques[] =  $tot_banque;
         $emprunts[] =  $tot_emprunt;
         $prets[] = $tot_prets;

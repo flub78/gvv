@@ -90,7 +90,6 @@ $url = controller_url($controller);
                         'values' => $produits,
                         'controller' => $controller,
                         'class' => "sql_table fixed_datatable table",
-                        'header_class' => 'first_row',
                         'align' => array(
                             'center',
                             'left',
