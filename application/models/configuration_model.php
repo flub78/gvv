@@ -14,7 +14,7 @@ $CI->load->model('common_model');
  */
 class Configuration_model extends Common_Model {
     public $table = 'configuration';
-    // protected $primary_key = 'id';
+    protected $primary_key = 'id';
 
     /**
      *	Retourne le tableau tableau utilisé pour l'affichage par page

@@ -90,7 +90,7 @@ class Gvv_Controller extends CI_Controller {
         if (! $this->session->userdata('licence_type')) {
             $this->session->set_userdata('licence_type', 0);
         }
-        // Pourquoi le charger pour tous les contrôleurs GVV ?
+        // On a besoin du clotures_model pour connaitre les dates de gel
         $this->load->model('clotures_model');
     }
 

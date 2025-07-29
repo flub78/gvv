@@ -28,6 +28,14 @@ Pour l'instant pas de besoin identifié d'avoir autre chose que des valeurs cha�
 * valeur varchar(255)
 * categorie varchar(64) Les catégories sont définies dans le code. et utilisées pour présenter à l'utilisateur des panneaux de configuration sur un sujet, par exemple la configuration club, la configuration des vi, etc.
 
+### Liste des valeurs acceptées
+
+Comme il s'agit de paramètres de configuration du programme, leur liste est limitée et connue. Il ne servirait à rien de définir un paramètre de configuration qui ne soit pas utilisé par le programme.
+
+Par convention les paramètres sont structurés avec des points séparateurs, ex: "vols_découverte.ulm.tel_contact".
+
+L'idée est que la même clé soit utilisée plusieurs fois avec des valeur différentes pour club et lang. 
+
 ## Utilisation
 
 Je vais utiliser initialement cette resource pour configurer la gestion des vols de découverte. Il serait logique qu'à un certain point la configuration club soit migré vers ce genre de mécanisme
