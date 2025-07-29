@@ -43,14 +43,10 @@ if ($compare) {
 <?php
 echo p($this->lang->line("gvv_of_warning2"), 'class="error"');
 
-// echo br();
-if ($compare) {
-echo form_open_multipart('openflyers/import_soldes/compare');
-echo "Date de comparaison: " . '<input type="date" name="compare_date" size="50" class="mt-4"/><br><br>';
-
-} else {
 echo form_open_multipart('openflyers/import_soldes');
-}
+
+echo "Date des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
+
 echo '<input type="file" name="userfile" size="50" /><br><br>';
 
 echo form_input(array(

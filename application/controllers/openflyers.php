@@ -157,16 +157,7 @@ class OpenFlyers extends CI_Controller {
             }
         }
 
-        if ($compare) {
-            $compare_date = $this->input->post('compare_date');
-            if (!$compare_date) {
-                $error = array(
-                    'error' => "Date de comparaison manquante ou incorrecte.",
-                    'compare' => true
-                );
-                load_last_view('openflyers/select_soldes', $error);
-            }
-        }
+        $compare_date = $this->input->post('import_date');
 
         // delete all files in the uploads/restore directory
         // these files are temporary, there is no need to keep them
