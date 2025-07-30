@@ -581,7 +581,7 @@ class Comptes_model extends Common_Model {
         $res = $this->db->group_by('codec')
             ->get()->result_array();
 
-        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections = $this->sections_model->section_list();
         foreach ($sections as $section) {
             $title[] = $section['nom'];
         }
@@ -634,7 +634,7 @@ class Comptes_model extends Common_Model {
         $res = $header;
         $header_count = 2;      // columns to skip tin the table
         $line = 0;
-        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
 
         for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
@@ -659,13 +659,13 @@ class Comptes_model extends Common_Model {
      * @return array A table representing the financial result with totals per section
      */
     function compute_resultat($charges, $produits, $html = false) {
-        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
         $header_count = 1;
 
         $resultat = [];
         // todo aller chercher la liste des titres dans les sections
-        $resultat[] = ['', 'Planeur', 'ULM', 'Avion', 'Général', 'Total Club'];
+        $resultat[] = ['', 'Avion', 'Général', 'Planeur', 'ULM', 'Total Club'];
         $resultat[] = $this->compute_total(["Total des recettes"], $produits);
         $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
 
@@ -706,7 +706,7 @@ class Comptes_model extends Common_Model {
      */
     function compute_disponible($balance_date, $html = false) {
         // les sections
-        $sections = $this->sections_model->select_columns('id, nom, description');
+        $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
         $header_count = 1;
 

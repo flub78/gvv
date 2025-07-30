@@ -27,6 +27,15 @@ class Sections_model extends Common_Model {
     }
 
     /**
+     * Returns a list of sections ordered by nom
+     */
+    public function section_list() {
+        $this->db->order_by('nom', 'asc');
+        $query = $this->db->get($this->table);
+        return $query->result_array();
+    }
+
+    /**
      * Retourne une chaîne de caractère qui identifie une ligne de façon unique.
      * Cette chaîne est utilisé dans les affichages.
      * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
