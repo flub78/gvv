@@ -788,6 +788,23 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_associations_of']['nom_of']['Name'] = 'Nom Openflyers';
                 $this->field['vue_associations_of']['id_compte_gvv']['Name'] = 'Compte GVV';
 
+                /**
+                 * Paramètres de configuration
+                 */
+
+                $this->field['configuration']['cle']['Subtype'] = 'enumerate';
+                $this->field['configuration']['cle']['Enumerate'] =  [
+                        "vd.telephone", 
+                        "vd.nom", 
+                        "vd.prix"
+                ];
+
+                $this->field['configuration']['club']['Subtype'] = 'selector';
+                $this->field['configuration']['club']['Selector'] = 'section_selector';
+
+                $this->field['configuration']['lang']['Subtype'] = 'enumerate';
+                $this->field['configuration']['lang']['Enumerate'] = ["fr" => "Français", "en" => "English", "de" => "Deutsch"];
+
                 // $this->dump();
         }
 }

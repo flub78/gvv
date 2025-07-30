@@ -76,7 +76,7 @@ Les champs sont affichés par la fonction array_field de la classe Metadata.
 
 ### Métadonnées
 
-Les metadonnées doivent être renseignées pour un affichage correcte des vues. Elle sont gérées dans Gvvmetadata.php. La tenttive de les répartir ans plusieurs fichiers n'a jamais abouti.
+Les métadonnées doivent être renseignées pour un affichage correcte des vues. Elle sont gérées dans **Gvvmetadata.php**. La tentative de les répartir ans plusieurs fichiers n'a jamais abouti.
 
 Par exemple:
 
@@ -100,7 +100,6 @@ Définir les métadonnees:
    $this->field['volsa']['vapilid']['Subtype'] = 'selector';
    $this->field['volsa']['vapilid']['Selector'] = 'pilote_selector';
 ```
-
 
 
 
