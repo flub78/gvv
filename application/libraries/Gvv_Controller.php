@@ -61,7 +61,7 @@ class Gvv_Controller extends CI_Controller {
         $this->session->set_userdata('requested_url', $current_url);
 
         gvv_debug("URL: " . $current_url);
-        
+
         $this->load->library('DX_Auth');
         if (getenv('TEST') != '1') {
             // Checks to be done only when not controlled by PHPUnit
@@ -510,6 +510,23 @@ class Gvv_Controller extends CI_Controller {
                     # var_dump($processed_data); exit();
                     try {
                         $id = $this->gvv_model->create($processed_data);
+                        if (!$id) {
+                            $msg = $this->db->_error_message();
+                            $code = $this->db->_error_number();
+
+                            if ($code == 1062) {
+                                $msg = $this->lang->line("gvv_error_duplicate_entry");
+                            } elseif ($code == 1451) {
+                                $msg = "Erreur:" . $msg . $this->lang->line("gvv_error_foreign_key_constraint");
+                            } else {
+                                $msg = "Erreur:" . $msg .$this->lang->line("gvv_error_create_record") . ": " . $msg;
+                            }
+                            $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
+
+                            $this->form_static_element($action);
+                            load_last_view($this->form_view, $this->data);
+                            return;
+                        }
                     } catch (Exception $e) {
                         $msg = $e->getMessage();
                         $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
@@ -581,7 +598,7 @@ class Gvv_Controller extends CI_Controller {
         } else {
             // validation failed
 
-            gvv_debug("form validation failed ". var_export(validation_errors(), true));
+            gvv_debug("form validation failed " . var_export(validation_errors(), true));
         }
 
         // Display the form again
@@ -764,7 +781,7 @@ class Gvv_Controller extends CI_Controller {
     function new_year($year) {
         if ($year != "all") {
             $this->session->set_userdata('year', $year);
-            $this->session->set_userdata('balance_date', "31/12/$year");      
+            $this->session->set_userdata('balance_date', "31/12/$year");
             $this->session->set_userdata('all_year', $year);
         } else {
             $this->session->unset_userdata('all_year');

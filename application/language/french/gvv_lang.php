@@ -252,3 +252,7 @@ $lang['datatable_no_data'] = 'Aucune donnée disponible dans le tableau';
 $lang['delete'] = 'Supprimer';
 
 $lang['section_selected'] = 'Sélectionnez une section pour réaliser cette action';
+
+$lang['gvv_error_duplicate_entry'] = 'Erreur : doublon détecté. Cet élément existe déjà.';
+$lang['gvv_error_foreign_key_constraint'] = 'Contrainte de clé étrangère.';
+$lang['gvv_error_create_record'] = 'Lors de la création en base de données.';
