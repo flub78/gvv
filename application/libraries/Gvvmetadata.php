@@ -802,6 +802,14 @@ class GVVMetadata extends Metadata {
                         "vd.email.smtp_crypto" => "SMTP Crypto",
                         "vd.email.smtp_password" => "SMTP password",
 
+                        "vd.avion.contact_name" => "Nom du contact avion",
+                        "vd.avion.contact_tel" => "Téléphone du contact avion",
+
+                        "vd.planeur.contact_name" => "Nom du contact planeur",
+                        "vd.planeur.contact_tel" => "Téléphone du contact planeur",
+
+                        "vd.ulm.contact_name" => "Nom du contact ULM",
+                        "vd.ulm.contact_tel" => "Téléphone du contact ULM",
                 ];
 
                 $this->field['configuration']['club']['Subtype'] = 'selector';

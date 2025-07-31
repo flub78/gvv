@@ -229,7 +229,7 @@ class Vols_decouverte extends Gvv_Controller {
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
 
         $message .= "Voici votre bon pour un vol de découverte. Il est valable un an à partir de la date d'achat.<br><br>";
-        $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville" . $this->configuration_model->get_param('vd.email.sender_signature');
+        $message .= "Cordialement,<br><br>" . $this->configuration_model->get_param('vd.email.sender_signature');
 
         $this->email->message($message);
 
@@ -278,10 +278,10 @@ class Vols_decouverte extends Gvv_Controller {
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor("Aéroclub d'Abbeville");
+        $pdf->SetAuthor($this->configuration_model->get_param('vd.email.sender_name'));
         $pdf->SetTitle('Vol de découverte ' . $id);
         $pdf->SetSubject('Bon cadeau');
-        $pdf->SetKeywords('Abbeville, vol, découverte');
+        $pdf->SetKeywords('vol, découverte');
 
         // set header and footer fonts
         $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -427,17 +427,25 @@ EOD;
         $pdf->writeHTML($options_html, true, false, false, false, '');
 
         // Contact section
+        $contact_avion = $this->configuration_model->get_param('vd.avion.contact_name');
+        $contact_planeur = $this->configuration_model->get_param('vd.planeur.contact_name');
+        $contact_ulm = $this->configuration_model->get_param('vd.ulm.contact_name');
+        $tel_avion = $this->configuration_model->get_param('vd.avion.contact_tel');
+        $tel_planeur = $this->configuration_model->get_param('vd.planeur.contact_tel');
+        $tel_ulm = $this->configuration_model->get_param('vd.ulm.contact_tel');
+
         $contact_html = <<<EOD
-<table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
-    <tr>
+    <table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
+        <tr>
         <td>
             Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
-            <br />- pour l'avion <strong>Daniel Tellier (06 12 01 37 22)</strong> 
-            <br />- pour le planeur <strong>Thibault Dugardin (06 77 61 06 16)</strong>
-            <br />- pour l'ULM <strong>Guillaume Montois (06 81 20 20 69)</strong>
+            <br />- pour l'avion <strong>{$contact_avion} ({$tel_avion})</strong> 
+            <br />- pour le planeur <strong>{$contact_planeur} ({$tel_planeur})</strong>
+            <br />- pour l'ULM <strong>{$contact_ulm} ({$tel_ulm})</strong>
             <br>
         </td>
-    </tr>
+        </tr>
+
 
     <tr style="width: 100%; background-color: #ddddd">
         <td width="33%" height="1.5cm">Vol effectué le :</td>

@@ -66,7 +66,9 @@ class Migration_Add_config_index extends CI_Migration {
 
 		$sqls = array(
 			"ALTER TABLE `configuration` ADD UNIQUE INDEX `idx_cle_lang_club` (`cle`, `lang`, `club`);",
-			"ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;"
+			"ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;",
+			"ALTER TABLE `configuration` CHANGE `description` `description` VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;",
+			"ALTER TABLE `configuration` CHANGE `lang` `lang` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL;"
 		);
 
 		$errors += $this->run_queries($sqls);
