@@ -20,6 +20,8 @@
  * @filesource vols_decouverte.php
  * @package controllers
  * Contrôleur de gestion des avions.
+ * 
+ *  reviewed by: copilot on 2025-07-31
  */
 include('./application/libraries/Gvv_Controller.php');
 include(APPPATH . '/third_party/phpqrcode/qrlib.php');
@@ -230,7 +232,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->message($message);
 
         // Attach PDF
-        $temp_file = "/tmp/vol_decouverte_acs_" . $id . ".pdf";
+        $temp_file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "vol_decouverte_acs_" . $id . ".pdf";
         file_put_contents($temp_file, $pdf_content);
         $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
 
@@ -245,7 +247,7 @@ class Vols_decouverte extends Gvv_Controller {
         } else {
             // Error message
             $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
-            // unlink($temp_file); // Clean up after sending
+            unlink($temp_file); // Clean up after sending
 
             load_last_view('error', $data);
         }

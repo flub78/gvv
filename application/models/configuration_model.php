@@ -6,11 +6,12 @@ $CI = &get_instance();
 $CI->load->model('common_model');
 
 /**
- *	Accès base Terrains
+ *	Configuration model
  *
- *  C'est un CRUD de base, la seule chose que fait cette classe
- *  est de définir le nom de la table. Tous les méthodes sont 
- *  implémentés dans Common_Model
+ *  C'est un CRUD de base, la plupart des méthodes sont 
+ *  implémentés dans Common_Model.
+ * 
+ *  reviewed by: copilot on 2025-07-31
  */
 class Configuration_model extends Common_Model {
     public $table = 'configuration';
@@ -38,7 +39,8 @@ class Configuration_model extends Common_Model {
             return "";
         $vals = $this->get_by_id('id', $key);
         if (array_key_exists('cle', $vals) && array_key_exists('valeur', $vals)) {
-            return $vals['cle'] . " " . $vals['description'];
+            $description = array_key_exists('description', $vals) ? $vals['description'] : '';
+            return $vals['cle'] . " " . $description;
         } else {
             return "configuration inconnue $key";
         }
@@ -52,7 +54,9 @@ class Configuration_model extends Common_Model {
      * @return mixed The value of the configuration parameter
      */
     public function get_param($key, $lang = null) {
-        $lang = $this->config->item('language');
+        if ($lang === null) {
+            $lang = $this->config->item('language');
+        }
 
         $section = $this->gvv_model->section();
 

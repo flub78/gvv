@@ -72,7 +72,7 @@ class Configuration extends Gvv_Controller {
      */
     public function test_model() {
 
-        $this->unit->run(true, true, "Test model");
+        $this->unit->run(true, true, "Testing $this->controller model");
 
         $data1 = [
             'cle' => 'test_cle',
@@ -84,7 +84,7 @@ class Configuration extends Gvv_Controller {
         ];
 
         $data2 = [
-            'cle' => 'test_cle',
+            'cle' => 'cle2',
             'valeur' => 'test_valeur2',
             'lang' => 'french',
             'club' => null,
@@ -109,17 +109,21 @@ class Configuration extends Gvv_Controller {
         $id3 = $this->gvv_model->create($data3);
 
         // Verify count increased by 3
-        $this->unit->run($this->gvv_model->count(), $count + 3, "Count increased by 3");
+        $this->unit->run($this->gvv_model->count(), $count + 3, "Count increased by 3 after creation");
 
         // Verify retrieval
         $value1 = $this->gvv_model->get_param($data1['cle']);
-        echo "Value 1: $value1\n";
-        // $this->unit->run($this->gvv_model->get($id1)->valeur, $data1['valeur'], "Retrieved value 1 matches");
-        // $this->unit->run($this->gvv_model->get($id2)->valeur, $data2['valeur'], "Retrieved value 2 matches");
-        // $this->unit->run($this->gvv_model->get($id3)->valeur, $data3['valeur'], "Retrieved value 3 matches");
+        $this->unit->run($value1, $data1['valeur'], "Retrieved value 1 matches");
 
-        // // // Test unknown key returns null
-        // // $this->unit->run($this->gvv_model->get('unknown_key'), null, "Unknown key returns null");
+        $value2 = $this->gvv_model->get_param($data2['cle']);
+        $this->unit->run($value2, $data2['valeur'], "Retrieved value 2 matches");
+
+        $value3 = $this->gvv_model->get_param($data3['cle'], $data3['lang']);
+        $this->unit->run($value3, $data3['valeur'], "Retrieved value 3 matches");
+
+        // Check unknown key returns null
+        $unknown_value = $this->gvv_model->get_param('unknown_key');
+        $this->unit->run($unknown_value, null, "Unknown key returns null");
         
         // Delete test data
         $this->gvv_model->delete(['id' => $id1]);
@@ -127,7 +131,7 @@ class Configuration extends Gvv_Controller {
         $this->gvv_model->delete(['id' => $id3]);
 
         // Verify back to initial count
-        $this->unit->run($this->gvv_model->count(), $count, "Count back to initial");
+        $this->unit->run($this->gvv_model->count(), $count, "Count back to initial after delete");
     }
 
     /**
@@ -138,7 +142,7 @@ class Configuration extends Gvv_Controller {
         $this->unit_test = TRUE;
         $this->load->library('unit_test');
 
-        $this->unit->run(true, true, "Tests $this->controller");
+        $this->unit->run(true, true, "Testing $this->controller controller");
         $this->test_model();
         $this->tests_results($format);
     }

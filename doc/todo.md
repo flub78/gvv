@@ -7,6 +7,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] **la page après changement de la checkbox gel est incorrecte**
+* [] **Déconnexion intempestive**
 * [] Plus d'affichage des petites flèches quand le tri par colone est actif
 * [] Vérifier le cadrage à droite pour tous les chiffres, 
   * grand journal, montants
@@ -20,6 +21,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 * [] Gérer la configuration dans la base.
 * [] Support du markdown
+* [] supprimer les textes orientés planeur sur les pages
   
 * [] Compléter les exports CSV manquants
 * [] gestion des vols de découverte
@@ -37,10 +39,10 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
+  
 * [] gestion des droits multi sections
 * [] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
-* [] supprimer les textes orientés planeur sur les pages
   
 
 * [] Reservation des avions                                   10j

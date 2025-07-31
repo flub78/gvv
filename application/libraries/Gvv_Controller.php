@@ -510,16 +510,16 @@ class Gvv_Controller extends CI_Controller {
                     # var_dump($processed_data); exit();
                     try {
                         $id = $this->gvv_model->create($processed_data);
-                        if (!$id) {
+                        $code = $this->db->_error_number();
+                        if (!$id && $code) {
                             $msg = $this->db->_error_message();
-                            $code = $this->db->_error_number();
 
                             if ($code == 1062) {
                                 $msg = $this->lang->line("gvv_error_duplicate_entry");
                             } elseif ($code == 1451) {
                                 $msg = "Erreur:" . $msg . $this->lang->line("gvv_error_foreign_key_constraint");
                             } else {
-                                $msg = "Erreur:" . $msg .$this->lang->line("gvv_error_create_record") . ": " . $msg;
+                                $msg = "Erreur: $code" . $msg .$this->lang->line("gvv_error_create_record") . ": " . $msg;
                             }
                             $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
 
