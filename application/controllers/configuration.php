@@ -28,7 +28,7 @@ class Configuration extends Gvv_Controller {
     // Tout le travail est fait par le parent
     protected $controller = 'configuration';
     protected $model = 'configuration_model';
-    protected $modification_level = 'ca';
+    protected $modification_level = 'bureau';
     protected $rules = array();
 
     /**
@@ -55,7 +55,33 @@ class Configuration extends Gvv_Controller {
         $this->gvvmetadata->set_selector('section_selector', $section_selector);
     }
 
+    /**
+     * Transforme les données brutes en base en données compatibles avec le format de base de données
+     * Default implementation returns the data attribute
+     *
+     * @param $action CREATION
+     *            | MODIFICATION | VISUALISATION
+     */
+    function form2database($action = '') {
+        $processed_data = array();
+        // Méthode basée sur les méta-données
+        $table = $this->gvv_model->table();
+        $fields_list = $this->gvvmetadata->fields_list($table);
+        foreach ($fields_list as $field) {
+            $processed_data[$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
+        }
 
+        // On ne force pas la section, elle est saisie par l'utilisateur
+        if (!$processed_data['club']) {
+            unset($processed_data['club']);
+        }
+
+        if (!$processed_data['lang']) {
+            unset($processed_data['lang']);
+        }
+
+        return $processed_data;
+    }
     /**
      * Test description
      * 
@@ -124,7 +150,7 @@ class Configuration extends Gvv_Controller {
         // Check unknown key returns null
         $unknown_value = $this->gvv_model->get_param('unknown_key');
         $this->unit->run($unknown_value, null, "Unknown key returns null");
-        
+
         // Delete test data
         $this->gvv_model->delete(['id' => $id1]);
         $this->gvv_model->delete(['id' => $id2]);

@@ -54,25 +54,25 @@ class Configuration_model extends Common_Model {
      * @return mixed The value of the configuration parameter
      */
     public function get_param($key, $lang = null) {
+
         if ($lang === null) {
             $lang = $this->config->item('language');
         }
 
-        $section = $this->gvv_model->section();
-
-        // First try with specific section
+        // First try without specifying language or section
         $this->db->where('cle', $key);
-        $this->db->where('lang', $lang);
-        if ($section) {
-            $this->db->where('club', $section['id']);
-        }
         $query = $this->db->get($this->table);
-        
-        // If not found, try with club = null (global configuration)
-        if ($query->num_rows() == 0) {
+
+        if ($query->num_rows() > 1) {
             $this->db->where('cle', $key);
             $this->db->where('lang', $lang);
-            $this->db->where('club', null);
+            $query = $this->db->get($this->table);
+        }
+
+        if ($query->num_rows() > 1) {
+            $this->db->where('cle', $key);
+            $section = $this->gvv_model->section();
+            $this->db->where('club', $section['id']);
             $query = $this->db->get($this->table);
         }
 
@@ -81,7 +81,7 @@ class Configuration_model extends Common_Model {
         } else {
             return null;
         }
-    }   
+    }
 }
 
 /* End of file */

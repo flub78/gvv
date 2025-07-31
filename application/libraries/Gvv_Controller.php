@@ -519,7 +519,7 @@ class Gvv_Controller extends CI_Controller {
                             } elseif ($code == 1451) {
                                 $msg = "Erreur:" . $msg . $this->lang->line("gvv_error_foreign_key_constraint");
                             } else {
-                                $msg = "Erreur: $code" . $msg .$this->lang->line("gvv_error_create_record") . ": " . $msg;
+                                $msg = "Erreur: $code "  . $msg .$this->lang->line("gvv_error_create_record");
                             }
                             $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
 

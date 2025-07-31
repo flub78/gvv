@@ -61,25 +61,26 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 ?>
 </div>
 
-
 <?php if ($cancelled): ?>
 <div class="alert alert-danger" role="alert">
     Ce bon a été annulé
 </div>
-<?php endif; ?>
 
-<?php if ($date_vol): ?>
-<div class="alert alert-success" role="alert">
-    Ce vol de découverte a été effectué le <?= date_db2ht($date_vol) ?>
+<?php elseif ($date_vol): ?>
+<div class="alert alert-info" role="alert">
+	    Ce vol de découverte a été effectué le <?= date_db2ht($date_vol) ?>
 </div>
-<?php else: ?>
 
-<?php if ($expired): ?>
+<?php elseif ($expired): ?>
 <div class="alert alert-warning" role="alert">
     La date de validité est expirée
 </div>
-<?php endif; ?>
 
+<?php else: ?>
+
+<div class="alert alert-success" role="alert">
+    Ce bon est valide pour un vol de découverte.
+</div>
 <?php endif; ?>
 
 
@@ -102,8 +103,8 @@ $done_url = base_url() . $index . "vols_decouverte/done/" . $obfuscated_id;
 <div class="container mt-4">
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
-		<a href="<?= $pre_flight_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajout contact d'urgence</a>
-		<a href="<?= $done_url ?>" class="btn btn-warning px-4 text-decoration-none">Vol effectué</a>
+		<a href="<?= $pre_flight_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajouter contact d'urgence</a>
+		<a href="<?= $done_url ?>" class="btn btn-warning px-4 text-decoration-none">Enregistrer la date du vol</a>
 	</div>
 </div>
 <?php endif; ?>

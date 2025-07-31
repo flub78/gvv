@@ -45,6 +45,7 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
+        $this->load->model('configuration_model');
     }
 
     /**
@@ -196,19 +197,20 @@ class Vols_decouverte extends Gvv_Controller {
     function send_email_with_pdf($vd, $pdf_content, $id) {
         $this->load->library('email');
 
-        $sender = "info@aeroclub-abbeville.fr";
-
+        $sender = $this->configuration_model->get_param('vd.email.sender');
+        $port = $this->configuration_model->get_param('vd.email.smtp_port');
+       
         // Configure email settings
         $this->email->clear();
         $config['mailtype'] = 'html';
-        // Configure SMTP settings for Ionos
+        // Configure SMTP settings 
         $config = array(
             'protocol'    => 'smtp',
-            'smtp_host'   => 'smtp.ionos.fr',  // or smtp.ionos.com depending on your account
-            'smtp_port'   => 587,
+            'smtp_host'   => $this->configuration_model->get_param('vd.email.smtp_port'),  // or smtp.ionos.com depending on your account
+            'smtp_port'   => $this->configuration_model->get_param('vd.email.smtp_host'),
             'smtp_user'   => $sender,  // Your full email address
-            'smtp_pass'   => $this->config->item('email_password'), // config/config.php
-            'smtp_crypto' => 'tls',
+            'smtp_pass'   => $this->configuration_model->get_param('vd.email.smtp_password'), // config/config.php
+            'smtp_crypto' => $this->configuration_model->get_param('vd.email.smtp_crypto'),
             'mailtype'    => 'html',
             'charset'     => 'utf-8',
             'wordwrap'    => TRUE,
@@ -218,7 +220,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->initialize($config);
 
         // Set email parameters
-        $this->email->from($sender, 'Aéroclub d\'Abbeville');
+        $this->email->from($sender, $this->configuration_model->get_param('vd.email.sender_name'));
         $this->email->to($vd['beneficiaire_email']);
         $this->email->bcc($sender);
 
@@ -227,7 +229,7 @@ class Vols_decouverte extends Gvv_Controller {
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
 
         $message .= "Voici votre bon pour un vol de découverte. Il est valable un an à partir de la date d'achat.<br><br>";
-        $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville";
+        $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville" . $this->configuration_model->get_param('vd.email.sender_signature');
 
         $this->email->message($message);
 

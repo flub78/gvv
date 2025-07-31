@@ -794,9 +794,14 @@ class GVVMetadata extends Metadata {
 
                 $this->field['configuration']['cle']['Subtype'] = 'enumerate';
                 $this->field['configuration']['cle']['Enumerate'] =  [
-                        "vd.telephone", 
-                        "vd.nom", 
-                        "vd.prix"
+                        "vd.email.sender_email" => "Email sender email",
+                        "vd.email.sender_name" => "Email sender Name",
+                        "vd.email.sender_signature" => "Email sender Signature",
+                        "vd.email.smtp_host" => "SMTP Host",
+                        "vd.email.smtp_port" => "SMTP Port",
+                        "vd.email.smtp_crypto" => "SMTP Crypto",
+                        "vd.email.smtp_password" => "SMTP password",
+
                 ];
 
                 $this->field['configuration']['club']['Subtype'] = 'selector';
