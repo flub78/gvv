@@ -803,7 +803,7 @@ class GVVMetadata extends Metadata {
                 $this->field['configuration']['club']['Selector'] = 'section_selector';
 
                 $this->field['configuration']['lang']['Subtype'] = 'enumerate';
-                $this->field['configuration']['lang']['Enumerate'] = ["fr" => "Français", "en" => "English", "de" => "Deutsch"];
+                $this->field['configuration']['lang']['Enumerate'] = ["french" => "Français", "english" => "English", "deutch" => "Deutsch"];
 
                 // $this->dump();
         }

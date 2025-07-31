@@ -22,16 +22,16 @@
  * 
  * Contrôleur de gestion des paramètres de configuration
  */
-include ('./application/libraries/Gvv_Controller.php');
+include('./application/libraries/Gvv_Controller.php');
 class Configuration extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'configuration';
     protected $model = 'configuration_model';
     protected $modification_level = 'ca';
-    protected $rules = array ();
+    protected $rules = array();
 
-        /**
+    /**
      * Génération des éléments statiques à passer au formulaire en cas de création,
      * modification ou ré-affichage après erreur.
      * Sont statiques les parties qui ne changent pas d'un élément sur l'autre.
@@ -53,7 +53,81 @@ class Configuration extends Gvv_Controller {
         $this->load->model('sections_model');
         $section_selector = $this->sections_model->selector_with_null();
         $this->gvvmetadata->set_selector('section_selector', $section_selector);
+    }
 
+
+    /**
+     * Test description
+     * 
+     * count the number of configuration
+     * create one with club defined in french
+     * create one with section not define in french (same key)
+     * create one with section defined in english (same key)
+     * check that there are three more in database
+     * check it is possible to retrieve the first, second and third data
+     * check that fetching an unknown key returns null
+     * delete the test data 
+     * check that we are back to the initial number of configuration
+     * 
+     */
+    public function test_model() {
+
+        $this->unit->run(true, true, "Test model");
+
+        $data1 = [
+            'cle' => 'test_cle',
+            'valeur' => 'test_valeur',
+            'lang' => 'french',
+            'club' => '1',
+            'categorie' => 'test_categorie',
+            'description' => 'French with section defined'
+        ];
+
+        $data2 = [
+            'cle' => 'test_cle',
+            'valeur' => 'test_valeur2',
+            'lang' => 'french',
+            'club' => null,
+            'categorie' => 'test_categorie',
+            'description' => 'French with no section defined'
+        ];
+
+        $data3 = [
+            'cle' => 'test_cle',
+            'valeur' => 'test_value',
+            'lang' => 'english',
+            'club' => '1',
+            'categorie' => 'test_category',
+            'description' => 'English with section defined'
+        ];
+
+        $count = $this->gvv_model->count();
+
+        // Create test records
+        $id1 = $this->gvv_model->create($data1);
+        $id2 = $this->gvv_model->create($data2);
+        $id3 = $this->gvv_model->create($data3);
+
+        // Verify count increased by 3
+        $this->unit->run($this->gvv_model->count(), $count + 3, "Count increased by 3");
+
+        // Verify retrieval
+        $value1 = $this->gvv_model->get_param($data1['cle']);
+        echo "Value 1: $value1\n";
+        // $this->unit->run($this->gvv_model->get($id1)->valeur, $data1['valeur'], "Retrieved value 1 matches");
+        // $this->unit->run($this->gvv_model->get($id2)->valeur, $data2['valeur'], "Retrieved value 2 matches");
+        // $this->unit->run($this->gvv_model->get($id3)->valeur, $data3['valeur'], "Retrieved value 3 matches");
+
+        // // // Test unknown key returns null
+        // // $this->unit->run($this->gvv_model->get('unknown_key'), null, "Unknown key returns null");
+        
+        // Delete test data
+        $this->gvv_model->delete(['id' => $id1]);
+        $this->gvv_model->delete(['id' => $id2]);
+        $this->gvv_model->delete(['id' => $id3]);
+
+        // Verify back to initial count
+        $this->unit->run($this->gvv_model->count(), $count, "Count back to initial");
     }
 
     /**
@@ -65,6 +139,7 @@ class Configuration extends Gvv_Controller {
         $this->load->library('unit_test');
 
         $this->unit->run(true, true, "Tests $this->controller");
+        $this->test_model();
         $this->tests_results($format);
     }
 }

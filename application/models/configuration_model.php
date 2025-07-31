@@ -43,6 +43,41 @@ class Configuration_model extends Common_Model {
             return "configuration inconnue $key";
         }
     }
+
+    /**
+     * Retrieves a configuration parameter by its key.
+     * 
+     * @param string $key The key identifier of the configuration parameter
+     * @param string|null $lang Optional language code for localized parameters
+     * @return mixed The value of the configuration parameter
+     */
+    public function get_param($key, $lang = null) {
+        $lang = $this->config->item('language');
+
+        $section = $this->gvv_model->section();
+
+        // First try with specific section
+        $this->db->where('cle', $key);
+        $this->db->where('lang', $lang);
+        if ($section) {
+            $this->db->where('club', $section['id']);
+        }
+        $query = $this->db->get($this->table);
+        
+        // If not found, try with club = null (global configuration)
+        if ($query->num_rows() == 0) {
+            $this->db->where('cle', $key);
+            $this->db->where('lang', $lang);
+            $this->db->where('club', null);
+            $query = $this->db->get($this->table);
+        }
+
+        if ($query->num_rows() > 0) {
+            return $query->row()->valeur;
+        } else {
+            return null;
+        }
+    }   
 }
 
 /* End of file */
