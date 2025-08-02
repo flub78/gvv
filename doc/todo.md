@@ -13,13 +13,16 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
 * [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
+* [] Comparaison des soldes, recharger la date en cas d'erreur fichier non sélectionné
+* [] Pb de parseur des opérations en cas de flux à plus de deux comptes
+* [] La comparaison des soldes incite à des initialisations multiples incorrectes
 
   
 ## Reste à faire
 
 * [] OpenFlyers afficher les vols non existant dans les imports OF
 
-* [] Gérer la configuration dans la base.
+* [x] Gérer la configuration dans la base.
 * [] Support du markdown
 * [] supprimer les textes orientés planeur sur les pages
   

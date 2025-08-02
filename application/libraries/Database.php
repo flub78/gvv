@@ -221,12 +221,13 @@ class Database {
 		// Build the command
 		$cmd = "$mysqldump --user=$db_user --password=$db_password --host=$db_host $database  > $filename";
 
-		gvv_debug("backup: " . $cmd);
+		gvv_debug("backup: to $dirname # " . $cmd);
 
 		// Change directory to backup location
 		$original_dir = getcwd();
 		chdir($dirname);
 
+		gvv_debug("backup: chdir to $dirname");
 		exec($cmd, $output, $returnVar);
 		if ($output) {
 			chdir($original_dir);

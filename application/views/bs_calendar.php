@@ -130,7 +130,7 @@ $this->lang->load('config');
 		$club = $this->config->item('club');
 
 		if ($club == 'accabs') {
-			echo p('<div class="error">Les paiements par chèque doivent être remis exclusivement à Guilaume Pruvost, ceux en liquide à Mathieu Caudrelier.</div>');
+			echo p('<div class="error">Les paiements par chèque doivent être remis exclusivement à votre trésorier de section.</div>');
 			echo p(" Les chèques sont à rédiger à l'ordre de l'aéroclub d'Abbeville - section vol à voile.");
 			echo br();
 		}
