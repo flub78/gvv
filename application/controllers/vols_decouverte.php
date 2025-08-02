@@ -20,6 +20,9 @@
  * @filesource vols_decouverte.php
  * @package controllers
  * Contrôleur de gestion des avions.
+ * 
+ *  reviewed by: copilot on 2025-07-31
+
  */
 include('./application/libraries/Gvv_Controller.php');
 include(APPPATH . '/third_party/phpqrcode/qrlib.php');
@@ -43,6 +46,7 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
+        $this->load->model('configuration_model');
     }
 
     /**
@@ -213,6 +217,9 @@ class Vols_decouverte extends Gvv_Controller {
             'newline'     => "\r\n"
         );
 
+
+        gvv_debug(var_export($config, true), "email_config");
+
         $this->email->initialize($config);
 
         // Set email parameters
@@ -274,10 +281,11 @@ class Vols_decouverte extends Gvv_Controller {
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor("Aéroclub d'Abbeville");
+        // $pdf->SetAuthor("Aéroclub d'Abbeville");
+        $pdf->SetAuthor($this->configuration_model->get_param('vd.email.sender_name'));
         $pdf->SetTitle('Vol de découverte ' . $id);
         $pdf->SetSubject('Bon cadeau');
-        $pdf->SetKeywords('Abbeville, vol, découverte');
+        $pdf->SetKeywords('vol, découverte');
 
         // set header and footer fonts
         $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -423,14 +431,22 @@ EOD;
         $pdf->writeHTML($options_html, true, false, false, false, '');
 
         // Contact section
+        $contact_avion = $this->configuration_model->get_param('vd.avion.contact_name');
+        $contact_planeur = $this->configuration_model->get_param('vd.planeur.contact_name');
+        $contact_ulm = $this->configuration_model->get_param('vd.ulm.contact_name');
+        $tel_avion = $this->configuration_model->get_param('vd.avion.contact_tel');
+        $tel_planeur = $this->configuration_model->get_param('vd.planeur.contact_tel');
+        $tel_ulm = $this->configuration_model->get_param('vd.ulm.contact_tel');
+
         $contact_html = <<<EOD
 <table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
     <tr>
         <td>
             Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
-            <br />- pour l'avion <strong>Daniel Tellier (06 12 01 37 22)</strong> 
-            <br />- pour le planeur <strong>Thibault Dugardin (06 77 61 06 16)</strong>
-            <br />- pour l'ULM <strong>Guillaume Montois (06 81 20 20 69)</strong>
+            
+            <br />- pour l'avion <strong>{$contact_avion} ({$tel_avion})</strong> 
+            <br />- pour le planeur <strong>{$contact_planeur} ({$tel_planeur})</strong>
+            <br />- pour l'ULM <strong>{$contact_ulm} ({$tel_ulm})</strong>
             <br>
         </td>
     </tr>
