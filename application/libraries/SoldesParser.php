@@ -135,7 +135,7 @@ class SoldesParser {
                 $checkbox = ($initialized) ? "Initialisé" : "";
             }
 
-            if ($initialized) {
+            if ($associated_gvv) {
                 $compte_gvv = $associated_gvv;
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
@@ -161,6 +161,8 @@ class SoldesParser {
                         $id_of = $diff . anchor_of($id_of);
                     } else {
                         $id_of = anchor_of($id_of);
+                        $checkbox = "Synchronisé";
+
                     }
                 } else {
                     $solde_gvv = "0.00 €";
