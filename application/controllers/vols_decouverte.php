@@ -197,8 +197,7 @@ class Vols_decouverte extends Gvv_Controller {
     function send_email_with_pdf($vd, $pdf_content, $id) {
         $this->load->library('email');
 
-        $sender = $this->configuration_model->get_param('vd.email.sender');
-        $port = $this->configuration_model->get_param('vd.email.smtp_port');
+        $sender = $this->configuration_model->get_param('vd.email.sender_email');
        
         // Configure email settings
         $this->email->clear();
