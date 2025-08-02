@@ -842,7 +842,7 @@ class Comptes_model extends Common_Model {
         $creances[] = $tot_creances;
         $dettes_tiers[] = $tot_dettes;
 
-        $total_dispo[] = $tot_banque + $tot_creances;
+        $total_dispo[] = $tot_banque + $tot_creances + $tot_prets;
         $total_dettes[] = $tot_emprunt + $tot_dettes;
         $diff_actif_passif[] = $tot_banque + $tot_creances - $tot_emprunt - $tot_dettes;
 
