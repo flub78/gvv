@@ -216,10 +216,12 @@ class Vols_decouverte extends Gvv_Controller {
             'newline'     => "\r\n"
         );
 
+        gvv_debug(var_export($config, true), "email_config");
+
         $this->email->initialize($config);
 
         // Set email parameters
-        $this->email->from($sender, $this->configuration_model->get_param('vd.email.sender_name'));
+        $this->email->from($sender, $this->configuration_model->get_param('vd.email.sender_email'));
         $this->email->to($vd['beneficiaire_email']);
         $this->email->bcc($sender);
 
