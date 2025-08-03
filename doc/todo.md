@@ -8,17 +8,15 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] **la page de retour après une modification des écritures est discutable**
 * [] **la page après changement de la checkbox gel est incorrecte**
 * [] **Déconnexion intempestive**
-* [] Vérifier le cadrage à droite pour tous les chiffres, 
-  * grand journal, montants
-  * Ventes, cadrer Produit à gauche
   
 ## Reste à faire
 
 * [] OpenFlyers afficher les vols non existant dans les imports OF
+* [] Rapprochements bancaires
+* [] Sauvegarde/restauration des medias et attachements
 
 * [x] Gérer la configuration dans la base.
 * [] Support du markdown
-* [] supprimer les textes orientés planeur sur les pages
   
 * [] Compléter les exports CSV manquants
 * [] gestion des vols de découverte
@@ -43,7 +41,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   
 * [] Reservation des avions                                   10j
 * [] Payments en ligne                                        10j
-* [] Sauvegarde/restauration des medias et attachements
 * [] Attachements sur les achats
 
 
@@ -108,3 +105,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [x] Plus d'affichage des petites flèches quand le tri par colone est actif
 * [x] Comparaison des soldes, recharger la date en cas d'erreur fichier non sélectionné
+* [x] Vérifier le cadrage à droite pour tous les chiffres, 
+  * grand journal, montants
+  * Ventes, cadrer Produit à gauche
+* [x] supprimer les textes orientés planeur dans les pages

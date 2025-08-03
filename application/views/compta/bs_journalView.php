@@ -193,6 +193,16 @@ $this->lang->load('compta');
                 "aLengthMenu": [
                     [10, 25, 50, 100, 500, 1000, -1],
                     [10, 25, 50, 100, 500, 1000, "Tous les"]
+                ],
+
+                "aoColumnDefs": [{
+                        "aTargets": [10],
+                        "sClass": "text-end"
+                    },
+                    {
+                        "aTargets": [4, 6, 11, 12],
+                        "sClass": "text-center"
+                    }
                 ]
             });
 

@@ -448,7 +448,7 @@ abstract class Metadata {
             return $right;
         if ($type == 'tinyint')
             return $right;
-        return $center;
+        return $left;
     }
 
     /**
