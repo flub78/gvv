@@ -6,7 +6,7 @@ $CI = &get_instance();
 $CI->load->model('common_model');
 
 /**
- *	Accès base Terrains
+ *	Accès base Associations OpenFLyers
  *
  *  C'est un CRUD de base, la seule chose que fait cette classe
  *  est de définir le nom de la table. Tous les méthodes sont 
@@ -40,6 +40,21 @@ class Associations_of_model extends Common_Model {
             $image = $this->comptes_model->image($row["id_compte_gvv"]);
             $select[$key]['nom_compte'] = $image;
         }
+        // Get unassigned OF accounts
+        $db_orphans = $this->db->select('*')
+                               ->from($this->table)
+                               ->where('id_compte_gvv IS NULL')
+                               ->get();
+        $orphans = $this->get_to_array($db_orphans);
+
+        // Add empty values for the missing fields in orphan records
+        foreach ($orphans as &$row) {
+            $row['club'] = '';
+            $row['nom_compte'] = '';
+        }
+
+        // Merge both result sets
+        $select = array_merge($select, $orphans);
 
         $this->gvvmetadata->store_table("vue_associations_of", $select);
         return $select;

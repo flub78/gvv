@@ -60,6 +60,24 @@ class Associations_OF extends Gvv_Controller {
     }
 
     /**
+     * Transforme les données brutes en base en données affichables
+     * Default implementation returns the data attribute
+     *
+     * @param $action CREATION
+     *            | MODIFICATION | VISUALISATION
+     */
+    function form2database($action = '') {
+        $processed_data = parent::form2database($action);
+
+        if (!$processed_data['id_compte_gvv']) {
+            // Si pas de compte GVV, on met NULL
+            // $processed_data['id_compte_gvv'] = NULL;
+            unset($processed_data['id_compte_gvv']);
+        }
+        return $processed_data;
+    }
+
+    /**
      * Create an association and return a json status
      */
     public function associate () {
