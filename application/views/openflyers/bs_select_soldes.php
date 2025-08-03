@@ -45,7 +45,7 @@ echo p($this->lang->line("gvv_of_warning2"), 'class="error"');
 
 echo form_open_multipart('openflyers/import_soldes');
 
-echo "Date des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4"/><br><br>';
+echo "Date des soldes: " . '<input type="date" name="import_date" size="50" class="mt-4" value="' . (isset($import_date) ? $import_date : '') . '"/><br><br>';
 
 echo '<input type="file" name="userfile" size="50" /><br><br>';
 

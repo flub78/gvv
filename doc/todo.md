@@ -11,9 +11,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Vérifier le cadrage à droite pour tous les chiffres, 
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
-* [] Comparaison des soldes, recharger la date en cas d'erreur fichier non sélectionné
-
-
   
 ## Reste à faire
 
@@ -110,3 +107,4 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [x] La comparaison des soldes incite à des initialisations multiples incorrectes
 * [x] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [x] Plus d'affichage des petites flèches quand le tri par colone est actif
+* [x] Comparaison des soldes, recharger la date en cas d'erreur fichier non sélectionné

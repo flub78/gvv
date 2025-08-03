@@ -158,6 +158,13 @@ class OpenFlyers extends CI_Controller {
         }
 
         $compare_date = $this->input->post('import_date');
+        if (!$compare_date) {
+            $error = array(
+            'error' => 'Date non définie'
+            );
+            load_last_view('openflyers/select_soldes', $error);
+            return;
+        }
 
         // delete all files in the uploads/restore directory
         // these files are temporary, there is no need to keep them
@@ -179,7 +186,8 @@ class OpenFlyers extends CI_Controller {
         if (! $this->upload->do_upload()) {
             // On a pas réussi à charger le fichier
             $error = array(
-                'error' => $this->upload->display_errors()
+                'error' => $this->upload->display_errors(),
+                'import_date' => $compare_date
             );
             load_last_view('openflyers/select_soldes', $error);
         } else {
