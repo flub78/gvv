@@ -262,52 +262,7 @@ class GrandLivreParser {
         return $movement;
     }
 
-    /**
-     * Vérifie si c'est une ligne de total
-     */
-    // private function isTotalLine($fields) {
-    //     $firstField = $fields[0] ?? '';
-    //     return strpos($firstField, 'Total') !== false ||
-    //         strpos($firstField, 'Solde au') !== false ||
-    //         strpos($firstField, 'Cumul') !== false;
-    // }
-
-    /**
-     * Vérifie si c'est un total global
-     */
-    // private function isGlobalTotal($fields) {
-    //     $firstField = $fields[0] ?? '';
-    //     return strpos($firstField, 'Cumul des mouvements') !== false;
-    // }
-
-    /**
-     * Parse une ligne de total
-     */
-    // private function parseTotal($fields) {
-    //     $total = [
-    //         'type' => $fields[0] ?? '',
-    //         'debit' => 0.0,
-    //         'credit' => 0.0,
-    //         'solde' => 0.0
-    //     ];
-
-    //     // Recherche des montants numériques
-    //     $numericFields = [];
-    //     foreach ($fields as $field) {
-    //         if (is_numeric(str_replace(',', '.', $field))) {
-    //             $numericFields[] = floatval(str_replace(',', '.', $field));
-    //         }
-    //     }
-
-    //     if (count($numericFields) >= 3) {
-    //         $total['debit'] = $numericFields[count($numericFields) - 3];
-    //         $total['credit'] = $numericFields[count($numericFields) - 2];
-    //         $total['solde'] = $numericFields[count($numericFields) - 1];
-    //     }
-
-    //     return $total;
-    // }
-
+ 
     /**
      * Retourne les données parsées sous forme de JSON
      */
@@ -435,6 +390,10 @@ class GrandLivreParser {
                 $associated_gvv_compte2 = $CI->associations_of_model->get_gvv_account($mvt['id_compte2'], $section_id);
 
                 $compte2 = $CI->comptes_model->get_by_id('id', $associated_gvv_compte2);
+
+                if ($CI->associations_of_model->associated_to_null($mvt['id_compte2'])) {
+                    continue; // on saute les comptes orphelins
+                }
 
                 // Si le compte est associé
                 if ($associated_gvv_compte2) {

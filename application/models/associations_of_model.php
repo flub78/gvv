@@ -83,6 +83,22 @@ class Associations_of_model extends Common_Model {
     }
 
     /**
+     * Retrieves the id of an association where id_compte_gvv is NULL for a given OF account
+     * 
+     * @param int $id_compte_of The OF account ID to search for
+     * @return mixed Returns the association ID if found, empty string otherwise
+     */
+    public function associated_to_null($id_compte_of) {
+        $this->db->select('id')
+            ->from($this->table)
+            ->where('id_compte_of', $id_compte_of)
+            ->where('id_compte_gvv IS NULL');
+
+        $result = $this->db->get()->row();
+        return ($result) ? $result->id : '';
+    }
+
+    /**
      * Retourne une chaîne de caractère qui identifie une ligne de façon unique.
      * Cette chaîne est utilisé dans les affichages.
      * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
