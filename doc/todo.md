@@ -8,14 +8,11 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] **la page de retour après une modification des écritures est discutable**
 * [] **la page après changement de la checkbox gel est incorrecte**
 * [] **Déconnexion intempestive**
-* [] Plus d'affichage des petites flèches quand le tri par colone est actif
 * [] Vérifier le cadrage à droite pour tous les chiffres, 
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
-* [] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
 * [] Comparaison des soldes, recharger la date en cas d'erreur fichier non sélectionné
-* [] Pb de parseur des opérations en cas de flux à plus de deux comptes
-* [] La comparaison des soldes incite à des initialisations multiples incorrectes
+
 
   
 ## Reste à faire
@@ -47,7 +44,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
-
 * [] Reservation des avions                                   10j
 * [] Payments en ligne                                        10j
 * [] Sauvegarde/restauration des medias et attachements
@@ -110,4 +106,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * [x] Openflyers fusionner import et vérification des soldes
 * [x] Export CSV du tableau de bord
 * [x] Gérer les suggestions de saisie par section
-
+* [x] Pb de parseur des opérations en cas de flux à plus de deux comptes
+* [x] La comparaison des soldes incite à des initialisations multiples incorrectes
+* [x] Problèmes de CSS avec les boutons du calendrier et ceux des sélecteurs de date
+* [x] Plus d'affichage des petites flèches quand le tri par colone est actif

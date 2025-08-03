@@ -28,5 +28,20 @@
 .first_row .DataTables_sort_wrapper {
     font-weight: bold;
     color: #d4dbcf;
+}
 
+/* Toutes les icônes jQuery UI */
+.ui-icon {
+    background-image: url('images/ui-icons_454545_256x240.png') !important;
+    opacity: 0.6 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+/* Hover global */
+.ui-datepicker-prev:hover .ui-icon,
+.ui-datepicker-next:hover .ui-icon,
+.fc-prev-button:hover .ui-icon,
+.fc-next-button:hover .ui-icon,
+.DataTables_sort_wrapper:hover .ui-icon {
+    opacity: 1 !important;
 }
