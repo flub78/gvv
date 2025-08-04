@@ -85,6 +85,9 @@ $lang['gvv_menu_entries_wire_deposit'] = "Dépôt d’espèces";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital";
 
+$lang['gvv_menu_rapprochements'] = "Rapprochement bancaire";
+
+
 # Buttons
 $lang['gvv_button_member'] = "Membre";
 $lang['gvv_button_club_admin'] = "Administrateur club";

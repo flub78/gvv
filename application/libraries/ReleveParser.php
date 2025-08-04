@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Classe pour parser le fichier CSV des soldes client
+ * Classe pour parser le fichier CSV des relevés bancaires
  * 
  * Parsing 
  * 
  */
-class SoldesParser {
+class ReleveParser {
     private $data = [];
 
     /**
-     * Parse le fichier CSV du Grand Livre
+     * Parse le fichier CSV du relevé
      * 
      * @param string $filePath Chemin vers le fichier CSV
      * @return array Structure de données parsée
@@ -38,6 +38,8 @@ class SoldesParser {
                 continue;
             }
 
+            echo "$line\n<br>";
+            continue;
             // Ignorer l'entête
             if ($lineNumber < 2) {
 
@@ -50,11 +52,6 @@ class SoldesParser {
             }
 
             $fields = $this->parseCsvLine($line);
-
-            // Ignore les soldes null
-            if (!$fields[4]) {
-                continue;
-            }
 
             $this->data[] = $fields;
         }
@@ -102,7 +99,6 @@ class SoldesParser {
         $line = 0;
         $result = [];
         foreach ($table as $row) {
-
             $checkbox = '<input type="checkbox"'
                 . ' name="cb_' . $line . '"'
                 . ' onchange="toggleRowSelection(this)">';
@@ -111,9 +107,6 @@ class SoldesParser {
             $profil = $row[2];
             $solde = euro($row[4]);
             $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
-
-            // hidden post parameters, They contains what is required to process the line
-            // and initialize the account
             $hidden = [
                 "solde" => $row[4],
                 "compte_gvv" =>  $associated_gvv
