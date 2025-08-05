@@ -36,6 +36,7 @@ class Rapprochements extends CI_Controller {
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
         $this->load->library('SoldesParser');
+        $this->lang->load('rapprochements');
     }
 
     /**
@@ -128,28 +129,50 @@ class Rapprochements extends CI_Controller {
             }
             $releve = $parser->parse($filename);
 
-            echo "\nDonnées importées depuis le fichier: $filename\n";
-            echo '<pre>' . print_r($releve, true) . '</pre>';
-            exit;
+            $basename = basename($filename);
 
-            $data['titre'] = $grand_journal['header']['titre'];
-            $data['date_edition'] = $grand_journal['header']['date_edition'];
+            $header = [];
+            $header[] = ["Banque: ",  $releve['bank'], '', ''];
+            $header[] = ["IBAN: ",  $releve['iban'], '', ''];
+            $header[] = ["Section: ",  $releve['section'], '', ''];
+            $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
+            $header[] = ["Date de début: ",  $releve['start_date'], '', ''];
+            $header[] = ["Date de fin: ",  $releve['end_date'], '', ''];
+            $header[] = ["Fichier: ",  $basename, 'Nombre opérations: ', count($releve['operations'])];
+            $data['header'] = $header;
 
-            $comptes_html = $parser->OperationsTableToHTML($grand_journal);
-            $data['comptes_html'] = $comptes_html;
+            // echo '<pre>' . print_r($header, true) . '</pre>';   
+            // echo '<pre>' . print_r($releve, true) . '</pre>';
+
             $data['section'] = $this->sections_model->section();
-            $data['status'] = $status;
-            // Sauvegarder en JSON
-            // file_put_contents('grand_livre_parsed.json', $parser->toJson());
-            // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
-
-            load_last_view('openflyers/tableOperations', $data);
+            $data['operations'] = $this->operation_table($releve);
+            load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
     }
 
-
+    function operation_table($releve) {
+        $res = [];
+        foreach ($releve['operations'] as $op) {
+            $res[] = $releve['titles'];
+            $res[] = [
+                $op['Date'],
+                $op["Nature de l'opération"],
+                $op['Débit'],
+                $op['Crédit'],
+                $op['Devise'],
+                $op['Date de valeur'],
+                $op['Libellé interbancaire']
+            ];
+            foreach ($op['comments'] as $comment) {
+                $res[] = ['', $comment, '', '', '', '', ''];
+            }
+            $res[] = [$op['type'], '', '', '', '', '', ''];
+            $res[] = ['-------------------', '', '', '', '', '', ''];
+        }
+        return $res;    
+    }
 
     /**
      * Inserts a movement with the given parameters

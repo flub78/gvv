@@ -268,7 +268,8 @@ if (! function_exists('euro')) {
         }
         // Normalize the input by converting any decimal separator to dot
         $normalized_montant = str_replace(',', '.', $montant);
-
+        // Remove all spaces from the input
+        $normalized_montant = str_replace(' ', '', $normalized_montant);
         // Convert to float using the normalized value
         $float_value = floatval($normalized_montant);
 

@@ -9,6 +9,87 @@
 class ReleveParser {
     private $data = [];
 
+
+    /**
+     * Checks if a string or array of strings is found within another string
+     * 
+     * @param string|array $pattern The string or array of strings to search for
+     * @param string $string The string to search in
+     * @return bool Returns true if pattern(s) found, false otherwise
+     */
+    function found_in($pattern, $string) {
+        if (is_array($pattern)) {
+            foreach ($pattern as $p) {
+                if (strpos($string, $p) !== false) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return strpos($string, $pattern) !== false;
+    }
+
+    /**
+     * Attempt to determine the operation type. 
+     * Warning: this function may rely a lot on the bank conventions
+     * and so be fragile if the bank does not stick to the format.
+     */
+    function operation_type($operation) {
+
+        if ($this->found_in(['FACTURES CARTES PAYEES'], $operation["Libellé interbancaire"])) {
+            return 'paiement_cb';
+        } elseif ($this->found_in(['FACTURES CARTES REMISES'], $operation["Libellé interbancaire"])) {
+            return 'encaissement_cb';
+        } elseif ($this->found_in(['VERSEMENTS ESPECES'], $operation["Libellé interbancaire"])) {
+            return 'remise_especes';
+        } elseif ($this->found_in(['CHEQUES PAYES'], $operation["Libellé interbancaire"])) {
+            return 'cheque_debite';
+        } elseif ($this->found_in(['COMMISSIONS ET FRAIS DIVERS'], $operation["Libellé interbancaire"])) {
+            return 'frais_bancaire';
+        } elseif ($this->found_in('REMISES DE CHEQUES', $operation["Libellé interbancaire"])) {
+            return 'remise_cheque';
+        } elseif ($this->found_in('ANNULATIONS ET REGULARISATIONS', $operation["Libellé interbancaire"])) {
+            return 'regularisation_frais';
+        } elseif ($this->found_in('PRELEVEMENTS EUROPEENS EMIS', $operation["Libellé interbancaire"])) {
+            return 'prelevement';
+        } elseif ($this->found_in('AUTRES VIREMENTS RECUS', $operation["Libellé interbancaire"])) {
+            return 'virement_recu';
+        }
+
+        if ($this->found_in(['VIR INST RE'], $operation["Nature de l'opération"])) {
+            return 'virement_recu';
+        } elseif ($this->found_in(['VIR EUROPEEN EMIS', 'VIR INSTANTANE EMIS'], $operation["Nature de l'opération"])) {
+            return 'virement_emis';
+        } elseif ($this->found_in('FACTURATION PROGELIANCE', $operation["Nature de l'opération"])) {
+            return 'frais_bancaire';
+        } elseif ($this->found_in('ECHEANCE PRET', $operation["Nature de l'opération"])) {
+            return 'prelevement_pret';
+        } else {
+            return 'inconnu';
+        }
+    }
+
+    /**
+     * Adds an operation to the data array
+     *
+     * @param array &$data Reference to the data array that will store the operation
+     * @param array $operation Operation details to be added
+     * @return void
+     */
+    function add_operation(&$data, $operation) {
+        if (!isset($data['operations'])) {
+            $data['operations'] = [];
+        }
+        $type = $this->operation_type($operation);
+        if ($type) {
+            if ($type == "inconnu") {
+                echo '<pre>' . print_r($operation, true) . '</pre><br>';
+            }
+            $operation['type'] = $type;
+        }
+        $data['operations'][] = $operation;
+    }
+
     /**
      * Parse le fichier CSV du relevé
      * 
@@ -93,7 +174,7 @@ class ReleveParser {
                 // start a new opération
                 if ($current_operation) {
                     // save the previous operation
-                    $data['operations'][] = $current_operation;
+                    $this->add_operation($data, $current_operation);
                 }
 
                 $i = 0;
@@ -124,7 +205,7 @@ class ReleveParser {
 
         if ($current_operation) {
             // save the current operation
-            $data['operations'][] = $current_operation;
+            $this->add_operation($data, $current_operation);
         }
         fclose($handle);
         return $data;
