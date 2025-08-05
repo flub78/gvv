@@ -7,6 +7,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] **la page après changement de la checkbox gel est incorrecte**
+  
 * [] **Déconnexion intempestive**
   
 ## Reste à faire
@@ -16,15 +17,16 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Sauvegarde/restauration des medias et attachements
 
 * [x] Gérer la configuration dans la base.
+* [] Images de configuration
 * [] Support du markdown
   
-* [] Compléter les exports CSV manquants
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
   * [ ] filtre
   * [ ] présentation par année
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
+* [] Compléter les exports CSV manquants
   
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
@@ -40,7 +42,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
 * [] Reservation des avions                                   10j
-* [] Payments en ligne                                        10j
+* [] Paiements en ligne                                        10j
 * [] Attachements sur les achats
 
 

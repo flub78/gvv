@@ -113,8 +113,24 @@ class Rapprochements extends CI_Controller {
         try {
 
             $parser = new ReleveParser();
+
+            try {
+                $parser->parse($filename);
+            } catch (Exception $e) {
+                $msg = "Erreur: " . $e->getMessage() . "\n";
+                gvv_error($msg);
+
+                $error = array(
+                    'error' => $msg
+                );
+                load_last_view('rapprochements/select_releve', $error);
+                return;
+            }
             $releve = $parser->parse($filename);
-            echo "\nDonnées importées depuis le fichier: $filename\n";exit;
+
+            echo "\nDonnées importées depuis le fichier: $filename\n";
+            echo '<pre>' . print_r($releve, true) . '</pre>';
+            exit;
 
             $data['titre'] = $grand_journal['header']['titre'];
             $data['date_edition'] = $grand_journal['header']['date_edition'];

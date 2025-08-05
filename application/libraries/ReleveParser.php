@@ -25,11 +25,14 @@ class ReleveParser {
             throw new Exception("Impossible d'ouvrir le fichier {$filePath}.");
         }
 
-        $this->data = [];
+        $data = [];
+        $data['operations'] = [];
+        $current_operation = null;
 
         $lineNumber = 0;
 
         while (($line = fgets($handle)) !== false) {
+            // in the loop lines are numbered starting from 1
             $lineNumber++;
             $line = trim($line);
 
@@ -38,33 +41,104 @@ class ReleveParser {
                 continue;
             }
 
-            echo "$line\n<br>";
-            continue;
-            // Ignorer l'entête
-            if ($lineNumber < 2) {
+            $fields = $this->parseCsvLine($line);
 
-                // Vérifier que l'en-tête correspond au format attendu
-                if ($lineNumber === 1 && $line !== "ID;Nom;Profil;Type de compte;Balance") {
-                    throw new Exception("Format de fichier incorrect. Ce n'est pas un export de solde OpenFlyers");
+            if ($lineNumber === 1) {
+                $data['bank'] = $fields[0];
+                continue;
+            }
+
+            if ($lineNumber === 2) {
+                $data['iban'] = $fields[0];
+                $data['section'] = $fields[1];
+                continue;
+            }
+
+            if ($lineNumber === 3) {
+                // Skip the third line, which is a header
+                continue;
+            }
+
+            if ($lineNumber === 4) {
+                if ($fields[0] != 'Solde au') {
+                    throw new Exception("Le format du fichier CSV est incorrect à la ligne $lineNumber." . $line);
                 }
+                $data['date_solde'] = $fields[1];
+                continue;
+            }
+
+            if ($lineNumber === 5) {
+                if ($fields[0] != 'Solde') {
+                    throw new Exception("Le format du fichier CSV est incorrect à la ligne $lineNumber." . $line);
+                }
+                $data['solde'] = $fields[1];
+                continue;
+            }
+
+            if ($lineNumber === 7) {
+                $data['titles'] = $fields;
+                continue;
+            }
+
+            // start to process operations lines
+            $date = $fields[0];
+
+            if ($date) {
+                // check if the date is in the correct format
+                $control_date = date_create_from_format('d/m/Y', $date);
+                if (!$control_date) {
+                    throw new Exception("La date à la ligne $lineNumber n'est pas au format 'd/m/Y': $fields[0]");
+                }
+
+                // start a new opération
+                if ($current_operation) {
+                    // save the previous operation
+                    $data['operations'][] = $current_operation;
+                }
+
+                $i = 0;
+                foreach ($data['titles'] as $title) {
+                    $current_operation[$title] = $fields[$i];
+                    $i++;
+                }
+                $current_operation['comments'] = [];
 
                 continue;
             }
 
-            $fields = $this->parseCsvLine($line);
+            $comment = $fields[1] ?? '';
+            if ($comment) {
+                // If the comment is not empty, add it to the current operation
+                $current_operation['comments'][] = $comment;
 
-            $this->data[] = $fields;
+                continue;
+            }
+
+            // This point should never be reached
+            if (!$current_operation) {
+                throw new Exception("La ligne $lineNumber ne correspond à aucune opération.");
+            }
+            echo "<br>$lineNumber => $line\n<br>";
+            print_r($fields);
         }
 
+        if ($current_operation) {
+            // save the current operation
+            $data['operations'][] = $current_operation;
+        }
         fclose($handle);
-        return $this->data;
+        return $data;
     }
 
     /**
      * Parse une ligne CSV en tenant compte des points-virgules
      */
     private function parseCsvLine($line) {
-        return array_map('trim', explode(';', $line));
+        $fields = array_map('trim', explode(';', $line));
+        // Remove quotes around fields
+        return array_map(function ($field) {
+            return trim($field, '"\'');
+        }, $fields);
     }
 
 
@@ -127,7 +201,6 @@ class ReleveParser {
                 $hidden_input = form_hidden('import_' . $line, $solde_json);
 
                 $checkbox .= $hidden_input;
-
             } else {
                 $checkbox = ($initialized) ? "Initialisé" : "";
             }
@@ -159,7 +232,6 @@ class ReleveParser {
                     } else {
                         $id_of = anchor_of($id_of);
                         $checkbox = "Synchronisé";
-
                     }
                 } else {
                     $solde_gvv = "0.00 €";
