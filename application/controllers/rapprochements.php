@@ -152,7 +152,7 @@ class Rapprochements extends CI_Controller {
         }
     }
 
-    function operation_table($releve) {
+    function operation_table($releve, $with_gvv_info = true) {
         $res = [];
         foreach ($releve['operations'] as $op) {
             $res[] = $releve['titles'];
@@ -170,8 +170,19 @@ class Rapprochements extends CI_Controller {
             }
             $res[] = [$op['type'], '', '', '', '', '', ''];
             $res[] = ['-------------------', '', '', '', '', '', ''];
+
+            if ($with_gvv_info) {
+                $sel = $this->ecritures_model->releve_selector();
+                // $dropdown = dropdown_field('mlogin', $mlogin, $sel, "id='selector' onchange='new_selection();'");
+
+                // var_dump($sel);exit;
+
+
+                $res[] = ['Ecriture GVV:', '', '', '', '', '', ''];
+                $res[] = ['-------------------', '', '', '', '', '', ''];
+            }
         }
-        return $res;    
+        return $res;
     }
 
     /**

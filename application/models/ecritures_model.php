@@ -1440,7 +1440,7 @@ array (size=2)
             ->from("ecritures")
             ->where($where)
             ->like($field, $term);
-            
+
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
@@ -1527,6 +1527,19 @@ array (size=2)
         echo "charges_par_sections $year";
         exit;
     }
+
+    /**
+     * Retourne un hash qui peut-être utilisé dans un menu drop-down
+     *
+     * @param $where selection
+     * @param $order ordre
+     *            de tri
+     */
+    public function releve_selector() {
+        // echo "releve() is deprecated, use releve_selector() instead";
+        // exit;
+    }
+
 }
 
 /* End of file */

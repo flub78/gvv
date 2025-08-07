@@ -31,7 +31,7 @@ GVV identifie les type d'opérations suivante dans le relevé de banque:
 * Prélèvement de remboursement d'emprunt
 
 * Encaissement CB
-* remise de chèque
+* Remise de chèque
 * Régularisation, annulation de frais bancaires
 * Virement reçu
 
@@ -43,3 +43,4 @@ Pour pouvoir générer ou identifier des écritures il faut trouver quels sont l
 
 Attention, dans certains cas ça peut-être ambiguë, par exemple dans le cas d'un virement reçu, le champ DE: ne permet pas forcément d'identifier le compte client. Dans une famille une personne peut approvisionner plusieurs comptes. 
 
+On ne peut pas non plus se baser sur le motif qui peux être absent.

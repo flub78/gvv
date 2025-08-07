@@ -39,9 +39,10 @@ if ($status) {
     echo '</div>';
 }
 
-echo table_from_array($header, ['class' => 'datatable table']);
+echo table_from_array($header, ['class' => ' table']);
 echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations") . '</h4>';
-echo table_from_array($operations);
+echo table_from_array($operations, [
+'class' => 'table']);
 
 /**
  * Filtrage par
