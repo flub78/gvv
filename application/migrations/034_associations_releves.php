@@ -24,12 +24,12 @@ if (!defined('BASEPATH'))
 	exit('No direct script access allowed');
 
 /**
- * Vols_Decouverte
+ * Associations pour les rapprochements bancaires
  *    
  * @author frederic
  *
  */
-class Migration_Vols_Decouverte extends CI_Migration {
+class Migration_Associations_releves extends CI_Migration {
 
 	protected $migration_number;
 
@@ -39,7 +39,7 @@ class Migration_Vols_Decouverte extends CI_Migration {
 	 */
 	function __construct() {
 		parent::__construct();
-		$this->migration_number = 29;
+		$this->migration_number = 32;
 	}
 
 	/*
@@ -64,8 +64,25 @@ class Migration_Vols_Decouverte extends CI_Migration {
 	public function up() {
 		$errors = 0;
 
-		$filename = getcwd() . '/application/migrations/vols_decouverte.sql';
-		$this->database->sqlfile($filename);
+		$sqls = array(
+			"CREATE TABLE `associations_releve` (
+  				`id` bigint(20) UNSIGNED NOT NULL,
+                `string_releve` varchar(128) NOT NULL,
+  				`type` varchar(60) NULL,
+                `id_compte_gvv` int(11) DEFAULT NULL
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+			"ALTER TABLE `associations_releve` ADD PRIMARY KEY (`id`)",
+			"ALTER TABLE `associations_releve` MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT",
+			"ALTER TABLE `associations_releve`
+			ADD CONSTRAINT `fk_associations_releve_comptes` 
+			FOREIGN KEY (`id_compte_gvv`) 
+			REFERENCES `comptes` (`id`) 
+			ON UPDATE CASCADE 
+			ON DELETE SET NULL"
+		);
+
+		$errors += $this->run_queries($sqls);
 		gvv_info("Migration database up to " . $this->migration_number . ", errors=$errors");
 
 		return !$errors;
@@ -76,9 +93,8 @@ class Migration_Vols_Decouverte extends CI_Migration {
 	 */
 	public function down() {
 		$errors = 0;
-
 		$sqls = array(
-			"DROP TABLE IF EXISTS vols_decouverte"
+			"DROP TABLE IF EXISTS associations_releve"
 		);
 
 		$errors += $this->run_queries($sqls);

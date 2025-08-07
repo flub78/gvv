@@ -24,7 +24,7 @@ if (!defined('BASEPATH'))
     exit ('No direct script access allowed');
 
 /**
- * Ajout d'un champ vol a la table ticket
+ * Ajout d'un champ profession à la fiche membre
  * 
  * @author frederic
  *
@@ -32,7 +32,7 @@ if (!defined('BASEPATH'))
 class Migration_Fiche_Membre extends CI_Migration {
 
 	/**
-	 * Migration 003 -> 004
+	 * Apply the migration
 	 */
 	public function up()
 	{
@@ -41,7 +41,7 @@ class Migration_Fiche_Membre extends CI_Migration {
 	}
 
 	/**
-	 * Retour 004 -> 003
+	 * Reverse the migration
 	 */
 	public function down()
 	{

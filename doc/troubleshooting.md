@@ -84,3 +84,27 @@ Privilégier:
             ->get();
         $res = $this->get_to_array($db_res);
 ```
+
+### Migrations
+
+en cas d'erreur 500 sur les migrations, on peut trouver le dernière requête SQL dans les logs:
+
+```
+INFO  - 2025-08-07 15:05:52 --> GVV: Migration sql: CREATE TABLE `associations_of` (
+  				`id` bigint(20) UNSIGNED NOT NULL,
+                `string_releve` varchar(128) NOT NULL,
+  				`type` varchar(60) NULL,
+                `id_compte_gvv` int(11) DEFAULT NULL
+
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+Pour avoir le détail passer à true le paramètre db_debug dans config/database.php
+
+```
+$db['default']['db_debug'] = TRUE;
+```
+
+Ca donne une erreur détaillée:
+
+![Affichage d'erreur](./images/erreur_migration.png)

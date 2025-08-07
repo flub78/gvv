@@ -24,7 +24,7 @@ if (!defined('BASEPATH'))
 	exit('No direct script access allowed');
 
 /**
- * Augmente la taille des montants des écritures
+ * Add index to configuration table
  *    
  * @author frederic
  *

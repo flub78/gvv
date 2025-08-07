@@ -24,7 +24,7 @@ if (!defined('BASEPATH'))
     exit ('No direct script access allowed');
 
 /**
- * Ajout d'un champ vol a la table ticket
+ * Rendre les champs heure de décollage et atterrissage obligatoires
  * 
  * @author frederic
  *

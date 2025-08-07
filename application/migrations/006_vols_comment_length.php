@@ -24,7 +24,7 @@ if (!defined('BASEPATH'))
     exit ('No direct script access allowed');
 
 /**
- * Ajout d'un champ vol a la table ticket
+ * Modification de la longueur des commentaires des vols
  * 
  * @author frederic
  *
@@ -32,7 +32,7 @@ if (!defined('BASEPATH'))
 class Migration_Vols_Comment_Length extends CI_Migration {
 
 	/**
-	 * Migration 004 -> 005
+	 * Apply the migration
 	 */
 	public function up()
 	{
@@ -46,7 +46,7 @@ class Migration_Vols_Comment_Length extends CI_Migration {
 	}
 
 	/**
-	 * Retour 005 -> 004
+	 * Reverse the migration
 	 */
 	public function down()
 	{
