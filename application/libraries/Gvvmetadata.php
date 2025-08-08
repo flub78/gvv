@@ -789,6 +789,23 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_associations_of']['id_compte_gvv']['Name'] = 'Compte GVV';
 
                 /**
+                 * Associations des relevés de compte
+                 */
+                $this->field['associations_releve']['club']['Subtype'] = 'selector';
+                $this->field['associations_releve']['club']['Selector'] = 'section_selector';
+
+                $this->field['associations_releve']['id_compte_gvv']['Subtype'] = 'selector';
+                $this->field['associations_releve']['id_compte_gvv']['Selector'] = 'compte_selector';
+
+                $this->field['vue_associations_releve']['id_compte_gvv']['Subtype'] = 'key';
+                $this->field['vue_associations_releve']['id_compte_gvv']['Action'] = 'compta/journal_compte';
+                $this->field['vue_associations_releve']['id_compte_gvv']['Image'] = 'nom_compte';
+
+                $this->field['vue_associations_releve']['id_compte_of']['Name'] = 'Numéro Openflyers';
+                $this->field['vue_associations_releve']['nom_of']['Name'] = 'Nom Openflyers';
+                $this->field['vue_associations_releve']['id_compte_gvv']['Name'] = 'Compte GVV';
+
+                /**
                  * Paramètres de configuration
                  */
 
