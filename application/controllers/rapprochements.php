@@ -140,7 +140,17 @@ class Rapprochements extends CI_Controller {
                 $compte_gvv = anchor_compte($gvv_account);
                 $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_gvv,];
             } else {
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', 'Compte inconnu'];
+                // On affiche un sélecteur
+                $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
+                $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
+                    . $releve['iban']  . '\')"';
+                $compte_gvv = dropdown_field(
+                    "compte_bank",
+                    $associated_gvv,
+                    $compte_selector,
+                    $attrs
+                );
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_gvv];
             }
 
             $header[] = ["Section: ",  $releve['section'], '', ''];
