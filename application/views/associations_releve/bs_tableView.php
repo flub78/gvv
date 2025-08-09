@@ -28,6 +28,9 @@ $this->lang->load('associations_releve');
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_associations_releve_title_associations", 3);
+
+echo p("Cette table associe des chaines de caractères des relevés bancaires avec des comptes GVV. Elle permet d'associer un IBAN à un compte GVV, un émetteur de virement à un pilote ou un destinataire à un compte de dépense. Une fois ces associations faites, GVV saura vous faire des suggestion pour rapprocher les écritures. C'est manuel parce que les informations des relevés ne sont pas standardisées, un utilisateur peut apparaître différemment suivant la banque qu'il utilise pour le virement, etc..");
+
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(

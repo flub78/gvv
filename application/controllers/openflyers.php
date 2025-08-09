@@ -113,14 +113,14 @@ class OpenFlyers extends CI_Controller {
 
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_operations', $filename);
-            $this->import_operations_from_files($filename);
+            $this->import_operations_from_file($filename);
         }
     }
 
     /**
      * Import a CSV journal from a file
      */
-    public function import_operations_from_files($filename, $status = "") {
+    public function import_operations_from_file($filename, $status = "") {
 
         $this->load->library('GrandLivreParser');
 
@@ -427,7 +427,7 @@ class OpenFlyers extends CI_Controller {
         }
 
         $file_operations = $this->session->userdata('file_operations');
-        $this->import_operations_from_files($file_operations, $status);
+        $this->import_operations_from_file($file_operations, $status);
     }
 
     public function cancel_operations() {

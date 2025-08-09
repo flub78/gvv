@@ -63,15 +63,15 @@ class Associations_releve_model extends Common_Model {
     /**
      * Récupère l'identifiant du compte GVV associé à un relevé
      * 
-     * @param int $releve_id Identifiant du relevé
+     * @param int $releve_id Identifiant du compte dans le relevé
      * @param int $section_id Identifiant optionnel de la section
      * @return string Identifiant du compte GVV, ou chaîne vide si non trouvé
      */
-    public function get_gvv_account($releve_id, $section_id = 0) {
+    public function get_gvv_account($string, $section_id = 0) {
 
         $this->db->select('associations_releve.id_compte_gvv')
             ->from($this->table)
-            ->where('id', $releve_id);
+            ->where('string_releve', $string);
 
         if ($section_id) {
             $this->db->join('comptes', 'comptes.id = associations_releve.id_compte_gvv')

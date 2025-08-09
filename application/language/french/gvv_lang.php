@@ -86,6 +86,7 @@ $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital";
 
 $lang['gvv_menu_rapprochements'] = "Rapprochement bancaire";
+$lang['gvv_menu_associations_releves'] = "Associations relevés bancaires";
 
 
 # Buttons

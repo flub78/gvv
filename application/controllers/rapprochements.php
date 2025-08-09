@@ -35,6 +35,7 @@ class Rapprochements extends CI_Controller {
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
+        $this->load->model('associations_releve_model');
         $this->load->library('SoldesParser');
         $this->lang->load('rapprochements');
     }
@@ -100,14 +101,14 @@ class Rapprochements extends CI_Controller {
 
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_operations', $filename);
-            $this->import_releve_from_files($filename);
+            $this->import_releve_from_file($filename);
         }
     }
 
     /**
      * Import a CSV listing from a file
      */
-    public function import_releve_from_files($filename, $status = "") {
+    public function import_releve_from_file($filename, $status = "") {
 
         $this->load->library('ReleveParser');
 
@@ -133,7 +134,15 @@ class Rapprochements extends CI_Controller {
 
             $header = [];
             $header[] = ["Banque: ",  $releve['bank'], '', ''];
-            $header[] = ["IBAN: ",  $releve['iban'], '', ''];
+
+            $gvv_account = $this->associations_releve_model->get_gvv_account($releve['iban']);
+            if ($gvv_account) {
+                $compte_gvv = anchor_compte($gvv_account);
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_gvv,];
+            } else {
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', 'Compte inconnu'];
+            }
+
             $header[] = ["Section: ",  $releve['section'], '', ''];
             $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
             $header[] = ["Date de début: ",  $releve['start_date'], '', ''];
