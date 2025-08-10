@@ -804,6 +804,19 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_associations_releve']['id_compte_gvv']['Name'] = 'Compte GVV';
 
                 /**
+                 * Associations des écritures des relevés
+                 */
+
+                $this->field['associations_ecriture']['id_ecriture_gvv']['Subtype'] = 'selector';
+                $this->field['associations_ecriture']['id_ecriture_gvv']['Selector'] = 'ecriture_selector';
+
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Subtype'] = 'key';
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Action'] = 'compta/journal_compte';
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Image'] = 'nom_compte';
+
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Name'] = 'Ecriture GVV';
+
+                /**
                  * Paramètres de configuration
                  */
 

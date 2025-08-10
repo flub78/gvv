@@ -338,6 +338,7 @@ $section_count = $CI->sections_model->safe_count_all();
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><?= translation("Dump Metadata") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><?= translation("gvv_menu_rapprochements") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('associations_releve/page') ?>"><?= translation("gvv_menu_associations_releves") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('associations_ecriture/page') ?>"><?= translation("gvv_menu_associations_ecritures") ?></a></li>
 
             </ul>
           </li>

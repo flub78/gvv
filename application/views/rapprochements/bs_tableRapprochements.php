@@ -144,4 +144,3 @@ echo '</div>';
             }
         }
     </script>
-<?php

@@ -4,7 +4,7 @@ $this->load->view('bs_header');
 $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
-$this->lang->load('openflyers');
+$this->lang->load('associations_ecriture');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -23,7 +23,7 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 // Form fields
 echo ($this->gvvmetadata->form('associations_ecriture', array(
     'string_releve' => $string_releve,
-    'id_compte_gvv' => $id_compte_gvv
+    'id_ecriture_gvv' => $id_ecriture_gvv
 )));
 
 echo validation_button($action);

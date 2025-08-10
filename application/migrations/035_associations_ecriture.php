@@ -35,15 +35,15 @@ class Migration_Associations_ecriture extends CI_Migration {
             "CREATE TABLE `associations_ecriture` (
                 `id` bigint(20) NOT NULL,
                 `string_releve` varchar(180) NOT NULL,
-                `id_compte_gvv` int(11) DEFAULT NULL
+                `id_ecriture_gvv` int(11) DEFAULT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;",
             "ALTER TABLE `associations_ecriture` ADD PRIMARY KEY (`id`)",
             "ALTER TABLE `associations_ecriture` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT",
             "ALTER TABLE `associations_ecriture`
-                ADD KEY `fk_associations_ecriture_comptes` (`id_compte_gvv`)",
+                ADD KEY `fk_associations_ecriture_ecritures` (`id_ecriture_gvv`)",
             "ALTER TABLE `associations_ecriture`
-                ADD CONSTRAINT `fk_associations_ecriture_comptes`
-                FOREIGN KEY (`id_compte_gvv`) REFERENCES `comptes` (`id`)
+                ADD CONSTRAINT `fk_associations_ecriture_ecritures`
+                FOREIGN KEY (`id_ecriture_gvv`) REFERENCES `ecritures` (`id`)
                 ON UPDATE CASCADE ON DELETE SET NULL"
         );
 
