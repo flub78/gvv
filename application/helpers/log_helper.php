@@ -25,17 +25,17 @@
  *    même si cela a quelques inconvénients).
  */
 if (!defined('BASEPATH'))
-    exit ('No direct script access allowed');
+	exit('No direct script access allowed');
 
 if (!function_exists('gvv_log')) {
 
-    /**
-     * Log avec prefix (facilite le filtrage)
-     *
-     */
-    function gvv_log($level, $msg, $php_error = FALSE) {
-    	log_message($level, "GVV: " . $msg, $php_error);
-    }
+	/**
+	 * Log avec prefix (facilite le filtrage)
+	 *
+	 */
+	function gvv_log($level, $msg, $php_error = FALSE) {
+		log_message($level, "GVV: " . $msg, $php_error);
+	}
 }
 
 if (!function_exists('gvv_info')) {
@@ -91,7 +91,20 @@ if (!function_exists('occurences')) {
 	 */
 	function occurences($pattern) {
 		$getText = file_get_contents(current_logfile(), true);
-		return substr_count($getText , $pattern);
+		return substr_count($getText, $pattern);
 	}
-	
+}
+
+if (!function_exists('gvv_dump')) {
+	/**
+	 * Retourne la liste des occurences d'une chaine de caractère dans le fichier de log
+	 */
+	function gvv_dump($string, $dye = true) {
+		echo "<pre>";
+		print_r($string);
+		echo "</pre>";
+		if ($dye) {
+			exit;
+		}
+	}
 }

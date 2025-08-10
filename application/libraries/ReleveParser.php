@@ -183,7 +183,7 @@ class ReleveParser {
                     $i++;
                 }
                 $current_operation['comments'] = [];
-
+                $current_operation['line'] = $lineNumber;
                 continue;
             }
 

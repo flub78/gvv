@@ -136,6 +136,7 @@ class Rapprochements extends CI_Controller {
             if ($bank_account) {
                 $compte_bank_gvv = anchor_compte($bank_account);
                 $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv,];
+                $releve['gvv_bank'] = $bank_account;
             } else {
                 // On affiche un sélecteur
                 $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
@@ -191,14 +192,17 @@ class Rapprochements extends CI_Controller {
             foreach ($op['comments'] as $comment) {
                 $res[] = ['', $comment, '', '', '', '', ''];
             }
-            $res[] = ['-------------------', '', '', '', '', '', ''];
 
             if ($with_gvv_info) {
 
-                $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $op);
+                if ($releve['gvv_bank'] == null) {
+                    $sel = '';
+                } else {
+                    $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
+                }
 
-                // var_dump($sel);exit;
-                $res[] = ['Ecriture GVV:', $op['type'], $sel, '', '', '', ''];
+                $count = $op['selector_count'] ?? 0;
+                $res[] = ['Ecriture GVV:', $op['type'], $sel, "Ligne:" . $op['line'], "nb: $count", '', ''];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
@@ -209,19 +213,32 @@ class Rapprochements extends CI_Controller {
      * Selector for financial entries matching specific criteria
      *
      * @param string $start_date Starting date for the selection period (Y-m-d format)
-     * @param string $end_date Ending date for the selection period (Y-m-d format)
+     * @param string $end_date Ending date for the selection period (Y-m-d format)P
      * @param string $op Operation type filter
      * @return void
      */
-    function ecriture_selector($start_date, $end_date, $op) {
+    function ecriture_selector($start_date, $end_date, $bank,&$op) {
 
-        $start_date = date('Y-m-d', strtotime($start_date));
-        $end_date = date('Y-m-d', strtotime($end_date));
+        $start_date = date_ht2db($start_date);
+        $end_date = date_ht2db($end_date);
+
+        if ($op['Débit']) {
+            $compte1 = null;
+            $compte2 = $bank;
+            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Débit']));
+
+        } else {
+            $compte1 = $bank;
+            $compte2 = null;
+            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Crédit']));
+        }
 
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
-        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date);
-        
+        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2);
+
+        $op['selector_count'] = count($sel);
+
         // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.
         // même date, même type, même nature de l'opération, même libellé interbancaire
 
@@ -233,7 +250,7 @@ class Rapprochements extends CI_Controller {
         $attrs = 'class="form-control big_select" onchange="associateEcriture(this, \''
             . $string_releve  . '\')"';
         $dropdown = dropdown_field(
-            "ecriture",
+            "op_" . $op['line'],
             "",
             $sel,
             $attrs

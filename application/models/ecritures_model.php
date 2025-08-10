@@ -1535,12 +1535,49 @@ array (size=2)
      * @param $order ordre
      *            de tri
      */
-    public function ecriture_selector($start_date, $end_date, $montant=0, $compte1=null, $compte2=null) {
-        echo "ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2)";
+    public function ecriture_selector($start_date, $end_date, $montant = 0, $compte1 = null, $compte2 = null) {
+        // echo "ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2)";
 
-        return [];
+        $this->db
+            ->select("ecritures.id, ecritures.description, ecritures.date_op, ecritures.montant, ecritures.compte1, ecritures.compte2, ecritures.num_cheque")
+            ->from("ecritures")
+            ->where("date_op >= \"$start_date\" and date_op <= \"$end_date\"");
+        if ($montant) {
+            $this->db->where("montant", $montant);
+        }
+        if ($compte1) {
+            $this->db->where("compte1", $compte1);
+        }
+        if ($compte2) {
+            $this->db->where("compte2", $compte2);
+        }
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->order_by("date_op desc")->get();
+
+        gvv_debug("sql ecriture_selector: " . $this->db->last_query());
+
+        if ($db_res->num_rows() == 0) {
+            return [];
+        } else {
+            $res = $db_res->result_array();
+        }
+        $hash = array();
+        foreach ($res as $key => $row) {
+            $hash[$row['id']] = $this->image($row['id']);
+
+            $num_cheque = $row['num_cheque'];
+            if (strpos($num_cheque, 'OpenFlyers') !== false) {
+                $num_cheque = '';
+            }
+            $hash[$row['id']] = date_db2ht($row['date_op'])
+            . " " . euro($row['montant']) 
+            . " " . $row['description']
+            . " " . $num_cheque;
+        }
+        return $hash;
     }
-
 }
 
 /* End of file */

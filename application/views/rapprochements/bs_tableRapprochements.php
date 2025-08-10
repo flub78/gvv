@@ -52,26 +52,7 @@ echo table_from_array($operations, [
  */
 ?>
 
-    <h5><?=$titre?></h5>
-	<p><?=$date_edition?></p>
-
-    <div class="actions mb-3">
-        <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-        <button class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-    </div>
 <?php
-
-echo form_open_multipart('openflyers/create_operations');
-
-
-
-if ($section) echo form_input(array(
-	'type' => 'submit',
-	'name' => 'button',
-	'value' => $this->lang->line("gvv_of_import_opérations"),
-	'class' => 'btn btn-primary mb-4'
-));
-echo form_close('</div>');
 
 echo '</div>';
 
