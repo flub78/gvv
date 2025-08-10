@@ -1,0 +1,75 @@
+<?php
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+$CI = &get_instance();
+$CI->load->model('common_model');
+
+/**
+ * Accès base Associations Ecriture
+ * CRUD de base, la seule chose que fait cette classe est de définir le nom de la table.
+ * Tous les méthodes sont implémentées dans Common_Model.
+ */
+class Associations_ecriture_model extends Common_Model {
+    public $table = 'associations_ecriture';
+    protected $primary_key = 'id';
+
+    /**
+     * Retourne le tableau pour l'affichage par page
+     * @return objet La liste
+     */
+    public function select_page($nb = 1000, $debut = 0) {
+        $this->load->model('comptes_model');
+
+        $db_res = $this->db
+            ->select('a.id, a.string_releve, a.id_compte_gvv, c.club')
+            ->from("associations_ecriture as a")
+            ->join("comptes as c", "a.id_compte_gvv = c.id", "left");
+
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $this->db->where('c.club', $section['id']);
+        }
+
+        $db_res = $this->db->get();
+        $select = $this->get_to_array($db_res);
+
+        foreach ($select as $key => $row) {
+            $image = $this->comptes_model->image($row["id_compte_gvv"]);
+            $select[$key]['nom_compte'] = $image;
+        }
+
+        // Get unassigned ecriture
+        $db_orphans = $this->db->select('*')
+                               ->from($this->table)
+                               ->where('id_compte_gvv IS NULL')
+                               ->get();
+        $orphans = $this->get_to_array($db_orphans);
+
+        foreach ($orphans as &$row) {
+            $row['club'] = '';
+            $row['nom_compte'] = '';
+        }
+
+        $select = array_merge($select, $orphans);
+
+        $this->gvvmetadata->store_table("vue_associations_ecriture", $select);
+        return $select;
+    }
+
+    /**
+     * Retourne une chaîne qui identifie une ligne de façon unique.
+     */
+    public function image($key) {
+        if ($key == "")
+            return "";
+        $vals = $this->get_by_id('id', $key);
+        if (array_key_exists('id', $vals) && array_key_exists('string_releve', $vals)) {
+            return $vals['id'] . " - " . $vals['string_releve'];
+        } else {
+            return "association inconnue $key";
+        }
+    }
+}
+
+/* End of file */
