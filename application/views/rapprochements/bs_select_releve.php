@@ -38,14 +38,6 @@ echo p($this->lang->line("gvv_rapprochements_explain"));
 echo p($this->lang->line("gvv_of_select"));
 echo form_open_multipart('rapprochements/import_releve');
 
-$attrs = 'class="form-control big_select" ';
-echo 'Compte bancaire à rapprocher : ' . $compte_gvv = dropdown_field(
-	"bank_account",
-	$bank_account,
-	$bank_selector,
-	$attrs
-) . '<br><br>';
-
 echo '<input type="file" name="userfile" size="50" /><br><br>';
 
 echo form_input(array(

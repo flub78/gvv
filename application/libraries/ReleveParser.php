@@ -207,6 +207,8 @@ class ReleveParser {
             // save the current operation
             $this->add_operation($data, $current_operation);
         }
+        $data['start_date'] = $data['operations'][0]['Date'] ?? '';
+        $data['end_date'] = end($data['operations'])['Date'] ?? '';
         fclose($handle);
         return $data;
     }
@@ -237,95 +239,95 @@ class ReleveParser {
      * @param mixed $compare_date Optional date for comparing account balances
      * @return array Processed table data with additional metadata and controls
      */
-    public function arrayWithControls($table, $compare_date = false) {
-        $CI = &get_instance();
-        $CI->load->library('gvvmetadata');
-        $CI->load->model('comptes_model');
-        $CI->load->model('associations_of_model');
-        $CI->load->model('ecritures_model');
-        $CI->load->model('sections_model');
+    // public function arrayWithControls($table, $compare_date = false) {
+    //     $CI = &get_instance();
+    //     $CI->load->library('gvvmetadata');
+    //     $CI->load->model('comptes_model');
+    //     $CI->load->model('associations_of_model');
+    //     $CI->load->model('ecritures_model');
+    //     $CI->load->model('sections_model');
 
-        // values for the compte selector select
-        $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+    //     // values for the compte selector select
+    //     $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
 
-        $section = $CI->sections_model->section();
+    //     $section = $CI->sections_model->section();
 
-        // $table = $this->parse($filePath);
-        $line = 0;
-        $result = [];
-        foreach ($table as $row) {
-            $checkbox = '<input type="checkbox"'
-                . ' name="cb_' . $line . '"'
-                . ' onchange="toggleRowSelection(this)">';
-            $id_of = $row[0];
-            $nom_of = $row[1];
-            $profil = $row[2];
-            $solde = euro($row[4]);
-            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
-            $hidden = [
-                "solde" => $row[4],
-                "compte_gvv" =>  $associated_gvv
-            ];
-            $solde_json = json_encode($hidden, JSON_UNESCAPED_UNICODE);
+    //     // $table = $this->parse($filePath);
+    //     $line = 0;
+    //     $result = [];
+    //     foreach ($table as $row) {
+    //         $checkbox = '<input type="checkbox"'
+    //             . ' name="cb_' . $line . '"'
+    //             . ' onchange="toggleRowSelection(this)">';
+    //         $id_of = $row[0];
+    //         $nom_of = $row[1];
+    //         $profil = $row[2];
+    //         $solde = euro($row[4]);
+    //         $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of);
+    //         $hidden = [
+    //             "solde" => $row[4],
+    //             "compte_gvv" =>  $associated_gvv
+    //         ];
+    //         $solde_json = json_encode($hidden, JSON_UNESCAPED_UNICODE);
 
-            $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
-            if ($associated_gvv && $section) {
-                $gvv_cpt = $CI->comptes_model->get_by_id('id', $associated_gvv);
-                if ($section['id'] != $gvv_cpt['club']) {
-                    continue;
-                }
-            }
-            if ($associated_gvv && !$initialized) {
-                $checkbox = '<input type="checkbox"'
-                    . ' name="cb_' . $line . '"'
-                    . ' onchange="toggleRowSelection(this)">';
-                $hidden_input = form_hidden('import_' . $line, $solde_json);
+    //         $initialized = $CI->ecritures_model->is_account_initialized($associated_gvv);
+    //         if ($associated_gvv && $section) {
+    //             $gvv_cpt = $CI->comptes_model->get_by_id('id', $associated_gvv);
+    //             if ($section['id'] != $gvv_cpt['club']) {
+    //                 continue;
+    //             }
+    //         }
+    //         if ($associated_gvv && !$initialized) {
+    //             $checkbox = '<input type="checkbox"'
+    //                 . ' name="cb_' . $line . '"'
+    //                 . ' onchange="toggleRowSelection(this)">';
+    //             $hidden_input = form_hidden('import_' . $line, $solde_json);
 
-                $checkbox .= $hidden_input;
-            } else {
-                $checkbox = ($initialized) ? "Initialisé" : "";
-            }
+    //             $checkbox .= $hidden_input;
+    //         } else {
+    //             $checkbox = ($initialized) ? "Initialisé" : "";
+    //         }
 
-            if ($associated_gvv) {
-                $compte_gvv = $associated_gvv;
-                $image = $CI->comptes_model->image($compte_gvv);
-                $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
-            } else {
-                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                    . $id_of . ',\'' . $nom_of  . '\')"';
-                $compte_gvv = dropdown_field(
-                    "compte_" . $line,
-                    $associated_gvv,
-                    $compte_selector,
-                    $attrs
-                );
-            }
+    //         if ($associated_gvv) {
+    //             $compte_gvv = $associated_gvv;
+    //             $image = $CI->comptes_model->image($compte_gvv);
+    //             $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
+    //         } else {
+    //             $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+    //                 . $id_of . ',\'' . $nom_of  . '\')"';
+    //             $compte_gvv = dropdown_field(
+    //                 "compte_" . $line,
+    //                 $associated_gvv,
+    //                 $compte_selector,
+    //                 $attrs
+    //             );
+    //         }
 
-            if ($compare_date) {
-                if ($associated_gvv) {
-                    $solde_gvv = euro($CI->ecritures_model->solde_compte($associated_gvv, date_db2ht($compare_date)));
+    //         if ($compare_date) {
+    //             if ($associated_gvv) {
+    //                 $solde_gvv = euro($CI->ecritures_model->solde_compte($associated_gvv, date_db2ht($compare_date)));
 
-                    if ($solde != $solde_gvv) {
-                        $solde = '<div class="text-danger">' . $solde . '</div>';
-                        $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
-                        $diff = '<div class="text-white bg-danger rounded d-inline-block px-2 me-2">' . "diff " . '</div>';
-                        $id_of = $diff . anchor_of($id_of);
-                    } else {
-                        $id_of = anchor_of($id_of);
-                        $checkbox = "Synchronisé";
-                    }
-                } else {
-                    $solde_gvv = "0.00 €";
-                }
+    //                 if ($solde != $solde_gvv) {
+    //                     $solde = '<div class="text-danger">' . $solde . '</div>';
+    //                     $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
+    //                     $diff = '<div class="text-white bg-danger rounded d-inline-block px-2 me-2">' . "diff " . '</div>';
+    //                     $id_of = $diff . anchor_of($id_of);
+    //                 } else {
+    //                     $id_of = anchor_of($id_of);
+    //                     $checkbox = "Synchronisé";
+    //                 }
+    //             } else {
+    //                 $solde_gvv = "0.00 €";
+    //             }
 
-                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
-            } else {
-                $id_of = anchor_of($id_of);
-                $solde_gvv = "";
-                $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
-            }
-            $line++;
-        }
-        return $result;
-    }
+    //             $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
+    //         } else {
+    //             $id_of = anchor_of($id_of);
+    //             $solde_gvv = "";
+    //             $result[] = [$checkbox, $id_of, $nom_of, $profil, $compte_gvv, $solde, $solde_gvv];
+    //         }
+    //         $line++;
+    //     }
+    //     return $result;
+    // }
 }

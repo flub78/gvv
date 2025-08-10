@@ -113,9 +113,7 @@ class Rapprochements extends CI_Controller {
         $this->load->library('ReleveParser');
 
         try {
-
             $parser = new ReleveParser();
-
             try {
                 $parser->parse($filename);
             } catch (Exception $e) {
@@ -131,32 +129,30 @@ class Rapprochements extends CI_Controller {
             $releve = $parser->parse($filename);
 
             $basename = basename($filename);
-
             $header = [];
             $header[] = ["Banque: ",  $releve['bank'], '', ''];
 
-            $gvv_account = $this->associations_releve_model->get_gvv_account($releve['iban']);
-            if ($gvv_account) {
-                $compte_gvv = anchor_compte($gvv_account);
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_gvv,];
+            $bank_account = $this->associations_releve_model->get_gvv_account($releve['iban']);
+            if ($bank_account) {
+                $compte_bank_gvv = anchor_compte($bank_account);
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv,];
             } else {
                 // On affiche un sélecteur
                 $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
                 $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
                     . $releve['iban']  . '\')"';
-                $compte_gvv = dropdown_field(
+                $compte_bank_gvv = dropdown_field(
                     "compte_bank",
                     $associated_gvv,
                     $compte_selector,
                     $attrs
                 );
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_gvv];
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
             }
 
             $header[] = ["Section: ",  $releve['section'], '', ''];
             $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
-            $header[] = ["Date de début: ",  $releve['start_date'], '', ''];
-            $header[] = ["Date de fin: ",  $releve['end_date'], '', ''];
+            $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
             $header[] = ["Fichier: ",  $basename, 'Nombre opérations: ', count($releve['operations'])];
             $data['header'] = $header;
 
@@ -166,11 +162,19 @@ class Rapprochements extends CI_Controller {
             $data['section'] = $this->sections_model->section();
             $data['operations'] = $this->operation_table($releve);
             load_last_view('rapprochements/tableRapprochements', $data);
+
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
     }
 
+    /**
+     * Format the operation table for all bank statements
+     *
+     * @param array $releve The bank statement data
+     * @param bool $with_gvv_info Whether to include GVV information
+     * @return array The generated operation table
+     */
     function operation_table($releve, $with_gvv_info = true) {
         $res = [];
         foreach ($releve['operations'] as $op) {
@@ -187,21 +191,54 @@ class Rapprochements extends CI_Controller {
             foreach ($op['comments'] as $comment) {
                 $res[] = ['', $comment, '', '', '', '', ''];
             }
-            $res[] = [$op['type'], '', '', '', '', '', ''];
             $res[] = ['-------------------', '', '', '', '', '', ''];
 
             if ($with_gvv_info) {
-                $sel = $this->ecritures_model->releve_selector();
-                // $dropdown = dropdown_field('mlogin', $mlogin, $sel, "id='selector' onchange='new_selection();'");
+
+                $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $op);
 
                 // var_dump($sel);exit;
-
-
-                $res[] = ['Ecriture GVV:', '', '', '', '', '', ''];
-                $res[] = ['-------------------', '', '', '', '', '', ''];
+                $res[] = ['Ecriture GVV:', $op['type'], $sel, '', '', '', ''];
+                $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
         return $res;
+    }
+
+    /**
+     * Selector for financial entries matching specific criteria
+     *
+     * @param string $start_date Starting date for the selection period (Y-m-d format)
+     * @param string $end_date Ending date for the selection period (Y-m-d format)
+     * @param string $op Operation type filter
+     * @return void
+     */
+    function ecriture_selector($start_date, $end_date, $op) {
+
+        $start_date = date('Y-m-d', strtotime($start_date));
+        $end_date = date('Y-m-d', strtotime($end_date));
+
+        // On utilise le modèle ecritures_model pour obtenir les écritures
+        // qui correspondent à l'opération du relevé bancaire
+        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date);
+        
+        // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.
+        // même date, même type, même nature de l'opération, même libellé interbancaire
+
+        // Il faut donc associer le numéro d’occurrence de la ligne à la date donnée.
+        // Même si on importe depuis des relevés de comptes différents, hebdomadaire, mensuel, annuel on importe toujours des journées entières.
+
+        $string_releve = $op['type'] . ' ' . $op['Date'] . ' ' . $op['Nature de l\'opération'] . ' ' . $op['Libellé interbancaire'];
+
+        $attrs = 'class="form-control big_select" onchange="associateEcriture(this, \''
+            . $string_releve  . '\')"';
+        $dropdown = dropdown_field(
+            "ecriture",
+            "",
+            $sel,
+            $attrs
+        );
+        return $dropdown;
     }
 
     /**

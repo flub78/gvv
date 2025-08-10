@@ -1529,15 +1529,16 @@ array (size=2)
     }
 
     /**
-     * Retourne un hash qui peut-être utilisé dans un menu drop-down
+     * Retourne un tableau associatif qui peut-être utilisé dans un menu drop-down
      *
      * @param $where selection
      * @param $order ordre
      *            de tri
      */
-    public function releve_selector() {
-        // echo "releve() is deprecated, use releve_selector() instead";
-        // exit;
+    public function ecriture_selector($start_date, $end_date, $montant=0, $compte1=null, $compte2=null) {
+        echo "ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2)";
+
+        return [];
     }
 
 }
