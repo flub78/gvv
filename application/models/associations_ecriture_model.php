@@ -22,9 +22,9 @@ class Associations_ecriture_model extends Common_Model {
         $this->load->model('comptes_model');
 
         $db_res = $this->db
-            ->select('a.id, a.string_releve, a.id_compte_gvv, c.club')
+            ->select('a.id, a.string_releve, a.id_ecriture_gvv, c.club')
             ->from("associations_ecriture as a")
-            ->join("comptes as c", "a.id_compte_gvv = c.id", "left");
+            ->join("comptes as c", "a.id_ecriture_gvv = c.id", "left");
 
         $section = $this->gvv_model->section();
         if ($section) {
@@ -35,14 +35,14 @@ class Associations_ecriture_model extends Common_Model {
         $select = $this->get_to_array($db_res);
 
         foreach ($select as $key => $row) {
-            $image = $this->comptes_model->image($row["id_compte_gvv"]);
+            $image = $this->comptes_model->image($row["id_ecriture_gvv"]);
             $select[$key]['nom_compte'] = $image;
         }
 
         // Get unassigned ecriture
         $db_orphans = $this->db->select('*')
                                ->from($this->table)
-                               ->where('id_compte_gvv IS NULL')
+                               ->where('id_ecriture_gvv IS NULL')
                                ->get();
         $orphans = $this->get_to_array($db_orphans);
 

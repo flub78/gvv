@@ -39,8 +39,19 @@ if ($status) {
     echo '</div>';
 }
 
+
 echo table_from_array($header, ['class' => ' table']);
 echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations") . '</h4>';
+
+?>
+    <div class="actions mb-3">
+        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+    </div>
+<?php
+
+echo form_open_multipart('rapprochements/rapprochez');
+
 echo table_from_array($operations, [
     'class' => 'table'
 ]);
@@ -52,9 +63,20 @@ echo table_from_array($operations, [
  *    date de début, date de fin
  */
 ?>
-
+    <div class="actions mb-3">
+        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+    </div>
 <?php
 
+
+if ($section) echo form_input(array(
+	'type' => 'submit',
+	'name' => 'button',
+	'value' => $this->lang->line("gvv_rapproche"),
+	'class' => 'btn btn-primary mb-4'
+));
+echo form_close('</div>');
 echo '</div>';
 
 ?>
@@ -105,28 +127,28 @@ echo '</div>';
     }
 
     // Get selected rows
-    function getSelectedRows() {
-        const selectedRows = [];
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    // function getSelectedRows() {
+    //     const selectedRows = [];
+    //     const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 
-        checkboxes.forEach(checkbox => {
-            const row = checkbox.closest('tr');
-            const rowIndex = Array.from(row.parentNode.children).indexOf(row);
-            selectedRows.push({
-                index: rowIndex,
-                data: tableData[rowIndex]
-            });
-        });
+    //     checkboxes.forEach(checkbox => {
+    //         const row = checkbox.closest('tr');
+    //         const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+    //         selectedRows.push({
+    //             index: rowIndex,
+    //             data: tableData[rowIndex]
+    //         });
+    //     });
 
-        console.log('Selected rows:', selectedRows);
-        addLogEntry(`${selectedRows.length} rows selected`);
+    //     console.log('Selected rows:', selectedRows);
+    //     addLogEntry(`${selectedRows.length} rows selected`);
 
-        if (selectedRows.length > 0) {
-            alert(`Selected ${selectedRows.length} row(s). Check console for details.`);
-        } else {
-            alert('No rows selected');
-        }
-    }
+    //     if (selectedRows.length > 0) {
+    //         alert(`Selected ${selectedRows.length} row(s). Check console for details.`);
+    //     } else {
+    //         alert('No rows selected');
+    //     }
+    // }
 
     // Add log entry
     function addLogEntry(message) {

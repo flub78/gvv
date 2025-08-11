@@ -35,9 +35,10 @@ class Rapprochements extends CI_Controller {
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
-        $this->load->model('associations_releve_model');
         $this->load->library('SoldesParser');
         $this->lang->load('rapprochements');
+        $this->load->model('associations_ecriture_model');
+        $this->load->model('associations_releve_model');
     }
 
     /**
@@ -151,10 +152,10 @@ class Rapprochements extends CI_Controller {
                 $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
             }
 
-            $header[] = ["Section: ",  $releve['section'], '', ''];
+            $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
             $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
             $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
-            $header[] = ["Fichier: ",  $basename, 'Nombre opérations: ', count($releve['operations'])];
+            $header[] = ['Nombre opérations: ', count($releve['operations']), 'Non rapprochées:', count($releve['operations'])];
             $data['header'] = $header;
 
             // echo '<pre>' . print_r($header, true) . '</pre>';   
@@ -169,6 +170,39 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
+     * compute a unique string to identify an operation
+     * from the fields
+     * the result is safe to be passed as a post parameter
+     * $res[] = [
+                $op['Date'],
+                $op["Nature de l'opération"],
+                $op['Débit'],
+                $op['Crédit'],
+                $op['Devise'],
+                $op['Date de valeur'],
+                $op['Libellé interbancaire']
+            ];
+     */
+    function str_releve($op) {
+        $parts = [
+            $op['Date'],
+            $op["Nature de l'opération"],
+            $op['Débit'],
+            $op['Crédit'],
+            $op['Devise'],
+            $op['Date de valeur'],
+            $op['Libellé interbancaire']
+        ];
+
+        // Remove any problematic characters and join with a delimiter
+        $parts = array_map(function ($str) {
+            return preg_replace('/[^a-zA-Z0-9]+/', '_', $str);
+        }, $parts);
+
+        return implode('__', $parts);
+    }
+
+    /**
      * Format the operation table for all bank statements
      *
      * @param array $releve The bank statement data
@@ -176,6 +210,17 @@ class Rapprochements extends CI_Controller {
      * @return array The generated operation table
      */
     function operation_table($releve, $with_gvv_info = true) {
+        /**
+         * Pour chaque ligne du relevé on affiche les informations du relevé.
+         * On y ajoute les informations de rapprochement si elles existent ou des
+         * éléments de formulaire pour les ajouter.
+         * 
+         * Chaque ligne non ajouté contient
+         * une checkbox identifié par "cb_" + numéro de ligne
+         * un champ caché avec l'identité unique de l'écriture si elle est unique
+         * un selecteur si il y a plusieurs écritures possibles
+         * un champ caché avec la chaine de caractères qui identifie l'opération dans le relevé
+         */
         $res = [];
         foreach ($releve['operations'] as $op) {
             $res[] = $releve['titles'];
@@ -201,17 +246,32 @@ class Rapprochements extends CI_Controller {
                 };
 
                 $count = $op['selector_count'] ?? 0;
+                $status = '';
+
+                $hidden = '<input type="hidden" name="string_releve_' . $op['line'] . '" value="' . $this->str_releve($op) . '">';
+
                 $button = '';
+                $checkbox = '';
                 if ($count == 1) {
-                    $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
-                    $compte_gvv = ($op['unique_image'] ?? '');
+                    // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
+                    $hidden .= '<input type="hidden" name="unique_id_' . $op['line'] . '" value="' . $op['unique_id'] . '">';
+
+                    $compte_gvv = '<span class="text-success">' . ($op['unique_image'] ?? '') . '</span>';
+
+                    $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+
+                    $status = $checkbox . $hidden;
                 } elseif ($count == 0) {
                     $compte_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
                 } else {
-                    // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
+
+                    $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
                     $compte_gvv = $sel;
+
+                    $status = $checkbox . $hidden;
                 }
-                $res[] = ['Ecriture GVV:', $op['type'], $compte_gvv, $button, "Ligne:" . $op['line'], "nb: $count",  ''];
+
+                $res[] = [$status, 'Ecriture GVV:', $op['type'], $compte_gvv, $button, "Ligne:" . $op['line'], "nb: $count"];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
@@ -263,8 +323,7 @@ class Rapprochements extends CI_Controller {
 
         $string_releve = $op['type'] . ' ' . $op['Date'] . ' ' . $op['Nature de l\'opération'] . ' ' . $op['Libellé interbancaire'];
 
-        $attrs = 'class="form-control big_select" onchange="associateEcriture(this, \''
-            . $string_releve  . '\')"';
+        $attrs = 'class="form-control big_select" ';
         $dropdown = dropdown_field(
             "op_" . $op['line'],
             "",
@@ -272,6 +331,66 @@ class Rapprochements extends CI_Controller {
             $attrs
         );
         return $dropdown;
+    }
+
+    public function rapprochez() {
+        // Rapproche les écritures sélectionnées
+
+        $post = $this->input->post();
+        $counts = [];
+        $operations = [];
+
+        // Process valid selections
+        foreach ($post as $key => $value) {
+            if (strpos($key, 'cb_') === 0) {
+                $line = str_replace('cb_', '', $key);
+
+                if (isset($post['string_releve_' . $line])) {
+                    // echo "string_releve_$line => " . $post['string_releve_' . $line] . "<br>";
+                    $operations[$line] = ['string_releve' => $post['string_releve_' . $line]];
+                } else {
+                    gvv_dump('string_releve_' . $line . "not defined");
+                }
+
+                if (isset($post['op_' . $line]) && $post['op_' . $line] !== '') {
+                    // echo "op_$line => " . $post['op_' . $line] . "<br>";
+                    $op = $post['op_' . $line];
+                    // Count occurrences of this operation ID
+                    if (!isset($counts[$op])) {
+                        $counts[$op] = 0;
+                    }
+                    $counts[$op]++;
+                    $operations[$line]['ecriture'] = $post['op_' . $line];
+                } else {
+                    gvv_dump('op_' . $line . "not defined");
+                }
+                echo '<br>';
+            }
+        }
+
+        $errors = [];
+
+        foreach ($counts as $key => $value) {
+            if ($value > 1) {
+                $errors[] = "L'écriture $key a été sélectionnée $value fois";
+            }
+        }
+        if ($errors) {
+            foreach ($errors as $error) {
+                echo ($error) . '<br>';
+            }
+            exit;
+        }
+
+        // process valid operations
+        foreach ($operations as $key => $ope) {
+            $this->associations_ecriture_model->create([
+                'string_releve' => $ope['string_releve'],
+                'id_ecriture_gvv' => $ope['ecriture']
+            ]);
+        }
+
+        gvv_dump($operations);
     }
 
     /**

@@ -8,7 +8,7 @@
     height: auto;
 }
 
-.operations tr.compte  {
+.operations tr.compte {
     background-color: #e9a45a;
 }
 
@@ -44,4 +44,8 @@
 .fc-next-button:hover .ui-icon,
 .DataTables_sort_wrapper:hover .ui-icon {
     opacity: 1 !important;
+}
+
+.row_title td {
+    font-weight: bold;
 }

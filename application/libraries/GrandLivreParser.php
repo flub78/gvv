@@ -371,7 +371,7 @@ class GrandLivreParser {
             // Affichage de la première ligne du compte
             $lst = [$id_of, $nom_of, $compte_gvv, '', '', '', '', ''];
             $result[] = $lst;
-            $html .= html_row($lst, ['class' => 'compte']);
+            $html .= html_row($lst, ['class' => 'compte row_title']);
 
             // Affichage du nombre d'opération et du bouton de masquage
             $lst = ["Nombre d'opérations", $mvt_count, '', '', '', '', '', ''];
@@ -379,7 +379,7 @@ class GrandLivreParser {
             $html .= html_row($lst, ['class' => 'number_op']);
 
             // Entête de la ligne des écritures
-            $lst = ['', 'Date', 'Intitule', 'Description', 'Débit', 'Crédit', 'Compte OF', 'Compte GVV'];
+            $lst = ['Status', 'Date', 'Intitulé', 'Description', 'Débit', 'Crédit', 'Compte OF', 'Compte GVV'];
             $result[] = $lst;
             $html .= html_row($lst, ['class' => 'row_title']);
 
