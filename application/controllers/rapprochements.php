@@ -163,7 +163,6 @@ class Rapprochements extends CI_Controller {
             $data['section'] = $this->sections_model->section();
             $data['operations'] = $this->operation_table($releve);
             load_last_view('rapprochements/tableRapprochements', $data);
-
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
@@ -199,10 +198,20 @@ class Rapprochements extends CI_Controller {
                     $sel = '';
                 } else {
                     $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
-                }
+                };
 
                 $count = $op['selector_count'] ?? 0;
-                $res[] = ['Ecriture GVV:', $op['type'], $sel, "Ligne:" . $op['line'], "nb: $count", '', ''];
+                $button = '';
+                if ($count == 1) {
+                    $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
+                    $compte_gvv = ($op['unique_image'] ?? '');
+                } elseif ($count == 0) {
+                    $compte_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
+                } else {
+                    // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
+                    $compte_gvv = $sel;
+                }
+                $res[] = ['Ecriture GVV:', $op['type'], $compte_gvv, $button, "Ligne:" . $op['line'], "nb: $count",  ''];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
@@ -217,7 +226,7 @@ class Rapprochements extends CI_Controller {
      * @param string $op Operation type filter
      * @return void
      */
-    function ecriture_selector($start_date, $end_date, $bank,&$op) {
+    function ecriture_selector($start_date, $end_date, $bank, &$op) {
 
         $start_date = date_ht2db($start_date);
         $end_date = date_ht2db($end_date);
@@ -226,7 +235,6 @@ class Rapprochements extends CI_Controller {
             $compte1 = null;
             $compte2 = $bank;
             $montant = abs(str_replace([' ', ','], ['', '.'], $op['Débit']));
-
         } else {
             $compte1 = $bank;
             $compte2 = null;
@@ -235,8 +243,16 @@ class Rapprochements extends CI_Controller {
 
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
-        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2);
+        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2);
 
+        $sel = $slct['selector'];
+        if ($slct['unique_id']) {
+            $op['unique_id'] = $slct['unique_id'];
+            $op['unique_image'] = $slct['unique_image'];
+        } else {
+            unset($op['unique_id']);
+            unset($op['unique_image']);
+        }
         $op['selector_count'] = count($sel);
 
         // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.

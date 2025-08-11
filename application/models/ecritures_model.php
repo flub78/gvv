@@ -1576,7 +1576,16 @@ array (size=2)
             . " " . $row['description']
             . " " . $num_cheque;
         }
-        return $hash;
+        if (count($res) == 1) {
+            // Si on n'a qu'une ligne, on retourne juste l'idid
+            $op['unique_id'] = $res[0]['id'];
+            $op['unique_image'] = $this->image($res[0]['id']);
+        }
+        return [
+            "selector" => $hash,
+            "unique_id" => isset($op['unique_id']) ? $op['unique_id'] : null,
+            "unique_image" => isset($op['unique_image']) ? $op['unique_image'] : null
+        ];
     }
 }
 
