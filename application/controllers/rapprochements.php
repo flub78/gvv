@@ -54,6 +54,7 @@ class Rapprochements extends CI_Controller {
         $this->gvvmetadata->set_selector('bank_selector', $bank_selector);
         $data['bank_selector'] = $bank_selector;
         $data['bank_account'] = ''; // Default value for the dropdown
+
         load_last_view('rapprochements/select_releve', $data);
     }
 
@@ -100,8 +101,10 @@ class Rapprochements extends CI_Controller {
             // on a chargé le fichier
             $data = $this->upload->data();
 
+            $this->session->set_userdata('filter_active', false);
+
             $filename = $config['upload_path'] . $data['file_name'];
-            $this->session->set_userdata('file_operations', $filename);
+            $this->session->set_userdata('file_releve', $filename);
             $this->import_releve_from_file($filename);
         }
     }
@@ -112,6 +115,12 @@ class Rapprochements extends CI_Controller {
     public function import_releve_from_file($filename, $status = "") {
 
         $this->load->library('ReleveParser');
+
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        $endDate = $this->session->userdata('endDate');
+        $filter_type = $this->session->userdata('filter_type');
+        $type_selector = $this->session->userdata('type_selector');
 
         try {
             $parser = new ReleveParser();
@@ -128,9 +137,14 @@ class Rapprochements extends CI_Controller {
                 return;
             }
             $releve = $parser->parse($filename);
-
-
-
+            $type_hash = ["all" => "Tous les types"];
+            $type_hash = array_merge($type_hash, $parser->recognized_types());
+            $data['type_dropdown'] = dropdown_field(
+                'type_selector',
+                $type_selector,
+                $type_hash,
+                'class="form-control big_select"'
+            );
 
             $basename = basename($filename);
             $header = [];
@@ -162,13 +176,25 @@ class Rapprochements extends CI_Controller {
 
             // echo '<pre>' . print_r($header, true) . '</pre>';   
             // echo '<pre>' . print_r($releve, true) . '</pre>';
- 
+
             $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
             $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
             $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
             $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
-            $header[] = ['Nombre opérations: ', count($releve['operations']), 'Rapprochées:', $rap];
+            $header[] = [
+                'Nombre opérations: ',
+                $ot['count_selected'] . ' / ' . count($releve['operations']),
+                'Rapprochées:',
+                $rap
+            ];
             $data['header'] = $header;
+
+            $data['filter_active'] = $filter_active;
+            $data['startDate'] = $startDate;
+            $data['endDate'] = $endDate;
+            $data['filter_type'] = $filter_type;
+            $data['type_selector'] = $type_selector;
+
 
             load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
@@ -228,12 +254,61 @@ class Rapprochements extends CI_Controller {
          * un selecteur si il y a plusieurs écritures possibles
          * un champ caché avec la chaine de caractères qui identifie l'opération dans le relevé
          */
+
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        $endDate = $this->session->userdata('endDate');
+        $filter_type = $this->session->userdata('filter_type');
+        $type_selector = $this->session->userdata('type_selector');
+
         $res = [];
         $count_rapproches = 0;
         $count_choices = 0;
         $count_uniques = 0;
+        $count_selected = 0;
 
         foreach ($releve['operations'] as $op) {
+
+            // D'abord on va chercher les informations sur l'operation
+            $string_releve = $this->str_releve($op);
+            $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
+            if ($rapproches) {
+                $count_rapproches++;
+            }
+
+            if ($filter_active) {
+                $op_date = date_ht2db($op['Date de valeur']);
+                if ($startDate) {
+                    // les dates sont au format "yyyy-mm-dd" 
+                    // si $op_date < $startDate
+                    if ($op_date < $startDate) {
+                        continue; // Skip this operation
+                    }
+                }
+                if ($endDate) {
+                    // les dates sont au format "yyyy-mm-dd" 
+                    // si $op_date > $endDate
+                    if ($op_date > $endDate) {
+                        continue; // Skip this operation
+                    }
+                }
+                if ($type_selector && ($type_selector != "all")) {
+                    if ($type_selector != $op["type"]) {
+                        continue;
+                    }
+                }
+                if ($filter_type && ($filter_type != "display_all")) {
+                    if (($filter_type == "filter_unmatched") && $rapproches) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_matched") && ! $rapproches) {
+                        continue;
+                    }
+                }
+            }
+            $count_selected++;
+
+            // Puis on génère la table
             // ligne de titre
             $res[] = $releve['titles'];
             // ligne de valeurs de la ligne de relevé
@@ -249,11 +324,6 @@ class Rapprochements extends CI_Controller {
             // commentaires multiligne
             foreach ($op['comments'] as $comment) {
                 $res[] = ['', $comment, '', '', '', '', ''];
-            }
-            $string_releve = $this->str_releve($op);
-            $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
-            if ($rapproches) {
-                $count_rapproches++;
             }
 
             // informations sur le rapprochement
@@ -304,12 +374,14 @@ class Rapprochements extends CI_Controller {
                     // gvv_dump($rapproches);
                 }
 
-                $res[] = [$status, 'Ecriture GVV:', $op['type'], $ecriture_gvv, $button, "Ligne:" . $op['line'], "nb: $count"];
+                $count_str = ($rapproches) ? "" : "choix: $count";
+                $res[] = [$status, 'Ecriture GVV:', $op['type'], $ecriture_gvv, $button, "Ligne:" . $op['line'], $count_str];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
         return [
             'table' => $res,
+            'count_selected' => $count_selected,
             'count_rapproches' => $count_rapproches,
             'count_choices' => $count_choices,
             'count_uniques' => $count_uniques
@@ -328,6 +400,7 @@ class Rapprochements extends CI_Controller {
 
         $start_date = date_ht2db($start_date);
         $end_date = date_ht2db($end_date);
+        $reference_date = date_ht2db($op['Date de valeur']) ?? null;
 
         if ($op['Débit']) {
             $compte1 = null;
@@ -341,7 +414,7 @@ class Rapprochements extends CI_Controller {
 
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
-        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2);
+        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $reference_date);
 
         $sel = $slct['selector'];
         if ($slct['unique_id']) {
@@ -400,7 +473,6 @@ class Rapprochements extends CI_Controller {
                 } else {
                     gvv_dump('op_' . $line . "not defined");
                 }
-                echo '<br>';
             }
         }
 
@@ -408,14 +480,13 @@ class Rapprochements extends CI_Controller {
 
         foreach ($counts as $key => $value) {
             if ($value > 1) {
-                $errors[] = "L'écriture $key a été sélectionnée $value fois";
+                $image = $this->ecritures_model->image($key);
+                $errors[] = "L'écriture $image a été sélectionnée $value fois";
             }
         }
         if ($errors) {
-            foreach ($errors as $error) {
-                echo ($error) . '<br>';
-            }
-            exit;
+            $data['errors'] = $errors;
+            load_last_view('rapprochements/tableRapprochements', $data);
         }
 
         // process valid operations
@@ -425,8 +496,8 @@ class Rapprochements extends CI_Controller {
                 'id_ecriture_gvv' => $ope['ecriture']
             ]);
         }
-
-        gvv_dump($operations);
+        $filename = $this->session->userdata('file_releve');
+        $this->import_releve_from_file($filename);
     }
 
     /**
@@ -477,6 +548,42 @@ class Rapprochements extends CI_Controller {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Filtrage des opérations
+     *     [startDate] => 2025-02-01
+    [endDate] => 2025-01-31
+    [filter_type] => unmatched
+    [type_selector] => paiement_cb
+    [button] => Filtrer
+     */
+    public function filter() {
+        // Redirection vers la page de sélection du relevé
+        $post = $this->input->post();
+        // gvv_dump($post);
+        $button = $post['button'] ?? '';
+        if ($button == 'Filtrer') {
+            // On filtre les opérations
+            $start_date = $post['startDate'] ?? '';
+            $end_date = $post['endDate'] ?? '';
+            $filter_type = $post['filter_type'] ?? '';
+            $type_selector = $post['type_selector'] ?? '';
+
+            $this->session->set_userdata('startDate', $start_date);
+            $this->session->set_userdata('endDate', $end_date);
+            $this->session->set_userdata('filter_type', $filter_type);
+            $this->session->set_userdata('type_selector', $type_selector);
+            $this->session->set_userdata('filter_active', true);
+        } else {
+            $this->session->unset_userdata('startDate');
+            $this->session->unset_userdata('endDate');
+            $this->session->unset_userdata('filter_type');
+            $this->session->unset_userdata('type_selector');
+            $this->session->set_userdata('filter_active', false);
+        }
+        $filename = $this->session->userdata('file_releve');
+        $this->import_releve_from_file($filename);
     }
 }
 /* End of file welcome.php */

@@ -225,6 +225,22 @@ class ReleveParser {
     }
 
 
+    function recognized_types() {
+        return $operations = [
+            "cheque_debite"       => "Chèque débité",
+            "frais_bancaire"      => "Frais bancaire",
+            "paiement_cb"         => "Paiement en carte bancaire",
+            "prelevement"         => "Prélèvement",
+            "prelevement_pret"    => "Prélèvement prêt",
+            "virement_emis"       => "Virement émis",
+            "encaissement_cb"     => "Encaissement carte bancaire",
+            "remise_cheque"       => "Remise de chèque",
+            "remise_especes"      => "Remise d'espèces",
+            "regularisation_frais" => "Régularisation de frais",
+            "virement_recu"       => "Virement reçu",
+            "inconnu"             => "Opération inconnue"
+        ];
+    }
     /**
      * Retourne les données parsées sous forme de JSON
      */

@@ -1535,13 +1535,18 @@ array (size=2)
      * @param $order ordre
      *            de tri
      */
-    public function ecriture_selector($start_date, $end_date, $montant = 0, $compte1 = null, $compte2 = null) {
-        // echo "ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2)";
+    public function ecriture_selector($start_date, $end_date, $montant = 0, $compte1 = null, $compte2 = null, $reference_date = null, $delta = 5) {
 
         $this->db
             ->select("ecritures.id, ecritures.description, ecritures.date_op, ecritures.montant, ecritures.compte1, ecritures.compte2, ecritures.num_cheque")
             ->from("ecritures")
-            ->where("date_op >= \"$start_date\" and date_op <= \"$end_date\"");
+            ->where("date_op >= \"$start_date\" and date_op <= \"$end_date\"")
+            ->where("ecritures.id NOT IN (SELECT id_ecriture_gvv FROM associations_ecriture)");
+            
+        if ($reference_date) {
+            $this->db->where("ABS(DATEDIFF(date_op, \"$reference_date\")) <= $delta");
+        }
+
         if ($montant) {
             $this->db->where("montant", $montant);
         }
