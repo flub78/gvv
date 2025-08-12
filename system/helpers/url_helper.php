@@ -186,6 +186,17 @@ if ( ! function_exists('anchor_of')) {
 	}	
 }
 
+if ( ! function_exists('anchor_ecriture')) {
+	function anchor_ecriture($ecriture, $attributes = '')
+	{
+		$url = controller_url("compta/edit/") . $ecriture;
+		$CI =& get_instance();
+		$CI->load->model('ecritures_model');
+		$image = $CI->ecritures_model->image($ecriture);
+		return anchor($url, $image, $attributes);
+	}
+}
+
 // ------------------------------------------------------------------------
 
 /**

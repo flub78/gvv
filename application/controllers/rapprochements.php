@@ -138,7 +138,8 @@ class Rapprochements extends CI_Controller {
             }
             $releve = $parser->parse($filename);
             $type_hash = ["all" => "Tous les types"];
-            $type_hash = array_merge($type_hash, $parser->recognized_types());
+            $recognized_types = $parser->recognized_types();
+            $type_hash = array_merge($type_hash, $recognized_types);
             $data['type_dropdown'] = dropdown_field(
                 'type_selector',
                 $type_selector,
@@ -171,7 +172,7 @@ class Rapprochements extends CI_Controller {
 
             // D'abbort les opérations
             $data['section'] = $this->sections_model->section();
-            $ot = $this->operation_table($releve);
+            $ot = $this->operation_table($releve, $recognized_types);
             $data['operations'] = $ot['table'];
 
             // echo '<pre>' . print_r($header, true) . '</pre>';   
@@ -242,7 +243,7 @@ class Rapprochements extends CI_Controller {
      * @param bool $with_gvv_info Whether to include GVV information
      * @return array The generated operation table
      */
-    function operation_table($releve, $with_gvv_info = true) {
+    function operation_table($releve, $recognized_types = null, $with_gvv_info = true) {
         /**
          * Pour chaque ligne du relevé on affiche les informations du relevé.
          * On y ajoute les informations de rapprochement si elles existent ou des
@@ -371,11 +372,17 @@ class Rapprochements extends CI_Controller {
                     // image de l'écriture
                     $id_ecriture_gvv = $rapproches[0]['id_ecriture_gvv'] ?? '';
                     $ecriture_gvv = '<span class="text-primary">' . $this->ecritures_model->image($id_ecriture_gvv) . '</span>';
+                    $ecriture_gvv = anchor_ecriture($id_ecriture_gvv);
                     // gvv_dump($rapproches);
                 }
 
                 $count_str = ($rapproches) ? "" : "choix: $count";
-                $res[] = [$status, 'Ecriture GVV:', $op['type'], $ecriture_gvv, $button, "Ligne:" . $op['line'], $count_str];
+                if ($recognized_types) {
+                    $str_type = $recognized_types[$op['type']] ?? $op['type'];
+                } else {
+                    $str_type = $op['type'];
+                }
+                $res[] = [$status, 'Ecriture GVV:', $str_type, $ecriture_gvv, $button, "Ligne:" . $op['line'], $count_str];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }

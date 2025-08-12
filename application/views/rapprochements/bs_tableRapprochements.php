@@ -201,7 +201,7 @@ echo '</div>';
             checkbox.checked = true;
             toggleRowSelection(checkbox);
         });
-        addLogEntry('All rows selected');
+        console.log('All rows selected');
     }
 
     // Deselect all rows
@@ -211,7 +211,7 @@ echo '</div>';
             checkbox.checked = false;
             toggleRowSelection(checkbox);
         });
-        addLogEntry('All rows deselected');
+        console.log('All rows deselected');
     }
 
     function selectUniques() {
@@ -219,51 +219,14 @@ echo '</div>';
         checkboxes.forEach(checkbox => {
             if (checkbox.classList.contains('unique')) {
                 checkbox.checked = true;
-                toggleRowSelection(checkbox);
+                // toggleRowSelection(checkbox);
             } else {
                 checkbox.checked = false;
-                toggleRowSelection(checkbox);
+                // toggleRowSelection(checkbox);
             }
         });
-        addLogEntry('Unique rows selected');
+        console.log('Unique rows selected');
     }
 
-    // Get selected rows
-    // function getSelectedRows() {
-    //     const selectedRows = [];
-    //     const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 
-    //     checkboxes.forEach(checkbox => {
-    //         const row = checkbox.closest('tr');
-    //         const rowIndex = Array.from(row.parentNode.children).indexOf(row);
-    //         selectedRows.push({
-    //             index: rowIndex,
-    //             data: tableData[rowIndex]
-    //         });
-    //     });
-
-    //     console.log('Selected rows:', selectedRows);
-    //     addLogEntry(`${selectedRows.length} rows selected`);
-
-    //     if (selectedRows.length > 0) {
-    //         alert(`Selected ${selectedRows.length} row(s). Check console for details.`);
-    //     } else {
-    //         alert('No rows selected');
-    //     }
-    // }
-
-    // Add log entry
-    function addLogEntry(message) {
-        const logContainer = document.getElementById('logContainer');
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
-        logEntry.textContent = `${timestamp}: ${message}`;
-        logContainer.appendChild(logEntry);
-
-        // Keep only last 10 log entries
-        if (logContainer.children.length > 10) {
-            logContainer.removeChild(logContainer.firstChild);
-        }
-    }
 </script>
