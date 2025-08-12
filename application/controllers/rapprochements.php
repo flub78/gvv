@@ -129,6 +129,9 @@ class Rapprochements extends CI_Controller {
             }
             $releve = $parser->parse($filename);
 
+
+
+
             $basename = basename($filename);
             $header = [];
             $header[] = ["Banque: ",  $releve['bank'], '', ''];
@@ -152,17 +155,21 @@ class Rapprochements extends CI_Controller {
                 $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
             }
 
-            $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
-            $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
-            $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
-            $header[] = ['Nombre opérations: ', count($releve['operations']), 'Non rapprochées:', count($releve['operations'])];
-            $data['header'] = $header;
+            // D'abbort les opérations
+            $data['section'] = $this->sections_model->section();
+            $ot = $this->operation_table($releve);
+            $data['operations'] = $ot['table'];
 
             // echo '<pre>' . print_r($header, true) . '</pre>';   
             // echo '<pre>' . print_r($releve, true) . '</pre>';
+ 
+            $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
+            $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
+            $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
+            $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
+            $header[] = ['Nombre opérations: ', count($releve['operations']), 'Rapprochées:', $rap];
+            $data['header'] = $header;
 
-            $data['section'] = $this->sections_model->section();
-            $data['operations'] = $this->operation_table($releve);
             load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
@@ -222,8 +229,14 @@ class Rapprochements extends CI_Controller {
          * un champ caché avec la chaine de caractères qui identifie l'opération dans le relevé
          */
         $res = [];
+        $count_rapproches = 0;
+        $count_choices = 0;
+        $count_uniques = 0;
+
         foreach ($releve['operations'] as $op) {
+            // ligne de titre
             $res[] = $releve['titles'];
+            // ligne de valeurs de la ligne de relevé
             $res[] = [
                 $op['Date'],
                 $op["Nature de l'opération"],
@@ -233,10 +246,17 @@ class Rapprochements extends CI_Controller {
                 $op['Date de valeur'],
                 $op['Libellé interbancaire']
             ];
+            // commentaires multiligne
             foreach ($op['comments'] as $comment) {
                 $res[] = ['', $comment, '', '', '', '', ''];
             }
+            $string_releve = $this->str_releve($op);
+            $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
+            if ($rapproches) {
+                $count_rapproches++;
+            }
 
+            // informations sur le rapprochement
             if ($with_gvv_info) {
 
                 if ($releve['gvv_bank'] == null) {
@@ -246,6 +266,8 @@ class Rapprochements extends CI_Controller {
                 };
 
                 $count = $op['selector_count'] ?? 0;
+                $count_choices += $count;
+
                 $status = '';
 
                 $hidden = '<input type="hidden" name="string_releve_' . $op['line'] . '" value="' . $this->str_releve($op) . '">';
@@ -254,28 +276,44 @@ class Rapprochements extends CI_Controller {
                 $checkbox = '';
                 if ($count == 1) {
                     // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
-                    $hidden .= '<input type="hidden" name="unique_id_' . $op['line'] . '" value="' . $op['unique_id'] . '">';
+                    $hidden .= '<input type="hidden" name="op_' . $op['line'] . '" value="' . $op['unique_id'] . '">';
 
-                    $compte_gvv = '<span class="text-success">' . ($op['unique_image'] ?? '') . '</span>';
+                    $ecriture_gvv = '<span class="text-success">' . ($op['unique_image'] ?? '') . '</span>';
 
-                    $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
 
                     $status = $checkbox . $hidden;
+                    $count_uniques++;
                 } elseif ($count == 0) {
-                    $compte_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
+                    $ecriture_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
                 } else {
 
                     $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
-                    $compte_gvv = $sel;
+                    $ecriture_gvv = $sel;
 
                     $status = $checkbox . $hidden;
                 }
 
-                $res[] = [$status, 'Ecriture GVV:', $op['type'], $compte_gvv, $button, "Ligne:" . $op['line'], "nb: $count"];
+                if ($rapproches) {
+                    $status = '<button class="btn btn-success btn-sm" disabled>Rapproché</button>';
+                    // Ajout d'un bouton de suppression
+
+                    // image de l'écriture
+                    $id_ecriture_gvv = $rapproches[0]['id_ecriture_gvv'] ?? '';
+                    $ecriture_gvv = '<span class="text-primary">' . $this->ecritures_model->image($id_ecriture_gvv) . '</span>';
+                    // gvv_dump($rapproches);
+                }
+
+                $res[] = [$status, 'Ecriture GVV:', $op['type'], $ecriture_gvv, $button, "Ligne:" . $op['line'], "nb: $count"];
                 $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
             }
         }
-        return $res;
+        return [
+            'table' => $res,
+            'count_rapproches' => $count_rapproches,
+            'count_choices' => $count_choices,
+            'count_uniques' => $count_uniques
+        ];
     }
 
     /**
@@ -320,8 +358,6 @@ class Rapprochements extends CI_Controller {
 
         // Il faut donc associer le numéro d’occurrence de la ligne à la date donnée.
         // Même si on importe depuis des relevés de comptes différents, hebdomadaire, mensuel, annuel on importe toujours des journées entières.
-
-        $string_releve = $op['type'] . ' ' . $op['Date'] . ' ' . $op['Nature de l\'opération'] . ' ' . $op['Libellé interbancaire'];
 
         $attrs = 'class="form-control big_select" ';
         $dropdown = dropdown_field(

@@ -46,6 +46,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 ?>
     <div class="actions mb-3">
         <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
         <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
     </div>
 <?php
@@ -65,6 +66,7 @@ echo table_from_array($operations, [
 ?>
     <div class="actions mb-3">
         <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
         <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
     </div>
 <?php
@@ -124,6 +126,20 @@ echo '</div>';
             toggleRowSelection(checkbox);
         });
         addLogEntry('All rows deselected');
+    }
+
+    function selectUniques() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.classList.contains('unique')) {
+                checkbox.checked = true;
+                toggleRowSelection(checkbox);
+            } else {
+                checkbox.checked = false;
+                toggleRowSelection(checkbox);
+            }
+        });
+        addLogEntry('Unique rows selected');
     }
 
     // Get selected rows

@@ -41,9 +41,9 @@ class Associations_ecriture_model extends Common_Model {
 
         // Get unassigned ecriture
         $db_orphans = $this->db->select('*')
-                               ->from($this->table)
-                               ->where('id_ecriture_gvv IS NULL')
-                               ->get();
+            ->from($this->table)
+            ->where('id_ecriture_gvv IS NULL')
+            ->get();
         $orphans = $this->get_to_array($db_orphans);
 
         foreach ($orphans as &$row) {
@@ -69,6 +69,17 @@ class Associations_ecriture_model extends Common_Model {
         } else {
             return "association inconnue $key";
         }
+    }
+
+    /**
+     * Retourne les associations d'écriture par la chaîne de relevé.
+     * @param string $string_releve
+     * @return array
+     */
+    public function get_by_string_releve($string_releve) {
+        $this->db->where('string_releve', $string_releve);
+        $db_res = $this->db->get($this->table);
+        return $this->get_to_array($db_res);
     }
 }
 
