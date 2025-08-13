@@ -66,7 +66,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panelsStayOpen-headingOne">
             <div class="accordion-body">
                 <div>
-                    <form action="<?=  "filter/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+                    <form action="<?= "filter/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
                         <div>
                             <div class="row mb-3">
                                 <div class="col">
@@ -139,9 +139,8 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
 echo form_open_multipart('rapprochements/rapprochez');
 
-echo table_from_array($operations, [
-    'class' => 'table'
-]);
+echo $html_tables;
+
 
 /**
  * Filtrage par
@@ -158,12 +157,20 @@ echo table_from_array($operations, [
 <?php
 
 
-if ($section) echo form_input(array(
-    'type' => 'submit',
-    'name' => 'button',
-    'value' => $this->lang->line("gvv_rapproche"),
-    'class' => 'btn btn-primary mb-4'
-));
+if ($section) {
+    echo form_input(array(
+        'type' => 'submit',
+        'name' => 'button',
+        'value' => $this->lang->line("gvv_rapproche"),
+        'class' => 'btn btn-primary mb-4 me-2'
+    ));
+    echo form_input(array(
+        'type' => 'submit',
+        'name' => 'button',
+        'value' => $this->lang->line("gvv_delete_rapproche"),
+        'class' => 'btn btn-danger mb-4'
+    ));
+}
 echo form_close('</div>');
 echo '</div>';
 
@@ -199,7 +206,7 @@ echo '</div>';
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             checkbox.checked = true;
-            toggleRowSelection(checkbox);
+            // toggleRowSelection(checkbox);
         });
         console.log('All rows selected');
     }
@@ -209,7 +216,7 @@ echo '</div>';
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             checkbox.checked = false;
-            toggleRowSelection(checkbox);
+            //toggleRowSelection(checkbox);
         });
         console.log('All rows deselected');
     }
@@ -227,6 +234,4 @@ echo '</div>';
         });
         console.log('Unique rows selected');
     }
-
-
 </script>

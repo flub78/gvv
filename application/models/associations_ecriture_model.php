@@ -81,6 +81,16 @@ class Associations_ecriture_model extends Common_Model {
         $db_res = $this->db->get($this->table);
         return $this->get_to_array($db_res);
     }
+
+    /**
+     * Supprime une association d'écriture par la chaîne de relevé.
+     * @param string $string_releve
+     * @return bool
+     */
+    public function delete_by_string_releve($string_releve) {
+        $this->db->where('string_releve', $string_releve);
+        return $this->db->delete($this->table);
+    }
 }
 
 /* End of file */

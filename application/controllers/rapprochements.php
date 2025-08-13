@@ -173,7 +173,7 @@ class Rapprochements extends CI_Controller {
             // D'abbort les opérations
             $data['section'] = $this->sections_model->section();
             $ot = $this->operation_table($releve, $recognized_types);
-            $data['operations'] = $ot['table'];
+            $data['html_tables'] = $this->tables2Html($ot['tables']);
 
             // echo '<pre>' . print_r($header, true) . '</pre>';   
             // echo '<pre>' . print_r($releve, true) . '</pre>';
@@ -263,12 +263,20 @@ class Rapprochements extends CI_Controller {
         $type_selector = $this->session->userdata('type_selector');
 
         $res = [];
+        $tables = [];
+        // $complete_table = [];
         $count_rapproches = 0;
         $count_choices = 0;
         $count_uniques = 0;
         $count_selected = 0;
 
         foreach ($releve['operations'] as $op) {
+
+            // $complete_table = array_merge($complete_table, $res);
+            if ($res) {
+                $tables[] = $res;
+            }
+            $res = [];
 
             // D'abord on va chercher les informations sur l'operation
             $string_releve = $this->str_releve($op);
@@ -366,7 +374,9 @@ class Rapprochements extends CI_Controller {
                 }
 
                 if ($rapproches) {
-                    $status = '<button class="btn btn-success btn-sm" disabled>Rapproché</button>';
+                    $status = '<input type="checkbox" name="cbdel_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $status .= '<button class="btn btn-success btn-sm ms-2" disabled>Rapproché</button>';
+                    $status .= $hidden;
                     // Ajout d'un bouton de suppression
 
                     // image de l'écriture
@@ -374,6 +384,10 @@ class Rapprochements extends CI_Controller {
                     $ecriture_gvv = '<span class="text-primary">' . $this->ecritures_model->image($id_ecriture_gvv) . '</span>';
                     $ecriture_gvv = anchor_ecriture($id_ecriture_gvv);
                     // gvv_dump($rapproches);
+                } else {
+                    // $status .= $checkbox;
+                    $status .= '<button type="button" class="btn btn-danger btn-sm ms-2" onclick="rapproche(' . $op['line'] . ')">Non rapproché</button>';
+                    //$status .= $hidden;
                 }
 
                 $count_str = ($rapproches) ? "" : "choix: $count";
@@ -382,17 +396,65 @@ class Rapprochements extends CI_Controller {
                 } else {
                     $str_type = $op['type'];
                 }
-                $res[] = [$status, 'Ecriture GVV:', $str_type, $ecriture_gvv, $button, "Ligne:" . $op['line'], $count_str];
-                $res[] = ['===========', '===========', '===========', '===========', '===========', '===========', '==========='];
+                $res[] = [$status, $ecriture_gvv, $str_type, '', $button, "Ligne:" . $op['line'], 'Ecriture GVV'];
             }
+            // $complete_table = array_merge($complete_table, $res);
+            $tables[] = $res;
+            $res = [];
         }
+
         return [
-            'table' => $res,
+            'tables' => $tables,
             'count_selected' => $count_selected,
             'count_rapproches' => $count_rapproches,
             'count_choices' => $count_choices,
             'count_uniques' => $count_uniques
         ];
+    }
+
+    /**
+     * Convertit les tables en HTML
+     */
+    function tables2Html($tables) {
+        $html = '';
+        foreach ($tables as $table) {
+            // table table-striped table-bordered
+            $html .= '<table class="table rapprochement table-striped table-bordered border border-dark rounded mb-3 w-100 operations">';
+            $line_cnt = 0;
+            $row_count = 0;
+
+            foreach ($table as $row) {
+                if ($line_cnt == 0) {
+                    // echo "thead";
+                    $row_count = count($row);
+                    $html .= '<thead>';
+                    $html .= '<tr class="compte row_title">';
+                    foreach ($row as $cell) {
+                        $html .= '<th>' . $cell . '</th>';
+                    }
+                    $html .= '</tr>';
+                    $html .= '</thead>';
+                    $html .= '<tbody>';
+                } else {
+                    $html .= '<tr>';
+                    $cnt = 0;
+                    foreach ($row as $cell) {
+                        $html .= '<td>' . $cell . '</td>';
+                        $cnt++;
+                    }
+                    while ($cnt < $row_count) {
+                        $html .= '<td></td>';
+                        $cnt++;
+                    }
+                    $html .= '</tr>';
+                }
+                $line_cnt++;
+            }
+
+            $html .= '</tbody>';
+            $html .= '</table>';
+        }
+        return $html;
     }
 
     /**
@@ -456,6 +518,12 @@ class Rapprochements extends CI_Controller {
         $counts = [];
         $operations = [];
 
+        if ($post['button'] == 'Supprimer les rapprochements') {
+            // On supprime les rapprochements
+            $this->delete_rapprochement();
+            return;
+        }
+
         // Process valid selections
         foreach ($post as $key => $value) {
             if (strpos($key, 'cb_') === 0) {
@@ -503,6 +571,33 @@ class Rapprochements extends CI_Controller {
                 'id_ecriture_gvv' => $ope['ecriture']
             ]);
         }
+        $filename = $this->session->userdata('file_releve');
+        $this->import_releve_from_file($filename);
+    }
+
+    /**
+     * Supprime les rapprochements sélectionnés
+     */
+    function delete_rapprochement() {
+        // Supprime les rapprochements sélectionnés
+        $post = $this->input->post();
+        $operations = [];
+
+        // Process valid selections
+        foreach ($post as $key => $value) {
+            if (strpos($key, 'cbdel_') === 0) {
+                $line = str_replace('cbdel_', '', $key);
+                if (isset($post['string_releve_' . $line])) {
+                    
+                    $operation = $post['string_releve_' . $line];
+                    $this->associations_ecriture_model->delete_by_string_releve($operation);
+
+                } else {
+                    gvv_dump('string_releve_' . $line . "not defined");
+                }
+            }
+        }
+
         $filename = $this->session->userdata('file_releve');
         $this->import_releve_from_file($filename);
     }

@@ -49,3 +49,11 @@
 .row_title td {
     font-weight: bold;
 }
+
+  table.rapprochement th:nth-child(1) { width: 10%; }
+  table.rapprochement th:nth-child(2) { width: 45%; }
+  table.rapprochement th:nth-child(3) { width: 10%; }
+  table.rapprochement th:nth-child(4) { width: 10%; }
+  table.rapprochement th:nth-child(5) { width: 5%; }
+  table.rapprochement th:nth-child(6) { width: 5%; }
+  table.rapprochement th:nth-child(7) { width: 15%; }
