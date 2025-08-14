@@ -294,6 +294,12 @@ class Rapprochements extends CI_Controller {
                 $count_rapproches++;
             }
 
+            if ($releve['gvv_bank'] == null) {
+                $sel = '';
+            } else {
+                $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
+            };
+
             if ($filter_active) {
                 $op_date = date_ht2db($op['Date de valeur']);
                 if ($startDate) {
@@ -322,9 +328,24 @@ class Rapprochements extends CI_Controller {
                     if (($filter_type == "filter_matched") && ! $rapproches) {
                         continue;
                     }
+                    if (in_array($filter_type, ["filter_unmatched_0", "filter_unmatched_1", "filter_unmatched_multi"])) {
+                        // On ne traite pas les opérations non rapprochées
+                        if ($rapproches) {
+                            continue;
+                        }
+                    }
+                    $count = $op['selector_count'] ?? 0;
+                    if (($filter_type == "filter_unmatched_0") && ($count != 0)) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_unmatched_1") && ($count != 1)) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_unmatched_multi") && ($count <= 1)) {
+                        continue;
+                    }
                 }
             }
-            $count_selected++;
 
             // Puis on génère la table
             // ligne de titre
@@ -346,12 +367,7 @@ class Rapprochements extends CI_Controller {
 
             // informations sur le rapprochement
             if ($with_gvv_info) {
-
-                if ($releve['gvv_bank'] == null) {
-                    $sel = '';
-                } else {
-                    $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
-                };
+                $count_selected++;
 
                 $count = $op['selector_count'] ?? 0;
                 $count_choices += $count;
@@ -908,7 +924,7 @@ class Rapprochements extends CI_Controller {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $this->corelation($key, $ecriture, $op);
             if ($verbose) {
-                echo("$key => $ecriture : $correlation<br>");
+                echo ("$key => $ecriture : $correlation<br>");
             }
 
 

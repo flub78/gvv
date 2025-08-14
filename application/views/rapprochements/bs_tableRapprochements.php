@@ -88,13 +88,26 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                                     <input class="form-check-input" type="radio" name="filter_type" id="filter_all" value="display_all" <?= (!isset($filter_type) || $filter_type == 'display_all') ? 'checked' : '' ?>>
                                     <label class="form-check-label" for="filter_all">Tout</label>
                                 </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_matched" value="filter_matched" <?= (isset($filter_type) && $filter_type == 'filter_matched') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_matched">Les écritures rapprochées</label>
+                                </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched" value="filter_unmatched" <?= (isset($filter_type) && $filter_type == 'filter_unmatched') ? 'checked' : '' ?>>
                                     <label class="form-check-label" for="filter_unmatched">Les écritures non rapprochées</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_matched" value="filter_matched" <?= (isset($filter_type) && $filter_type == 'filter_matched') ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="filter_matched">Les écritures rapprochées</label>
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_O" value="filter_unmatched_0" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_0') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched">Non rapprochées sans suggestions</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_1" value="filter_unmatched_1" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_1') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_1">Non rapprochées avec suggestion unique</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_multi" value="filter_unmatched_multi" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_multi') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_multi">Non rapprochées avec suggestions multiples</label>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -132,11 +145,11 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 </div>
 <?php if ($count_selected): ?>
 
-<div class="actions mb-3 mt-3">
-    <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-    <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
-    <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-</div>
+    <div class="actions mb-3 mt-3">
+        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
+        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+    </div>
 <?php endif; ?>
 
 <?php
@@ -159,11 +172,11 @@ if (!$count_selected) {
  */
 ?>
 <?php if ($count_selected): ?>
-<div class="actions mb-3">
-    <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-    <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
-    <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-</div>
+    <div class="actions mb-3">
+        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
+        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+    </div>
 <?php endif; ?>
 
 <?php
@@ -260,5 +273,4 @@ echo '</div>';
             .then(data => location.reload())
             .catch(error => console.error('Error:', error));
     }
-
 </script>
