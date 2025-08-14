@@ -113,7 +113,6 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             </div>
         </div>
     </div>
-
 </div>
 
 <div class="border rounded p-2 mb-3">
@@ -131,17 +130,25 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         </div>
     </div>
 </div>
+<?php if ($count_selected): ?>
 
 <div class="actions mb-3 mt-3">
     <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
     <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
     <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
 </div>
+<?php endif; ?>
+
 <?php
 
 echo form_open_multipart('rapprochements/rapprochez');
 
 echo $html_tables;
+
+if (!$count_selected) {
+    echo p("La selection est vide.");
+}
+
 
 
 /**
@@ -151,15 +158,17 @@ echo $html_tables;
  *    date de début, date de fin
  */
 ?>
+<?php if ($count_selected): ?>
 <div class="actions mb-3">
     <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
     <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
     <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
 </div>
+<?php endif; ?>
+
 <?php
 
-
-if ($section) {
+if ($section && $count_selected) {
     echo form_input(array(
         'type' => 'submit',
         'name' => 'button',

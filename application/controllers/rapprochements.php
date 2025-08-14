@@ -112,7 +112,7 @@ class Rapprochements extends CI_Controller {
     /**
      * Import a CSV listing from a file
      */
-    public function import_releve_from_file($filename="", $status = "") {
+    public function import_releve_from_file($filename = "", $status = "") {
 
         if ($filename == "") {
             $filename = $this->session->userdata('file_releve');
@@ -204,6 +204,7 @@ class Rapprochements extends CI_Controller {
             }
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
+            $data['count_selected'] = $ot['count_selected'];
 
             load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
@@ -503,15 +504,22 @@ class Rapprochements extends CI_Controller {
         if ($smart_mode) {
             // Smart mode: filter out entries that are too unlikely to match
             $sel = $this->smart_ajust($sel, $op);
+            if (count($sel) == 1) {
+                // $op['unique_id'] = array_keys($sel)[0];
+                $op['unique_id'] = key($sel[0]);
+                $op['unique_image'] = $this->ecritures_model->image($op['unique_id']);
+            }
+        } else {
+            if ($slct['unique_id']) {
+                $op['unique_id'] = $slct['unique_id'];
+                $op['unique_image'] = $slct['unique_image'];
+            } else {
+                unset($op['unique_id']);
+                unset($op['unique_image']);
+            }
         }
 
-        if ($slct['unique_id']) {
-            $op['unique_id'] = $slct['unique_id'];
-            $op['unique_image'] = $slct['unique_image'];
-        } else {
-            unset($op['unique_id']);
-            unset($op['unique_image']);
-        }
+
 
         $op['selector_count'] = count($sel);
 
@@ -608,10 +616,9 @@ class Rapprochements extends CI_Controller {
             if (strpos($key, 'cbdel_') === 0) {
                 $line = str_replace('cbdel_', '', $key);
                 if (isset($post['string_releve_' . $line])) {
-                    
+
                     $operation = $post['string_releve_' . $line];
                     $this->associations_ecriture_model->delete_by_string_releve($operation);
-
                 } else {
                     gvv_dump('string_releve_' . $line . "not defined");
                 }
@@ -704,7 +711,7 @@ class Rapprochements extends CI_Controller {
             $this->session->unset_userdata('type_selector');
             $this->session->set_userdata('filter_active', false);
         }
-        
+
         $filename = $this->session->userdata('file_releve');
         $this->import_releve_from_file($filename);
     }
@@ -739,17 +746,159 @@ class Rapprochements extends CI_Controller {
             ->set_output($json);
     }
 
-    function smart_ajust($sel, $op) {
-        // Ajuste le sélecteur pour ne garder que les écritures qui sont
-        // dans un delta de 5 jours de la date de valeur de l'opération
+    /**
+     * Calcule le coefficient de corrélation entre les écritures et l'opération
+     *
+     * @param array $sel Sélecteur d'écritures
+     * @param array $op Opération du relevé bancaire
+     * @return array Coefficient de corrélation pour chaque écriture
+     */
+    function corelation($key, $ecriture, $op) {
+        // Calcule le coefficient de corrélation entre les écritures et l'opération 
+        $correlation = 0.5;
 
-        // echo "smart_ajust(" . $op['Date de valeur'] . ")<br>";
+        // Call appropriate correlation function based on type
+        switch ($op['type']) {
+            case 'cheque_debite':
+                $correlation = $this->correlateCheque($key, $ecriture, $op);
+                break;
 
-        $filtered_sel = $sel;
+            case 'frais_bancaire':
+                $correlation = $this->correlateFraisBancaire($key, $ecriture, $op);
+                break;
 
-        return $filtered_sel;
+            case 'paiement_cb':
+                $correlation = $this->correlatePaiementCB($key, $ecriture, $op);
+                break;
+
+            case 'prelevement':
+            case 'prelevement_pret':
+                $correlation = $this->correlatePrelevement($key, $ecriture, $op);
+                break;
+
+            case 'virement_emis':
+                $correlation = $this->correlateVirementEmis($key, $ecriture, $op);
+                break;
+
+            case 'virement_recu':
+                $correlation = $this->correlateVirementRecu($key, $ecriture, $op);
+                break;
+
+            case 'encaissement_cb':
+                $correlation = 0.7;
+                break;
+
+            case 'remise_cheque':
+                $correlation = 0.8;
+                break;
+
+            case 'remise_especes':
+                $correlation = 0.9;
+                break;
+
+            case 'regularisation_frais':
+                $correlation = 0.5;
+                break;
+
+            case 'inconnu':
+                $correlation = 0.3;
+                break;
+
+            default:
+                $correlation = 0.5;
+                break;
+        }
+
+        return $correlation;
     }
 
+    // Helper functions for each case
+    function correlateCheque($key, $ecriture, $op) {
+        if (preg_match('/cheque.*?(\d+)/i', $op['Libellé interbancaire'], $matches)) {
+            return 0.9; // Higher if check number found
+        }
+        return 0.7;
+    }
+
+    function correlateFraisBancaire($key, $ecriture, $op) {
+        if (
+            stripos($op['Nature de l\'opération'], 'frais') !== false ||
+            stripos($op['Libellé interbancaire'], 'frais') !== false
+        ) {
+            return 0.8;
+        }
+        return 0.6;
+    }
+
+    function correlatePaiementCB($key, $ecriture, $op) {
+        if (stripos($op['Nature de l\'opération'], 'carte') !== false) {
+            return 0.8;
+        }
+        return 0.5;
+    }
+
+    function correlatePrelevement($key, $ecriture, $op) {
+        if (stripos($op['Nature de l\'opération'], 'prelevement') !== false) {
+            return 0.8;
+        }
+        return 0.6;
+    }
+
+    function correlateVirementRecu($key, $ecriture, $op) {
+        $date = date_ht2db($op['Date de valeur']);
+        $nature = $op['Nature de l\'opération'] ?? '';
+        $nature = strtolower($nature);
+        $nature = str_replace(['vir inst re', 'vir recu'], '', $nature);
+        $nature = trim($nature);
+
+        // On cherche une écriture qui correspond à la nature de l'opération
+        if (stripos(strtolower($ecriture), $nature) !== false) {
+            return 0.95; // Corrélation élevée si la nature et la date correspondent
+        }
+
+
+        return 0.01;
+    }
+
+    function correlateVirementEmis($key, $ecriture, $op) {
+        if (stripos($op['Nature de l\'opération'], 'virement') !== false) {
+            return 0.8;
+        }
+        return 0.6;
+    }
+
+    /**
+     * Ajuste le sélecteur pour ne garder que les écritures qui ont un coefficient de corrélation supérieur au seuil
+     *
+     * @param array $sel Sélecteur d'écritures
+     * @param array $op Opération du relevé bancaire
+     * @return array Le sélecteur ajusté
+     */
+    function smart_ajust($sel, $op) {
+
+        $threshold = 0.5;
+        $filtered_sel = [];
+
+        echo '<pre>';
+        print_r($op);
+        foreach ($sel as $key => $ecriture) {
+            // Calcule le coefficient de corrélation entre l'écriture et l'opération
+            $correlation = $this->corelation($key, $ecriture, $op);
+            echo "$key => $ecriture : $correlation<br>";
+
+            if ($correlation >= $threshold) {
+                // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
+                $filtered_sel[] = [$key => $ecriture];
+            } else {
+                // Sinon, on l'ignore
+                // echo "Ignored: $ecriture<br>";
+            }
+        }
+
+        echo '</pre>';
+        echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
+        return $filtered_sel;
+    }
 }
 /* End of file welcome.php */
 /* Location: ./application/controllers/welcome.php */
