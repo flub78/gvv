@@ -48,7 +48,9 @@ if ($errors) {
 }
 
 // Affiche l'en-tête
-echo table_from_array($header, ['class' => ' table']);
+echo '<div class="border border-secondary border-3 rounded p-2 mb-3">';
+echo table_from_array($header, ['class' => ' table border']);
+echo '</div>';
 
 echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations") . '</h4>';
 
@@ -203,7 +205,7 @@ echo '</div>';
 
     // Select all rows
     function selectAll() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#smartMode)');
         checkboxes.forEach(checkbox => {
             checkbox.checked = true;
             // toggleRowSelection(checkbox);
@@ -213,7 +215,7 @@ echo '</div>';
 
     // Deselect all rows
     function deselectAll() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#smartMode)');
         checkboxes.forEach(checkbox => {
             checkbox.checked = false;
             //toggleRowSelection(checkbox);
@@ -222,7 +224,7 @@ echo '</div>';
     }
 
     function selectUniques() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#smartMode)');
         checkboxes.forEach(checkbox => {
             if (checkbox.classList.contains('unique')) {
                 checkbox.checked = true;

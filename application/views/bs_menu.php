@@ -263,6 +263,14 @@ $section_count = $CI->sections_model->safe_count_all();
                       <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>">Associations des comptes OpenFlyers</a></li>
                     </ul>
                   </li>
+                  <li><a class="dropdown-item" href="#">Rapprochements</a>
+                    <ul class="submenu dropdown-menu">
+                      <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><?= translation("gvv_menu_rapprochements") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url('associations_releve/page') ?>"><?= translation("gvv_menu_associations_releves") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url('associations_ecriture/page') ?>"><?= translation("gvv_menu_associations_ecritures") ?></a></li>
+
+                    </ul>
+                  </li>
                 <?php endif; ?>
               <?php endif; ?>
 
@@ -336,10 +344,6 @@ $section_count = $CI->sections_model->safe_count_all();
               <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>">phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><?= translation("Dump Metadata") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><?= translation("gvv_menu_rapprochements") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('associations_releve/page') ?>"><?= translation("gvv_menu_associations_releves") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('associations_ecriture/page') ?>"><?= translation("gvv_menu_associations_ecritures") ?></a></li>
-
             </ul>
           </li>
         <?php endif; ?>
