@@ -121,12 +121,12 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     <div class="row mb-3">
         <div class="col-md-8 d-flex align-items-center">
             <label for="maxDays" class="form-label me-2 mb-0">Nombre de jours maximum entre le relevé et l'opération</label>
-            <input type="number" class="form-control" id="maxDays" name="maxDays" min="0" style="width: 5em;">
+            <input type="number" class="form-control" id="maxDays" name="maxDays" min="0" style="width: 5em;" onchange="maxDaysChanged(this);" value="<?= $maxDays ?>">
         </div>
         <div class="col-md-4">
             <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="smartMode" name="smartMode">
                 <label class="form-check-label" for="smartMode">Smart mode</label>
+                <input type="checkbox" class="form-check-input" id="smartMode" name="smartMode" onchange="smartModeChanged(this)" <?= $smartMode ? 'checked' : '' ?>>
             </div>
         </div>
     </div>
@@ -193,22 +193,12 @@ echo '</div>';
         location.reload();
     }
 
-    // Toggle row selection
-    function toggleRowSelection(checkbox) {
-        const row = checkbox.closest('tr');
-        if (checkbox.checked) {
-            row.classList.add('selected-row');
-        } else {
-            row.classList.remove('selected-row');
-        }
-    }
 
     // Select all rows
     function selectAll() {
         const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#smartMode)');
         checkboxes.forEach(checkbox => {
             checkbox.checked = true;
-            // toggleRowSelection(checkbox);
         });
         console.log('All rows selected');
     }
@@ -218,7 +208,6 @@ echo '</div>';
         const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#smartMode)');
         checkboxes.forEach(checkbox => {
             checkbox.checked = false;
-            //toggleRowSelection(checkbox);
         });
         console.log('All rows deselected');
     }
@@ -228,12 +217,39 @@ echo '</div>';
         checkboxes.forEach(checkbox => {
             if (checkbox.classList.contains('unique')) {
                 checkbox.checked = true;
-                // toggleRowSelection(checkbox);
             } else {
                 checkbox.checked = false;
-                // toggleRowSelection(checkbox);
             }
         });
         console.log('Unique rows selected');
     }
+
+    function maxDaysChanged(input) {
+        const maxDays = input.value;
+        console.log('Max days changed to:', maxDays);
+        // You can add logic here to filter the table based on maxDays
+        fetch('<?= site_url() ?>/rapprochements/max_days_change?maxDays=' + maxDays)
+            .then(response => response.json())
+            .then(data => location.reload())
+            .catch(error => console.error('Error:', error));
+    }
+
+    function smartModeChanged(checkbox) {
+        const isChecked = checkbox.checked;
+        console.log('Smart mode changed:', isChecked);
+        // You can add logic here to toggle smart mode functionality
+        if (isChecked) {
+            // Enable smart mode
+            console.log('Smart mode enabled');
+        } else {
+            // Disable smart mode
+            console.log('Smart mode disabled');
+        }
+
+        fetch('<?= site_url() ?>/rapprochements/smart_mode_change?smartMode=' + isChecked)
+            .then(response => response.json())
+            .then(data => location.reload())
+            .catch(error => console.error('Error:', error));
+    }
+
 </script>

@@ -112,8 +112,11 @@ class Rapprochements extends CI_Controller {
     /**
      * Import a CSV listing from a file
      */
-    public function import_releve_from_file($filename, $status = "") {
+    public function import_releve_from_file($filename="", $status = "") {
 
+        if ($filename == "") {
+            $filename = $this->session->userdata('file_releve');
+        }
         $this->load->library('ReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
@@ -195,6 +198,11 @@ class Rapprochements extends CI_Controller {
             $data['endDate'] = $endDate;
             $data['filter_type'] = $filter_type;
             $data['type_selector'] = $type_selector;
+            $data['maxDays'] = $this->session->userdata('rapprochement_delta') ?? 5;
+            if (!$data['maxDays']) {
+                $data['maxDays'] = 5; // Default delta value
+            }
+            $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
 
             load_last_view('rapprochements/tableRapprochements', $data);
@@ -390,13 +398,13 @@ class Rapprochements extends CI_Controller {
                     //$status .= $hidden;
                 }
 
-                $count_str = ($rapproches) ? "" : "choix: $count";
+                $count_str = ($rapproches) ? "" : "Choix: $count.";
                 if ($recognized_types) {
                     $str_type = $recognized_types[$op['type']] ?? $op['type'];
                 } else {
                     $str_type = $op['type'];
                 }
-                $res[] = [$status, $ecriture_gvv, $str_type, '', $button, "Ligne:" . $op['line'], 'Ecriture GVV'];
+                $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op['line'], 'Ecriture GVV'];
             }
             // $complete_table = array_merge($complete_table, $res);
             $tables[] = $res;
@@ -483,9 +491,20 @@ class Rapprochements extends CI_Controller {
 
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
-        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $reference_date);
+        $delta = $this->session->userdata('rapprochement_delta');
+        if (! $delta) {
+            $delta = 5; // Default delta value
+        }
+        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $reference_date, $delta);
 
         $sel = $slct['selector'];
+
+        $smart_mode = $this->session->userdata('rapprochement_smart_mode') ?? false;
+        if ($smart_mode) {
+            // Smart mode: filter out entries that are too unlikely to match
+            $sel = $this->smart_ajust($sel, $op);
+        }
+
         if ($slct['unique_id']) {
             $op['unique_id'] = $slct['unique_id'];
             $op['unique_image'] = $slct['unique_image'];
@@ -493,6 +512,7 @@ class Rapprochements extends CI_Controller {
             unset($op['unique_id']);
             unset($op['unique_image']);
         }
+
         $op['selector_count'] = count($sel);
 
         // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.
@@ -684,9 +704,52 @@ class Rapprochements extends CI_Controller {
             $this->session->unset_userdata('type_selector');
             $this->session->set_userdata('filter_active', false);
         }
+        
         $filename = $this->session->userdata('file_releve');
         $this->import_releve_from_file($filename);
     }
+
+    /**
+     * Change le nombre de jours maximum pour le rapprochement
+     */
+    public function max_days_change() {
+        // Change le nombre de jours maximum pour le rapprochement
+        $delta = $this->input->get('maxDays');
+        $this->session->set_userdata('rapprochement_delta', $delta);
+
+        $json = json_encode(['success' => true]);
+        gvv_debug("max_days_change($delta)" . $json);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($json);
+    }
+
+    /**
+     * Change le mode de rapprochement intelligent
+     */
+    public function smart_mode_change() {
+        // Change le mode de rapprochement intelligent
+        $smartMode = $this->input->get('smartMode') === 'true';
+        $this->session->set_userdata('rapprochement_smart_mode', $smartMode);
+
+        $json = json_encode(['success' => true]);
+        gvv_debug("smart_mode_change(" . ($smartMode ? 'true' : 'false') . ")" . $json);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($json);
+    }
+
+    function smart_ajust($sel, $op) {
+        // Ajuste le sélecteur pour ne garder que les écritures qui sont
+        // dans un delta de 5 jours de la date de valeur de l'opération
+
+        // echo "smart_ajust(" . $op['Date de valeur'] . ")<br>";
+
+        $filtered_sel = $sel;
+
+        return $filtered_sel;
+    }
+
 }
 /* End of file welcome.php */
 /* Location: ./application/controllers/welcome.php */
