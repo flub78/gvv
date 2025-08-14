@@ -851,13 +851,33 @@ class Rapprochements extends CI_Controller {
         $nature = str_replace(['vir inst re', 'vir recu'], '', $nature);
         $nature = trim($nature);
 
+        $ecriture = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $ecriture);
+
         // On cherche une écriture qui correspond à la nature de l'opération
         if (stripos(strtolower($ecriture), $nature) !== false) {
-            return 0.95; // Corrélation élevée si la nature et la date correspondent
+            return 0.95; // Corrélation élevée si on trouve la référence
         }
 
+        $comment = $op['comments'];
+        $from = $comment[0];
+        $from = strtolower($from);
+        $from = str_replace('.', ' ', $from);
+        while (strpos($from, '  ') !== false) {
+            $from = str_replace('  ', ' ', $from);
+        }
+        $from = str_replace(['de: m ou mme', 'de: mr ou mme', 'de: mr',  'de: monsieur', 'de: m ', 'de: mme', 'ou m'], '', $from);
+        $from = str_replace(['de:', 'epoux'], '', $from);
 
-        return 0.01;
+        $from = trim($from);
+        $from_list = explode(' ', $from);
+        $score = 0;
+        foreach ($from_list as $word) {
+            if (stripos($ecriture, $word) !== false) {
+                $score++;
+            }
+        }
+        $score /= count($from_list);
+        return $score * 0.9;
     }
 
     function correlateVirementEmis($key, $ecriture, $op) {
@@ -878,25 +898,33 @@ class Rapprochements extends CI_Controller {
 
         $threshold = 0.5;
         $filtered_sel = [];
+        $verbose = false;
 
-        echo '<pre>';
-        print_r($op);
+        if ($verbose) {
+            echo '<pre>';
+            print_r($op);
+        }
         foreach ($sel as $key => $ecriture) {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $this->corelation($key, $ecriture, $op);
-            echo "$key => $ecriture : $correlation<br>";
+            if ($verbose) {
+                echo("$key => $ecriture : $correlation<br>");
+            }
+
 
             if ($correlation >= $threshold) {
                 // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
                 $filtered_sel[] = [$key => $ecriture];
             } else {
                 // Sinon, on l'ignore
-                // echo "Ignored: $ecriture<br>";
+                echo "Ignored: $ecriture corrélation=$correlation<br>";
             }
         }
 
-        echo '</pre>';
-        echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
+        if ($verbose) {
+            echo '</pre>';
+            echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
+        }
         return $filtered_sel;
     }
 }
