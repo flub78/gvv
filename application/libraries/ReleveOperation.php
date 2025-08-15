@@ -14,10 +14,12 @@ class ReleveOperation {
     public $titles;
     public $operations = [];
 
-    public function __construct($data) {
-        // Fill fields from $data array (returned by parser)
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
+    public function __construct($data = null) {
+        // Fill fields from $data array (returned by parser) if provided
+        if ($data !== null) {
+            foreach ($data as $key => $value) {
+                $this->$key = $value;
+            }
         }
     }
 

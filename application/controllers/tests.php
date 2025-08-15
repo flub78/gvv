@@ -595,19 +595,15 @@ class Tests extends CI_Controller {
 
     function test_rapprochement_operations() {
         echo ("Test rapprochement des opérations bancaires<br>");
-        // $this->load->library('ReleveOperation');
 
-        // $op = new ReleveOperation();
-        // $this->load->library('unit_test');
-$parser = new ReleveParser();
+        $this->load->library('ReleveOperation');
+
+        $op = new ReleveOperation();
 
         $this->unit->header("Test rapprochement des opérations bancaires");
-        $this->unit->run("AA" != "", true, "AA");
+        $this->unit->run($op, true, "ReleveOperation created");
         echo $this->unit->report();
 
-        // echo "<pre>";
-        // print_r($operations);
-        // echo "</pre>";
         echo "bye";
     }
 }
