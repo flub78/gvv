@@ -3,15 +3,15 @@
 /**
  * Classe pour parser le fichier CSV des relevés bancaires
  * 
- * Parsing 
+ * Parsing des relevés bancaires au format CSV, extraction des opérations
  * 
  */
-class ReleveParser {
+class ObjectReleveParser {
     private $data = [];
 
 
     /**
-     * Checks if a string or array of strings is found within another string
+     * Checks if a string or at least one element of an array of strings is found within another string
      * 
      * @param string|array $pattern The string or array of strings to search for
      * @param string $string The string to search in

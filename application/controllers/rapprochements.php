@@ -35,7 +35,7 @@ class Rapprochements extends CI_Controller {
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
-        $this->load->library('SoldesParser');
+        // $this->load->library('SoldesParser');
         $this->lang->load('rapprochements');
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');

@@ -592,6 +592,24 @@ class Tests extends CI_Controller {
         QRcode::png('https://example.com');
         //QRcode::png('https://example.com', 'qrcode.png');
     }
+
+    function test_rapprochement_operations() {
+        echo ("Test rapprochement des opérations bancaires<br>");
+        // $this->load->library('ReleveOperation');
+
+        // $op = new ReleveOperation();
+        // $this->load->library('unit_test');
+$parser = new ReleveParser();
+
+        $this->unit->header("Test rapprochement des opérations bancaires");
+        $this->unit->run("AA" != "", true, "AA");
+        echo $this->unit->report();
+
+        // echo "<pre>";
+        // print_r($operations);
+        // echo "</pre>";
+        echo "bye";
+    }
 }
 
 /* End of file tests.php */
