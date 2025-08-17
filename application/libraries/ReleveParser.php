@@ -11,6 +11,15 @@ class ReleveParser {
 
 
     /**
+     * Constructeur de la classe
+     */
+    public function __construct() {
+        $this->CI = &get_instance();
+        // Initialisation des données
+        $this->CI->load->library('ReleveOperation');
+    }
+
+    /**
      * Checks if a string or array of strings is found within another string
      * 
      * @param string|array $pattern The string or array of strings to search for
@@ -97,6 +106,9 @@ class ReleveParser {
      * @return array Structure de données parsée
      */
     public function parse($filePath) {
+        $CI = &get_instance();
+        $CI->load->model('associations_releve_model');
+
         if (!file_exists($filePath)) {
             throw new Exception("Le fichier {$filePath} n'existe pas.");
         }
@@ -132,6 +144,11 @@ class ReleveParser {
             if ($lineNumber === 2) {
                 $data['iban'] = $fields[0];
                 $data['section'] = $fields[1];
+
+                $bank_account = $CI->associations_releve_model->get_gvv_account($data['iban']);
+                if ($bank_account) {
+                    $data['gvv_bank'] = $bank_account;
+                } 
                 continue;
             }
 

@@ -97,10 +97,13 @@ if (!function_exists('occurences')) {
 
 if (!function_exists('gvv_dump')) {
 	/**
-	 * Retourne la liste des occurences d'une chaine de caractère dans le fichier de log
+	 * Prints variable contents with file and line information
 	 */
 	function gvv_dump($string, $dye = true) {
+		$bt = debug_backtrace();
+		$caller = $bt[0];
 		echo "<pre>";
+		echo "gvv_dump from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
 		print_r($string);
 		echo "</pre>";
 		if ($dye) {

@@ -77,17 +77,20 @@ class ObjectReleveParser {
      * @return void
      */
     function add_operation(&$data, $operation) {
-        if (!isset($data['operations'])) {
-            $data['operations'] = [];
+        if (!isset($data['ops'])) {
+            //  $data['operations'] = [];
+            $data['ops'] = []; // list of ReleveOperations
         }
         $type = $this->operation_type($operation);
         if ($type) {
             if ($type == "inconnu") {
-                echo '<pre>' . print_r($operation, true) . '</pre><br>';
+                echo '<pre> Inconnu:' . print_r($operation, true) . '</pre><br>';
             }
             $operation['type'] = $type;
+            $op = new ReleveOperation($operation);
+            $data['ops'][] = $op;
         }
-        $data['operations'][] = $operation;
+        // $data['operations'][] = $operation;
     }
 
     /**
@@ -97,6 +100,9 @@ class ObjectReleveParser {
      * @return array Structure de données parsée
      */
     public function parse($filePath) {
+        $CI = &get_instance();
+        $CI->load->model('associations_releve_model');
+
         if (!file_exists($filePath)) {
             throw new Exception("Le fichier {$filePath} n'existe pas.");
         }
@@ -132,6 +138,11 @@ class ObjectReleveParser {
             if ($lineNumber === 2) {
                 $data['iban'] = $fields[0];
                 $data['section'] = $fields[1];
+
+                $bank_account = $CI->associations_releve_model->get_gvv_account($data['iban']);
+                if ($bank_account) {
+                    $data['gvv_bank'] = $bank_account;
+                }                 
                 continue;
             }
 
@@ -212,6 +223,7 @@ class ObjectReleveParser {
         fclose($handle);
         return $data;
     }
+
 
     /**
      * Parse une ligne CSV en tenant compte des points-virgules

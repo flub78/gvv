@@ -118,17 +118,22 @@ class Rapprochements extends CI_Controller {
             $filename = $this->session->userdata('file_releve');
         }
         $this->load->library('ReleveParser');
+        $this->load->library('ObjectReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
         $endDate = $this->session->userdata('endDate');
         $filter_type = $this->session->userdata('filter_type');
         $type_selector = $this->session->userdata('type_selector');
-
+ 
         try {
             $parser = new ReleveParser();
+            $parser2= new ObjectReleveParser();
+
             try {
-                $parser->parse($filename);
+                $releve = $parser->parse($filename);
+                $parsed = $parser2->parse($filename);
+                // gvv_dump($parsed);
             } catch (Exception $e) {
                 $msg = "Erreur: " . $e->getMessage() . "\n";
                 gvv_error($msg);
@@ -139,7 +144,6 @@ class Rapprochements extends CI_Controller {
                 load_last_view('rapprochements/select_releve', $error);
                 return;
             }
-            $releve = $parser->parse($filename);
             $type_hash = ["all" => "Tous les types"];
             $recognized_types = $parser->recognized_types();
             $type_hash = array_merge($type_hash, $recognized_types);
@@ -154,11 +158,9 @@ class Rapprochements extends CI_Controller {
             $header = [];
             $header[] = ["Banque: ",  $releve['bank'], '', ''];
 
-            $bank_account = $this->associations_releve_model->get_gvv_account($releve['iban']);
-            if ($bank_account) {
-                $compte_bank_gvv = anchor_compte($bank_account);
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv,];
-                $releve['gvv_bank'] = $bank_account;
+            if ($releve['gvv_bank']) {
+                $compte_bank_gvv = anchor_compte($releve['gvv_bank']);
+                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
             } else {
                 // On affiche un sélecteur
                 $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
@@ -173,13 +175,11 @@ class Rapprochements extends CI_Controller {
                 $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
             }
 
-            // D'abbort les opérations
+            // d’abord les opérations
             $data['section'] = $this->sections_model->section();
             $ot = $this->operation_table($releve, $recognized_types);
+            // $ot2 = $this->operation_table2($parsed, $recognized_types);
             $data['html_tables'] = $this->tables2Html($ot['tables']);
-
-            // echo '<pre>' . print_r($header, true) . '</pre>';   
-            // echo '<pre>' . print_r($releve, true) . '</pre>';
 
             $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
             $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
@@ -216,15 +216,6 @@ class Rapprochements extends CI_Controller {
      * compute a unique string to identify an operation
      * from the fields
      * the result is safe to be passed as a post parameter
-     * $res[] = [
-                $op['Date'],
-                $op["Nature de l'opération"],
-                $op['Débit'],
-                $op['Crédit'],
-                $op['Devise'],
-                $op['Date de valeur'],
-                $op['Libellé interbancaire']
-            ];
      */
     function str_releve($op) {
         $parts = [
@@ -290,6 +281,199 @@ class Rapprochements extends CI_Controller {
             // D'abord on va chercher les informations sur l'operation
             $string_releve = $this->str_releve($op);
             $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
+            if ($rapproches) {
+                $count_rapproches++;
+            }
+
+            if ($releve['gvv_bank'] == null) {
+                $sel = '';
+            } else {
+                $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
+            };
+
+            if ($filter_active) {
+                $op_date = date_ht2db($op['Date de valeur']);
+                if ($startDate) {
+                    // les dates sont au format "yyyy-mm-dd" 
+                    // si $op_date < $startDate
+                    if ($op_date < $startDate) {
+                        continue; // Skip this operation
+                    }
+                }
+                if ($endDate) {
+                    // les dates sont au format "yyyy-mm-dd" 
+                    // si $op_date > $endDate
+                    if ($op_date > $endDate) {
+                        continue; // Skip this operation
+                    }
+                }
+                if ($type_selector && ($type_selector != "all")) {
+                    if ($type_selector != $op["type"]) {
+                        continue;
+                    }
+                }
+                if ($filter_type && ($filter_type != "display_all")) {
+                    if (($filter_type == "filter_unmatched") && $rapproches) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_matched") && ! $rapproches) {
+                        continue;
+                    }
+                    if (in_array($filter_type, ["filter_unmatched_0", "filter_unmatched_1", "filter_unmatched_multi"])) {
+                        // On ne traite pas les opérations non rapprochées
+                        if ($rapproches) {
+                            continue;
+                        }
+                    }
+                    $count = $op['selector_count'] ?? 0;
+                    if (($filter_type == "filter_unmatched_0") && ($count != 0)) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_unmatched_1") && ($count != 1)) {
+                        continue;
+                    }
+                    if (($filter_type == "filter_unmatched_multi") && ($count <= 1)) {
+                        continue;
+                    }
+                }
+            }
+
+            // Puis on génère la table
+            // ligne de titre
+            $res[] = $releve['titles'];
+            // ligne de valeurs de la ligne de relevé
+            $res[] = [
+                $op['Date'],
+                $op["Nature de l'opération"],
+                $op['Débit'],
+                $op['Crédit'],
+                $op['Devise'],
+                $op['Date de valeur'],
+                $op['Libellé interbancaire']
+            ];
+            // commentaires multiligne
+            foreach ($op['comments'] as $comment) {
+                $res[] = ['', $comment, '', '', '', '', ''];
+            }
+
+            // informations sur le rapprochement
+            if ($with_gvv_info) {
+                $count_selected++;
+
+                $count = $op['selector_count'] ?? 0;
+                $count_choices += $count;
+
+                $status = '';
+
+                $hidden = '<input type="hidden" name="string_releve_' . $op['line'] . '" value="' . $this->str_releve($op) . '">';
+
+                $checkbox = '';
+                if ($count == 1) {
+                    // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
+                    $hidden .= '<input type="hidden" name="op_' . $op['line'] . '" value="' . $op['unique_id'] . '">';
+
+                    $ecriture_gvv = '<span class="text-success">' . ($op['unique_image'] ?? '') . '</span>';
+
+                    $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+
+                    $status = $checkbox . $hidden;
+                    $count_uniques++;
+                } elseif ($count == 0) {
+                    $ecriture_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
+                } else {
+
+                    $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $ecriture_gvv = $sel;
+
+                    $status = $checkbox . $hidden;
+                }
+
+                if ($rapproches) {
+                    $status = '<input type="checkbox" name="cbdel_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $status .= '<button class="btn btn-success btn-sm ms-2" disabled>Rapproché</button>';
+                    $status .= $hidden;
+                    // Ajout d'un bouton de suppression
+
+                    // image de l'écriture
+                    $id_ecriture_gvv = $rapproches[0]['id_ecriture_gvv'] ?? '';
+                    $ecriture_gvv = '<span class="text-primary">' . $this->ecritures_model->image($id_ecriture_gvv) . '</span>';
+                    $ecriture_gvv = anchor_ecriture($id_ecriture_gvv);
+                    // gvv_dump($rapproches);
+                } else {
+                    // $status .= $checkbox;
+                    $status .= '<button type="button" class="btn btn-danger btn-sm ms-2" onclick="rapproche(' . $op['line'] . ')">Non rapproché</button>';
+                    //$status .= $hidden;
+                }
+
+                $count_str = ($rapproches) ? "" : "Choix: $count.";
+                if ($recognized_types) {
+                    $str_type = $recognized_types[$op['type']] ?? $op['type'];
+                } else {
+                    $str_type = $op['type'];
+                }
+                $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op['line'], 'Ecriture GVV'];
+            }
+            // $complete_table = array_merge($complete_table, $res);
+            $tables[] = $res;
+            $res = [];
+        }
+
+        return [
+            'tables' => $tables,
+            'count_selected' => $count_selected,
+            'count_rapproches' => $count_rapproches,
+            'count_choices' => $count_choices,
+            'count_uniques' => $count_uniques
+        ];
+    }
+
+
+    /**
+     * Format the operation table for all bank statements
+     *
+     * @param array $releve The bank statement data
+     * @param bool $with_gvv_info Whether to include GVV information
+     * @return array The generated operation table
+     */
+    function operation_table2($releve, $recognized_types = null, $with_gvv_info = true) {
+        /**
+         * Pour chaque ligne du relevé on affiche les informations du relevé.
+         * On y ajoute les informations de rapprochement si elles existent ou des
+         * éléments de formulaire pour les ajouter.
+         * 
+         * Chaque ligne non ajouté contient
+         * une checkbox identifié par "cb_" + numéro de ligne
+         * un champ caché avec l'identité unique de l'écriture si elle est unique
+         * un selecteur si il y a plusieurs écritures possibles
+         * un champ caché avec la chaine de caractères qui identifie l'opération dans le relevé
+         */
+
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        $endDate = $this->session->userdata('endDate');
+        $filter_type = $this->session->userdata('filter_type');
+        $type_selector = $this->session->userdata('type_selector');
+
+        $res = [];
+        $tables = [];
+        // $complete_table = [];
+        $count_rapproches = 0;
+        $count_choices = 0;
+        $count_uniques = 0;
+        $count_selected = 0;
+
+        foreach ($releve['ops'] as $op) {
+
+            // $complete_table = array_merge($complete_table, $res);
+            if ($res) {
+                $tables[] = $res;
+            }
+            $res = [];
+
+            // D'abord on va chercher les informations sur l'operation
+            $string_releve = $op->str_releve();
+            // $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
+            $rapproches = $op->rapproches();
             if ($rapproches) {
                 $count_rapproches++;
             }
@@ -491,6 +675,79 @@ class Rapprochements extends CI_Controller {
      * @return void
      */
     function ecriture_selector($start_date, $end_date, $bank, &$op) {
+
+        $start_date = date_ht2db($start_date);
+        $end_date = date_ht2db($end_date);
+        $reference_date = date_ht2db($op['Date de valeur']) ?? null;
+
+        if ($op['Débit']) {
+            $compte1 = null;
+            $compte2 = $bank;
+            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Débit']));
+        } else {
+            $compte1 = $bank;
+            $compte2 = null;
+            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Crédit']));
+        }
+
+        // On utilise le modèle ecritures_model pour obtenir les écritures
+        // qui correspondent à l'opération du relevé bancaire
+        $delta = $this->session->userdata('rapprochement_delta');
+        if (! $delta) {
+            $delta = 5; // Default delta value
+        }
+        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $reference_date, $delta);
+
+        $sel = $slct['selector'];
+
+        $smart_mode = $this->session->userdata('rapprochement_smart_mode') ?? false;
+        if ($smart_mode) {
+            // Smart mode: filter out entries that are too unlikely to match
+            $sel = $this->smart_ajust($sel, $op);
+            if (count($sel) == 1) {
+                // $op['unique_id'] = array_keys($sel)[0];
+                $op['unique_id'] = key($sel[0]);
+                $op['unique_image'] = $this->ecritures_model->image($op['unique_id']);
+            }
+        } else {
+            if ($slct['unique_id']) {
+                $op['unique_id'] = $slct['unique_id'];
+                $op['unique_image'] = $slct['unique_image'];
+            } else {
+                unset($op['unique_id']);
+                unset($op['unique_image']);
+            }
+        }
+
+
+
+        $op['selector_count'] = count($sel);
+
+        // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.
+        // même date, même type, même nature de l'opération, même libellé interbancaire
+
+        // Il faut donc associer le numéro d’occurrence de la ligne à la date donnée.
+        // Même si on importe depuis des relevés de comptes différents, hebdomadaire, mensuel, annuel on importe toujours des journées entières.
+
+        $attrs = 'class="form-control big_select" ';
+        $dropdown = dropdown_field(
+            "op_" . $op['line'],
+            "",
+            $sel,
+            $attrs
+        );
+        return $dropdown;
+    }
+
+        /**
+     * Selector for financial entries matching specific criteria
+     *
+     * @param string $start_date Starting date for the selection period (Y-m-d format)
+     * @param string $end_date Ending date for the selection period (Y-m-d format)P
+     * @param string $op Operation type filter
+     * @return void
+     */
+    function ecriture_selector2($start_date, $end_date, $bank, &$op) {
 
         $start_date = date_ht2db($start_date);
         $end_date = date_ht2db($end_date);
