@@ -539,7 +539,7 @@ class Rapprochements extends CI_Controller {
                 $op->Débit,
                 $op->Crédit,
                 $op->currency,
-                $op->value_date,
+                $op->local_value_date(),
                 $op->interbank_label
             ];
             // commentaires multiligne

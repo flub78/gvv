@@ -68,7 +68,9 @@ class ReleveOperation {
     public function local_date() {
         return date_db2ht($this->date);
     }
-
+    public function local_value_date() {
+        return date_db2ht($this->value_date);
+    }
     /**
      * Get the amount of the operation in php decimal
      */
