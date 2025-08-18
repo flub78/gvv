@@ -759,7 +759,7 @@ if (! function_exists('filter_buttons')) {
             $res .= '<div class="d-flex align-items-center">';
             $res .= '<input type="submit" name="button" value="' . $lab1 . '" class="btn btn-warning rounded me-2" />';
             $res .= '<input type="submit" name="button"  value="' . $lab2 . '" class="btn btn-secondary rounded" />';
-            $res .= '<p class="mb-0 ms-3">Filtre actif</p>';
+            $res .= '<p class="mb-0 ms-3 border border-success border-3 rounded p-1">Filtre actif</p>';
             $res .= '</div>';
         } else {
             $res .= '<input type="submit" name="button"  value="' . $lab1 . '" class="btn btn-secondary rounded me-2" />';

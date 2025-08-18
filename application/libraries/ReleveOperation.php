@@ -7,16 +7,20 @@
  *   by parser recognizing different formats but they have no specificities.
  */
 class ReleveOperation {
-    public $date;
-    public $nature;
-    public $debit;
-    public $credit;
-    public $currency;
-    public $value_date;
-    public $interbank_label;
-    public $comments = [];
-    public $line;
-    public $type;
+    public $date;              // Date of the operation in database format (YYYY-MM-DD)
+    public $nature;            // Nature of the operation
+    public $debit;             // Debit amount
+    public $credit;            // Credit amount
+    public $currency;          // Currency of the operation (e.g., EUR, USD)
+    public $value_date;        // Value date of the operation
+    public $interbank_label;   // libellé interbancaire
+    public $comments = [];     // Array of comments associated with the operation
+    public $line;              // Line number in the original statement (if applicable)
+    public $type;              // Type of operation (e.g., cheque_debite, frais_bancaire, paiement_cb, etc.)
+
+    public $unique_id;         // Unique identifier for the operation
+    public $unique_image;      // Unique image associated with the operation
+    public $selector_count;    // Count of selectors associated with the operation
 
     public $rapproches = [];
 
@@ -64,11 +68,19 @@ class ReleveOperation {
     public function local_date() {
         return date_db2ht($this->date);
     }
+
+    /**
+     * Get the amount of the operation in php decimal
+     */
     public function montant() {
         if (!empty($this->debit)) {
-            return $this->debit;
+            $amount = $this->debit;
+            $amount = abs(str_replace([' ', ','], ['', '.'], $amount));
+            return $amount;
         } elseif (!empty($this->credit)) {
-            return $this->credit;
+            $amount = $this->credit;
+            $amount = abs(str_replace([' ', ','], ['', '.'], $amount));
+            return $amount;
         }
         return null;
     }
@@ -88,7 +100,7 @@ class ReleveOperation {
     }
 
     function rapproches() {
-        $CI =& get_instance();
+        $CI = &get_instance();
         $CI->load->model('associations_ecriture_model');
         if (empty($this->rapproches)) {
             $this->rapproches = $CI->associations_ecriture_model->get_by_string_releve($this->str_releve());
@@ -130,5 +142,386 @@ class ReleveOperation {
         }
         $output .= ")\n";
         return $output;
+    }
+
+    /**
+     * Calculates the correlation coefficient between the account entry and the operation
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient (0.0 to 1.0)
+     */
+    public function correlation($key, $ecriture) {
+        // Base correlation
+        $correlation = 0.5;
+
+        // Call appropriate correlation function based on type
+        switch ($this->type) {
+            case 'cheque_debite':
+                $correlation = $this->correlateCheque($key, $ecriture);
+                break;
+
+            case 'frais_bancaire':
+                $correlation = $this->correlateFraisBancaire($key, $ecriture);
+                break;
+
+            case 'paiement_cb':
+                $correlation = $this->correlatePaiementCB($key, $ecriture);
+                break;
+
+            case 'prelevement':
+            case 'prelevement_pret':
+                $correlation = $this->correlatePrelevement($key, $ecriture);
+                break;
+
+            case 'virement_emis':
+                $correlation = $this->correlateVirementEmis($key, $ecriture);
+                break;
+
+            case 'virement_recu':
+                $correlation = $this->correlateVirementRecu($key, $ecriture);
+                break;
+
+            case 'encaissement_cb':
+                $correlation = $this->correlateEncaissementCB($key, $ecriture);
+                break;
+
+            case 'remise_cheque':
+                $correlation = $this->correlateRemiseCheque($key, $ecriture);
+                break;
+
+            case 'remise_especes':
+                $correlation = $this->correlateRemiseEspeces($key, $ecriture);
+                break;
+
+            case 'regularisation_frais':
+                $correlation = $this->correlateRegularisationFrais($key, $ecriture);
+                break;
+
+            case 'inconnu':
+                $correlation = $this->correlateInconnu($key, $ecriture);
+                break;
+
+            default:
+                $correlation = 0.5;
+                break;
+        }
+
+        return $correlation;
+    }
+
+    /**
+     * Correlate check (cheque) operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateCheque($key, $ecriture) {
+        $libelle = $this->interbank_label;
+
+        // Look for check number in the interbankary label
+        if (preg_match('/cheque.*?(\d+)/i', $libelle, $matches)) {
+            return 0.9; // Higher if check number found
+        }
+
+        // Check if the entry description contains check-related terms
+        if (stripos($ecriture, 'cheque') !== false || stripos($ecriture, 'chèque') !== false) {
+            return 0.8;
+        }
+
+        return 0.7;
+    }
+
+    /**
+     * Correlate bank fees operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateFraisBancaire($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+        $libelle = $this->interbank_label; // Assuming libelle is set in the constructor
+
+        // High correlation if "frais" found in operation nature or interbankary label
+        if (stripos($nature, 'frais') !== false || stripos($libelle, 'frais') !== false) {
+            return 0.8;
+        }
+
+        // Check if the entry description contains fee-related terms
+        if (stripos($ecriture, 'frais') !== false || stripos($ecriture, 'commission') !== false) {
+            return 0.7;
+        }
+
+        return 0.6;
+    }
+
+    /**
+     * Correlate credit card payment operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlatePaiementCB($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+
+        // High correlation if "carte" found in operation nature
+        if (stripos($nature, 'carte') !== false) {
+            return 0.8;
+        }
+
+        // Check if the entry description contains card-related terms
+        if (stripos($ecriture, 'carte') !== false || stripos($ecriture, 'cb') !== false) {
+            return 0.7;
+        }
+
+        return 0.5;
+    }
+
+    /**
+     * Correlate direct debit operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlatePrelevement($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+
+        // High correlation if "prelevement" found in operation nature
+        if (stripos($nature, 'prelevement') !== false || stripos($nature, 'prélèvement') !== false) {
+            return 0.8;
+        }
+
+        // Check if the entry description contains direct debit related terms
+        if (stripos($ecriture, 'prelevement') !== false || stripos($ecriture, 'prélèvement') !== false) {
+            return 0.7;
+        }
+
+        return 0.6;
+    }
+
+    /**
+     * Correlate outgoing transfer operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateVirementEmis($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+
+        // High correlation if "virement" found in operation nature
+        if (stripos($nature, 'virement') !== false) {
+            return 0.8;
+        }
+
+        // Check if the entry description contains transfer related terms
+        if (stripos($ecriture, 'virement') !== false || stripos($ecriture, 'transfer') !== false) {
+            return 0.7;
+        }
+
+        return 0.6;
+    }
+
+    /**
+     * Correlate incoming transfer operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateVirementRecu($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+        $comments = $this->comments; // Assuming comments is set in the constructor
+
+        // Clean up the operation nature
+        $nature = strtolower($nature);
+        $nature = str_replace(['vir inst re', 'vir recu'], '', $nature);
+        $nature = trim($nature);
+
+        // Convert ecriture to ASCII for better matching
+        $ecriture_ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $ecriture);
+
+        // Look for operation nature in the entry description
+        if (!empty($nature) && stripos(strtolower($ecriture_ascii), $nature) !== false) {
+            return 0.95; // High correlation if reference found
+        }
+
+        // Analyze the sender information from comments
+        if (!empty($comments[0])) {
+            $from = strtolower($comments[0]);
+            $from = str_replace('.', ' ', $from);
+
+            // Remove multiple spaces
+            while (strpos($from, '  ') !== false) {
+                $from = str_replace('  ', ' ', $from);
+            }
+
+            // Clean common prefixes
+            $from = str_replace([
+                'de: m ou mme',
+                'de: mr ou mme',
+                'de: mr',
+                'de: monsieur',
+                'de: m ',
+                'de: mme',
+                'ou m',
+                'de:',
+                'epoux'
+            ], '', $from);
+
+            $from = trim($from);
+            $from_list = explode(' ', $from);
+            $score = 0;
+            $word_count = 0;
+
+            foreach ($from_list as $word) {
+                $word = trim($word);
+                if (strlen($word) > 2) { // Only consider words longer than 2 characters
+                    $word_count++;
+                    if (stripos($ecriture_ascii, $word) !== false) {
+                        $score++;
+                    }
+                }
+            }
+
+            if ($word_count > 0) {
+                $match_ratio = $score / $word_count;
+                return $match_ratio * 0.9;
+            }
+        }
+
+        // Basic correlation for transfer operations
+        if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
+            return 0.7;
+        }
+
+        return 0.6;
+    }
+
+    /**
+     * Correlate credit card receipt operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateEncaissementCB($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+
+        // Check for card-related terms in operation nature
+        if (stripos($nature, 'carte') !== false || stripos($nature, 'cb') !== false) {
+            return 0.8;
+        }
+
+        // Check if the entry description contains card receipt terms
+        if (
+            stripos($ecriture, 'encaissement') !== false &&
+            (stripos($ecriture, 'carte') !== false || stripos($ecriture, 'cb') !== false)
+        ) {
+            return 0.8;
+        }
+
+        return 0.7;
+    }
+
+    /**
+     * Correlate check deposit operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateRemiseCheque($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+        $libelle = $this->interbank_label; // Assuming libelle is set in the constructor
+
+        // High correlation if remise or cheque found
+        if (
+            stripos($nature, 'remise') !== false || stripos($libelle, 'remise') !== false ||
+            stripos($nature, 'cheque') !== false || stripos($libelle, 'cheque') !== false
+        ) {
+            return 0.9;
+        }
+
+        // Check entry description for check deposit terms
+        if (
+            stripos($ecriture, 'remise') !== false &&
+            (stripos($ecriture, 'cheque') !== false || stripos($ecriture, 'chèque') !== false)
+        ) {
+            return 0.8;
+        }
+
+        return 0.8;
+    }
+
+    /**
+     * Correlate cash deposit operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateRemiseEspeces($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+        $libelle = $this->interbank_label; // Assuming libelle is set in the constructor
+
+        // High correlation if cash deposit terms found
+        if (
+            stripos($nature, 'espèces') !== false || stripos($libelle, 'espèces') !== false ||
+            stripos($nature, 'remise') !== false || stripos($libelle, 'remise') !== false
+        ) {
+            return 0.9;
+        }
+
+        // Check entry description for cash deposit terms
+        if (stripos($ecriture, 'espèces') !== false || stripos($ecriture, 'liquide') !== false) {
+            return 0.8;
+        }
+
+        return 0.9;
+    }
+
+    /**
+     * Correlate fee regularization operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateRegularisationFrais($key, $ecriture) {
+        $nature = $this->nature; // Assuming nature is set in the constructor
+        $libelle = $this->interbank_label; // Assuming libelle is set in the constructor
+
+        // Check for regularization or fee terms
+        if (
+            stripos($nature, 'regularisation') !== false || stripos($libelle, 'regularisation') !== false ||
+            stripos($nature, 'régularisation') !== false || stripos($libelle, 'régularisation') !== false
+        ) {
+            return 0.8;
+        }
+
+        // Check entry description for regularization terms
+        if (stripos($ecriture, 'regularisation') !== false || stripos($ecriture, 'régularisation') !== false) {
+            return 0.7;
+        }
+
+        return 0.5;
+    }
+
+    /**
+     * Correlate unknown operations
+     *
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @return float correlation coefficient
+     */
+    private function correlateInconnu($key, $ecriture) {
+        // For unknown operations, we have low confidence
+        // but we can still try to match based on amount and date proximity
+        return 0.3;
     }
 }

@@ -125,10 +125,10 @@ class Rapprochements extends CI_Controller {
         $endDate = $this->session->userdata('endDate');
         $filter_type = $this->session->userdata('filter_type');
         $type_selector = $this->session->userdata('type_selector');
- 
+
         try {
             $parser = new ReleveParser();
-            $parser2= new ObjectReleveParser();
+            $parser2 = new ObjectReleveParser();
 
             try {
                 $releve = $parser->parse($filename);
@@ -177,8 +177,8 @@ class Rapprochements extends CI_Controller {
 
             // d’abord les opérations
             $data['section'] = $this->sections_model->section();
-            $ot = $this->operation_table($releve, $recognized_types);
-            // $ot2 = $this->operation_table2($parsed, $recognized_types);
+            // $ot = $this->operation_table($releve, $recognized_types);
+            $ot = $this->operation_table2($parsed, $recognized_types);
             $data['html_tables'] = $this->tables2Html($ot['tables']);
 
             $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
@@ -471,8 +471,6 @@ class Rapprochements extends CI_Controller {
             $res = [];
 
             // D'abord on va chercher les informations sur l'operation
-            $string_releve = $op->str_releve();
-            // $rapproches = $this->associations_ecriture_model->get_by_string_releve($string_releve);
             $rapproches = $op->rapproches();
             if ($rapproches) {
                 $count_rapproches++;
@@ -481,11 +479,11 @@ class Rapprochements extends CI_Controller {
             if ($releve['gvv_bank'] == null) {
                 $sel = '';
             } else {
-                $sel = $this->ecriture_selector($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
+                $sel = $this->ecriture_selector2($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
             };
 
             if ($filter_active) {
-                $op_date = date_ht2db($op['Date de valeur']);
+                $op_date = $op->date;
                 if ($startDate) {
                     // les dates sont au format "yyyy-mm-dd" 
                     // si $op_date < $startDate
@@ -501,7 +499,7 @@ class Rapprochements extends CI_Controller {
                     }
                 }
                 if ($type_selector && ($type_selector != "all")) {
-                    if ($type_selector != $op["type"]) {
+                    if ($type_selector != $op->type) {
                         continue;
                     }
                 }
@@ -518,7 +516,7 @@ class Rapprochements extends CI_Controller {
                             continue;
                         }
                     }
-                    $count = $op['selector_count'] ?? 0;
+                    $count = $op->selector_count ?? 0;
                     if (($filter_type == "filter_unmatched_0") && ($count != 0)) {
                         continue;
                     }
@@ -536,16 +534,16 @@ class Rapprochements extends CI_Controller {
             $res[] = $releve['titles'];
             // ligne de valeurs de la ligne de relevé
             $res[] = [
-                $op['Date'],
-                $op["Nature de l'opération"],
-                $op['Débit'],
-                $op['Crédit'],
-                $op['Devise'],
-                $op['Date de valeur'],
-                $op['Libellé interbancaire']
+                $op->local_date(),
+                $op->nature,
+                $op->Débit,
+                $op->Crédit,
+                $op->currency,
+                $op->value_date,
+                $op->interbank_label
             ];
             // commentaires multiligne
-            foreach ($op['comments'] as $comment) {
+            foreach ($op->comments as $comment) {
                 $res[] = ['', $comment, '', '', '', '', ''];
             }
 
@@ -553,22 +551,22 @@ class Rapprochements extends CI_Controller {
             if ($with_gvv_info) {
                 $count_selected++;
 
-                $count = $op['selector_count'] ?? 0;
+                $count = $op->selector_count ?? 0;
                 $count_choices += $count;
 
                 $status = '';
 
-                $hidden = '<input type="hidden" name="string_releve_' . $op['line'] . '" value="' . $this->str_releve($op) . '">';
+                $hidden = '<input type="hidden" name="string_releve_' . $op->line . '" value="' . $op->str_releve() . '">';
 
                 $button = '';
                 $checkbox = '';
                 if ($count == 1) {
                     // $button = ' <button type="button" class="btn btn-primary">Rapprocher</button>';
-                    $hidden .= '<input type="hidden" name="op_' . $op['line'] . '" value="' . $op['unique_id'] . '">';
+                    $hidden .= '<input type="hidden" name="op_' . $op->line . '" value="' . $op->unique_id . '">';
 
-                    $ecriture_gvv = '<span class="text-success">' . ($op['unique_image'] ?? '') . '</span>';
+                    $ecriture_gvv = '<span class="text-success">' . ($op->unique_image ?? '') . '</span>';
 
-                    $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
 
                     $status = $checkbox . $hidden;
                     $count_uniques++;
@@ -576,14 +574,14 @@ class Rapprochements extends CI_Controller {
                     $ecriture_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
                 } else {
 
-                    $checkbox = '<input type="checkbox" name="cb_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $checkbox = '<input type="checkbox" name="cb_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
                     $ecriture_gvv = $sel;
 
                     $status = $checkbox . $hidden;
                 }
 
                 if ($rapproches) {
-                    $status = '<input type="checkbox" name="cbdel_' . $op['line'] . '" value="1" onchange="toggleRowSelection(this)">';
+                    $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
                     $status .= '<button class="btn btn-success btn-sm ms-2" disabled>Rapproché</button>';
                     $status .= $hidden;
                     // Ajout d'un bouton de suppression
@@ -595,17 +593,17 @@ class Rapprochements extends CI_Controller {
                     // gvv_dump($rapproches);
                 } else {
                     // $status .= $checkbox;
-                    $status .= '<button type="button" class="btn btn-danger btn-sm ms-2" onclick="rapproche(' . $op['line'] . ')">Non rapproché</button>';
+                    $status .= '<button type="button" class="btn btn-danger btn-sm ms-2" onclick="rapproche(' . $op->line . ')">Non rapproché</button>';
                     //$status .= $hidden;
                 }
 
                 $count_str = ($rapproches) ? "" : "Choix: $count.";
                 if ($recognized_types) {
-                    $str_type = $recognized_types[$op['type']] ?? $op['type'];
+                    $str_type = $recognized_types[$op->type] ?? $op->type;
                 } else {
-                    $str_type = $op['type'];
+                    $str_type = $op->type;
                 }
-                $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op['line'], 'Ecriture GVV'];
+                $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op->line, 'Ecriture GVV'];
             }
             // $complete_table = array_merge($complete_table, $res);
             $tables[] = $res;
@@ -739,7 +737,7 @@ class Rapprochements extends CI_Controller {
         return $dropdown;
     }
 
-        /**
+    /**
      * Selector for financial entries matching specific criteria
      *
      * @param string $start_date Starting date for the selection period (Y-m-d format)
@@ -749,18 +747,16 @@ class Rapprochements extends CI_Controller {
      */
     function ecriture_selector2($start_date, $end_date, $bank, &$op) {
 
-        $start_date = date_ht2db($start_date);
-        $end_date = date_ht2db($end_date);
-        $reference_date = date_ht2db($op['Date de valeur']) ?? null;
+        // $start_date = date_ht2db($start_date);
+        // $end_date = date_ht2db($end_date);
+        $reference_date = $op->date();
 
-        if ($op['Débit']) {
+        if ($op->debit) {
             $compte1 = null;
             $compte2 = $bank;
-            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Débit']));
         } else {
             $compte1 = $bank;
             $compte2 = null;
-            $montant = abs(str_replace([' ', ','], ['', '.'], $op['Crédit']));
         }
 
         // On utilise le modèle ecritures_model pour obtenir les écritures
@@ -769,32 +765,30 @@ class Rapprochements extends CI_Controller {
         if (! $delta) {
             $delta = 5; // Default delta value
         }
-        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $reference_date, $delta);
+        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $op->montant(), $compte1, $compte2, $reference_date, $delta);
 
         $sel = $slct['selector'];
 
         $smart_mode = $this->session->userdata('rapprochement_smart_mode') ?? false;
         if ($smart_mode) {
             // Smart mode: filter out entries that are too unlikely to match
-            $sel = $this->smart_ajust($sel, $op);
+            $sel = $this->smart_ajust2($sel, $op);
             if (count($sel) == 1) {
-                // $op['unique_id'] = array_keys($sel)[0];
-                $op['unique_id'] = key($sel[0]);
-                $op['unique_image'] = $this->ecritures_model->image($op['unique_id']);
+                $unique_id = key($sel[0]);
+                $op->unique_id = $unique_id;
+                $op->unique_image = $this->ecritures_model->image($unique_id);
             }
         } else {
             if ($slct['unique_id']) {
-                $op['unique_id'] = $slct['unique_id'];
-                $op['unique_image'] = $slct['unique_image'];
+                $op->unique_id = $slct['unique_id'];
+                $op->unique_image = $slct['unique_image'];
             } else {
-                unset($op['unique_id']);
-                unset($op['unique_image']);
+                unset($op->unique_id);
+                unset($op->unique_image);
             }
         }
 
-
-
-        $op['selector_count'] = count($sel);
+        $op->selector_count = count($sel);
 
         // Attention, il peut y avoir plusieurs opérations identiques dans le relevé.
         // même date, même type, même nature de l'opération, même libellé interbancaire
@@ -804,7 +798,7 @@ class Rapprochements extends CI_Controller {
 
         $attrs = 'class="form-control big_select" ';
         $dropdown = dropdown_field(
-            "op_" . $op['line'],
+            "op_" . $op->line,
             "",
             $sel,
             $attrs
@@ -1019,12 +1013,14 @@ class Rapprochements extends CI_Controller {
             ->set_output($json);
     }
 
+
     /**
-     * Calcule le coefficient de corrélation entre les écritures et l'opération
+     * Handles the correlation between account entries
      *
-     * @param array $sel Sélecteur d'écritures
-     * @param array $op Opération du relevé bancaire
-     * @return array Coefficient de corrélation pour chaque écriture
+     * @param string $key of the gvv accounting line
+     * @param mixed $ecriture image
+     * @param string $op with which to correlate
+     * @return void
      */
     function corelation($key, $ecriture, $op) {
         // Calcule le coefficient de corrélation entre les écritures et l'opération 
@@ -1192,6 +1188,50 @@ class Rapprochements extends CI_Controller {
                 // Sinon, on l'ignore
                 echo "Ignored: $ecriture corrélation=$correlation<br>";
             }
+        }
+
+        if ($verbose) {
+            echo '</pre>';
+            echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
+        }
+        return $filtered_sel;
+    }
+
+    /**
+     * Ajuste le sélecteur pour ne garder que les écritures qui ont un coefficient de corrélation supérieur au seuil
+     *
+     * @param array $sel Sélecteur d'écritures
+     * @param array $op Opération du relevé bancaire
+     * @return array Le sélecteur ajusté
+     */
+    function smart_ajust2($sel, $op) {
+
+        $threshold = 0.5;
+        $filtered_sel = [];
+        $verbose = false;
+
+        if ($verbose) {
+            echo '<pre>';
+            print_r($op);
+        }
+        foreach ($sel as $key => $ecriture) {
+            // Calcule le coefficient de corrélation entre l'écriture et l'opération
+            $correlation = $op->correlation($key, $ecriture);
+
+            if ($correlation >= $threshold) {
+                // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
+                $filtered_sel[] = [$key => $ecriture];
+                $ignored = "";
+            } else {
+                // Sinon, on l'ignore
+                $ignored = "Ignored";
+            }
+            $msg = "Correlation: $key => $ecriture : $correlation $ignored<br>";
+            gvv_debug($msg);
+
+            if ($verbose) {
+                echo $msg;
+            } 
         }
 
         if ($verbose) {

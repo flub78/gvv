@@ -218,8 +218,8 @@ class ObjectReleveParser {
             // save the current operation
             $this->add_operation($data, $current_operation);
         }
-        $data['start_date'] = $data['operations'][0]['Date'] ?? '';
-        $data['end_date'] = end($data['operations'])['Date'] ?? '';
+        $data['start_date'] = $data['ops'][0]->date ?? '';
+        $data['end_date'] = end($data['ops'])->date ?? '';
         fclose($handle);
         return $data;
     }
