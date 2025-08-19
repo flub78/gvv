@@ -20,8 +20,9 @@ class ReleveOperation {
 
     public $unique_id;         // Unique identifier for the operation
     public $unique_image;      // Unique image associated with the operation
+    public $selector;          // Selector of potentially matching gvv operations
+    // todo: for the moment it is an html select, replace by a hash
     public $selector_count;    // Count of selectors associated with the operation
-
     public $rapproches = [];
 
     public function __construct($operation = null) {
@@ -112,10 +113,13 @@ class ReleveOperation {
 
     /**
      * Associate this operation with a gvv operation
+     * $this->rapproches() already returns a correct answer
      */
     public function associate() {
-        // $this->rapproches = $this->associations_ecriture_model->get_by_string_releve($this->str_releve());
-        // gvv_dump($this);
+        if ($this->rapproches()) {
+            // gvv_dump($this->rapproches());
+        }
+        //  gvv_dump($this, false);
     }
 
     /**

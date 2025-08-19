@@ -34,7 +34,7 @@ class Migration_Associations_ecriture extends CI_Migration {
         $sqls = array(
             "CREATE TABLE `associations_ecriture` (
                 `id` bigint(20) NOT NULL,
-                `string_releve` varchar(180) NOT NULL,
+                `string_releve` varchar(256) NOT NULL,
                 `id_ecriture_gvv` int(11) DEFAULT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;",
             "ALTER TABLE `associations_ecriture` ADD PRIMARY KEY (`id`)",
