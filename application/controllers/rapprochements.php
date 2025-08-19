@@ -748,6 +748,8 @@ class Rapprochements extends CI_Controller {
      */
     function fetch_gvv_matches($start_date, $end_date, $bank, &$op) {
 
+        $op->fetch_gvv_matches($start_date, $end_date, $bank);
+
         $reference_date = $op->date();
 
         if ($op->debit) {

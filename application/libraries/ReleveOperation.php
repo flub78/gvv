@@ -24,6 +24,11 @@ class ReleveOperation {
     // todo: for the moment it is an html select, replace by a hash
     public $selector_count;    // Count of selectors associated with the operation
     public $rapproches = [];
+    public $gvv_matches = []; // Matches found in the gvv accounting lines
+    // $gvv_matches is an array of hashes with
+    // [   'id' => 123,
+    //     'image' => '35233: 04/02/2025 100.00€ DELAIRE OLIVIER - Virement - RE 553499071737'
+    // ]
 
     public function __construct($operation = null) {
         // Fill fields from $data array (returned by parser) if provided
@@ -529,5 +534,77 @@ class ReleveOperation {
         // For unknown operations, we have low confidence
         // but we can still try to match based on amount and date proximity
         return 0.3;
+    }
+
+    /**
+     * Retorune capital et interets pour les prets
+     */
+    function remboursement() {
+        // Check if the operation is a reimbursement
+
+        if ($this->type === 'prelevement_pret') {
+
+            // Extract capital amorti and interest amounts from comments
+            $capital = 0.0;
+            $interets = 0.0;
+
+            // Check if we have comments and the first one matches 'CAPITAL AMORTI'
+            if (!empty($this->comments[0]) && strpos($this->comments[0], 'CAPITAL AMORTI') !== false) {
+                // Extract the numeric value after ': '
+                $parts = explode(': ', $this->comments[0]);
+                if (count($parts) == 2) {
+                    $capital = str_replace(',', '.', trim($parts[1]));
+                }
+
+                // Check for interest amount in comments
+                if (!empty($this->comments[1]) && strpos($this->comments[1], 'INTERETS') !== false) {
+                    $parts = explode(': ', $this->comments[1]);
+                    if (count($parts) == 2) {
+                        $interets = str_replace(',', '.', trim($parts[1]));
+                    }
+
+                    // Return an array with capital and interest amounts
+                    return [
+                        'capital' => $capital,
+                        'interets' => $interets
+                    ];
+                }
+            }
+        }
+        return [];
+    }
+
+    function fetch_gvv_matches($start_date, $end_date, $bank) {
+        $CI = &get_instance();
+        $CI->load->model('ecritures_model');
+
+
+        // On utilise le modèle ecritures_model pour obtenir les écritures
+        // qui correspondent à l'opération du relevé bancaire
+        $delta = $CI->session->userdata('rapprochement_delta');
+        if (! $delta) {
+            $delta = 5; // Default delta value
+        }
+
+        // dans certains cas on cherche le montant exact, dans d'autre il pourra être découpé entre plusieurs valeurs
+
+        $remboursement = $this->remboursement();
+        if ($remboursement) {
+            $list_montant = [$remboursement['capital'], $remboursement['interets']]; // For reimbursement, we use the exact amount
+        } else {
+            $list_montant = [$this->montant()];
+        }
+
+        if ($op->debit) {
+            $compte1 = null;
+            $compte2 = $bank;
+        } else {
+            $compte1 = $bank;
+            $compte2 = null;
+        }
+
+        foreach ($list_montant as $montant) {
+            $select = $CI->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $this->date, $delta);
+        }
     }
 }
