@@ -38,12 +38,76 @@ if ($status) {
     echo $status;
     echo '</div>';
 }
+
+$client_list = $this->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+$attrs = 'class="form-control big_select" ';
+$compte_dropdown = form_dropdown('current_client', $client_list, $current_client, $attrs);
 ?>
 
     <h5><?=$titre?></h5>
 	<p><?=$date_edition?></p>
 
-    <div class="actions mb-3">
+<!-- Filtre -->
+<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                <?= $this->lang->line("gvv_str_filter") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body">
+                <div>
+                    <form action="<?= "filter/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+                        <div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="startDate" class="form-label">Date début affichage</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" value="<?= isset($startDate) ? $startDate : '' ?>">
+                                </div>
+                                <div class="col">
+                                    <label for="endDate" class="form-label">Date fin affichage</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" value="<?= isset($endDate) ? $endDate : '' ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Afficher</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_all" value="display_all" <?= (!isset($filter_type) || $filter_type == 'display_all') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_all">Tout</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_matched" value="filter_matched" <?= (isset($filter_type) && $filter_type == 'filter_matched') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_matched">Les opérations synchronisées</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched" value="filter_unmatched" <?= (isset($filter_type) && $filter_type == 'filter_unmatched') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched">Les opérations non synchronisées</label>
+                                </div>
+
+                            </div>
+                            <div class="col-6">
+                                <label for="type_selector" class="form-label">Compte client (411)</label>
+                                <?= $compte_dropdown ?>
+                            </div>
+                        </div>
+                        <div>
+
+                            <div class="mb-2 mt-2">
+                                <?= filter_buttons() ?>
+
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="actions mb-3 mt-3">
         <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
         <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
     </div>

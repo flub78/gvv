@@ -262,7 +262,7 @@ class GrandLivreParser {
         return $movement;
     }
 
- 
+
     /**
      * Retourne les données parsées sous forme de JSON
      */
@@ -301,6 +301,12 @@ class GrandLivreParser {
         $CI->load->model('associations_of_model');
         $CI->load->model('ecritures_model');
         $CI->load->model('sections_model');
+
+        $filter_active = $CI->session->userdata('filter_active');
+        $startDate = $CI->session->userdata('startDate');
+        $endDate = $CI->session->userdata('endDate');
+        $filter_type = $CI->session->userdata('filter_type');
+        $current_client = $CI->session->userdata('current_client');
 
         // values for the compte selector select
         $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
@@ -362,6 +368,13 @@ class GrandLivreParser {
             }
 
             if ($section && ! $is_411) continue;
+
+            if ($filter_active) {
+                if ($current_client && $current_client != $associated_gvv) {
+                    // Si on a un client actif et qu'il ne correspond pas au compte, on saute
+                    continue;
+                }
+            }
 
             // Ici les comptes qu'on affiche
 
@@ -447,6 +460,42 @@ class GrandLivreParser {
                 $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['numero_flux'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $compte2_gvv];
                 $result[] = $lst;
 
+                if ($filter_active) {
+                    if ($filter_type && ($filter_type != 'display_all')) {
+                        // Si le filtre est actif, on ne veut pas afficher les écritures qui ne correspondent pas au filtre
+                        if ($filter_type == 'filter_matched' && !$ecriture) {
+                            // Si le filtre est actif et que l'écriture est synchronisée, on ne veut pas afficher
+                            continue;
+                        } elseif ($filter_type == 'filter_unmatched' && $ecriture) {
+                            // Si le filtre est actif et que l'écriture n'est pas synchronisée, on ne veut pas afficher
+                            continue;
+                        }
+
+                    }
+                    // if ($filter_type == 'unmatched' && $ecriture) {
+                    //     // Si le filtre est actif et que l'écriture est synchronisée, on ne veut pas afficher
+                    //     continue;
+                    // } elseif ($filter_type == 'matched' && !$ecriture) {
+                    //     // Si le filtre est actif et que l'écriture n'est pas synchronisée, on ne veut pas afficher
+                    //     continue;
+                    // }
+
+                    $date = date_ht2db($mvt['date']);
+
+                    if ($startDate) {
+                        if ($date < $startDate) {
+                            // Si la date n'est pas dans l'intervalle, on ne veut pas afficher
+                            continue;
+                        }
+                    }
+                    if ($endDate) {
+                        if ($date > $endDate) {
+                            // Si la date n'est pas dans l'intervalle, on ne veut pas afficher
+                            continue;
+                        }
+                    }
+                }
+
                 // génère la ligne de tableau HTML
                 $class = 'mouvement';
                 if ($n % 2 == 0) {
@@ -462,6 +511,5 @@ class GrandLivreParser {
             $html .= "</div>";
         }
         return $html;
-        return $result;
     }
 }

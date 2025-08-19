@@ -952,10 +952,10 @@ class Rapprochements extends CI_Controller {
     /**
      * Filtrage des opérations
      *     [startDate] => 2025-02-01
-    [endDate] => 2025-01-31
-    [filter_type] => unmatched
-    [type_selector] => paiement_cb
-    [button] => Filtrer
+     *       [endDate] => 2025-01-31
+     *       [filter_type] => unmatched
+     *       [type_selector] => paiement_cb
+     *       [button] => Filtrer
      */
     public function filter() {
         // Redirection vers la page de sélection du relevé

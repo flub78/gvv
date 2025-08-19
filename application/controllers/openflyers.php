@@ -120,9 +120,19 @@ class OpenFlyers extends CI_Controller {
     /**
      * Import a CSV journal from a file
      */
-    public function import_operations_from_file($filename, $status = "") {
+    public function import_operations_from_file($filename = null, $status = "") {
 
         $this->load->library('GrandLivreParser');
+
+        if (!$filename) {
+            $filename = $this->session->userdata('file_operations');
+        }
+
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        $endDate = $this->session->userdata('endDate');
+        $filter_type = $this->session->userdata('filter_type');
+        $current_client = $this->session->userdata('current_client');
 
         try {
 
@@ -139,6 +149,12 @@ class OpenFlyers extends CI_Controller {
             // Sauvegarder en JSON
             // file_put_contents('grand_livre_parsed.json', $parser->toJson());
             // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
+
+            $data['filter_active'] = $filter_active;
+            $data['startDate'] = $startDate;
+            $data['endDate'] = $endDate;
+            $data['filter_type'] = $filter_type;
+            $data['current_client'] = $current_client;
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
@@ -160,7 +176,7 @@ class OpenFlyers extends CI_Controller {
         $compare_date = $this->input->post('import_date');
         if (!$compare_date) {
             $error = array(
-            'error' => 'Date non définie'
+                'error' => 'Date non définie'
             );
             load_last_view('openflyers/select_soldes', $error);
             return;
@@ -521,6 +537,42 @@ class OpenFlyers extends CI_Controller {
         $data['status'] = $status;
 
         load_last_view('openflyers/operationsToDelete', $data);
+    }
+
+    /**
+     * Filtrage des opérations
+     *       [startDate] => 
+     *       [endDate] => 
+     *       [filter_type] => filter_matched
+     *       [current_client] => 1276
+     *       [button] => Filtrer
+     */
+    public function filter() {
+        // Redirection vers la page de sélection du relevé
+        $post = $this->input->post();
+        // gvv_dump($post);
+        $button = $post['button'] ?? '';
+        if ($button == 'Filtrer') {
+            // On filtre les opérations
+            $start_date = $post['startDate'] ?? '';
+            $end_date = $post['endDate'] ?? '';
+            $filter_type = $post['filter_type'] ?? '';
+            $current_client = $post['current_client'] ?? '';
+
+            $this->session->set_userdata('startDate', $start_date);
+            $this->session->set_userdata('endDate', $end_date);
+            $this->session->set_userdata('filter_type', $filter_type);
+            $this->session->set_userdata('current_client', $current_client);
+            $this->session->set_userdata('filter_active', true);
+        } else {
+            $this->session->unset_userdata('startDate');
+            $this->session->unset_userdata('endDate');
+            $this->session->unset_userdata('filter_type');
+            $this->session->unset_userdata('current_client');
+            $this->session->set_userdata('filter_active', false);
+        }
+
+        $this->import_operations_from_file();
     }
 }
 
