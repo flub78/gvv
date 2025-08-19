@@ -572,7 +572,7 @@ class OpenFlyers extends CI_Controller {
             $this->session->set_userdata('filter_active', false);
         }
 
-        $this->import_operations_from_file();
+        redirect('openflyers/import_operations_from_file');
     }
 }
 
