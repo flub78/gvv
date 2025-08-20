@@ -18,7 +18,7 @@ Ce modèle est utilisé pour appliquer le même traitement à plusieurs écritur
 
 ### a. Génération des lignes et cases à cocher
 
-- Lors de la génération du tableau HTML (ex : via `GrandLivreParser::OperationsTableToHTML`), chaque ligne d'opération inclut :
+- Lors de la génération du tableau HTML (ex : via `GrandLivreParser::OperationsTable`), chaque ligne d'opération inclut :
   - Une case à cocher `<input type="checkbox" name="cb_ID" onchange="toggleRowSelection(this)">`
   - Les autres données de la ligne.
 

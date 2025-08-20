@@ -38,7 +38,7 @@ class GrandLivreParser {
 
         $this->data = [
             'header' => [],
-            'comptes' => [],
+            'comptes' => []
         ];
 
         $currentCompte = null;
@@ -79,17 +79,14 @@ class GrandLivreParser {
                 }
             }
 
-            // Si c'est une ligne de mouvement
+            // Si c'est une première ligne de mouvement
             elseif ($this->isMovementFirstLine($fields)) {
                 if ($currentCompte) {
                     $currentMovement = $this->parseMovementFirstLine($fields);
-                    // if ($currentMovement) {
-                    //     $currentCompte['mouvements'][] = $currentMovement;
-                    // }
                 }
             }
 
-            // Si c'est une ligne de mouvement
+            // Si c'est une autre ligne de mouvement
             elseif ($this->isMovementSecondLine($fields)) {
                 if ($currentCompte) {
                     if ($currentMovement) {
@@ -97,6 +94,7 @@ class GrandLivreParser {
                     }
                     if ($currentMovement) {
                         $currentCompte['mouvements'][] = $currentMovement;
+                        $currentCompte['flux_of'][] = $currentMovement['numero_flux'] ?? '';
                     }
                 }
             }
@@ -166,6 +164,7 @@ class GrandLivreParser {
             'compte_export' => '',
             'numero_compte_of' => '',
             'mouvements' => [],
+            'flux_of' => []
         ];
     }
 
@@ -294,7 +293,13 @@ class GrandLivreParser {
         return $summary;
     }
 
-    public function OperationsTableToHTML($table) {
+    /**
+     * Génère le tableau des opérations à partir des données du Grand Livre
+     * 
+     * @param array $table Données du Grand Livre
+     * @return string hash tableau des opérations
+     */
+    public function OperationsTable($table) {
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -314,11 +319,11 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
-        $html = "";
 
         // Début d'une section pour un compte
         foreach ($table['comptes'] as $row) {
-
+            $id_of = $row['numero_compte_of'];
+            
 
             // D'abort on va chercher les informations relatives au compte
             $mvt_count = count($row['mouvements']); // le nombre de mouvements
@@ -326,6 +331,7 @@ class GrandLivreParser {
 
             $id_of = $row['numero_compte_of'];      // numéro de compte OF
             $nom_of = $row['nom_compte'];           // nom OF
+            $result[$id_of] = [];
 
             // Quel est la section courante?
             $section = $CI->sections_model->section();
@@ -367,10 +373,11 @@ class GrandLivreParser {
                 $is_411 = true;
             }
 
+            // On ne garde que les comptes clients
             if ($section && ! $is_411) continue;
 
             if ($filter_active) {
-                if ($current_client && $current_client != $associated_gvv) {
+                if ($current_client && $current_client != $associated_gvv && $current_client != 'all') {
                     // Si on a un client actif et qu'il ne correspond pas au compte, on saute
                     continue;
                 }
@@ -378,26 +385,21 @@ class GrandLivreParser {
 
             // Ici les comptes qu'on affiche
 
-            $html .= '<div class="mt-3 mb-3 border border-primary rounded">';
-            $html .= '<table class="table operations">';
-
             // Affichage de la première ligne du compte
             $lst = [$id_of, $nom_of, $compte_gvv, '', '', '', '', ''];
-            $result[] = $lst;
-            $html .= html_row($lst, ['class' => 'compte row_title']);
+            $result[$id_of]['header'] = $lst;
 
             // Affichage du nombre d'opération et du bouton de masquage
             $lst = ["Nombre d'opérations", $mvt_count, '', '', '', '', '', ''];
-            $result[] = $lst;
-            $html .= html_row($lst, ['class' => 'number_op']);
+            $result[$id_of]['numbers'] = $lst;
 
             // Entête de la ligne des écritures
             $lst = ['Status', 'Date', 'Intitulé', 'Description', 'Débit', 'Crédit', 'Compte OF', 'Compte GVV'];
-            $result[] = $lst;
-            $html .= html_row($lst, ['class' => 'row_title']);
+            $result[$id_of]['title'] = $lst;
 
             // Affiche les lignes d'écriture
-            $n = 1;
+            $nb_lignes = 0;
+            $result[$id_of]['lines'] = [];
             foreach ($row['mouvements'] as $mvt) {
 
                 $associated_gvv_compte2 = $CI->associations_of_model->get_gvv_account($mvt['id_compte2'], $section_id);
@@ -458,7 +460,6 @@ class GrandLivreParser {
 
                 $id_compte2 = $mvt['id_compte2'] . ' : ' . $mvt['nom_compte2'];
                 $lst = [$checkbox, $mvt['date'], $mvt['intitule'], $mvt['numero_flux'], euro($mvt['debit']), euro($mvt['credit']), $id_compte2, $compte2_gvv];
-                $result[] = $lst;
 
                 if ($filter_active) {
                     if ($filter_type && ($filter_type != 'display_all')) {
@@ -470,15 +471,7 @@ class GrandLivreParser {
                             // Si le filtre est actif et que l'écriture n'est pas synchronisée, on ne veut pas afficher
                             continue;
                         }
-
                     }
-                    // if ($filter_type == 'unmatched' && $ecriture) {
-                    //     // Si le filtre est actif et que l'écriture est synchronisée, on ne veut pas afficher
-                    //     continue;
-                    // } elseif ($filter_type == 'matched' && !$ecriture) {
-                    //     // Si le filtre est actif et que l'écriture n'est pas synchronisée, on ne veut pas afficher
-                    //     continue;
-                    // }
 
                     $date = date_ht2db($mvt['date']);
 
@@ -496,6 +489,44 @@ class GrandLivreParser {
                     }
                 }
 
+                $result[$id_of]['lines'][] = $lst;
+
+                $nb_lignes++;
+                $line++;
+            }
+
+            $result[$id_of]['numbers'][1] = $nb_lignes . " / " . $result[$id_of]['numbers'][1];
+        }
+        return $result;
+    }
+
+    /**
+     * Convertit une table en HTML
+     */
+    public function toHTML($table) {
+
+        $html = "";
+
+        // Début d'une section pour un compte
+        foreach ($table as $compte) {
+
+            if (!isset($compte['header'])) continue;
+
+            $html .= '<div class="mt-3 mb-3 border border-primary rounded">';
+            $html .= '<table class="table operations">';
+
+            // Affichage de la première ligne du compte
+            $html .= html_row($compte['header'], ['class' => 'compte row_title']);
+
+            // Affichage du nombre d'opération et du bouton de masquage
+            $html .= html_row($compte['numbers'], ['class' => 'number_op']);
+
+            // Entête de la ligne des écritures
+            $html .= html_row($compte['title'], ['class' => 'row_title']);
+
+            // Affiche les lignes d'écriture
+            foreach ($compte['lines'] as $line) {
+
                 // génère la ligne de tableau HTML
                 $class = 'mouvement';
                 if ($n % 2 == 0) {
@@ -503,9 +534,7 @@ class GrandLivreParser {
                 } else {
                     $class .= " odd";
                 }
-                $html .= html_row($lst, ['class' => $class]);
-                $n++;
-                $line++;
+                $html .= html_row($line, ['class' => $class]);
             }
             $html .= "</table>";
             $html .= "</div>";

@@ -13,7 +13,7 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 ## Reste à faire
 
 * [] OpenFlyers afficher les vols non existant dans les imports OF
-* [] Rapprochements bancaires
+* [-] Rapprochements bancaires
 * [] Sauvegarde/restauration des medias et attachements
 
 * [x] Gérer la configuration dans la base.

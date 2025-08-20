@@ -142,7 +142,9 @@ class OpenFlyers extends CI_Controller {
             $data['titre'] = $grand_journal['header']['titre'];
             $data['date_edition'] = $grand_journal['header']['date_edition'];
 
-            $comptes_html = $parser->OperationsTableToHTML($grand_journal);
+            $comptes_table = $parser->OperationsTable($grand_journal);
+            // gvv_dump($comptes_table);
+            $comptes_html = $parser->toHTML($comptes_table);
             $data['comptes_html'] = $comptes_html;
             $data['section'] = $this->sections_model->section();
             $data['status'] = $status;

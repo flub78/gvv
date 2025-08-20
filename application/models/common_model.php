@@ -326,7 +326,7 @@ class Common_Model extends CI_Model {
      */
     public function selector_with_all($where = array(), $filter_section = FALSE) {
         $result = $this->selector($where, "asc", $filter_section);
-        $result[''] = $this->lang->line("gvv_tous") . ' ...';
+        $result['all'] = $this->lang->line("gvv_tous") . ' ...';
         return $result;
     }
 

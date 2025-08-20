@@ -39,7 +39,7 @@ if ($status) {
     echo '</div>';
 }
 
-$client_list = $this->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+$client_list = $this->comptes_model->selector_with_all(["codec =" => "411"], TRUE);
 $attrs = 'class="form-control big_select" ';
 $compte_dropdown = form_dropdown('current_client', $client_list, $current_client, $attrs);
 ?>
