@@ -132,7 +132,13 @@ class OpenFlyers extends CI_Controller {
         $startDate = $this->session->userdata('startDate');
         $endDate = $this->session->userdata('endDate');
         $filter_type = $this->session->userdata('filter_type');
+        if (!$filter_type) {
+            $filter_type = "display_all"; // Default filter type
+        }
         $current_client = $this->session->userdata('current_client');
+        if (!$current_client) {
+            $current_client = "all"; // Default to "all" if not set
+        }
 
         try {
 
