@@ -535,8 +535,8 @@ class Rapprochements extends CI_Controller {
             $res[] = [
                 $op->local_date(),
                 $op->nature,
-                $op->Débit,
-                $op->Crédit,
+                ($op->debit) ? euro($op->debit) : '',
+                ($op->credit) ? euro($op->credit) : '',
                 $op->currency,
                 $op->local_value_date(),
                 $op->interbank_label
@@ -714,8 +714,6 @@ class Rapprochements extends CI_Controller {
                 unset($op['unique_image']);
             }
         }
-
-
 
         $op['selector_count'] = count($sel);
 
