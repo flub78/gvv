@@ -284,7 +284,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['date_end'] = '';
         $this->data['filter_pilote'] = '';
         $this->data['filter_machine'] = '';
-        $this->data['filter_aero'] = '';
+        $this->data['filter_aero'] = 'all';
         $this->data['filter_25'] = 0;
         $this->data['filter_dc'] = 0;
         $this->data['filter_vi'] = 0;
@@ -325,6 +325,9 @@ class Vols_avion extends Gvv_Controller {
             }
 
             $filter_aero = $this->session->userdata('filter_aero');
+            if ($filter_aero == "all") {
+                $filter_aero = '';
+            }
             if ($filter_aero) {
                 $this->data['filter_aero'] = $filter_aero;
                 if ($selection != '')
@@ -641,7 +644,7 @@ class Vols_avion extends Gvv_Controller {
         $session['date_end'] = '';
         $session['filter_pilote'] = '';
         $session['filter_machine'] = $machine;
-        $session['filter_aero'] = '';
+        $session['filter_aero'] = 'all';
         $session['filter_active'] = 1;
         $this->session->set_userdata($session);
         $this->page();
@@ -656,7 +659,7 @@ class Vols_avion extends Gvv_Controller {
         $session['date_end'] = '';
         $session['filter_pilote'] = $pilote;
         $session['filter_machine'] = '';
-        $session['filter_aero'] = '';
+        $session['filter_aero'] = 'all';
         $session['filter_active'] = 1;
         $this->session->set_userdata($session);
         $this->page();
