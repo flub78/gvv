@@ -128,6 +128,11 @@ class OpenFlyers extends CI_Controller {
             $filename = $this->session->userdata('file_operations');
         }
 
+        if (!$status) {
+            $status = $this->session->userdata('status');
+            $this->session->unset_userdata('status');
+        }
+
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
         $endDate = $this->session->userdata('endDate');
@@ -167,18 +172,31 @@ class OpenFlyers extends CI_Controller {
             $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $client);
 
             $cnt = 0;
-
+            $filtered_lines = [];
             foreach ($gvv_lines as &$line) {
                 if (preg_match('/OpenFlyers : (\d+)/', $line['num_cheque'], $matches)) {
                     $of_id = $matches[1];
-                    $gvv_lines[$cnt]['of_synchronized'] = (in_array($of_id, $grand_journal['flux_of'])) ? $of_id : false;
+                    $line['of_synchronized'] = (in_array($of_id, $grand_journal['flux_of'])) ? $of_id : false;
                 } else {
-                    $gvv_lines[$cnt]['of_synchronized'] = false; // No OpenFlyers ID found
+                    $line['of_synchronized'] = false; // No OpenFlyers ID found
                 }
                 $cnt++;
+                if ($filter_active) {
+                    // Apply filter based on type
+                    if ($filter_type == 'filter_matched' && $line['of_synchronized']) {
+                        $filtered_lines[] = $line;
+                    } elseif ($filter_type == 'filter_unmatched' && !$line['of_synchronized']) {
+                        $filtered_lines[] = $line;
+                    } elseif ($filter_type == 'display_all') {
+                        $filtered_lines[] = $line;
+                    }
+                } else {
+                    // No filter, add all lines
+                    $filtered_lines[] = $line;
+                }
             }
 
-            $data['gvv_lines'] = $this->to_ecritures_table($gvv_lines);
+            $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
@@ -466,8 +484,8 @@ class OpenFlyers extends CI_Controller {
             }
         }
 
-        $file_operations = $this->session->userdata('file_operations');
-        $this->import_operations_from_file($file_operations, $status);
+        $this->session->set_userdata('status', $status);
+        redirect('openflyers/import_operations_from_file');
     }
 
     public function cancel_operations() {
@@ -563,6 +581,27 @@ class OpenFlyers extends CI_Controller {
         load_last_view('openflyers/operationsToDelete', $data);
     }
 
+    function delete_all_ecritures() {
+        $posts = $this->input->post();
+
+        $status = "";
+        $cnt = 0;
+        foreach ($posts as $key => $value) {
+            // echo "$key => $value<br>";
+            if (strpos($key, 'cbdel_') === 0) {
+                // Key starts with "cbdel_" ce sont les checkboxes actives
+                $id = str_replace("cbdel_", "", $key);
+                $image = $this->ecritures_model->image($id);
+                $cnt++;
+                $this->ecritures_model->delete_ecriture($id);
+                $status .= "$image supprimée<br>";
+            }
+        }
+
+        $this->session->set_userdata('status', $status);
+        redirect('openflyers/import_operations_from_file');
+    }
+
     /**
      * Filtrage des opérations
      *       [startDate] => 
@@ -599,21 +638,33 @@ class OpenFlyers extends CI_Controller {
         redirect('openflyers/import_operations_from_file');
     }
 
+    /**
+     * Converts GVV lines to a table format for display
+     *
+     * @param array $gvv_lines Array of GVV lines to convert
+     * @return array Formatted array suitable for table display
+     */
     function to_ecritures_table($gvv_lines) {
         // gvv_dump($gvv_lines, false);
         $res = [];
         foreach ($gvv_lines as $line) {
             $elt = [];
+            $status = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1" onchange="toggleRowSelection(this)">';
+            if ($line['of_synchronized']) {
+                $elt[] = "";
+            } else {
+                $elt[] = $status;
+            }
             $elt[] = date_db2ht($line['date_op']);
             $elt[] = euro($line['montant']);
             $elt[] = $line['description'];
             if ($line['of_synchronized']) {
-                $elt[] = $line['num_cheque'];
+                $elt[] = '<span class="bg-success badge text-white rounded-pill">' . $line['num_cheque'] . '</span>';
             } else {
                 if (!$line['num_cheque']) {
-                   $line['num_cheque'] = "OpenFlyers : " . $line['id']; 
+                    $line['num_cheque'] = "OpenFlyers : " . $line['id'];
                 }
-                $elt[] = '<span class="bg-danger badge text-white rounded-pill fs-6">' 
+                $elt[] = '<span class="bg-danger badge text-white rounded-pill">'
                     . $line['num_cheque'] . '</span>';
             }
             $elt[] = anchor_compte($line['compte1']);

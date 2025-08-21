@@ -170,19 +170,45 @@ echo form_close();
     </div>
 
     <div class="tab-pane fade" id="gvv" role="tabpanel" aria-labelledby="gvv-tab">
-        <p>Ecritures GVV synchronisées ou non avec OpenFlyers</p>
 
-        <?php
+        <!-- Onglet GVV -->
 
+        <?php   
 
+            echo form_open_multipart('openflyers/delete_all_ecritures');
 
-            
             echo '<div class="mt-3">';
-            gvv_dump($gvv_lines, false);
+                echo table_from_array ($gvv_lines, array(
+                'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+                'align' => array('', 'right','right', 'left', 'left', 'left', 'left'),
+                    'class' => 'datatable table'
+                ));
             echo '</div>';
         
         ?>
-        <p>Bye</p>
+
+        <div class="actions mb-3 mt-3">
+            <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+            <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        </div>
+
+         <?php
+         if ($section) {
+
+    echo form_input(array(
+        'type' => 'submit',
+        'name' => 'button',
+        'value' => "Supprimez la selection",
+        'class' => 'btn btn-danger mb-4'
+    ));
+}
+echo form_close();
+         ?>
+        
+        <p class="mt-2">Les écritures présentes dans GVV et absente de l'import OpenFlyers sont en rouge:
+            <span class="bg-danger badge text-white rounded-pill">OpenFlyers : 33590</span>
+        </p>
+
     </div>
 </div>
 

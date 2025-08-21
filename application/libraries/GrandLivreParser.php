@@ -464,7 +464,7 @@ class GrandLivreParser {
 
                     $ecriture = $CI->ecritures_model->get_first($where);
 
-                    if ($ecriture) $checkbox .= nbs(2) . '<span class="text-light bg-success p-1 rounded">synchronisé</span>';
+                    if ($ecriture) $checkbox .= nbs(2) . '<span class="badge text-white bg-success p-1 rounded-pill">synchronisé</span>';
                     // var_dump($ecriture);
 
                 } else {
