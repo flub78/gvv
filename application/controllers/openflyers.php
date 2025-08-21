@@ -144,6 +144,7 @@ class OpenFlyers extends CI_Controller {
 
             $parser = new GrandLivreParser();
             $grand_journal = $parser->parseGrandLivre($filename);
+            // gvv_dump($grand_journal['flux_of']);
 
             $data['titre'] = $grand_journal['header']['titre'];
             $data['date_edition'] = $grand_journal['header']['date_edition'];
@@ -154,15 +155,30 @@ class OpenFlyers extends CI_Controller {
             $data['comptes_html'] = $comptes_html;
             $data['section'] = $this->sections_model->section();
             $data['status'] = $status;
-            // Sauvegarder en JSON
-            // file_put_contents('grand_livre_parsed.json', $parser->toJson());
-            // echo "\nDonnées sauvegardées dans grand_livre_parsed.json\n";
 
             $data['filter_active'] = $filter_active;
             $data['startDate'] = $startDate;
             $data['endDate'] = $endDate;
             $data['filter_type'] = $filter_type;
             $data['current_client'] = $current_client;
+
+            // data for the GVV tab
+            $client = ($current_client != "all") ? $current_client : 0;
+            $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $client);
+
+            $cnt = 0;
+
+            foreach ($gvv_lines as &$line) {
+                if (preg_match('/OpenFlyers : (\d+)/', $line['num_cheque'], $matches)) {
+                    $of_id = $matches[1];
+                    $gvv_lines[$cnt]['of_synchronized'] = (in_array($of_id, $grand_journal['flux_of'])) ? $of_id : false;
+                } else {
+                    $gvv_lines[$cnt]['of_synchronized'] = false; // No OpenFlyers ID found
+                }
+                $cnt++;
+            }
+
+            $data['gvv_lines'] = $this->to_ecritures_table($gvv_lines);
 
             load_last_view('openflyers/tableOperations', $data);
         } catch (Exception $e) {
@@ -581,6 +597,30 @@ class OpenFlyers extends CI_Controller {
         }
 
         redirect('openflyers/import_operations_from_file');
+    }
+
+    function to_ecritures_table($gvv_lines) {
+        // gvv_dump($gvv_lines, false);
+        $res = [];
+        foreach ($gvv_lines as $line) {
+            $elt = [];
+            $elt[] = date_db2ht($line['date_op']);
+            $elt[] = euro($line['montant']);
+            $elt[] = $line['description'];
+            if ($line['of_synchronized']) {
+                $elt[] = $line['num_cheque'];
+            } else {
+                if (!$line['num_cheque']) {
+                   $line['num_cheque'] = "OpenFlyers : " . $line['id']; 
+                }
+                $elt[] = '<span class="bg-danger badge text-white rounded-pill fs-6">' 
+                    . $line['num_cheque'] . '</span>';
+            }
+            $elt[] = anchor_compte($line['compte1']);
+            $elt[] = anchor_compte($line['compte2']);
+            $res[] = $elt;
+        }
+        return $res;
     }
 }
 

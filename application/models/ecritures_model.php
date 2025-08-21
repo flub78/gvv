@@ -1608,6 +1608,45 @@ array (size=2)
             ];
         }
     }
+
+    /**
+     * Retourne les écritures OpenFlyers
+     *
+     * @param $start_date date de début
+     * @param $end_date date de fin
+     * @param $compte compte à filtrer (0 pour tous)
+     * @return array Liste des écritures OpenFlyers
+     */
+    function select_ecritures_openflyers($start_date = "", $end_date = "", $compte = 0) {
+        $this->db->select("ecritures.id, date_op, montant, ecritures.description, ecritures.compte1, ecritures.compte2, num_cheque, gel")
+            ->select("compte1.nom as compte1_nom, compte1.codec as compte1_codec, compte1.club as compte1_club") 
+            ->select("compte2.nom as compte2_nom, compte2.codec as compte2_codec, compte2.club as compte2_club")
+            ->from("ecritures")
+            ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
+            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left")
+            ->where("(compte1.codec = '411' OR compte2.codec = '411')");
+
+        if ($start_date) {
+            $this->db->where("date_op >= '$start_date'");
+        }
+        if ($end_date) {
+            $this->db->where("date_op <= '$end_date'");
+        }
+
+        if ($compte != 0) {
+            $this->db->where("(ecritures.compte1 = $compte OR ecritures.compte2 = $compte)");
+        }
+
+        if ($this->sections_model->section()) {
+            $this->db->where('compte1.club', $this->sections_model->section_id());
+            $this->db->where('compte2.club', $this->sections_model->section_id());
+        }
+
+        $db_res = $this->db->order_by('date_op')->get();
+
+        return $this->get_to_array($db_res);
+
+    }
 }
 
 /* End of file */

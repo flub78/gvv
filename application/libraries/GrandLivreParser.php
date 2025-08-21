@@ -95,6 +95,7 @@ class GrandLivreParser {
                     if ($currentMovement) {
                         $currentCompte['mouvements'][] = $currentMovement;
                         $currentCompte['flux_of'][] = $currentMovement['numero_flux'] ?? '';
+                        $flux_of[] = $currentMovement['numero_flux'] ?? '';
                     }
                 }
             }
@@ -104,6 +105,7 @@ class GrandLivreParser {
         if ($currentCompte) {
             $this->data['comptes'][] = $currentCompte;
         }
+        $this->data['flux_of'] = array_unique($flux_of);
 
         fclose($handle);
         return $this->data;
@@ -300,6 +302,7 @@ class GrandLivreParser {
      * @return string hash tableau des opérations
      */
     public function OperationsTable($table) {
+        // gvv_dump($table, "GrandLivreParser::OperationsTable");
         $CI = &get_instance();
         $CI->load->library('gvvmetadata');
         $CI->load->model('comptes_model');
@@ -319,12 +322,12 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
+        $flux_of = [];
 
         // Début d'une section pour un compte
         foreach ($table['comptes'] as $row) {
             $id_of = $row['numero_compte_of'];
-            
-
+            // gvv_dump($row, "GrandLivreParser::OperationsTable");
             // D'abort on va chercher les informations relatives au compte
             $mvt_count = count($row['mouvements']); // le nombre de mouvements
             if (!$row['mouvements']) continue; // s'il n'y a pas d'écritures on saute
@@ -356,7 +359,17 @@ class GrandLivreParser {
             // Si le compte est associé
             if ($associated_gvv) {
                 // On affiche un lien vers le journal du compte
-                $compte_gvv = anchor_compte($associated_gvv);
+                // JSON encode the flux_of array for the compte
+                $flux_of_json = json_encode($row['flux_of'], JSON_UNESCAPED_UNICODE);
+                $compte_gvv = anchor_compte(
+                    $associated_gvv,
+                    [],
+                    ['of_synchronized' => $flux_of_json]
+                );
+                // gvv_dump($row['flux_of']);
+
+
+                $compte_gvv .= form_hidden('flux_of_' . $id_of, $flux_of_json);
                 $compte = $CI->comptes_model->get_by_id('id', $associated_gvv);
                 $is_411 = ($compte['codec'] == "411");
             } else {

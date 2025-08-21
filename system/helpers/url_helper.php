@@ -140,7 +140,7 @@ if ( ! function_exists('index_page'))
  */
 if ( ! function_exists('anchor'))
 {
-	function anchor($uri = '', $title = '', $attributes = '')
+	function anchor($uri = '', $title = '', $attributes = '', $params = [])
 	{
 		$title = (string) $title;
 
@@ -163,18 +163,23 @@ if ( ! function_exists('anchor'))
 			$attributes = _parse_attributes($attributes);
 		}
 
+		// Add HTTP parameters if present
+		if (!empty($params)) {
+			$site_url .= '?' . http_build_query($params);
+		}
+
 		return '<a href="'.$site_url.'"'.$attributes.'>'.$title.'</a>';
 	}
 }
 
 if ( ! function_exists('anchor_compte')) {
-	function anchor_compte($compte, $attributes = '')
+	function anchor_compte($compte, $attributes = '', $params = [])
 	{
 		$url = controller_url("compta/journal_compte/") . $compte;
 		$CI =& get_instance();
 		$CI->load->model('comptes_model');
 		$image = $CI->comptes_model->image($compte);
-		return anchor($url, $image, $attributes);
+		return anchor($url, $image, $attributes, $params);
 	}	
 }
 
