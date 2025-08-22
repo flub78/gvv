@@ -111,3 +111,21 @@ if (!function_exists('gvv_dump')) {
 		}
 	}
 }
+
+if (!function_exists('gvv_assert')) {
+	/**
+	 * Prints variable contents with file and line information
+	 */
+	function gvv_assert($assertion, $string, $dye = true) {
+		if ($assertion) {
+			return;
+		}
+		$bt = debug_backtrace();
+		$caller = $bt[0];
+		$msg = "Assertion failed  file: " . $caller['file'] . " Line: " . $caller['line'] . " $string" . "\n";
+		gvv_error($msg);
+		if ($dye) {
+			exit;
+		}
+	}
+}

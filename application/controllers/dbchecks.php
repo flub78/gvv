@@ -70,6 +70,25 @@ class Dbchecks extends Gvv_Controller {
         $dt['sections'] = $this->gvv_model->sections();
         load_last_view('checks/sections', $dt);
     }
+
+    function delete_ecritures($from) {
+        $posts = $this->input->post();
+
+        // gvv_dump($post);
+        foreach ($posts['selection'] as $value) {
+            // echo "$key => $value<br>";
+            if (strpos($value, 'cbdel_') === 0) {
+                // Key starts with "cbdel_" ce sont les checkboxes actives
+                $id = str_replace("cbdel_", "", $value);
+                $image = $this->ecritures_model->image($id);
+                $cnt++;
+                $this->ecritures_model->delete_ecriture($id);
+                $status .= "$image supprimée<br>";
+            }
+        }
+        $this->session->set_userdata('status', $status);
+        redirect("dbchecks/$from");
+    }
 }
 
 /* End of file tests.php */

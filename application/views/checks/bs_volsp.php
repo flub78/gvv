@@ -21,7 +21,7 @@ $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
 echo '<div id="body" class="body container-fluid">';
-echo heading("Database checks", 3);
+echo '<h3 class="text-center">Database checks</h3>';
 
 echo p("Cette page effectue des vérifications sur la cohérence de la base de données. Si votre base de données est saine elle ne devrait retourner aucun résultat. Dans le cas contraire, contactez votre administrateur.");
 

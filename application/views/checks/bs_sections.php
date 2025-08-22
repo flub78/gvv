@@ -21,13 +21,16 @@ $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
 echo '<div id="body" class="body container-fluid">';
-echo heading("Database checks", 3);
+echo '<h3 class="text-center">Database checks</h3>';
+
 
 echo p("Cette page effectue des vérifications sur la cohérence de la base de données. Elle vérifie qu'il n'y a pas d'écritures entre sections différentes.");
 
 
-echo heading($title . " Vérification des sections", 4);
-echo table_from_array ($sections, array(
+echo '<h4 class="text-center">Ecritures entre sections différentes</h4>';
+echo form_open_multipart('dbchecks/delete_ecritures/sections');
+
+echo table_from_array($sections, array(
     'fields' => array('', 'Compte', 'Date', 'Montant', 'Description', 'Référence', 'Club', 'Compte1', 'Codec1', 'Club1', 'Compte2', 'Codec2', 'Club2'),
     'align' => array('left', 'left', 'left', 'left', 'left', 'left', 'left'),
     'class' => 'datatable table'
@@ -36,12 +39,20 @@ echo table_from_array ($sections, array(
 echo br();
 
 ?>
-    <div class="actions mb-3">
-        <button class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-        <button class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-    </div>
+<div class="actions mb-3">
+    <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+    <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+</div>
 <?php
 
+
+echo form_input(array(
+    'type' => 'submit',
+    'name' => 'button',
+    'value' => "Supprimer le selection",
+    'class' => 'btn btn-danger mb-4'
+));
+echo form_close('</div>');
 echo '</div">';
 
 ?>

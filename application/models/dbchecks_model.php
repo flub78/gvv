@@ -54,15 +54,18 @@ class Dbchecks_model extends Common_Model {
                 // if compte1 and compte2 exist, no problem, check the next line
                 continue;
             }
+            $checkbox = '<input type="checkbox" name="selection[]" value="' . "cbdel_" .$row->id . '">';
 
             // There is an issue, report it
             $elt = [
+                $checkbox,
                 $row->date_op,
                 $row->description,
                 $row->montant,
                 $row->compte1,
                 $row->compte2
             ];
+
             if (array_key_exists($row->compte1, $comptes)) {
                 $elt[3] = $comptes[$row->compte1]['description'];
             } else {

@@ -385,10 +385,14 @@ $section_count = $CI->sections_model->safe_count_all();
           </div>
           <script>
             function updateSection(value) {
+              // Store the current page URL before updating section
+              const currentPage = window.location.href;
+              console.log("Updating section to:", value);
               $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
                 section: value
-              }, function() {
-                window.location.reload();
+                }, function(response) {
+                console.log("Section changed:", response);
+                window.location.href = JSON.parse(response).redirect;
               });
             }
           </script>

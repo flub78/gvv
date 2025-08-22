@@ -55,9 +55,16 @@ class User_roles_per_section extends Gvv_Controller {
     function set_section() {
         $section = $this->input->post('section');
         $this->session->set_userdata('section', $section);
+        gvv_debug("section set to $section");
+
         // to avoid replay of import operations
-        redirect(base_url());
-        // redirect(site_url($this->controller));
+        $redirect_url = base_url();
+        if ($this->input->is_ajax_request()) {
+            // Return JSON response for AJAX
+            echo json_encode(['redirect' => $redirect_url]);
+        } else {
+            redirect($redirect_url);
+        }
     }
 
     /**

@@ -22,13 +22,13 @@ $this->load->view('sidebar');
 $this->load->view('menu');
 
 echo '<div id="body" class="body ui-widget-content">';
-echo heading("Database checks", 3);
+echo '<h3 class="text-center">Database checks</h3>';
+
 
 echo p("Cette page effectue des vérifications sur la cohérence de la base de données. Si votre base de données est saine elle ne devrait retourner aucun résultat. Dans le cas contraire, contactez votre administrateur.");
 
 
-
-echo heading("Ecritures sur comptes non existants", 4);
+echo '<h4 class="text-center">Ecritures sur comptes non existants</h4>';
 
 echo table_from_array ($wrong_lines, array(
     'fields' => array('Date', 'Description', 'Montant', 'Compte1', 'Compte2'),
@@ -37,7 +37,7 @@ echo table_from_array ($wrong_lines, array(
 ));
 
 echo br();
-echo heading("Comptes référencés mais non existants", 4);
+echo '<h4 class="text-center">Comptes référencés mais non existants</h4>';
 
 echo table_from_array ($wrong_accounts, array(
     'fields' => array('Id'),

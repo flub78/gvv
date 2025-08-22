@@ -344,6 +344,22 @@ class OpenFlyers extends CI_Controller {
         // Il faut une section active pour importer les écritures
         if (!$section) return false;
 
+        $compte1 = $this->comptes_model->get_by_id('id', $params['compte1']);
+        $compte2 = $this->comptes_model->get_by_id('id', $params['compte2']);
+
+        $section_id = $section['id'];
+        $compte1_section = $compte1 ? $compte1['club'] : 0;
+        $compte2_section = $compte2 ? $compte2['club'] : 0;
+
+        if (($compte1_section != $section_id) || ($compte2_section != $section_id)) {
+            // Aucune des deux écritures n'appartient à la section courante
+            // On ne fait rien
+            gvv_assert(false, "Incoherence de section pour l'écriture importée : "
+                . "section courante=$section_id, "
+                . "section compte1=$compte1($compte1_section), "
+                . "section compte2=$compte2($compte2_section)", false);
+            return false;
+        }
         $montant = 0;
         $num_cheque = "OpenFlyers : " . $params['description'];
         $data = array(
@@ -582,6 +598,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     function delete_all_ecritures() {
+        
         $posts = $this->input->post();
 
         $status = "";

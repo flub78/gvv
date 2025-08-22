@@ -399,7 +399,7 @@ class Rapprochements extends CI_Controller {
                 // gvv_dump($rapproches);
             } else {
                 // $status .= $checkbox;
-                $status .= '<div type="button" class="badge bg-danger text-white rounded-pill">Non rapproché</div>';
+                $status .= '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
                 //$status .= $hidden;
             }
 
