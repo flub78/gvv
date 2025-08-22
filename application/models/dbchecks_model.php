@@ -417,7 +417,7 @@ class Dbchecks_model extends Common_Model {
         return ['vols' => $select, 'pils' => $nepil, 'machines' => $nemach];
     }
 
-    public function soldes() {
+        public function soldes() {
         $query = $this->db->query('SELECT * FROM `comptes`');
         foreach ($query->result() as $row) {
             $solde = $row->credit -  $row->debit;
@@ -426,17 +426,49 @@ class Dbchecks_model extends Common_Model {
             $solde_compte = $this->ecritures_model->solde_compte($id);
 
             if ($solde != $solde_compte) {
-
-                echo "id=" . $row->id
-                    . " " . $row->nom
-                    . " " . $row->desc
-                    . ", debit=" . $row->debit
-                    . ", credit=" . $row->credit
-                    . ", solde=" . $solde
-                    . ", solde_compte=" . $solde_compte
-                    . "<br>";
+                $elt = [$row->id, $row->nom, $row->desc, $row->debit, $row->credit, $solde, $solde_compte];
+                $res[] = $elt;
             }
         }
+        return $res;
+    }
+
+    public function sections() {
+        $query = $this->db->query('SELECT e.id, e.date_op, e.montant, e.description, e.num_cheque, e.gel, e.club, 
+            c1.nom AS compte1_nom, c1.codec AS compte1_codec, c1.club AS compte1_club,
+            c2.nom AS compte2_nom, c2.codec AS compte2_codec, c2.club AS compte2_club
+            FROM ecritures e
+            JOIN comptes c1 ON e.compte1 = c1.id
+            JOIN comptes c2 ON e.compte2 = c2.id
+            WHERE  ((e.club != c1.club) OR (e.club != c2.club) OR (c1.club != c2.club))
+            ORDER BY e.date_op');
+
+        $res = [];
+        foreach ($query->result() as $row) {
+            $id = $row->id;
+
+            // $solde_compte = $this->ecritures_model->solde_compte($id);
+
+            $checkbox = '<input type="checkbox" name="selection[]" value="' . "cbdel_" .$row->id . '">';
+
+            $res[] = [
+                $checkbox,
+                $row->id,
+                $row->date_op,
+                $row->montant, 
+                $row->description,
+                $row->num_cheque,
+                $row->club,
+                $row->compte1_nom,
+                $row->compte1_codec,
+                $row->compte1_club,
+                $row->compte2_nom,
+                $row->compte2_codec,
+                $row->compte2_club
+            ];
+           
+        }
+        return $res;
     }
 
 

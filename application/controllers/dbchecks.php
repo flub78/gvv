@@ -62,10 +62,13 @@ class Dbchecks extends Gvv_Controller {
     }
 
     function soldes() {
-        $dt = $this->gvv_model->soldes();
-        $dt['title'] = "Vérification des soldes des comptes (seuls les comptes en erreur sont affichés)";
-        echo $dt['title'];
-        exit;
+        $dt['soldes'] = $this->gvv_model->soldes();
+        load_last_view('checks/soldes', $dt);
+    }
+
+    function sections() {
+        $dt['sections'] = $this->gvv_model->sections();
+        load_last_view('checks/sections', $dt);
     }
 }
 

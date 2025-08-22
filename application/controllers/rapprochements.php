@@ -371,7 +371,7 @@ class Rapprochements extends CI_Controller {
 
                 $ecriture_gvv = '<span class="text-success">' . ($op->unique_image ?? '') . '</span>';
 
-                $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
+                $checkbox = '<input type="checkbox" class="unique" name="cb_' . $op->line . '" value="1" >';
 
                 $status = $checkbox . $hidden;
                 $count_uniques++;
@@ -380,7 +380,7 @@ class Rapprochements extends CI_Controller {
                 $ecriture_gvv = '<span class="text-danger">Aucune écriture trouvée</span>';
             } else {
                 // plusieurs propositions
-                $checkbox = '<input type="checkbox" name="cb_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
+                $checkbox = '<input type="checkbox" name="cb_' . $op->line . '" value="1" >';
                 $ecriture_gvv = $op->selector_dropdown;
 
                 $status = $checkbox . $hidden;
@@ -388,7 +388,7 @@ class Rapprochements extends CI_Controller {
 
             if ($rapproches) {
                 $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
-                $status .= '<button class="btn btn-success btn-sm ms-2" disabled>Rapproché</button>';
+                $status .= '<div class="badge bg-success text-white rounded-pill ms-2" >Rapproché</div>';
                 $status .= $hidden;
                 // Ajout d'un bouton de suppression
 
@@ -399,7 +399,7 @@ class Rapprochements extends CI_Controller {
                 // gvv_dump($rapproches);
             } else {
                 // $status .= $checkbox;
-                $status .= '<button type="button" class="btn btn-danger btn-sm ms-2" onclick="rapproche(' . $op->line . ')">Non rapproché</button>';
+                $status .= '<div type="button" class="badge bg-danger text-white rounded-pill">Non rapproché</div>';
                 //$status .= $hidden;
             }
 

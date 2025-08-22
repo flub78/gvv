@@ -538,7 +538,7 @@ class OpenFlyers extends CI_Controller {
 
             $checkbox = '<input type="checkbox"'
                 . ' name="cb_' . $elt['id'] . '"'
-                . ' onchange="toggleRowSelection(this)">';
+                . ' >';
             $date = date_db2ht($elt['date_op']);
 
             $anchor1 = anchor_compte($elt['compte1']);
@@ -649,7 +649,7 @@ class OpenFlyers extends CI_Controller {
         $res = [];
         foreach ($gvv_lines as $line) {
             $elt = [];
-            $status = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1" onchange="toggleRowSelection(this)">';
+            $status = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1" >';
             if ($line['of_synchronized']) {
                 $elt[] = "";
             } else {

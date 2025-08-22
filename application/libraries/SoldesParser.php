@@ -161,7 +161,7 @@ class SoldesParser {
                     if ($solde != $solde_gvv) {
                         $solde = '<div class="text-danger">' . $solde . '</div>';
                         $solde_gvv = '<div class="text-danger">' . $solde_gvv . '</div>';
-                        $diff = '<div class="text-white bg-danger rounded d-inline-block px-2 me-2">' . "diff " . '</div>';
+                        $diff = '<div class="badge text-white bg-danger rounded-pill d-inline-block px-2 me-2">' . "diff " . '</div>';
                         $id_of = $diff . anchor_of($id_of);
                     } else {
                         $id_of = anchor_of($id_of);

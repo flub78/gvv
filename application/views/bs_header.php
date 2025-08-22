@@ -61,11 +61,13 @@
 
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/gvv.css'));
 
+
 	/// echo html_link(array('rel' => "stylesheet", 'media' => "screen", 'title' => "Design", 'type' => "text/css", 'href' => css_url('styles')));
 
 	// Javascript
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('gvv')));
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('moment.min')));
+	echo html_script(array('type' => "text/javascript", 'src' => js_url('selectall')));
 	if (ENVIRONMENT == "production") {
 		echo html_script(array('type' => "text/javascript", 'src' => js_url('jquery.min')));
 		echo html_script(array('type' => "text/javascript", 'src' => js_url('jquery-ui.min')));
