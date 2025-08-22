@@ -28,7 +28,8 @@ class Dbchecks_model extends Common_Model {
             $id = $row->id;
             $elt = [
                 'id' => $id,
-                'description' => $row->desc
+                'description' => $row->desc,
+                'nom' => $row->nom
             ];
             $comptes[$id] = $elt;
         }
@@ -59,6 +60,7 @@ class Dbchecks_model extends Common_Model {
             // There is an issue, report it
             $elt = [
                 $checkbox,
+                $row->id,
                 $row->date_op,
                 $row->description,
                 $row->montant,
@@ -67,12 +69,12 @@ class Dbchecks_model extends Common_Model {
             ];
 
             if (array_key_exists($row->compte1, $comptes)) {
-                $elt[3] = $comptes[$row->compte1]['description'];
+                $elt[5] = $comptes[$row->compte1]['nom'];
             } else {
                 $non_existing_accounts[$row->compte1] = true;
             }
             if (array_key_exists($row->compte2, $comptes)) {
-                $elt[4] = $comptes[$row->compte2]['description'];
+                $elt[6] = $comptes[$row->compte2]['nom'];
             } else {
                 $non_existing_accounts[$row->compte2] = true;
             }
