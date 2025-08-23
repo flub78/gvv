@@ -1611,7 +1611,7 @@ array (size=2)
      *
      * @param $start_date date de début
      * @param $end_date date de fin
-     * @param $compte compte à filtrer (0 pour tous)
+     * @param $compte à filtrer (0 pour tous)
      * @return array Liste des écritures OpenFlyers
      */
     function select_ecritures_openflyers($start_date = "", $end_date = "", $compte = 0) {

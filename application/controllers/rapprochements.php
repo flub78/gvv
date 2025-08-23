@@ -207,6 +207,32 @@ class Rapprochements extends CI_Controller {
 
             $data['count_selected'] = $ot['count_selected'];
 
+            // data for the GVV tab
+            $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $releve['gvv_bank']);
+
+            $cnt = 0;
+            $filtered_lines = [];
+            foreach ($gvv_lines as &$line) {
+                $id = $line['id'];
+                $rapproched = $this->associations_ecriture_model->get_rapproches($id);
+                $line['rapproched'] = $rapproched;
+
+                if ($filter_active && false) {
+                    if ($filter_type == 'filter_matched' && $rapproched) {
+                        $filtered_lines[] = $line;
+                    }
+
+                    if ($filter_type == 'filter_unmatched' && !$rapproched) {
+                        $filtered_lines[] = $line;
+                    }
+                } else {
+                    $filtered_lines[] = $line;
+                }
+                $cnt++;
+            }
+
+            $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
+
             load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
@@ -846,7 +872,7 @@ class Rapprochements extends CI_Controller {
             if ($correlation >= 0.9) {
                 $threshold = 0.9;
                 break;
-            } 
+            }
         }
 
         // Deuxième passe pour filtrer les écritures
@@ -864,7 +890,6 @@ class Rapprochements extends CI_Controller {
             }
             $msg = "Correlation: $key => $ecriture : $correlation $ignored<br>";
             gvv_debug($msg);
-
         }
 
         if ($verbose) {
@@ -872,6 +897,74 @@ class Rapprochements extends CI_Controller {
             echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
         }
         return $filtered_sel;
+    }
+
+    function delete_all() {
+
+        $posts = $this->input->post();
+
+        if (!isset($posts['button']) || $posts['button'] == 'Supprimez les rapprochements sélectionnés') {
+            $rappro = true;
+        } else {
+            $rappro = false;
+        }
+
+        $status = "";
+        foreach ($posts as $key => $value) {
+            // echo "$key => $value<br>";
+            if (strpos($key, 'cbdel_') === 0) {
+                // Key starts with "cbdel_" ce sont les checkboxes actives
+                $id = str_replace("cbdel_", "", $key);
+
+                // supprimer les rapprochements
+                $rapproched = $this->associations_ecriture_model->get_rapproches($id);
+                foreach ($rapproched   as $r) {
+                    $status .= "rapprochement " . $r['id'] . " supprimé<br>";
+                    $this->associations_ecriture_model->delete_rapprochement($r['id']);
+                }
+                if (!$rappro) {
+                    // les rapprochements et l'écriture
+                    $image = $this->ecritures_model->image($id);
+                    $this->ecritures_model->delete_ecriture($id);
+                    $status .= "$image supprimée<br>";
+                }
+            }
+        }
+
+        $this->session->set_userdata('status', $status);
+        redirect('rapprochements/import_releve_from_file');
+    }
+
+    /**
+     * Converts GVV lines to a table format for display
+     *
+     * @param array $gvv_lines Array of GVV lines to convert
+     * @return array Formatted array suitable for table display
+     */
+    function to_ecritures_table($gvv_lines) {
+        // gvv_dump($gvv_lines);
+        $res = [];
+        foreach ($gvv_lines as $line) {
+            $elt = [];
+
+            if ($line['rapproched']) {
+                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
+                    . '<span class="bg-success badge text-white rounded-pill ms-1">' . $line['id'] . '</span>';
+            } else {
+                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
+                    . '<span class="bg-danger badge text-white rounded-pill ms-1">' . $line['id'] . '</span>';
+            }
+
+            $elt[] = date_db2ht($line['date_op']);
+            $elt[] = euro($line['montant']);
+            $elt[] = $line['description'];
+            $elt[] = $line['num_cheque'];
+
+            $elt[] = anchor_compte($line['compte1']);
+            $elt[] = anchor_compte($line['compte2']);
+            $res[] = $elt;
+        }
+        return $res;
     }
 }
 /* End of file welcome.php */

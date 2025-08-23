@@ -140,7 +140,7 @@ $compte_dropdown = form_dropdown('current_client', $client_list, $current_client
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="gvv-tab" data-bs-toggle="tab" data-bs-target="#gvv" type="button" role="tab"
             aria-controls="gvv" aria-selected="false">
-            GVV
+            Ecritures GVV
         </button>
     </li>
 </ul>

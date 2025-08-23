@@ -128,74 +128,134 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     </div>
 </div>
 
-<div class="border rounded p-2 mb-3">
+<!-- Onglets -->
+<ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="openflyers-tab" data-bs-toggle="tab" data-bs-target="#openflyers"
+            type="button" role="tab" aria-controls="openflyers" aria-selected="true">
+            Relevé de banque
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="gvv-tab" data-bs-toggle="tab" data-bs-target="#gvv" type="button" role="tab"
+            aria-controls="gvv" aria-selected="false">
+            Ecritures GVV
+        </button>
+    </li>
+</ul>
 
-    <div class="row mb-3">
-        <div class="col-md-8 d-flex align-items-center">
-            <label for="maxDays" class="form-label me-2 mb-0">Nombre de jours maximum entre le relevé et l'opération</label>
-            <input type="number" class="form-control" id="maxDays" name="maxDays" min="0" style="width: 5em;" onchange="maxDaysChanged(this);" value="<?= $maxDays ?>">
-        </div>
-        <div class="col-md-4">
-            <div class="form-check">
-                <label class="form-check-label" for="smartMode">Smart mode</label>
-                <input type="checkbox" class="form-check-input" id="smartMode" name="smartMode" onchange="smartModeChanged(this)" <?= $smartMode ? 'checked' : '' ?>>
+<div class="tab-content" id="myTabContent">
+    <!-- Onglet Relevé de banque -->
+    <div class="tab-pane fade show active" id="openflyers" role="tabpanel" aria-labelledby="openflyers-tab">
+
+        <!-- Delta et smart mode -->
+        <div class="border rounded p-2 mb-3 mt-3">
+
+            <div class="row mb-3">
+                <div class="col-md-8 d-flex align-items-center">
+                    <label for="maxDays" class="form-label me-2 mb-0">Nombre de jours maximum entre le relevé et l'opération</label>
+                    <input type="number" class="form-control" id="maxDays" name="maxDays" min="0" style="width: 5em;" onchange="maxDaysChanged(this);" value="<?= $maxDays ?>">
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <label class="form-check-label" for="smartMode">Smart mode</label>
+                        <input type="checkbox" class="form-check-input" id="smartMode" name="smartMode" onchange="smartModeChanged(this)" <?= $smartMode ? 'checked' : '' ?>>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Boutons de sélection -->
+        <?php if ($count_selected): ?>
+
+            <div class="actions mb-3 mt-3">
+                <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+                <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
+                <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+            </div>
+        <?php endif; ?>
+        <?php
+        echo form_open_multipart('rapprochements/rapprochez');
+        echo $html_tables;
+
+        if (!$count_selected) {
+            echo p("La selection est vide.");
+        }
+        ?>
+        <!-- Boutons de sélection -->
+        <?php if ($count_selected): ?>
+            <div class="actions mb-3">
+                <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+                <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
+                <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Boutons d'actions -->
+        <?php
+        if ($section && $count_selected) {
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => $this->lang->line("gvv_rapproche"),
+                'class' => 'btn btn-primary mb-4 me-2'
+            ));
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => $this->lang->line("gvv_delete_rapproche"),
+                'class' => 'btn btn-danger mb-4'
+            ));
+        }
+        echo form_close();
+
+        ?>
+    </div>
+
+    <!-- Onglet GVV -->
+    <div class="tab-pane fade" id="gvv" role="tabpanel" aria-labelledby="gvv-tab">
+        <?php
+        echo form_open_multipart('rapprochements/delete_all');
+
+        echo '<div class="mt-3">';
+        echo table_from_array($gvv_lines, array(
+            'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+            'class' => 'datatable table'
+        ));
+        echo '</div>';
+        ?>
+        
+        <div class="actions mb-3 mt-3">
+            <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+            <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        </div>
+
+        <?php
+        if ($section) {
+
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => "Supprimez les rapprochements sélectionnés",
+                'class' => 'btn btn-danger mb-4'
+            ));
+
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => "Supprimez les écritures sélectionnées",
+                'class' => 'btn btn-danger ms-2 mb-4'
+            ));
+        }
+        echo form_close();
+        ?>
     </div>
 </div>
-<?php if ($count_selected): ?>
 
-    <div class="actions mb-3 mt-3">
-        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
-        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-    </div>
-<?php endif; ?>
+
 
 <?php
-
-echo form_open_multipart('rapprochements/rapprochez');
-
-echo $html_tables;
-
-if (!$count_selected) {
-    echo p("La selection est vide.");
-}
-
-
-
-/**
- * Filtrage par
- *    toutes, écritures rapprochées, écritures non rapprochées
- *    type virement_recu, virement_emis, chèque, espèces
- *    date de début, date de fin
- */
-?>
-<?php if ($count_selected): ?>
-    <div class="actions mb-3">
-        <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-        <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
-        <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
-    </div>
-<?php endif; ?>
-
-<?php
-
-if ($section && $count_selected) {
-    echo form_input(array(
-        'type' => 'submit',
-        'name' => 'button',
-        'value' => $this->lang->line("gvv_rapproche"),
-        'class' => 'btn btn-primary mb-4 me-2'
-    ));
-    echo form_input(array(
-        'type' => 'submit',
-        'name' => 'button',
-        'value' => $this->lang->line("gvv_delete_rapproche"),
-        'class' => 'btn btn-danger mb-4'
-    ));
-}
-echo form_close('</div>');
 echo '</div>';
 
 ?>
