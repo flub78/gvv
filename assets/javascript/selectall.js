@@ -108,7 +108,7 @@ function maxDaysChanged(input) {
     const maxDays = input.value;
     console.log('Max days changed to:', maxDays);
     // You can add logic here to filter the table based on maxDays
-    fetch('<?= site_url() ?>/rapprochements/max_days_change?maxDays=' + maxDays)
+    fetch('/rapprochements/max_days_change?maxDays=' + maxDays)
         .then(response => response.json())
         .then(data => location.reload())
         .catch(error => console.error('Error:', error));

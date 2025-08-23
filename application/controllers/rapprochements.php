@@ -188,7 +188,7 @@ class Rapprochements extends CI_Controller {
             $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
             $header[] = [
                 'Nombre opérations: ',
-                $ot['count_selected'] . ' / ' . count($releve['operations']),
+                $ot['count_selected'] . ' / ' . count($releve['ops']),
                 'Rapprochées:',
                 $rap
             ];
@@ -969,39 +969,40 @@ class Rapprochements extends CI_Controller {
      * @param array $op Opération du relevé bancaire
      * @return array Le sélecteur ajusté
      */
-    function smart_ajust($sel, $op) {
+    // function smart_ajust($sel, $op) {
+    //     gvv_dump("smart_ajust is deprecated, use smart_ajust2 instead");
 
-        $threshold = 0.5;
-        $filtered_sel = [];
-        $verbose = false;
+    //     $threshold = 0.5;
+    //     $filtered_sel = [];
+    //     $verbose = false;
 
-        if ($verbose) {
-            echo '<pre>';
-            print_r($op);
-        }
-        foreach ($sel as $key => $ecriture) {
-            // Calcule le coefficient de corrélation entre l'écriture et l'opération
-            $correlation = $this->corelation($key, $ecriture, $op);
-            if ($verbose) {
-                echo ("$key => $ecriture : $correlation<br>");
-            }
+    //     if ($verbose) {
+    //         echo '<pre>';
+    //         print_r($op);
+    //     }
+    //     foreach ($sel as $key => $ecriture) {
+    //         // Calcule le coefficient de corrélation entre l'écriture et l'opération
+    //         $correlation = $this->corelation($key, $ecriture, $op);
+    //         if ($verbose) {
+    //             echo ("$key => $ecriture : $correlation<br>");
+    //         }
 
 
-            if ($correlation >= $threshold) {
-                // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
-                $filtered_sel[] = [$key => $ecriture];
-            } else {
-                // Sinon, on l'ignore
-                echo "Ignored: $ecriture corrélation=$correlation<br>";
-            }
-        }
+    //         if ($correlation >= $threshold) {
+    //             // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
+    //             $filtered_sel[] = [$key => $ecriture];
+    //         } else {
+    //             // Sinon, on l'ignore
+    //             echo "Ignored: $ecriture corrélation=$correlation<br>";
+    //         }
+    //     }
 
-        if ($verbose) {
-            echo '</pre>';
-            echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
-        }
-        return $filtered_sel;
-    }
+    //     if ($verbose) {
+    //         echo '</pre>';
+    //         echo '<hr style="border: 1px solid #ccc; margin: 20px 0;">';
+    //     }
+    //     return $filtered_sel;
+    // }
 
     /**
      * Ajuste le sélecteur pour ne garder que les écritures qui ont un coefficient de corrélation supérieur au seuil
@@ -1020,6 +1021,18 @@ class Rapprochements extends CI_Controller {
             echo '<pre>';
             print_r($op);
         }
+
+        // Première passe pour voir si on a une corrélation très forte
+        foreach ($sel as $key => $ecriture) {
+            // Calcule le coefficient de corrélation entre l'écriture et l'opération
+            $correlation = $op->correlation($key, $ecriture);
+            if ($correlation >= 0.9) {
+                $threshold = 0.9;
+                break;
+            } 
+        }
+
+        // Deuxième passe pour filtrer les écritures
         foreach ($sel as $key => $ecriture) {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $op->correlation($key, $ecriture);
@@ -1035,9 +1048,6 @@ class Rapprochements extends CI_Controller {
             $msg = "Correlation: $key => $ecriture : $correlation $ignored<br>";
             gvv_debug($msg);
 
-            if ($verbose) {
-                echo $msg;
-            }
         }
 
         if ($verbose) {

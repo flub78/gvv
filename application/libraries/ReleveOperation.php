@@ -358,7 +358,7 @@ class ReleveOperation {
 
         // Look for operation nature in the entry description
         if (!empty($nature) && stripos(strtolower($ecriture_ascii), $nature) !== false) {
-            return 0.95; // High correlation if reference found
+            return 0.96; // High correlation if reference found
         }
 
         // Analyze the sender information from comments
@@ -401,7 +401,7 @@ class ReleveOperation {
 
             if ($word_count > 0) {
                 $match_ratio = $score / $word_count;
-                return $match_ratio * 0.9;
+                return $match_ratio * 0.8;
             }
         }
 
