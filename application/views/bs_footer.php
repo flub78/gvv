@@ -69,6 +69,13 @@
         $('.big_select').select2({
             placeholder: 'Filtre...',
             width: '300px',
+            allowClear: true
+        });
+
+        // to replace the select by an input that select values in the dropdown
+        $('.big_select_large').select2({
+            placeholder: 'Filtre...',
+            width:'100%',
             allowClear: false
         });
 

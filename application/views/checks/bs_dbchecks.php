@@ -31,8 +31,8 @@ echo '<h4 class="text-center">Ecritures sur comptes non existants</h4>';
 echo form_open_multipart('dbchecks/delete_ecritures/index');
 
 echo table_from_array ($wrong_lines, array(
-    'fields' => array('', 'Id', 'Date', 'Description', 'Montant', 'Compte1', 'Compte2'),
-    'align' => array('', 'right', 'left', 'left', 'right', 'right', 'right'),
+    'fields' => array('', 'Id', 'Date', 'Description', 'Référence', 'Montant', 'Compte1', 'Compte2'),
+    'align' => array('', 'right', 'left', 'left', 'left', 'right', 'right', 'right'),
     'class' => 'datatable table'
 ));
 

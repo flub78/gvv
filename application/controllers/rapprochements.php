@@ -28,6 +28,7 @@ class Rapprochements extends CI_Controller {
         $this->dx_auth->check_login();
 
         $this->load->helper('validation');
+        $this->load->helper('url');
         // Store current URL to reload it after the certificate is granted
         $this->session->set_userdata('return_url', current_url());
 
@@ -127,11 +128,9 @@ class Rapprochements extends CI_Controller {
         $type_selector = $this->session->userdata('type_selector');
 
         try {
-            // $parser = new ReleveParser();
             $parser2 = new ObjectReleveParser();
 
             try {
-                // $releve = $parser->parse($filename);
                 $releve = $parser2->parse($filename);
                 // gvv_dump($releve);
             } catch (Exception $e) {
@@ -531,7 +530,7 @@ class Rapprochements extends CI_Controller {
         // Il faut donc associer le numéro d’occurrence de la ligne à la date donnée.
         // Même si on importe depuis des relevés de comptes différents, hebdomadaire, mensuel, annuel on importe toujours des journées entières.
 
-        $attrs = 'class="form-control big_select" ';
+        $attrs = 'class="form-control big_select ecriture_select"';
         $dropdown = dropdown_field(
             "op_" . $op['line'],
             "",
@@ -604,7 +603,7 @@ class Rapprochements extends CI_Controller {
         // Il faut donc associer le numéro d’occurrence de la ligne à la date donnée.
         // Même si on importe depuis des relevés de comptes différents, hebdomadaire, mensuel, annuel on importe toujours des journées entières.
 
-        $attrs = 'class="form-control big_select" ';
+        $attrs = 'class="form-control big_select big_select_large" ';
         $dropdown = dropdown_field(
             "op_" . $op->line,
             "",
@@ -816,20 +815,18 @@ class Rapprochements extends CI_Controller {
         $this->session->set_userdata('rapprochement_smart_mode', $smartMode);
 
         $json = json_encode(['success' => true]);
-        gvv_debug("smart_mode_change(" . ($smartMode ? 'true' : 'false') . ")" . $json);
         $this->output
             ->set_content_type('application/json')
             ->set_output($json);
     }
 
-
     /**
-     * Handles the correlation between account entries
-     *
-     * @param string $key of the gvv accounting line
-     * @param mixed $ecriture image
-     * @param string $op with which to correlate
-     * @return void
+     * Calcule le coefficient de corrélation entre une écriture et une opération
+     * 
+     * @param string $key Identifiant unique de l'écriture
+     * @param string $ecriture Description de l'écriture
+     * @param array $op Détails de l'opération du relevé bancaire
+     * @return float Coefficient de corrélation entre 0 et 1
      */
     function corelation($key, $ecriture, $op) {
         // Calcule le coefficient de corrélation entre les écritures et l'opération 

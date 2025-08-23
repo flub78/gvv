@@ -1573,9 +1573,6 @@ array (size=2)
             $hash[$row['id']] = $this->image($row['id']);
 
             $num_cheque = $row['num_cheque'];
-            if (strpos($num_cheque, 'OpenFlyers') !== false) {
-                $num_cheque = '';
-            }
             $hash[$row['id']] = date_db2ht($row['date_op'])
                 . " " . euro($row['montant'])
                 . " " . $row['description']

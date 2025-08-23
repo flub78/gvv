@@ -29,7 +29,8 @@ class Dbchecks_model extends Common_Model {
             $elt = [
                 'id' => $id,
                 'description' => $row->desc,
-                'nom' => $row->nom
+                'nom' => $row->nom,
+                'num_cheque' => $row->num_cheque
             ];
             $comptes[$id] = $elt;
         }
@@ -63,6 +64,7 @@ class Dbchecks_model extends Common_Model {
                 $row->id,
                 $row->date_op,
                 $row->description,
+                $row->num_cheque,
                 $row->montant,
                 $row->compte1,
                 $row->compte2
