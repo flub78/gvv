@@ -582,7 +582,7 @@ class ReleveOperation {
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
         $delta = $CI->session->userdata('rapprochement_delta');
-        if (! $delta) {
+        if (!$delta) {
             $delta = 5; // Default delta value
         }
 
