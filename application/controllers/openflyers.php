@@ -45,9 +45,6 @@ class OpenFlyers extends CI_Controller {
      */
     function select_operations() {
         $data = array();
-        $data['title'] = $this->lang->line("welcome_nyi_title");
-        $data['text'] = $this->lang->line("welcome_nyi_text");
-
         load_last_view('openflyers/select_operations', $data);
     }
 
@@ -199,8 +196,12 @@ class OpenFlyers extends CI_Controller {
             $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
 
             load_last_view('openflyers/tableOperations', $data);
+            
         } catch (Exception $e) {
-            gvv_error("Erreur: " . $e->getMessage() . "\n");
+            gvv_error($e->getMessage());
+            $data['error'] = $e->getMessage();
+            load_last_view('openflyers/select_operations', $data);
+
         }
     }
 
@@ -270,8 +271,10 @@ class OpenFlyers extends CI_Controller {
             $parser = new SoldesParser();
             $soldes = $parser->parse($filename);
         } catch (Exception $e) {
-            gvv_error("Erreur: " . $e->getMessage() . "\n");
-            exit;
+            gvv_error($e->getMessage());
+            $data['error'] = $e->getMessage();
+            load_last_view('openflyers/select_soldes', $data);
+            return;
         }
 
         $soldes_html = $parser->arrayWithControls($soldes, $compare_date);

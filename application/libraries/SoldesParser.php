@@ -43,7 +43,8 @@ class SoldesParser {
 
                 // Vérifier que l'en-tête correspond au format attendu
                 if ($lineNumber === 1 && $line !== "ID;Nom;Profil;Type de compte;Balance") {
-                    throw new Exception("Format de fichier incorrect. Ce n'est pas un export de solde OpenFlyers");
+                    $basename = basename($filePath);
+                    throw new Exception("Format de fichier incorrect. Le fichier \"$basename\" n'est pas un export de solde OpenFlyers");
                 }
 
                 continue;

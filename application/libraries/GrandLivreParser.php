@@ -59,7 +59,7 @@ class GrandLivreParser {
 
             // Traitement de l'en-tête du document
             if ($lineNumber <= 2) {
-                $this->parseHeader($fields, $lineNumber);
+                $this->parseHeader($fields, $lineNumber, $filePath);
                 continue;
             }
 
@@ -121,8 +121,9 @@ class GrandLivreParser {
     /**
      * Parse l'en-tête du document
      */
-    private function parseHeader($fields, $lineNumber) {
-        $error = "Format de fichier invalide. Le fichier n'est pas un export du grand journal OpenFlyers.";
+    private function parseHeader($fields, $lineNumber, $filename = '') {
+        $basename = basename($filename);
+        $error = "Format de fichier invalide. Le fichier \"$basename\" n'est pas un export du grand journal OpenFlyers.";
         if ($lineNumber == 1) {
             $this->data['header']['titre'] = $fields[0] ?? '';
             // Check that $fields[0] match Grand livre du 01/01/2025  au  31/01/2025

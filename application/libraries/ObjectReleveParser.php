@@ -153,7 +153,8 @@ class ObjectReleveParser {
 
             if ($lineNumber === 4) {
                 if ($fields[0] != 'Solde au') {
-                    throw new Exception("Le format du fichier CSV est incorrect à la ligne $lineNumber." . $line);
+                    $basename = basename($filePath);
+                    throw new Exception("Le format du fichier CSV \"$basename\" est incorrect à la ligne $lineNumber." . $line);
                 }
                 $data['date_solde'] = $fields[1];
                 continue;
@@ -161,7 +162,8 @@ class ObjectReleveParser {
 
             if ($lineNumber === 5) {
                 if ($fields[0] != 'Solde') {
-                    throw new Exception("Le format du fichier CSV est incorrect à la ligne $lineNumber." . $line);
+                    $basename = basename($filePath);
+                    throw new Exception("Le format du fichier CSV \"$basename\" est incorrect à la ligne $lineNumber." . $line);
                 }
                 $data['solde'] = $fields[1];
                 continue;
