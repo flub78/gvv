@@ -250,27 +250,20 @@ $section_count = $CI->sections_model->safe_count_all();
                 <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><?= translation("gvv_attachments_title") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><?= translation("gvv_menu_accounting_dashboard") ?></a></li>
 
-                <?php if (has_role('ca')) : ?>
+                <?php if (has_role('tresorier')) : ?>
                   <li><a class="dropdown-item" href="#">Synchronisation OpenFlyers</a>
                     <ul class="submenu dropdown-menu">
 
                       <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>">Import des opérations</a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_annulation") ?>">Annulation d'imports d'opérations</a></li>
-
 
                       <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>">Import/vérification des soldes</a></li>
 
                       <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>">Associations des comptes OpenFlyers</a></li>
                     </ul>
                   </li>
-                  <li><a class="dropdown-item" href="#">Rapprochements</a>
-                    <ul class="submenu dropdown-menu">
-                      <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><?= translation("gvv_menu_rapprochements") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url('associations_releve/page') ?>"><?= translation("gvv_menu_associations_releves") ?></a></li>
-                      <li><a class="dropdown-item" href="<?= controller_url('associations_ecriture/page') ?>"><?= translation("gvv_menu_associations_ecritures") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><?= translation("gvv_menu_rapprochements") ?></a></li>
 
-                    </ul>
-                  </li>
+
                 <?php endif; ?>
               <?php endif; ?>
 
@@ -390,7 +383,7 @@ $section_count = $CI->sections_model->safe_count_all();
               console.log("Updating section to:", value);
               $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
                 section: value
-                }, function(response) {
+              }, function(response) {
                 console.log("Section changed:", response);
                 window.location.href = JSON.parse(response).redirect;
               });
