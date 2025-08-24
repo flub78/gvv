@@ -106,6 +106,11 @@ class Associations_ecriture_model extends Common_Model {
         $db_res = $this->db->get($this->table);
         return $this->get_to_array($db_res);
     }
+
+    function delete_rapprochements($id_ecriture_gvv) {
+        $this->db->where('id_ecriture_gvv', $id_ecriture_gvv);
+        return $this->db->delete($this->table);
+    }
 }
 
 /* End of file */

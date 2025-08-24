@@ -20,6 +20,7 @@ class Ecritures_model extends Common_Model {
     public function __construct() {
         parent::__construct();
         $this->load->model('clotures_model');
+        $this->load->model('associations_ecriture_model');
     }
 
     /**
@@ -667,6 +668,7 @@ class Ecritures_model extends Common_Model {
             $res = $this->db->delete($this->table, array(
                 'id' => $id
             ));
+            $this->associations_ecriture_model->delete_rapprochements($id);
             $this->db->trans_complete();
             return $res;
         } else {
@@ -1616,7 +1618,7 @@ array (size=2)
      */
     function select_ecritures_openflyers($start_date = "", $end_date = "", $compte = 0) {
         $this->db->select("ecritures.id, date_op, montant, ecritures.description, ecritures.compte1, ecritures.compte2, num_cheque, gel")
-            ->select("compte1.nom as compte1_nom, compte1.codec as compte1_codec, compte1.club as compte1_club") 
+            ->select("compte1.nom as compte1_nom, compte1.codec as compte1_codec, compte1.club as compte1_club")
             ->select("compte2.nom as compte2_nom, compte2.codec as compte2_codec, compte2.club as compte2_club")
             ->from("ecritures")
             ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
@@ -1642,7 +1644,6 @@ array (size=2)
         $db_res = $this->db->order_by('date_op')->get();
 
         return $this->get_to_array($db_res);
-
     }
 }
 

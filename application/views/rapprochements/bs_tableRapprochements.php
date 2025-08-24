@@ -144,6 +144,24 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     </li>
 </ul>
 
+<script>
+// Restore active tab on page load
+document.addEventListener('DOMContentLoaded', function() {
+    let activeTab = localStorage.getItem('activeTab');
+    if (activeTab) {
+        const tab = new bootstrap.Tab(document.querySelector(activeTab));
+        tab.show();
+    }
+});
+
+// Store active tab when changed
+document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) {
+    tab.addEventListener('shown.bs.tab', function(e) {
+        localStorage.setItem('activeTab', '#' + e.target.id);
+    });
+});
+</script>
+
 <div class="tab-content" id="myTabContent">
     <!-- Onglet Relevé de banque -->
     <div class="tab-pane fade show active" id="openflyers" role="tabpanel" aria-labelledby="openflyers-tab">
@@ -219,7 +237,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
         echo '<div class="mt-3">';
         echo table_from_array($gvv_lines, array(
-            'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
             'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
             'class' => 'datatable table'
         ));

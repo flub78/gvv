@@ -217,7 +217,7 @@ class Rapprochements extends CI_Controller {
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
                 $line['rapproched'] = $rapproched;
 
-                if ($filter_active && false) {
+                if ($filter_active) {
                     if ($filter_type == 'filter_matched' && $rapproched) {
                         $filtered_lines[] = $line;
                     }
@@ -899,6 +899,9 @@ class Rapprochements extends CI_Controller {
         return $filtered_sel;
     }
 
+    /**
+     * Supprime tous les rapprochements ou les écritures
+     */
     function delete_all() {
 
         $posts = $this->input->post();
@@ -920,8 +923,8 @@ class Rapprochements extends CI_Controller {
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
                 foreach ($rapproched   as $r) {
                     $status .= "rapprochement " . $r['id'] . " supprimé<br>";
-                    $this->associations_ecriture_model->delete_rapprochement($r['id']);
                 }
+                $this->associations_ecriture_model->delete_rapprochements($id);
                 if (!$rappro) {
                     // les rapprochements et l'écriture
                     $image = $this->ecritures_model->image($id);
