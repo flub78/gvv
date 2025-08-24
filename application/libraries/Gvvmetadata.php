@@ -811,8 +811,8 @@ class GVVMetadata extends Metadata {
                 $this->field['associations_ecriture']['id_ecriture_gvv']['Selector'] = 'ecriture_selector';
 
                 $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Subtype'] = 'key';
-                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Action'] = 'compta/journal_compte';
-                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Image'] = 'nom_compte';
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Action'] = 'compta/edit';
+                $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Image'] = 'image';
 
                 $this->field['vue_associations_ecriture']['id_ecriture_gvv']['Name'] = 'Ecriture GVV';
 

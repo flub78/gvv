@@ -57,8 +57,9 @@ class User_roles_per_section extends Gvv_Controller {
         $this->session->set_userdata('section', $section);
         gvv_debug("section set to $section");
 
-        // to avoid replay of import operations
-        $redirect_url = base_url();
+        // Get the referring URL or use base_url as fallback
+        $redirect_url = $this->input->server('HTTP_REFERER') ?: base_url();
+        
         if ($this->input->is_ajax_request()) {
             // Return JSON response for AJAX
             echo json_encode(['redirect' => $redirect_url]);

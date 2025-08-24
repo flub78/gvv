@@ -21,22 +21,29 @@ class Associations_ecriture_model extends Common_Model {
     public function select_page($nb = 1000, $debut = 0) {
         $this->load->model('comptes_model');
 
-        $db_res = $this->db
-            ->select('a.id, a.string_releve, a.id_ecriture_gvv, c.club')
-            ->from("associations_ecriture as a")
-            ->join("comptes as c", "a.id_ecriture_gvv = c.id", "left");
-
         $section = $this->gvv_model->section();
+
+        // $db_res = $this->db
+        //     ->select('a.id, a.string_releve, a.id_ecriture_gvv, c.club')
+        //     ->from("associations_ecriture as a")
+        //     ->join("comptes as c", "a.id_ecriture_gvv = c.id", "left");
+
+        $db_res = $this->db
+            ->select('a.id, a.string_releve, a.id_ecriture_gvv, e.club, s.nom as nom_section')
+            ->from("associations_ecriture as a")
+            ->join("ecritures as e", "a.id_ecriture_gvv = e.id", "left")
+            ->join("sections as s", "e.club = s.id", "left");
+
         if ($section) {
-            $this->db->where('c.club', $section['id']);
+            $this->db->where('s.id', $section['id']);
         }
 
         $db_res = $this->db->get();
         $select = $this->get_to_array($db_res);
 
         foreach ($select as $key => $row) {
-            $image = $this->comptes_model->image($row["id_ecriture_gvv"]);
-            $select[$key]['nom_compte'] = $image;
+            $image = $this->ecritures_model->image($row["id_ecriture_gvv"]);
+            $select[$key]['image'] = $image;
         }
 
         // Get unassigned ecriture
@@ -47,11 +54,13 @@ class Associations_ecriture_model extends Common_Model {
         $orphans = $this->get_to_array($db_orphans);
 
         foreach ($orphans as &$row) {
-            $row['club'] = '';
-            $row['nom_compte'] = '';
+            $row['nom_section'] = '';
+            $row['id_ecriture_gvv'] = '';
+            $row['image'] = 'Null';
         }
 
         $select = array_merge($select, $orphans);
+        // gvv_dump($select);
 
         $this->gvvmetadata->store_table("vue_associations_ecriture", $select);
         return $select;
