@@ -380,7 +380,7 @@ class Rapprochements extends CI_Controller {
             }
 
             // informations sur le rapprochement
-            $count_selected++;   // opérations non filtrées out
+            $count_selected++;   // opérations non filtrées
             $count = $op->selector_count ?? 0;
             $count_choices += $count;
 
@@ -421,9 +421,7 @@ class Rapprochements extends CI_Controller {
                 $ecriture_gvv = anchor_ecriture($id_ecriture_gvv);
                 // gvv_dump($rapproches);
             } else {
-                // $status .= $checkbox;
                 $status .= '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
-                //$status .= $hidden;
             }
 
             $count_str = ($rapproches) ? "" : "Choix: $count.";
@@ -432,9 +430,8 @@ class Rapprochements extends CI_Controller {
             } else {
                 $str_type = $op->type;
             }
-            $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op->line, 'Ecriture GVV'];
+            $res[] = [$status, $ecriture_gvv, '', '', $count_str, "Ligne:" . $op->line, $str_type];
 
-            // $complete_table = array_merge($complete_table, $res);
             $tables[] = $res;
             $res = [];
         }
