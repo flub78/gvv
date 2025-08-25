@@ -597,27 +597,24 @@ class Rapprochements extends CI_Controller {
         if (! $delta) {
             $delta = 5; // Default delta value
         }
-        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $op->montant(), $compte1, $compte2, $reference_date, $delta);
+        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date, $op->montant(), $compte1, $compte2, $reference_date, $delta);
 
-        $sel = $slct['selector'];
+        // $sel = $slct['selector'];
 
         $smart_mode = $this->session->userdata('rapprochement_smart_mode') ?? false;
         if ($smart_mode) {
             // Smart mode: filter out entries that are too unlikely to match
             $sel = $this->smart_ajust2($sel, $op);
-            if (count($sel) == 1) {
-                $unique_id = key($sel[0]);
-                $op->unique_id = $unique_id;
-                $op->unique_image = $this->ecritures_model->image($unique_id);
+        }
+        if (count($sel) == 1) {
+            foreach ($sel as $key => $value) {
+                $unique_id = $key;
             }
+            $op->unique_id = $unique_id;
+            $op->unique_image = $this->ecritures_model->image($unique_id);
         } else {
-            if ($slct['unique_id']) {
-                $op->unique_id = $slct['unique_id'];
-                $op->unique_image = $slct['unique_image'];
-            } else {
-                unset($op->unique_id);
-                unset($op->unique_image);
-            }
+            unset($op->unique_id);
+            unset($op->unique_image);
         }
 
         $op->selector_count = count($sel);
@@ -882,7 +879,7 @@ class Rapprochements extends CI_Controller {
 
             if ($correlation >= $threshold) {
                 // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
-                $filtered_sel[] = [$key => $ecriture];
+                $filtered_sel[$key] = $ecriture;
                 $ignored = "";
             } else {
                 // Sinon, on l'ignore
