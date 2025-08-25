@@ -381,12 +381,10 @@ class Rapprochements extends CI_Controller {
 
             // informations sur le rapprochement
             $count_selected++;   // opérations non filtrées out
-
             $count = $op->selector_count ?? 0;
             $count_choices += $count;
 
             $status = '';
-
             $hidden = '<input type="hidden" name="string_releve_' . $op->line . '" value="' . $op->str_releve() . '">';
 
             $checkbox = '';
@@ -412,7 +410,7 @@ class Rapprochements extends CI_Controller {
             }
 
             if ($rapproches) {
-                $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
+                $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" >';
                 $status .= '<div class="badge bg-success text-white rounded-pill ms-2" >Rapproché</div>';
                 $status .= $hidden;
                 // Ajout d'un bouton de suppression
@@ -607,9 +605,7 @@ class Rapprochements extends CI_Controller {
             $sel = $this->smart_ajust2($sel, $op);
         }
         if (count($sel) == 1) {
-            foreach ($sel as $key => $value) {
-                $unique_id = $key;
-            }
+            $unique_id = key($sel);
             $op->unique_id = $unique_id;
             $op->unique_image = $this->ecritures_model->image($unique_id);
         } else {

@@ -19,12 +19,12 @@ Ce modèle est utilisé pour appliquer le même traitement à plusieurs écritur
 ### a. Génération des lignes et cases à cocher
 
 - Lors de la génération du tableau HTML (ex : via `GrandLivreParser::OperationsTable`), chaque ligne d'opération inclut :
-  - Une case à cocher `<input type="checkbox" name="cb_ID" onchange="toggleRowSelection(this)">`
+  - Une case à cocher `<input type="checkbox" name="cb_ID" >`
   - Les autres données de la ligne.
 
 Extrait de génération côté contrôleur :
 ```php
-$checkbox = '<input type="checkbox" name="cb_' . $elt['id'] . '" onchange="toggleRowSelection(this)">';
+$checkbox = '<input type="checkbox" name="cb_' . $elt['id'] . '" >';
 ...
 $table[] = $lst;
 ```
@@ -45,24 +45,8 @@ Lien : [bs_tableOperations.php#L27-L56](https://github.com/flub78/gvv/blob/f5569
 
 ---
 
-## 3. Logique JavaScript pour la sélection
 
-### a. Sélection visuelle
-
-Un script JS ajoute/enlève une classe CSS à la ligne sélectionnée pour un retour visuel :
-```js
-function toggleRowSelection(checkbox) {
-    const row = checkbox.closest('tr');
-    if (checkbox.checked) {
-        row.classList.add('selected-row');
-    } else {
-        row.classList.remove('selected-row');
-    }
-}
-```
-Lien : [bs_tableOperations.php#L85-L122](https://github.com/flub78/gvv/blob/f55695ef0a741febf32c743941aa6d050b6647fc/application/views/openflyers/bs_tableOperations.php#L85-L122)
-
-### b. Sélection/désélection globale
+### Sélection/désélection globale
 
 ```js
 function selectAll() {

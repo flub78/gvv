@@ -457,7 +457,7 @@ class GrandLivreParser {
                 if ($associated_gvv_compte2 && $associated_gvv) {
                     $checkbox = '<input type="checkbox"'
                         . ' name="cb_' . $line . '"'
-                        . ' onchange="toggleRowSelection(this)">' . $hidden_input;
+                        . ' >' . $hidden_input;
 
                     $num_cheque = "OpenFlyers : " . $mvt['numero_flux'];
                     $club = $compte2['club'];
