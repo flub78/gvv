@@ -537,7 +537,7 @@ class ReleveOperation {
     }
 
     /**
-     * Retorune capital et interets pour les prets
+     * Retourne capital et intérêts pour les prêts
      */
     function remboursement() {
         // Check if the operation is a reimbursement

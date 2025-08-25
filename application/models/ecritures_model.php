@@ -1585,27 +1585,27 @@ array (size=2)
             // Si on n'a qu'une ligne, on retourne juste l'id
 
             // todo: remove once the refactoring is complete
-            if (is_object($op)) {
-                $op->unique_id = $res[0]['id'];
-                $op->unique_image = $this->image($res[0]['id']);
-            } else {
-                $op['unique_id'] = $res[0]['id'];
-                $op['unique_image'] = $this->image($res[0]['id']);
-            }
+            // if (is_object($op)) {
+            $op->unique_id = $res[0]['id'];
+            $op->unique_image = $this->image($res[0]['id']);
+            // } else {
+            //     $op['unique_id'] = $res[0]['id'];
+            //     $op['unique_image'] = $this->image($res[0]['id']);
+            // }
         }
-        if (is_object($op)) {
-            return [
-                "selector" => $hash,
-                "unique_id" => isset($op->unique_id) ? $op->unique_id : null,
-                "unique_image" => isset($op->unique_image) ? $op->unique_image : null
-            ];
-        } else {
-            return [
-                "selector" => $hash,
-                "unique_id" => isset($op['unique_id']) ? $op['unique_id'] : null,
-                "unique_image" => isset($op['unique_image']) ? $op['unique_image'] : null
-            ];
-        }
+        // if (is_object($op)) {
+        return [
+            "selector" => $hash,
+            "unique_id" => isset($op->unique_id) ? $op->unique_id : null,
+            "unique_image" => isset($op->unique_image) ? $op->unique_image : null
+        ];
+        // } else {
+        //     return [
+        //         "selector" => $hash,
+        //         "unique_id" => isset($op['unique_id']) ? $op['unique_id'] : null,
+        //         "unique_image" => isset($op['unique_image']) ? $op['unique_image'] : null
+        //     ];
+        // }
     }
 
     /**
