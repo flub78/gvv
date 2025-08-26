@@ -9,7 +9,6 @@
 class ReleveParser {
     private $data = [];
 
-
     /**
      * Constructeur de la classe
      */

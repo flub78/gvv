@@ -7,8 +7,14 @@
  * 
  */
 class ObjectReleveParser {
-    private $data = [];
 
+    private $CI;
+
+    public function __construct() {
+        $this->CI = &get_instance();
+        $this->CI->load->library('ReleveOperation');
+    }
+    private $data = [];
 
     /**
      * Checks if a string or at least one element of an array of strings is found within another string

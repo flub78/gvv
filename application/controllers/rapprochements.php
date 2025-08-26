@@ -40,6 +40,8 @@ class Rapprochements extends CI_Controller {
         $this->lang->load('rapprochements');
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');
+
+        $this->load->library('Rapprocher');
     }
 
     /**
@@ -118,7 +120,6 @@ class Rapprochements extends CI_Controller {
         if ($filename == "") {
             $filename = $this->session->userdata('file_releve');
         }
-        $this->load->library('ReleveParser');
         $this->load->library('ObjectReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
@@ -129,9 +130,10 @@ class Rapprochements extends CI_Controller {
 
         try {
             $parser2 = new ObjectReleveParser();
-
+            $rapprocheur = new Rapprocher();
             try {
                 $releve = $parser2->parse($filename);
+                $rapprocheur->rapproche($releve);
                 // gvv_dump($releve);
             } catch (Exception $e) {
                 $msg = "Erreur: " . $e->getMessage() . "\n";
