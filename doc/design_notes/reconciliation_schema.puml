@@ -1,0 +1,56 @@
+@startuml reconciliation_schema
+
+!define LIGHTBLUE #E1F5FE
+!define LIGHTGREEN #E8F5E8
+!define LIGHTYELLOW #FFF9C4
+!define LIGHTPINK #FCE4EC
+
+title Rapprochement bancaire
+
+class ReleveParser LIGHTBLUE {
+    +parse() : ParserResult
+}
+
+class ParserResult LIGHTYELLOW {
+    ' Structure contenant les éléments identifiés
+    ' dans le relevé de compte
+}
+
+class Reconciliator LIGHTGREEN {
+    -parserResult : ParserResult
+    -statementOperations : StatementOperation[]
+    --
+    +Reconciliator(parserResult : ParserResult)
+    +to_HTML() : String
+    +getResults() : ReconciliationResult
+}
+
+class StatementOperation LIGHTPINK {
+    -date : Date
+    -montant : Float
+    -nature : String
+    -reconciliationLines : ReconciliationLine[]
+    --
+    +to_HTML() : String
+}
+
+class ReconciliationLine LIGHTBLUE {
+    -montant : Float
+    -gvvEntry : Object
+    --
+    +to_HTML() : String
+}
+
+' Relations
+ReleveParser --> ParserResult : "produit"
+Reconciliator --> ParserResult : "utilise"
+Reconciliator "1" *-- "*" StatementOperation : "contient"
+StatementOperation "1" *-- "*" ReconciliationLine : "contient"
+
+' Notes explicatives
+note right of ReleveParser : Parse le relevé de compte\net retourne un ParserResult
+note right of Reconciliator : Fait le rapprochement avec\nles écritures GVV en base
+note right of StatementOperation : Résultat du rapprochement\nd'une opération du relevé
+note right of ReconciliationLine : Rapprochement d'un montant.\nUne ou plusieurs par StatementOperation
+
+@enduml
