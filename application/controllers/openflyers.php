@@ -196,12 +196,10 @@ class OpenFlyers extends CI_Controller {
             $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
 
             load_last_view('openflyers/tableOperations', $data);
-            
         } catch (Exception $e) {
             gvv_error($e->getMessage());
             $data['error'] = $e->getMessage();
             load_last_view('openflyers/select_operations', $data);
-
         }
     }
 
@@ -404,12 +402,6 @@ class OpenFlyers extends CI_Controller {
      */
     public function create_soldes() {
 
-        // $posts = $this->input->post();
-        // echo "<pre>";
-        // print_r($posts);
-        // echo "</pre>";
-        // exit;
-
         $compare_soldes = $this->input->post('compare_soldes');
         $import_date = $this->input->post("import_date");
 
@@ -449,7 +441,7 @@ class OpenFlyers extends CI_Controller {
                     $line = str_replace("cb_", "", $key);
 
                     $import_key = "import_" . $line;
-                    $import_params = html_entity_decode($posts[$import_key]);
+                    $import_params = base64_decode($posts[$import_key]);
                     $params = json_decode($import_params, true);
 
                     // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
@@ -482,9 +474,9 @@ class OpenFlyers extends CI_Controller {
                 // Key starts with "cb_" ce sont les checkboxes actives
                 $line = str_replace("cb_", "", $key);
                 $import_key = "import_" . $line;
-                $import_params = html_entity_decode($posts[$import_key]);
-                $params = json_decode($import_params, true);
+                $import_params = base64_decode($posts[$import_key]);
 
+                $params = json_decode($import_params, true);
                 $date = date_db2ht($params['date']);
                 $intitule = $params['intitule'];
                 $description = $params['description'];
@@ -601,7 +593,7 @@ class OpenFlyers extends CI_Controller {
     }
 
     function delete_all_ecritures() {
-        
+
         $posts = $this->input->post();
 
         $status = "";

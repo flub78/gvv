@@ -142,24 +142,30 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             Ecritures GVV
         </button>
     </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="saisie-tab" data-bs-toggle="tab" data-bs-target="#saisie" type="button" role="tab"
+            aria-controls="saisie" aria-selected="false">
+            Saisie assistée des écritures GVV
+        </button>
+    </li>
 </ul>
 
 <script>
-// Restore active tab on page load
-document.addEventListener('DOMContentLoaded', function() {
-    let activeTab = localStorage.getItem('activeTab');
-    if (activeTab) {
-        const tab = new bootstrap.Tab(document.querySelector(activeTab));
-        tab.show();
-    }
-});
-
-// Store active tab when changed
-document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) {
-    tab.addEventListener('shown.bs.tab', function(e) {
-        localStorage.setItem('activeTab', '#' + e.target.id);
+    // Restore active tab on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        let activeTab = localStorage.getItem('activeTab');
+        if (activeTab) {
+            const tab = new bootstrap.Tab(document.querySelector(activeTab));
+            tab.show();
+        }
     });
-});
+
+    // Store active tab when changed
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            localStorage.setItem('activeTab', '#' + e.target.id);
+        });
+    });
 </script>
 
 <div class="tab-content" id="myTabContent">
@@ -234,6 +240,12 @@ document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) 
     <div class="tab-pane fade" id="gvv" role="tabpanel" aria-labelledby="gvv-tab">
         <?php
         echo form_open_multipart('rapprochements/delete_all');
+        ?>
+        <div class="actions mb-3 mt-3">
+            <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+            <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        </div>
+        <?php
 
         echo '<div class="mt-3">';
         echo table_from_array($gvv_lines, array(
@@ -243,7 +255,7 @@ document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) 
         ));
         echo '</div>';
         ?>
-        
+
         <div class="actions mb-3 mt-3">
             <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
             <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
@@ -266,14 +278,59 @@ document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) 
                 'class' => 'btn btn-danger ms-2 mb-4'
             ));
         }
+        ?>
+
+        <?php
         echo form_close();
         ?>
     </div>
-</div>
+
+    <!-- Onglet Saisie assistée -->
+    <div class="tab-pane fade" id="saisie" role="tabpanel" aria-labelledby="saisie-tab">
+        <p class="mt-2">Saisie assistée des écritures GVV</p>
+        <?php
+        echo form_open_multipart('rapprochements/auto_create_operations');
+        ?>
+        <div class="actions mb-3 mt-3">
+            <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+            <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        </div>
+        <?php
+        echo form_open_multipart('rapprochements/delete_all');
+
+        echo '<div class="mt-3">';
+        echo table_from_array($gvv_lines, array(
+            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+            'class' => 'datatable table'
+        ));
+        echo '</div>';
+        ?>
+
+        <div class="actions mb-3 mt-3">
+            <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+            <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+        </div>
+
+        <?php
+        if ($section) {
+
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => "Générer les écritures",
+                'class' => 'btn btn-primary mb-4'
+            ));
+
+        }
+        echo form_close();
+        ?>
+        <p>Les écritures sont générées et rapprochées.</p>
+    </div>
 
 
 
-<?php
-echo '</div>';
+    <?php
+    echo '</div>';
 
-?>
+    ?>

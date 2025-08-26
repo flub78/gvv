@@ -450,14 +450,14 @@ class GrandLivreParser {
                     'compte2' => $associated_gvv_compte2
                 );
                 $mvt_data_json = json_encode($mvt_data, JSON_UNESCAPED_UNICODE);
-
+                $encoded = base64_encode($mvt_data_json);
                 // $hidden_input = '<input type="hidden" name="import_' . $line . '" value="' . $mvt_data_json . '">';
-                $hidden_input = form_hidden('import_' . $line, $mvt_data_json);
+                $hidden_input = form_hidden('import_' . $line, $encoded);
 
                 if ($associated_gvv_compte2 && $associated_gvv) {
                     $checkbox = '<input type="checkbox"'
                         . ' name="cb_' . $line . '"'
-                        . ' onchange="toggleRowSelection(this)">' . $hidden_input;
+                        . ' >' . $hidden_input;
 
                     $num_cheque = "OpenFlyers : " . $mvt['numero_flux'];
                     $club = $compte2['club'];
@@ -509,7 +509,13 @@ class GrandLivreParser {
                 $line++;
             }
 
+            // quand on filtre on affiche pas de comptes qui ont 0 opérations
+            if ($filter_active && ($nb_lignes == 0)) {
+                unset($result[$id_of]);
+                continue;
+            }   
             $result[$id_of]['numbers'][1] = $nb_lignes . " / " . $result[$id_of]['numbers'][1];
+
         }
         return $result;
     }
