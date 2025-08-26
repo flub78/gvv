@@ -380,13 +380,11 @@ class Rapprochements extends CI_Controller {
             }
 
             // informations sur le rapprochement
-            $count_selected++;   // opérations non filtrées out
-
+            $count_selected++;   // opérations non filtrées
             $count = $op->selector_count ?? 0;
             $count_choices += $count;
 
             $status = '';
-
             $hidden = '<input type="hidden" name="string_releve_' . $op->line . '" value="' . $op->str_releve() . '">';
 
             $checkbox = '';
@@ -412,7 +410,7 @@ class Rapprochements extends CI_Controller {
             }
 
             if ($rapproches) {
-                $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" onchange="toggleRowSelection(this)">';
+                $status = '<input type="checkbox" name="cbdel_' . $op->line . '" value="1" >';
                 $status .= '<div class="badge bg-success text-white rounded-pill ms-2" >Rapproché</div>';
                 $status .= $hidden;
                 // Ajout d'un bouton de suppression
@@ -423,9 +421,7 @@ class Rapprochements extends CI_Controller {
                 $ecriture_gvv = anchor_ecriture($id_ecriture_gvv);
                 // gvv_dump($rapproches);
             } else {
-                // $status .= $checkbox;
                 $status .= '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
-                //$status .= $hidden;
             }
 
             $count_str = ($rapproches) ? "" : "Choix: $count.";
@@ -434,9 +430,8 @@ class Rapprochements extends CI_Controller {
             } else {
                 $str_type = $op->type;
             }
-            $res[] = [$status, $ecriture_gvv, $str_type, '', $count_str, "Ligne:" . $op->line, 'Ecriture GVV'];
+            $res[] = [$status, $ecriture_gvv, '', '', $count_str, "Ligne:" . $op->line, $str_type];
 
-            // $complete_table = array_merge($complete_table, $res);
             $tables[] = $res;
             $res = [];
         }
@@ -597,27 +592,22 @@ class Rapprochements extends CI_Controller {
         if (! $delta) {
             $delta = 5; // Default delta value
         }
-        $slct = $this->ecritures_model->ecriture_selector($start_date, $end_date, $op->montant(), $compte1, $compte2, $reference_date, $delta);
+        $sel = $this->ecritures_model->ecriture_selector($start_date, $end_date, $op->montant(), $compte1, $compte2, $reference_date, $delta);
 
-        $sel = $slct['selector'];
+        // $sel = $slct['selector'];
 
         $smart_mode = $this->session->userdata('rapprochement_smart_mode') ?? false;
         if ($smart_mode) {
             // Smart mode: filter out entries that are too unlikely to match
             $sel = $this->smart_ajust2($sel, $op);
-            if (count($sel) == 1) {
-                $unique_id = key($sel[0]);
-                $op->unique_id = $unique_id;
-                $op->unique_image = $this->ecritures_model->image($unique_id);
-            }
+        }
+        if (count($sel) == 1) {
+            $unique_id = key($sel);
+            $op->unique_id = $unique_id;
+            $op->unique_image = $this->ecritures_model->image($unique_id);
         } else {
-            if ($slct['unique_id']) {
-                $op->unique_id = $slct['unique_id'];
-                $op->unique_image = $slct['unique_image'];
-            } else {
-                unset($op->unique_id);
-                unset($op->unique_image);
-            }
+            unset($op->unique_id);
+            unset($op->unique_image);
         }
 
         $op->selector_count = count($sel);
@@ -882,7 +872,7 @@ class Rapprochements extends CI_Controller {
 
             if ($correlation >= $threshold) {
                 // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
-                $filtered_sel[] = [$key => $ecriture];
+                $filtered_sel[$key] = $ecriture;
                 $ignored = "";
             } else {
                 // Sinon, on l'ignore

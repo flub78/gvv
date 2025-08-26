@@ -106,7 +106,7 @@ class SoldesParser {
 
             $checkbox = '<input type="checkbox"'
                 . ' name="cb_' . $line . '"'
-                . ' onchange="toggleRowSelection(this)">';
+                . ' >';
             $id_of = $row[0];
             $nom_of = $row[1];
             $profil = $row[2];
@@ -131,7 +131,7 @@ class SoldesParser {
             if ($associated_gvv && !$initialized) {
                 $checkbox = '<input type="checkbox"'
                     . ' name="cb_' . $line . '"'
-                    . ' onchange="toggleRowSelection(this)">';
+                    . ' >';
                 $hidden_input = form_hidden('import_' . $line, $solde_json);
 
                 $checkbox .= $hidden_input;

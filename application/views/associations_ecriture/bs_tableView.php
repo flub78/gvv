@@ -34,7 +34,7 @@ echo '</div>';
         console.log("associateEcriture, ecriture=" + ecriture + ", str=" + str);
 
         // Call server to associate account
-        fetch('<?= site_url() ?>/associations_ecriture/associate?string_releve=' + str + '&ecriture=' + encodeURIComponent(ecriture))
+        fetch('/associations_ecriture/associate?string_releve=' + str + '&ecriture=' + encodeURIComponent(ecriture))
             .then(response => response.json())
             .then(data => console.log('Association response:', data))
             .catch(error => console.error('Error:', error));

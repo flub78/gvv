@@ -1569,7 +1569,6 @@ array (size=2)
         } else {
             $res = $db_res->result_array();
         }
-
         $hash = array();
         foreach ($res as $key => $row) {
             $hash[$row['id']] = $this->image($row['id']);
@@ -1579,33 +1578,10 @@ array (size=2)
                 . " " . euro($row['montant'])
                 . " " . $row['description']
                 . " " . $num_cheque;
+            
         }
-
-        if (count($res) == 1) {
-            // Si on n'a qu'une ligne, on retourne juste l'id
-
-            // todo: remove once the refactoring is complete
-            if (is_object($op)) {
-                $op->unique_id = $res[0]['id'];
-                $op->unique_image = $this->image($res[0]['id']);
-            } else {
-                $op['unique_id'] = $res[0]['id'];
-                $op['unique_image'] = $this->image($res[0]['id']);
-            }
-        }
-        if (is_object($op)) {
-            return [
-                "selector" => $hash,
-                "unique_id" => isset($op->unique_id) ? $op->unique_id : null,
-                "unique_image" => isset($op->unique_image) ? $op->unique_image : null
-            ];
-        } else {
-            return [
-                "selector" => $hash,
-                "unique_id" => isset($op['unique_id']) ? $op['unique_id'] : null,
-                "unique_image" => isset($op['unique_image']) ? $op['unique_image'] : null
-            ];
-        }
+        // gvv_dump($hash, false);
+        return $hash;
     }
 
     /**
