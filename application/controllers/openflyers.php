@@ -662,7 +662,7 @@ class OpenFlyers extends CI_Controller {
         foreach ($gvv_lines as $line) {
             $elt = [];
             $status = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1" >';
-            if ($line['of_synchronized']) {
+            if (!$line['of_synchronized']) {
                 $elt[] = "";
             } else {
                 $elt[] = $status;

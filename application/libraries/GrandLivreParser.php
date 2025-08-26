@@ -323,7 +323,6 @@ class GrandLivreParser {
         // $table = $this->parse($filePath);
         $line = 0;
         $result = [];
-        $flux_of = [];
 
         // Début d'une section pour un compte
         foreach ($table['comptes'] as $row) {
@@ -348,22 +347,22 @@ class GrandLivreParser {
              * Si un compte est associé et que tous les comptes d'écriture sont associés OK
              */
 
-            $associated_gvv = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
+            $associated_gvv_account = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
             if ($section) {
                 $associated_gvv_all = $CI->associations_of_model->get_gvv_account($id_of);
-                if ($associated_gvv_all && ! $associated_gvv) {
+                if ($associated_gvv_all && ! $associated_gvv_account) {
                     // le compte est associé à une autre section on saute le compte
                     continue;
                 }
             }
 
             // Si le compte est associé
-            if ($associated_gvv) {
+            if ($associated_gvv_account) {
                 // On affiche un lien vers le journal du compte
                 // JSON encode the flux_of array for the compte
                 $flux_of_json = json_encode($row['flux_of'], JSON_UNESCAPED_UNICODE);
                 $compte_gvv = anchor_compte(
-                    $associated_gvv,
+                    $associated_gvv_account,
                     [],
                     ['of_synchronized' => $flux_of_json]
                 );
@@ -371,7 +370,7 @@ class GrandLivreParser {
 
 
                 $compte_gvv .= form_hidden('flux_of_' . $id_of, $flux_of_json);
-                $compte = $CI->comptes_model->get_by_id('id', $associated_gvv);
+                $compte = $CI->comptes_model->get_by_id('id', $associated_gvv_account);
                 $is_411 = ($compte['codec'] == "411");
             } else {
                 // On affiche un sélecteur
@@ -379,7 +378,7 @@ class GrandLivreParser {
                     . $id_of . ',\'' . $nom_of  . '\')"';
                 $compte_gvv = dropdown_field(
                     "compte_" . $line,
-                    $associated_gvv,
+                    $associated_gvv_account,
                     $compte_selector,
                     $attrs
                 );
@@ -391,7 +390,7 @@ class GrandLivreParser {
             if ($section && ! $is_411) continue;
 
             if ($filter_active) {
-                if ($current_client && $current_client != $associated_gvv && $current_client != 'all') {
+                if ($current_client && $current_client != $associated_gvv_account && $current_client != 'all') {
                     // Si on a un client actif et qu'il ne correspond pas au compte, on saute
                     continue;
                 }
@@ -434,7 +433,7 @@ class GrandLivreParser {
                         . $id_of . ',\'' . $nom_of  . '\')"';
                     $compte2_gvv = dropdown_field(
                         "compte_" . $line,
-                        $associated_gvv,
+                        $associated_gvv_account,
                         $compte_selector,
                         $attrs
                     );
@@ -446,7 +445,7 @@ class GrandLivreParser {
                     'description' => $mvt['numero_flux'],
                     'debit' => $mvt['debit'],
                     'credit' => $mvt['credit'],
-                    'compte1' => $associated_gvv,
+                    'compte1' => $associated_gvv_account,
                     'compte2' => $associated_gvv_compte2
                 );
                 $mvt_data_json = json_encode($mvt_data, JSON_UNESCAPED_UNICODE);
@@ -454,7 +453,7 @@ class GrandLivreParser {
                 // $hidden_input = '<input type="hidden" name="import_' . $line . '" value="' . $mvt_data_json . '">';
                 $hidden_input = form_hidden('import_' . $line, $encoded);
 
-                if ($associated_gvv_compte2 && $associated_gvv) {
+                if ($associated_gvv_compte2 && $associated_gvv_account) {
                     $checkbox = '<input type="checkbox"'
                         . ' name="cb_' . $line . '"'
                         . ' >' . $hidden_input;
