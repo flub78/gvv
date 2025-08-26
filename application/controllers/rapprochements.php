@@ -41,7 +41,7 @@ class Rapprochements extends CI_Controller {
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');
 
-        $this->load->library('Rapprocher');
+        $this->load->library('Reconciliator');
     }
 
     /**
@@ -130,11 +130,10 @@ class Rapprochements extends CI_Controller {
 
         try {
             $parser2 = new ObjectReleveParser();
-            $rapprocheur = new Rapprocher();
             try {
-                $releve = $parser2->parse($filename);
-                $rapprocheur->rapproche($releve);
-                // gvv_dump($releve);
+                $parser_result = $parser2->parse($filename);
+                $reconciliator = new Reconciliator($parser_result);
+                // $reconciliator->dump();
             } catch (Exception $e) {
                 $msg = "Erreur: " . $e->getMessage() . "\n";
                 gvv_error($msg);
@@ -157,40 +156,40 @@ class Rapprochements extends CI_Controller {
 
             $basename = basename($filename);
             $header = [];
-            $header[] = ["Banque: ",  $releve['bank'], '', ''];
+            $header[] = ["Banque: ",  $parser_result['bank'], '', ''];
 
-            if ($releve['gvv_bank']) {
-                $compte_bank_gvv = anchor_compte($releve['gvv_bank']);
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
+            if ($parser_result['gvv_bank']) {
+                $compte_bank_gvv = anchor_compte($parser_result['gvv_bank']);
+                $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
             } else {
                 // On affiche un sélecteur
                 $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
                 $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
-                    . $releve['iban']  . '\')"';
+                    . $parser_result['iban']  . '\')"';
                 $compte_bank_gvv = dropdown_field(
                     "compte_bank",
                     $associated_gvv,
                     $compte_selector,
                     $attrs
                 );
-                $header[] = ["IBAN: ",  $releve['iban'], 'Compte GVV:', $compte_bank_gvv];
+                $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
             }
 
             // d’abord les opérations
             $data['section'] = $this->sections_model->section();
-            foreach ($releve['ops'] as $op) {
+            foreach ($parser_result['ops'] as $op) {
                 $op->associate();
             }
-            $ot = $this->operation_table2($releve, $recognized_types);
+            $ot = $this->operation_table2($parser_result, $recognized_types);
             $data['html_tables'] = $this->tables2Html($ot['tables']);
 
-            $header[] = ["Section: ",  $releve['section'], 'Fichier', $basename];
-            $header[] = ["Date de solde: ",  $releve['date_solde'], "Solde: ", euro($releve['solde'])];
-            $header[] = ["Date de début: ",  $releve['start_date'], "Date de fin: ",  $releve['end_date']];
+            $header[] = ["Section: ",  $parser_result['section'], 'Fichier', $basename];
+            $header[] = ["Date de solde: ",  $parser_result['date_solde'], "Solde: ", euro($parser_result['solde'])];
+            $header[] = ["Date de début: ",  $parser_result['start_date'], "Date de fin: ",  $parser_result['end_date']];
             $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
             $header[] = [
                 'Nombre opérations: ',
-                $ot['count_selected'] . ' / ' . count($releve['ops']),
+                $ot['count_selected'] . ' / ' . count($parser_result['ops']),
                 'Rapprochées:',
                 $rap
             ];
@@ -210,7 +209,7 @@ class Rapprochements extends CI_Controller {
             $data['count_selected'] = $ot['count_selected'];
 
             // data for the GVV tab
-            $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $releve['gvv_bank']);
+            $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
 
             $cnt = 0;
             $filtered_lines = [];
@@ -268,11 +267,11 @@ class Rapprochements extends CI_Controller {
     /**
      * Format the operation table for all bank statements
      *
-     * @param array $releve The bank statement data
+     * @param array $parser_result The bank statement data
      * @param bool $with_gvv_info Whether to include GVV information
      * @return array The generated operation table
      */
-    function operation_table2($releve, $recognized_types = null) {
+    function operation_table2($parser_result, $recognized_types = null) {
         /**
          * Pour chaque ligne du relevé on affiche les informations du relevé.
          * On y ajoute les informations de rapprochement si elles existent ou des
@@ -298,7 +297,7 @@ class Rapprochements extends CI_Controller {
         $count_uniques = 0;
         $count_selected = 0;
 
-        foreach ($releve['ops'] as $op) {
+        foreach ($parser_result['ops'] as $op) {
 
             // $complete_table = array_merge($complete_table, $res);
             if ($res) {
@@ -312,8 +311,8 @@ class Rapprochements extends CI_Controller {
                 $count_rapproches++;
             }
 
-            if ($releve['gvv_bank'] != null) {
-                $this->fetch_gvv_matches($releve['start_date'], $releve['end_date'], $releve['gvv_bank'], $op);
+            if ($parser_result['gvv_bank'] != null) {
+                $this->fetch_gvv_matches($parser_result['start_date'], $parser_result['end_date'], $parser_result['gvv_bank'], $op);
             };
 
             if ($filter_active) {
@@ -365,7 +364,7 @@ class Rapprochements extends CI_Controller {
 
             // Puis on génère la table
             // ligne de titre
-            $res[] = $releve['titles'];
+            $res[] = $parser_result['titles'];
             // ligne de valeurs de la ligne de relevé
             $res[] = [
                 $op->local_date(),
