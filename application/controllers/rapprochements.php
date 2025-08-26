@@ -690,8 +690,8 @@ class Rapprochements extends CI_Controller {
                 'id_ecriture_gvv' => $ope['ecriture']
             ]);
         }
-        $filename = $this->session->userdata('file_releve');
-        $this->import_releve_from_file($filename);
+
+        redirect('rapprochements/import_releve_from_file');
     }
 
     /**
@@ -715,9 +715,7 @@ class Rapprochements extends CI_Controller {
                 }
             }
         }
-
-        $filename = $this->session->userdata('file_releve');
-        $this->import_releve_from_file($filename);
+        redirect('rapprochements/import_releve_from_file');
     }
 
     /**
@@ -803,8 +801,7 @@ class Rapprochements extends CI_Controller {
             $this->session->set_userdata('filter_active', false);
         }
 
-        $filename = $this->session->userdata('file_releve');
-        $this->import_releve_from_file($filename);
+        redirect('rapprochements/import_releve_from_file');
     }
 
     /**
