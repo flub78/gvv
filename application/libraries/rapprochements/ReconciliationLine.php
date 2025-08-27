@@ -8,26 +8,26 @@
  */
 class ReconciliationLine {
     private $CI;
-    private $amount;
+    private $rapprochements;
 
     /**
      * Constructeur de la classe
      */
     public function __construct($data = null) {
         $this->CI = &get_instance();
-        
+
         // Initialize with data if provided
-        if ($data !== null && is_array($data)) {
-            $this->amount = $data['amount'] ?? null;
+        if ($data == null) {
+            return;
         }
+
+        if (isset($data['rapprochements'])) {
+            $this->rapprochements = $data['rapprochements'];
+        }
+        echo "ReconciliationLine::__construct\n";
+        gvv_dump($this->rapprochements);
     }
 
-    /**
-     * Retourne le montant de la ligne de rapprochement
-     */
-    public function amount() {
-        return $this->amount;
-    }
 
     /**
      * Génère une représentation HTML de la ligne de rapprochement

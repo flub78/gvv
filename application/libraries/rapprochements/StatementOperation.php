@@ -9,7 +9,7 @@
 class StatementOperation {
     private $CI;
     private $parser_info;
-    private $amounts = [];
+    private $reconciliations_lines = [];
 
     /**
      * Constructeur de la classe
@@ -22,6 +22,7 @@ class StatementOperation {
             return;
         }
 
+        $this->CI->load->library('rapprochements/ReconciliationLine');
         $this->parser_info = $parser_info;
         $this->reconciliate();
     }
@@ -74,7 +75,7 @@ class StatementOperation {
         // Maintenant il faut voir si l'objet est raprochable avec une ou
         // plusieurs écritures comptables
 
-        // D'abord on essaye avec le montant total
+        $this->reconciliations_lines = $this->get_reconciliations_lines();
 
         gvv_dump($this->parser_info);
         $this->dump("StatementOperation");
@@ -121,6 +122,10 @@ class StatementOperation {
         return null;
     }
 
+    public function currency() {
+        return isset($this->parser_info->currency) ? $this->parser_info->currency : null;
+    }
+
     public function interbank_label() {
         return isset($this->parser_info->interbank_label) ? $this->parser_info->interbank_label : null;
     }
@@ -136,5 +141,54 @@ class StatementOperation {
     public function type() {
         // todo move the treatment to here
         return isset($this->parser_info->type) ? $this->parser_info->type : null;
+    }
+
+    public function reconciliations_lines() {
+        return $this->reconciliations_lines;
+    }
+
+    public function get_reconciliations_lines() {
+        $lines = [];
+        if ($this->type() === 'prelevement_pret') {
+            // split the amount into two parts
+            return $lines;
+        }
+
+        // si il y a déjà une ou plusieurs écritures associées
+        // On crée une ligne de rapprochement par écriture
+        $string_releve = $this->str_releve();
+
+        $gvv_ecritures_list = $this->CI->associations_ecriture_model->get_by_string_releve($string_releve);
+        foreach ($gvv_ecritures_list as $gvv_ecriture) {
+            $line = new ReconciliationLine(['rapprochements' => $gvv_ecriture]);
+            $lines[] = $line;
+        }
+        if (!empty($lines)) {
+            return $lines;
+        }
+
+        // Si on sait proposer une ou plusieurs écritures à rapprocher
+        // Avec le montant global
+        // On crée les objets et retourne la liste
+
+        // Si il existe une proposition unique de décomposition du montant
+        // on va la proposer
+
+        // Ni rapprochements ni suggestions
+        return [];
+    }
+
+    public function str_releve() {
+
+        $str = "";
+        $str .= $this->date() . "_";
+        $str .= $this->nature() . "_";
+        $str .= $this->amount() . "_";
+        $str .= $this->currency() . "_";
+        $str .= $this->value_date() . "_";
+        $str .= $this->interbank_label() . "_";
+        $str .= implode(" ", $this->comments()) . "_";
+        $str = preg_replace('/[^a-zA-Z0-9]+/', '_', $str);
+        return $str;
     }
 }

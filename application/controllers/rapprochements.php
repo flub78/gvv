@@ -245,6 +245,7 @@ class Rapprochements extends CI_Controller {
      * the result is safe to be passed as a post parameter
      */
     function str_releve($op) {
+        gvv_dump("str_releve deprecated");
         $parts = [
             $op['Date'],
             $op["Nature de l'opération"],

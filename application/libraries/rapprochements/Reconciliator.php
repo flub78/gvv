@@ -28,7 +28,7 @@ class Reconciliator {
         }
 
         $this->parser_result = $parser_result;
-        // $this->reconciliate();
+        $this->reconciliate();
     }
 
     /**

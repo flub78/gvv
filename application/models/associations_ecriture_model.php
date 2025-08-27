@@ -20,13 +20,9 @@ class Associations_ecriture_model extends Common_Model {
      */
     public function select_page($nb = 1000, $debut = 0) {
         $this->load->model('comptes_model');
+        $this->load->model('ecritures_model');
 
         $section = $this->gvv_model->section();
-
-        // $db_res = $this->db
-        //     ->select('a.id, a.string_releve, a.id_ecriture_gvv, c.club')
-        //     ->from("associations_ecriture as a")
-        //     ->join("comptes as c", "a.id_ecriture_gvv = c.id", "left");
 
         $db_res = $this->db
             ->select('a.id, a.string_releve, a.id_ecriture_gvv, e.club, s.nom as nom_section')
@@ -66,6 +62,23 @@ class Associations_ecriture_model extends Common_Model {
         return $select;
     }
 
+    function create($data) {
+
+        // first check that there is already some matching elements
+        $this->db
+            ->where('string_releve', $data['string_releve'])
+            ->where('id_ecriture_gvv', $data['id_ecriture_gvv']);
+        $db_res = $this->db->get($this->table);
+        $res = $this->get_to_array($db_res);
+
+        if (!empty($res)) {
+            // If we found matching elements, we can return them
+            return true;
+        }
+
+        return $this->insert($data);
+    }
+
     /**
      * Retourne une chaîne qui identifie une ligne de façon unique.
      */
@@ -87,8 +100,25 @@ class Associations_ecriture_model extends Common_Model {
      */
     public function get_by_string_releve($string_releve) {
         $this->db->where('string_releve', $string_releve);
+        $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
         $db_res = $this->db->get($this->table);
-        return $this->get_to_array($db_res);
+        $result = $this->get_to_array($db_res);
+        // Return only the first element for each group
+        $rapprochements = !empty($result) ? [$result[0]] : [];
+
+        // maybe that I will need to fetch additional information from the ecriture
+        // like the amount or the date
+        foreach ($rapprochements as &$rapprochement) {
+            try {
+                $ecriture = $this->ecritures_model->get_by_id('id', $rapprochement['id_ecriture_gvv']);
+            } catch (Exception $ex) {
+                echo ('Exception in get_by_string_releve: ' . $ex->getMessage());
+                exit;
+            }
+            $rapprochement['ecriture'] = $ecriture;
+        }
+        // gvv_dump($rapprochements);
+        return $rapprochements;
     }
 
     /**
