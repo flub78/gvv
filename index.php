@@ -18,8 +18,8 @@
  * NOTE: If you change these, also change the error_reporting() code below
  *
  */
-// define('ENVIRONMENT', 'development');
-define('ENVIRONMENT', 'production');
+define('ENVIRONMENT', 'development');
+// define('ENVIRONMENT', 'production');
 
 // xdebug_break();
 if (php_sapi_name() === 'cli') {
@@ -38,7 +38,8 @@ if (defined('ENVIRONMENT')) {
 	switch (ENVIRONMENT) {
 		case 'development':
 			error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE);
-			// error_reporting(E_ALL);
+			error_reporting(E_ALL);
+			ini_set('display_errors', 1);
 			break;
 
 		case 'testing':
