@@ -120,7 +120,7 @@ class Rapprochements extends CI_Controller {
         if ($filename == "") {
             $filename = $this->session->userdata('file_releve');
         }
-        $this->load->library('rapprochements/ObjectReleveParser');
+        $this->load->library('rapprochements/ReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
@@ -129,7 +129,7 @@ class Rapprochements extends CI_Controller {
         $type_selector = $this->session->userdata('type_selector');
 
         try {
-            $parser2 = new ObjectReleveParser();
+            $parser2 = new ReleveParser();
             try {
                 $parser_result = $parser2->parse($filename);
                 $reconciliator = new Reconciliator($parser_result);

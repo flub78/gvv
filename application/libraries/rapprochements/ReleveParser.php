@@ -6,7 +6,7 @@
  * Parsing des relevés bancaires au format CSV, extraction des opérations
  * 
  */
-class ObjectReleveParser {
+class ReleveParser {
 
     private $CI;
 
@@ -39,6 +39,7 @@ class ObjectReleveParser {
      * Attempt to determine the operation type. 
      * Warning: this function may rely a lot on the bank conventions
      * and so be fragile if the bank does not stick to the format.
+     * todo: to move inside the reconciliator
      */
     function operation_type($operation) {
 
@@ -96,7 +97,6 @@ class ObjectReleveParser {
             $op = new ReleveOperation($operation);
             $data['ops'][] = $op;
         }
-        // $data['operations'][] = $operation;
     }
 
     /**
@@ -145,6 +145,7 @@ class ObjectReleveParser {
                 $data['iban'] = $fields[0];
                 $data['section'] = $fields[1];
 
+                // Todo, remove whence it is done by the reconciliator
                 $bank_account = $CI->associations_releve_model->get_gvv_account($data['iban']);
                 if ($bank_account) {
                     $data['gvv_bank'] = $bank_account;
@@ -245,6 +246,12 @@ class ObjectReleveParser {
     }
 
 
+    /**
+     * Retourne les types d'opérations reconnus
+     * 
+     * @return array Associative array des types d'opérations
+     * todo: to move inside the reconciliator
+     */
     function recognized_types() {
         return $operations = [
             "cheque_debite"       => "Chèque débité",

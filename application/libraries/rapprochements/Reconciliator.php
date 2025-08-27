@@ -11,6 +11,7 @@
 class Reconciliator {
     private $CI;
     private $parser_result;
+    private $gvv_bank_account;
 
     /**
      * Constructeur de la classe
@@ -19,6 +20,7 @@ class Reconciliator {
         $this->CI = &get_instance();
         // Chargement des modèles et bibliothèques nécessaires
         $this->CI->load->model('associations_releve_model');
+        $this->CI->load->library('rapprochements/StatementOperation');
 
         // Only run reconciliation if we have parser result
         if ($parser_result == null) {
@@ -69,6 +71,8 @@ class Reconciliator {
             return;
         }
 
+        $this->gvv_bank_account = $this->CI->associations_releve_model->get_gvv_account($this->iban());
+
         $filter_active = $this->CI->session->userdata('filter_active');
         $startDate = $this->CI->session->userdata('startDate');
         $endDate = $this->CI->session->userdata('endDate');
@@ -103,7 +107,7 @@ class Reconciliator {
 
             // Entrée de relevé à traiter, elle sera peut-être éliminé quand même en fonction de ses
             // caractéristiques, mais on commence l'analyse
-            gvv_dump($op);
+            $statement_operation = new StatementOperation($op);
         }
 
         // $this->dump_parser_result(false);
@@ -123,7 +127,7 @@ class Reconciliator {
     }
 
     public function gvv_bank_account() {
-        return $this->parser_result['gvv_bank'] ?? null;
+        return $this->gvv_bank_account;
     }
 
     /**
