@@ -133,7 +133,6 @@ class Rapprochements extends CI_Controller {
             try {
                 $parser_result = $parser2->parse($filename);
                 $reconciliator = new Reconciliator($parser_result);
-                // $reconciliator->dump();
             } catch (Exception $e) {
                 $msg = "Erreur: " . $e->getMessage() . "\n";
                 gvv_error($msg);

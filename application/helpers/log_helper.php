@@ -107,6 +107,8 @@ if (!function_exists('gvv_dump')) {
 		print_r($string);
 		echo "</pre>";
 		if ($dye) {
+			flush();
+			ob_flush();
 			exit;
 		}
 	}
