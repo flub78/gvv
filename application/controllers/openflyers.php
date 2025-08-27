@@ -37,7 +37,7 @@ class OpenFlyers extends CI_Controller {
         $this->load->model('comptes_model');
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
-        $this->load->library('SoldesParser');
+        $this->load->library('openflyers/SoldesParser');
     }
 
     /**
@@ -119,7 +119,7 @@ class OpenFlyers extends CI_Controller {
      */
     public function import_operations_from_file($filename = null, $status = "") {
 
-        $this->load->library('GrandLivreParser');
+        $this->load->library('openflyers/GrandLivreParser');
 
         if (!$filename) {
             $filename = $this->session->userdata('file_operations');

@@ -596,7 +596,7 @@ class Tests extends CI_Controller {
     function test_rapprochement_operations() {
         echo ("Test rapprochement des opérations bancaires<br>");
 
-        $this->load->library('ReleveOperation');
+        $this->load->library('rapprochements/ReleveOperation');
 
         $op = new ReleveOperation();
 

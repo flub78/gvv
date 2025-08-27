@@ -41,7 +41,7 @@ class Rapprochements extends CI_Controller {
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');
 
-        $this->load->library('Reconciliator');
+        $this->load->library('rapprochements/Reconciliator');
     }
 
     /**
@@ -120,7 +120,7 @@ class Rapprochements extends CI_Controller {
         if ($filename == "") {
             $filename = $this->session->userdata('file_releve');
         }
-        $this->load->library('ObjectReleveParser');
+        $this->load->library('rapprochements/ObjectReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
