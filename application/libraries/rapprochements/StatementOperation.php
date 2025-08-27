@@ -147,6 +147,11 @@ class StatementOperation {
         return $this->reconciliations_lines;
     }
 
+    /**
+     * Récupère les lignes de rapprochement associées à cette opération.
+     * ou les lignes de suggestions
+     * @return array
+     */
     public function get_reconciliations_lines() {
         $lines = [];
         if ($this->type() === 'prelevement_pret') {
@@ -170,9 +175,15 @@ class StatementOperation {
         // Si on sait proposer une ou plusieurs écritures à rapprocher
         // Avec le montant global
         // On crée les objets et retourne la liste
+        if (!empty($lines)) {
+            return $lines;
+        }
 
         // Si il existe une proposition unique de décomposition du montant
         // on va la proposer
+        if (!empty($lines)) {
+            return $lines;
+        }
 
         // Ni rapprochements ni suggestions
         return [];
