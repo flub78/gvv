@@ -9,7 +9,8 @@
 class StatementOperation {
     private $CI;
     private $parser_info;
-    private $reconciliations_lines = [];
+    private $reconciliated = [];
+    private $proposals = [];
 
     /**
      * Constructeur de la classe
@@ -23,6 +24,8 @@ class StatementOperation {
         }
 
         $this->CI->load->library('rapprochements/ReconciliationLine');
+        $this->CI->load->model('ecritures_model');
+
         $this->parser_info = $parser_info;
         $this->reconciliate();
     }
@@ -46,8 +49,12 @@ class StatementOperation {
      * @param bool $exit Indique si le script doit s'arrêter après le dump
      */
     public function dump($title = "", $exit = true) {
+        $bt = debug_backtrace();
+        $caller = $bt[0];
         echo "<pre>";
         echo "$title:\n";
+        echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
+
         echo "date: " . $this->date() . "\n";
         echo "local_date: " . $this->local_date() . "\n";
         echo "value_date: " . $this->value_date() . "\n";
@@ -63,6 +70,10 @@ class StatementOperation {
         }
         echo "line: " . $this->line() . "\n";
         echo "type: " . $this->type() . "\n";
+
+        foreach ($this->reconciliated as $reconciliation) {
+            $reconciliation->dump("rapprochement");
+        }
         echo "</pre>";
         if ($exit) {
             exit;
@@ -75,10 +86,20 @@ class StatementOperation {
         // Maintenant il faut voir si l'objet est raprochable avec une ou
         // plusieurs écritures comptables
 
-        $this->reconciliations_lines = $this->get_reconciliations_lines();
+        $this->reconciliated = $this->get_reconciliated();
 
-        gvv_dump($this->parser_info);
-        $this->dump("StatementOperation");
+        if (empty($this->reconciliated)) {
+            // Look for proposals
+            $this->proposals = $this->get_proposals();
+            $this->dump("StatementOperation");
+        }
+
+        if (empty($this->proposal)) {
+            // try to split into multiple
+            // $this->proposals = $this->get_multiple_proposals();
+        }
+
+        // gvv_dump($this->parser_info);
     }
 
     public function date() {
@@ -143,21 +164,16 @@ class StatementOperation {
         return isset($this->parser_info->type) ? $this->parser_info->type : null;
     }
 
-    public function reconciliations_lines() {
-        return $this->reconciliations_lines;
+    public function reconciliated() {
+        return $this->reconciliated;
     }
 
     /**
      * Récupère les lignes de rapprochement associées à cette opération.
-     * ou les lignes de suggestions
      * @return array
      */
-    public function get_reconciliations_lines() {
+    public function get_reconciliated() {
         $lines = [];
-        if ($this->type() === 'prelevement_pret') {
-            // split the amount into two parts
-            return $lines;
-        }
 
         // si il y a déjà une ou plusieurs écritures associées
         // On crée une ligne de rapprochement par écriture
@@ -168,25 +184,77 @@ class StatementOperation {
             $line = new ReconciliationLine(['rapprochements' => $gvv_ecriture]);
             $lines[] = $line;
         }
-        if (!empty($lines)) {
+        return $lines;
+    }
+
+    /**
+     * les lignes de suggestions
+     * @return array
+     */
+    private function get_proposals() {
+        $lines = [];
+        if ($this->type() === 'prelevement_pret') {
+            // split the amount into two parts
+            // Extract capital amorti and interest amounts from comments
+            $capital = 0.0;
+            $interets = 0.0;
+
+            $comments = $this->comments();
+
+            // Check if we have comments and the first one matches 'CAPITAL AMORTI'
+            if (!empty($comments[0]) && strpos($comments[0], 'CAPITAL AMORTI') !== false) {
+                // Extract the numeric value after ': '
+                $parts = explode(': ', $comments[0]);
+                if (count($parts) == 2) {
+                    $capital = str_replace(',', '.', trim($parts[1]));
+                }
+
+                // Check for interest amount in comments
+                if (!empty($comments[1]) && strpos($comments[1], 'INTERETS') !== false) {
+                    $parts = explode(': ', $comments[1]);
+                    if (count($parts) == 2) {
+                        $interets = str_replace(',', '.', trim($parts[1]));
+                    }
+
+                    $capiltal_lines = $this->get_proposals_for_amount($capital);
+                    $interets_lines = $this->get_proposals_for_amount($interets);
+
+                    $lines = array_merge($capiltal_lines, $interets_lines);
+                }
+            }
+
             return $lines;
+        } else {
+            $lines = $this->get_proposals_for_amount($this->amount());
         }
 
         // Si on sait proposer une ou plusieurs écritures à rapprocher
         // Avec le montant global
         // On crée les objets et retourne la liste
-        if (!empty($lines)) {
-            return $lines;
+        return $lines;
+    }
+
+    private function get_proposals_for_amount($amount) {
+        $lines = [];
+        // Logic to get proposals for a specific amount
+        // On utilise le modèle ecritures_model pour obtenir les écritures
+        // qui correspondent à l'opération du relevé bancaire
+        $delta = $this->CI->session->userdata('rapprochement_delta');
+        if (!$delta) {
+            $delta = 5; // Default delta value
         }
 
-        // Si il existe une proposition unique de décomposition du montant
-        // on va la proposer
-        if (!empty($lines)) {
-            return $lines;
+        if ($this->debit()) {
+            $compte1 = null;
+            // $compte2 = $this->gvv_bank_account();
+        } else {
+            // $compte1 = $this->gvv_bank_account();
+            $compte2 = null;
         }
 
-        // Ni rapprochements ni suggestions
-        return [];
+
+
+        return $lines;
     }
 
     public function str_releve() {

@@ -207,6 +207,9 @@ class Rapprochements extends CI_Controller {
 
             $data['count_selected'] = $ot['count_selected'];
 
+            $data['status'] = "";
+            $data['errors'] = [];
+
             // data for the GVV tab
             $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
 
@@ -574,8 +577,6 @@ class Rapprochements extends CI_Controller {
      * dans certains cas spécieux d'opérations (remboursements d'emprunts on vas séparer en 2
      */
     function fetch_gvv_matches($start_date, $end_date, $bank, &$op) {
-
-        $op->fetch_gvv_matches($start_date, $end_date, $bank);
 
         $reference_date = $op->date();
 

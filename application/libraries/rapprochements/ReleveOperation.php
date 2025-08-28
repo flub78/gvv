@@ -574,37 +574,45 @@ class ReleveOperation {
         return [];
     }
 
-    function fetch_gvv_matches($start_date, $end_date, $bank) {
-        $CI = &get_instance();
-        $CI->load->model('ecritures_model');
+    /**
+     * Fetch GVV matches for the operation
+     *
+     * @param string $start_date Start date for the search
+     * @param string $end_date End date for the search
+     * @param string $bank Bank identifier
+     * Todo: move, it should be built by the reconciliator
+     */
+    // function fetch_gvv_matches($start_date, $end_date, $bank) {
+    //     $CI = &get_instance();
+    //     $CI->load->model('ecritures_model');
 
 
-        // On utilise le modèle ecritures_model pour obtenir les écritures
-        // qui correspondent à l'opération du relevé bancaire
-        $delta = $CI->session->userdata('rapprochement_delta');
-        if (!$delta) {
-            $delta = 5; // Default delta value
-        }
+    //     // On utilise le modèle ecritures_model pour obtenir les écritures
+    //     // qui correspondent à l'opération du relevé bancaire
+    //     $delta = $CI->session->userdata('rapprochement_delta');
+    //     if (!$delta) {
+    //         $delta = 5; // Default delta value
+    //     }
 
-        // dans certains cas on cherche le montant exact, dans d'autre il pourra être découpé entre plusieurs valeurs
+    //     // dans certains cas on cherche le montant exact, dans d'autre il pourra être découpé entre plusieurs valeurs
 
-        $remboursement = $this->remboursement();
-        if ($remboursement) {
-            $list_montant = [$remboursement['capital'], $remboursement['interets']]; // For reimbursement, we use the exact amount
-        } else {
-            $list_montant = [$this->montant()];
-        }
+    //     $remboursement = $this->remboursement();
+    //     if ($remboursement) {
+    //         $list_montant = [$remboursement['capital'], $remboursement['interets']]; // For reimbursement, we use the exact amount
+    //     } else {
+    //         $list_montant = [$this->montant()];
+    //     }
 
-        if ($op->debit) {
-            $compte1 = null;
-            $compte2 = $bank;
-        } else {
-            $compte1 = $bank;
-            $compte2 = null;
-        }
+    //     if ($op->debit) {
+    //         $compte1 = null;
+    //         $compte2 = $bank;
+    //     } else {
+    //         $compte1 = $bank;
+    //         $compte2 = null;
+    //     }
 
-        foreach ($list_montant as $montant) {
-            $select = $CI->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $this->date, $delta);
-        }
-    }
+    //     foreach ($list_montant as $montant) {
+    //         $select = $CI->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $this->date, $delta);
+    //     }
+    // }
 }

@@ -24,8 +24,6 @@ class ReconciliationLine {
         if (isset($data['rapprochements'])) {
             $this->rapprochements = $data['rapprochements'];
         }
-        echo "ReconciliationLine::__construct\n";
-        gvv_dump($this->rapprochements);
     }
 
 
@@ -50,7 +48,7 @@ class ReconciliationLine {
     public function dump($title = "", $exit = true) {
         echo "<pre>";
         echo "$title:\n";
-        echo "amount: " . $this->amount() . "\n";
+        gvv_dump($this->rapprochements, false);
         echo "</pre>";
         if ($exit) {
             exit;

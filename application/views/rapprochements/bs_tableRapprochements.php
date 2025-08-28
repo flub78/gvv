@@ -68,7 +68,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panelsStayOpen-headingOne">
             <div class="accordion-body">
                 <div>
-                    <form action="<?= "filter/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
+                    <form action="<?= "filter/" ?>" method="post" accept-charset="utf-8" name="saisie">
                         <div>
                             <div class="row mb-3">
                                 <div class="col">
