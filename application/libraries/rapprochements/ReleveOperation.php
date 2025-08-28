@@ -24,11 +24,6 @@ class ReleveOperation {
     // todo: for the moment it is an html select, replace by a hash
     public $selector_count;    // Count of selectors associated with the operation
     public $rapproches = [];
-    public $gvv_matches = []; // Matches found in the gvv accounting lines
-    // $gvv_matches is an array of hashes with
-    // [   'id' => 123,
-    //     'image' => '35233: 04/02/2025 100.00€ DELAIRE OLIVIER - Virement - RE 553499071737'
-    // ]
 
     public function __construct($operation = null) {
         // Fill fields from $data array (returned by parser) if provided
@@ -574,45 +569,4 @@ class ReleveOperation {
         return [];
     }
 
-    /**
-     * Fetch GVV matches for the operation
-     *
-     * @param string $start_date Start date for the search
-     * @param string $end_date End date for the search
-     * @param string $bank Bank identifier
-     * Todo: move, it should be built by the reconciliator
-     */
-    // function fetch_gvv_matches($start_date, $end_date, $bank) {
-    //     $CI = &get_instance();
-    //     $CI->load->model('ecritures_model');
-
-
-    //     // On utilise le modèle ecritures_model pour obtenir les écritures
-    //     // qui correspondent à l'opération du relevé bancaire
-    //     $delta = $CI->session->userdata('rapprochement_delta');
-    //     if (!$delta) {
-    //         $delta = 5; // Default delta value
-    //     }
-
-    //     // dans certains cas on cherche le montant exact, dans d'autre il pourra être découpé entre plusieurs valeurs
-
-    //     $remboursement = $this->remboursement();
-    //     if ($remboursement) {
-    //         $list_montant = [$remboursement['capital'], $remboursement['interets']]; // For reimbursement, we use the exact amount
-    //     } else {
-    //         $list_montant = [$this->montant()];
-    //     }
-
-    //     if ($op->debit) {
-    //         $compte1 = null;
-    //         $compte2 = $bank;
-    //     } else {
-    //         $compte1 = $bank;
-    //         $compte2 = null;
-    //     }
-
-    //     foreach ($list_montant as $montant) {
-    //         $select = $CI->ecritures_model->ecriture_selector($start_date, $end_date, $montant, $compte1, $compte2, $this->date, $delta);
-    //     }
-    // }
 }

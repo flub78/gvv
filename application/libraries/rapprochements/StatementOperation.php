@@ -9,24 +9,25 @@
 class StatementOperation {
     private $CI;
     private $parser_info;
-    private $reconciliated = [];
-    private $proposals = [];
+    private $reconciliated = []; // I wonder if it should be a hash too?
+    private $proposals = []; // hash of ecriture images with ecritures id as key
 
     /**
      * Constructeur de la classe
      */
-    public function __construct($parser_info = null) {
+    public function __construct($data = null) {
         $this->CI = &get_instance();
 
         // Initialize with data if provided
-        if ($parser_info == null) {
+        if ($data == null) {
             return;
         }
 
         $this->CI->load->library('rapprochements/ReconciliationLine');
         $this->CI->load->model('ecritures_model');
 
-        $this->parser_info = $parser_info;
+        $this->parser_info = $data['parser_info'];
+        $this->gvv_bank_account = isset($data['gvv_bank_account']) ? $data['gvv_bank_account'] : null;
         $this->reconciliate();
     }
 
@@ -74,6 +75,8 @@ class StatementOperation {
         foreach ($this->reconciliated as $reconciliation) {
             $reconciliation->dump("rapprochement");
         }
+        echo "Proposals:\n";
+        gvv_dump($this->proposals, false);
         echo "</pre>";
         if ($exit) {
             exit;
@@ -91,15 +94,14 @@ class StatementOperation {
         if (empty($this->reconciliated)) {
             // Look for proposals
             $this->proposals = $this->get_proposals();
-            $this->dump("StatementOperation");
-        }
 
-        if (empty($this->proposal)) {
-            // try to split into multiple
-            // $this->proposals = $this->get_multiple_proposals();
-        }
+            if (empty($this->proposals)) {
+                $this->dump("StatementOperation");
 
-        // gvv_dump($this->parser_info);
+                // try to split into multiple
+                // $this->proposals = $this->get_multiple_proposals();
+            }
+        }
     }
 
     public function date() {
@@ -216,10 +218,10 @@ class StatementOperation {
                         $interets = str_replace(',', '.', trim($parts[1]));
                     }
 
-                    $capiltal_lines = $this->get_proposals_for_amount($capital);
+                    $capital_lines = $this->get_proposals_for_amount($capital);
                     $interets_lines = $this->get_proposals_for_amount($interets);
 
-                    $lines = array_merge($capiltal_lines, $interets_lines);
+                    $lines = $capital_lines + $interets_lines;
                 }
             }
 
@@ -246,14 +248,17 @@ class StatementOperation {
 
         if ($this->debit()) {
             $compte1 = null;
-            // $compte2 = $this->gvv_bank_account();
+            $compte2 = $this->gvv_bank_account;
         } else {
-            // $compte1 = $this->gvv_bank_account();
+            $compte1 = $this->gvv_bank_account;
             $compte2 = null;
         }
 
+        $start_date = "2000-01-01";
+        $end_date = "2100-01-01";
+        $reference_date = $this->value_date();
 
-
+        $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
         return $lines;
     }
 

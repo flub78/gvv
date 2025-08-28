@@ -28,7 +28,7 @@ class Reconciliator {
         }
 
         $this->parser_result = $parser_result;
-        // $this->reconciliate();
+        $this->reconciliate();
     }
 
     /**
@@ -107,7 +107,10 @@ class Reconciliator {
 
             // Entrée de relevé à traiter, elle sera peut-être éliminé quand même en fonction de ses
             // caractéristiques, mais on commence l'analyse
-            $statement_operation = new StatementOperation($op);
+            $statement_operation = new StatementOperation([
+                'parser_info' => $op, 
+                'gvv_bank_account' => $this->gvv_bank_account()
+            ]);
         }
 
         // $this->dump_parser_result(false);
