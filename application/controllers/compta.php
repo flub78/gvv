@@ -464,7 +464,8 @@ class Compta extends Gvv_Controller {
 
         $this->selection_filter();
         $this->data['select_result'] = $this->gvv_model->select_journal('', $this->session->userdata('per_page'), $premier);
-        $this->data['count'] = $this->gvv_model->count();
+        // warning_count
+        $this->data['count'] = $this->gvv_model->count_account();
 
         $this->data['query'] = 0;
 
@@ -587,7 +588,9 @@ class Compta extends Gvv_Controller {
         $result = $this->gvvmetadata->normalise("vue_journal", $result, $attrs);
         gvv_debug("ajax result 2 =" . var_export($result, true));
 
-        $iTotal = $this->ecritures_model->count();
+        // warning_count
+        // $iTotal = $this->ecritures_model->count();
+        $iTotal = $this->gvv_model->count_account();
         gvv_debug("\$iTotal = $iTotal");
 
         if ($search != "") {
@@ -823,8 +826,8 @@ class Compta extends Gvv_Controller {
         $this->data['solde_fin'] = $solde_fin;
 
         // echo "debut $date_deb, solde=$solde_deb fin=$date_fin, solde=$solde_fin" . br();
-
-        $this->data['count'] = $this->gvv_model->count($compte);
+        // warning_count
+        $this->data['count'] = $this->gvv_model->count_account($compte);
         if ($this->data['count'] > 400) {
             $this->data['select_result'] = $this->gvv_model->select_journal($compte, $per_page, $premier);
         } else {

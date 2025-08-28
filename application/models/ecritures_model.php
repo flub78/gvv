@@ -294,7 +294,8 @@ class Ecritures_model extends Common_Model {
      *
      * @return integer Le nombre de lignes satisfaisant la condition
      */
-    public function count($compte = '') {
+    // warning_count
+    public function count_account($compte = '') {
         $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
         if ($compte != '') {
             $where .= $this->_filtrage_compte($compte); // " and (ecritures.compte1 = \"$compte\" or ecritures.compte2 = \"$compte\") ";
