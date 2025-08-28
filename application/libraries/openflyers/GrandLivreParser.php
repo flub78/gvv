@@ -348,6 +348,7 @@ class GrandLivreParser {
              */
 
             $associated_gvv_account = $CI->associations_of_model->get_gvv_account($id_of, $section_id);
+
             if ($section) {
                 $associated_gvv_all = $CI->associations_of_model->get_gvv_account($id_of);
                 if ($associated_gvv_all && ! $associated_gvv_account) {
@@ -368,11 +369,16 @@ class GrandLivreParser {
                 );
                 // gvv_dump($row['flux_of']);
 
-
                 $compte_gvv .= form_hidden('flux_of_' . $id_of, $flux_of_json);
                 $compte = $CI->comptes_model->get_by_id('id', $associated_gvv_account);
                 $is_411 = ($compte['codec'] == "411");
             } else {
+
+                if ($CI->associations_of_model->is_associated_to_null($id_of)) {
+                    // le compte est associé à null on saute le compte
+                    continue;
+                }
+
                 // On affiche un sélecteur
                 $attrs = 'class="form-control big_select" onchange="updateRow(this, '
                     . $id_of . ',\'' . $nom_of  . '\')"';

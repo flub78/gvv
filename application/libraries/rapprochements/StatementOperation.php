@@ -296,7 +296,7 @@ class StatementOperation {
         gvv_dump($lines);
     }
 
-    function trouver_combinaisons($elements, $cible, $index = 0, $combinaison_actuelle = []) {
+    function trouver_combinaisons_initial($elements, $cible, $index = 0, $combinaison_actuelle = []) {
         if ($cible == 0) {
             return [$combinaison_actuelle];
         }
@@ -312,6 +312,34 @@ class StatementOperation {
         // En incluant l'élément actuel
         $element_actuel = $elements[$index];
         $combinaison_actuelle[] = $element_actuel;
+        $resultats = array_merge(
+            $resultats,
+            $this->trouver_combinaisons($elements, $cible - $element_actuel['montant'], $index + 1, $combinaison_actuelle)
+        );
+
+        return $resultats;
+    }
+
+
+    function trouver_combinaisons($elements, $cible, $index = 0, $combinaison_actuelle = []) {
+        $cles = array_keys($elements);
+        $valeurs = array_values($elements);
+
+        if ($cible == 0) {
+            return [$combinaison_actuelle];
+        }
+
+        if ($index >= count($valeurs) || $cible < 0) {
+            return [];
+        }
+
+        // Sans inclure l'élément actuel
+        $resultats = $this->trouver_combinaisons($elements, $cible, $index + 1, $combinaison_actuelle);
+
+        // En incluant l'élément actuel
+        $cle_actuelle = $cles[$index];
+        $element_actuel = $valeurs[$index];
+        $combinaison_actuelle[$cle_actuelle] = $element_actuel;
         $resultats = array_merge(
             $resultats,
             $this->trouver_combinaisons($elements, $cible - $element_actuel['montant'], $index + 1, $combinaison_actuelle)
@@ -338,7 +366,16 @@ class StatementOperation {
             ['montant' => -10, 'image' => 'img5.jpg']
         ];
         $cible = 50;
+        $combinaisons = $this->trouver_combinaisons_initial($elements, $cible);
+        gvv_dump($combinaisons);
+        
+        $elements = [
+            31238 => ['montant' => 423.17, 'image' => '20/02/2025 423,17 € Echéance...'],
+            31282 => ['montant' => 29.11, 'image' => '20/02/2025 29,11 € Intérêt...']
+        ];
+        $cible = 452.28;
         $combinaisons = $this->trouver_combinaisons($elements, $cible);
+
         gvv_dump($combinaisons);
 
         if (count($lines) == 1) {

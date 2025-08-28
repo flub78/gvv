@@ -82,6 +82,16 @@ class Associations_of_model extends Common_Model {
         return ($result) ? $result->id_compte_gvv : '';
     }
 
+    public function is_associated_to_null($id_compte_of) {
+        $this->db->select('id')
+            ->from($this->table)
+            ->where('id_compte_of', $id_compte_of)
+            ->where('id_compte_gvv IS NULL');
+
+        $result = $this->db->get()->row();
+        return ($result) ? true : false;
+    }
+
     /**
      * Retrieves the id of an association where id_compte_gvv is NULL for a given OF account
      * 
