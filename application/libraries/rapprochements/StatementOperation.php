@@ -11,6 +11,16 @@ class StatementOperation {
     private $parser_info;
     private $reconciliated = []; // I wonder if it should be a hash too?
     private $proposals = []; // hash of ecriture images with ecritures id as key
+    private $multiple_proposals = [];
+
+    /**
+     * $reconciliated : référence les écritures GVV qui ont été rapprochées avec cette opération.
+     * il peut y en avoir plusieurs. Invariant: La somme des écritures rapprochées doit correspondre au montant dans le relevé.
+     * 
+     * $proposals : Propose des écritures GVV qui pourraient être rapprochées avec cette opération. Ces écritures on un montant qui correspond au montant dans le relevé.
+     * 
+     * $multiple_proposals : Propose des ensembles d'écritures GVV qui pourraient être rapprochées avec cette opération. La somme des montants des écritures dans chaque ensemble doit correspondre au montant dans le relevé. Il peut y avoir plusieurs ensembles proposés. L'ensemble doit être rapproché globalement.
+     */
 
     /**
      * Constructeur de la classe
@@ -96,10 +106,8 @@ class StatementOperation {
             $this->proposals = $this->get_proposals();
 
             if (empty($this->proposals)) {
-                $this->dump("StatementOperation");
-
                 // try to split into multiple
-                // $this->proposals = $this->get_multiple_proposals();
+                $this->proposals = $this->get_multiple_proposals();
             }
         }
     }
@@ -260,6 +268,65 @@ class StatementOperation {
 
         $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
         return $lines;
+    }
+
+    /**
+     * 
+     */
+    public function get_multiple_proposals() {
+        $this->dump("get_multiple_proposals not implemented yet", false);
+        $amount = $this->amount();
+        $reference_date = $this->value_date();
+        $delta = $this->CI->session->userdata('rapprochement_delta');
+                if (!$delta) {
+            $delta = 5; // Default delta value
+        }
+        if ($this->debit()) {
+            $compte1 = null;
+            $compte2 = $this->gvv_bank_account;
+        } else {
+            $compte1 = $this->gvv_bank_account;
+            $compte2 = null;
+        }
+        $lines = $this->CI->ecritures_model->ecriture_selector_lower_than($amount, $compte1, $compte2, $reference_date, $delta);
+
+        $this->search_combinations($lines, $amount);
+
+        gvv_dump($lines);
+    }
+
+    /**
+     * Recherche récursive de combinaisons d'écritures dont la somme des montants est égale à $target_amount.
+     * @param array $lines Liste des écritures (tableau associatif id => ['montant' => ...])
+     * @param string $target_amount Montant cible à atteindre (décimal, ne pas convertir en float)
+     * @param array $current_combination (interne) Combinaison courante d'écritures
+     * @param int $start (interne) Index de départ pour éviter les doublons
+     * @return array|false Retourne la première combinaison trouvée ou false si aucune
+     */
+    private function search_combinations($lines, $target_amount) {
+        if (count($lines) == 1) {
+            foreach ($lines as $key => $line) {
+                if ($line['montant'] = $target_amount) {
+                    return $lines;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        foreach ($lines as $id => $line) {
+            $montant = $target_amount - $line['montant'];
+            $sub_lines = $lines;
+            unset($sub_lines[$id]);
+
+            $search = $this->search_combinations($sub_lines, $montant);
+            if ($search !== false) {
+                return $search + [$id => $line];
+            }
+        }
+    
+        // Aucune combinaison trouvée
+        return false;
     }
 
     public function str_releve() {

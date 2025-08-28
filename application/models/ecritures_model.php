@@ -1587,6 +1587,60 @@ array (size=2)
     }
 
     /**
+     * Retourne un tableau associatif qui peut-être utilisé dans un menu drop-down
+     *
+     * @param $where selection
+     * @param $order ordre
+     *            de tri
+     */
+    public function ecriture_selector_lower_than($montant = 0, $compte1 = null, $compte2 = null, $reference_date = null, $delta = 5) {
+
+        $this->db
+            ->select("ecritures.id, ecritures.description, ecritures.date_op, ecritures.montant, ecritures.compte1, ecritures.compte2, ecritures.num_cheque")
+            ->from("ecritures")
+            ->where("ecritures.id NOT IN (SELECT id_ecriture_gvv FROM associations_ecriture)");
+
+        if ($reference_date) {
+            $this->db->where("ABS(DATEDIFF(date_op, \"$reference_date\")) <= $delta");
+        }
+
+        if ($montant) {
+            $this->db->where("montant <=", $montant);
+        }
+        if ($compte1) {
+            $this->db->where("compte1", $compte1);
+        }
+        if ($compte2) {
+            $this->db->where("compte2", $compte2);
+        }
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $db_res = $this->db->order_by("date_op desc")->get();
+
+        gvv_debug("sql ecriture_selector: " . $this->db->last_query());
+        if ($db_res->num_rows() == 0) {
+            return [];
+        } else {
+            $res = $db_res->result_array();
+        }
+        $hash = array();
+        foreach ($res as $key => $row) {
+            $hash[$row['id']] = $this->image($row['id']);
+
+            $num_cheque = $row['num_cheque'];
+            $image = date_db2ht($row['date_op'])
+                . " " . euro($row['montant'])
+                . " " . $row['description']
+                . " " . $num_cheque;
+            $hash[$row['id']] = ['montant' => $row['montant'], 'image' => $image];
+
+        }
+        // gvv_dump($hash, false);
+        return $hash;
+    }
+
+    /**
      * Retourne les écritures OpenFlyers
      *
      * @param $start_date date de début
