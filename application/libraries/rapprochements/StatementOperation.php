@@ -203,7 +203,7 @@ class StatementOperation {
      */
     private function get_proposals() {
         $lines = [];
-        if ($this->type() === 'prelevement_pret') {
+        if ($this->type() === 'prelevement_pret' && false) {
             // split the amount into two parts
             // Extract capital amorti and interest amounts from comments
             $capital = 0.0;
@@ -278,7 +278,7 @@ class StatementOperation {
         $amount = $this->amount();
         $reference_date = $this->value_date();
         $delta = $this->CI->session->userdata('rapprochement_delta');
-                if (!$delta) {
+        if (!$delta) {
             $delta = 5; // Default delta value
         }
         if ($this->debit()) {
@@ -290,9 +290,34 @@ class StatementOperation {
         }
         $lines = $this->CI->ecritures_model->ecriture_selector_lower_than($amount, $compte1, $compte2, $reference_date, $delta);
 
-        $this->search_combinations($lines, $amount);
+        $combinations = $this->search_combinations($lines, $amount);
+        gvv_dump($combinations);
 
         gvv_dump($lines);
+    }
+
+    function trouver_combinaisons($elements, $cible, $index = 0, $combinaison_actuelle = []) {
+        if ($cible == 0) {
+            return [$combinaison_actuelle];
+        }
+
+        // if ($index >= count($elements) || $cible < 0) {
+        if ($index >= count($elements)) {
+            return [];
+        }
+
+        // Sans inclure l'élément actuel
+        $resultats = $this->trouver_combinaisons($elements, $cible, $index + 1, $combinaison_actuelle);
+
+        // En incluant l'élément actuel
+        $element_actuel = $elements[$index];
+        $combinaison_actuelle[] = $element_actuel;
+        $resultats = array_merge(
+            $resultats,
+            $this->trouver_combinaisons($elements, $cible - $element_actuel['montant'], $index + 1, $combinaison_actuelle)
+        );
+
+        return $resultats;
     }
 
     /**
@@ -303,11 +328,23 @@ class StatementOperation {
      * @param int $start (interne) Index de départ pour éviter les doublons
      * @return array|false Retourne la première combinaison trouvée ou false si aucune
      */
-    private function search_combinations($lines, $target_amount) {
+    private function search_combinations($lines, $target_amount, $path = []) {
+
+        $elements = [
+            ['montant' => 10, 'image' => 'img1.jpg'],
+            ['montant' => 20, 'image' => 'img2.jpg'],
+            ['montant' => 30, 'image' => 'img3.jpg'],
+            ['montant' => 60, 'image' => 'img4.jpg'],
+            ['montant' => -10, 'image' => 'img5.jpg']
+        ];
+        $cible = 50;
+        $combinaisons = $this->trouver_combinaisons($elements, $cible);
+        gvv_dump($combinaisons);
+
         if (count($lines) == 1) {
             foreach ($lines as $key => $line) {
                 if ($line['montant'] = $target_amount) {
-                    return $lines;
+                    return $path + [$key => $line];
                 } else {
                     return false;
                 }
@@ -318,13 +355,13 @@ class StatementOperation {
             $montant = $target_amount - $line['montant'];
             $sub_lines = $lines;
             unset($sub_lines[$id]);
-
-            $search = $this->search_combinations($sub_lines, $montant);
+            $new_path = $path + [$id => $line];
+            $search = $this->search_combinations($sub_lines, $montant, $new_path);
             if ($search !== false) {
                 return $search + [$id => $line];
             }
         }
-    
+
         // Aucune combinaison trouvée
         return false;
     }
