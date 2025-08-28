@@ -1235,8 +1235,9 @@ array (size=2)
 
         // listes des comptes de dépenses et de recettes
         $this->load->model('comptes_model');
-        $result['comptes_depenses'] = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
-        $result['comptes_recettes'] = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
+        // warning_list_of
+        $result['comptes_depenses'] = $this->comptes_model->list_of_account('codec >= "6" and codec < "7"', 'codec');
+        $result['comptes_recettes'] = $this->comptes_model->list_of_account('codec >= "7" and codec < "8"', 'codec');
 
         // gestion de la date d'affichage
         $balance_date = $this->session->userdata('balance_date');

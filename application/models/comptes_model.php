@@ -124,7 +124,8 @@ class Comptes_model extends Common_Model {
      *            nombre à sauter
      * @return objet La liste
      */
-    public function list_of($where = array(), $order = "") {
+    // warning_list_of
+    public function list_of_account($where = array(), $order = "") {
 
         $this->db->select('*')
             ->from($this->table)
@@ -560,9 +561,6 @@ class Comptes_model extends Common_Model {
      * @return array Table of account data with sections and totals
      */
     function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true) {
-
-        // $depenses = $this->comptes_model->list_of('codec >= "6" and codec < "7"', 'codec');
-        // $recettes = $this->comptes_model->list_of('codec >= "7" and codec < "8"', 'codec');
 
         $table = [];
         $title = ["Code", "Comptes"];
