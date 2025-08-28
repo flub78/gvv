@@ -262,6 +262,7 @@ class StatementOperation {
             $compte2 = null;
         }
 
+        // todo: parametres à supprimer
         $start_date = "2000-01-01";
         $end_date = "2100-01-01";
         $reference_date = $this->value_date();
@@ -290,63 +291,17 @@ class StatementOperation {
         }
         $lines = $this->CI->ecritures_model->ecriture_selector_lower_than($amount, $compte1, $compte2, $reference_date, $delta);
 
-        $combinations = $this->search_combinations($lines, $amount);
+        $sequence = [];
+        foreach ($lines as $key => $line) {
+            $line['ecriture'] = $key;
+            $sequence[] = $line;
+        }
+        $combinations = $this->search_combinations($sequence, $amount);
         gvv_dump($combinations);
 
         gvv_dump($lines);
     }
-
-    function trouver_combinaisons_initial($elements, $cible, $index = 0, $combinaison_actuelle = []) {
-        if ($cible == 0) {
-            return [$combinaison_actuelle];
-        }
-
-        // if ($index >= count($elements) || $cible < 0) {
-        if ($index >= count($elements)) {
-            return [];
-        }
-
-        // Sans inclure l'élément actuel
-        $resultats = $this->trouver_combinaisons($elements, $cible, $index + 1, $combinaison_actuelle);
-
-        // En incluant l'élément actuel
-        $element_actuel = $elements[$index];
-        $combinaison_actuelle[] = $element_actuel;
-        $resultats = array_merge(
-            $resultats,
-            $this->trouver_combinaisons($elements, $cible - $element_actuel['montant'], $index + 1, $combinaison_actuelle)
-        );
-
-        return $resultats;
-    }
-
-
-    function trouver_combinaisons($elements, $cible, $index = 0, $combinaison_actuelle = []) {
-        $cles = array_keys($elements);
-        $valeurs = array_values($elements);
-
-        if ($cible == 0) {
-            return [$combinaison_actuelle];
-        }
-
-        if ($index >= count($valeurs) || $cible < 0) {
-            return [];
-        }
-
-        // Sans inclure l'élément actuel
-        $resultats = $this->trouver_combinaisons($elements, $cible, $index + 1, $combinaison_actuelle);
-
-        // En incluant l'élément actuel
-        $cle_actuelle = $cles[$index];
-        $element_actuel = $valeurs[$index];
-        $combinaison_actuelle[$cle_actuelle] = $element_actuel;
-        $resultats = array_merge(
-            $resultats,
-            $this->trouver_combinaisons($elements, $cible - $element_actuel['montant'], $index + 1, $combinaison_actuelle)
-        );
-
-        return $resultats;
-    }
+    
 
     /**
      * Recherche récursive de combinaisons d'écritures dont la somme des montants est égale à $target_amount.
@@ -358,49 +313,35 @@ class StatementOperation {
      */
     private function search_combinations($lines, $target_amount, $path = []) {
 
-        $elements = [
-            ['montant' => 10, 'image' => 'img1.jpg'],
-            ['montant' => 20, 'image' => 'img2.jpg'],
-            ['montant' => 30, 'image' => 'img3.jpg'],
-            ['montant' => 60, 'image' => 'img4.jpg'],
-            ['montant' => -10, 'image' => 'img5.jpg']
-        ];
-        $cible = 50;
-        $combinaisons = $this->trouver_combinaisons_initial($elements, $cible);
-        gvv_dump($combinaisons);
-        
-        $elements = [
-            31238 => ['montant' => 423.17, 'image' => '20/02/2025 423,17 € Echéance...'],
-            31282 => ['montant' => 29.11, 'image' => '20/02/2025 29,11 € Intérêt...']
-        ];
-        $cible = 452.28;
-        $combinaisons = $this->trouver_combinaisons($elements, $cible);
-
-        gvv_dump($combinaisons);
-
+        gvv_dump($lines);
+        $res = [];
         if (count($lines) == 1) {
-            foreach ($lines as $key => $line) {
-                if ($line['montant'] = $target_amount) {
-                    return $path + [$key => $line];
-                } else {
-                    return false;
-                }
+            if ($lines[0]['montant'] == $target_amount) {
+                return $lines;
+            } else {
+                return false;
             }
         }
 
-        foreach ($lines as $id => $line) {
+        $cnt = 0;
+        foreach ($lines as $line) {
+            $sublines = $lines;
+            unset($sublines[$cnt]);
+
             $montant = $target_amount - $line['montant'];
-            $sub_lines = $lines;
-            unset($sub_lines[$id]);
-            $new_path = $path + [$id => $line];
-            $search = $this->search_combinations($sub_lines, $montant, $new_path);
+            $search = $this->search_combinations($sublines, $montant, $path + [$cnt => $line]);
             if ($search !== false) {
-                return $search + [$id => $line];
+                $res[] = array_merge($line, $search);
             }
+            $cnt++;
         }
+        return $res;
 
-        // Aucune combinaison trouvée
-        return false;
+        gvv_dump($lines);
+
+        $combinaisons = $this->trouver_combinaisons_initial($sequence, $target_amount);
+        gvv_dump($combinaisons);
+
     }
 
     public function str_releve() {
