@@ -45,7 +45,7 @@ class ReconciliationLine {
      * @param string $title Titre du dump
      * @param bool $exit Indique si le script doit s'arrêter après le dump
      */
-    public function dump($title = "", $exit = true) {
+    public function dump($title = "", $exit = false) {
         echo "<pre>";
         echo "$title:\n";
         gvv_dump($this->rapprochements, false);

@@ -60,46 +60,61 @@ class StatementOperation {
      * @param bool $exit Indique si le script doit s'arrêter après le dump
      */
     public function dump($title = "", $exit = false) {
+        $tab = "    ";
         $bt = debug_backtrace();
         $caller = $bt[0];
         echo "<pre>";
         echo "StatementOperation $title $exit:\n";
-        echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
+        // echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
 
-        echo "date: " . $this->date() . "\n";
-        echo "local_date: " . $this->local_date() . "\n";
-        echo "value_date: " . $this->value_date() . "\n";
-        echo "local_value_date: " . $this->local_value_date() . "\n";
-        echo "nature: " . $this->nature() . "\n";
-        echo "debit: " . $this->debit() . "\n";
-        echo "credit: " . $this->credit() . "\n";
-        echo "amount: " . $this->amount() . "\n";
-        echo "interbank_label: " . $this->interbank_label() . "\n";
-        echo "comments: " . "\n";
+        echo $tab . "date: " . $this->date() . "\n";
+        echo $tab . "local_date: " . $this->local_date() . "\n";
+        echo $tab . "value_date: " . $this->value_date() . "\n";
+        echo $tab . "local_value_date: " . $this->local_value_date() . "\n";
+        echo $tab . "nature: " . $this->nature() . "\n";
+        echo $tab . "debit: " . $this->debit() . "\n";
+        echo $tab . "credit: " . $this->credit() . "\n";
+        echo $tab . "amount: " . $this->amount() . "\n";
+        echo $tab . "interbank_label: " . $this->interbank_label() . "\n";
+        echo $tab . "comments: " . "\n";
         foreach ($this->comments() as $comment) {
-            echo "    " . $comment . "\n";
+            echo $tab . "    " . $comment . "\n";
         }
-        echo "line: " . $this->line() . "\n";
-        echo "type: " . $this->type() . "\n";
+        echo $tab . "line: " . $this->line() . "\n";
+        echo $tab . "type: " . $this->type() . "\n";
 
         foreach ($this->reconciliated as $reconciliation) {
             $reconciliation->dump("rapprochement");
         }
-        echo "Proposals:\n";
-        gvv_dump($this->proposals, false);
-
-        echo "Multiple Proposals: (" . count($this->multiple_proposals) . ")\n";
-        $nb = 1;
-        foreach ($this->multiple_proposals as $combi) {
-            echo "combinaison: $nb\n";
-            $line_nb = 1;
-            foreach ($combi as $line) {
-                // gvv_dump($line, false, "line: $line_nb");
-                echo "  " . $line['image'] . "\n";
-                $line_nb++;
+        if ($this->proposals) {
+            $proposal_count = count($this->proposals);
+            if ($proposal_count > 0) {
+                echo $tab . "Proposals ($proposal_count):\n";
+                foreach ($this->proposals as $ecriture => $image) {
+                    echo $tab . "  $ecriture => $image\n";
+                }
             }
-            $nb++;
         }
+
+        if ($this->multiple_proposals) {
+            // gvv_dump($this->multiple_proposals, false, "multiple proposals");
+            $multiple_count = count($this->multiple_proposals);
+            if ($multiple_count > 0) {
+                echo $tab . "Multiple Proposals ($multiple_count):\n";
+                $nb = 1;
+                foreach ($this->multiple_proposals as $combi) {
+                    echo $tab . "combinaison: $nb\n";
+                    $line_nb = 1;
+                    foreach ($combi as $line) {
+                        // gvv_dump($line, false, "line: $line_nb");
+                        echo $tab . "  " . $line['image'] . "\n";
+                        $line_nb++;
+                    }
+                    $nb++;
+                }
+            }
+        }
+
 
         echo "</pre>";
         if ($exit) {
@@ -310,7 +325,6 @@ class StatementOperation {
             $sequence[] = $line;
         }
         $this->multiple_proposals = $this->search_combinations($sequence, $amount);
-        $this->dump();
     }
 
 

@@ -12,6 +12,7 @@ class Reconciliator {
     private $CI;
     private $parser_result;
     private $gvv_bank_account;
+    private $operations = [];
 
     /**
      * Constructeur de la classe
@@ -59,6 +60,10 @@ class Reconciliator {
         echo "titles: ";
         print_r($this->titles());
         echo "total operations: " . $this->total_operation_count() . "\n";
+        echo "filtered operations: " . count($this->operations) . "\n";
+        foreach ($this->operations as $op) {
+            $op->dump("StatementOperation", false);
+        }
         echo "</pre>";
         if ($exit) {
             exit;
@@ -111,6 +116,7 @@ class Reconciliator {
                 'parser_info' => $op, 
                 'gvv_bank_account' => $this->gvv_bank_account()
             ]);
+            $this->operations[] = $statement_operation;
         }
 
         // $this->dump_parser_result(false);
