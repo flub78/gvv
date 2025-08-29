@@ -87,6 +87,19 @@ class StatementOperation {
         }
         echo "Proposals:\n";
         gvv_dump($this->proposals, false);
+
+        echo "Multiple Proposals: (" . count($this->multiple_proposals) . ")\n";
+        $nb = 1;
+        foreach ($this->multiple_proposals as $combi) {
+            echo "combinaison: $nb";
+            gvv_dump($combi, false, "combi: $nb");
+            // foreach ($combi as $line) {
+            //     echo "  " . $line['image'] . "\n";
+            // }
+            $nb++;
+        }
+        gvv_dump($this->multiple_proposals, false);
+
         echo "</pre>";
         if ($exit) {
             exit;
@@ -275,7 +288,6 @@ class StatementOperation {
      * 
      */
     public function get_multiple_proposals() {
-        $this->dump("get_multiple_proposals not implemented yet", false);
         $amount = $this->amount();
         $reference_date = $this->value_date();
         $delta = $this->CI->session->userdata('rapprochement_delta');
@@ -296,52 +308,51 @@ class StatementOperation {
             $line['ecriture'] = $key;
             $sequence[] = $line;
         }
-        $combinations = $this->search_combinations($sequence, $amount);
-        gvv_dump($combinations);
-
-        gvv_dump($lines);
+        $this->multiple_proposals = $this->search_combinations($sequence, $amount);
+        $this->dump();
     }
-    
+
 
     /**
      * Recherche récursive de combinaisons d'écritures dont la somme des montants est égale à $target_amount.
-     * @param array $lines Liste des écritures (tableau associatif id => ['montant' => ...])
-     * @param string $target_amount Montant cible à atteindre (décimal, ne pas convertir en float)
-     * @param array $current_combination (interne) Combinaison courante d'écritures
-     * @param int $start (interne) Index de départ pour éviter les doublons
-     * @return array|false Retourne la première combinaison trouvée ou false si aucune
+     * 
+     * @param array $lines Liste séquentielle des écritures
+     *              une écriture est un tableau associatif avec au moins une clé 'montant'
+     * @param string $target_amount Montant cible à atteindre
+     * 
+     * @return array|false Retourne une liste de combinaisons d'écritures ou false si aucune combinaison n'est trouvée.
+     *                     Une combinaison est une liste d'écritures.
      */
-    private function search_combinations($lines, $target_amount, $path = []) {
+    private function search_combinations($lines, $target_amount) {
 
-        gvv_dump($lines);
-        $res = [];
-        if (count($lines) == 1) {
-            if ($lines[0]['montant'] == $target_amount) {
-                return $lines;
-            } else {
-                return false;
-            }
-        }
+        // gvv_dump($lines, false, "search_combinations, target=" . $target_amount);
 
-        $cnt = 0;
+        $res = []; // by default an empty list
+
         foreach ($lines as $line) {
-            $sublines = $lines;
-            unset($sublines[$cnt]);
-
-            $montant = $target_amount - $line['montant'];
-            $search = $this->search_combinations($sublines, $montant, $path + [$cnt => $line]);
-            if ($search !== false) {
-                $res[] = array_merge($line, $search);
-            }
-            $cnt++;
+            $diff = abs(floatval($line['montant']) - floatval($target_amount));
+            // echo "diff = $diff\n";
+            if ($diff < 0.6) {
+                echo "found a combination\n";
+                $res[] =  [$lines];
+            } 
         }
+
+        $current_list = $lines;
+        while ($current_list) {
+            $elt = array_shift($current_list);
+            $current_montant = $elt['montant'];
+
+            $search = $this->search_combinations($current_list, $target_amount - $current_montant);
+            if ($search) {
+                foreach ($search as $combi) {
+                    $combi[] = $elt;
+                    $res[] = $combi;
+                }
+            }
+        }
+        // gvv_dump($res, false, "returning: ");
         return $res;
-
-        gvv_dump($lines);
-
-        $combinaisons = $this->trouver_combinaisons_initial($sequence, $target_amount);
-        gvv_dump($combinaisons);
-
     }
 
     public function str_releve() {

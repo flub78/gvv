@@ -99,11 +99,14 @@ if (!function_exists('gvv_dump')) {
 	/**
 	 * Prints variable contents with file and line information
 	 */
-	function gvv_dump($string, $dye = true) {
+	function gvv_dump($string, $dye = true, $title = "") {
 		$bt = debug_backtrace();
 		$caller = $bt[0];
 		echo "<pre>";
 		echo "gvv_dump from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
+		if ($title) {
+			echo "$title\n";
+		}
 		print_r($string);
 		echo "</pre>";
 		if ($dye) {
