@@ -103,11 +103,15 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_1" value="filter_unmatched_1" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_1') ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="filter_unmatched_1">Non rapprochées avec suggestion unique</label>
+                                    <label class="form-check-label" for="filter_unmatched_1">Non rapprochées, suggestion unique</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_choices" value="filter_unmatched_choices" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_choices') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_choices">Non rapprochées, plusieurs choix de rapprochement</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_multi" value="filter_unmatched_multi" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_multi') ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="filter_unmatched_multi">Non rapprochées avec suggestions multiples</label>
+                                    <label class="form-check-label" for="filter_unmatched_multi">Non rapprochées, suggestion de rapprochements multiples</label>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -321,7 +325,6 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 'value' => "Générer les écritures",
                 'class' => 'btn btn-primary mb-4'
             ));
-
         }
         echo form_close();
         ?>

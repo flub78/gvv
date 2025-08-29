@@ -203,8 +203,32 @@ class StatementOperation {
         return isset($this->parser_info->type) ? $this->parser_info->type : null;
     }
 
+    public function is_rapproched() {
+        return !empty($this->reconciliated);
+    }
+
+    public function is_unique() {
+        return isset($this->proposals) ? (count($this->proposals) == 1) : 0;
+    }
+
+    public function choices_count() {
+        return isset($this->proposals) ? count($this->proposals) : 0;
+    }
+
+    public function multiple_count() {
+        return isset($this->multiple_proposals) ? count($this->multiple_proposals) : 0;
+    }
+
+    public function is_multiple() {
+        return isset($this->multiple_proposals) ? (count($this->multiple_proposals) > 0) : false;
+    }
+    
     public function reconciliated() {
         return $this->reconciliated;
+    }
+
+    public function nothing_found() {
+        return empty($this->reconciliated) && empty($this->proposals) && empty($this->multiple_proposals);
     }
 
     /**

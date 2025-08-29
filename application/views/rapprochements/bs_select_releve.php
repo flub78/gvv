@@ -40,6 +40,11 @@ echo form_open_multipart('rapprochements/import_releve');
 
 echo '<input type="file" name="userfile" size="50" /><br><br>';
 
+echo '<div class="form-check">';
+echo form_checkbox('new_version', '1', FALSE, 'class="form-check-input" id="new_version"');
+echo '<label class="form-check-label" for="new_version">Nouvelle version</label>';
+echo '</div><br>';
+
 echo form_input(array(
 	'type' => 'submit',
 	'name' => 'button',

@@ -13,6 +13,11 @@ class Reconciliator {
     private $parser_result;
     private $gvv_bank_account;
     private $operations = [];
+    private $filename = "";
+    private $rapproched_operations_count = 0;
+    private $unique_count = 0;
+    private $choices_count = 0;
+    private $multiple_count = 0;
 
     /**
      * Constructeur de la classe
@@ -30,6 +35,18 @@ class Reconciliator {
 
         $this->parser_result = $parser_result;
         $this->reconciliate();
+    }
+
+    public function set_filename($filename) {
+        $this->filename = $filename;
+    }
+
+    public function filename() {
+        return $this->filename;
+    }
+
+    public function basename() {
+        return basename($this->filename);
     }
 
     /**
@@ -113,10 +130,60 @@ class Reconciliator {
             // Entrée de relevé à traiter, elle sera peut-être éliminé quand même en fonction de ses
             // caractéristiques, mais on commence l'analyse
             $statement_operation = new StatementOperation([
-                'parser_info' => $op, 
+                'parser_info' => $op,
                 'gvv_bank_account' => $this->gvv_bank_account()
             ]);
+
+            if ($filter_active) {
+
+                if ($filter_type && ($filter_type != "display_all")) {
+                    if ($filter_type == 'filter_unmatched') {
+                        if ($statement_operation->is_rapproched()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    } elseif ($filter_type == 'filter_matched') {
+                        if (!$statement_operation->is_rapproched()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    } elseif ($filter_type == 'filter_unmatched_0') {
+                        if (!$statement_operation->nothing_found()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    } elseif ($filter_type == 'filter_unmatched_1') {
+                        if (!$statement_operation->is_unique()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    } elseif ($filter_type == 'filter_unmatched_choices') {
+                        if ($statement_operation->is_unique()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    } elseif ($filter_type == 'filter_unmatched_multiple') {
+                        if (!$statement_operation->is_multiple()) {
+                            // On élimine cette opération
+                            continue;
+                        }
+                    }
+                }
+
+                if ($type_selector && ($type_selector != "all")) {
+                    if ($type_selector != $statement_operation->type()) {
+                        // On élimine cette opération
+                        continue;
+                    }
+                }
+            }
+
             $this->operations[] = $statement_operation;
+
+            $this->rapproched_operations_count += $statement_operation->is_rapproched() ? 1 : 0;
+            $this->unique_count += $statement_operation->is_unique() ? 1 : 0;
+            $this->choices_count += $statement_operation->choices_count();
+            $this->multiple_count += $statement_operation->multiple_count();
         }
 
         // $this->dump_parser_result(false);
@@ -135,6 +202,10 @@ class Reconciliator {
         return $this->parser_result['section'] ?? null;
     }
 
+    public function solde() {
+        return $this->parser_result['solde'] ?? null;
+    }
+
     public function gvv_bank_account() {
         return $this->gvv_bank_account;
     }
@@ -144,6 +215,22 @@ class Reconciliator {
      */
     public function date_solde() {
         return $this->parser_result['date_solde'] ?? null;
+    }
+
+    public function start_date() {
+        return $this->parser_result['start_date'] ?? null;
+    }
+
+    public function end_date() {
+        return $this->parser_result['end_date'] ?? null;
+    }
+
+    public function local_start_date() {
+        return date_db2ht($this->start_date());
+    }
+
+    public function local_end_date() {
+        return date_db2ht($this->end_date());
     }
 
     /**
@@ -165,5 +252,77 @@ class Reconciliator {
             return count($this->parser_result['ops']);
         }
         return 0;
+    }
+
+    public function filtered_operations_count() {
+        return count($this->operations);
+    }
+
+    public function rapproched_operations_count() {
+        return $this->rapproched_operations_count;
+    }
+
+    /**
+     * Retourne l'en-tête du relevé bancaire s'il est disponible
+     */
+    public function header() {
+        $header = [];
+        $header[] = ["Banque: ",  $this->bank(), '', ''];
+        $gvv_bank_acount = $this->gvv_bank_account();
+
+        if ($gvv_bank_acount) {
+            $compte_bank_gvv = anchor_compte($gvv_bank_acount);
+            $header[] = ["IBAN: ",  $this->iban(), 'Compte GVV:', $compte_bank_gvv];
+        } else {
+            // On affiche un sélecteur
+            $compte_selector = $this->CI->comptes_model->selector_with_null(['codec' => 512], TRUE);
+            $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
+                . $this->iban()  . '\')"';
+            $compte_bank_gvv = dropdown_field(
+                "compte_bank",
+                "",
+                $compte_selector,
+                $attrs
+            );
+            $header[] = ["IBAN: ",  $this->iban(), 'Compte GVV:', $compte_bank_gvv];
+        }
+
+        $header[] = ["Section: ",  $this->section(), 'Fichier', $this->basename()];
+
+        $header[] = ["Date de solde: ",  $this->date_solde(), "Solde: ", euro($this->solde())];
+        $header[] = ["Date de début: ",  $this->local_start_date(), "Date de fin: ",  $this->local_end_date()];
+
+
+
+        // $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
+        $header[] = [
+            'Nombre opérations: ',
+            $this->filtered_operations_count() . ' / ' . $this->total_operation_count(),
+            'Rapprochées/Choix/Uniques/Multiples:',
+            $this->rapproched_operations_count() . ' / ' . $this->choices_count . ' / ' . $this->unique_count . ' / ' . $this->multiple_count
+        ];
+        return $header;
+    }
+
+    /**
+     * Retourne les types d'opérations reconnus
+     * 
+     * @return array Associative array des types d'opérations
+     */
+    function recognized_types() {
+        return  [
+            "cheque_debite"       => "Chèque débité",
+            "frais_bancaire"      => "Frais bancaire",
+            "paiement_cb"         => "Paiement en carte bancaire",
+            "prelevement"         => "Prélèvement",
+            "prelevement_pret"    => "Prélèvement prêt",
+            "virement_emis"       => "Virement émis",
+            "encaissement_cb"     => "Encaissement carte bancaire",
+            "remise_cheque"       => "Remise de chèque",
+            "remise_especes"      => "Remise d'espèces",
+            "regularisation_frais" => "Régularisation de frais",
+            "virement_recu"       => "Virement reçu",
+            "inconnu"             => "Opération inconnue"
+        ];
     }
 }

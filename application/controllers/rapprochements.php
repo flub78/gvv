@@ -65,6 +65,9 @@ class Rapprochements extends CI_Controller {
      * Import a CSV journal 
      */
     public function import_releve() {
+
+        $version = $this->input->post('new_version') ? 2 : 1;
+
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
             if (! mkdir($upload_path, 0755)) {
@@ -108,18 +111,20 @@ class Rapprochements extends CI_Controller {
 
             $filename = $config['upload_path'] . $data['file_name'];
             $this->session->set_userdata('file_releve', $filename);
-            $this->import_releve_from_file($filename);
+            $this->session->set_userdata('version', $version);
+
+            $this->import_releve_from_file($version);
         }
     }
 
     /**
      * Import a CSV listing from a file
      */
-    public function import_releve_from_file($filename = "", $status = "") {
+    public function import_releve_from_file() {
 
-        if ($filename == "") {
-            $filename = $this->session->userdata('file_releve');
-        }
+        $filename = $this->session->userdata('file_releve');
+        $version = $this->session->userdata('version');
+
         $this->load->library('rapprochements/ReleveParser');
 
         $filter_active = $this->session->userdata('filter_active');
@@ -132,7 +137,10 @@ class Rapprochements extends CI_Controller {
             $parser2 = new ReleveParser();
             try {
                 $parser_result = $parser2->parse($filename);
-                $reconciliator = new Reconciliator($parser_result);
+                if ($version == 2) {
+                    $reconciliator = new Reconciliator($parser_result);
+                    $reconciliator->set_filename($filename);
+                }
             } catch (Exception $e) {
                 $msg = "Erreur: " . $e->getMessage() . "\n";
                 gvv_error($msg);
@@ -143,56 +151,79 @@ class Rapprochements extends CI_Controller {
                 load_last_view('rapprochements/select_releve', $error);
                 return;
             }
-            $type_hash = ["all" => "Tous les types"];
-            $recognized_types = $parser2->recognized_types();
-            $type_hash = array_merge($type_hash, $recognized_types);
-            $data['type_dropdown'] = dropdown_field(
-                'type_selector',
-                $type_selector,
-                $type_hash,
-                'class="form-control big_select"'
-            );
 
-            $basename = basename($filename);
-            $header = [];
-            $header[] = ["Banque: ",  $parser_result['bank'], '', ''];
-
-            if ($parser_result['gvv_bank']) {
-                $compte_bank_gvv = anchor_compte($parser_result['gvv_bank']);
-                $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
-            } else {
-                // On affiche un sélecteur
-                $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
-                $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
-                    . $parser_result['iban']  . '\')"';
-                $compte_bank_gvv = dropdown_field(
-                    "compte_bank",
-                    $associated_gvv,
-                    $compte_selector,
-                    $attrs
-                );
-                $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
-            }
-
-            // d’abord les opérations
             $data['section'] = $this->sections_model->section();
-            foreach ($parser_result['ops'] as $op) {
-                $op->associate();
-            }
-            $ot = $this->operation_table2($parser_result, $recognized_types);
-            $data['html_tables'] = $this->tables2Html($ot['tables']);
 
-            $header[] = ["Section: ",  $parser_result['section'], 'Fichier', $basename];
-            $header[] = ["Date de solde: ",  $parser_result['date_solde'], "Solde: ", euro($parser_result['solde'])];
-            $header[] = ["Date de début: ",  $parser_result['start_date'], "Date de fin: ",  $parser_result['end_date']];
-            $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
-            $header[] = [
-                'Nombre opérations: ',
-                $ot['count_selected'] . ' / ' . count($parser_result['ops']),
-                'Rapprochées:',
-                $rap
-            ];
-            $data['header'] = $header;
+            if ($version == 1) {
+
+                $type_hash = ["all" => "Tous les types"];
+                $recognized_types = $parser2->recognized_types();
+                $type_hash = array_merge($type_hash, $recognized_types);
+                $data['type_dropdown'] = dropdown_field(
+                    'type_selector',
+                    $type_selector,
+                    $type_hash,
+                    'class="form-control big_select"'
+                );
+
+                $basename = basename($filename);
+                $header = [];
+                $header[] = ["Banque: ",  $parser_result['bank'], '', ''];
+
+                if ($parser_result['gvv_bank']) {
+                    $compte_bank_gvv = anchor_compte($parser_result['gvv_bank']);
+                    $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
+                } else {
+                    // On affiche un sélecteur
+                    $compte_selector = $this->comptes_model->selector_with_null(['codec' => 512], TRUE);
+                    $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
+                        . $parser_result['iban']  . '\')"';
+                    $compte_bank_gvv = dropdown_field(
+                        "compte_bank",
+                        $associated_gvv,
+                        $compte_selector,
+                        $attrs
+                    );
+                    $header[] = ["IBAN: ",  $parser_result['iban'], 'Compte GVV:', $compte_bank_gvv];
+                }
+
+                // d’abord les opérations
+                foreach ($parser_result['ops'] as $op) {
+                    $op->associate();
+                }
+                $ot = $this->operation_table2($parser_result, $recognized_types);
+                $data['html_tables'] = $this->tables2Html($ot['tables']);
+
+                $header[] = ["Section: ",  $parser_result['section'], 'Fichier', $basename];
+                $header[] = ["Date de solde: ",  $parser_result['date_solde'], "Solde: ", euro($parser_result['solde'])];
+                $header[] = ["Date de début: ",  $parser_result['start_date'], "Date de fin: ",  $parser_result['end_date']];
+                $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
+                $header[] = [
+                    'Nombre opérations: ',
+                    $ot['count_selected'] . ' / ' . count($parser_result['ops']),
+                    'Rapprochées:',
+                    $rap
+                ];
+                $data['header'] = $header;
+
+                $data['count_selected'] = $ot['count_selected'];
+            } else {
+                // version 2
+                $data['header'] = $reconciliator->header();
+                $data['count_selected'] = "";
+                $data['section'] = "";
+                $data['html_tables'] = ""; // $reconciliator->to_HTML();
+
+                $type_hash = ["all" => "Tous les types"];
+                $recognized_types = $reconciliator->recognized_types();
+                $type_hash = array_merge($type_hash, $recognized_types);
+                $data['type_dropdown'] = dropdown_field(
+                    'type_selector',
+                    $type_selector,
+                    $type_hash,
+                    'class="form-control big_select"'
+                );
+            }
 
             $data['filter_active'] = $filter_active;
             $data['startDate'] = $startDate;
@@ -204,8 +235,6 @@ class Rapprochements extends CI_Controller {
                 $data['maxDays'] = 5; // Default delta value
             }
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
-
-            $data['count_selected'] = $ot['count_selected'];
 
             $data['status'] = "";
             $data['errors'] = [];
