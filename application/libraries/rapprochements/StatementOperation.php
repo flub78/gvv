@@ -59,11 +59,11 @@ class StatementOperation {
      * @param string $title Titre du dump
      * @param bool $exit Indique si le script doit s'arrêter après le dump
      */
-    public function dump($title = "", $exit = true) {
+    public function dump($title = "", $exit = false) {
         $bt = debug_backtrace();
         $caller = $bt[0];
         echo "<pre>";
-        echo "$title:\n";
+        echo "StatementOperation $title $exit:\n";
         echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
 
         echo "date: " . $this->date() . "\n";
@@ -91,14 +91,15 @@ class StatementOperation {
         echo "Multiple Proposals: (" . count($this->multiple_proposals) . ")\n";
         $nb = 1;
         foreach ($this->multiple_proposals as $combi) {
-            echo "combinaison: $nb";
-            gvv_dump($combi, false, "combi: $nb");
-            // foreach ($combi as $line) {
-            //     echo "  " . $line['image'] . "\n";
-            // }
+            echo "combinaison: $nb\n";
+            $line_nb = 1;
+            foreach ($combi as $line) {
+                // gvv_dump($line, false, "line: $line_nb");
+                echo "  " . $line['image'] . "\n";
+                $line_nb++;
+            }
             $nb++;
         }
-        gvv_dump($this->multiple_proposals, false);
 
         echo "</pre>";
         if ($exit) {
@@ -216,7 +217,7 @@ class StatementOperation {
      */
     private function get_proposals() {
         $lines = [];
-        if ($this->type() === 'prelevement_pret' && false) {
+        if ($this->type() === 'prelevement_pret' && true) {
             // split the amount into two parts
             // Extract capital amorti and interest amounts from comments
             $capital = 0.0;
@@ -332,10 +333,10 @@ class StatementOperation {
         foreach ($lines as $line) {
             $diff = abs(floatval($line['montant']) - floatval($target_amount));
             // echo "diff = $diff\n";
-            if ($diff < 0.6) {
-                echo "found a combination\n";
-                $res[] =  [$lines];
-            } 
+            if ($diff < 0.01) {
+                // echo "found a combination\n";
+                $res[] =  [$line];
+            }
         }
 
         $current_list = $lines;
