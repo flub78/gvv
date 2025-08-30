@@ -16,7 +16,7 @@ Il a une méthode to_HTML pour afficher le Reconciliator sous forme de table
 ### StatementOperation
 
 Résultat du rapprochement d'une opération. Il contient des informations sur l'opération (statement operation). 
-Il contient une collection de ReconciliationLine ainsi que d'autres informations, la date, le montant, la nature de l'opération.
+Il contient potentiellement une collection de ReconciliationLine, un ProposalLine ou une collection de MultiProposalCombination ainsi que d'autres informations, la date, le montant, la nature de l'opération.
 
 Il a une méthode to_HTML pour afficher l'opération.
 
@@ -26,6 +26,16 @@ Objet qui correspond au rapprochement d'un montant. Si le StatementOperation est
 
 Il a une méthode to_HTML pour afficher l'opération.
 
+### ProposalLine
+
+Objet qui contient les information au sujet des proposition de rapprochements. Il a une méthode to_HTML
+
+### MultiProposalCombination
+
+C'est une combinaison d'écritures dont le montant additionné correspond a la somme d'en élément de relevé (StatementOperation)
+
+Le StatementOperation peut contenir un ou plusieurs MultiProposalCombination
+Il existe une methode to_HTML pour cet object.
 
 
 
