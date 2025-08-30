@@ -30,7 +30,7 @@ class StatementOperation LIGHTPINK {
     -montant : Float
     -nature : String
     -reconciliationLines : ReconciliationLine[]
-    -proposalLine : ProposalLine
+    -proposals : ProposalLine[]
     -multiProposalCombinations : MultiProposalCombination[]
     --
     +to_HTML() : String
@@ -44,18 +44,26 @@ class ReconciliationLine LIGHTBLUE {
 }
 
 class ProposalLine LIGHTYELLOW {
-    ' Contient les informations sur les
-    ' propositions de rapprochements
+    -ecriture : String|Array
+    -image : String
+    -montant : Float
+    -confidence : Integer
+    -criteria : Array
     --
     +to_HTML() : String
+    +ProposalLine(ecriture_hash : Array)
 }
 
 class MultiProposalCombination LIGHTGREEN {
-    ' Combinaison d'écritures dont le montant
-    ' additionné correspond à la somme d'un
-    ' élément de relevé (StatementOperation)
+    -combination_data : Array
+    -totalAmount : Float
+    -confidence : Integer
+    -combinationId : String
     --
     +to_HTML() : String
+    +addEcriture(ecriture_data : Array) : void
+    +removeEcriture(index : Integer) : void
+    +MultiProposalCombination(combination_data : Array)
 }
 
 ' Relations
@@ -63,7 +71,7 @@ ReleveParser --> ParserResult : "produit"
 Reconciliator --> ParserResult : "utilise"
 Reconciliator "1" *-- "*" StatementOperation : "contient"
 StatementOperation "1" *-- "*" ReconciliationLine : "peut contenir"
-StatementOperation "1" o-- "0..1" ProposalLine : "peut contenir"
+StatementOperation "1" o-- "*" ProposalLine : "peut contenir"
 StatementOperation "1" o-- "*" MultiProposalCombination : "peut contenir"
 
 ' Notes explicatives
@@ -71,7 +79,7 @@ note right of ReleveParser : Parse le relevé de compte\net retourne un ParserRe
 note right of Reconciliator : Fait le rapprochement avec\nles écritures GVV en base
 note right of StatementOperation : Résultat du rapprochement\nd'une opération du relevé
 note right of ReconciliationLine : Rapprochement d'un montant.\nUne ou plusieurs par StatementOperation
-note bottom of ProposalLine : Contient les informations\nsur les propositions de rapprochements
-note bottom of MultiProposalCombination : Combinaison d'écritures dont\nle montant additionné correspond\nau montant d'une StatementOperation
+note bottom of ProposalLine : Contient les informations sur les propositions\nde rapprochements. Peut être créé à partir\nd'un hash d'écritures [ID => description]
+note bottom of MultiProposalCombination : Combinaison d'écritures dont le montant\nadditionné correspond au montant d'une StatementOperation.\nContient directement les données brutes des écritures
 
 @enduml

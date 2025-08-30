@@ -9,9 +9,10 @@
 class StatementOperation {
     private $CI;
     private $parser_info;
+    private $gvv_bank_account; // Compte bancaire GVV
     private $reconciliated = []; // list of ReconciliationLine
-    private $proposals = []; // hash of ecriture images with ecritures id as key
-    private $multiple_proposals = []; // list of proposal combination 
+    private $proposals = []; // list of ProposalLine objects
+    private $multiple_proposals = []; // list of MultiProposalCombination objects 
 
     // required to interpret the type field, so injected in constructor
     private $recognized_types = [];
@@ -37,13 +38,16 @@ class StatementOperation {
         }
 
         $this->CI->load->library('rapprochements/ReconciliationLine');
+        $this->CI->load->library('rapprochements/ProposalLine');
+        $this->CI->load->library('rapprochements/MultiProposalCombination');
         $this->CI->load->model('ecritures_model');
+        $this->CI->load->model('associations_ecriture_model');
 
         $this->parser_info = $data['parser_info'];
         $this->gvv_bank_account = isset($data['gvv_bank_account']) ? $data['gvv_bank_account'] : null;
         $this->recognized_types = isset($data['recognized_types']) ? $data['recognized_types'] : [];
         $this->reconciliate();
-        $this->dump("constructor", false);
+        // $this->dump("constructor", false);
     }
 
     /**
@@ -112,17 +116,13 @@ class StatementOperation {
             }
         } elseif ($this->is_unique()) {
             // unique proposal
-            foreach ($this->proposals as $ecriture => $image) {
-                $line = new ReconciliationLine(['proposal' => ['ecriture' => $ecriture, 'image' => $image]]);
-                $html .= $line->to_HTML();
+            foreach ($this->proposals as $proposal) {
+                $html .= $proposal->to_HTML();
             }
         } elseif ($this->is_multiple()) {
             // multiple proposals
-            foreach ($this->multiple_proposals as $combi) {
-                foreach ($combi as $line) {
-                    $line_obj = new ReconciliationLine(['proposal' => ['ecriture' => $line['ecriture'], 'image' => $line['image']]]);
-                    $html .= $line_obj->to_HTML();
-                }
+            foreach ($this->multiple_proposals as $combination) {
+                $html .= $combination->to_HTML();
                 // separator between combinations
                 $html .= '<tr class="table-secondary">';
                 $html .= '<td colspan="7" class="text-center">--- Autre combinaison possible ---</td>';
@@ -181,27 +181,24 @@ class StatementOperation {
             $proposal_count = count($this->proposals);
             if ($proposal_count > 0) {
                 echo $tab . "Proposals ($proposal_count):\n";
-                foreach ($this->proposals as $ecriture => $image) {
-                    echo $tab . "  $ecriture => $image\n";
+                foreach ($this->proposals as $index => $proposal) {
+                    echo $tab . "  [$index] => " . $proposal->ecriture . " => " . $proposal->image . "\n";
                 }
             }
         }
 
         if ($this->multiple_proposals) {
-            // gvv_dump($this->multiple_proposals, false, "multiple proposals");
             $multiple_count = count($this->multiple_proposals);
             if ($multiple_count > 0) {
                 echo $tab . "Multiple Proposals ($multiple_count):\n";
-                $nb = 1;
-                foreach ($this->multiple_proposals as $combi) {
-                    echo $tab . "combinaison: $nb\n";
-                    $line_nb = 1;
-                    foreach ($combi as $line) {
-                        // gvv_dump($line, false, "line: $line_nb");
-                        echo $tab . "  " . $line['image'] . "\n";
-                        $line_nb++;
+                foreach ($this->multiple_proposals as $index => $combination) {
+                    echo $tab . "combinaison: " . ($index + 1) . " (ID: " . $combination->combinationId . ")\n";
+                    echo $tab . "  total: " . number_format($combination->totalAmount, 2) . " €\n";
+                    echo $tab . "  confidence: " . $combination->confidence . "%\n";
+                    echo $tab . "  ecritures count: " . count($combination->combination_data) . "\n";
+                    foreach ($combination->combination_data as $ecriture_index => $ecriture_data) {
+                        echo $tab . "    [$ecriture_index] " . $ecriture_data['ecriture'] . " => " . $ecriture_data['image'] . "\n";
                     }
-                    $nb++;
                 }
             }
         }
@@ -296,7 +293,7 @@ class StatementOperation {
 
     public function type_string() {
         if (isset($this->parser_info->type)) {
-             if (isset($this->recognized_types[$this->parser_info->type])) {
+            if (isset($this->recognized_types[$this->parser_info->type])) {
                 return $this->recognized_types[$this->parser_info->type];
             } else {
                 return "autre";
@@ -384,7 +381,7 @@ class StatementOperation {
                     $capital_lines = $this->get_proposals_for_amount($capital);
                     $interets_lines = $this->get_proposals_for_amount($interets);
 
-                    $lines = $capital_lines + $interets_lines;
+                    $lines = array_merge($capital_lines, $interets_lines);
                 }
             }
 
@@ -400,7 +397,7 @@ class StatementOperation {
     }
 
     private function get_proposals_for_amount($amount) {
-        $lines = [];
+        $proposal_lines = [];
         // Logic to get proposals for a specific amount
         // On utilise le modèle ecritures_model pour obtenir les écritures
         // qui correspondent à l'opération du relevé bancaire
@@ -423,7 +420,13 @@ class StatementOperation {
         $reference_date = $this->value_date();
 
         $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
-        return $lines;
+
+        // Convertir le hash d'écritures en objets ProposalLine
+        foreach ($lines as $ecriture_id => $image) {
+            $proposal_lines[] = new ProposalLine(['ecriture_hash' => [$ecriture_id => $image]]);
+        }
+
+        return $proposal_lines;
     }
 
     /**
@@ -450,7 +453,17 @@ class StatementOperation {
             $line['ecriture'] = $key;
             $sequence[] = $line;
         }
-        $this->multiple_proposals = $this->search_combinations($sequence, $amount);
+        $combinations_array = $this->search_combinations($sequence, $amount);
+        
+        // Convertir les combinaisons en objets MultiProposalCombination
+        $this->multiple_proposals = [];
+        if ($combinations_array) {
+            foreach ($combinations_array as $combination_data) {
+                $multi_proposal = new MultiProposalCombination(['combination_data' => $combination_data]);
+                $this->multiple_proposals[] = $multi_proposal;
+            }
+            // gvv_dump($this->multiple_proposals, false, "multiple proposals objects created");
+        }
     }
 
 
@@ -492,7 +505,6 @@ class StatementOperation {
                 }
             }
         }
-        // gvv_dump($res, false, "returning: ");
         return $res;
     }
 

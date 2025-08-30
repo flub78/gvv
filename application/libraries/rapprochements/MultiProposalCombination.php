@@ -9,14 +9,14 @@
 class MultiProposalCombination {
     private $CI;
 
-    public $proposals = []; // Liste des ProposalLine composant cette combinaison
+    public $combination_data = []; // Données brutes de la combinaison d'écritures
     public $totalAmount = 0; // Montant total de la combinaison
     public $confidence = 0; // Niveau de confiance global de la combinaison (0-100)
     public $combinationId = null; // Identifiant unique de la combinaison
 
     /**
      * Constructeur de la classe
-     * MultiProposalCombination(['proposals' => $proposals, 'totalAmount' => $amount, 'confidence' => $confidence]);
+     * MultiProposalCombination(['combination_data' => $combination_array]); // Pour une combinaison depuis get_multiple_proposals
      */
     public function __construct($data = null) {
         $this->CI = &get_instance();
@@ -26,17 +26,14 @@ class MultiProposalCombination {
             return;
         }
 
-        if (isset($data['proposals'])) {
-            $this->proposals = $data['proposals'];
-            // Calculer le montant total automatiquement
+        if (isset($data['combination_data'])) {
+            // Cas où on reçoit une combinaison depuis get_multiple_proposals
+            // $data['combination_data'] est un array d'écritures
+            $this->combination_data = $data['combination_data'];
             $this->calculateTotalAmount();
+            $this->confidence = 70; // Confiance plus faible pour les combinaisons multiples
         }
-        if (isset($data['totalAmount'])) {
-            $this->totalAmount = $data['totalAmount'];
-        }
-        if (isset($data['confidence'])) {
-            $this->confidence = $data['confidence'];
-        }
+        
         if (isset($data['combinationId'])) {
             $this->combinationId = $data['combinationId'];
         } else {
@@ -50,32 +47,32 @@ class MultiProposalCombination {
      */
     private function calculateTotalAmount() {
         $total = 0;
-        foreach ($this->proposals as $proposal) {
-            if (is_array($proposal->ecriture) && isset($proposal->ecriture['montant'])) {
-                $total += $proposal->ecriture['montant'];
+        foreach ($this->combination_data as $ecriture_data) {
+            if (isset($ecriture_data['montant'])) {
+                $total += floatval($ecriture_data['montant']);
             }
         }
         $this->totalAmount = $total;
     }
 
     /**
-     * Ajoute une proposition à la combinaison
+     * Ajoute une écriture à la combinaison
      * 
-     * @param ProposalLine $proposal La proposition à ajouter
+     * @param array $ecriture_data Les données de l'écriture à ajouter
      */
-    public function addProposal($proposal) {
-        $this->proposals[] = $proposal;
+    public function addEcriture($ecriture_data) {
+        $this->combination_data[] = $ecriture_data;
         $this->calculateTotalAmount();
     }
 
     /**
-     * Retire une proposition de la combinaison
+     * Retire une écriture de la combinaison
      * 
-     * @param int $index Index de la proposition à retirer
+     * @param int $index Index de l'écriture à retirer
      */
-    public function removeProposal($index) {
-        if (isset($this->proposals[$index])) {
-            array_splice($this->proposals, $index, 1);
+    public function removeEcriture($index) {
+        if (isset($this->combination_data[$index])) {
+            array_splice($this->combination_data, $index, 1);
             $this->calculateTotalAmount();
         }
     }
@@ -88,10 +85,10 @@ class MultiProposalCombination {
     public function to_HTML() {
         $html = "";
 
-        if (!empty($this->proposals)) {
+        if (!empty($this->combination_data)) {
             $html .= "<div class='multi-proposal-combination' data-combination-id='" . $this->combinationId . "'>";
             $html .= "<div class='combination-header'>";
-            $html .= "<h5>Combinaison de " . count($this->proposals) . " écritures";
+            $html .= "<h5>Combinaison de " . count($this->combination_data) . " écritures";
             $html .= " - Total: " . number_format($this->totalAmount, 2) . " €";
             $html .= " - Confiance: " . $this->confidence . "%</h5>";
             $html .= "<button class='btn btn-sm btn-success accept-combination'>Accepter la combinaison</button>";
@@ -103,15 +100,18 @@ class MultiProposalCombination {
             $html .= "<th>ID</th>";
             $html .= "<th>Description</th>";
             $html .= "<th>Montant</th>";
-            $html .= "<th>Confiance</th>";
-            $html .= "<th>Critères</th>";
             $html .= "<th>Action</th>";
             $html .= "</tr>";
             $html .= "</thead>";
             $html .= "<tbody>";
 
-            foreach ($this->proposals as $index => $proposal) {
-                $html .= $proposal->to_HTML();
+            foreach ($this->combination_data as $index => $ecriture_data) {
+                $html .= '<tr>';
+                $html .= '<td>' . htmlspecialchars($ecriture_data['ecriture']) . '</td>';
+                $html .= '<td>' . htmlspecialchars($ecriture_data['image']) . '</td>';
+                $html .= '<td>' . number_format($ecriture_data['montant'], 2) . ' €</td>';
+                $html .= '<td><button class="btn btn-sm btn-warning remove-from-combination" data-index="' . $index . '">Retirer</button></td>';
+                $html .= '</tr>';
             }
 
             $html .= "</tbody>";
@@ -140,16 +140,13 @@ class MultiProposalCombination {
         echo $tab . "combinationId: " . $this->combinationId . "\n";
         echo $tab . "totalAmount: " . number_format($this->totalAmount, 2) . " €\n";
         echo $tab . "confidence: " . $this->confidence . "%\n";
-        echo $tab . "proposals count: " . count($this->proposals) . "\n";
+        echo $tab . "ecritures count: " . count($this->combination_data) . "\n";
 
-        foreach ($this->proposals as $index => $proposal) {
-            echo $tab . "proposal[$index]:\n";
-            if (is_array($proposal->ecriture)) {
-                echo $tab . $tab . "id: " . (isset($proposal->ecriture['id']) ? $proposal->ecriture['id'] : 'N/A') . "\n";
-                echo $tab . $tab . "description: " . (isset($proposal->ecriture['description']) ? $proposal->ecriture['description'] : 'N/A') . "\n";
-                echo $tab . $tab . "montant: " . (isset($proposal->ecriture['montant']) ? $proposal->ecriture['montant'] : 'N/A') . "\n";
-            }
-            echo $tab . $tab . "confidence: " . $proposal->confidence . "%\n";
+        foreach ($this->combination_data as $index => $ecriture_data) {
+            echo $tab . "ecriture[$index]:\n";
+            echo $tab . $tab . "id: " . $ecriture_data['ecriture'] . "\n";
+            echo $tab . $tab . "description: " . $ecriture_data['image'] . "\n";
+            echo $tab . $tab . "montant: " . $ecriture_data['montant'] . " €\n";
         }
 
         echo "</pre>";
