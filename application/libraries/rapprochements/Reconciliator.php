@@ -131,7 +131,8 @@ class Reconciliator {
             // caractéristiques, mais on commence l'analyse
             $statement_operation = new StatementOperation([
                 'parser_info' => $op,
-                'gvv_bank_account' => $this->gvv_bank_account()
+                'gvv_bank_account' => $this->gvv_bank_account(),
+                'recognized_types' => $this->recognized_types()
             ]);
 
             if ($filter_active) {
@@ -186,8 +187,7 @@ class Reconciliator {
             $this->multiple_count += $statement_operation->multiple_count();
         }
 
-        // $this->dump_parser_result(false);
-        $this->dump("Reconciliator", false);
+        // $this->dump("Reconciliator", false);
     }
 
     public function bank() {
@@ -302,6 +302,15 @@ class Reconciliator {
             $this->rapproched_operations_count() . ' / ' . $this->choices_count . ' / ' . $this->unique_count . ' / ' . $this->multiple_count
         ];
         return $header;
+    }
+
+    public function to_HTML() {
+        $res = "";
+        
+        foreach ($this->operations as $op) {
+            $res .= $op->to_HTML();
+        }
+        return $res;
     }
 
     /**

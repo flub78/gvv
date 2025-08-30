@@ -210,9 +210,8 @@ class Rapprochements extends CI_Controller {
             } else {
                 // version 2
                 $data['header'] = $reconciliator->header();
-                $data['count_selected'] = "";
-                $data['section'] = "";
-                $data['html_tables'] = ""; // $reconciliator->to_HTML();
+                $data['count_selected'] = 10;
+                $data['html_tables'] = $reconciliator->to_HTML();
 
                 $type_hash = ["all" => "Tous les types"];
                 $recognized_types = $reconciliator->recognized_types();

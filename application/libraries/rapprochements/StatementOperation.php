@@ -9,9 +9,12 @@
 class StatementOperation {
     private $CI;
     private $parser_info;
-    private $reconciliated = []; // I wonder if it should be a hash too?
+    private $reconciliated = []; // list of ReconciliationLine
     private $proposals = []; // hash of ecriture images with ecritures id as key
-    private $multiple_proposals = [];
+    private $multiple_proposals = []; // list of proposal combination 
+
+    // required to interpret the type field, so injected in constructor
+    private $recognized_types = [];
 
     /**
      * $reconciliated : référence les écritures GVV qui ont été rapprochées avec cette opération.
@@ -38,7 +41,9 @@ class StatementOperation {
 
         $this->parser_info = $data['parser_info'];
         $this->gvv_bank_account = isset($data['gvv_bank_account']) ? $data['gvv_bank_account'] : null;
+        $this->recognized_types = isset($data['recognized_types']) ? $data['recognized_types'] : [];
         $this->reconciliate();
+        $this->dump("constructor", false);
     }
 
     /**
@@ -47,11 +52,97 @@ class StatementOperation {
      * @return string Représentation HTML de l'opération
      */
     public function to_HTML() {
-        $html = "<div class='statement-operation'>";
-        $html .= "<span class='date'>" . htmlspecialchars($this->date ?? '') . "</span>";
-        $html .= "</div>";
+        $html = "";
+
+        $html .= '<table class="table rapprochement table-striped table-bordered border border-dark rounded mb-3 w-100 operations">';
+        $html .= '<thead>';
+
+        $html .= '<tr class="compte row_title">';
+        $html .= '<th>Date</th>';
+        $type = $this->type_string();
+        $ligne = $this->line();
+        $html .= "<th>Nature de l'opération: $type, ligne: $ligne</th>";
+        $html .= "<th>Débit</th>";
+        $html .= "<th>Crédit</th>";
+        $html .= "<th>Devise</th>";
+        $html .= "<th>Date de valeur</th>";
+        $html .= "<th>Libellé interbancaire</th>";
+        $html .= '</tr>';
+
+        $html .= '</thead>';
+
+        $html .= '<tbody>';
+
+        $html .= '<tr>';
+        $html .= '<td>' . htmlspecialchars($this->local_date()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->nature()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->debit()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->credit()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->currency()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->local_value_date()) . '</td>';
+        $html .= '<td>' . htmlspecialchars($this->interbank_label()) . '</td>';
+        $html .= '</tr>';
+
+        foreach ($this->comments() as $comment) {
+            $html .= '<tr>';
+            $html .= '<td></td>';
+            $html .= '<td>' . htmlspecialchars($comment) . '</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+
+            $html .= '</tr>';
+        }
+
+        $html .= $this->rapprochements_to_html($this);
+
+        $html .= '</tbody>';
+        $html .= '</table>';
         return $html;
     }
+
+    private function rapprochements_to_html() {
+        $html = "";
+
+        if ($this->is_rapproched()) {
+            foreach ($this->reconciliated() as $reconciliation) {
+                $html .= $reconciliation->to_HTML();
+            }
+        } elseif ($this->is_unique()) {
+            // unique proposal
+            foreach ($this->proposals as $ecriture => $image) {
+                $line = new ReconciliationLine(['proposal' => ['ecriture' => $ecriture, 'image' => $image]]);
+                $html .= $line->to_HTML();
+            }
+        } elseif ($this->is_multiple()) {
+            // multiple proposals
+            foreach ($this->multiple_proposals as $combi) {
+                foreach ($combi as $line) {
+                    $line_obj = new ReconciliationLine(['proposal' => ['ecriture' => $line['ecriture'], 'image' => $line['image']]]);
+                    $html .= $line_obj->to_HTML();
+                }
+                // separator between combinations
+                $html .= '<tr class="table-secondary">';
+                $html .= '<td colspan="7" class="text-center">--- Autre combinaison possible ---</td>';
+                $html .= '</tr>';
+            }
+        } else {
+            // nothing found
+            $html .= $this->no_proposal_html();
+        }
+        return $html;
+    }
+
+    public function no_proposal_html() {
+        $html = "";
+        $html .= '<tr class="table-danger">';
+        $html .= '<td colspan="7" class="text-center">Aucune écriture comptable trouvée</td>';
+        $html .= '</tr>';
+        return $html;
+    }
+
 
     /**
      * Affiche un dump pour le débogage
@@ -65,7 +156,7 @@ class StatementOperation {
         $caller = $bt[0];
         echo "<pre>";
         echo "StatementOperation $title $exit:\n";
-        // echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
+        echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
 
         echo $tab . "date: " . $this->date() . "\n";
         echo $tab . "local_date: " . $this->local_date() . "\n";
@@ -84,7 +175,7 @@ class StatementOperation {
         echo $tab . "type: " . $this->type() . "\n";
 
         foreach ($this->reconciliated as $reconciliation) {
-            $reconciliation->dump("rapprochement");
+            $reconciliation->dump("rapprochement", false);
         }
         if ($this->proposals) {
             $proposal_count = count($this->proposals);
@@ -136,7 +227,7 @@ class StatementOperation {
 
             if (empty($this->proposals)) {
                 // try to split into multiple
-                $this->proposals = $this->get_multiple_proposals();
+                $this->multiple_proposals = $this->get_multiple_proposals();
             }
         }
     }
@@ -203,6 +294,17 @@ class StatementOperation {
         return isset($this->parser_info->type) ? $this->parser_info->type : null;
     }
 
+    public function type_string() {
+        if (isset($this->parser_info->type)) {
+             if (isset($this->recognized_types[$this->parser_info->type])) {
+                return $this->recognized_types[$this->parser_info->type];
+            } else {
+                return "autre";
+            }
+        }
+        return null;
+    }
+
     public function is_rapproched() {
         return !empty($this->reconciliated);
     }
@@ -222,7 +324,7 @@ class StatementOperation {
     public function is_multiple() {
         return isset($this->multiple_proposals) ? (count($this->multiple_proposals) > 0) : false;
     }
-    
+
     public function reconciliated() {
         return $this->reconciliated;
     }
