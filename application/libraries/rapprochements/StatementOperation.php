@@ -120,7 +120,7 @@ class StatementOperation {
         } elseif ($this->choices_count() > 1) {
             // Plusieurs propositions - afficher avec checkbox et dropdown
             $html .= $this->multiple_proposals_html();
-        } elseif ($this->is_multiple()) {
+        } elseif ($this->is_multiple_combination()) {
             // multiple proposals avec combinaisons multiples
             foreach ($this->multiple_proposals as $combination) {
                 $html .= $combination->to_HTML();
@@ -449,7 +449,7 @@ class StatementOperation {
     }
 
     public function is_multiple() {
-        return isset($this->multiple_proposals) ? (count($this->multiple_proposals) > 0) : false;
+        return isset($this->proposals) ? (count($this->proposals) > 1) : false;
     }
 
     public function reconciliated() {

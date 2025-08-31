@@ -160,15 +160,17 @@ class Reconciliator {
                         }
                     } elseif ($filter_type == 'filter_unmatched_choices') {
                         if ($statement_operation->is_rapproched() || 
-                            $statement_operation->choices_count() <= 1 ||
                             !$statement_operation->is_multiple()) {
                             // On élimine cette opération car elle ne correspond pas au filtre "plusieurs choix"
                             continue;
                         }
                     } elseif ($filter_type == 'filter_unmatched_multi') {
                         if (!$statement_operation->is_multiple_combination()) {
+                            // $statement_operation->dump("Not multiple combination", false);
                             // On élimine cette opération
                             continue;
+                        } else {    
+                            // $statement_operation->dump("Is multiple combination", false);
                         }
                     }
                 }

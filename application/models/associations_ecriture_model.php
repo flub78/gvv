@@ -62,7 +62,7 @@ class Associations_ecriture_model extends Common_Model {
         return $select;
     }
 
-    function create($data) {
+    function check_and_create($data) {
 
         // first check that there is already some matching elements
         $this->db
@@ -76,7 +76,7 @@ class Associations_ecriture_model extends Common_Model {
             return true;
         }
 
-        return $this->insert($data);
+        return $this->create($data);
     }
 
     /**

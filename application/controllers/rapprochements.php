@@ -715,7 +715,7 @@ class Rapprochements extends CI_Controller {
 
         // process valid operations
         foreach ($operations as $key => $ope) {
-            $this->associations_ecriture_model->create([
+            $this->associations_ecriture_model->check_and_create([
                 'string_releve' => $ope['string_releve'],
                 'id_ecriture_gvv' => $ope['ecriture']
             ]);
