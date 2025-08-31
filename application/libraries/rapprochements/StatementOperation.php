@@ -111,23 +111,36 @@ class StatementOperation {
         $html = "";
 
         if ($this->is_rapproched()) {
+            $html .= '<tr class="table-secondary">';
+            $html .= '<td colspan="7" class="text-start">Ecritures rapprochées</td>';
+            $html .= '</tr>';
             foreach ($this->reconciliated() as $reconciliation) {
                 $html .= $reconciliation->to_HTML();
             }
         } elseif ($this->choices_count() == 1) {
             // Une seule proposition unique - afficher avec checkbox et champ caché
+            $html .= '<tr class="table-secondary">';
+            $html .= '<td colspan="7" class="text-start">Proposition de rapprochements</td>';
+            $html .= '</tr>';
             $html .= $this->unique_proposal_html();
         } elseif ($this->choices_count() > 1) {
             // Plusieurs propositions - afficher avec checkbox et dropdown
+            $html .= '<tr class="table-secondary">';
+            $html .= '<td colspan="7" class="text-start">Choix de rapprochements</td>';
+            $html .= '</tr>';
             $html .= $this->multiple_proposals_html();
         } elseif ($this->is_multiple_combination()) {
             // multiple proposals avec combinaisons multiples
+            $html .= '<td colspan="7" class="text-start">Proposition de rapprochements multiples</td>';
+
             foreach ($this->multiple_proposals as $combination) {
                 $html .= $combination->to_HTML();
-                // separator between combinations
-                $html .= '<tr class="table-secondary">';
-                $html .= '<td colspan="7" class="text-center">--- Autre combinaison possible ---</td>';
-                $html .= '</tr>';
+                // separator between combinations (only if there are several)
+                if (count($this->multiple_proposals) > 1 && $combination !== end($this->multiple_proposals)) {
+                    $html .= '<tr class="table-secondary">';
+                    $html .= '<td colspan="7" class="text-center">Autre combinaison possible</td>';
+                    $html .= '</tr>';
+                }
             }
         } else {
             // nothing found
@@ -333,13 +346,13 @@ class StatementOperation {
         // Maintenant il faut voir si l'objet est raprochable avec une ou
         // plusieurs écritures comptables
 
-        $this->reconciliated = $this->get_reconciliated();
+        $this->get_reconciliated();
 
         if (empty($this->reconciliated)) {
             // Look for proposals
-            $this->proposals = $this->get_proposals();
+            $this->get_proposals();
 
-            if (empty($this->proposals)) {
+            if (empty($this->proposals) && empty($this->multiple_proposals)) {
                 // try to split into multiple
                 $this->get_multiple_proposals();
             }
@@ -481,7 +494,8 @@ class StatementOperation {
             $line = new ReconciliationLine(['rapprochements' => $gvv_ecriture]);
             $lines[] = $line;
         }
-        return $lines;
+
+        $this->reconciliated = $lines;
     }
 
     /**
@@ -491,7 +505,7 @@ class StatementOperation {
     private function get_proposals() {
         $lines = [];
         // todo generate a multiple_combination
-        if ($this->type() === 'prelevement_pret' && true) {
+        if ($this->type() === 'prelevement_pret' && false) {
             // split the amount into two parts
             // Extract capital amorti and interest amounts from comments
             $capital = 0.0;
@@ -518,12 +532,19 @@ class StatementOperation {
                     $interets_lines = $this->get_proposals_for_amount($interets);
 
                     $lines = array_merge($capital_lines, $interets_lines);
-                }
-            }
 
-            return $lines;
+                    foreach ($lines as $line) {
+                        $line->dump();
+                    }
+                } else {
+                    $this->proposals = $this->get_proposals_for_amount($this->amount());
+                }
+            } else {
+                // It is a loan payment but we cannot split it
+                $this->proposals = $this->get_proposals_for_amount($this->amount());
+            }
         } else {
-            $lines = $this->get_proposals_for_amount($this->amount());
+            $this->proposals = $this->get_proposals_for_amount($this->amount());
         }
 
         // Si on sait proposer une ou plusieurs écritures à rapprocher

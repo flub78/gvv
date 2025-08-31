@@ -122,28 +122,15 @@ class MultiProposalCombination {
                 }
                 
                 // Colonne 2: Description de l'écriture (dropdown pour multiple)
-                $description = htmlspecialchars($ecriture_data['image']);
+                $description = $ecriture_data['image'];
                 $html .= '<td>' . $description . '</td>';
                 
-                // Colonnes 3-5: vides
+                // Colonnes 3-7: vides
                 $html .= '<td></td>';
                 $html .= '<td></td>';
                 $html .= '<td></td>';
-                
-                // Colonne 6: Info sur les choix multiples (seulement sur la première ligne)
-                if ($index === 0) {
-                    $choices_info = $this->multiple_count > 0 ? "Choix: " . $this->multiple_count . "." : "";
-                    $html .= '<td>' . $choices_info . ' Ligne:' . $this->line_number . '</td>';
-                } else {
-                    $html .= '<td></td>';
-                }
-                
-                // Colonne 7: Type d'opération (seulement sur la première ligne)
-                if ($index === 0) {
-                    $html .= '<td>' . ($this->type_string ?? '') . '</td>';
-                } else {
-                    $html .= '<td></td>';
-                }
+                $html .= '<td></td>';
+                $html .= '<td></td>';
                 
                 $html .= '</tr>';
             }
