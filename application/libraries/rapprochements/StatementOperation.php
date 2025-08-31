@@ -80,8 +80,8 @@ class StatementOperation {
         $html .= '<tr>';
         $html .= '<td>' . htmlspecialchars($this->local_date()) . '</td>';
         $html .= '<td>' . htmlspecialchars($this->nature()) . '</td>';
-        $html .= '<td>' . htmlspecialchars($this->debit()) . '</td>';
-        $html .= '<td>' . htmlspecialchars($this->credit()) . '</td>';
+        $html .= '<td>' . ($this->debit() ? euro($this->debit()) : '') . '</td>';
+        $html .= '<td>' . ($this->credit() ? euro($this->credit()) : '') . '</td>';
         $html .= '<td>' . htmlspecialchars($this->currency()) . '</td>';
         $html .= '<td>' . htmlspecialchars($this->local_value_date()) . '</td>';
         $html .= '<td>' . htmlspecialchars($this->interbank_label()) . '</td>';
@@ -114,13 +114,14 @@ class StatementOperation {
             foreach ($this->reconciliated() as $reconciliation) {
                 $html .= $reconciliation->to_HTML();
             }
-        } elseif ($this->is_unique()) {
-            // unique proposal
-            foreach ($this->proposals as $proposal) {
-                $html .= $proposal->to_HTML();
-            }
+        } elseif ($this->choices_count() == 1) {
+            // Une seule proposition unique - afficher avec checkbox et champ caché
+            $html .= $this->unique_proposal_html();
+        } elseif ($this->choices_count() > 1) {
+            // Plusieurs propositions - afficher avec checkbox et dropdown
+            $html .= $this->multiple_proposals_html();
         } elseif ($this->is_multiple()) {
-            // multiple proposals
+            // multiple proposals avec combinaisons multiples
             foreach ($this->multiple_proposals as $combination) {
                 $html .= $combination->to_HTML();
                 // separator between combinations
@@ -137,12 +138,120 @@ class StatementOperation {
 
     public function no_proposal_html() {
         $html = "";
-        $html .= '<tr class="table-danger">';
-        $html .= '<td colspan="7" class="text-center">Aucune écriture comptable trouvée</td>';
+        $html .= '<tr>';
+        
+        // Colonne 1: Badge "Non rapproché" avec champ caché
+        $line_number = $this->line();
+        $str_releve = $this->str_releve();
+        $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+        
+        $html .= '<td>' . $badge . $hidden . '</td>';
+        
+        // Colonne 2: Message d'erreur
+        $html .= '<td><span class="text-danger">Aucune écriture trouvée</span></td>';
+        
+        // Colonnes 3-5: vides
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        
+        // Colonne 6: Numéro de ligne
+        $html .= '<td>Ligne:' . $line_number . '</td>';
+        
+        // Colonne 7: Type d'opération
+        $html .= '<td>' . $this->type_string() . '</td>';
+        
         $html .= '</tr>';
         return $html;
     }
 
+    public function unique_proposal_html() {
+        $html = "";
+        $html .= '<tr>';
+        
+        // Colonne 1: Checkbox avec champ caché contenant l'ID unique
+        $line_number = $this->line();
+        $str_releve = $this->str_releve();
+        $checkbox = '<input type="checkbox" class="unique" name="cb_' . $line_number . '" value="1">';
+        $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+        
+        // Récupérer la première (et seule) proposition
+        $first_proposal = reset($this->proposals);
+        if ($first_proposal) {
+            $hidden .= '<input type="hidden" name="op_' . $line_number . '" value="' . $first_proposal->ecriture . '">';
+        }
+        
+        $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        $status = $checkbox . $hidden . $badge;
+        
+        $html .= '<td>' . $status . '</td>';
+        
+        // Colonne 2: Description de l'écriture unique (en vert pour proposition unique)
+        if ($first_proposal) {
+            $html .= '<td><span class="text-success">' . htmlspecialchars($first_proposal->image) . '</span></td>';
+        } else {
+            $html .= '<td></td>';
+        }
+        
+        // Colonnes 3-5: vides
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        $html .= '<td>Choix: 1.</td>';
+        
+        // Colonne 6: Numéro de ligne
+        $html .= '<td>Ligne:' . $line_number . '</td>';
+        
+        // Colonne 7: Type d'opération
+        $html .= '<td>' . $this->type_string() . '</td>';
+        
+        $html .= '</tr>';
+        return $html;
+    }
+
+    public function multiple_proposals_html() {
+        $html = "";
+        $html .= '<tr>';
+        
+        // Colonne 1: Checkbox avec champ caché
+        $line_number = $this->line();
+        $str_releve = $this->str_releve();
+        $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
+        $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+        $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        
+        $status = $checkbox . $hidden . $badge;
+        $html .= '<td>' . $status . '</td>';
+        
+        // Colonne 2: Dropdown avec les propositions multiples
+        $html .= '<td>';
+        
+        // Créer le tableau d'options pour le dropdown
+        $options = [];
+        foreach ($this->proposals as $proposal) {
+            $options[$proposal->ecriture] = $proposal->image;
+        }
+        
+        $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
+        $dropdown = dropdown_field("op_" . $line_number, "", $options, $attrs);
+        
+        $html .= $dropdown;
+        $html .= '</td>';
+        
+        // Colonnes 3-5: vides
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        $html .= '<td>Choix: ' . count($this->proposals) . '.</td>';
+        
+        // Colonne 6: Numéro de ligne
+        $html .= '<td>Ligne:' . $line_number . '</td>';
+        
+        // Colonne 7: Type d'opération  
+        $html .= '<td>' . $this->type_string() . '</td>';
+        
+        $html .= '</tr>';
+        return $html;
+    }
 
     /**
      * Affiche un dump pour le débogage
@@ -343,6 +452,11 @@ class StatementOperation {
 
         $gvv_ecritures_list = $this->CI->associations_ecriture_model->get_by_string_releve($string_releve);
         foreach ($gvv_ecritures_list as $gvv_ecriture) {
+            // Enrichir les données avec les informations nécessaires pour le HTML
+            $gvv_ecriture['line'] = $this->line();
+            $gvv_ecriture['str_releve'] = $string_releve;
+            $gvv_ecriture['type_string'] = $this->type_string();
+            
             $line = new ReconciliationLine(['rapprochements' => $gvv_ecriture]);
             $lines[] = $line;
         }
@@ -423,7 +537,14 @@ class StatementOperation {
 
         // Convertir le hash d'écritures en objets ProposalLine
         foreach ($lines as $ecriture_id => $image) {
-            $proposal_lines[] = new ProposalLine(['ecriture_hash' => [$ecriture_id => $image]]);
+            $proposal_data = [
+                'ecriture_hash' => [$ecriture_id => $image],
+                'line_number' => $this->line(),
+                'str_releve' => $this->str_releve(),
+                'choices_count' => count($lines),
+                'type_string' => $this->type_string()
+            ];
+            $proposal_lines[] = new ProposalLine($proposal_data);
         }
 
         return $proposal_lines;
@@ -459,7 +580,14 @@ class StatementOperation {
         $this->multiple_proposals = [];
         if ($combinations_array) {
             foreach ($combinations_array as $combination_data) {
-                $multi_proposal = new MultiProposalCombination(['combination_data' => $combination_data]);
+                $multi_proposal_data = [
+                    'combination_data' => $combination_data,
+                    'line_number' => $this->line(),
+                    'str_releve' => $this->str_releve(),
+                    'multiple_count' => count($combinations_array),
+                    'type_string' => $this->type_string()
+                ];
+                $multi_proposal = new MultiProposalCombination($multi_proposal_data);
                 $this->multiple_proposals[] = $multi_proposal;
             }
             // gvv_dump($this->multiple_proposals, false, "multiple proposals objects created");

@@ -14,6 +14,10 @@ class ProposalLine {
     public $montant = null; // Montant de l'écriture
     public $confidence = 0; // Niveau de confiance de la proposition (0-100)
     public $criteria = []; // Critères ayant mené à cette proposition
+    public $line_number = null; // Numéro de ligne dans le relevé
+    public $str_releve = null; // Chaîne unique identifiant l'opération
+    public $choices_count = 0; // Nombre de choix disponibles
+    public $type_string = null; // Type d'opération en texte
 
     /**
      * Constructeur de la classe
@@ -54,6 +58,18 @@ class ProposalLine {
         if (isset($data['criteria'])) {
             $this->criteria = $data['criteria'];
         }
+        if (isset($data['line_number'])) {
+            $this->line_number = $data['line_number'];
+        }
+        if (isset($data['str_releve'])) {
+            $this->str_releve = $data['str_releve'];
+        }
+        if (isset($data['choices_count'])) {
+            $this->choices_count = $data['choices_count'];
+        }
+        if (isset($data['type_string'])) {
+            $this->type_string = $data['type_string'];
+        }
     }
 
     /**
@@ -65,31 +81,41 @@ class ProposalLine {
         $html = "";
 
         if ($this->ecriture || $this->image) {
-            $html .= "<div class='proposal-line'>";
-            $html .= '<tr class="proposal-row">';
+            $html .= '<tr>';
 
-            // ID de l'écriture
+            // Colonne 1: Checkbox avec badge "Non rapproché" et champs cachés
+            $line_number = $this->line_number ?? '';
+            $str_releve = $this->str_releve ?? '';
+            
+            $checkbox = '<input type="checkbox" class="unique" name="cb_' . $line_number . '" value="1">';
+            $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+            $hidden .= '<input type="hidden" name="op_' . $line_number . '" value="' . $this->ecriture . '">';
+            $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+            
+            $status = $checkbox . $badge . $hidden;
+            $html .= '<td>' . $status . '</td>';
+
+            // Colonne 2: Description de l'écriture (en vert pour proposition unique)
             if (is_array($this->ecriture)) {
-                $html .= '<td>' . (isset($this->ecriture['id']) ? $this->ecriture['id'] : '') . '</td>';
-                $html .= '<td>' . (isset($this->ecriture['description']) ? $this->ecriture['description'] : '') . '</td>';
-                $html .= '<td>' . (isset($this->ecriture['montant']) ? number_format($this->ecriture['montant'], 2) . ' €' : '') . '</td>';
+                $description = isset($this->ecriture['description']) ? $this->ecriture['description'] : '';
             } else {
-                $html .= '<td>' . $this->ecriture . '</td>';
-                $html .= '<td>' . $this->image . '</td>';
-                $html .= '<td></td>';
+                $description = $this->image;
             }
-
-            // Niveau de confiance
-            $html .= '<td>' . $this->confidence . '%</td>';
+            $html .= '<td><span class="text-success">' . $description . '</span></td>';
             
-            // Critères
-            $html .= '<td>' . implode(', ', $this->criteria) . '</td>';
+            // Colonnes 3-5: vides
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
             
-            // Action
-            $html .= '<td><button class="btn btn-sm btn-success accept-proposal">Accepter</button></td>';
+            // Colonne 6: Numéro de ligne avec info sur le nombre de choix
+            $choices_info = $this->choices_count > 0 ? "Choix: " . $this->choices_count . "." : "";
+            $html .= '<td>' . $choices_info . ' Ligne:' . $line_number . '</td>';
+            
+            // Colonne 7: Type d'opération
+            $html .= '<td>' . ($this->type_string ?? '') . '</td>';
 
             $html .= '</tr>';
-            $html .= "</div>";
         }
 
         return $html;

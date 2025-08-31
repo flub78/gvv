@@ -13,6 +13,10 @@ class MultiProposalCombination {
     public $totalAmount = 0; // Montant total de la combinaison
     public $confidence = 0; // Niveau de confiance global de la combinaison (0-100)
     public $combinationId = null; // Identifiant unique de la combinaison
+    public $line_number = null; // Numéro de ligne dans le relevé
+    public $str_releve = null; // Chaîne unique identifiant l'opération
+    public $multiple_count = 0; // Nombre de combinaisons multiples disponibles
+    public $type_string = null; // Type d'opération en texte
 
     /**
      * Constructeur de la classe
@@ -39,6 +43,19 @@ class MultiProposalCombination {
         } else {
             // Générer un ID unique
             $this->combinationId = uniqid('combo_');
+        }
+        
+        if (isset($data['line_number'])) {
+            $this->line_number = $data['line_number'];
+        }
+        if (isset($data['str_releve'])) {
+            $this->str_releve = $data['str_releve'];
+        }
+        if (isset($data['multiple_count'])) {
+            $this->multiple_count = $data['multiple_count'];
+        }
+        if (isset($data['type_string'])) {
+            $this->type_string = $data['type_string'];
         }
     }
 
@@ -86,37 +103,50 @@ class MultiProposalCombination {
         $html = "";
 
         if (!empty($this->combination_data)) {
-            $html .= "<div class='multi-proposal-combination' data-combination-id='" . $this->combinationId . "'>";
-            $html .= "<div class='combination-header'>";
-            $html .= "<h5>Combinaison de " . count($this->combination_data) . " écritures";
-            $html .= " - Total: " . number_format($this->totalAmount, 2) . " €";
-            $html .= " - Confiance: " . $this->confidence . "%</h5>";
-            $html .= "<button class='btn btn-sm btn-success accept-combination'>Accepter la combinaison</button>";
-            $html .= "</div>";
-
-            $html .= "<table class='table table-sm combination-table'>";
-            $html .= "<thead>";
-            $html .= "<tr>";
-            $html .= "<th>ID</th>";
-            $html .= "<th>Description</th>";
-            $html .= "<th>Montant</th>";
-            $html .= "<th>Action</th>";
-            $html .= "</tr>";
-            $html .= "</thead>";
-            $html .= "<tbody>";
-
+            // Générer une ligne par écriture dans la combinaison
             foreach ($this->combination_data as $index => $ecriture_data) {
                 $html .= '<tr>';
-                $html .= '<td>' . htmlspecialchars($ecriture_data['ecriture']) . '</td>';
-                $html .= '<td>' . htmlspecialchars($ecriture_data['image']) . '</td>';
-                $html .= '<td>' . number_format($ecriture_data['montant'], 2) . ' €</td>';
-                $html .= '<td><button class="btn btn-sm btn-warning remove-from-combination" data-index="' . $index . '">Retirer</button></td>';
+                
+                // Colonne 1: Checkbox pour sélection multiple avec champs cachés si c'est la première ligne
+                if ($index === 0) {
+                    $line_number = $this->line_number ?? '';
+                    $str_releve = $this->str_releve ?? '';
+                    $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
+                    $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+                    $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+                    
+                    $status = $checkbox . $badge . $hidden;
+                    $html .= '<td>' . $status . '</td>';
+                } else {
+                    $html .= '<td></td>';
+                }
+                
+                // Colonne 2: Description de l'écriture (dropdown pour multiple)
+                $description = htmlspecialchars($ecriture_data['image']);
+                $html .= '<td>' . $description . '</td>';
+                
+                // Colonnes 3-5: vides
+                $html .= '<td></td>';
+                $html .= '<td></td>';
+                $html .= '<td></td>';
+                
+                // Colonne 6: Info sur les choix multiples (seulement sur la première ligne)
+                if ($index === 0) {
+                    $choices_info = $this->multiple_count > 0 ? "Choix: " . $this->multiple_count . "." : "";
+                    $html .= '<td>' . $choices_info . ' Ligne:' . $this->line_number . '</td>';
+                } else {
+                    $html .= '<td></td>';
+                }
+                
+                // Colonne 7: Type d'opération (seulement sur la première ligne)
+                if ($index === 0) {
+                    $html .= '<td>' . ($this->type_string ?? '') . '</td>';
+                } else {
+                    $html .= '<td></td>';
+                }
+                
                 $html .= '</tr>';
             }
-
-            $html .= "</tbody>";
-            $html .= "</table>";
-            $html .= "</div>";
         }
 
         return $html;
