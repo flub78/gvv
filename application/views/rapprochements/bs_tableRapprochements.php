@@ -260,7 +260,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         echo '</div>';
         if ($html_tables) {
             echo $html_tables;
-        }
+        } 
         ?>
 
         <div class="actions mb-3 mt-3">

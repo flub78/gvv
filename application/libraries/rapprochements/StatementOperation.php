@@ -189,7 +189,7 @@ class StatementOperation {
 
         // Colonne 2: Description de l'écriture unique (en vert pour proposition unique)
         if ($first_proposal) {
-            $html .= '<td><span class="text-success">' . htmlspecialchars($first_proposal->image) . '</span></td>';
+            $html .= '<td><span class="text-success">' . $first_proposal->image . '</span></td>';
         } else {
             $html .= '<td></td>';
         }
@@ -490,6 +490,7 @@ class StatementOperation {
      */
     private function get_proposals() {
         $lines = [];
+        // todo generate a multiple_combination
         if ($this->type() === 'prelevement_pret' && true) {
             // split the amount into two parts
             // Extract capital amorti and interest amounts from comments
@@ -555,6 +556,13 @@ class StatementOperation {
         $reference_date = $this->value_date();
 
         $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
+
+        $smart_mode = $this->CI->session->userdata('rapprochement_smart_mode') ?? false;
+        if ($smart_mode) {
+            $this->CI->load->library('rapprochements/SmartAdjustor');
+            $smart = new SmartAdjustor();
+            $lines = $smart->smart_adjust($lines, $this);
+        }
 
         // Convertir le hash d'écritures en objets ProposalLine
         foreach ($lines as $ecriture_id => $image) {
