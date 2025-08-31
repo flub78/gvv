@@ -113,6 +113,13 @@ class MultiProposalCombination {
                     $str_releve = $this->str_releve ?? '';
                     $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
                     $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+                    
+                    // Add hidden checkboxes for each ecriture in the multiple combination
+                    foreach ($this->combination_data as $ecriture) {
+                        $ecriture_id = $ecriture['ecriture'] ?? '';
+                        $hidden .= '<input type="hidden" name="cbmulti_' . $line_number . '_' . $ecriture_id . '" value="1">';
+                    }
+                    
                     $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
                     
                     $status = $checkbox . $badge . $hidden;

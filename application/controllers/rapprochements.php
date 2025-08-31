@@ -685,6 +685,7 @@ class Rapprochements extends CI_Controller {
                     gvv_dump('string_releve_' . $line . "not defined");
                 }
 
+                // Check for single ecriture selection
                 if (isset($post['op_' . $line]) && $post['op_' . $line] !== '') {
                     // echo "op_$line => " . $post['op_' . $line] . "<br>";
                     $op = $post['op_' . $line];
@@ -695,7 +696,28 @@ class Rapprochements extends CI_Controller {
                     $counts[$op]++;
                     $operations[$line]['ecriture'] = $post['op_' . $line];
                 } else {
-                    gvv_dump('op_' . $line . "not defined");
+                    // Check for multiple ecritures selection (rapprochement multiple)
+                    $multiple_ecritures = [];
+                    foreach ($post as $multi_key => $multi_value) {
+                        // Look for pattern cbmulti_LINE_ECRITURE_ID
+                        if (strpos($multi_key, 'cbmulti_' . $line . '_') === 0) {
+                            $ecriture_id = str_replace('cbmulti_' . $line . '_', '', $multi_key);
+                            if ($multi_value == '1') {
+                                $multiple_ecritures[] = $ecriture_id;
+                                // Count occurrences of this operation ID
+                                if (!isset($counts[$ecriture_id])) {
+                                    $counts[$ecriture_id] = 0;
+                                }
+                                $counts[$ecriture_id]++;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($multiple_ecritures)) {
+                        $operations[$line]['multiple_ecritures'] = $multiple_ecritures;
+                    } else {
+                        gvv_dump('op_' . $line . " not defined and no multiple ecritures found");
+                    }
                 }
             }
         }
@@ -711,14 +733,26 @@ class Rapprochements extends CI_Controller {
         if ($errors) {
             $data['errors'] = $errors;
             load_last_view('rapprochements/tableRapprochements', $data);
+            return;
         }
 
         // process valid operations
         foreach ($operations as $key => $ope) {
-            $this->associations_ecriture_model->check_and_create([
-                'string_releve' => $ope['string_releve'],
-                'id_ecriture_gvv' => $ope['ecriture']
-            ]);
+            if (isset($ope['ecriture'])) {
+                // Single reconciliation
+                $this->associations_ecriture_model->check_and_create([
+                    'string_releve' => $ope['string_releve'],
+                    'id_ecriture_gvv' => $ope['ecriture']
+                ]);
+            } elseif (isset($ope['multiple_ecritures'])) {
+                // Multiple reconciliations
+                foreach ($ope['multiple_ecritures'] as $ecriture_id) {
+                    $this->associations_ecriture_model->check_and_create([
+                        'string_releve' => $ope['string_releve'],
+                        'id_ecriture_gvv' => $ecriture_id
+                    ]);
+                }
+            }
         }
 
         redirect('rapprochements/import_releve_from_file');

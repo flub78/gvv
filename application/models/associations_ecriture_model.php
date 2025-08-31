@@ -103,8 +103,8 @@ class Associations_ecriture_model extends Common_Model {
         $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
         $db_res = $this->db->get($this->table);
         $result = $this->get_to_array($db_res);
-        // Return only the first element for each group
-        $rapprochements = !empty($result) ? [$result[0]] : [];
+        // Return all elements for multiple reconciliations
+        $rapprochements = $result;
 
         // maybe that I will need to fetch additional information from the ecriture
         // like the amount or the date
