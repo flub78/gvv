@@ -333,7 +333,7 @@ class StatementOperation {
 
             if (empty($this->proposals)) {
                 // try to split into multiple
-                $this->multiple_proposals = $this->get_multiple_proposals();
+                $this->get_multiple_proposals();
             }
         }
     }

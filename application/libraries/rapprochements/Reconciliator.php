@@ -159,8 +159,10 @@ class Reconciliator {
                             continue;
                         }
                     } elseif ($filter_type == 'filter_unmatched_choices') {
-                        if ($statement_operation->is_unique()) {
-                            // On élimine cette opération
+                        if ($statement_operation->is_rapproched() || 
+                            $statement_operation->choices_count() <= 1 ||
+                            $statement_operation->is_multiple()) {
+                            // On élimine cette opération car elle ne correspond pas au filtre "plusieurs choix"
                             continue;
                         }
                     } elseif ($filter_type == 'filter_unmatched_multiple') {
