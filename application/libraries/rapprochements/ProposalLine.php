@@ -134,25 +134,24 @@ class ProposalLine {
 
         echo "<pre>";
         echo "ProposalLine $title\n";
-        echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
+        // echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
         
         if ($this->ecriture) {
-            echo $tab . "ecriture:\n";
             if (is_array($this->ecriture)) {
                 echo $tab . $tab . "id: " . (isset($this->ecriture['id']) ? $this->ecriture['id'] : 'N/A') . "\n";
                 echo $tab . $tab . "description: " . (isset($this->ecriture['description']) ? $this->ecriture['description'] : 'N/A') . "\n";
                 echo $tab . $tab . "montant: " . (isset($this->ecriture['montant']) ? $this->ecriture['montant'] : 'N/A') . "\n";
             } else {
-                echo $tab . $tab . "value: " . $this->ecriture . "\n";
+                echo $tab . $tab .  $this->ecriture . "\n";
             }
         }
         
         if ($this->image) {
-            echo $tab . "image: " . $this->image . "\n";
+            echo $tab . $tab ."image: " . $this->image . "\n";
         }
         
-        echo $tab . "confidence: " . $this->confidence . "%\n";
-        echo $tab . "criteria: " . implode(', ', $this->criteria) . "\n";
+        echo $tab . $tab . "confidence: " . $this->confidence . "%\n";
+        // echo $tab . "criteria: " . implode(', ', $this->criteria) . "\n";
 
         echo "</pre>";
         if ($exit) {

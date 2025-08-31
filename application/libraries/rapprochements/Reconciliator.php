@@ -161,12 +161,12 @@ class Reconciliator {
                     } elseif ($filter_type == 'filter_unmatched_choices') {
                         if ($statement_operation->is_rapproched() || 
                             $statement_operation->choices_count() <= 1 ||
-                            $statement_operation->is_multiple()) {
+                            !$statement_operation->is_multiple()) {
                             // On élimine cette opération car elle ne correspond pas au filtre "plusieurs choix"
                             continue;
                         }
-                    } elseif ($filter_type == 'filter_unmatched_multiple') {
-                        if (!$statement_operation->is_multiple()) {
+                    } elseif ($filter_type == 'filter_unmatched_multi') {
+                        if (!$statement_operation->is_multiple_combination()) {
                             // On élimine cette opération
                             continue;
                         }
@@ -293,8 +293,6 @@ class Reconciliator {
 
         $header[] = ["Date de solde: ",  $this->date_solde(), "Solde: ", euro($this->solde())];
         $header[] = ["Date de début: ",  $this->local_start_date(), "Date de fin: ",  $this->local_end_date()];
-
-
 
         // $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
         $header[] = [

@@ -139,29 +139,29 @@ class StatementOperation {
     public function no_proposal_html() {
         $html = "";
         $html .= '<tr>';
-        
+
         // Colonne 1: Badge "Non rapproché" avec champ caché
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-        
+
         $html .= '<td>' . $badge . $hidden . '</td>';
-        
+
         // Colonne 2: Message d'erreur
         $html .= '<td><span class="text-danger">Aucune écriture trouvée</span></td>';
-        
+
         // Colonnes 3-5: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
         $html .= '<td></td>';
-        
+
         // Colonne 6: Numéro de ligne
         $html .= '<td>Ligne:' . $line_number . '</td>';
-        
+
         // Colonne 7: Type d'opération
         $html .= '<td>' . $this->type_string() . '</td>';
-        
+
         $html .= '</tr>';
         return $html;
     }
@@ -169,42 +169,42 @@ class StatementOperation {
     public function unique_proposal_html() {
         $html = "";
         $html .= '<tr>';
-        
+
         // Colonne 1: Checkbox avec champ caché contenant l'ID unique
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $checkbox = '<input type="checkbox" class="unique" name="cb_' . $line_number . '" value="1">';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-        
+
         // Récupérer la première (et seule) proposition
         $first_proposal = reset($this->proposals);
         if ($first_proposal) {
             $hidden .= '<input type="hidden" name="op_' . $line_number . '" value="' . $first_proposal->ecriture . '">';
         }
-        
+
         $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
         $status = $checkbox . $hidden . $badge;
-        
+
         $html .= '<td>' . $status . '</td>';
-        
+
         // Colonne 2: Description de l'écriture unique (en vert pour proposition unique)
         if ($first_proposal) {
             $html .= '<td><span class="text-success">' . htmlspecialchars($first_proposal->image) . '</span></td>';
         } else {
             $html .= '<td></td>';
         }
-        
+
         // Colonnes 3-5: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
         $html .= '<td>Choix: 1.</td>';
-        
+
         // Colonne 6: Numéro de ligne
         $html .= '<td>Ligne:' . $line_number . '</td>';
-        
+
         // Colonne 7: Type d'opération
         $html .= '<td>' . $this->type_string() . '</td>';
-        
+
         $html .= '</tr>';
         return $html;
     }
@@ -212,43 +212,43 @@ class StatementOperation {
     public function multiple_proposals_html() {
         $html = "";
         $html .= '<tr>';
-        
+
         // Colonne 1: Checkbox avec champ caché
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
         $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
-        
+
         $status = $checkbox . $hidden . $badge;
         $html .= '<td>' . $status . '</td>';
-        
+
         // Colonne 2: Dropdown avec les propositions multiples
         $html .= '<td>';
-        
+
         // Créer le tableau d'options pour le dropdown
         $options = [];
         foreach ($this->proposals as $proposal) {
             $options[$proposal->ecriture] = $proposal->image;
         }
-        
+
         $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
         $dropdown = dropdown_field("op_" . $line_number, "", $options, $attrs);
-        
+
         $html .= $dropdown;
         $html .= '</td>';
-        
+
         // Colonnes 3-5: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
         $html .= '<td>Choix: ' . count($this->proposals) . '.</td>';
-        
+
         // Colonne 6: Numéro de ligne
         $html .= '<td>Ligne:' . $line_number . '</td>';
-        
+
         // Colonne 7: Type d'opération  
         $html .= '<td>' . $this->type_string() . '</td>';
-        
+
         $html .= '</tr>';
         return $html;
     }
@@ -283,23 +283,30 @@ class StatementOperation {
         echo $tab . "line: " . $this->line() . "\n";
         echo $tab . "type: " . $this->type() . "\n";
 
-        foreach ($this->reconciliated as $reconciliation) {
-            $reconciliation->dump("rapprochement", false);
+        if ($this->is_rapproched()) {
+            $reconciliation_count = count($this->reconciliated);
+            echo $tab . "Reconciliated ($reconciliation_count):\n";
+            foreach ($this->reconciliated as $index => $reconciliation) {
+                echo $tab . "  [$index] => ";
+                $reconciliation->dump("rapprochement", false);
+            }
+        } else {
+            echo "Not reconciliated\n";
         }
-        if ($this->proposals) {
-            $proposal_count = count($this->proposals);
-            if ($proposal_count > 0) {
-                echo $tab . "Proposals ($proposal_count):\n";
-                foreach ($this->proposals as $index => $proposal) {
-                    echo $tab . "  [$index] => " . $proposal->ecriture . " => " . $proposal->image . "\n";
-                }
+
+        $choices_count = $this->choices_count();
+        if ($choices_count) {
+            echo "Proposals ($choices_count):\n";
+            foreach ($this->proposals as $index => $proposal) {
+                // echo $tab . "  [$index] => ";
+                $proposal->dump("proposal", false);
             }
         }
 
         if ($this->multiple_proposals) {
             $multiple_count = count($this->multiple_proposals);
+            echo $tab . "Multiple Proposals ($multiple_count):\n";
             if ($multiple_count > 0) {
-                echo $tab . "Multiple Proposals ($multiple_count):\n";
                 foreach ($this->multiple_proposals as $index => $combination) {
                     echo $tab . "combinaison: " . ($index + 1) . " (ID: " . $combination->combinationId . ")\n";
                     echo $tab . "  total: " . number_format($combination->totalAmount, 2) . " €\n";
@@ -310,8 +317,9 @@ class StatementOperation {
                     }
                 }
             }
+        } else {
+            echo "No multiple proposals\n";
         }
-
 
         echo "</pre>";
         if ($exit) {
@@ -427,6 +435,19 @@ class StatementOperation {
         return isset($this->multiple_proposals) ? count($this->multiple_proposals) : 0;
     }
 
+    /**
+     * True if there are multiple proposals
+     */
+    public function is_multiple_combination() {
+        if (!isset($this->multiple_proposals)) {
+            return false;
+        }
+        if (count($this->multiple_proposals) == 0) {
+            return false;
+        }
+        return true;
+    }
+
     public function is_multiple() {
         return isset($this->multiple_proposals) ? (count($this->multiple_proposals) > 0) : false;
     }
@@ -456,7 +477,7 @@ class StatementOperation {
             $gvv_ecriture['line'] = $this->line();
             $gvv_ecriture['str_releve'] = $string_releve;
             $gvv_ecriture['type_string'] = $this->type_string();
-            
+
             $line = new ReconciliationLine(['rapprochements' => $gvv_ecriture]);
             $lines[] = $line;
         }
@@ -575,7 +596,7 @@ class StatementOperation {
             $sequence[] = $line;
         }
         $combinations_array = $this->search_combinations($sequence, $amount);
-        
+
         // Convertir les combinaisons en objets MultiProposalCombination
         $this->multiple_proposals = [];
         if ($combinations_array) {
