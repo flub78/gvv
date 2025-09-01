@@ -197,7 +197,7 @@ class StatementOperation {
 
         // Vérifier s'il y a déjà un rapprochement pour cette opération
         $is_already_reconciled = !empty($this->reconciliated);
-        
+
         // Créer le bouton approprié selon l'état du rapprochement
         if ($is_already_reconciled) {
             // Opération déjà rapprochée - bouton pour supprimer le rapprochement
@@ -217,7 +217,7 @@ class StatementOperation {
                        Rapprocher
                        </button>';
         }
-        
+
         $status = $checkbox . $hidden . $button;
 
         $html .= '<td>' . $status . '</td>';
@@ -249,7 +249,7 @@ class StatementOperation {
         $str_releve = $this->str_releve();
         $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-        
+
         // Bouton pour rapprocher avec le choix sélectionné dans le dropdown
         $button = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-multiple-btn" 
                    data-string-releve="' . htmlspecialchars($str_releve) . '" 
@@ -525,48 +525,9 @@ class StatementOperation {
      */
     private function get_proposals() {
         $lines = [];
-        // todo generate a multiple_combination
-        if ($this->type() === 'prelevement_pret' && false) {
-            // split the amount into two parts
-            // Extract capital amorti and interest amounts from comments
-            $capital = 0.0;
-            $interets = 0.0;
 
-            $comments = $this->comments();
+        $this->proposals = $this->get_proposals_for_amount($this->amount());
 
-            // Check if we have comments and the first one matches 'CAPITAL AMORTI'
-            if (!empty($comments[0]) && strpos($comments[0], 'CAPITAL AMORTI') !== false) {
-                // Extract the numeric value after ': '
-                $parts = explode(': ', $comments[0]);
-                if (count($parts) == 2) {
-                    $capital = str_replace(',', '.', trim($parts[1]));
-                }
-
-                // Check for interest amount in comments
-                if (!empty($comments[1]) && strpos($comments[1], 'INTERETS') !== false) {
-                    $parts = explode(': ', $comments[1]);
-                    if (count($parts) == 2) {
-                        $interets = str_replace(',', '.', trim($parts[1]));
-                    }
-
-                    $capital_lines = $this->get_proposals_for_amount($capital);
-                    $interets_lines = $this->get_proposals_for_amount($interets);
-
-                    $lines = array_merge($capital_lines, $interets_lines);
-
-                    foreach ($lines as $line) {
-                        $line->dump();
-                    }
-                } else {
-                    $this->proposals = $this->get_proposals_for_amount($this->amount());
-                }
-            } else {
-                // It is a loan payment but we cannot split it
-                $this->proposals = $this->get_proposals_for_amount($this->amount());
-            }
-        } else {
-            $this->proposals = $this->get_proposals_for_amount($this->amount());
-        }
 
         // Si on sait proposer une ou plusieurs écritures à rapprocher
         // Avec le montant global
