@@ -195,8 +195,30 @@ class StatementOperation {
             $hidden .= '<input type="hidden" name="op_' . $line_number . '" value="' . $first_proposal->ecriture . '">';
         }
 
-        $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
-        $status = $checkbox . $hidden . $badge;
+        // Vérifier s'il y a déjà un rapprochement pour cette opération
+        $is_already_reconciled = !empty($this->reconciliated);
+        
+        // Créer le bouton approprié selon l'état du rapprochement
+        if ($is_already_reconciled) {
+            // Opération déjà rapprochée - bouton pour supprimer le rapprochement
+            $button = '<button type="button" class="badge bg-success text-white rounded-pill ms-1 border-0 auto-unreconcile-btn" 
+                       data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                       data-line="' . $line_number . '"
+                       title="Cliquer pour supprimer le rapprochement">
+                       Rapproché
+                       </button>';
+        } else {
+            // Opération non rapprochée - bouton pour rapprocher automatiquement
+            $button = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-btn" 
+                       data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                       data-ecriture-id="' . ($first_proposal ? $first_proposal->ecriture : '') . '" 
+                       data-line="' . $line_number . '"
+                       title="Cliquer pour rapprocher automatiquement">
+                       Rapprocher
+                       </button>';
+        }
+        
+        $status = $checkbox . $hidden . $button;
 
         $html .= '<td>' . $status . '</td>';
 
@@ -207,7 +229,7 @@ class StatementOperation {
             $html .= '<td></td>';
         }
 
-        // Colonnes 3-5: vides
+        // Colonnes 3-7: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
         $html .= '<td></td>';
@@ -222,14 +244,21 @@ class StatementOperation {
         $html = "";
         $html .= '<tr>';
 
-        // Colonne 1: Checkbox avec champ caché
+        // Colonne 1: Checkbox avec champ caché et bouton de rapprochement
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-        $badge = '<div type="button" class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        
+        // Bouton pour rapprocher avec le choix sélectionné dans le dropdown
+        $button = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-multiple-btn" 
+                   data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                   data-line="' . $line_number . '"
+                   title="Cliquer pour rapprocher avec le choix sélectionné">
+                   Rapprocher
+                   </button>';
 
-        $status = $checkbox . $hidden . $badge;
+        $status = $checkbox . $hidden . $button;
         $html .= '<td>' . $status . '</td>';
 
         // Colonne 2: Dropdown avec les propositions multiples

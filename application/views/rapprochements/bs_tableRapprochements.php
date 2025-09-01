@@ -170,6 +170,175 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             localStorage.setItem('activeTab', '#' + e.target.id);
         });
     });
+
+    // Gestion du rapprochement automatique pour les suggestions uniques
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('auto-reconcile-btn')) {
+            e.preventDefault();
+            
+            const button = e.target;
+            const stringReleve = button.getAttribute('data-string-releve');
+            const ecritureId = button.getAttribute('data-ecriture-id');
+            const line = button.getAttribute('data-line');
+            
+            // Désactiver le bouton pendant le traitement
+            button.disabled = true;
+            button.textContent = 'En cours...';
+            
+            // Effectuer la requête AJAX
+            fetch('<?php echo base_url('rapprochements/rapprocher_unique'); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'string_releve=' + encodeURIComponent(stringReleve) + 
+                      '&ecriture_id=' + encodeURIComponent(ecritureId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Succès - transformer le bouton en badge de succès cliquable
+                    button.className = 'badge bg-success text-white rounded-pill ms-1 border-0 auto-unreconcile-btn';
+                    button.textContent = 'Rapproché';
+                    button.disabled = false;
+                    button.title = 'Cliquer pour supprimer le rapprochement';
+                    // Ajouter la classe pour gérer la suppression
+                    button.classList.add('auto-unreconcile-btn');
+                    button.classList.remove('auto-reconcile-btn');
+                    
+                    // Garder la checkbox visible pour permettre la suppression du rapprochement
+                    // (pas de modification de la checkbox)
+                    
+                    // Optionnel: afficher un message de succès
+                    // alert('Rapprochement effectué avec succès');
+                } else {
+                    // Erreur - remettre le bouton dans son état initial
+                    button.disabled = false;
+                    button.textContent = 'Rapprocher';
+                    alert('Erreur lors du rapprochement: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                button.disabled = false;
+                button.textContent = 'Rapprocher';
+                alert('Erreur de communication avec le serveur');
+            });
+        }
+        
+        // Gestion de la suppression du rapprochement
+        if (e.target.classList.contains('auto-unreconcile-btn')) {
+            e.preventDefault();
+            
+            const button = e.target;
+            const stringReleve = button.getAttribute('data-string-releve');
+            const line = button.getAttribute('data-line');
+            
+            // Demander confirmation
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce rapprochement ?')) {
+                return;
+            }
+            
+            // Désactiver le bouton pendant le traitement
+            button.disabled = true;
+            button.textContent = 'Suppression...';
+            
+            // Effectuer la requête AJAX de suppression
+            fetch('<?php echo base_url('rapprochements/supprimer_rapprochement_unique'); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'string_releve=' + encodeURIComponent(stringReleve)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Vérifier si c'est un bouton avec ms-2 (ReconciliationLine) ou ms-1 (unique proposal)
+                    if (button.classList.contains('ms-2')) {
+                        // C'est un rapprochement existant (ReconciliationLine) - rafraîchir la page
+                        window.location.reload();
+                    } else {
+                        // C'est une suggestion unique - remettre le bouton en mode rapprochement
+                        button.className = 'badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-btn';
+                        button.textContent = 'Rapprocher';
+                        button.disabled = false;
+                        button.title = 'Cliquer pour rapprocher automatiquement';
+                        // Remettre la classe pour gérer le rapprochement simple
+                        button.classList.add('auto-reconcile-btn');
+                        button.classList.remove('auto-unreconcile-btn');
+                    }
+                    
+                    // Optionnel: afficher un message de succès
+                    // alert('Rapprochement supprimé avec succès');
+                } else {
+                    // Erreur - remettre le bouton dans son état rapproché
+                    button.disabled = false;
+                    button.textContent = 'Rapproché';
+                    alert('Erreur lors de la suppression: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                button.disabled = false;
+                button.textContent = 'Rapproché';
+                alert('Erreur de communication avec le serveur');
+            });
+        }
+        
+        // Gestion du rapprochement pour les choix multiples
+        if (e.target.classList.contains('auto-reconcile-multiple-btn')) {
+            e.preventDefault();
+            
+            const button = e.target;
+            const stringReleve = button.getAttribute('data-string-releve');
+            const line = button.getAttribute('data-line');
+            
+            // Récupérer la valeur sélectionnée dans le dropdown
+            const dropdown = document.querySelector('select[name="op_' + line + '"]');
+            if (!dropdown || !dropdown.value) {
+                alert('Veuillez sélectionner une écriture dans la liste déroulante');
+                return;
+            }
+            
+            const ecritureId = dropdown.value;
+            
+            // Désactiver le bouton pendant le traitement
+            button.disabled = true;
+            button.textContent = 'En cours...';
+            
+            // Effectuer la requête AJAX
+            fetch('<?php echo base_url('rapprochements/rapprocher_unique'); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'string_releve=' + encodeURIComponent(stringReleve) + 
+                      '&ecriture_id=' + encodeURIComponent(ecritureId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Succès - rediriger vers import_releve_from_file pour recharger et propager les effets
+                    window.location.href = '<?php echo base_url('rapprochements/import_releve_from_file'); ?>';
+                } else {
+                    // Erreur - remettre le bouton dans son état initial
+                    button.disabled = false;
+                    button.textContent = 'Rapprocher';
+                    alert('Erreur lors du rapprochement: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                button.disabled = false;
+                button.textContent = 'Rapprocher';
+                alert('Erreur de communication avec le serveur');
+            });
+        }
+    });
 </script>
 
 <div class="tab-content" id="myTabContent">

@@ -40,12 +40,20 @@ class ReconciliationLine {
             // Cette méthode doit maintenant générer une ligne complète avec checkbox et badge
             $html .= '<tr>';
             
-            // Colonne 1: Checkbox avec badge "Rapproché" et champ caché
+            // Colonne 1: Checkbox avec badge "Rapproché" cliquable et champ caché
             $line_number = $this->rapprochements['line'] ?? '';
             $str_releve = $this->rapprochements['str_releve'] ?? '';
             
             $status = '<input type="checkbox" name="cbdel_' . $line_number . '" value="1">';
-            $status .= '<div class="badge bg-success text-white rounded-pill ms-2">Rapproché</div>';
+            
+            // Badge "Rapproché" cliquable pour supprimer le rapprochement
+            $status .= '<button type="button" class="badge bg-success text-white rounded-pill ms-2 border-0 auto-unreconcile-btn" 
+                        data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                        data-line="' . $line_number . '"
+                        title="Cliquer pour supprimer le rapprochement">
+                        Rapproché
+                        </button>';
+            
             $status .= '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
             
             $html .= '<td>' . $status . '</td>';

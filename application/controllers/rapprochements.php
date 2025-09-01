@@ -524,6 +524,84 @@ class Rapprochements extends CI_Controller {
         }
         return $res;
     }
+
+    /**
+     * Rapproche une seule opération (appelé via AJAX)
+     */
+    public function rapprocher_unique() {
+        // Vérifier que c'est une requête AJAX
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $response = array('success' => false, 'message' => '');
+
+        try {
+            $string_releve = $this->input->post('string_releve');
+            $ecriture_id = $this->input->post('ecriture_id');
+
+            if (empty($string_releve) || empty($ecriture_id)) {
+                $response['message'] = 'Paramètres manquants';
+            } else {
+                // Créer l'association
+                $result = $this->associations_ecriture_model->check_and_create([
+                    'string_releve' => $string_releve,
+                    'id_ecriture_gvv' => $ecriture_id
+                ]);
+
+                if ($result) {
+                    $response['success'] = true;
+                    $response['message'] = 'Rapprochement effectué avec succès';
+                } else {
+                    $response['message'] = 'Erreur lors du rapprochement';
+                }
+            }
+        } catch (Exception $e) {
+            $response['message'] = 'Erreur: ' . $e->getMessage();
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Supprime un rapprochement unique (appelé via AJAX)
+     */
+    public function supprimer_rapprochement_unique() {
+        // Vérifier que c'est une requête AJAX
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $response = array('success' => false, 'message' => '');
+
+        try {
+            $string_releve = $this->input->post('string_releve');
+
+            if (empty($string_releve)) {
+                $response['message'] = 'Paramètre manquant';
+            } else {
+                // Supprimer l'association
+                $result = $this->associations_ecriture_model->delete_by_string_releve($string_releve);
+
+                if ($result !== false) {
+                    $response['success'] = true;
+                    $response['message'] = 'Rapprochement supprimé avec succès';
+                } else {
+                    $response['message'] = 'Erreur lors de la suppression du rapprochement';
+                }
+            }
+        } catch (Exception $e) {
+            $response['message'] = 'Erreur: ' . $e->getMessage();
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
 }
 /* End of file rapprochements.php */
 /* Location: ./application/controllers/rapprochements.php */
