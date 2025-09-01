@@ -637,8 +637,7 @@ class StatementOperation {
                     'multiple_count' => count($combinations_array),
                     'type_string' => $this->type_string()
                 ];
-                $multi_proposal = new MultiProposalCombination($multi_proposal_data);
-                $this->multiple_proposals[] = $multi_proposal;
+                $this->multiple_proposals[] = new MultiProposalCombination($multi_proposal_data);
             }
             // gvv_dump($this->multiple_proposals, false, "multiple proposals objects created");
         }
@@ -686,8 +685,17 @@ class StatementOperation {
         return $res;
     }
 
+    /**
+     * Génère une chaîne unique représentant l'opération de relevé bancaire.
+     * 
+     * Cette chaîne est utilisée pour identifier de façon unique une opération,
+     * notamment lors du rapprochement avec des écritures comptables.
+     * Elle concatène plusieurs champs clés de l'opération, séparés par des underscores,
+     * puis remplace tous les caractères non alphanumériques par des underscores.
+     * 
+     * @return string Chaîne unique représentant l'opération
+     */
     public function str_releve() {
-
         $str = "";
         $str .= $this->date() . "_";
         $str .= $this->nature() . "_";
