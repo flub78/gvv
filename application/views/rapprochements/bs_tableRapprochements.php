@@ -151,12 +151,14 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             Ecritures GVV
         </button>
     </li>
+    <!--
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="saisie-tab" data-bs-toggle="tab" data-bs-target="#saisie" type="button" role="tab"
             aria-controls="saisie" aria-selected="false">
             Saisie assistée des écritures GVV
         </button>
     </li>
+    -->
 </ul>
 
 <script>
