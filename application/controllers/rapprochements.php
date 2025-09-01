@@ -185,12 +185,22 @@ class Rapprochements extends CI_Controller {
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
                 $line['rapproched'] = $rapproched;
 
-                if ($filter_active) {
+                if ($filter_active && $filter_type != 'display_all') {
+                    if ($filter_type == '') {
+                        $filtered_lines[] = $line;
+                    }
                     if ($filter_type == 'filter_matched' && $rapproched) {
                         $filtered_lines[] = $line;
                     }
 
-                    if ($filter_type == 'filter_unmatched' && !$rapproched) {
+                    $unmatched_list = [
+                        'filter_unmatched',
+                        'filter_unmatched_0',
+                        'filter_unmatched_1',
+                        'filter_unmatched_choices',
+                        'filter_unmatched_multi'
+                    ];
+                    if (in_array($filter_type, $unmatched_list) && !$rapproched) {
                         $filtered_lines[] = $line;
                     }
                 } else {
@@ -259,7 +269,7 @@ class Rapprochements extends CI_Controller {
                             }
                         }
                     }
-                    
+
                     if (!empty($multiple_ecritures)) {
                         $operations[$line]['multiple_ecritures'] = $multiple_ecritures;
                     } else {
