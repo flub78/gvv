@@ -210,13 +210,9 @@ class StatementOperation {
         // Colonnes 3-5: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
-        $html .= '<td>Choix: 1.</td>';
-
-        // Colonne 6: Numéro de ligne
-        $html .= '<td>Ligne:' . $line_number . '</td>';
-
-        // Colonne 7: Type d'opération
-        $html .= '<td>' . $this->type_string() . '</td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
 
         $html .= '</tr>';
         return $html;
@@ -254,13 +250,9 @@ class StatementOperation {
         // Colonnes 3-5: vides
         $html .= '<td></td>';
         $html .= '<td></td>';
-        $html .= '<td>Choix: ' . count($this->proposals) . '.</td>';
-
-        // Colonne 6: Numéro de ligne
-        $html .= '<td>Ligne:' . $line_number . '</td>';
-
-        // Colonne 7: Type d'opération  
-        $html .= '<td>' . $this->type_string() . '</td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
 
         $html .= '</tr>';
         return $html;

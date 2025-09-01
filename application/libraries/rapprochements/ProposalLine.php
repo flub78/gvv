@@ -103,17 +103,12 @@ class ProposalLine {
             }
             $html .= '<td><span class="text-success">' . $description . '</span></td>';
             
-            // Colonnes 3-5: vides
+            // Colonnes 3-7: vides
             $html .= '<td></td>';
             $html .= '<td></td>';
             $html .= '<td></td>';
-            
-            // Colonne 6: Numéro de ligne avec info sur le nombre de choix
-            $choices_info = $this->choices_count > 0 ? "Choix: " . $this->choices_count . "." : "";
-            $html .= '<td>' . $choices_info . ' Ligne:' . $line_number . '</td>';
-            
-            // Colonne 7: Type d'opération
-            $html .= '<td>' . ($this->type_string ?? '') . '</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
 
             $html .= '</tr>';
         }
