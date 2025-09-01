@@ -314,9 +314,11 @@ class SmartAdjustor {
                 }
             }
 
-            if ($word_count > 0) {
-                $match_ratio = $score / $word_count;
-                return $match_ratio * 0.8;
+            if ($score == 1) {
+                // Un seul mot correspondant donne une corrélation de 0.51
+                return 0.51;
+            } elseif ($score > 1) {
+                return 0.51 + ($score - 1) / $word_count;
             }
         }
 
@@ -325,7 +327,7 @@ class SmartAdjustor {
             return 0.7;
         }
 
-        return 0.6;
+        return 0.1;
     }
 
     /**

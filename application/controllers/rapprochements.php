@@ -602,6 +602,74 @@ class Rapprochements extends CI_Controller {
             ->set_content_type('application/json')
             ->set_output(json_encode($response));
     }
+
+    /**
+     * Rapproche plusieurs opérations en une seule transaction (appelé via AJAX)
+     */
+    public function rapprocher_multiple() {
+        // Vérifier que c'est une requête AJAX
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $response = array('success' => false, 'message' => '');
+
+        try {
+            $string_releve = $this->input->post('string_releve');
+            $ecriture_ids = $this->input->post('ecriture_ids');
+
+            if (empty($string_releve) || empty($ecriture_ids)) {
+                $response['message'] = 'Paramètres manquants';
+            } else {
+                // Décoder les IDs des écritures
+                $ecriture_ids_array = json_decode($ecriture_ids, true);
+                
+                if (!is_array($ecriture_ids_array) || empty($ecriture_ids_array)) {
+                    $response['message'] = 'Format des IDs d\'écritures invalide';
+                } else {
+                    $success_count = 0;
+                    $errors = array();
+                    
+                    // Créer un rapprochement pour chaque écriture
+                    foreach ($ecriture_ids_array as $ecriture_id) {
+                        try {
+                            $result = $this->associations_ecriture_model->check_and_create([
+                                'string_releve' => $string_releve,
+                                'id_ecriture_gvv' => $ecriture_id
+                            ]);
+                            
+                            if ($result) {
+                                $success_count++;
+                            } else {
+                                $errors[] = "Erreur lors du rapprochement de l'écriture $ecriture_id";
+                            }
+                        } catch (Exception $e) {
+                            $errors[] = "Exception pour l'écriture $ecriture_id: " . $e->getMessage();
+                        }
+                    }
+                    
+                    if ($success_count > 0 && empty($errors)) {
+                        $response['success'] = true;
+                        $response['message'] = "Rapprochement multiple effectué avec succès ($success_count écritures)";
+                    } elseif ($success_count > 0 && !empty($errors)) {
+                        $response['success'] = true;
+                        $response['message'] = "Rapprochement partiel: $success_count succès, " . count($errors) . " erreurs";
+                        $response['errors'] = $errors;
+                    } else {
+                        $response['message'] = 'Aucun rapprochement n\'a pu être effectué';
+                        $response['errors'] = $errors;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $response['message'] = 'Erreur: ' . $e->getMessage();
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
 }
 /* End of file rapprochements.php */
 /* Location: ./application/controllers/rapprochements.php */

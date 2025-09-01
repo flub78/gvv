@@ -14,10 +14,12 @@ class Reconciliator {
     private $gvv_bank_account;
     private $operations = [];
     private $filename = "";
+
     private $rapproched_operations_count = 0;
     private $unique_count = 0;
     private $choices_count = 0;
     private $multiple_count = 0;
+    private $no_suggestion_count = 0;
 
     /**
      * Constructeur de la classe
@@ -185,10 +187,17 @@ class Reconciliator {
 
             $this->operations[] = $statement_operation;
 
-            $this->rapproched_operations_count += $statement_operation->is_rapproched() ? 1 : 0;
-            $this->unique_count += $statement_operation->is_unique() ? 1 : 0;
-            $this->choices_count += $statement_operation->choices_count();
-            $this->multiple_count += $statement_operation->multiple_count();
+            if ($statement_operation->is_rapproched()) {
+                $this->rapproched_operations_count++;
+            } elseif ($statement_operation->is_unique()) {
+                $this->unique_count++;
+            } elseif ($statement_operation->choices_count()) {
+                $this->choices_count++;
+            } elseif ($statement_operation->multiple_count()) {
+                $this->multiple_count++;
+            } else {
+                $this->no_suggestion_count++;
+            }
         }
 
         // $this->dump("Reconciliator", false);
@@ -299,9 +308,16 @@ class Reconciliator {
         // $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];
         $header[] = [
             'Nombre opérations: ',
-            $this->filtered_operations_count() . ' / ' . $this->total_operation_count(),
-            'Rapprochées/Choix/Uniques/Multiples:',
-            $this->rapproched_operations_count() . ' / ' . $this->choices_count . ' / ' . $this->unique_count . ' / ' . $this->multiple_count
+            $this->filtered_operations_count() 
+            . ' / ' . $this->total_operation_count(),
+
+            'Rapprochées / Uniques / Choix / Combinaisons / sans suggestion:',
+
+            $this->rapproched_operations_count() 
+            . ' / ' . $this->unique_count 
+            . ' / ' . $this->choices_count 
+            . ' / ' . $this->multiple_count
+            . ' / ' . $this->no_suggestion_count
         ];
         return $header;
     }

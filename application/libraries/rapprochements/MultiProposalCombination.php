@@ -120,7 +120,23 @@ class MultiProposalCombination {
                         $hidden .= '<input type="hidden" name="cbmulti_' . $line_number . '_' . $ecriture_id . '" value="1">';
                     }
                     
-                    $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+                    // Créer la liste des IDs d'écritures pour le rapprochement multiple
+                    $ecriture_ids = [];
+                    foreach ($this->combination_data as $ecriture) {
+                        if (isset($ecriture['ecriture'])) {
+                            $ecriture_ids[] = $ecriture['ecriture'];
+                        }
+                    }
+                    $ecriture_ids_json = json_encode($ecriture_ids);
+                    
+                    $badge = '<button type="button" ' .
+                             'class="badge bg-danger text-white rounded-pill ms-1 border-0 auto-reconcile-combination-btn" ' .
+                             'data-string-releve="' . htmlspecialchars($str_releve) . '" ' .
+                             'data-line="' . $line_number . '" ' .
+                             'data-ecriture-ids="' . htmlspecialchars($ecriture_ids_json) . '" ' .
+                             'title="Cliquer pour rapprocher automatiquement avec toutes les écritures de la combinaison">' .
+                             'Non rapproché' .
+                             '</button>';
                     
                     $status = $checkbox . $badge . $hidden;
                     $html .= '<td>' . $status . '</td>';
