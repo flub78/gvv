@@ -728,7 +728,7 @@ if (! function_exists('validation_button')) {
                         'id' => 'delete',
                         'value' => $CI->lang->line("gvv_button_delete"),
                         'onclick' => "return confirm('$txt')",
-                        'class' => 'btn btn-primary mt-3'
+                        'class' => 'btn btn-danger mt-3'
                     ));
                 }
                 /*

@@ -330,8 +330,7 @@ class StatementOperation {
                 $html .= '<label class="form-check-label" for="op_' . $line_number . '_' . $option_id . '">';
                 
                 // Créer un lien vers l'écriture, mais rester sur la fenêtre courante
-                $ecriture_id = $proposal->ecriture;
-                $ecriture_url = base_url('compta/edit/' . $ecriture_id);
+                $ecriture_url = base_url('compta/edit/' . $option_id);
                 $html .= '<a href="' . $ecriture_url . '" class="text-decoration-none">';
                 $html .= $option_label;
                 $html .= '</a>';
