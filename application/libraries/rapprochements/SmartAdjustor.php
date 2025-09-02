@@ -317,7 +317,7 @@ class SmartAdjustor {
         $cmt = $this->cleanup_string($comment);
 
         // Rechercher la nature de l'opération dans la description de l'écriture
-        if (!empty($nature) && stripos(strtolower($ecriture), $nature) !== false) {
+        if (!empty($nature) && stripos($ecriture, $nature) !== false) {
             return 0.96; // Corrélation élevée si référence trouvée
         }
 
@@ -341,7 +341,7 @@ class SmartAdjustor {
             // Un seul mot correspondant donne une corrélation de 0.51
             return 0.51;
         } elseif ($score > 1) {
-            $res = 0.51 + ($score - 1) / $word_count;
+            $res = 0.51 + 0.49 * (($score - 1) / $word_count);
             return $res;
         }
 

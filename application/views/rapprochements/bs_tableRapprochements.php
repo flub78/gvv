@@ -162,14 +162,27 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 </ul>
 
 <script>
-    // Restore active tab on page load
+    // Restore active tab and scroll position on page load
     document.addEventListener('DOMContentLoaded', function() {
         let activeTab = localStorage.getItem('activeTab');
         if (activeTab) {
             const tab = new bootstrap.Tab(document.querySelector(activeTab));
             tab.show();
         }
+        
+        // Restore scroll position
+        let scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            localStorage.removeItem('scrollPosition'); // Clean up after use
+        }
     });
+
+    // Function to save scroll position and redirect
+    function redirectWithScrollPosition(url) {
+        localStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+        window.location.href = url;
+    }
 
     // Store active tab when changed
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) {
@@ -206,7 +219,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Succès - recharger la page pour que les impacts sur les autres opérations soient pris en compte
-                        window.location.href = '<?php echo base_url('rapprochements/import_releve_from_file'); ?>';
+                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état initial
                         button.disabled = false;
@@ -252,7 +265,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Recharger la page pour que les impacts sur les autres opérations soient pris en compte
-                        window.location.href = '<?php echo base_url('rapprochements/import_releve_from_file'); ?>';
+                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état rapproché
                         button.disabled = false;
@@ -303,7 +316,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Succès - rediriger vers import_releve_from_file pour recharger et propager les effets
-                        window.location.href = '<?php echo base_url('rapprochements/import_releve_from_file'); ?>';
+                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état initial
                         button.disabled = false;
@@ -359,7 +372,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             .then(data => {
                 if (data.success) {
                     // Succès - recharger la page
-                    window.location.href = '<?php echo base_url('rapprochements/import_releve_from_file'); ?>';
+                    redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
                 } else {
                     // Erreur - remettre le bouton dans son état initial
                     button.disabled = false;
