@@ -135,7 +135,6 @@ class SoldesParser {
                 $hidden_input = form_hidden('import_' . $line, $solde_json);
 
                 $checkbox .= $hidden_input;
-
             } else {
                 $checkbox = ($initialized) ? "Initialisé" : "";
             }
@@ -145,8 +144,10 @@ class SoldesParser {
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
             } else {
-                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                    . $id_of . ',\'' . $nom_of  . '\')"';
+                // $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                //     . $id_of . ',\'' . $nom_of  . '\')"';
+
+                $attrs = 'class="form-control big_select" ';
                 $compte_gvv = dropdown_field(
                     "compte_" . $line,
                     $associated_gvv,
@@ -167,7 +168,6 @@ class SoldesParser {
                     } else {
                         $id_of = anchor_of($id_of);
                         $checkbox = "Synchronisé";
-
                     }
                 } else {
                     $solde_gvv = "0.00 €";
