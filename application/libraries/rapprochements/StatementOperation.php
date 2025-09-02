@@ -12,10 +12,14 @@ class StatementOperation {
     private $gvv_bank_account; // Compte bancaire GVV
     private $reconciliated = []; // list of ReconciliationLine
     private $proposals = []; // list of ProposalLine objects
-    private $multiple_proposals = []; // list of MultiProposalCombination objects 
+    private $multiple_combinations = []; // list of MultiProposalCombination objects 
 
     // required to interpret the type field, so injected in constructor
     private $recognized_types = [];
+
+    private $smart_agent;
+
+    private $correlations = [];
 
     /**
      * $reconciliated : référence les écritures GVV qui ont été rapprochées avec cette opération.
@@ -23,7 +27,7 @@ class StatementOperation {
      * 
      * $proposals : Propose des écritures GVV qui pourraient être rapprochées avec cette opération. Ces écritures on un montant qui correspond au montant dans le relevé.
      * 
-     * $multiple_proposals : Propose des ensembles d'écritures GVV qui pourraient être rapprochées avec cette opération. La somme des montants des écritures dans chaque ensemble doit correspondre au montant dans le relevé. Il peut y avoir plusieurs ensembles proposés. L'ensemble doit être rapproché globalement.
+     * $multiple_combinations : Propose des ensembles d'écritures GVV qui pourraient être rapprochées avec cette opération. La somme des montants des écritures dans chaque ensemble doit correspondre au montant dans le relevé. Il peut y avoir plusieurs ensembles proposés. L'ensemble doit être rapproché globalement.
      */
 
     /**
@@ -42,12 +46,19 @@ class StatementOperation {
         $this->CI->load->library('rapprochements/MultiProposalCombination');
         $this->CI->load->model('ecritures_model');
         $this->CI->load->model('associations_ecriture_model');
+        $this->CI->load->library('rapprochements/SmartAdjustor');
+
+        $this->smart_agent = new SmartAdjustor();
 
         $this->parser_info = $data['parser_info'];
         $this->gvv_bank_account = isset($data['gvv_bank_account']) ? $data['gvv_bank_account'] : null;
         $this->recognized_types = isset($data['recognized_types']) ? $data['recognized_types'] : [];
         $this->reconciliate();
         // $this->dump("constructor", false);
+    }
+
+    public function set_correlation($ecriture_id, $correlation, $image) {
+        $this->correlations[$ecriture_id] = ['correlation' => $correlation, 'image' => $image];
     }
 
     /**
@@ -107,6 +118,18 @@ class StatementOperation {
         return $html;
     }
 
+    /**
+     * Génère le HTML pour les rapprochements, propositions et combinaisons.
+     *
+     * Cette méthode affiche, selon l'état de l'opération :
+     * - Les écritures déjà rapprochées
+     * - Une proposition unique de rapprochement
+     * - Plusieurs propositions (sous forme de liste déroulante)
+     * - Des combinaisons multiples d'écritures
+     * - Ou un message indiquant qu'aucune écriture n'a été trouvée
+     *
+     * @return string HTML généré pour la section rapprochements/propositions
+     */
     private function rapprochements_to_html() {
         $html = "";
 
@@ -128,27 +151,35 @@ class StatementOperation {
             $html .= '<tr class="table-secondary">';
             $html .= '<td colspan="7" class="text-start">Choix de rapprochements</td>';
             $html .= '</tr>';
-            $html .= $this->multiple_proposals_html();
+            $html .= $this->multiple_combinations_html();
         } elseif ($this->is_multiple_combination()) {
-            // multiple proposals avec combinaisons multiples
-            $html .= '<td colspan="7" class="text-start">Proposition de rapprochements multiples</td>';
+            // Propositions de combinaisons multiples d'écritures
+            $html .= '<td colspan="7" class="text-start">Proposition de combinaisons</td>';
 
-            foreach ($this->multiple_proposals as $combination) {
+            foreach ($this->multiple_combinations as $combination) {
                 $html .= $combination->to_HTML();
-                // separator between combinations (only if there are several)
-                if (count($this->multiple_proposals) > 1 && $combination !== end($this->multiple_proposals)) {
+                // Séparateur entre les combinaisons (s'il y en a plusieurs)
+                if (count($this->multiple_combinations) > 1 && $combination !== end($this->multiple_combinations)) {
                     $html .= '<tr class="table-secondary">';
                     $html .= '<td colspan="7" class="text-center">Autre combinaison possible</td>';
                     $html .= '</tr>';
                 }
             }
         } else {
-            // nothing found
+            // Aucune écriture trouvée
             $html .= $this->no_proposal_html();
         }
         return $html;
     }
 
+    /**
+     * Generates HTML output indicating that there are no proposals available.
+     *
+     * This method is typically used to display a message or placeholder in the UI
+     * when no matching proposals are found for a given statement operation.
+     *
+     * @return string The HTML content to display when no proposals are present.
+     */
     public function no_proposal_html() {
         $html = "";
         $html .= '<tr>';
@@ -179,6 +210,15 @@ class StatementOperation {
         return $html;
     }
 
+    /**
+     * Generates and returns the HTML representation for a unique proposal.
+     *
+     * This method is responsible for creating the HTML output that represents
+     * a unique proposal within the context of statement operations. The specific
+     * structure and content of the HTML will depend on the implementation details.
+     *
+     * @return string The HTML markup for the unique proposal.
+     */
     public function unique_proposal_html() {
         $html = "";
         $html .= '<tr>';
@@ -240,7 +280,16 @@ class StatementOperation {
         return $html;
     }
 
-    public function multiple_proposals_html() {
+    /**
+     * Generates the HTML output for displaying multiple proposals.
+     *
+     * This method is responsible for creating and returning the HTML
+     * representation of multiple proposals, typically used in the context
+     * of statement operations or rapprochements.
+     *
+     * @return string The generated HTML for multiple proposals.
+     */
+    public function multiple_combinations_html() {
         $html = "";
         $html .= '<tr>';
 
@@ -337,11 +386,11 @@ class StatementOperation {
             }
         }
 
-        if ($this->multiple_proposals) {
-            $multiple_count = count($this->multiple_proposals);
+        if ($this->multiple_combinations) {
+            $multiple_count = count($this->multiple_combinations);
             echo $tab . "Multiple Proposals ($multiple_count):\n";
             if ($multiple_count > 0) {
-                foreach ($this->multiple_proposals as $index => $combination) {
+                foreach ($this->multiple_combinations as $index => $combination) {
                     echo $tab . "combinaison: " . ($index + 1) . " (ID: " . $combination->combinationId . ")\n";
                     echo $tab . "  total: " . number_format($combination->totalAmount, 2) . " €\n";
                     echo $tab . "  confidence: " . $combination->confidence . "%\n";
@@ -355,12 +404,30 @@ class StatementOperation {
             echo "No multiple proposals\n";
         }
 
+        if ($this->correlations) {
+            echo "Correlations:\n";
+            foreach ($this->correlations as $ecriture_id => $data) {
+                echo $tab . "Ecriture ID: $ecriture_id, Correlation: " . $data['correlation'] . ", Image: " . $data['image'] . "\n";
+            }
+        } else {
+            echo "No correlations\n";
+        }
+
         echo "</pre>";
         if ($exit) {
             exit;
         }
     }
 
+    /**
+     * Attempts to reconcile statement operations.
+     *
+     * This private method performs the reconciliation process for statement operations.
+     * It matches and processes relevant data to ensure consistency between statements
+     * and operations, updating internal state as necessary.
+     *
+     * @return void
+     */
     private function reconciliate() {
 
         // Les informations scalaires sont définies
@@ -373,9 +440,9 @@ class StatementOperation {
             // Look for proposals
             $this->get_proposals();
 
-            if (empty($this->proposals) && empty($this->multiple_proposals)) {
+            if (empty($this->proposals) && empty($this->multiple_combinations)) {
                 // try to split into multiple
-                $this->get_multiple_proposals();
+                $this->get_multiple_combinations();
             }
         }
     }
@@ -466,17 +533,17 @@ class StatementOperation {
     }
 
     public function multiple_count() {
-        return isset($this->multiple_proposals) ? count($this->multiple_proposals) : 0;
+        return isset($this->multiple_combinations) ? count($this->multiple_combinations) : 0;
     }
 
     /**
      * True if there are multiple proposals
      */
     public function is_multiple_combination() {
-        if (!isset($this->multiple_proposals)) {
+        if (!isset($this->multiple_combinations)) {
             return false;
         }
-        if (count($this->multiple_proposals) == 0) {
+        if (count($this->multiple_combinations) == 0) {
             return false;
         }
         return true;
@@ -491,7 +558,7 @@ class StatementOperation {
     }
 
     public function nothing_found() {
-        return empty($this->reconciliated) && empty($this->proposals) && empty($this->multiple_proposals);
+        return empty($this->reconciliated) && empty($this->proposals) && empty($this->multiple_combinations);
     }
 
     /**
@@ -534,8 +601,15 @@ class StatementOperation {
         // On crée les objets et retourne la liste
         return $lines;
     }
-
-    private function get_proposals_for_amount($amount) {
+    /**
+     * [Function Name]
+     *
+     * [Brief description of what the function does.]
+     *
+     * @param [type] $[parameter] [Description of the parameter.]
+     * @return [type] [Description of the return value.]
+     */
+    private function get_proposals_for_amount($amount, $smart = true) {
         $proposal_lines = [];
         // Logic to get proposals for a specific amount
         // On utilise le modèle ecritures_model pour obtenir les écritures
@@ -561,11 +635,11 @@ class StatementOperation {
         $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
 
         $smart_mode = $this->CI->session->userdata('rapprochement_smart_mode') ?? false;
-        if ($smart_mode) {
-            $this->CI->load->library('rapprochements/SmartAdjustor');
-            $smart = new SmartAdjustor();
-            $lines = $smart->smart_adjust($lines, $this);
+        if ($smart_mode && $smart) {
+            $lines = $this->smart_agent->smart_adjust($lines, $this);
         }
+
+        // $this->dump();
 
         // Convertir le hash d'écritures en objets ProposalLine
         foreach ($lines as $ecriture_id => $image) {
@@ -583,9 +657,15 @@ class StatementOperation {
     }
 
     /**
+     * Recherche des combinaisons multiples d'écritures dont la somme des montants est égale au montant de l'opération.
      * 
+     * Cette méthode utilise une recherche récursive pour identifier toutes les combinaisons possibles
+     * d'écritures qui, lorsqu'elles sont additionnées, correspondent au montant spécifié dans l'opération
+     * de relevé bancaire. Les combinaisons trouvées sont ensuite stockées sous forme d'objets MultiProposalCombination.
+     * 
+     * @return void
      */
-    public function get_multiple_proposals() {
+    public function get_multiple_combinations() {
         $amount = $this->amount();
         $reference_date = $this->value_date();
         $delta = $this->CI->session->userdata('rapprochement_delta');
@@ -609,7 +689,7 @@ class StatementOperation {
         $combinations_array = $this->search_combinations($sequence, $amount);
 
         // Convertir les combinaisons en objets MultiProposalCombination
-        $this->multiple_proposals = [];
+        $this->multiple_combinations = [];
         if ($combinations_array) {
             foreach ($combinations_array as $combination_data) {
                 $multi_proposal_data = [
@@ -619,9 +699,22 @@ class StatementOperation {
                     'multiple_count' => count($combinations_array),
                     'type_string' => $this->type_string()
                 ];
-                $this->multiple_proposals[] = new MultiProposalCombination($multi_proposal_data);
+                $this->multiple_combinations[] = new MultiProposalCombination($multi_proposal_data);
             }
-            // gvv_dump($this->multiple_proposals, false, "multiple proposals objects created");
+            // gvv_dump($this->multiple_combinations, false, "multiple proposals objects created");
+        }
+
+        if (count($this->multiple_combinations) == 1) {
+            $combi = $this->multiple_combinations[0];
+
+            if ($combi->ecritures_count() == 1) {
+                $montant = $combi->combination_data[0]['montant'];
+                if ($montant == $this->amount()) {
+                    // this is not a multiple combination, but a single proposal
+                    $this->proposals = $this->get_proposals_for_amount($amount, false);
+                    $this->multiple_combinations = [];
+                }
+            }
         }
     }
 

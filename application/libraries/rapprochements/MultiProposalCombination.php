@@ -162,6 +162,10 @@ class MultiProposalCombination {
         return $html;
     }
 
+    function ecritures_count() {
+        return count($this->combination_data);
+    }
+
     /**
      * Affiche un dump pour le débogage
      * 
@@ -180,7 +184,7 @@ class MultiProposalCombination {
         echo $tab . "combinationId: " . $this->combinationId . "\n";
         echo $tab . "totalAmount: " . number_format($this->totalAmount, 2) . " €\n";
         echo $tab . "confidence: " . $this->confidence . "%\n";
-        echo $tab . "ecritures count: " . count($this->combination_data) . "\n";
+        echo $tab . "ecritures count: " . $this->ecritures_count() . "\n";
 
         foreach ($this->combination_data as $index => $ecriture_data) {
             echo $tab . "ecriture[$index]:\n";

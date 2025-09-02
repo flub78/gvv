@@ -31,6 +31,7 @@ class SmartAdjustor {
         foreach ($sel as $key => $ecriture) {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $this->correlation($statement_operation, $key, $ecriture, $operation_type);
+            $statement_operation->set_correlation($key, $correlation, $ecriture);
             if ($correlation >= 0.9) {
                 $threshold = 0.9;
                 break;
@@ -251,6 +252,46 @@ class SmartAdjustor {
         return 0.6;
     }
 
+    private function cleanup_string($str) {
+        // Convertir en minuscules
+        $str = strtolower($str);
+
+        // Nettoyer les préfixes communs
+        $str = str_replace([
+            'de: m ou mme',
+            'de: mr ou mme',
+            'de: mr',
+            'de: monsieur',
+            'de: m ',
+            'de: mme',
+            'ou m',
+            'de:',
+            'epoux',
+            'date:',
+            'motif:',
+            'et',
+            'vir inst re',
+            'vir recu',
+            'virement',
+            '&nbsp;',
+            'compte',
+            'eur'
+        ], '', $str);
+
+        $str = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
+
+
+        $str = preg_replace('/\b\d{1,2}\/\d{1,2}\/\d{4}\b/', '', $str);
+        $str = preg_replace('/\b\d{1,2}:\d{2}\b/', '', $str);
+        // Supprimer la ponctuation
+        $str = preg_replace('/[^\w\s]/', ' ', $str);
+        // Supprimer les espaces multiples
+        $str = preg_replace('/\s+/', ' ', $str);
+        // Trim les espaces en début et fin
+        $str = trim($str);
+        return $str;
+    }
+
     /**
      * Corrélation pour les virements reçus
      *
@@ -264,68 +305,49 @@ class SmartAdjustor {
         $comments = $statement_operation->comments();
 
         // Nettoyer la nature de l'opération
-        $nature = strtolower($nature);
-        $nature = str_replace(['vir inst re', 'vir recu'], '', $nature);
-        $nature = trim($nature);
+        $nature = $this->cleanup_string($nature);
+        $ecriture = $this->cleanup_string($ecriture);
 
-        // Convertir l'écriture en ASCII pour un meilleur matching
-        $ecriture_ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $ecriture);
+        // Analyser les informations de l'expéditeur depuis les commentaires
+        $comment = "";
+        foreach ($comments as $c) {
+            $comment .= $c . " ";
+        }
+        $cmt = $this->cleanup_string($comment);
 
         // Rechercher la nature de l'opération dans la description de l'écriture
-        if (!empty($nature) && stripos(strtolower($ecriture_ascii), $nature) !== false) {
+        if (!empty($nature) && stripos(strtolower($ecriture), $nature) !== false) {
             return 0.96; // Corrélation élevée si référence trouvée
         }
 
-        // Analyser les informations de l'expéditeur depuis les commentaires
-        if (!empty($comments[0])) {
-            $from = strtolower($comments[0]);
-            $from = str_replace('.', ' ', $from);
+        $cmt_list = explode(' ', $cmt);
 
-            // Supprimer les espaces multiples
-            while (strpos($from, '  ') !== false) {
-                $from = str_replace('  ', ' ', $from);
-            }
-
-            // Nettoyer les préfixes communs
-            $from = str_replace([
-                'de: m ou mme',
-                'de: mr ou mme',
-                'de: mr',
-                'de: monsieur',
-                'de: m ',
-                'de: mme',
-                'ou m',
-                'de:',
-                'epoux'
-            ], '', $from);
-
-            $from = trim($from);
-            $from_list = explode(' ', $from);
-            $score = 0;
-            $word_count = 0;
-
-            foreach ($from_list as $word) {
-                $word = trim($word);
-                if (strlen($word) > 2) { // Ne considérer que les mots de plus de 2 caractères
-                    $word_count++;
-                    if (stripos($ecriture_ascii, $word) !== false) {
-                        $score++;
-                    }
+        $score = 0;
+        $word_count = 0;
+        $matches = [];
+        foreach ($cmt_list as $word) {
+            $word = trim($word);
+            if (strlen($word) > 1) { // Ne considérer que les mots de plus de 1 caractère
+                $word_count++;
+                if (stripos($ecriture, $word) !== false) {
+                    $score++;
+                    $matches[] = $word;
                 }
             }
+        }
 
-            if ($score == 1) {
-                // Un seul mot correspondant donne une corrélation de 0.51
-                return 0.51;
-            } elseif ($score > 1) {
-                return 0.51 + ($score - 1) / $word_count;
-            }
+        if ($score == 1) {
+            // Un seul mot correspondant donne une corrélation de 0.51
+            return 0.51;
+        } elseif ($score > 1) {
+            $res = 0.51 + ($score - 1) / $word_count;
+            return $res;
         }
 
         // Corrélation de base pour les opérations de virement
-        if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
-            return 0.7;
-        }
+        // if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
+        //     return 0.7;
+        // }
 
         return 0.1;
     }
@@ -467,7 +489,7 @@ class SmartAdjustor {
     public function remboursement($statement_operation) {
         // Vérifier si l'opération est un remboursement
         if ($statement_operation->type() === 'prelevement_pret') {
-            
+
             // Extraire les montants de capital amorti et intérêts des commentaires
             $capital = 0.0;
             $interets = 0.0;
