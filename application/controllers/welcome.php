@@ -113,6 +113,9 @@ class Welcome extends CI_Controller {
         $data['program_level'] = $this->config->item('migration_version');
         $data['base_level'] = $this->migration->get_version();
 
+        $data['site_url'] = site_url();
+        $data['base_url'] = base_url();
+
         load_last_view('welcome/about', $data);
     }
 }

@@ -43,6 +43,8 @@ $list = [];
 $list[] = '<a href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" >
 Site du projet GVV</a>';
 
+$list[] = "Site URL : " . $site_url;
+$list[] = "Base URL : " . $base_url;
 $list[] = "Version du : " . $commit_date;
 $list[] = "Identifiant de version : " . $commit;
 $list[] = "Dernier message git : " . $commit_message;
