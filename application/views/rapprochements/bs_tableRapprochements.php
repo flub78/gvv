@@ -162,6 +162,45 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 </ul>
 
 <script>
+    // Variables globales pour la gestion du scroll
+    let scrollRestored = false;
+    
+    // Function to save scroll position and redirect
+    function redirectWithScrollPosition(url) {
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        localStorage.setItem('scrollPosition', scrollY);
+        localStorage.setItem('scrollTimestamp', Date.now());
+        window.location.href = url;
+    }
+    
+    // Function to restore scroll position
+    function restoreScrollPosition() {
+        if (scrollRestored) return;
+        
+        const scrollPosition = localStorage.getItem('scrollPosition');
+        const timestamp = localStorage.getItem('scrollTimestamp');
+        
+        if (scrollPosition && timestamp) {
+            // Vérifier que le timestamp n'est pas trop ancien (5 minutes max)
+            const now = Date.now();
+            const age = now - parseInt(timestamp);
+            
+            if (age < 5 * 60 * 1000) { // 5 minutes
+                setTimeout(function() {
+                    window.scrollTo(0, parseInt(scrollPosition));
+                    scrollRestored = true;
+                    // Nettoyer après utilisation
+                    localStorage.removeItem('scrollPosition');
+                    localStorage.removeItem('scrollTimestamp');
+                }, 100);
+            } else {
+                // Nettoyer les anciennes données
+                localStorage.removeItem('scrollPosition');
+                localStorage.removeItem('scrollTimestamp');
+            }
+        }
+    }
+
     // Restore active tab and scroll position on page load
     document.addEventListener('DOMContentLoaded', function() {
         let activeTab = localStorage.getItem('activeTab');
@@ -170,19 +209,16 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             tab.show();
         }
         
-        // Restore scroll position
-        let scrollPosition = localStorage.getItem('scrollPosition');
-        if (scrollPosition) {
-            window.scrollTo(0, parseInt(scrollPosition));
-            localStorage.removeItem('scrollPosition'); // Clean up after use
+        // Restaurer la position après un court délai
+        restoreScrollPosition();
+    });
+    
+    // Aussi essayer de restaurer après que la page soit complètement chargée
+    window.addEventListener('load', function() {
+        if (!scrollRestored) {
+            restoreScrollPosition();
         }
     });
-
-    // Function to save scroll position and redirect
-    function redirectWithScrollPosition(url) {
-        localStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
-        window.location.href = url;
-    }
 
     // Store active tab when changed
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) {
