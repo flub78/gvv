@@ -127,9 +127,9 @@ class Rapprochements extends CI_Controller {
         $type_selector = $this->session->userdata('type_selector');
 
         try {
-            $parser2 = new ReleveParser();
+            $parser = new ReleveParser();
             try {
-                $parser_result = $parser2->parse($filename);
+                $parser_result = $parser->parse($filename);
                 // gvv_dump($parser_result);
                 $reconciliator = new Reconciliator($parser_result);
                 $reconciliator->set_filename($filename);
@@ -173,7 +173,8 @@ class Rapprochements extends CI_Controller {
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
             $data['status'] = "";
-            $data['errors'] = [];
+            $data['errors'] = $this->session->userdata('errors');
+            $this->session->unset_userdata('errors');
 
             // data for the GVV tab
             $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
@@ -288,8 +289,8 @@ class Rapprochements extends CI_Controller {
             }
         }
         if ($errors) {
-            $data['errors'] = $errors;
-            load_last_view('rapprochements/tableRapprochements', $data);
+            $this->session->set_userdata('errors', $errors);
+            redirect('rapprochements/import_releve_from_file');
             return;
         }
 
@@ -624,13 +625,13 @@ class Rapprochements extends CI_Controller {
             } else {
                 // Décoder les IDs des écritures
                 $ecriture_ids_array = json_decode($ecriture_ids, true);
-                
+
                 if (!is_array($ecriture_ids_array) || empty($ecriture_ids_array)) {
                     $response['message'] = 'Format des IDs d\'écritures invalide';
                 } else {
                     $success_count = 0;
                     $errors = array();
-                    
+
                     // Créer un rapprochement pour chaque écriture
                     foreach ($ecriture_ids_array as $ecriture_id) {
                         try {
@@ -638,7 +639,7 @@ class Rapprochements extends CI_Controller {
                                 'string_releve' => $string_releve,
                                 'id_ecriture_gvv' => $ecriture_id
                             ]);
-                            
+
                             if ($result) {
                                 $success_count++;
                             } else {
@@ -648,7 +649,7 @@ class Rapprochements extends CI_Controller {
                             $errors[] = "Exception pour l'écriture $ecriture_id: " . $e->getMessage();
                         }
                     }
-                    
+
                     if ($success_count > 0 && empty($errors)) {
                         $response['success'] = true;
                         $response['message'] = "Rapprochement multiple effectué avec succès ($success_count écritures)";

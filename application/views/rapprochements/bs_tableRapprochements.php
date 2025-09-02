@@ -40,7 +40,7 @@ if ($status) {
 }
 
 if ($errors) {
-    echo '<div class="border border-danger border-3 rounded p-2">';
+    echo '<div class="border border-danger border-3 rounded p-2 mb-2">';
     foreach ($errors as $error) {
         echo '<div class="text-danger">' . $error . '</div>';
     }
