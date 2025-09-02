@@ -434,14 +434,17 @@ class StatementOperation {
         // Maintenant il faut voir si l'objet est raprochable avec une ou
         // plusieurs écritures comptables
 
+        gvv_debug("Rapprochement: ooking for reconciliated for operation line " . $this->line());
         $this->get_reconciliated();
 
         if (empty($this->reconciliated)) {
             // Look for proposals
+            gvv_debug("Rapprochement: Looking for proposals for operation line " . $this->line());
             $this->get_proposals();
 
             if (empty($this->proposals) && empty($this->multiple_combinations)) {
                 // try to split into multiple
+                gvv_debug("Rapprochement: Looking for combinations for operation line " . $this->line());
                 $this->get_multiple_combinations();
             }
         }
@@ -731,7 +734,9 @@ class StatementOperation {
      */
     private function search_combinations($lines, $target_amount) {
 
-        // gvv_dump($lines, false, "search_combinations, target=" . $target_amount);
+        if (count($lines) == 0 || $target_amount <= 0 || $target_amount > 10000) {
+            return false;
+        }
 
         $res = []; // by default an empty list
 
@@ -745,9 +750,16 @@ class StatementOperation {
         }
 
         $current_list = $lines;
+        if (count($current_list) > 9) {
+            return []; // limit the recursion depth
+        }
         while ($current_list) {
             $elt = array_shift($current_list);
             $current_montant = $elt['montant'];
+
+            gvv_debug("Rapprochements: search_combinations, target=" . $target_amount
+                . ", lines count=" . count($current_list));
+            // gvv_dump($current_list, false);
 
             $search = $this->search_combinations($current_list, $target_amount - $current_montant);
             if ($search) {
