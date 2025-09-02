@@ -1303,7 +1303,6 @@ abstract class Metadata {
             $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
             return anchor($url . "/$obfuscated", $label, $attrs);
-
         } elseif ($action == 'print_vd') {
             $image = theme() . "/images/page_white_acrobat.png";
             $image_properties = array(
@@ -1314,7 +1313,6 @@ abstract class Metadata {
             $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
             return anchor($url . "/$obfuscated", $label, $attrs);
-
         } elseif ($action == 'email_vd') {
             $image = theme() . "/images/email.png";
             $image_properties = array(
@@ -1325,7 +1323,6 @@ abstract class Metadata {
             $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
             return anchor($url . "/$obfuscated", $label, $attrs);
-
         } elseif ($action == 'csv') {
             $image = theme() . "/images/page-excel-icon.png";
             $image_properties = array(
@@ -1717,19 +1714,23 @@ abstract class Metadata {
         } elseif ($subtype == 'selector') {
             $to_select = $this->field[$table][$field]['Selector'];
             $selector = $this->selector($to_select);
-            // return dropdown_field($field, $value, $selector, "");
+            // return dropdown_field($field, $value, $selector, "")
             $attrsv = "id=\"$field\"";
-
-            # if there are more than 8 values in the selector,
-            if ($selector && count($selector) > 8) {
-                $attrsv .= " class=\"big_select\" ";
-            }
 
             if ($def_attrs) {
                 foreach ($def_attrs as $k => $v) {
                     $attrsv .= " $k = \"$v\"";
                 }
             }
+            
+            # if there are more than 8 values in the selector,
+            if ($selector && count($selector) > 8) {
+                if (strpos($attrsv, 'class="big_select"') === false) {
+                    $attrsv .= " class=\"big_select\" ";
+                }
+            }
+
+
             // if (isset($this->field[$table][$field]['Alias'])) {
             // $field = $this->field[$table][$field]['Alias'];
             // $attrsv="id=\"$field\"";

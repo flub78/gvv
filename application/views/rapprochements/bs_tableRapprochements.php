@@ -325,14 +325,19 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             const stringReleve = button.getAttribute('data-string-releve');
             const line = button.getAttribute('data-line');
 
-            // Récupérer la valeur sélectionnée dans le dropdown
+            // Récupérer la valeur sélectionnée dans le dropdown OU dans les radio buttons
+            let ecritureId;
             const dropdown = document.querySelector('select[name="op_' + line + '"]');
-            if (!dropdown || !dropdown.value) {
-                alert('Veuillez sélectionner une écriture dans la liste déroulante');
+            const radioSelected = document.querySelector('input[name="op_' + line + '"]:checked');
+            
+            if (dropdown && dropdown.value) {
+                ecritureId = dropdown.value;
+            } else if (radioSelected && radioSelected.value) {
+                ecritureId = radioSelected.value;
+            } else {
+                alert('Veuillez sélectionner une écriture dans les options proposées');
                 return;
             }
-
-            const ecritureId = dropdown.value;
 
             // Désactiver le bouton pendant le traitement
             button.disabled = true;

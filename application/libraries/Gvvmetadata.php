@@ -153,8 +153,14 @@ class GVVMetadata extends Metadata {
 
                 $this->field['ecritures']['compte1']['Subtype'] = 'selector';
                 $this->field['ecritures']['compte1']['Selector'] = 'compte1_selector';
+                $this->field['ecritures']['compte1']['Attrs'] = array(
+                        'class' => "big_select big_select_large"
+                );
                 $this->field['ecritures']['compte2']['Subtype'] = 'selector';
                 $this->field['ecritures']['compte2']['Selector'] = 'compte2_selector';
+                $this->field['ecritures']['compte2']['Attrs'] = array(
+                        'class' => "big_select big_select_large"
+                );
                 // temporaire
                 $this->field['ecritures']['categorie']['Subtype'] = 'selector';
                 $this->field['ecritures']['categorie']['Selector'] = 'categorie_selector';

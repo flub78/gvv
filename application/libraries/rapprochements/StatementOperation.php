@@ -310,19 +310,43 @@ class StatementOperation {
         $status = $checkbox . $hidden . $button;
         $html .= '<td>' . $status . '</td>';
 
-        // Colonne 2: Dropdown avec les propositions multiples
+        // Colonne 2: Dropdown ou radio buttons selon le nombre d'options
         $html .= '<td>';
 
-        // Créer le tableau d'options pour le dropdown
+        // Créer le tableau d'options pour le dropdown/radio
         $options = [];
         foreach ($this->proposals as $proposal) {
             $options[$proposal->ecriture] = $proposal->image;
         }
 
-        $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
-        $dropdown = dropdown_field("op_" . $line_number, "", $options, $attrs);
+        $nb_options = count($options);
+        
+        if ($nb_options < 5) {
+            // Utiliser des radio buttons pour moins de 5 options avec des liens
+            $html .= '<div class="radio-group">';
+            foreach ($options as $option_id => $option_label) {
+                $html .= '<div class="form-check mb-1">';
+                $html .= '<input class="form-check-input" type="radio" name="op_' . $line_number . '" id="op_' . $line_number . '_' . $option_id . '" value="' . $option_id . '">';
+                $html .= '<label class="form-check-label" for="op_' . $line_number . '_' . $option_id . '">';
+                
+                // Créer un lien vers l'écriture, mais rester sur la fenêtre courante
+                $ecriture_id = $proposal->ecriture;
+                $ecriture_url = base_url('compta/edit/' . $ecriture_id);
+                $html .= '<a href="' . $ecriture_url . '" class="text-decoration-none">';
+                $html .= $option_label;
+                $html .= '</a>';
+                
+                $html .= '</label>';
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        } else {
+            // Utiliser le dropdown pour 5 options ou plus
+            $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
+            $dropdown = dropdown_field("op_" . $line_number, "", $options, $attrs);
+            $html .= $dropdown;
+        }
 
-        $html .= $dropdown;
         $html .= '</td>';
 
         // Colonnes 3-5: vides

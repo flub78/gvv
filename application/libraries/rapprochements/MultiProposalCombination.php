@@ -144,9 +144,17 @@ class MultiProposalCombination {
                     $html .= '<td></td>';
                 }
                 
-                // Colonne 2: Description de l'écriture (dropdown pour multiple)
+                // Colonne 2: Description de l'écriture avec lien vers l'écriture
                 $description = $ecriture_data['image'];
-                $html .= '<td>' . $description . '</td>';
+                $ecriture_id = isset($ecriture_data['ecriture']) ? $ecriture_data['ecriture'] : '';
+                
+                if ($ecriture_id) {
+                    // Créer un lien vers l'écriture
+                    $ecriture_url = base_url('compta/edit/' . $ecriture_id);
+                    $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none">' . $description . '</a></td>';
+                } else {
+                    $html .= '<td>' . $description . '</td>';
+                }
                 
                 // Colonnes 3-7: vides
                 $html .= '<td></td>';
