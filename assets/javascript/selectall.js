@@ -31,7 +31,7 @@ function associateAccount(selectElement, str) {
     console.log("associateAccount, cpt GVV=" + cptGVV + ", str=" + str);
 
     // Call server to associate account
-    fetch('/associations_releve/associate?string_releve=' + str + '&cptGVV=' + encodeURIComponent(cptGVV))
+    fetch(window.APP_BASE_URL + 'associations_releve/associate?string_releve=' + str + '&cptGVV=' + encodeURIComponent(cptGVV))
         .then(response => response.json())
         .then(data => console.log('Association response:', data))
         .catch(error => console.error('Error:', error));
