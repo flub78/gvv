@@ -275,7 +275,8 @@ class SmartAdjustor {
             'virement',
             '&nbsp;',
             'compte',
-            'eur'
+            'eur',
+            'cotisation'
         ], '', $str);
 
         $str = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
