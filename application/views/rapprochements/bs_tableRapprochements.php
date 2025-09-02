@@ -162,6 +162,10 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 </ul>
 
 <script>
+    window.APP_BASE_URL = '<?php echo site_url(); ?>/';
+</script>
+
+<script>
     // Variables globales pour la gestion du scroll
     let scrollRestored = false;
     

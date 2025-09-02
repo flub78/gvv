@@ -24,7 +24,6 @@
 // Callback function called when account select changes
 function associateAccount(selectElement, str) {
 
-    window.APP_BASE_URL = '<?php echo site_url(); ?>/';
     console.log("APP_BASE_URL=" + window.APP_BASE_URL);
 
     const cptGVV = selectElement.value;
