@@ -28,7 +28,7 @@ function associateAccount(selectElement, str) {
     console.log("associateAccount, cpt GVV=" + cptGVV + ", str=" + str);
 
     // Call server to associate account
-    fetch('/associations_releve/associate?string_releve=' + str + '&cptGVV=' + encodeURIComponent(cptGVV))
+    fetch('./associations_releve/associate?string_releve=' + str + '&cptGVV=' + encodeURIComponent(cptGVV))
         .then(response => response.json())
         .then(data => console.log('Association response:', data))
         .catch(error => console.error('Error:', error));
@@ -43,7 +43,7 @@ function updateRow(selectElement, id_of, nom_of) {
     console.log("updateRow, cpt GVV=" + cptGVV + ", id_of=" + id_of + ", nom=" + nom_of);
 
     // Call server to associate account
-    fetch('/associations_of/associate?id_of=' + id_of + '&nom_of=' + encodeURIComponent(nom_of) + '&cptGVV=' + encodeURIComponent(cptGVV))
+    fetch('./associations_of/associate?id_of=' + id_of + '&nom_of=' + encodeURIComponent(nom_of) + '&cptGVV=' + encodeURIComponent(cptGVV))
         .then(response => response.json())
         .then(data => console.log('Association response:', data))
         .catch(error => console.error('Error:', error));
@@ -108,7 +108,7 @@ function maxDaysChanged(input) {
     const maxDays = input.value;
     console.log('Max days changed to:', maxDays);
     // You can add logic here to filter the table based on maxDays
-    fetch('/rapprochements/max_days_change?maxDays=' + maxDays)
+    fetch('./rapprochements/max_days_change?maxDays=' + maxDays)
         .then(response => response.json())
         .then(data => location.reload())
         .catch(error => console.error('Error:', error));
@@ -126,7 +126,7 @@ function smartModeChanged(checkbox) {
         console.log('Smart mode disabled');
     }
 
-    fetch('/rapprochements/smart_mode_change?smartMode=' + isChecked)
+    fetch('./rapprochements/smart_mode_change?smartMode=' + isChecked)
         .then(response => response.json())
         .then(data => {
 
