@@ -53,7 +53,7 @@ if ($display_presences) {
     );
     foreach ($mes_presences as $event) {
         $delete = $event['id'];
-        $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], 'Supprimer');
+        $delete = anchor(site_url() . '/presences/delete/' . $event['id'], 'Supprimer');
         $image = theme() . "/images/delete.png";
         $image_properties = array(
             'src' => $image,
@@ -61,7 +61,7 @@ if ($display_presences) {
             'title' => 'delete'
         );
         $label = img($image_properties);
-        $delete = anchor(base_url() . 'index.php' . '/presences/delete/' . $event['id'], $label);
+        $delete = anchor(site_url() . '/presences/delete/' . $event['id'], $label);
 
 
         $date = date_db2ht($event['start']);

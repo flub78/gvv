@@ -55,7 +55,7 @@ $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 $index_page = $this->config->item('index_page');
 
 $index = ($index_page) ? "$index_page/" : "";
-$select_flight_url = base_url() . $index . "vols_decouverte/action_clear";
+$select_flight_url = site_url() . "vols_decouverte/action_clear";
 
 ?>
 </div>

@@ -1044,7 +1044,7 @@ class Vols_avion extends Gvv_Controller {
 
         $data = array();
         $data['controller'] = $this->controller;
-        $data['jsonurl'] = base_url() . 'index.php/' . $this->controller . '/ajax_cumuls';
+        $data['jsonurl'] = site_url() . $this->controller . '/ajax_cumuls';
 
         $data['year'] = $year;
         $data['first_year'] = $first_year;
