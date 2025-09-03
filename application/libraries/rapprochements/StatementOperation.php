@@ -264,7 +264,9 @@ class StatementOperation {
 
         // Colonne 2: Description de l'écriture unique (en vert pour proposition unique)
         if ($first_proposal) {
-            $html .= '<td><span class="text-success">' . $first_proposal->image . '</span></td>';
+            // Créer un lien vers l'écriture
+            $ecriture_url = site_url('compta/edit/' . $first_proposal->ecriture);
+            $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"><span class="text-success">' . $first_proposal->image . '</span></a></td>';
         } else {
             $html .= '<td></td>';
         }
