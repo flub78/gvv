@@ -13,7 +13,7 @@
 		array('label' => $this->lang->line("gvv_button_admin"), 'url' => controller_url("admin/page"), 'role' => 'admin'),
 	);
 	if (ENVIRONMENT == 'development') {
-		$submenu[] = array('label' => "Licences", 'url' => site_url() . 'event/licences', 'role' => 'admin');
+		$submenu[] = array('label' => "Licences", 'url' => site_url() . '/event/licences', 'role' => 'admin');
 	}
 
 	$menu_mode = array(

@@ -449,7 +449,7 @@ class Comptes extends Gvv_Controller {
         $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
 
         $this->data['year'] = $this->session->userdata('year');
-        $this->data['jsonurl'] = site_url() . $this->controller . '/ajax_cumuls';
+        $this->data['jsonurl'] = site_url() . '/' . $this->controller . '/ajax_cumuls';
         $this->data['title'] = $this->lang->line("gvv_comptes_title_cash");
 
         $this->push_return_url("tresorerie");

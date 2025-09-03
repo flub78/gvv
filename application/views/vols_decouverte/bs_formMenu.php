@@ -55,8 +55,8 @@ $form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
 $index_page = $this->config->item('index_page');
 
 $index = ($index_page) ? "$index_page/" : "";
-$pre_flight_url = site_url() . "vols_decouverte/pre_flight/" . $obfuscated_id;
-$done_url = site_url() . "vols_decouverte/done/" . $obfuscated_id;
+$pre_flight_url = site_url() . "/vols_decouverte/pre_flight/" . $obfuscated_id;
+$done_url = site_url() . "/vols_decouverte/done/" . $obfuscated_id;
 
 ?>
 </div>
