@@ -150,7 +150,7 @@ class MultiProposalCombination {
                 
                 if ($ecriture_id) {
                     // Créer un lien vers l'écriture
-                    $ecriture_url = base_url('compta/edit/' . $ecriture_id);
+                    $ecriture_url = site_url('compta/edit/' . $ecriture_id);
                     $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none">' . $description . '</a></td>';
                 } else {
                     $html .= '<td>' . $description . '</td>';

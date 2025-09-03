@@ -246,7 +246,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             button.textContent = 'En cours...';
 
             // Effectuer la requête AJAX
-            fetch('<?php echo base_url('rapprochements/rapprocher_unique'); ?>', {
+            fetch('<?php echo site_url('rapprochements/rapprocher_unique'); ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -259,7 +259,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Succès - recharger la page pour que les impacts sur les autres opérations soient pris en compte
-                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
+                        redirectWithScrollPosition('<?php echo site_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état initial
                         button.disabled = false;
@@ -293,7 +293,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             button.textContent = 'Suppression...';
 
             // Effectuer la requête AJAX de suppression
-            fetch('<?php echo base_url('rapprochements/supprimer_rapprochement_unique'); ?>', {
+            fetch('<?php echo site_url('rapprochements/supprimer_rapprochement_unique'); ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -305,7 +305,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Recharger la page pour que les impacts sur les autres opérations soient pris en compte
-                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
+                        redirectWithScrollPosition('<?php echo site_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état rapproché
                         button.disabled = false;
@@ -348,7 +348,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             button.textContent = 'En cours...';
 
             // Effectuer la requête AJAX
-            fetch('<?php echo base_url('rapprochements/rapprocher_unique'); ?>', {
+            fetch('<?php echo site_url('rapprochements/rapprocher_unique'); ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -361,7 +361,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                 .then(data => {
                     if (data.success) {
                         // Succès - rediriger vers import_releve_from_file pour recharger et propager les effets
-                        redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
+                        redirectWithScrollPosition('<?php echo site_url('rapprochements/import_releve_from_file'); ?>');
                     } else {
                         // Erreur - remettre le bouton dans son état initial
                         button.disabled = false;
@@ -404,7 +404,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             button.textContent = 'En cours...';
 
             // Effectuer la requête AJAX avec tous les IDs d'écritures
-            fetch('<?php echo base_url('rapprochements/rapprocher_multiple'); ?>', {
+            fetch('<?php echo site_url('rapprochements/rapprocher_multiple'); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -417,7 +417,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             .then(data => {
                 if (data.success) {
                     // Succès - recharger la page
-                    redirectWithScrollPosition('<?php echo base_url('rapprochements/import_releve_from_file'); ?>');
+                    redirectWithScrollPosition('<?php echo site_url('rapprochements/import_releve_from_file'); ?>');
                 } else {
                     // Erreur - remettre le bouton dans son état initial
                     button.disabled = false;
