@@ -459,7 +459,7 @@ class StatementOperation {
         // Maintenant il faut voir si l'objet est raprochable avec une ou
         // plusieurs écritures comptables
 
-        gvv_debug("Rapprochement: ooking for reconciliated for operation line " . $this->line());
+        gvv_debug("Rapprochement: looking for reconciliated for operation line " . $this->line());
         $this->get_reconciliated();
 
         if (empty($this->reconciliated)) {

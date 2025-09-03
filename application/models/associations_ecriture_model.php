@@ -137,6 +137,11 @@ class Associations_ecriture_model extends Common_Model {
         return $this->get_to_array($db_res);
     }
 
+    /**
+     * Supprime les rapprochements par l'ID de l'écriture.
+     * @param int $id_ecriture_gvv
+     * @return bool
+     */
     function delete_rapprochements($id_ecriture_gvv) {
         $this->db->where('id_ecriture_gvv', $id_ecriture_gvv);
         return $this->db->delete($this->table);

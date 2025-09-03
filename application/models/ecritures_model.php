@@ -1543,29 +1543,44 @@ array (size=2)
 
         $this->db
             ->select("ecritures.id, ecritures.description, ecritures.date_op, ecritures.montant, ecritures.compte1, ecritures.compte2, ecritures.num_cheque")
-            ->from("ecritures")
-            ->where("date_op >= \"$start_date\" and date_op <= \"$end_date\"")
-            ->where("ecritures.id NOT IN (SELECT id_ecriture_gvv FROM associations_ecriture)");
+            ->from("ecritures");
 
-        if ($reference_date) {
-            $this->db->where("ABS(DATEDIFF(date_op, \"$reference_date\")) <= $delta");
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
 
         if ($montant) {
             $this->db->where("montant", $montant);
         }
+
         if ($compte1) {
             $this->db->where("compte1", $compte1);
         }
         if ($compte2) {
             $this->db->where("compte2", $compte2);
         }
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
+
+        if ($start_date == "") {
+            $start_date = date('Y-01-01'); // premier jour de l'année courante
         }
+
+        $this->db->where("date_op >= \"$start_date\" ");
+
+        if ($end_date == "") {
+            $end_date = date('Y-12-31'); // dernier jour de l'année courante
+        }
+        $this->db->where("date_op <= \"$end_date\"");
+
+        if ($reference_date) {
+            $this->db->where("ABS(DATEDIFF(date_op, \"$reference_date\")) <= $delta");
+        }
+
+        $this->db->where("ecritures.id NOT IN (SELECT id_ecriture_gvv FROM associations_ecriture WHERE id_ecriture_gvv IS NOT NULL)");
+
         $db_res = $this->db->order_by("date_op desc")->get();
 
-        gvv_debug("sql ecriture_selector: " . $this->db->last_query());
+        $last_query = $this->db->last_query();
+        gvv_debug("sql ecriture_selector: " . $last_query);
         if ($db_res->num_rows() == 0) {
             return [];
         } else {
@@ -1580,7 +1595,6 @@ array (size=2)
                 . " " . euro($row['montant'])
                 . " " . $row['description']
                 . " " . $num_cheque;
-            
         }
         // gvv_dump($hash, false);
         return $hash;
@@ -1634,7 +1648,6 @@ array (size=2)
                 . " " . $row['description']
                 . " " . $num_cheque;
             $hash[$row['id']] = ['montant' => $row['montant'], 'image' => $image];
-
         }
         // gvv_dump($hash, false);
         return $hash;
@@ -1680,7 +1693,7 @@ array (size=2)
         return $this->get_to_array($db_res);
     }
 
-        /**
+    /**
      * Retourne les écritures OpenFlyers
      *
      * @param $start_date date de début
