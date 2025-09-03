@@ -122,7 +122,13 @@ class Rapprochements extends CI_Controller {
 
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
+        if (!$startDate) {
+            $startDate = date('Y') . '-01-01';
+        }
         $endDate = $this->session->userdata('endDate');
+        if (!$endDate) {
+            $endDate = date('Y') . '-12-31';
+        }
         $filter_type = $this->session->userdata('filter_type');
         $type_selector = $this->session->userdata('type_selector');
 
@@ -177,7 +183,7 @@ class Rapprochements extends CI_Controller {
             $this->session->unset_userdata('errors');
 
             // data for the GVV tab
-            $gvv_lines = $this->ecritures_model->select_ecritures_openflyers($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
+            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
 
             $cnt = 0;
             $filtered_lines = [];

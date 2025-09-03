@@ -1675,6 +1675,47 @@ array (size=2)
 
         $db_res = $this->db->order_by('date_op')->get();
 
+        gvv_debug("sql: rapprochements ecritures: " . $this->db->last_query());
+
+        return $this->get_to_array($db_res);
+    }
+
+        /**
+     * Retourne les écritures OpenFlyers
+     *
+     * @param $start_date date de début
+     * @param $end_date date de fin
+     * @param $compte à filtrer (0 pour tous)
+     * @return array Liste des écritures OpenFlyers
+     */
+    function select_ecritures_rapprochements($start_date = "", $end_date = "", $compte = 0) {
+        $this->db->select("ecritures.id, date_op, montant, ecritures.description, ecritures.compte1, ecritures.compte2, num_cheque, gel")
+            ->select("compte1.nom as compte1_nom, compte1.codec as compte1_codec, compte1.club as compte1_club")
+            ->select("compte2.nom as compte2_nom, compte2.codec as compte2_codec, compte2.club as compte2_club")
+            ->from("ecritures")
+            ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")
+            ->join("comptes as compte2", "compte2.id = ecritures.compte2", "left");
+
+        if ($start_date) {
+            $this->db->where("date_op >= '$start_date'");
+        }
+        if ($end_date) {
+            $this->db->where("date_op <= '$end_date'");
+        }
+
+        if ($compte != 0) {
+            $this->db->where("(ecritures.compte1 = $compte OR ecritures.compte2 = $compte)");
+        }
+
+        if ($this->sections_model->section()) {
+            $this->db->where('compte1.club', $this->sections_model->section_id());
+            $this->db->where('compte2.club', $this->sections_model->section_id());
+        }
+
+        $db_res = $this->db->order_by('date_op')->get();
+
+        gvv_debug("sql: rapprochements ecritures: " . $this->db->last_query());
+
         return $this->get_to_array($db_res);
     }
 }
