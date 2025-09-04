@@ -513,8 +513,11 @@ class Rapprochements extends CI_Controller {
             $elt = [];
 
             if ($line['rapproched']) {
-                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
-                    . '<span class="bg-success badge text-white rounded-pill ms-1">' . $line['id'] . '</span>';
+                // Badge vert cliquable pour supprimer le rapprochement
+                $badge = '<span class="bg-success badge text-white rounded-pill ms-1 cursor-pointer supprimer-rapprochement-badge" 
+                            data-ecriture-id="' . $line['id'] . '" 
+                            title="Cliquez pour supprimer le rapprochement">' . $line['id'] . '</span>';
+                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">' . $badge;
             } else {
                 $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
                     . '<span class="bg-danger badge text-white rounded-pill ms-1">' . $line['id'] . '</span>';
@@ -667,6 +670,43 @@ class Rapprochements extends CI_Controller {
                         $response['message'] = 'Aucun rapprochement n\'a pu être effectué';
                         $response['errors'] = $errors;
                     }
+                }
+            }
+        } catch (Exception $e) {
+            $response['message'] = 'Erreur: ' . $e->getMessage();
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Supprime le rapprochement d'une écriture unique (appelé via AJAX depuis l'onglet GVV)
+     */
+    public function supprimer_rapprochement_ecriture() {
+        // Vérifier que c'est une requête AJAX
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $response = array('success' => false, 'message' => '');
+
+        try {
+            $ecriture_id = $this->input->post('ecriture_id');
+
+            if (empty($ecriture_id)) {
+                $response['message'] = 'ID d\'écriture manquant';
+            } else {
+                // Supprimer tous les rapprochements de cette écriture
+                $result = $this->associations_ecriture_model->delete_rapprochements($ecriture_id);
+
+                if ($result !== false) {
+                    $response['success'] = true;
+                    $response['message'] = 'Rapprochement supprimé avec succès';
+                } else {
+                    $response['message'] = 'Erreur lors de la suppression du rapprochement';
                 }
             }
         } catch (Exception $e) {

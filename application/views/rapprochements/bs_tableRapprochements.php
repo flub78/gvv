@@ -165,6 +165,18 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     window.APP_BASE_URL = '<?php echo site_url(); ?>/';
 </script>
 
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.supprimer-rapprochement-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+</style>
+
 <script>
     // Variables globales pour la gestion du scroll
     let scrollRestored = false;
@@ -233,6 +245,53 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
     // Gestion du rapprochement automatique pour les suggestions uniques
     document.addEventListener('click', function(e) {
+        // Gestion du clic sur les badges verts pour supprimer le rapprochement (onglet GVV)
+        if (e.target.classList.contains('supprimer-rapprochement-badge')) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const badge = e.target;
+            const ecritureId = badge.getAttribute('data-ecriture-id');
+
+            // Demander confirmation
+            if (!confirm('Êtes-vous sûr de vouloir supprimer le rapprochement de l\'écriture ' + ecritureId + ' ?')) {
+                return;
+            }
+
+            // Désactiver temporairement le badge
+            const originalText = badge.textContent;
+            badge.textContent = '...';
+            badge.style.pointerEvents = 'none';
+
+            // Effectuer la requête AJAX
+            fetch('<?php echo site_url('rapprochements/supprimer_rapprochement_ecriture'); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'ecriture_id=' + encodeURIComponent(ecritureId)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Succès - recharger la page pour mettre à jour l'affichage
+                        redirectWithScrollPosition('<?php echo site_url('rapprochements/import_releve_from_file'); ?>');
+                    } else {
+                        // Erreur - remettre le badge dans son état original
+                        badge.textContent = originalText;
+                        badge.style.pointerEvents = 'auto';
+                        alert('Erreur lors de la suppression du rapprochement: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    badge.textContent = originalText;
+                    badge.style.pointerEvents = 'auto';
+                    alert('Erreur de communication avec le serveur');
+                });
+        }
+
         if (e.target.classList.contains('auto-reconcile-btn')) {
             e.preventDefault();
 
