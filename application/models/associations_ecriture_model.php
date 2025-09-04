@@ -99,6 +99,7 @@ class Associations_ecriture_model extends Common_Model {
      * @return array
      */
     public function get_by_string_releve($string_releve) {
+        
         $this->db->where('string_releve', $string_releve);
         $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
         $db_res = $this->db->get($this->table);

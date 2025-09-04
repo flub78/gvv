@@ -67,14 +67,9 @@ class ReconciliationLine {
             $html .= '<td></td>';
             $html .= '<td></td>';
             $html .= '<td></td>';
-            
-            // Colonne 6: Numéro de ligne
-            $html .= '<td>Ligne:' . $line_number . '</td>';
-            
-            // Colonne 7: Type d'opération  
-            $type_string = $this->rapprochements['type_string'] ?? '';
-            $html .= '<td>' . $type_string . '</td>';
-            
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+
             $html .= '</tr>';
         }
 

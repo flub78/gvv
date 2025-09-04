@@ -199,12 +199,8 @@ class StatementOperation {
         $html .= '<td></td>';
         $html .= '<td></td>';
         $html .= '<td></td>';
-
-        // Colonne 6: Numéro de ligne
-        $html .= '<td>Ligne:' . $line_number . '</td>';
-
-        // Colonne 7: Type d'opération
-        $html .= '<td>' . $this->type_string() . '</td>';
+        $html .= '<td></td>';
+        $html .= '<td></td>';
 
         $html .= '</tr>';
         return $html;
