@@ -51,7 +51,8 @@ class SmartAdjustor {
                 // Sinon, on l'ignore
                 $ignored = "Ignored";
             }
-            $msg = "Correlation: $key => $ecriture : $correlation $ignored<br>";
+            $ecriture_display = is_array($ecriture) ? $ecriture['image'] : $ecriture;
+            $msg = "Correlation: $key => $ecriture_display : $correlation $ignored<br>";
             gvv_debug($msg);
         }
 
@@ -148,7 +149,8 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes liés au chèque
-        if (stripos($ecriture, 'cheque') !== false || stripos($ecriture, 'chèque') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'cheque') !== false || stripos($ecriture_image, 'chèque') !== false) {
             return 0.8;
         }
 
@@ -173,7 +175,8 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes liés aux frais
-        if (stripos($ecriture, 'frais') !== false || stripos($ecriture, 'commission') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'frais') !== false || stripos($ecriture_image, 'commission') !== false) {
             return 0.7;
         }
 
@@ -197,7 +200,8 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes liés à la carte
-        if (stripos($ecriture, 'carte') !== false || stripos($ecriture, 'cb') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'carte') !== false || stripos($ecriture_image, 'cb') !== false) {
             return 0.7;
         }
 
@@ -221,7 +225,8 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes liés au prélèvement
-        if (stripos($ecriture, 'prelevement') !== false || stripos($ecriture, 'prélèvement') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'prelevement') !== false || stripos($ecriture_image, 'prélèvement') !== false) {
             return 0.7;
         }
 
@@ -245,14 +250,34 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes liés au virement
-        if (stripos($ecriture, 'virement') !== false || stripos($ecriture, 'transfer') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        $image = $this->cleanup_string($ecriture_image);
+        if (stripos($image, 'virement') !== false || stripos($image, 'transfer') !== false) {
             return 0.7;
         }
 
         return 0.6;
     }
 
+    /**
+     * Extrait de manière sécurisée le texte de l'écriture
+     *
+     * @param mixed $ecriture L'écriture (doit être un array avec clé 'image')
+     * @return string Le texte de l'écriture ou chaîne vide si non trouvé
+     */
+    private function getEcritureImage($ecriture) {
+        if (is_array($ecriture) && isset($ecriture['image']) && is_string($ecriture['image'])) {
+            return $ecriture['image'];
+        }
+        return '';
+    }
+
     private function cleanup_string($str) {
+        // Safety check: ensure we have a string
+        if (!is_string($str)) {
+            return '';
+        }
+
         // Convertir en minuscules
         $str = strtolower($str);
 
@@ -307,7 +332,7 @@ class SmartAdjustor {
 
         // Nettoyer la nature de l'opération
         $nature = $this->cleanup_string($nature);
-        $ecriture = $this->cleanup_string($ecriture);
+        $ecriture_image = $this->cleanup_string($this->getEcritureImage($ecriture));
 
         // Analyser les informations de l'expéditeur depuis les commentaires
         $comment = "";
@@ -317,7 +342,7 @@ class SmartAdjustor {
         $cmt = $this->cleanup_string($comment);
 
         // Rechercher la nature de l'opération dans la description de l'écriture
-        if (!empty($nature) && stripos($ecriture, $nature) !== false) {
+        if (!empty($nature) && stripos($ecriture_image, $nature) !== false) {
             return 0.96; // Corrélation élevée si référence trouvée
         }
 
@@ -330,7 +355,7 @@ class SmartAdjustor {
             $word = trim($word);
             if (strlen($word) > 1) { // Ne considérer que les mots de plus de 1 caractère
                 $word_count++;
-                if (stripos($ecriture, $word) !== false) {
+                if (stripos($ecriture_image, $word) !== false) {
                     $score++;
                     $matches[] = $word;
                 }
@@ -370,9 +395,10 @@ class SmartAdjustor {
         }
 
         // Vérifier si la description de l'écriture contient des termes d'encaissement par carte
+        $ecriture_image = $this->getEcritureImage($ecriture);
         if (
-            stripos($ecriture, 'encaissement') !== false &&
-            (stripos($ecriture, 'carte') !== false || stripos($ecriture, 'cb') !== false)
+            stripos($ecriture_image, 'encaissement') !== false &&
+            (stripos($ecriture_image, 'carte') !== false || stripos($ecriture_image, 'cb') !== false)
         ) {
             return 0.8;
         }
@@ -401,9 +427,10 @@ class SmartAdjustor {
         }
 
         // Vérifier la description de l'écriture pour les termes de remise de chèque
+        $ecriture_image = $this->getEcritureImage($ecriture);
         if (
-            stripos($ecriture, 'remise') !== false &&
-            (stripos($ecriture, 'cheque') !== false || stripos($ecriture, 'chèque') !== false)
+            stripos($ecriture_image, 'remise') !== false &&
+            (stripos($ecriture_image, 'cheque') !== false || stripos($ecriture_image, 'chèque') !== false)
         ) {
             return 0.8;
         }
@@ -432,7 +459,8 @@ class SmartAdjustor {
         }
 
         // Vérifier la description de l'écriture pour les termes de dépôt d'espèces
-        if (stripos($ecriture, 'espèces') !== false || stripos($ecriture, 'liquide') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'espèces') !== false || stripos($ecriture_image, 'liquide') !== false) {
             return 0.8;
         }
 
@@ -460,7 +488,8 @@ class SmartAdjustor {
         }
 
         // Vérifier la description de l'écriture pour les termes de régularisation
-        if (stripos($ecriture, 'regularisation') !== false || stripos($ecriture, 'régularisation') !== false) {
+        $ecriture_image = $this->getEcritureImage($ecriture);
+        if (stripos($ecriture_image, 'regularisation') !== false || stripos($ecriture_image, 'régularisation') !== false) {
             return 0.7;
         }
 
