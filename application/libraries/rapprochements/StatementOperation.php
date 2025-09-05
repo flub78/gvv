@@ -463,6 +463,13 @@ class StatementOperation {
             gvv_debug("Rapprochement: Looking for proposals for operation line " . $this->line());
             $this->get_proposals();
 
+            $empty_proposals = empty($this->proposals);
+            // foreach ($this->proposals as $proposal) {
+            //     // Process each proposal
+            //     $proposal->dump("proposal found", true);
+            // }
+            $empty_multiple = empty($this->multiple_combinations);
+
             if (empty($this->proposals) && empty($this->multiple_combinations)) {
                 // try to split into multiple
                 gvv_debug("Rapprochement: Looking for combinations for operation line " . $this->line());
@@ -771,7 +778,8 @@ class StatementOperation {
         }
 
         $current_list = $lines;
-        if (count($current_list) > 9) {
+        if (count($current_list) > 15) {
+            gvv_info ("Rapprochements: search_combinations, too many lines (" . count($current_list) . "), limit the recursion depth");
             return []; // limit the recursion depth
         }
         while ($current_list) {

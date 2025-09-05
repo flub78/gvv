@@ -57,6 +57,24 @@ class Rapprochements extends CI_Controller {
         $data['bank_selector'] = $bank_selector;
         $data['bank_account'] = ''; // Default value for the dropdown
 
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        if (!$startDate) {
+            $startDate = date('Y') . '-01-01';
+        }
+        $endDate = $this->session->userdata('endDate');
+        if (!$endDate) {
+            $endDate = date('Y') . '-12-31';
+        }
+        $filter_type = $this->session->userdata('filter_type');
+        $type_selector = $this->session->userdata('type_selector');
+
+        $data['filter_active'] = $filter_active;
+        $data['startDate'] = $startDate;
+        $data['endDate'] = $endDate;
+        $data['filter_type'] = $filter_type;
+        $data['type_selector'] = $type_selector;
+
         load_last_view('rapprochements/select_releve', $data);
     }
 

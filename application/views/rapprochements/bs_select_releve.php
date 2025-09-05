@@ -32,6 +32,8 @@ if (!empty($error)) {
 
 echo p($this->lang->line("gvv_rapprochements_explain"));
 ?>
+<!-- Filtre -->
+
 
 <?php
 
