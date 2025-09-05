@@ -134,15 +134,23 @@ class MultiProposalCombination {
                     $ecriture_ids_json = json_encode($ecriture_ids);
                     
                     $badge = '<button type="button" ' .
-                             'class="badge bg-danger text-white rounded-pill ms-1 border-0 auto-reconcile-combination-btn" ' .
+                             'class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-combination-btn" ' .
                              'data-string-releve="' . htmlspecialchars($str_releve) . '" ' .
                              'data-line="' . $line_number . '" ' .
                              'data-ecriture-ids="' . htmlspecialchars($ecriture_ids_json) . '" ' .
                              'title="Cliquer pour rapprocher automatiquement avec toutes les écritures de la combinaison">' .
-                             'Non rapproché' .
+                             'Rapprocher' .
                              '</button>';
                     
-                    $status = $checkbox . $badge . $hidden;
+                    // Bouton pour rapprochement manuel
+                    $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                                     data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                                     data-line="' . $line_number . '"
+                                     title="Cliquer pour effectuer un rapprochement manuel">
+                                     Rapprochement manuel
+                                     </button>';
+                    
+                    $status = $checkbox . $badge . $manual_button . $hidden;
                     $html .= '<td>' . $status . '</td>';
                 } else {
                     $html .= '<td></td>';

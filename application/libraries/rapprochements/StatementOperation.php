@@ -187,13 +187,24 @@ class StatementOperation {
         $html = "";
         $html .= '<tr>';
 
-        // Colonne 1: Badge "Non rapproché" avec champ caché
+        // Colonne 1: Badge "Non rapproché" avec champ caché et bouton de rapprochement manuel
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
+        
+        // Bouton pour rapprochement manuel
+        $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                         data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                         data-line="' . $line_number . '"
+                         data-amount="' . $this->amount() . '"
+                         data-date="' . htmlspecialchars($this->local_date()) . '"
+                         data-nature="' . htmlspecialchars($this->nature()) . '"
+                         title="Cliquer pour effectuer un rapprochement manuel">
+                         Rapprochement manuel
+                         </button>';
 
-        $html .= '<td>' . $badge . $hidden . '</td>';
+        $html .= '<td>' . $badge . $manual_button . $hidden . '</td>';
 
         // Colonne 2: Message d'erreur
         $html .= '<td><span class="text-danger">Aucune écriture trouvée</span></td>';
@@ -246,6 +257,7 @@ class StatementOperation {
                        title="Cliquer pour supprimer le rapprochement">
                        Rapproché
                        </button>';
+            $manual_button = '';
         } else {
             // Opération non rapprochée - bouton pour rapprocher automatiquement
             $button = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-btn" 
@@ -255,9 +267,20 @@ class StatementOperation {
                        title="Cliquer pour rapprocher automatiquement">
                        Rapprocher
                        </button>';
+            
+            // Bouton pour rapprochement manuel
+            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                             data-line="' . $line_number . '"
+                             data-amount="' . $this->amount() . '"
+                             data-date="' . htmlspecialchars($this->local_date()) . '"
+                             data-nature="' . htmlspecialchars($this->nature()) . '"
+                             title="Cliquer pour effectuer un rapprochement manuel">
+                             Rapprochement manuel
+                             </button>';
         }
 
-        $status = $checkbox . $hidden . $button;
+        $status = $checkbox . $hidden . $button . $manual_button;
 
         $html .= '<td>' . $status . '</td>';
 
@@ -317,7 +340,18 @@ class StatementOperation {
                    Rapprocher
                    </button>';
 
-        $status = $checkbox . $hidden . $button;
+        // Bouton pour rapprochement manuel
+        $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                         data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                         data-line="' . $line_number . '"
+                         data-amount="' . $this->amount() . '"
+                         data-date="' . htmlspecialchars($this->local_date()) . '"
+                         data-nature="' . htmlspecialchars($this->nature()) . '"
+                         title="Cliquer pour effectuer un rapprochement manuel">
+                         Rapprochement manuel
+                         </button>';
+
+        $status = $checkbox . $hidden . $button . $manual_button;
         $html .= '<td>' . $status . '</td>';
 
         // Colonne 2: Dropdown ou radio buttons selon le nombre d'options

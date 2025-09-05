@@ -90,9 +90,23 @@ class ProposalLine {
             $checkbox = '<input type="checkbox" class="unique" name="cb_' . $line_number . '" value="1">';
             $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
             $hidden .= '<input type="hidden" name="op_' . $line_number . '" value="' . $this->ecriture . '">';
-            $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+            $badge = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-btn" 
+                     data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                     data-ecriture-id="' . $this->ecriture . '" 
+                     data-line="' . $line_number . '"
+                     title="Cliquer pour rapprocher automatiquement">
+                     Rapprocher
+                     </button>';
             
-            $status = $checkbox . $badge . $hidden;
+            // Bouton pour rapprochement manuel
+            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                             data-line="' . $line_number . '"
+                             title="Cliquer pour effectuer un rapprochement manuel">
+                             Rapprochement manuel
+                             </button>';
+            
+            $status = $checkbox . $badge . $manual_button . $hidden;
             $html .= '<td>' . $status . '</td>';
 
             // Colonne 2: Description de l'écriture (en vert pour proposition unique)
