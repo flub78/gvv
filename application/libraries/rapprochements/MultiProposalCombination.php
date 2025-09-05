@@ -17,6 +17,7 @@ class MultiProposalCombination {
     public $str_releve = null; // Chaîne unique identifiant l'opération
     public $multiple_count = 0; // Nombre de combinaisons multiples disponibles
     public $type_string = null; // Type d'opération en texte
+    public $correlations = []; // Corrélations depuis StatementOperation
 
     /**
      * Constructeur de la classe
@@ -56,6 +57,9 @@ class MultiProposalCombination {
         }
         if (isset($data['type_string'])) {
             $this->type_string = $data['type_string'];
+        }
+        if (isset($data['correlations'])) {
+            $this->correlations = $data['correlations'];
         }
     }
 
@@ -151,7 +155,16 @@ class MultiProposalCombination {
                 if ($ecriture_id) {
                     // Créer un lien vers l'écriture
                     $ecriture_url = site_url('compta/edit/' . $ecriture_id);
-                    $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none">' . $description . '</a></td>';
+                    
+                    // Récupérer le coefficient de corrélation pour afficher en tooltip
+                    $tooltip = '';
+                    if (isset($this->correlations[$ecriture_id])) {
+                        $correlation = $this->correlations[$ecriture_id]['correlation'];
+                        $confidence_percent = round($correlation * 100, 1);
+                        $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
+                    }
+                    
+                    $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '>' . $description . '</a></td>';
                 } else {
                     $html .= '<td>' . $description . '</td>';
                 }

@@ -265,7 +265,16 @@ class StatementOperation {
         if ($first_proposal) {
             // Créer un lien vers l'écriture
             $ecriture_url = site_url('compta/edit/' . $first_proposal->ecriture);
-            $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"><span class="text-success">' . $first_proposal->image . '</span></a></td>';
+            
+            // Récupérer le coefficient de corrélation pour afficher en tooltip
+            $tooltip = '';
+            if (isset($this->correlations[$first_proposal->ecriture])) {
+                $correlation = $this->correlations[$first_proposal->ecriture]['correlation'];
+                $confidence_percent = round($correlation * 100, 1);
+                $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
+            }
+            
+            $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '><span class="text-success">' . $first_proposal->image . '</span></a></td>';
         } else {
             $html .= '<td></td>';
         }
@@ -332,7 +341,16 @@ class StatementOperation {
                 
                 // Créer un lien vers l'écriture, mais rester sur la fenêtre courante
                 $ecriture_url = site_url('compta/edit/' . $option_id);
-                $html .= '<a href="' . $ecriture_url . '" class="text-decoration-none">';
+                
+                // Récupérer le coefficient de corrélation pour afficher en tooltip
+                $tooltip = '';
+                if (isset($this->correlations[$option_id])) {
+                    $correlation = $this->correlations[$option_id]['correlation'];
+                    $confidence_percent = round($correlation * 100, 1);
+                    $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
+                }
+                
+                $html .= '<a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '>';
                 $html .= $option_label;
                 $html .= '</a>';
                 
@@ -342,8 +360,20 @@ class StatementOperation {
             $html .= '</div>';
         } else {
             // Utiliser le dropdown pour 5 options ou plus
+            // Modifier les options pour inclure les indices de confiance
+            $options_with_confidence = [];
+            foreach ($options as $option_id => $option_label) {
+                $confidence_text = '';
+                if (isset($this->correlations[$option_id])) {
+                    $correlation = $this->correlations[$option_id]['correlation'];
+                    $confidence_percent = round($correlation * 100, 1);
+                    $confidence_text = " (Confiance: {$confidence_percent}%)";
+                }
+                $options_with_confidence[$option_id] = $option_label . $confidence_text;
+            }
+            
             $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
-            $dropdown = dropdown_field("op_" . $line_number, "", $options, $attrs);
+            $dropdown = dropdown_field("op_" . $line_number, "", $options_with_confidence, $attrs);
             $html .= $dropdown;
         }
 
@@ -722,6 +752,13 @@ class StatementOperation {
         $lines = $this->CI->ecritures_model->ecriture_selector_lower_than($amount, $compte1, $compte2, $reference_date, $delta);
         // gvv_dump($lines);
 
+        // Calculer les corrélations en mode smart pour les combinaisons multiples aussi
+        $smart_mode = $this->CI->session->userdata('rapprochement_smart_mode') ?? false;
+        if ($smart_mode) {
+            // Passer toutes les écritures par le smart_agent pour calculer les corrélations
+            $this->smart_agent->smart_adjust($lines, $this);
+        }
+
         $sequence = [];
         foreach ($lines as $key => $line) {
             $line['ecriture'] = $key;
@@ -738,7 +775,8 @@ class StatementOperation {
                     'line_number' => $this->line(),
                     'str_releve' => $this->str_releve(),
                     'multiple_count' => count($combinations_array),
-                    'type_string' => $this->type_string()
+                    'type_string' => $this->type_string(),
+                    'correlations' => $this->correlations // Passer les corrélations
                 ];
                 $this->multiple_combinations[] = new MultiProposalCombination($multi_proposal_data);
             }
