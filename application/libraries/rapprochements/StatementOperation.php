@@ -66,9 +66,10 @@ class StatementOperation {
     /**
      * Génère une représentation HTML de l'opération
      * 
+     * @param bool $show_manual_buttons Afficher les boutons de rapprochement manuel (défaut: true)
      * @return string Représentation HTML de l'opération
      */
-    public function to_HTML() {
+    public function to_HTML($show_manual_buttons = true) {
         $html = "";
 
         $html .= '<table class="table rapprochement table-striped table-bordered border border-dark rounded mb-3 w-100 operations">';
@@ -114,7 +115,7 @@ class StatementOperation {
             $html .= '</tr>';
         }
 
-        $html .= $this->rapprochements_to_html($this);
+        $html .= $this->rapprochements_to_html($show_manual_buttons);
 
         $html .= '</tbody>';
         $html .= '</table>';
@@ -131,9 +132,10 @@ class StatementOperation {
      * - Des combinaisons multiples d'écritures
      * - Ou un message indiquant qu'aucune écriture n'a été trouvée
      *
+     * @param bool $show_manual_buttons Afficher les boutons de rapprochement manuel
      * @return string HTML généré pour la section rapprochements/propositions
      */
-    private function rapprochements_to_html() {
+    private function rapprochements_to_html($show_manual_buttons = true) {
         $html = "";
 
         if ($this->is_rapproched()) {
@@ -148,13 +150,13 @@ class StatementOperation {
             $html .= '<tr class="table-secondary">';
             $html .= '<td colspan="7" class="text-start">Proposition de rapprochements</td>';
             $html .= '</tr>';
-            $html .= $this->unique_proposal_html();
+            $html .= $this->unique_proposal_html($show_manual_buttons);
         } elseif ($this->choices_count() > 1) {
             // Plusieurs propositions - afficher avec checkbox et dropdown
             $html .= '<tr class="table-secondary">';
             $html .= '<td colspan="7" class="text-start">Choix de rapprochements</td>';
             $html .= '</tr>';
-            $html .= $this->multiple_combinations_html();
+            $html .= $this->multiple_combinations_html($show_manual_buttons);
         } elseif ($this->is_multiple_combination()) {
             // Propositions de combinaisons multiples d'écritures
             $html .= '<td colspan="7" class="text-start">Proposition de combinaisons</td>';
@@ -170,7 +172,7 @@ class StatementOperation {
             }
         } else {
             // Aucune écriture trouvée
-            $html .= $this->no_proposal_html();
+            $html .= $this->no_proposal_html($show_manual_buttons);
         }
         return $html;
     }
@@ -181,28 +183,36 @@ class StatementOperation {
      * This method is typically used to display a message or placeholder in the UI
      * when no matching proposals are found for a given statement operation.
      *
+     * @param bool $show_manual_buttons Afficher le bouton de rapprochement manuel
      * @return string The HTML content to display when no proposals are present.
      */
-    public function no_proposal_html() {
+    public function no_proposal_html($show_manual_buttons = true) {
         $html = "";
         $html .= '<tr>';
 
         // Colonne 1: Badge "Non rapproché" avec champ caché et bouton de rapprochement manuel
         $line_number = $this->line();
         $str_releve = $this->str_releve();
-        $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        // Badge "Non rapproché" (seulement si on affiche les boutons manuels)
+        $badge = '';
+        if ($show_manual_buttons) {
+            $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
+        }
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
         
-        // Bouton pour rapprochement manuel
-        $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                         data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                         data-line="' . $line_number . '"
-                         data-amount="' . $this->amount() . '"
-                         data-date="' . htmlspecialchars($this->local_date()) . '"
-                         data-nature="' . htmlspecialchars($this->nature()) . '"
-                         title="Cliquer pour effectuer un rapprochement manuel">
-                         Rapprochement manuel
-                         </button>';
+        // Bouton pour rapprochement manuel (seulement si demandé)
+        $manual_button = '';
+        if ($show_manual_buttons) {
+            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                             data-line="' . $line_number . '"
+                             data-amount="' . $this->amount() . '"
+                             data-date="' . htmlspecialchars($this->local_date()) . '"
+                             data-nature="' . htmlspecialchars($this->nature()) . '"
+                             title="Cliquer pour effectuer un rapprochement manuel">
+                             Rapprochement manuel
+                             </button>';
+        }
 
         $html .= '<td>' . $badge . $manual_button . $hidden . '</td>';
 
@@ -229,7 +239,7 @@ class StatementOperation {
      *
      * @return string The HTML markup for the unique proposal.
      */
-    public function unique_proposal_html() {
+    public function unique_proposal_html($show_manual_buttons = true) {
         $html = "";
         $html .= '<tr>';
 
@@ -268,16 +278,19 @@ class StatementOperation {
                        Rapprocher
                        </button>';
             
-            // Bouton pour rapprochement manuel
-            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                             data-line="' . $line_number . '"
-                             data-amount="' . $this->amount() . '"
-                             data-date="' . htmlspecialchars($this->local_date()) . '"
-                             data-nature="' . htmlspecialchars($this->nature()) . '"
-                             title="Cliquer pour effectuer un rapprochement manuel">
-                             Rapprochement manuel
-                             </button>';
+            // Bouton pour rapprochement manuel (seulement si demandé)
+            $manual_button = '';
+            if ($show_manual_buttons) {
+                $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                                 data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                                 data-line="' . $line_number . '"
+                                 data-amount="' . $this->amount() . '"
+                                 data-date="' . htmlspecialchars($this->local_date()) . '"
+                                 data-nature="' . htmlspecialchars($this->nature()) . '"
+                                 title="Cliquer pour effectuer un rapprochement manuel">
+                                 Rapprochement manuel
+                                 </button>';
+            }
         }
 
         $status = $checkbox . $hidden . $button . $manual_button;
@@ -320,9 +333,10 @@ class StatementOperation {
      * representation of multiple proposals, typically used in the context
      * of statement operations or rapprochements.
      *
+     * @param bool $show_manual_buttons Afficher le bouton de rapprochement manuel
      * @return string The generated HTML for multiple proposals.
      */
-    public function multiple_combinations_html() {
+    public function multiple_combinations_html($show_manual_buttons = true) {
         $html = "";
         $html .= '<tr>';
 
@@ -340,16 +354,19 @@ class StatementOperation {
                    Rapprocher
                    </button>';
 
-        // Bouton pour rapprochement manuel
-        $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                         data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                         data-line="' . $line_number . '"
-                         data-amount="' . $this->amount() . '"
-                         data-date="' . htmlspecialchars($this->local_date()) . '"
-                         data-nature="' . htmlspecialchars($this->nature()) . '"
-                         title="Cliquer pour effectuer un rapprochement manuel">
-                         Rapprochement manuel
-                         </button>';
+        // Bouton pour rapprochement manuel (seulement si demandé)
+        $manual_button = '';
+        if ($show_manual_buttons) {
+            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
+                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
+                             data-line="' . $line_number . '"
+                             data-amount="' . $this->amount() . '"
+                             data-date="' . htmlspecialchars($this->local_date()) . '"
+                             data-nature="' . htmlspecialchars($this->nature()) . '"
+                             title="Cliquer pour effectuer un rapprochement manuel">
+                             Rapprochement manuel
+                             </button>';
+        }
 
         $status = $checkbox . $hidden . $button . $manual_button;
         $html .= '<td>' . $status . '</td>';

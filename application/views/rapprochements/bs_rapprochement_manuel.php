@@ -72,11 +72,6 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
     cursor: pointer;
 }
 
-.operation-highlight {
-    background-color: #fff3cd;
-    border: 2px solid #ffc107;
-}
-
 .selected-ecriture {
     background-color: #d1ecf1;
     border: 2px solid #bee5eb;
@@ -168,9 +163,7 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
     <div class="row mb-4">
         <div class="col-12">
             <h5>Opération du relevé bancaire à rapprocher</h5>
-            <div class="operation-highlight p-3 rounded">
-                <?php echo $statement_operation->to_HTML(); ?>
-            </div>
+            <?php echo $statement_operation->to_HTML(false); ?>
         </div>
     </div>
 
