@@ -755,8 +755,13 @@ class StatementOperation {
         // Calculer les corrélations en mode smart pour les combinaisons multiples aussi
         $smart_mode = $this->CI->session->userdata('rapprochement_smart_mode') ?? false;
         if ($smart_mode) {
-            // Passer toutes les écritures par le smart_agent pour calculer les corrélations
-            $this->smart_agent->smart_adjust($lines, $this);
+            // Calculer les corrélations pour TOUTES les écritures, même celles qui seront filtrées
+            $operation_type = $this->type();
+            foreach ($lines as $key => $ecriture) {
+                // Calcule le coefficient de corrélation entre l'écriture et l'opération
+                $correlation = $this->smart_agent->correlation($this, $key, $ecriture, $operation_type);
+                $this->set_correlation($key, $correlation, $ecriture);
+            }
         }
 
         $sequence = [];
