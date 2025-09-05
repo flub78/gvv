@@ -713,7 +713,14 @@ class StatementOperation {
             $compte1 = $this->gvv_bank_account;
             $compte2 = null;
         }
+        /**
+         * Etude de cas:
+         * un virement de 300 par X (qui a un compte client)
+         * retourne 13 écritures d'un montant inférieur dans la fenêtre de 5 jours
+         * Il y a 8191 combinaisons possibles
+         */
         $lines = $this->CI->ecritures_model->ecriture_selector_lower_than($amount, $compte1, $compte2, $reference_date, $delta);
+        // gvv_dump($lines);
 
         $sequence = [];
         foreach ($lines as $key => $line) {
@@ -765,7 +772,27 @@ class StatementOperation {
      */
     private function search_combinations($lines, $target_amount) {
 
-        if (count($lines) == 0 || $target_amount <= 0 || $target_amount > 10000) {
+        /**
+         * A priori les montants négatifs n'existent pas (à confirmer) au premier
+         * niveau . Ils sont néanmoins possibles en cours de récursion. Par exemple,
+         * on utilise un avoir pour payer des factures. Donc il faut les 
+         * prendre en compte.
+         */
+
+        /**
+         * On essaye de stopper la récursion au plus tôt
+         * Sans ce test : entre 1,86 et 1,9 secondes
+         * Avec ce test : 1 seconde
+         */
+        $total_list = 0;
+        foreach ($lines as $line) {
+            $total_list += $line['montant'];
+        }
+        if (abs($total_list) < abs($target_amount)) {
+            return false;
+        }
+
+        if (count($lines) == 0) {
             return false;
         }
 
@@ -773,7 +800,6 @@ class StatementOperation {
 
         foreach ($lines as $line) {
             $diff = abs(floatval($line['montant']) - floatval($target_amount));
-            // echo "diff = $diff\n";
             if ($diff < 0.01) {
                 // echo "found a combination\n";
                 $res[] =  [$line];
@@ -791,13 +817,11 @@ class StatementOperation {
             $elt = array_shift($current_list);
             $current_montant = $elt['montant'];
 
-            gvv_debug("Rapprochements: search_combinations, target=" . $target_amount
-                . ", lines count=" . count($current_list));
-            // gvv_dump($current_list, false);
-
             $search = $this->search_combinations($current_list, $target_amount - $current_montant);
             if ($search) {
+                // on a une sous-combinaison
                 foreach ($search as $combi) {
+                    // on ajoute l'élément courant 
                     $combi[] = $elt;
                     $res[] = $combi;
                 }
