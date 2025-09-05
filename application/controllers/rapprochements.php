@@ -22,6 +22,8 @@ if (! defined('BASEPATH'))
  */
 class Rapprochements extends CI_Controller {
 
+    protected $shared_reconciliator = null; // Reconciliator partagé pour éviter de reparser
+
     function __construct() {
         parent::__construct();
         // Check if user is logged in or not
@@ -76,6 +78,28 @@ class Rapprochements extends CI_Controller {
         $data['type_selector'] = $type_selector;
 
         load_last_view('rapprochements/select_releve', $data);
+    }
+
+    /**
+     * Charge ou retourne le reconciliator en cache
+     */
+    private function get_reconciliator() {
+        if ($this->shared_reconciliator !== null) {
+            return $this->shared_reconciliator;
+        }
+
+        $filename = $this->session->userdata('file_releve');
+        if (!$filename) {
+            throw new Exception('Aucun fichier relevé en session');
+        }
+
+        $this->load->library('rapprochements/ReleveParser');
+        $parser = new ReleveParser();
+        $parser_result = $parser->parse($filename);
+        $this->shared_reconciliator = new Reconciliator($parser_result);
+        $this->shared_reconciliator->set_filename($filename);
+
+        return $this->shared_reconciliator;
     }
 
     /**
@@ -136,8 +160,6 @@ class Rapprochements extends CI_Controller {
 
         $filename = $this->session->userdata('file_releve');
 
-        $this->load->library('rapprochements/ReleveParser');
-
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
         if (!$startDate) {
@@ -151,22 +173,9 @@ class Rapprochements extends CI_Controller {
         $type_selector = $this->session->userdata('type_selector');
 
         try {
-            $parser = new ReleveParser();
-            try {
-                $parser_result = $parser->parse($filename);
-                // gvv_dump($parser_result);
-                $reconciliator = new Reconciliator($parser_result);
-                $reconciliator->set_filename($filename);
-            } catch (Exception $e) {
-                $msg = "Erreur: " . $e->getMessage() . "\n";
-                gvv_error($msg);
-
-                $error = array(
-                    'error' => $msg
-                );
-                load_last_view('rapprochements/select_releve', $error);
-                return;
-            }
+            // Réinitialiser le reconciliator en cache quand on recharge la page principale
+            $this->shared_reconciliator = null;
+            $reconciliator = $this->get_reconciliator();
 
             $data['section'] = $this->sections_model->section();
 
@@ -200,22 +209,23 @@ class Rapprochements extends CI_Controller {
             $data['errors'] = $this->session->userdata('errors');
             $this->session->unset_userdata('errors');
 
-            // data for the GVV tab
-            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($data['startDate'], $data['endDate'], $parser_result['gvv_bank']);
+            // data for the GVV tab - récupérer le gvv_bank depuis le reconciliator
+            $gvv_bank = $reconciliator->gvv_bank_account();
+            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($data['startDate'], $data['endDate'], $gvv_bank);
 
             $cnt = 0;
             $filtered_lines = [];
-            foreach ($gvv_lines as &$line) {
-                $id = $line['id'];
+            foreach ($gvv_lines as &$gvv_line) {
+                $id = $gvv_line['id'];
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
-                $line['rapproched'] = $rapproched;
+                $gvv_line['rapproched'] = $rapproched;
 
                 if ($filter_active && $filter_type != 'display_all') {
                     if ($filter_type == '') {
-                        $filtered_lines[] = $line;
+                        $filtered_lines[] = $gvv_line;
                     }
                     if ($filter_type == 'filter_matched' && $rapproched) {
-                        $filtered_lines[] = $line;
+                        $filtered_lines[] = $gvv_line;
                     }
 
                     $unmatched_list = [
@@ -226,10 +236,10 @@ class Rapprochements extends CI_Controller {
                         'filter_unmatched_multi'
                     ];
                     if (in_array($filter_type, $unmatched_list) && !$rapproched) {
-                        $filtered_lines[] = $line;
+                        $filtered_lines[] = $gvv_line;
                     }
                 } else {
-                    $filtered_lines[] = $line;
+                    $filtered_lines[] = $gvv_line;
                 }
                 $cnt++;
             }
@@ -746,39 +756,20 @@ class Rapprochements extends CI_Controller {
         $date = $this->input->get('date');
         $nature = $this->input->get('nature');
 
-        if (!$string_releve) {
-            show_error('Paramètre string_releve manquant', 400);
+        if (!$string_releve || !$line) {
+            show_error('Paramètres string_releve ou line manquants', 400);
             return;
         }
-
-        // Récupérer le fichier relevé en session
-        $filename = $this->session->userdata('file_releve');
-        if (!$filename) {
-            show_error('Aucun fichier relevé en session', 400);
-            return;
-        }
-
-        $this->load->library('rapprochements/ReleveParser');
 
         try {
-            $parser = new ReleveParser();
-            $parser_result = $parser->parse($filename);
-            $reconciliator = new Reconciliator($parser_result);
-            $reconciliator->set_filename($filename);
+            // Utiliser le reconciliator en cache au lieu de reparser le fichier
+            $reconciliator = $this->get_reconciliator();
 
-            // Trouver la StatementOperation spécifique
-            $statement_operation = null;
-            $operations = $reconciliator->get_operations();
-            
-            foreach ($operations as $operation) {
-                if ($operation->str_releve() === $string_releve) {
-                    $statement_operation = $operation;
-                    break;
-                }
-            }
+            // Trouver la StatementOperation spécifique par numéro de ligne (plus efficace)
+            $statement_operation = $reconciliator->get_operation_by_line($line);
 
             if (!$statement_operation) {
-                show_error('Opération non trouvée dans le relevé', 404);
+                show_error('Opération non trouvée dans le relevé (ligne: ' . $line . ')', 404);
                 return;
             }
 
@@ -799,13 +790,14 @@ class Rapprochements extends CI_Controller {
             // Récupérer toutes les écritures disponibles pour la sélection manuelle
             $startDate = date('Y') . '-01-01';
             $endDate = date('Y') . '-12-31';
-            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $parser_result['gvv_bank']);
+            $gvv_bank = $reconciliator->gvv_bank_account();
+            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $gvv_bank);
             
             // Enrichir avec les informations de rapprochement
-            foreach ($gvv_lines as &$line) {
-                $id = $line['id'];
+            foreach ($gvv_lines as &$gvv_line) {
+                $id = $gvv_line['id'];
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
-                $line['rapproched'] = $rapproched;
+                $gvv_line['rapproched'] = $rapproched;
             }
             
             $data['gvv_lines'] = $gvv_lines;

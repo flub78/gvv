@@ -283,6 +283,21 @@ class Reconciliator {
     }
 
     /**
+     * Retourne une StatementOperation par son numéro de ligne
+     *
+     * @param int $line_number Numéro de ligne de l'opération
+     * @return StatementOperation|null L'opération trouvée ou null si non trouvée
+     */
+    public function get_operation_by_line($line_number) {
+        foreach ($this->operations as $operation) {
+            if ($operation->line() == $line_number) {
+                return $operation;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Retourne l'en-tête du relevé bancaire s'il est disponible
      */
     public function header() {
