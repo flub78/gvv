@@ -503,17 +503,10 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
             const button = e.target;
             const stringReleve = button.getAttribute('data-string-releve');
             const line = button.getAttribute('data-line');
-            const amount = button.getAttribute('data-amount');
-            const date = button.getAttribute('data-date');
-            const nature = button.getAttribute('data-nature');
 
             // Rediriger vers la page de rapprochement manuel
             const url = '<?php echo site_url('rapprochements/rapprochement_manuel'); ?>?' +
-                'string_releve=' + encodeURIComponent(stringReleve) +
-                '&line=' + encodeURIComponent(line) +
-                (amount ? '&amount=' + encodeURIComponent(amount) : '') +
-                (date ? '&date=' + encodeURIComponent(date) : '') +
-                (nature ? '&nature=' + encodeURIComponent(nature) : '');
+                'line=' + encodeURIComponent(line);
             
             redirectWithScrollPosition(url);
         }

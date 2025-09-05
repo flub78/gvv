@@ -750,14 +750,10 @@ class Rapprochements extends CI_Controller {
      * Page de rapprochement manuel pour une StatementOperation spécifique
      */
     public function rapprochement_manuel() {
-        $string_releve = $this->input->get('string_releve');
         $line = $this->input->get('line');
-        $amount = $this->input->get('amount');
-        $date = $this->input->get('date');
-        $nature = $this->input->get('nature');
 
-        if (!$string_releve || !$line) {
-            show_error('Paramètres string_releve ou line manquants', 400);
+        if (!$line) {
+            show_error('Paramètre line manquant', 400);
             return;
         }
 
@@ -772,6 +768,12 @@ class Rapprochements extends CI_Controller {
                 show_error('Opération non trouvée dans le relevé (ligne: ' . $line . ')', 404);
                 return;
             }
+
+            // Extraire les informations depuis l'objet StatementOperation
+            $string_releve = $statement_operation->str_releve();
+            $amount = $statement_operation->amount();
+            $date = $statement_operation->local_date();
+            $nature = $statement_operation->nature();
 
             // Préparer les données pour la vue
             $data['statement_operation'] = $statement_operation;
