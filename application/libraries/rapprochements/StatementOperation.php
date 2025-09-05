@@ -21,6 +21,8 @@ class StatementOperation {
 
     private $correlations = [];
 
+    private $status = "";
+
     /**
      * $reconciliated : référence les écritures GVV qui ont été rapprochées avec cette opération.
      * il peut y en avoir plusieurs. Invariant: La somme des écritures rapprochées doit correspondre au montant dans le relevé.
@@ -76,7 +78,8 @@ class StatementOperation {
         $html .= '<th>Date</th>';
         $type = $this->type_string();
         $ligne = $this->line();
-        $html .= "<th>Nature de l'opération: $type, ligne: $ligne</th>";
+        $status = $this->status;
+        $html .= "<th>Nature de l'opération: $type, ligne: $ligne $status</th>";
         $html .= "<th>Débit</th>";
         $html .= "<th>Crédit</th>";
         $html .= "<th>Devise</th>";
@@ -779,7 +782,9 @@ class StatementOperation {
 
         $current_list = $lines;
         if (count($current_list) > 15) {
-            gvv_info ("Rapprochements: search_combinations, too many lines (" . count($current_list) . "), limit the recursion depth");
+            $msg = "Dépassement de capacité serveur (" . count($current_list) . ")";
+            gvv_info("Rapprochements: " . $msg);
+            $this->status = $msg;
             return []; // limit the recursion depth
         }
         while ($current_list) {
