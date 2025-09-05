@@ -276,6 +276,13 @@ class Reconciliator {
     }
 
     /**
+     * Retourne la liste des opérations filtrées
+     */
+    public function get_operations() {
+        return $this->operations;
+    }
+
+    /**
      * Retourne l'en-tête du relevé bancaire s'il est disponible
      */
     public function header() {

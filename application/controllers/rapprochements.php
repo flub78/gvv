@@ -735,6 +735,93 @@ class Rapprochements extends CI_Controller {
             ->set_content_type('application/json')
             ->set_output(json_encode($response));
     }
+
+    /**
+     * Page de rapprochement manuel pour une StatementOperation spécifique
+     */
+    public function rapprochement_manuel() {
+        $string_releve = $this->input->get('string_releve');
+        $line = $this->input->get('line');
+        $amount = $this->input->get('amount');
+        $date = $this->input->get('date');
+        $nature = $this->input->get('nature');
+
+        if (!$string_releve) {
+            show_error('Paramètre string_releve manquant', 400);
+            return;
+        }
+
+        // Récupérer le fichier relevé en session
+        $filename = $this->session->userdata('file_releve');
+        if (!$filename) {
+            show_error('Aucun fichier relevé en session', 400);
+            return;
+        }
+
+        $this->load->library('rapprochements/ReleveParser');
+
+        try {
+            $parser = new ReleveParser();
+            $parser_result = $parser->parse($filename);
+            $reconciliator = new Reconciliator($parser_result);
+            $reconciliator->set_filename($filename);
+
+            // Trouver la StatementOperation spécifique
+            $statement_operation = null;
+            $operations = $reconciliator->get_operations();
+            
+            foreach ($operations as $operation) {
+                if ($operation->str_releve() === $string_releve) {
+                    $statement_operation = $operation;
+                    break;
+                }
+            }
+
+            if (!$statement_operation) {
+                show_error('Opération non trouvée dans le relevé', 404);
+                return;
+            }
+
+            // Préparer les données pour la vue
+            $data['statement_operation'] = $statement_operation;
+            $data['header'] = $reconciliator->header();
+            $data['section'] = $this->sections_model->section();
+            $data['string_releve'] = $string_releve;
+            $data['line'] = $line;
+            $data['amount'] = $amount;
+            $data['date'] = $date;
+            $data['nature'] = $nature;
+
+            // Récupérer les paramètres de session pour la cohérence
+            $data['maxDays'] = $this->session->userdata('rapprochement_delta') ?? 5;
+            $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
+
+            // Récupérer toutes les écritures disponibles pour la sélection manuelle
+            $startDate = date('Y') . '-01-01';
+            $endDate = date('Y') . '-12-31';
+            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $parser_result['gvv_bank']);
+            
+            // Enrichir avec les informations de rapprochement
+            foreach ($gvv_lines as &$line) {
+                $id = $line['id'];
+                $rapproched = $this->associations_ecriture_model->get_rapproches($id);
+                $line['rapproched'] = $rapproched;
+            }
+            
+            $data['gvv_lines'] = $gvv_lines;
+            $data['status'] = "";
+            $data['errors'] = $this->session->userdata('errors');
+            $this->session->unset_userdata('errors');
+
+            // Charger la vue de rapprochement manuel
+            $this->load->view('rapprochements/bs_rapprochement_manuel', $data);
+
+        } catch (Exception $e) {
+            $msg = "Erreur: " . $e->getMessage();
+            gvv_error($msg);
+            show_error($msg, 500);
+        }
+    }
 }
 /* End of file rapprochements.php */
 /* Location: ./application/controllers/rapprochements.php */
