@@ -38,14 +38,14 @@ class MultiProposalCombination {
             $this->calculateTotalAmount();
             $this->confidence = 70; // Confiance plus faible pour les combinaisons multiples
         }
-        
+
         if (isset($data['combinationId'])) {
             $this->combinationId = $data['combinationId'];
         } else {
             // Générer un ID unique
             $this->combinationId = uniqid('combo_');
         }
-        
+
         if (isset($data['line_number'])) {
             $this->line_number = $data['line_number'];
         }
@@ -103,27 +103,27 @@ class MultiProposalCombination {
      * 
      * @return string Représentation HTML de la combinaison
      */
-    public function to_HTML() {
+    public function to_HTML($show_manual_buttons = true) {
         $html = "";
 
         if (!empty($this->combination_data)) {
             // Générer une ligne par écriture dans la combinaison
             foreach ($this->combination_data as $index => $ecriture_data) {
                 $html .= '<tr>';
-                
+
                 // Colonne 1: Checkbox pour sélection multiple avec champs cachés si c'est la première ligne
                 if ($index === 0) {
                     $line_number = $this->line_number ?? '';
                     $str_releve = $this->str_releve ?? '';
                     $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
                     $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-                    
+
                     // Add hidden checkboxes for each ecriture in the multiple combination
                     foreach ($this->combination_data as $ecriture) {
                         $ecriture_id = $ecriture['ecriture'] ?? '';
                         $hidden .= '<input type="hidden" name="cbmulti_' . $line_number . '_' . $ecriture_id . '" value="1">';
                     }
-                    
+
                     // Créer la liste des IDs d'écritures pour le rapprochement multiple
                     $ecriture_ids = [];
                     foreach ($this->combination_data as $ecriture) {
@@ -132,16 +132,16 @@ class MultiProposalCombination {
                         }
                     }
                     $ecriture_ids_json = json_encode($ecriture_ids);
-                    
+
                     $badge = '<button type="button" ' .
-                             'class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-combination-btn" ' .
-                             'data-string-releve="' . htmlspecialchars($str_releve) . '" ' .
-                             'data-line="' . $line_number . '" ' .
-                             'data-ecriture-ids="' . htmlspecialchars($ecriture_ids_json) . '" ' .
-                             'title="Cliquer pour rapprocher automatiquement avec toutes les écritures de la combinaison">' .
-                             'Rapprocher' .
-                             '</button>';
-                    
+                        'class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-combination-btn" ' .
+                        'data-string-releve="' . htmlspecialchars($str_releve) . '" ' .
+                        'data-line="' . $line_number . '" ' .
+                        'data-ecriture-ids="' . htmlspecialchars($ecriture_ids_json) . '" ' .
+                        'title="Cliquer pour rapprocher automatiquement avec toutes les écritures de la combinaison">' .
+                        'Rapprocher' .
+                        '</button>';
+
                     // Bouton pour rapprochement manuel
                     $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
                                      data-string-releve="' . htmlspecialchars($str_releve) . '" 
@@ -149,21 +149,24 @@ class MultiProposalCombination {
                                      title="Cliquer pour effectuer un rapprochement manuel">
                                      Rapprochement manuel
                                      </button>';
-                    
-                    $status = $checkbox . $badge . $manual_button . $hidden;
+                    if ($show_manual_buttons) {
+                        $status = $checkbox . $badge . $manual_button . $hidden;
+                    } else {
+                        $status = $badge . $hidden;
+                    }
                     $html .= '<td>' . $status . '</td>';
                 } else {
                     $html .= '<td></td>';
                 }
-                
+
                 // Colonne 2: Description de l'écriture avec lien vers l'écriture
                 $description = $ecriture_data['image'];
                 $ecriture_id = isset($ecriture_data['ecriture']) ? $ecriture_data['ecriture'] : '';
-                
+
                 if ($ecriture_id) {
                     // Créer un lien vers l'écriture
                     $ecriture_url = site_url('compta/edit/' . $ecriture_id);
-                    
+
                     // Récupérer le coefficient de corrélation pour afficher en tooltip
                     $tooltip = '';
                     if (isset($this->correlations[$ecriture_id])) {
@@ -171,19 +174,19 @@ class MultiProposalCombination {
                         $confidence_percent = round($correlation * 100, 1);
                         $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
                     }
-                    
+
                     $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '>' . $description . '</a></td>';
                 } else {
                     $html .= '<td>' . $description . '</td>';
                 }
-                
+
                 // Colonnes 3-7: vides
                 $html .= '<td></td>';
                 $html .= '<td></td>';
                 $html .= '<td></td>';
                 $html .= '<td></td>';
                 $html .= '<td></td>';
-                
+
                 $html .= '</tr>';
             }
         }
@@ -209,7 +212,7 @@ class MultiProposalCombination {
         echo "<pre>";
         echo "MultiProposalCombination $title\n";
         echo "from file: " . $caller['file'] . " Line: " . $caller['line'] . "\n";
-        
+
         echo $tab . "combinationId: " . $this->combinationId . "\n";
         echo $tab . "totalAmount: " . number_format($this->totalAmount, 2) . " €\n";
         echo $tab . "confidence: " . $this->confidence . "%\n";

@@ -162,7 +162,7 @@ class StatementOperation {
             $html .= '<td colspan="7" class="text-start">Proposition de combinaisons</td>';
 
             foreach ($this->multiple_combinations as $combination) {
-                $html .= $combination->to_HTML();
+                $html .= $combination->to_HTML($show_manual_buttons);
                 // Séparateur entre les combinaisons (s'il y en a plusieurs)
                 if (count($this->multiple_combinations) > 1 && $combination !== end($this->multiple_combinations)) {
                     $html .= '<tr class="table-secondary">';
