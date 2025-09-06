@@ -83,7 +83,7 @@ class ProposalLine {
         if ($this->ecriture || $this->image) {
             $html .= '<tr>';
 
-            // Colonne 1: Checkbox avec badge "Non rapproché" et champs cachés
+            // Colonne 1: Checkbox avec badge et champs cachés - pas de bouton manuel
             $line_number = $this->line_number ?? '';
             $str_releve = $this->str_releve ?? '';
             
@@ -98,15 +98,7 @@ class ProposalLine {
                      Rapprocher
                      </button>';
             
-            // Bouton pour rapprochement manuel
-            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                             data-line="' . $line_number . '"
-                             title="Cliquer pour effectuer un rapprochement manuel">
-                             Rapprochement manuel
-                             </button>';
-            
-            $status = $checkbox . $badge . $manual_button . $hidden;
+            $status = $checkbox . $badge . $hidden;
             $html .= '<td>' . $status . '</td>';
 
             // Colonne 2: Description de l'écriture (en vert pour proposition unique)

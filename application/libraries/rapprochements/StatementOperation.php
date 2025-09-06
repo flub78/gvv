@@ -93,7 +93,17 @@ class StatementOperation {
         $html .= '<tbody>';
 
         $html .= '<tr>';
-        $html .= '<td>' . htmlspecialchars($this->local_date()) . '</td>';
+        // Date avec bouton rapprochement manuel (seulement si pas rapproché et si show_manual_buttons est true)
+        $html .= '<td>' . htmlspecialchars($this->local_date());
+        if (!$this->is_rapproched() && $show_manual_buttons) {
+            $line_number = $this->line();
+            $html .= ' <button type="button" class="badge bg-primary text-white rounded-pill ms-2 border-0" 
+                         onclick="window.location.href=\'' . site_url('rapprochements/rapprochement_manuel?line=' . $line_number) . '\'" 
+                         title="Rapprochement manuel">
+                         Rapprochement manuel
+                      </button>';
+        }
+        $html .= '</td>';
         $html .= '<td>' . htmlspecialchars($this->nature()) . '</td>';
         $html .= '<td>' . ($this->debit() ? euro($this->debit()) : '') . '</td>';
         $html .= '<td>' . ($this->credit() ? euro($this->credit()) : '') . '</td>';
@@ -190,31 +200,13 @@ class StatementOperation {
         $html = "";
         $html .= '<tr>';
 
-        // Colonne 1: Badge "Non rapproché" avec champ caché et bouton de rapprochement manuel
+        // Colonne 1: Badge "Non rapproché" avec champ caché - pas de bouton manuel ici
         $line_number = $this->line();
         $str_releve = $this->str_releve();
-        // Badge "Non rapproché" (seulement si on affiche les boutons manuels)
-        $badge = '';
-        if ($show_manual_buttons) {
-            $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
-        }
+        $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
         
-        // Bouton pour rapprochement manuel (seulement si demandé)
-        $manual_button = '';
-        if ($show_manual_buttons) {
-            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                             data-line="' . $line_number . '"
-                             data-amount="' . $this->amount() . '"
-                             data-date="' . htmlspecialchars($this->local_date()) . '"
-                             data-nature="' . htmlspecialchars($this->nature()) . '"
-                             title="Cliquer pour effectuer un rapprochement manuel">
-                             Rapprochement manuel
-                             </button>';
-        }
-
-        $html .= '<td>' . $badge . $manual_button . $hidden . '</td>';
+        $html .= '<td>' . $badge . $hidden . '</td>';
 
         // Colonne 2: Message d'erreur
         $html .= '<td><span class="text-danger">Aucune écriture trouvée</span></td>';
@@ -267,7 +259,6 @@ class StatementOperation {
                        title="Cliquer pour supprimer le rapprochement">
                        Rapproché
                        </button>';
-            $manual_button = '';
         } else {
             // Opération non rapprochée - bouton pour rapprocher automatiquement
             $button = '<button type="button" class="badge bg-primary text-white rounded-pill ms-1 border-0 auto-reconcile-btn" 
@@ -277,23 +268,9 @@ class StatementOperation {
                        title="Cliquer pour rapprocher automatiquement">
                        Rapprocher
                        </button>';
-            
-            // Bouton pour rapprochement manuel (seulement si demandé)
-            $manual_button = '';
-            if ($show_manual_buttons) {
-                $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                                 data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                                 data-line="' . $line_number . '"
-                                 data-amount="' . $this->amount() . '"
-                                 data-date="' . htmlspecialchars($this->local_date()) . '"
-                                 data-nature="' . htmlspecialchars($this->nature()) . '"
-                                 title="Cliquer pour effectuer un rapprochement manuel">
-                                 Rapprochement manuel
-                                 </button>';
-            }
         }
 
-        $status = $checkbox . $hidden . $button . $manual_button;
+        $status = $checkbox . $hidden . $button;
 
         $html .= '<td>' . $status . '</td>';
 
@@ -340,7 +317,7 @@ class StatementOperation {
         $html = "";
         $html .= '<tr>';
 
-        // Colonne 1: Checkbox avec champ caché et bouton de rapprochement
+        // Colonne 1: Checkbox avec champ caché et bouton de rapprochement - pas de bouton manuel
         $line_number = $this->line();
         $str_releve = $this->str_releve();
         $checkbox = '<input type="checkbox" name="cb_' . $line_number . '" value="1">';
@@ -354,21 +331,7 @@ class StatementOperation {
                    Rapprocher
                    </button>';
 
-        // Bouton pour rapprochement manuel (seulement si demandé)
-        $manual_button = '';
-        if ($show_manual_buttons) {
-            $manual_button = '<button type="button" class="badge bg-warning text-dark rounded-pill ms-1 border-0 manual-reconcile-btn" 
-                             data-string-releve="' . htmlspecialchars($str_releve) . '" 
-                             data-line="' . $line_number . '"
-                             data-amount="' . $this->amount() . '"
-                             data-date="' . htmlspecialchars($this->local_date()) . '"
-                             data-nature="' . htmlspecialchars($this->nature()) . '"
-                             title="Cliquer pour effectuer un rapprochement manuel">
-                             Rapprochement manuel
-                             </button>';
-        }
-
-        $status = $checkbox . $hidden . $button . $manual_button;
+        $status = $checkbox . $hidden . $button;
         $html .= '<td>' . $status . '</td>';
 
         // Colonne 2: Dropdown ou radio buttons selon le nombre d'options
