@@ -47,10 +47,6 @@ if ($errors) {
     echo '</div>';
 }
 
-// Affiche l'en-tête du relevé
-echo '<div class="border border-secondary border-3 rounded p-2 mb-3">';
-echo table_from_array($header, ['class' => ' table border']);
-echo '</div>';
 
 // Bouton de retour
 echo '<div class="mb-3">';
@@ -189,46 +185,16 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
                 </div>
             </div>
 
-            <!-- Table des écritures -->
-            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark sticky-top">
-                        <tr>
-                            <th>ID</th>
-                            <th>Date</th>
-                            <th>Montant</th>
-                            <th>Description</th>
-                            <th>Référence</th>
-                            <th>Compte débit</th>
-                            <th>Compte crédit</th>
-                            <th>État</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($gvv_lines as $gvv_line): ?>
-                        <tr class="ecriture-row" 
-                            data-ecriture-id="<?php echo $gvv_line['id']; ?>"
-                            data-montant="<?php echo abs($gvv_line['montant']); ?>"
-                            data-rapproche="<?php echo $gvv_line['rapproched'] ? 'true' : 'false'; ?>">
-                            <td><?php echo $gvv_line['id']; ?></td>
-                            <td><?php echo date_db2ht($gvv_line['date']); ?></td>
-                            <td class="text-end"><?php echo euro($gvv_line['montant']); ?></td>
-                            <td><?php echo htmlspecialchars($gvv_line['image']); ?></td>
-                            <td><?php echo htmlspecialchars($gvv_line['reference']); ?></td>
-                            <td><?php echo htmlspecialchars($gvv_line['compte1']); ?></td>
-                            <td><?php echo htmlspecialchars($gvv_line['compte2']); ?></td>
-                            <td>
-                                <?php if ($gvv_line['rapproched']): ?>
-                                    <span class="badge bg-success">Rapprochée</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary">Non rapprochée</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+<?php
+        echo '<div class="mt-3">';
+        echo table_from_array($gvv_lines, array(
+            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+            'class' => 'datatable_500 table'
+        ));
+        echo '</div>';
+?>
+
         </div>
     </div>
 

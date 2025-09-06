@@ -129,7 +129,8 @@ if (! function_exists('table_from_array')) {
         $class = isset($attrs['class']) ? $attrs['class'] : '';
         $res = "";
  
-        $res .= "<table class=\"$class\">\n";
+        $style_str = isset($attrs['style']) ? 'style="' . $attrs['style'] .'"' : '';
+        $res .= "<table class=\"$class\" $style_str >\n";
 
         if (array_key_exists('title', $attrs)) {
             $title = $attrs['title'];

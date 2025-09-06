@@ -154,11 +154,64 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
+     * Retrieves GVV bank transaction lines within a specified date range.
+     *
+     * @param string $startDate The start date (inclusive) for filtering transactions, in 'YYYY-MM-DD' format.
+     * @param string $endDate The end date (inclusive) for filtering transactions, in 'YYYY-MM-DD' format.
+     * @param string $gvv_bank The identifier or name of the GVV bank account to filter transactions.
+     *
+     * @return array Returns an array of transaction lines. Each line is typically represented as an associative array
+     *              containing details such as date, amount, description, and other relevant fields for the transaction.
+     */
+    protected function get_gvv_lines($startDate, $endDate, $gvv_bank) {
+        $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $gvv_bank);
+
+        foreach ($gvv_lines as &$gvv_line) {
+            $id = $gvv_line['id'];
+            $rapproched = $this->associations_ecriture_model->get_rapproches($id);
+            $gvv_line['rapproched'] = $rapproched;
+        }
+
+        return $gvv_lines;
+    }
+
+    private function get_filtered_gvv_lines($startDate, $endDate, $gvv_bank) {
+        $gvv_lines = $this->get_gvv_lines($startDate, $endDate, $gvv_bank);
+
+        $cnt = 0;
+        $filtered_lines = [];
+        foreach ($gvv_lines as &$gvv_line) {
+
+            if ($filter_active && $filter_type != 'display_all') {
+                if ($filter_type == '') {
+                    $filtered_lines[] = $gvv_line;
+                }
+                if ($filter_type == 'filter_matched' && $rapproched) {
+                    $filtered_lines[] = $gvv_line;
+                }
+
+                $unmatched_list = [
+                    'filter_unmatched',
+                    'filter_unmatched_0',
+                    'filter_unmatched_1',
+                    'filter_unmatched_choices',
+                    'filter_unmatched_multi'
+                ];
+                if (in_array($filter_type, $unmatched_list) && !$rapproched) {
+                    $filtered_lines[] = $gvv_line;
+                }
+            } else {
+                $filtered_lines[] = $gvv_line;
+            }
+            $cnt++;
+        }
+        return $filtered_lines;
+    }
+
+    /**
      * Import a CSV listing from a file - Version 2 uniquement avec Reconciliator
      */
     public function import_releve_from_file() {
-
-        $filename = $this->session->userdata('file_releve');
 
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
@@ -209,41 +262,11 @@ class Rapprochements extends CI_Controller {
             $data['errors'] = $this->session->userdata('errors');
             $this->session->unset_userdata('errors');
 
-            // data for the GVV tab - récupérer le gvv_bank depuis le reconciliator
+            // data for the GVV tab
+            // récupérer le gvv_bank depuis le reconciliator
             $gvv_bank = $reconciliator->gvv_bank_account();
-            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($data['startDate'], $data['endDate'], $gvv_bank);
 
-            $cnt = 0;
-            $filtered_lines = [];
-            foreach ($gvv_lines as &$gvv_line) {
-                $id = $gvv_line['id'];
-                $rapproched = $this->associations_ecriture_model->get_rapproches($id);
-                $gvv_line['rapproched'] = $rapproched;
-
-                if ($filter_active && $filter_type != 'display_all') {
-                    if ($filter_type == '') {
-                        $filtered_lines[] = $gvv_line;
-                    }
-                    if ($filter_type == 'filter_matched' && $rapproched) {
-                        $filtered_lines[] = $gvv_line;
-                    }
-
-                    $unmatched_list = [
-                        'filter_unmatched',
-                        'filter_unmatched_0',
-                        'filter_unmatched_1',
-                        'filter_unmatched_choices',
-                        'filter_unmatched_multi'
-                    ];
-                    if (in_array($filter_type, $unmatched_list) && !$rapproched) {
-                        $filtered_lines[] = $gvv_line;
-                    }
-                } else {
-                    $filtered_lines[] = $gvv_line;
-                }
-                $cnt++;
-            }
-
+            $filtered_lines = $this->get_filtered_gvv_lines($data['startDate'], $data['endDate'], $gvv_bank);
             $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
 
             load_last_view('rapprochements/tableRapprochements', $data);
@@ -790,26 +813,35 @@ class Rapprochements extends CI_Controller {
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
             // Récupérer toutes les écritures disponibles pour la sélection manuelle
-            $startDate = date('Y') . '-01-01';
-            $endDate = date('Y') . '-12-31';
-            $gvv_bank = $reconciliator->gvv_bank_account();
-            $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $gvv_bank);
-            
-            // Enrichir avec les informations de rapprochement
-            foreach ($gvv_lines as &$gvv_line) {
-                $id = $gvv_line['id'];
-                $rapproched = $this->associations_ecriture_model->get_rapproches($id);
-                $gvv_line['rapproched'] = $rapproched;
+            $startDate = $this->session->userdata('startDate');
+            if (!$startDate) {
+                $startDate = date('Y') . '-01-01';
             }
-            
-            $data['gvv_lines'] = $gvv_lines;
+            $endDate = $this->session->userdata('endDate');
+            if (!$endDate) {
+                $endDate = date('Y') . '-12-31';
+            }
+            $gvv_bank = $reconciliator->gvv_bank_account();
+
+            $filtered_lines = $this->get_filtered_gvv_lines($startDate, $endDate, $gvv_bank);
+            $data['gvv_lines'] = $this->to_ecritures_table($filtered_lines);
+
+            // $gvv_lines = $this->ecritures_model->select_ecritures_rapprochements($startDate, $endDate, $gvv_bank);
+
+            // // Enrichir avec les informations de rapprochement
+            // foreach ($gvv_lines as &$gvv_line) {
+            //     $id = $gvv_line['id'];
+            //     $rapproched = $this->associations_ecriture_model->get_rapproches($id);
+            //     $gvv_line['rapproched'] = $rapproched;
+            // }
+
+            // $data['gvv_lines'] = $gvv_lines;
             $data['status'] = "";
             $data['errors'] = $this->session->userdata('errors');
             $this->session->unset_userdata('errors');
 
             // Charger la vue de rapprochement manuel
             $this->load->view('rapprochements/bs_rapprochement_manuel', $data);
-
         } catch (Exception $e) {
             $msg = "Erreur: " . $e->getMessage();
             gvv_error($msg);

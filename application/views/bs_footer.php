@@ -55,6 +55,41 @@
             ]
         });
 
+        // "bFilter": true,
+        // "iDisplayLength": 100,
+        // "bStateSave": false,
+        // "bSort": true,
+        // "bInfo": true,
+        // "bJQueryUI": true,
+        // "bRetrieve": false,
+        // "bAutoWidth": true,
+        // "scrollY": "500px", // Add this for vertical scrolling
+        // "scrollCollapse": true, // Add this to collapse when less data
+        // "search": {
+        //     "caseInsensitive": true
+        // },
+        // "oLanguage": olanguage,
+
+        $('.datatable_500').dataTable({
+            "bFilter": true,
+            "bPaginate": false,
+            "scrollY": "500px", // Add this for vertical scrolling
+            "scrollCollapse": true, // Add this to collapse when less data
+            "iDisplayLength": 100,
+            "bStateSave": false,
+            "bSort": true,
+            "bInfo": true,
+            "bJQueryUI": true,
+            "bRetrieve": false,
+            "bAutoWidth": true,
+            "sPaginationType": "full_numbers",
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage
+        });
+
+
         $('.fixed_datatable').dataTable({
             "bFilter": false,
             "bPaginate": false,
@@ -75,11 +110,16 @@
         // to replace the select by an input that select values in the dropdown
         $('.big_select_large').select2({
             placeholder: 'Filtre...',
-            width:'100%',
+            width: '100%',
             allowClear: false
         });
 
     });
+
+                $('.datatable_500').closest('.dataTables_wrapper').css({
+                'max-height': '500px',
+                'overflow-y': 'auto'
+            });
     //
     -->
 </script>
