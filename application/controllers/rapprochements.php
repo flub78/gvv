@@ -272,6 +272,9 @@ class Rapprochements extends CI_Controller {
             load_last_view('rapprochements/tableRapprochements', $data);
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
+            $data = [];
+            $data['error'] = $e->getMessage();
+            load_last_view('rapprochements/select_releve', $data);
         }
     }
 
