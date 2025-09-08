@@ -69,12 +69,12 @@ class ReleveParser {
 
         } elseif ($this->found_in('AUTRES VIREMENTS RECUS', $operation["Libellé interbancaire"])) {
             return 'virement_recu';
-            
+
         } elseif ($this->found_in('AUTRES VIREMENTS EMIS', $operation["Libellé interbancaire"])) {
             return 'virement_emis';
         }
 
-        if ($this->found_in(['VIR INST RE'], $operation["Nature de l'opération"])) {
+        if ($this->found_in(['VIR INST RE', 'VIR RECU'], $operation["Nature de l'opération"])) {
             return 'virement_recu';
 
         } elseif ($this->found_in(['VIR EUROPEEN EMIS', 'VIR INSTANTANE EMIS', 'AUTRES VIREMENTS EMIS'], $operation["Nature de l'opération"])) {
@@ -83,7 +83,10 @@ class ReleveParser {
         } elseif ($this->found_in('FACTURATION PROGELIANCE', $operation["Nature de l'opération"])) {
             return 'frais_bancaire';
 
-        } elseif ($this->found_in('ECHEANCE PRET', $operation["Nature de l'opération"])) {
+        } elseif ($this->found_in('PRELEVEMENT EUROPEEN', $operation["Nature de l'opération"])) {
+            return 'prelevement';
+
+        } elseif ($this->found_in(['ECHEANCE PRET'], $operation["Nature de l'opération"])) {
             return 'prelevement_pret';
 
         } else {
