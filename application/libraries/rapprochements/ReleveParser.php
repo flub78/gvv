@@ -45,32 +45,47 @@ class ReleveParser {
 
         if ($this->found_in(['FACTURES CARTES PAYEES'], $operation["Libellé interbancaire"])) {
             return 'paiement_cb';
+
         } elseif ($this->found_in(['FACTURES CARTES REMISES'], $operation["Libellé interbancaire"])) {
             return 'encaissement_cb';
+
         } elseif ($this->found_in(['VERSEMENTS ESPECES'], $operation["Libellé interbancaire"])) {
             return 'remise_especes';
+
         } elseif ($this->found_in(['CHEQUES PAYES'], $operation["Libellé interbancaire"])) {
             return 'cheque_debite';
+
         } elseif ($this->found_in(['COMMISSIONS ET FRAIS DIVERS'], $operation["Libellé interbancaire"])) {
             return 'frais_bancaire';
-        } elseif ($this->found_in('REMISES DE CHEQUES', $operation["Libellé interbancaire"])) {
+
+        } elseif ($this->found_in(['REMISES DE CHEQUES', 'REMISE CHEQUE'], $operation["Libellé interbancaire"])) {
             return 'remise_cheque';
+
         } elseif ($this->found_in('ANNULATIONS ET REGULARISATIONS', $operation["Libellé interbancaire"])) {
             return 'regularisation_frais';
+
         } elseif ($this->found_in('PRELEVEMENTS EUROPEENS EMIS', $operation["Libellé interbancaire"])) {
             return 'prelevement';
+
         } elseif ($this->found_in('AUTRES VIREMENTS RECUS', $operation["Libellé interbancaire"])) {
             return 'virement_recu';
+            
+        } elseif ($this->found_in('AUTRES VIREMENTS EMIS', $operation["Libellé interbancaire"])) {
+            return 'virement_emis';
         }
 
         if ($this->found_in(['VIR INST RE'], $operation["Nature de l'opération"])) {
             return 'virement_recu';
-        } elseif ($this->found_in(['VIR EUROPEEN EMIS', 'VIR INSTANTANE EMIS'], $operation["Nature de l'opération"])) {
+
+        } elseif ($this->found_in(['VIR EUROPEEN EMIS', 'VIR INSTANTANE EMIS', 'AUTRES VIREMENTS EMIS'], $operation["Nature de l'opération"])) {
             return 'virement_emis';
+
         } elseif ($this->found_in('FACTURATION PROGELIANCE', $operation["Nature de l'opération"])) {
             return 'frais_bancaire';
+
         } elseif ($this->found_in('ECHEANCE PRET', $operation["Nature de l'opération"])) {
             return 'prelevement_pret';
+
         } else {
             return 'inconnu';
         }
@@ -91,7 +106,7 @@ class ReleveParser {
         $type = $this->operation_type($operation);
         if ($type) {
             if ($type == "inconnu") {
-                echo '<pre> Inconnu:' . print_r($operation, true) . '</pre><br>';
+                echo "<pre> Type d'opération inconnu: " . print_r($operation, true) . "</pre><br>";
             }
             $operation['type'] = $type;
             $op = new ReleveOperation($operation);
