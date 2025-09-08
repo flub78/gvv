@@ -178,6 +178,18 @@ class Rapprochements extends CI_Controller {
     private function get_filtered_gvv_lines($startDate, $endDate, $gvv_bank) {
         $gvv_lines = $this->get_gvv_lines($startDate, $endDate, $gvv_bank);
 
+        $filter_active = $this->session->userdata('filter_active');
+        $startDate = $this->session->userdata('startDate');
+        if (!$startDate) {
+            $startDate = date('Y') . '-01-01';
+        }
+        $endDate = $this->session->userdata('endDate');
+        if (!$endDate) {
+            $endDate = date('Y') . '-12-31';
+        }
+        $filter_type = $this->session->userdata('filter_type');
+        $type_selector = $this->session->userdata('type_selector');
+
         $cnt = 0;
         $filtered_lines = [];
         foreach ($gvv_lines as &$gvv_line) {
