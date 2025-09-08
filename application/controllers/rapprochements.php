@@ -177,7 +177,7 @@ class Rapprochements extends CI_Controller {
 
     private function get_filtered_gvv_lines($startDate, $endDate, $gvv_bank) {
         $gvv_lines = $this->get_gvv_lines($startDate, $endDate, $gvv_bank);
-
+        
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
         if (!$startDate) {
@@ -193,6 +193,8 @@ class Rapprochements extends CI_Controller {
         $cnt = 0;
         $filtered_lines = [];
         foreach ($gvv_lines as &$gvv_line) {
+
+            $rapproched = $gvv_line['rapproched'];
 
             if ($filter_active && $filter_type != 'display_all') {
                 if ($filter_type == '') {
