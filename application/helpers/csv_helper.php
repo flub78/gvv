@@ -26,7 +26,7 @@ if (!defined('BASEPATH'))
 if (!function_exists('csv_file')) {
 
     /**
-     * Généère un fichier csv à partir d'un tableau
+     * Génère un fichier csv à partir d'un tableau
      *
      * @param unknown_type $data
      * @param unknown_type $nodisplay
