@@ -57,9 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Succès - rediriger vers la page principale
+                // Succès - rediriger vers la page de retour configurée
                 alert('Rapprochement effectué avec succès !');
-                window.location.href = window.APP_BASE_URL + 'rapprochements/import_releve_from_file';
+                const returnUrl = (typeof getReturnUrl === 'function') ? getReturnUrl() : 
+                                (window.RETURN_URL || window.APP_BASE_URL + 'rapprochements/import_releve_from_file');
+                window.location.href = returnUrl;
             } else {
                 // Erreur - remettre le bouton dans son état initial
                 this.disabled = false;

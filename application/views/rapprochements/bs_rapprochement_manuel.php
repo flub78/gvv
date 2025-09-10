@@ -65,6 +65,8 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
     window.STRING_RELEVE = '<?php echo $string_releve; ?>';
     window.OPERATION_AMOUNT = <?php echo $amount ?? 0; ?>;
 </script>
+<script src="<?php echo base_url('assets/javascript/selectall.js'); ?>"></script>
+<script src="<?php echo base_url('assets/javascript/reconciliate.js'); ?>"></script>
 <script src="<?php echo base_url('assets/javascript/rapprochement_manuel.js'); ?>"></script>
 
 <div class="container-fluid">
