@@ -23,10 +23,6 @@ application/third_party/phpqrcode/cache/*
 autobackup.sh
 .vscode/launch.json
 .phpunit.result.cache
-build/logs/junit.xml
-build/logs/integration_junit.xml
-build/logs/junit_enhanced.xml
-build/logs/junit.xml
-build/logs/integration_junit.xml
-build/logs/junit_enhanced.xml
-build/logs/junit.xml
+
+# Build logs directory
+build/logs/
