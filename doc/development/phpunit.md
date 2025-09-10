@@ -149,4 +149,43 @@ git clone -b 2.x https://github.com/fmalk/codeigniter-phpunit.git
 
 # Tentative d'activation de fmalk/codeigniter-phpunit
 
+1216  rm -r ../gvv/application/tests
+ 1217  ls application/
+ 1218  cp -r application/tests/ ../gvv/application/
+ 1219  cp -r system/core/ ../gvv/system/
+
+ Pas de regression évidente après installation...
+
+========================================================================
+ php /usr/local/bin/phpunit application/tests/helpers/HelperTest.php 
+
+While trying to execute phpunit tests with fmalk/codeigniter-phpunit 
+I get no output from this execution. How can I debug it?
+
+php /usr/local/bin/phpunit application/tests/helpers/HelperTest.php 
+Xdebug: [Step Debug] Could not connect to debugging client. Tried: 127.0.0.1:9003 (through xdebug.client_host/xdebug.client_port) :-(
+
+The phpunit.xml is this one:
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="application/tests/bootstrap.php">
+    <testsuites>
+		<testsuite name="TestSuite">
+			<directory>application/tests</directory>
+		</testsuite>
+	</testsuites>
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+	</php>
+	<filter>
+		<blacklist>
+			<directory suffix=".php">system</directory>
+			<!--directory suffix=".php">application/libraries</directory-->
+		</blacklist>
+	</filter>
+</phpunit>
+
+php -d xdebug.mode=off /usr/local/bin/phpunit --verbose application/tests/helpers/HelperTest.php
     

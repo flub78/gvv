@@ -22,3 +22,4 @@ captcha/*
 application/third_party/phpqrcode/cache/*
 autobackup.sh
 .vscode/launch.json
+.phpunit.result.cache

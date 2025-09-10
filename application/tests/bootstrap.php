@@ -1,42 +1,38 @@
 <?php
 
-// Simuler l'environnement web
-$_SERVER['HTTP_HOST'] = 'localhost';
-$_SERVER['REQUEST_URI'] = '/';
-$_SERVER['REQUEST_METHOD'] = 'GET';
+/*
+ *---------------------------------------------------------------
+ * OVERRIDE FUNCTIONS
+ *---------------------------------------------------------------
+ *
+ * This will "override" later functions meant to be defined
+ * in core\Common.php, so they throw errors instead of output strings
+ */
 
-
-// Définir le répertoire racine du projet
-define('FCPATH', realpath(dirname(__FILE__) . '/../../') . '/');
-
-// Chemins vers les dossiers CI
-$system_path = FCPATH . 'system';
-$application_folder = FCPATH . 'application';
-
-// Constantes CodeIgniter
-define('BASEPATH', $system_path . '/');
-define('APPPATH', $application_folder . '/');
-define('ENVIRONMENT', 'testing');
-
-// Inclure les fichiers de configuration
-if (!defined('FILE_READ_MODE')) {
-    require_once APPPATH . 'config/constants.php';
-}
-require_once APPPATH . 'config/config.php';
-require_once BASEPATH . 'core/Common.php';
-
-
-// If you need models/libraries directly:
-require __DIR__ . '/../models/achats_model.php';
-
-// Optionally, fake the CI instance if your models rely on it
-class CI_Controller {}
-class CI_Model {
-    public function __construct() {}
+function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
+{
+	throw new Exception($message, $status_code);
 }
 
-$CI =& get_instance();
-$CI->config = new class {
-    public function item($key) { return null; }
-};
+function show_404($page = '', $log_error = TRUE)
+{
+	throw new Exception($page, 404);
+}
 
+/*
+ *---------------------------------------------------------------
+ * BOOTSTRAP
+ *---------------------------------------------------------------
+ *
+ * Bootstrap CodeIgniter from index.php as usual
+ */
+require_once dirname(__FILE__) . '/../../index.php';
+
+/*
+ * This will autoload controllers inside subfolders
+ */ 
+spl_autoload_register(function ($class) {
+	foreach (glob(APPPATH.'controllers/**/'.strtolower($class).'.php') as $controller) {
+		require_once $controller;
+	}
+});
