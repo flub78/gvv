@@ -117,10 +117,8 @@ class BitfieldTest extends TestCase
         $this->assertEquals(10, $bitfield->toNumber());
         
         // Test fromHex
-        return;
-        // Todo fix and re-enable
-        // $bitfield->fromHex('FF');
-        // $this->assertEquals(255, $bitfield->toNumber());
+        $bitfield->fromHex('FF');
+        $this->assertEquals(255, $bitfield->toNumber());
         
         // Test fromOct  
         $bitfield->fromOct('377');
@@ -257,7 +255,7 @@ class BitfieldTest extends TestCase
      */
     public function testComplexScenarios()
     {
-        $this->markTestSkipped('Complex scenarios test is skipped.');
+        // $this->markTestSkipped('Complex scenarios test is skipped.');
         
         // Test creating a bitmask for permissions or flags
         $permissions = new Bitfield(0);

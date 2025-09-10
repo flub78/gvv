@@ -28,5 +28,5 @@ Bitfield
  [x] Serialization
  [x] Iterator
  [x] Edge cases
- [ ] Complex scenarios
+ [x] Complex scenarios
 
