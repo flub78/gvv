@@ -186,7 +186,9 @@ class Bitfield implements IteratorAggregate, Serializable {
      * @param int $base
      */
     function fromBase(/*string*/$number,/*int*/$base) {
-        $this->_bits = base_convert($number, $base, 10);
+       $tmp = base_convert($number, $base, 10);
+       $this->_bits = $tmp;
+       return $this->_bits;
     }
 
     /**
