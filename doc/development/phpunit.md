@@ -266,7 +266,7 @@ Le fichier `application/tests/helpers/ValidationHelperTest.php` contient mainten
 - `testEmailValidation()` - Test de validation d'email
 
 ### 2. Tests des modèles
-Le fichier `application/tests/models/ConfigurationModelTest.php` démontre comment tester la logique métier des modèles sans dépendances base de données :
+Le fichier `application/tests/models/ConfigurationModelTest.php` démontre comment tester la logique métier des modèles **sans dépendances base de données** :
 
 - `testImageMethodReturnsDefaultImageNameCorrectly()` - Test des méthodes de formatage d'image
 - `testKeyValidationAcceptsValidAndRejectsInvalidKeys()` - Test de validation des clés
@@ -275,7 +275,24 @@ Le fichier `application/tests/models/ConfigurationModelTest.php` démontre comme
 - `testConfigurationPriorityHandlingForDefaultVsUserSettings()` - Test de priorité des configurations
 - `testInvalidConfigurationKeyHandlingReturnsNullForNonExistentKey()` - Test de gestion des erreurs
 
+**⚠️ IMPORTANT** : Ces tests sont des **tests unitaires de logique métier** uniquement. Ils **NE TESTENT PAS** l'accès base de données.
+
+**Ce qui est testé** (business logic uniquement) :
+- ✅ Validation des clés de configuration (format, caractères autorisés)
+- ✅ Méthodes de nettoyage et formatage des valeurs (sanitization)
+- ✅ Gestion des paramètres par défaut et fallbacks
+- ✅ Logique de priorité (langue + club > club > langue > global)
+- ✅ Validation des types de données
+
+**Ce qui n'est PAS testé** :
+- ❌ Accès réel à la base de données
+- ❌ Méthodes `get_param()`, `image()`, `select_page()` du vrai modèle `Configuration_model`
+- ❌ Opérations CRUD (Create, Read, Update, Delete)
+- ❌ Transactions et intégrité des données
+
 **Approche pour les modèles** : Ces tests se concentrent sur la logique métier pure (validation, formatage, règles de gestion) sans nécessiter d'accès à la base de données. Cela permet de tester les algorithmes de manière isolée et rapide.
+
+**Pour les vrais tests de base de données** : Un exemple de test d'intégration est disponible dans `application/tests/disabled/ConfigurationModelIntegrationTest.php` mais nécessite le framework CodeIgniter complet.
 
 **Pour les tests nécessitant le framework complet** : Utiliser la configuration legacy dans `tests.legacy/` qui utilise le framework CIUnit spécialement conçu pour CodeIgniter 2.x.
 

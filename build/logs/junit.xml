@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="WorkingTests" tests="24" assertions="172" errors="0" warnings="0" failures="0" skipped="0" time="0.004082">
-    <testsuite name="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" tests="2" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.000227">
-      <testcase name="testDebuggingExample" class="DebugExampleTest" classname="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" line="13" assertions="3" time="0.000136"/>
-      <testcase name="testDebuggingWithHelpers" class="DebugExampleTest" classname="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" line="41" assertions="1" time="0.000091"/>
+  <testsuite name="WorkingTests" tests="24" assertions="172" errors="0" warnings="0" failures="0" skipped="0" time="0.001371">
+    <testsuite name="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" tests="2" assertions="4" errors="0" warnings="0" failures="0" skipped="0" time="0.000164">
+      <testcase name="testDebuggingExample" class="DebugExampleTest" classname="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" line="13" assertions="3" time="0.000104"/>
+      <testcase name="testDebuggingWithHelpers" class="DebugExampleTest" classname="DebugExampleTest" file="/home/frederic/git/gvv/application/tests/helpers/DebugExampleTest.php" line="41" assertions="1" time="0.000060"/>
     </testsuite>
-    <testsuite name="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" tests="7" assertions="52" errors="0" warnings="0" failures="0" skipped="0" time="0.002759">
-      <testcase name="testDateDb2Ht" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="16" assertions="6" time="0.000064"/>
-      <testcase name="testDateHt2Db" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="34" assertions="7" time="0.000105"/>
-      <testcase name="testFrenchDateCompare" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="55" assertions="10" time="0.001735"/>
-      <testcase name="testMinuteToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="81" assertions="7" time="0.000096"/>
-      <testcase name="testDecimalToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="98" assertions="5" time="0.000051"/>
-      <testcase name="testEuro" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="111" assertions="9" time="0.000073"/>
-      <testcase name="testEmailValidation" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="136" assertions="8" time="0.000635"/>
+    <testsuite name="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" tests="7" assertions="52" errors="0" warnings="0" failures="0" skipped="0" time="0.000750">
+      <testcase name="testDateDb2Ht" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="16" assertions="6" time="0.000032"/>
+      <testcase name="testDateHt2Db" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="34" assertions="7" time="0.000068"/>
+      <testcase name="testFrenchDateCompare" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="55" assertions="10" time="0.000109"/>
+      <testcase name="testMinuteToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="81" assertions="7" time="0.000051"/>
+      <testcase name="testDecimalToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="98" assertions="5" time="0.000031"/>
+      <testcase name="testEuro" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="111" assertions="9" time="0.000034"/>
+      <testcase name="testEmailValidation" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="136" assertions="8" time="0.000425"/>
     </testsuite>
-    <testsuite name="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" tests="6" assertions="45" errors="0" warnings="0" failures="0" skipped="0" time="0.000538">
-      <testcase name="testImageMethodLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="17" assertions="4" time="0.000082"/>
-      <testcase name="testConfigurationKeyValidation" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="47" assertions="7" time="0.000110"/>
-      <testcase name="testConfigurationValueSanitization" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="64" assertions="9" time="0.000088"/>
-      <testcase name="testLanguageParameterLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="90" assertions="11" time="0.000105"/>
-      <testcase name="testConfigurationCategories" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="114" assertions="10" time="0.000084"/>
-      <testcase name="testConfigurationPriority" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="132" assertions="4" time="0.000069"/>
+    <testsuite name="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" tests="6" assertions="45" errors="0" warnings="0" failures="0" skipped="0" time="0.000196">
+      <testcase name="testImageMethodLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="17" assertions="4" time="0.000031"/>
+      <testcase name="testConfigurationKeyValidation" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="47" assertions="7" time="0.000042"/>
+      <testcase name="testConfigurationValueSanitization" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="64" assertions="9" time="0.000028"/>
+      <testcase name="testLanguageParameterLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="90" assertions="11" time="0.000047"/>
+      <testcase name="testConfigurationCategories" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="114" assertions="10" time="0.000024"/>
+      <testcase name="testConfigurationPriority" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="132" assertions="4" time="0.000024"/>
     </testsuite>
-    <testsuite name="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" tests="9" assertions="71" errors="0" warnings="0" failures="0" skipped="0" time="0.000558">
-      <testcase name="testConstructor" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="16" assertions="7" time="0.000080"/>
-      <testcase name="testToString" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="41" assertions="3" time="0.000042"/>
-      <testcase name="testBitOperations" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="56" assertions="14" time="0.000063"/>
-      <testcase name="testFromConversions" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="95" assertions="10" time="0.000089"/>
-      <testcase name="testToConversions" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="135" assertions="10" time="0.000060"/>
-      <testcase name="testSerialization" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="165" assertions="4" time="0.000057"/>
-      <testcase name="testIterator" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="189" assertions="2" time="0.000046"/>
-      <testcase name="testEdgeCases" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="217" assertions="12" time="0.000059"/>
-      <testcase name="testComplexScenarios" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="256" assertions="9" time="0.000062"/>
+    <testsuite name="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" tests="9" assertions="71" errors="0" warnings="0" failures="0" skipped="0" time="0.000262">
+      <testcase name="testConstructor" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="16" assertions="7" time="0.000039"/>
+      <testcase name="testToString" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="41" assertions="3" time="0.000022"/>
+      <testcase name="testBitOperations" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="56" assertions="14" time="0.000032"/>
+      <testcase name="testFromConversions" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="95" assertions="10" time="0.000038"/>
+      <testcase name="testToConversions" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="135" assertions="10" time="0.000027"/>
+      <testcase name="testSerialization" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="165" assertions="4" time="0.000027"/>
+      <testcase name="testIterator" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="189" assertions="2" time="0.000025"/>
+      <testcase name="testEdgeCases" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="217" assertions="12" time="0.000025"/>
+      <testcase name="testComplexScenarios" class="BitfieldTest" classname="BitfieldTest" file="/home/frederic/git/gvv/application/tests/libraries/BitfieldTest.php" line="256" assertions="9" time="0.000027"/>
     </testsuite>
   </testsuite>
 </testsuites>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="application/tests/integration_bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+		<testsuite name="IntegrationTests">
+			<directory>application/tests/integration</directory>
+		</testsuite>
+	</testsuites>
+	<logging>
+		<log type="junit" target="build/logs/integration_junit.xml"/>
+		<log type="testdox-text" target="build/logs/integration_testdox.txt"/>
+	</logging>
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+	</php>
+	<filter>
+		<whitelist>
+			<directory suffix=".php">application</directory>
+			<exclude>
+				<directory suffix=".php">system</directory>
+				<directory suffix=".php">application/tests</directory>
+			</exclude>
+		</whitelist>
+	</filter>
+</phpunit>

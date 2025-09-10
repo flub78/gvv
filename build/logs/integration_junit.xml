@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="IntegrationTests" tests="6" assertions="24" errors="0" warnings="0" failures="0" skipped="0" time="0.000702">
+    <testsuite name="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" tests="6" assertions="24" errors="0" warnings="0" failures="0" skipped="0" time="0.000702">
+      <testcase name="testBasicCrudOperations" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="74" assertions="10" time="0.000212"/>
+      <testcase name="testImageMethod" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="124" assertions="3" time="0.000106"/>
+      <testcase name="testSelectPageMethod" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="153" assertions="6" time="0.000101"/>
+      <testcase name="testDatabaseConstraints" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="199" assertions="1" time="0.000089"/>
+      <testcase name="testMultipleCategoriesAndSearch" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="226" assertions="3" time="0.000099"/>
+      <testcase name="testTransactionRollback" class="CategorieModelIntegrationTest" classname="CategorieModelIntegrationTest" file="/home/frederic/git/gvv/application/tests/integration/CategorieModelIntegrationTest.php" line="272" assertions="1" time="0.000095"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

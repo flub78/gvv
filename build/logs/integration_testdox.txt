@@ -1,0 +1,8 @@
+Categorie Model Integration
+ [x] Basic crud operations
+ [x] Image method
+ [x] Select page method
+ [x] Database constraints
+ [x] Multiple categories and search
+ [x] Transaction rollback
+
