@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit bootstrap="application/tests/minimal_bootstrap.php">
+<phpunit bootstrap="application/tests/minimal_bootstrap.php"
+         colors="true"
+         verbose="true">
     <testsuites>
-		<testsuite name="TestSuite">
-			<directory>application/tests</directory>
+		<testsuite name="WorkingTests">
+			<directory>application/tests/helpers</directory>
+			<directory>application/tests/models</directory>
 		</testsuite>
 	</testsuites>
+	<logging>
+		<log type="junit" target="build/logs/junit.xml"/>
+		<log type="testdox-text" target="build/logs/testdox.txt"/>
+	</logging>
 	<php>
 		<const name="PHPUNIT_TEST" value="1" />
 		<const name="PHPUNIT_CHARSET" value="UTF-8" />

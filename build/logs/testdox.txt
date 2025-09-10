@@ -1,0 +1,17 @@
+Validation Helper
+ [x] Date db 2 ht
+ [x] Date ht 2 db
+ [x] French date compare
+ [x] Minute to time
+ [x] Decimal to time
+ [x] Euro
+ [x] Email validation
+
+Configuration Model
+ [x] Image method logic
+ [x] Configuration key validation
+ [x] Configuration value sanitization
+ [x] Language parameter logic
+ [x] Configuration categories
+ [x] Configuration priority
+

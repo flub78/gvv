@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="WorkingTests" tests="13" assertions="97" errors="0" warnings="0" failures="0" skipped="0" time="0.002583">
+    <testsuite name="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" tests="7" assertions="52" errors="0" warnings="0" failures="0" skipped="0" time="0.002343">
+      <testcase name="testDateDb2Ht" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="16" assertions="6" time="0.000141"/>
+      <testcase name="testDateHt2Db" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="34" assertions="7" time="0.000068"/>
+      <testcase name="testFrenchDateCompare" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="55" assertions="10" time="0.001551"/>
+      <testcase name="testMinuteToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="81" assertions="7" time="0.000066"/>
+      <testcase name="testDecimalToTime" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="98" assertions="5" time="0.000028"/>
+      <testcase name="testEuro" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="111" assertions="9" time="0.000037"/>
+      <testcase name="testEmailValidation" class="ValidationHelperTest" classname="ValidationHelperTest" file="/home/frederic/git/gvv/application/tests/helpers/ValidationHelperTest.php" line="136" assertions="8" time="0.000452"/>
+    </testsuite>
+    <testsuite name="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" tests="6" assertions="45" errors="0" warnings="0" failures="0" skipped="0" time="0.000239">
+      <testcase name="testImageMethodLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="17" assertions="4" time="0.000033"/>
+      <testcase name="testConfigurationKeyValidation" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="47" assertions="7" time="0.000063"/>
+      <testcase name="testConfigurationValueSanitization" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="64" assertions="9" time="0.000033"/>
+      <testcase name="testLanguageParameterLogic" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="90" assertions="11" time="0.000042"/>
+      <testcase name="testConfigurationCategories" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="114" assertions="10" time="0.000036"/>
+      <testcase name="testConfigurationPriority" class="ConfigurationModelTest" classname="ConfigurationModelTest" file="/home/frederic/git/gvv/application/tests/models/ConfigurationModelTest.php" line="132" assertions="4" time="0.000032"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

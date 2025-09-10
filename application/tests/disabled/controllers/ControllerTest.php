@@ -1,10 +1,12 @@
 <?php
 
-class ControllerTest extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class ControllerTest extends TestCase
 {
 	private $CI;
 	
-	public function setUp()
+	public function setUp(): void
 	{
 		$this->CI =& get_instance();
 	}
