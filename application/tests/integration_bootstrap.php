@@ -264,8 +264,38 @@ class RealQueryResult {
     }
 }
 
+// Add essential CodeIgniter functions that helpers need
+if (!function_exists('base_url')) {
+    function base_url($uri = '') {
+        return 'http://localhost/gvv2/' . $uri;
+    }
+}
+
+if (!function_exists('site_url')) {
+    function site_url($uri = '') {
+        return base_url('index.php/' . $uri);
+    }
+}
+
+if (!function_exists('config_item')) {
+    function config_item($item) {
+        switch($item) {
+            case 'theme':
+                return 'binary-news';
+            case 'base_url':
+                return 'http://localhost/gvv2/';
+            case 'index_page':
+                return 'index.php';
+            default:
+                return '';
+        }
+    }
+}
+
 // Create a minimal CI loader
 class MockLoader {
+    private $loaded_helpers = array();
+    
     public function database($db = '', $return = FALSE, $active_record = NULL) {
         // Mock database loading - return true
         return true;
@@ -282,8 +312,38 @@ class MockLoader {
     }
     
     public function helper($helpers = array()) {
-        // Mock helper loading
+        // Actually load real helper files for integration tests
+        if (!is_array($helpers)) {
+            $helpers = array($helpers);
+        }
+        
+        foreach ($helpers as $helper) {
+            $helper_file = APPPATH . 'helpers/' . $helper . '_helper.php';
+            if (file_exists($helper_file) && !function_exists($helper)) {
+                require_once $helper_file;
+                $this->loaded_helpers[] = $helper;
+            }
+            
+            // Also try CodeIgniter system helpers
+            $system_helper_file = BASEPATH . 'helpers/' . $helper . '_helper.php';
+            if (file_exists($system_helper_file)) {
+                require_once $system_helper_file;
+                $this->loaded_helpers[] = $helper;
+            }
+        }
         return true;
+    }
+    
+    public function is_loaded($type) {
+        // Return FALSE for form_validation since we don't need it for basic tests
+        if ($type === 'form_validation') {
+            return FALSE;
+        }
+        // Simple implementation for helper loading status
+        if ($type === 'helper') {
+            return $this->loaded_helpers;
+        }
+        return FALSE;
     }
 }
 
@@ -326,16 +386,34 @@ class MockGvvMetadata {
     }
 }
 
+// Mock config for CodeIgniter
+class MockConfig {
+    public function item($item) {
+        switch($item) {
+            case 'theme':
+                return 'binary-news';
+            case 'base_url':
+                return 'http://localhost/gvv2/';
+            case 'index_page':
+                return 'index.php';
+            default:
+                return '';
+        }
+    }
+}
+
 // Create a mock CI instance
 class MockCI {
     public $load;
     public $db;
     public $session;
+    public $config;
     
     public function __construct() {
         $this->load = new MockLoader();
         $this->db = new RealDatabase($GLOBALS['test_db_config']);
         $this->session = new MockSession();
+        $this->config = new MockConfig();
     }
 }
 

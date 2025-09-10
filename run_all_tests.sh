@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # GVV Complete Test Suite Runner
-# Runs both unit and integration tests with proper environment setup
+# Runs unit, integration, and enhanced CodeIgniter tests
 
 set -e  # Exit on any error
 
@@ -11,9 +11,10 @@ echo "======================="
 # Source environment for PHP 7.4
 source setenv.sh
 
-echo "📋 Test Summary:"
-echo "- Unit Tests: Fast, isolated, no database"
-echo "- Integration Tests: Real MySQL database with transactions"
+echo "📋 Test Categories:"
+echo "- Unit Tests: Fast, isolated, no dependencies"
+echo "- Integration Tests: Real MySQL database with transactions"  
+echo "- Enhanced Tests: CodeIgniter helpers/libraries with mocking"
 echo ""
 
 # Run unit tests
@@ -27,9 +28,15 @@ echo "==============================="
 phpunit --configuration phpunit_integration.xml
 
 echo ""
-echo "✅ All tests completed successfully!"
+echo "🔹 Running Enhanced CodeIgniter Tests..."
+echo "======================================="
+phpunit --configuration phpunit_enhanced.xml
+
 echo ""
-echo "📊 Total Test Coverage:"
-echo "- Unit Tests: 24 tests, 172 assertions"
-echo "- Integration Tests: 6 tests, 24 assertions"
-echo "- Combined: 30 tests, 196 assertions"
+echo "✅ All test categories completed!"
+echo ""
+echo "📊 Test Coverage Summary:"
+echo "- Unit Tests: 24 tests (validation, models, libraries)"
+echo "- Integration Tests: 6 tests (real database operations)"
+echo "- Enhanced Tests: 41 tests (CI helpers and libraries)"
+echo "- Total: 71 tests across all categories"

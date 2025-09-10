@@ -66,7 +66,7 @@ class Widget {
      * @param unknown_type $field
      */
     public function get($field) {
-        return $this->attr [$field];
+        return isset($this->attr[$field]) ? $this->attr[$field] : null;
     }
 
     /**
