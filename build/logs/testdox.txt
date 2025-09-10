@@ -1,3 +1,7 @@
+Debug Example
+ [x] Debugging example
+ [x] Debugging with helpers
+
 Validation Helper
  [x] Date db 2 ht
  [x] Date ht 2 db
@@ -14,4 +18,15 @@ Configuration Model
  [x] Language parameter logic
  [x] Configuration categories
  [x] Configuration priority
+
+Bitfield
+ [x] Constructor
+ [x] To string
+ [x] Bit operations
+ [x] From conversions
+ [x] To conversions
+ [x] Serialization
+ [x] Iterator
+ [x] Edge cases
+ [ ] Complex scenarios
 

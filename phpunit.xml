@@ -6,6 +6,7 @@
 		<testsuite name="WorkingTests">
 			<directory>application/tests/helpers</directory>
 			<directory>application/tests/models</directory>
+			<directory>application/tests/libraries</directory>
 		</testsuite>
 	</testsuites>
 	<logging>

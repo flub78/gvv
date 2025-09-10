@@ -9,6 +9,17 @@ define('APPPATH', dirname(__FILE__) . '/../');
 // Load the validation helper functions
 require_once APPPATH . 'helpers/validation_helper.php';
 
+// Load library files for testing
+function load_library($library_name) {
+    $library_file = APPPATH . 'libraries/' . $library_name . '.php';
+    if (file_exists($library_file)) {
+        require_once $library_file;
+    }
+}
+
+// Auto-load the Bitfield library for testing
+load_library('Bitfield');
+
 // Simple email validation function for testing
 if (!function_exists('valid_email')) {
     function valid_email($email) {
