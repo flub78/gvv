@@ -76,6 +76,13 @@ Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
 
 * Créez le répertoire de journaux application/logs
 
+* Vérifiez la quantité de mémoire disponible pour l'application. La librairie zip utilisée pour les sauvegardes et restauration à besoin de beaucoup de mémoire.
+
+> J'ai résolu mon problème de sauvegarde de la base de donnée qui me retournait systématiquement une erreur 500.
+> Dans le fichier /etc/php/7.4/apache2/php.ini, > j'ai passé memory_limit de 128M à 256M
+> Je pense que le module zip n'avait pas assez de mémoire disponible à la vue des données à compresser.
+> Ça risque d'arriver à tout le monde au fur et à mesure du temps...
+
 ### Configuration
 
 Dans le fichier config.php, mettre à jour:
