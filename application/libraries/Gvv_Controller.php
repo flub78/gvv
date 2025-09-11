@@ -120,8 +120,6 @@ class Gvv_Controller extends CI_Controller {
             $no_view_loading = func_get_arg(0);
         }
 
-        $this->session->unset_userdata('inital_id');
-
         // Méthode basée sur les méta-données
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
@@ -174,7 +172,8 @@ class Gvv_Controller extends CI_Controller {
         }
         $this->form_static_element($action);
 
-        $this->session->set_userdata('inital_id', $id);
+        // Store the original ID for the form (for updates)
+        $this->data['original_' . $this->kid] = $id;
         $this->data[$this->kid] = $id;
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
@@ -564,7 +563,14 @@ class Gvv_Controller extends CI_Controller {
                     }
                 } elseif ($action == MODIFICATION) {
 
-                    $initial_id = $this->session->userdata('inital_id');
+                    // Get the original ID from POST data instead of session
+                    $initial_id = $this->input->post('original_' . $this->kid);
+                    if (!$initial_id) {
+                        // Fallback to session for backward compatibility, but this shouldn't happen
+                        $initial_id = $this->session->userdata('initial_id');
+                        gvv_debug("Warning: Using session fallback for initial_id. This indicates a form without original_id field.");
+                    }
+                    
                     $this->pre_update($this->kid, $processed_data);
                     $this->gvv_model->update($this->kid, $processed_data, $initial_id);
                     $this->post_update($processed_data);

@@ -180,6 +180,7 @@ class Common_Model extends CI_Model {
     public function update($keyid, $data, $keyvalue = '') {
         if ($keyvalue == '')
             $keyvalue = $data[$keyid];
+        // on positionne la base sur le bon élément
         $this->db->where($keyid, $keyvalue);
         unset($data[$keyid]);
 
