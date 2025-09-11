@@ -43,7 +43,7 @@ class ReleveParser {
      */
     function operation_type($operation) {
 
-        if ($this->found_in(['FACTURES CARTES PAYEES'], $operation["Libellé interbancaire"])) {
+        if ($this->found_in(['FACTURES CARTES PAYEES', 'PAIEMENT CB'], $operation["Libellé interbancaire"])) {
             return 'paiement_cb';
 
         } elseif ($this->found_in(['FACTURES CARTES REMISES'], $operation["Libellé interbancaire"])) {
