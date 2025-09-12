@@ -66,10 +66,10 @@ class StatementOperation {
     /**
      * Génère une représentation HTML de l'opération
      * 
-     * @param bool $show_manual_buttons Afficher les boutons de rapprochement manuel (défaut: true)
+     * @param bool $non_manual Afficher les boutons de rapprochement manuel (défaut: true)
      * @return string Représentation HTML de l'opération
      */
-    public function to_HTML($show_manual_buttons = true) {
+    public function to_HTML($non_manual = true) {
         $html = "";
 
         $html .= '<table class="table rapprochement table-striped table-bordered border border-dark rounded mb-3 w-100 operations">';
@@ -92,10 +92,11 @@ class StatementOperation {
 
         $html .= '<tbody>';
 
+
         $html .= '<tr>';
         // Date avec bouton rapprochement manuel (seulement si pas rapproché et si show_manual_buttons est true)
         $html .= '<td>' . htmlspecialchars($this->local_date());
-        if (!$this->is_rapproched() && $show_manual_buttons) {
+        if (!$this->is_rapproched() && $non_manual) {
             $line_number = $this->line();
             $html .= ' <button type="button" class="badge bg-primary text-white rounded-pill ms-2 border-0" 
                          onclick="window.location.href=\'' . site_url('rapprochements/rapprochement_manuel?line=' . $line_number) . '\'" 
@@ -125,7 +126,9 @@ class StatementOperation {
             $html .= '</tr>';
         }
 
-        $html .= $this->rapprochements_to_html($show_manual_buttons);
+        if ($non_manual) {
+            $html .= $this->rapprochements_to_html();
+        }
 
         $html .= '</tbody>';
         $html .= '</table>';
@@ -142,10 +145,9 @@ class StatementOperation {
      * - Des combinaisons multiples d'écritures
      * - Ou un message indiquant qu'aucune écriture n'a été trouvée
      *
-     * @param bool $show_manual_buttons Afficher les boutons de rapprochement manuel
      * @return string HTML généré pour la section rapprochements/propositions
      */
-    private function rapprochements_to_html($show_manual_buttons = true) {
+    private function rapprochements_to_html() {
         $html = "";
 
         if ($this->is_rapproched()) {
@@ -160,19 +162,19 @@ class StatementOperation {
             $html .= '<tr class="table-secondary">';
             $html .= '<td colspan="7" class="text-start">Proposition de rapprochements</td>';
             $html .= '</tr>';
-            $html .= $this->unique_proposal_html($show_manual_buttons);
+            $html .= $this->unique_proposal_html();
         } elseif ($this->choices_count() > 1) {
             // Plusieurs propositions - afficher avec checkbox et dropdown
             $html .= '<tr class="table-secondary">';
             $html .= '<td colspan="7" class="text-start">Choix de rapprochements</td>';
             $html .= '</tr>';
-            $html .= $this->multiple_combinations_html($show_manual_buttons);
+            $html .= $this->multiple_combinations_html();
         } elseif ($this->is_multiple_combination()) {
             // Propositions de combinaisons multiples d'écritures
             $html .= '<td colspan="7" class="text-start">Proposition de combinaisons</td>';
 
             foreach ($this->multiple_combinations as $combination) {
-                $html .= $combination->to_HTML($show_manual_buttons);
+                $html .= $combination->to_HTML();
                 // Séparateur entre les combinaisons (s'il y en a plusieurs)
                 if (count($this->multiple_combinations) > 1 && $combination !== end($this->multiple_combinations)) {
                     $html .= '<tr class="table-secondary">';
@@ -182,7 +184,7 @@ class StatementOperation {
             }
         } else {
             // Aucune écriture trouvée
-            $html .= $this->no_proposal_html($show_manual_buttons);
+            $html .= $this->no_proposal_html();
         }
         return $html;
     }
@@ -193,10 +195,9 @@ class StatementOperation {
      * This method is typically used to display a message or placeholder in the UI
      * when no matching proposals are found for a given statement operation.
      *
-     * @param bool $show_manual_buttons Afficher le bouton de rapprochement manuel
      * @return string The HTML content to display when no proposals are present.
      */
-    public function no_proposal_html($show_manual_buttons = true) {
+    public function no_proposal_html() {
         $html = "";
         $html .= '<tr>';
 
@@ -205,7 +206,7 @@ class StatementOperation {
         $str_releve = $this->str_releve();
         $badge = '<div class="badge bg-danger text-white rounded-pill ms-1">Non rapproché</div>';
         $hidden = '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
-        
+
         $html .= '<td>' . $badge . $hidden . '</td>';
 
         // Colonne 2: Message d'erreur
@@ -231,7 +232,7 @@ class StatementOperation {
      *
      * @return string The HTML markup for the unique proposal.
      */
-    public function unique_proposal_html($show_manual_buttons = true) {
+    public function unique_proposal_html() {
         $html = "";
         $html .= '<tr>';
 
@@ -278,7 +279,7 @@ class StatementOperation {
         if ($first_proposal) {
             // Créer un lien vers l'écriture
             $ecriture_url = site_url('compta/edit/' . $first_proposal->ecriture);
-            
+
             // Récupérer le coefficient de corrélation pour afficher en tooltip
             $tooltip = '';
             if (isset($this->correlations[$first_proposal->ecriture])) {
@@ -286,7 +287,7 @@ class StatementOperation {
                 $confidence_percent = round($correlation * 100, 1);
                 $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
             }
-            
+
             $html .= '<td><a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '><span class="text-success">' . $first_proposal->image . '</span></a></td>';
         } else {
             $html .= '<td></td>';
@@ -310,10 +311,9 @@ class StatementOperation {
      * representation of multiple proposals, typically used in the context
      * of statement operations or rapprochements.
      *
-     * @param bool $show_manual_buttons Afficher le bouton de rapprochement manuel
      * @return string The generated HTML for multiple proposals.
      */
-    public function multiple_combinations_html($show_manual_buttons = true) {
+    public function multiple_combinations_html() {
         $html = "";
         $html .= '<tr>';
 
@@ -344,7 +344,7 @@ class StatementOperation {
         }
 
         $nb_options = count($options);
-        
+
         if ($nb_options < 5) {
             // Utiliser des radio buttons pour moins de 5 options avec des liens
             $html .= '<div class="radio-group">';
@@ -352,10 +352,10 @@ class StatementOperation {
                 $html .= '<div class="form-check mb-1">';
                 $html .= '<input class="form-check-input" type="radio" name="op_' . $line_number . '" id="op_' . $line_number . '_' . $option_id . '" value="' . $option_id . '">';
                 $html .= '<label class="form-check-label" for="op_' . $line_number . '_' . $option_id . '">';
-                
+
                 // Créer un lien vers l'écriture, mais rester sur la fenêtre courante
                 $ecriture_url = site_url('compta/edit/' . $option_id);
-                
+
                 // Récupérer le coefficient de corrélation pour afficher en tooltip
                 $tooltip = '';
                 if (isset($this->correlations[$option_id])) {
@@ -363,11 +363,11 @@ class StatementOperation {
                     $confidence_percent = round($correlation * 100, 1);
                     $tooltip = ' title="Indice de confiance: ' . $confidence_percent . '%"';
                 }
-                
+
                 $html .= '<a href="' . $ecriture_url . '" class="text-decoration-none"' . $tooltip . '>';
                 $html .= $option_label;
                 $html .= '</a>';
-                
+
                 $html .= '</label>';
                 $html .= '</div>';
             }
@@ -385,7 +385,7 @@ class StatementOperation {
                 }
                 $options_with_confidence[$option_id] = $option_label . $confidence_text;
             }
-            
+
             $attrs = 'class="form-control big_select big_select_large select2-hidden-accessible" tabindex="-1" aria-hidden="true"';
             $dropdown = dropdown_field("op_" . $line_number, "", $options_with_confidence, $attrs);
             $html .= $dropdown;

@@ -21,6 +21,11 @@ Since the technical context is already established, focus your prompts on:
 - **Expected outcome** and success criteria
 - **Integration points** with existing GVV components
 
+### Recommended points
+- **Re-use existing code** as much as possible instead of creating new one.
+- **Ask for clarification** if you are not sure, stop and ask for clarification
+- **Work in an incremental way** and stop after each step for review
+
 ## Prompt Templates by Use Case
 
 ### Design Notes & Architecture

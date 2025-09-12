@@ -82,21 +82,6 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
         <div class="col-12">
             <p class="text-muted">Sélectionner une ou plusieurs écritures GVV pour le rapprochement</p>
             
-            <!-- Filtres pour les écritures -->
-            <div class="mb-3">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="ecriture-filter" id="filter-all" value="all" checked>
-                    <label class="form-check-label" for="filter-all">Toutes les écritures</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="ecriture-filter" id="filter-non-rapprochees" value="non-rapprochees">
-                    <label class="form-check-label" for="filter-non-rapprochees">Non rapprochées uniquement</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="ecriture-filter" id="filter-montant" value="montant">
-                    <label class="form-check-label" for="filter-montant">Montant exact</label>
-                </div>
-            </div>
 
 <?php
         echo form_open_multipart('rapprochements/rapprochez');
