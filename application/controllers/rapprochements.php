@@ -399,7 +399,7 @@ class Rapprochements extends CI_Controller {
             }
         }
 
-        redirect($is_manual ? 'rapprochements/rapprochement_manuel?line=' . $this->input->post('line') : 'rapprochements/import_releve_from_file');
+        redirect('rapprochements/import_releve_from_file');
     }
 
     /**
