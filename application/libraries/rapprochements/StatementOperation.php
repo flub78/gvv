@@ -56,7 +56,6 @@ class StatementOperation {
         $this->gvv_bank_account = isset($data['gvv_bank_account']) ? $data['gvv_bank_account'] : null;
         $this->recognized_types = isset($data['recognized_types']) ? $data['recognized_types'] : [];
         $this->reconciliate();
-        // $this->dump("constructor", false);
     }
 
     public function set_correlation($ecriture_id, $correlation, $image) {
@@ -511,13 +510,9 @@ class StatementOperation {
             $this->get_proposals();
 
             $empty_proposals = empty($this->proposals);
-            // foreach ($this->proposals as $proposal) {
-            //     // Process each proposal
-            //     $proposal->dump("proposal found", true);
-            // }
-            $empty_multiple = empty($this->multiple_combinations);
+            $empty_combinations = empty($this->multiple_combinations);
 
-            if (empty($this->proposals) && empty($this->multiple_combinations)) {
+            if ($empty_proposals && $empty_combinations) {
                 // try to split into multiple
                 gvv_debug("Rapprochement: Looking for combinations for operation line " . $this->line());
                 $this->get_multiple_combinations();
@@ -845,7 +840,7 @@ class StatementOperation {
         foreach ($lines as $line) {
             $total_list += $line['montant'];
         }
-        if (abs($total_list) < abs($target_amount)) {
+        if (abs($total_list) + 0.01 < abs($target_amount)) {
             return false;
         }
 
