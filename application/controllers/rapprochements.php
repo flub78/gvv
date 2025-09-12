@@ -298,6 +298,9 @@ class Rapprochements extends CI_Controller {
         $post = $this->input->post();
         $counts = [];
         $operations = [];
+        
+        // Déterminer si c'est un rapprochement manuel
+        $is_manual = $this->input->post('manual_mode') === '1';
 
         if ($post['button'] == 'Supprimer les rapprochements') {
             // On supprime les rapprochements
@@ -348,7 +351,16 @@ class Rapprochements extends CI_Controller {
                     if (!empty($multiple_ecritures)) {
                         $operations[$line]['multiple_ecritures'] = $multiple_ecritures;
                     } else {
-                        gvv_dump('op_' . $line . " not defined and no multiple ecritures found");
+                        // En mode manuel, $line est directement l'ID de l'écriture
+                        if ($is_manual && is_numeric($line)) {
+                            $operations[$line]['ecriture'] = $line;
+                            if (!isset($counts[$line])) {
+                                $counts[$line] = 0;
+                            }
+                            $counts[$line]++;
+                        } else {
+                            gvv_dump('op_' . $line . " not defined and no multiple ecritures found");
+                        }
                     }
                 }
             }
@@ -387,7 +399,7 @@ class Rapprochements extends CI_Controller {
             }
         }
 
-        redirect('rapprochements/import_releve_from_file');
+        redirect($is_manual ? 'rapprochements/rapprochement_manuel?line=' . $this->input->post('line') : 'rapprochements/import_releve_from_file');
     }
 
     /**
@@ -572,6 +584,7 @@ class Rapprochements extends CI_Controller {
      * Converts GVV lines to a table format for display
      *
      * @param array $gvv_lines Array of GVV lines to convert
+     * @param string $checkbox_prefix Prefix for checkbox names ('cb_' for reconciliation, 'cbdel_' for deletion)
      * @return array Formatted array suitable for table display
      */
     function to_ecritures_table($gvv_lines) {

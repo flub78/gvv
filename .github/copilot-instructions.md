@@ -119,7 +119,7 @@ Copy `application/config/database.example.php` to `database.php` and configure:
 - **Business Logic**: Add libraries in `application/libraries/`
 
 ### Testing Notes
-- **No automated tests configured** - manual testing required
+- **phpunit** - unit tests and integration tests
 - **Legacy test directories exist** but are not functional
 - **Test users available**: testuser/testadmin with password "password"
 

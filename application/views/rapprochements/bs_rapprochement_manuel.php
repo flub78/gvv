@@ -66,7 +66,6 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
     window.OPERATION_AMOUNT = <?php echo $amount ?? 0; ?>;
 </script>
 <script src="<?php echo base_url('assets/javascript/selectall.js'); ?>"></script>
-<script src="<?php echo base_url('assets/javascript/reconciliate.js'); ?>"></script>
 <script src="<?php echo base_url('assets/javascript/rapprochement_manuel.js'); ?>"></script>
 
 <div class="container-fluid">
@@ -100,8 +99,39 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
             </div>
 
 <?php
+        echo form_open_multipart('rapprochements/rapprochez');
+        
+        // Inputs hidden pour le mode manuel
+        echo '<input type="hidden" name="manual_mode" value="1">';
+        echo '<input type="hidden" name="line" value="' . $line . '">';
+        
         echo '<div class="mt-3">';
-        echo table_from_array($gvv_lines, array(
+        
+        // Créer une version modifiée du tableau pour le rapprochement manuel
+        $modified_gvv_lines = array();
+        foreach ($gvv_lines as $row) {
+            $modified_row = array();
+            foreach ($row as $index => $cell) {
+                if ($index === 0) {
+                    // Remplacer cbdel_ par cb_ dans la première colonne (checkboxes)
+                    // Extraire l'ID de l'écriture de la checkbox
+                    if (preg_match('/cbdel_(\d+)/', $cell, $matches)) {
+                        $ecriture_id = $matches[1];
+                        $modified_cell = str_replace('cbdel_', 'cb_', $cell);
+                        // Ajouter l'input hidden avec string_releve_{ecriture_id}
+                        $modified_cell .= '<input type="hidden" name="string_releve_' . $ecriture_id . '" value="' . htmlspecialchars($string_releve) . '">';
+                        $modified_row[] = $modified_cell;
+                    } else {
+                        $modified_row[] = $cell;
+                    }
+                } else {
+                    $modified_row[] = $cell;
+                }
+            }
+            $modified_gvv_lines[] = $modified_row;
+        }
+        
+        echo table_from_array($modified_gvv_lines, array(
             'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
             'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
             'class' => 'datatable_500 table'
@@ -115,9 +145,16 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
     <!-- Boutons d'action -->
     <div class="row mt-4">
         <div class="col-12">
-            <button type="button" id="rapprocher-btn" class="btn btn-primary btn-lg" disabled>
-                <i class="fas fa-link"></i> Effectuer le rapprochement
-            </button>
+            <?php
+            echo form_input(array(
+                'type' => 'submit',
+                'name' => 'button',
+                'value' => 'Effectuer le rapprochement',
+                'id' => 'rapprocher-btn',
+                'class' => 'btn btn-primary btn-lg'
+            ));
+            echo form_close();
+            ?>
             <a href="<?php echo site_url('rapprochements/import_releve_from_file'); ?>" class="btn btn-secondary btn-lg ms-3">
                 <i class="fas fa-times"></i> Annuler
             </a>

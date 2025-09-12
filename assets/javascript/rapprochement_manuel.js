@@ -3,78 +3,42 @@
  * Handles selection of entries and reconciliation process
  */
 
-// Variables pour gérer la sélection
-let selectedEcritureId = null;
-let selectedEcritureRow = null;
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Gestion du clic sur les lignes d'écritures
-    document.querySelectorAll('.ecriture-row').forEach(function(row) {
-        row.addEventListener('click', function() {
-            // Déselectionner la ligne précédente
-            if (selectedEcritureRow) {
-                selectedEcritureRow.classList.remove('selected-ecriture');
-            }
-            
-            // Sélectionner la nouvelle ligne
-            this.classList.add('selected-ecriture');
-            selectedEcritureRow = this;
-            selectedEcritureId = this.getAttribute('data-ecriture-id');
-            
-            // Activer le bouton de rapprochement
-            document.getElementById('rapprocher-btn').disabled = false;
-        });
-    });
+    console.log('Rapprochement manuel JS: DOM loaded');
+    const rapprocherBtn = document.getElementById('rapprocher-btn');
+    console.log('Rapprocher button found:', rapprocherBtn);
 
-    // Gestion du bouton de rapprochement
-    document.getElementById('rapprocher-btn').addEventListener('click', function() {
-        if (!selectedEcritureId) {
-            alert('Veuillez sélectionner une écriture');
-            return;
-        }
+    // Désactiver le bouton au démarrage
+    if (rapprocherBtn) {
+        rapprocherBtn.setAttribute('disabled', 'disabled');
+    }
 
-        const stringReleve = window.STRING_RELEVE;
+    // Fonction pour vérifier les sélections et activer/désactiver le bouton
+    function updateRapprocherButton() {
+        const checkedBoxes = document.querySelectorAll('input[type="checkbox"][name^="cb_"]:checked');
+        const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="cb_"]');
+        console.log('Checkboxes found:', allCheckboxes.length, 'checked:', checkedBoxes.length);
         
-        // Demander confirmation
-        if (!confirm('Êtes-vous sûr de vouloir rapprocher cette opération avec l\'écriture ' + selectedEcritureId + ' ?')) {
-            return;
-        }
-
-        // Désactiver le bouton pendant le traitement
-        this.disabled = true;
-        this.textContent = 'Rapprochement en cours...';
-
-        // Effectuer la requête AJAX
-        fetch(window.APP_BASE_URL + 'rapprochements/rapprocher_unique', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: 'string_releve=' + encodeURIComponent(stringReleve) +
-                  '&ecriture_id=' + encodeURIComponent(selectedEcritureId)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Succès - rediriger vers la page de retour configurée
-                alert('Rapprochement effectué avec succès !');
-                const returnUrl = (typeof getReturnUrl === 'function') ? getReturnUrl() : 
-                                (window.RETURN_URL || window.APP_BASE_URL + 'rapprochements/import_releve_from_file');
-                window.location.href = returnUrl;
-            } else {
-                // Erreur - remettre le bouton dans son état initial
-                this.disabled = false;
-                this.textContent = 'Effectuer le rapprochement';
-                alert('Erreur lors du rapprochement: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            this.disabled = false;
-            this.textContent = 'Effectuer le rapprochement';
-            alert('Erreur de communication avec le serveur');
+        // Debug: log tous les noms des checkboxes trouvées
+        allCheckboxes.forEach(function(checkbox) {
+            console.log('Checkbox found:', checkbox.name, 'checked:', checkbox.checked);
         });
+        
+        if (rapprocherBtn) {
+            if (checkedBoxes.length === 0) {
+                rapprocherBtn.setAttribute('disabled', 'disabled');
+            } else {
+                rapprocherBtn.removeAttribute('disabled');
+            }
+            console.log('Button disabled:', rapprocherBtn.hasAttribute('disabled'));
+        }
+    }
+
+    // Gestion du clic sur les checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox' && e.target.name.startsWith('cb_')) {
+            updateRapprocherButton();
+        }
     });
 
     // Filtrage des écritures
@@ -83,19 +47,37 @@ document.addEventListener('DOMContentLoaded', function() {
             const filterValue = this.value;
             const operationAmount = window.OPERATION_AMOUNT || 0;
             
-            document.querySelectorAll('.ecriture-row').forEach(function(row) {
+            document.querySelectorAll('tr').forEach(function(row) {
+                // Chercher une checkbox dans cette ligne pour déterminer si c'est une ligne d'écriture
+                const checkbox = row.querySelector('input[type="checkbox"][name^="cb_"]');
+                if (!checkbox) return; // Skip si pas de checkbox
+                
                 let show = true;
                 
                 if (filterValue === 'non-rapprochees') {
-                    show = row.getAttribute('data-rapproche') === 'false';
+                    const badge = row.querySelector('.bg-success');
+                    show = !badge; // Montrer uniquement si pas de badge vert
                 } else if (filterValue === 'montant') {
-                    const ecritureMontant = parseFloat(row.getAttribute('data-montant'));
-                    const tolerance = operationAmount * 0.1; // 10% de tolerance
-                    show = Math.abs(ecritureMontant - operationAmount) <= tolerance;
+                    // Chercher le montant dans la ligne
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 3) { // Vérifier qu'il y a au moins 3 colonnes
+                        const montantText = cells[2].textContent.trim(); // 3ème colonne pour le montant
+                        const montant = parseFloat(montantText.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                        if (!isNaN(montant)) {
+                            const tolerance = Math.max(0.01, Math.abs(operationAmount) * 0.01); // 1% de tolerance minimum 0.01
+                            show = Math.abs(montant - Math.abs(operationAmount)) <= tolerance;
+                        }
+                    }
                 }
                 
                 row.style.display = show ? '' : 'none';
             });
+            
+            // Mettre à jour le bouton après filtrage
+            updateRapprocherButton();
         });
     });
+
+    // État initial du bouton
+    updateRapprocherButton();
 });
