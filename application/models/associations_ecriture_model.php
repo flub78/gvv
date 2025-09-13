@@ -64,6 +64,17 @@ class Associations_ecriture_model extends Common_Model {
 
     function check_and_create($data) {
 
+        // Input validation
+        if (empty($data['string_releve']) || !is_string($data['string_releve'])) {
+            gvv_error("Invalid string_releve in check_and_create");
+            return false;
+        }
+        
+        if (empty($data['id_ecriture_gvv']) || !is_numeric($data['id_ecriture_gvv'])) {
+            gvv_error("Invalid id_ecriture_gvv in check_and_create");
+            return false;
+        }
+
         // first check that there is already some matching elements
         $this->db
             ->where('string_releve', $data['string_releve'])
@@ -100,6 +111,18 @@ class Associations_ecriture_model extends Common_Model {
      */
     public function get_by_string_releve($string_releve) {
         
+        // Input validation: ensure string_releve is not empty and has reasonable length
+        if (empty($string_releve) || !is_string($string_releve)) {
+            return [];
+        }
+        
+        // Additional security: limit string length to prevent potential issues
+        if (strlen($string_releve) > 500) {
+            gvv_error("String releve too long: " . strlen($string_releve) . " characters");
+            return [];
+        }
+        
+        // CodeIgniter's where() method properly escapes parameters
         $this->db->where('string_releve', $string_releve);
         $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
         $db_res = $this->db->get($this->table);
@@ -128,11 +151,30 @@ class Associations_ecriture_model extends Common_Model {
      * @return bool
      */
     public function delete_by_string_releve($string_releve) {
+        // Input validation: ensure string_releve is not empty and has reasonable length
+        if (empty($string_releve) || !is_string($string_releve)) {
+            gvv_error("Invalid string_releve parameter for delete operation");
+            return false;
+        }
+        
+        // Additional security: limit string length to prevent potential issues
+        if (strlen($string_releve) > 500) {
+            gvv_error("String releve too long for delete: " . strlen($string_releve) . " characters");
+            return false;
+        }
+        
+        // CodeIgniter's where() method properly escapes parameters
         $this->db->where('string_releve', $string_releve);
         return $this->db->delete($this->table);
     }
 
     public function get_rapproches($id_ecriture_gvv) {
+        // Input validation
+        if (empty($id_ecriture_gvv) || !is_numeric($id_ecriture_gvv)) {
+            gvv_error("Invalid id_ecriture_gvv in get_rapproches");
+            return [];
+        }
+        
         $this->db->where('id_ecriture_gvv', $id_ecriture_gvv);
         $db_res = $this->db->get($this->table);
         return $this->get_to_array($db_res);
@@ -144,6 +186,12 @@ class Associations_ecriture_model extends Common_Model {
      * @return bool
      */
     function delete_rapprochements($id_ecriture_gvv) {
+        // Input validation
+        if (empty($id_ecriture_gvv) || !is_numeric($id_ecriture_gvv)) {
+            gvv_error("Invalid id_ecriture_gvv in delete_rapprochements");
+            return false;
+        }
+        
         $this->db->where('id_ecriture_gvv', $id_ecriture_gvv);
         return $this->db->delete($this->table);
     }

@@ -296,13 +296,21 @@ class Rapprochements extends CI_Controller {
         // Rapproche les écritures sélectionnées
 
         $post = $this->input->post();
+        
+        // Input validation for POST data
+        if (empty($post) || !is_array($post)) {
+            $this->session->set_userdata('errors', ['Aucune donnée reçue pour le rapprochement']);
+            redirect('rapprochements/import_releve_from_file');
+            return;
+        }
+        
         $counts = [];
         $operations = [];
         
         // Déterminer si c'est un rapprochement manuel
         $is_manual = $this->input->post('manual_mode') === '1';
 
-        if ($post['button'] == 'Supprimer les rapprochements') {
+        if (isset($post['button']) && $post['button'] == 'Supprimer les rapprochements') {
             // On supprime les rapprochements
             $this->delete_rapprochement();
             return;
@@ -314,8 +322,21 @@ class Rapprochements extends CI_Controller {
                 $line = str_replace('cb_', '', $key);
 
                 if (isset($post['string_releve_' . $line])) {
-                    // echo "string_releve_$line => " . $post['string_releve_' . $line] . "<br>";
-                    $operations[$line] = ['string_releve' => $post['string_releve_' . $line]];
+                    $string_releve = $post['string_releve_' . $line];
+                    
+                    // Validate string_releve input
+                    if (empty($string_releve) || !is_string($string_releve)) {
+                        gvv_error("Invalid string_releve for line $line");
+                        continue; // Skip this operation
+                    }
+                    
+                    // Check string length for security
+                    if (strlen($string_releve) > 500) {
+                        gvv_error("String releve too long for line $line: " . strlen($string_releve) . " characters");
+                        continue; // Skip this operation
+                    }
+                    
+                    $operations[$line] = ['string_releve' => $string_releve];
                 } else {
                     gvv_dump('string_releve_' . $line . "not defined");
                 }
@@ -638,8 +659,13 @@ class Rapprochements extends CI_Controller {
             $string_releve = $this->input->post('string_releve');
             $ecriture_id = $this->input->post('ecriture_id');
 
+            // Enhanced input validation
             if (empty($string_releve) || empty($ecriture_id)) {
                 $response['message'] = 'Paramètres manquants';
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+                $response['message'] = 'Paramètre string_releve invalide';
+            } elseif (!is_numeric($ecriture_id) || $ecriture_id <= 0) {
+                $response['message'] = 'Paramètre ecriture_id invalide';
             } else {
                 // Créer l'association
                 $result = $this->associations_ecriture_model->check_and_create([
@@ -678,8 +704,11 @@ class Rapprochements extends CI_Controller {
         try {
             $string_releve = $this->input->post('string_releve');
 
+            // Enhanced input validation
             if (empty($string_releve)) {
                 $response['message'] = 'Paramètre manquant';
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+                $response['message'] = 'Paramètre string_releve invalide';
             } else {
                 // Supprimer l'association
                 $result = $this->associations_ecriture_model->delete_by_string_releve($string_releve);
@@ -716,8 +745,11 @@ class Rapprochements extends CI_Controller {
             $string_releve = $this->input->post('string_releve');
             $ecriture_ids = $this->input->post('ecriture_ids');
 
+            // Enhanced input validation
             if (empty($string_releve) || empty($ecriture_ids)) {
                 $response['message'] = 'Paramètres manquants';
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+                $response['message'] = 'Paramètre string_releve invalide';
             } else {
                 // Décoder les IDs des écritures
                 $ecriture_ids_array = json_decode($ecriture_ids, true);
@@ -725,37 +757,49 @@ class Rapprochements extends CI_Controller {
                 if (!is_array($ecriture_ids_array) || empty($ecriture_ids_array)) {
                     $response['message'] = 'Format des IDs d\'écritures invalide';
                 } else {
-                    $success_count = 0;
-                    $errors = array();
-
-                    // Créer un rapprochement pour chaque écriture
+                    // Additional validation: check all ecriture IDs are numeric
+                    $validation_failed = false;
                     foreach ($ecriture_ids_array as $ecriture_id) {
-                        try {
-                            $result = $this->associations_ecriture_model->check_and_create([
-                                'string_releve' => $string_releve,
-                                'id_ecriture_gvv' => $ecriture_id
-                            ]);
-
-                            if ($result) {
-                                $success_count++;
-                            } else {
-                                $errors[] = "Erreur lors du rapprochement de l'écriture $ecriture_id";
-                            }
-                        } catch (Exception $e) {
-                            $errors[] = "Exception pour l'écriture $ecriture_id: " . $e->getMessage();
+                        if (!is_numeric($ecriture_id) || $ecriture_id <= 0) {
+                            $response['message'] = 'ID d\'écriture invalide: ' . $ecriture_id;
+                            $validation_failed = true;
+                            break;
                         }
                     }
+                    
+                    if (!$validation_failed) {
+                        $success_count = 0;
+                        $errors = array();
 
-                    if ($success_count > 0 && empty($errors)) {
-                        $response['success'] = true;
-                        $response['message'] = "Rapprochement multiple effectué avec succès ($success_count écritures)";
-                    } elseif ($success_count > 0 && !empty($errors)) {
-                        $response['success'] = true;
-                        $response['message'] = "Rapprochement partiel: $success_count succès, " . count($errors) . " erreurs";
-                        $response['errors'] = $errors;
-                    } else {
-                        $response['message'] = 'Aucun rapprochement n\'a pu être effectué';
-                        $response['errors'] = $errors;
+                        // Créer un rapprochement pour chaque écriture
+                        foreach ($ecriture_ids_array as $ecriture_id) {
+                            try {
+                                $result = $this->associations_ecriture_model->check_and_create([
+                                    'string_releve' => $string_releve,
+                                    'id_ecriture_gvv' => $ecriture_id
+                                ]);
+
+                                if ($result) {
+                                    $success_count++;
+                                } else {
+                                    $errors[] = "Erreur lors du rapprochement de l'écriture $ecriture_id";
+                                }
+                            } catch (Exception $e) {
+                                $errors[] = "Exception pour l'écriture $ecriture_id: " . $e->getMessage();
+                            }
+                        }
+
+                        if ($success_count > 0 && empty($errors)) {
+                            $response['success'] = true;
+                            $response['message'] = "Rapprochement multiple effectué avec succès ($success_count écritures)";
+                        } elseif ($success_count > 0 && !empty($errors)) {
+                            $response['success'] = true;
+                            $response['message'] = "Rapprochement partiel: $success_count succès, " . count($errors) . " erreurs";
+                            $response['errors'] = $errors;
+                        } else {
+                            $response['message'] = 'Aucun rapprochement n\'a pu être effectué';
+                            $response['errors'] = $errors;
+                        }
                     }
                 }
             }
