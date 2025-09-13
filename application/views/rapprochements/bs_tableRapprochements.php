@@ -115,8 +115,8 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
                                 </div>
 
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_O" value="filter_unmatched_0" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_0') ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="filter_unmatched">Non rapprochées sans suggestions</label>
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_0" value="filter_unmatched_0" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_0') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_0">Non rapprochées sans suggestions</label>
                                 </div>
                             </div>
                             <div class="col-6">
