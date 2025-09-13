@@ -681,6 +681,8 @@ class Rapprochements extends CI_Controller {
                 }
             }
         } catch (Exception $e) {
+            $error_msg = 'Erreur lors du rapprochement unique: ' . $e->getMessage();
+            gvv_error($error_msg);
             $response['message'] = 'Erreur: ' . $e->getMessage();
         }
 
@@ -721,6 +723,8 @@ class Rapprochements extends CI_Controller {
                 }
             }
         } catch (Exception $e) {
+            $error_msg = 'Erreur lors de la suppression du rapprochement: ' . $e->getMessage();
+            gvv_error($error_msg);
             $response['message'] = 'Erreur: ' . $e->getMessage();
         }
 
@@ -804,6 +808,8 @@ class Rapprochements extends CI_Controller {
                 }
             }
         } catch (Exception $e) {
+            $error_msg = 'Erreur lors du rapprochement multiple: ' . $e->getMessage();
+            gvv_error($error_msg);
             $response['message'] = 'Erreur: ' . $e->getMessage();
         }
 
@@ -841,6 +847,8 @@ class Rapprochements extends CI_Controller {
                 }
             }
         } catch (Exception $e) {
+            $error_msg = 'Erreur lors de la suppression de rapprochement d\'écriture: ' . $e->getMessage();
+            gvv_error($error_msg);
             $response['message'] = 'Erreur: ' . $e->getMessage();
         }
 
