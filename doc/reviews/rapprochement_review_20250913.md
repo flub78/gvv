@@ -36,12 +36,12 @@ This comprehensive review analyzes the GVV Rapprochement (Bank Reconciliation) f
 - **Impact**: ~~Filter logic fails, causing incorrect UI behavior~~ **RESOLVED**
 - **Status**: **RESOLVED** - ID and value now consistently use digit 0
 
-### 4. **Session Data Corruption Risk**
+### 4. **~~Session Data Corruption Risk~~** - ❌ REJECTED
 - **Location**: `application/controllers/rapprochements.php:181-210`
 - **Method**: `import_releve_from_file()`
-- **Issue**: Multiple session variables accessed without proper validation
-- **Impact**: Race conditions in concurrent scenarios, data corruption
-- **Risk**: MEDIUM - Data integrity issues
+- **Issue**: ~~Multiple session variables accessed without proper validation~~ **REJECTED**
+- **Rationale**: The shared session variables are related to filtering functionality. It is expected and desirable behavior for users to have their filter configuration propagate across all pages controlled by the same filter. This is actually a feature to be implemented later: using the same session variables in all filters so the configuration is propagated everywhere.
+- **Status**: **REJECTED** - This is intended behavior, not a bug
 
 ## 🟠 High Priority Issues (Security & Performance)
 
@@ -60,7 +60,7 @@ try {
 - **Impact**: Data inconsistency, incomplete operations
 - **Risk**: HIGH - Business logic integrity
 
-### 2. **Memory Leak in Recursive Algorithm**
+### 2. **Memory Leak in Recursive Algorithm** - 🔍 MAY BE LATER
 - **Location**: `application/libraries/rapprochements/StatementOperation.php:860-908`
 - **Method**: `search_combinations()`
 - **Issue**: Unlimited recursion depth with large datasets
@@ -71,8 +71,11 @@ if (count($current_list) > 15) {
     return [];
 }
 ```
+- **Analysis**: The recursive function has a depth limit (15 combinations) and has been optimized to cut the recursion as soon as possible when conditions are met. It is possible to save memory by passing some data structures by reference, but the amount of memory used seems reasonable with the current depth limit.
+- **Status**: **MAY BE LATER** - Requires further analysis to determine if optimization is necessary
 - **Impact**: Server memory exhaustion, potential DoS
-- **Risk**: HIGH - System availability
+- **Risk**: LOW-MEDIUM - Mitigated by depth limit
+  
 
 ### 3. **Insufficient Input Validation**
 - **Location**: `application/controllers/rapprochements.php:540-580`
