@@ -439,10 +439,27 @@ class OpenFlyers extends CI_Controller {
                 if (strpos($key, 'cb_') === 0) {
                     // Key starts with "cb_"
                     $line = str_replace("cb_", "", $key);
+                    
+                    // Validate line parameter
+                    if (!ctype_digit($line)) {
+                        gvv_error("Invalid line parameter in create_soldes: $line");
+                        continue;
+                    }
 
                     $import_key = "import_" . $line;
-                    $import_params = base64_decode($posts[$import_key]);
-                    $params = json_decode($import_params, true);
+                    
+                    // Check if import data exists
+                    if (!isset($posts[$import_key])) {
+                        gvv_error("Missing import data for solde line: $line");
+                        continue;
+                    }
+
+                    // Validate and decode parameters securely
+                    $params = $this->validate_import_params($posts[$import_key], 'soldes');
+                    if ($params === false) {
+                        gvv_error("Invalid parameters for solde line: $line");
+                        continue;
+                    }
 
                     // echo "id_of=$id_of, nom_of=$nom_of, profil=$profil, type=$type, solde=$solde" . "<br>";
                     $this->solde_init($params['compte_gvv'], $params['solde'], $date);
@@ -453,6 +470,154 @@ class OpenFlyers extends CI_Controller {
         } catch (Exception $e) {
             gvv_error("Erreur: " . $e->getMessage() . "\n");
         }
+    }
+
+    /**
+     * Validates and decodes base64-encoded JSON parameters safely
+     * 
+     * @param string $encoded_data Base64-encoded JSON data
+     * @param string $expected_type Type of data expected ('operations' or 'soldes')
+     * @return array|false Validated parameters or false on validation failure
+     */
+    private function validate_import_params($encoded_data, $expected_type = 'operations') {
+        // Validate base64 input
+        if (empty($encoded_data) || !is_string($encoded_data)) {
+            gvv_error("Invalid encoded data: empty or not string");
+            return false;
+        }
+
+        // Validate base64 encoding
+        if (!preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $encoded_data)) {
+            gvv_error("Invalid base64 encoding format");
+            return false;
+        }
+
+        // Decode base64
+        $decoded_json = base64_decode($encoded_data, true);
+        if ($decoded_json === false) {
+            gvv_error("Failed to decode base64 data");
+            return false;
+        }
+
+        // Validate JSON
+        $params = json_decode($decoded_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            gvv_error("Invalid JSON data: " . json_last_error_msg());
+            return false;
+        }
+
+        if (!is_array($params)) {
+            gvv_error("Decoded data is not an array");
+            return false;
+        }
+
+        // Validate parameters based on expected type
+        if ($expected_type === 'operations') {
+            return $this->validate_operation_params($params);
+        } elseif ($expected_type === 'soldes') {
+            return $this->validate_solde_params($params);
+        }
+
+        gvv_error("Unknown expected type: $expected_type");
+        return false;
+    }
+
+    /**
+     * Validates operation parameters structure and content
+     * 
+     * @param array $params Parameters to validate
+     * @return array|false Validated parameters or false on validation failure
+     */
+    private function validate_operation_params($params) {
+        // Required fields for operations
+        $required_fields = ['date', 'intitule', 'description', 'debit', 'credit', 'compte1', 'compte2'];
+        
+        // Check required fields exist
+        foreach ($required_fields as $field) {
+            if (!array_key_exists($field, $params)) {
+                gvv_error("Missing required field: $field");
+                return false;
+            }
+        }
+
+        // Validate date format (YYYY-MM-DD)
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $params['date'])) {
+            gvv_error("Invalid date format: " . $params['date']);
+            return false;
+        }
+
+        // Validate date is valid
+        $date_parts = explode('-', $params['date']);
+        if (!checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+            gvv_error("Invalid date: " . $params['date']);
+            return false;
+        }
+
+        // Validate string fields (limited length for security)
+        $string_fields = ['intitule', 'description'];
+        foreach ($string_fields as $field) {
+            if (!is_string($params[$field]) || strlen($params[$field]) > 500) {
+                gvv_error("Invalid $field: must be string with max 500 characters");
+                return false;
+            }
+        }
+
+        // Validate numeric fields (debit/credit)
+        if (!is_numeric($params['debit']) || !is_numeric($params['credit'])) {
+            gvv_error("Invalid debit or credit: must be numeric");
+            return false;
+        }
+
+        // Validate that either debit or credit is zero (accounting rule)
+        if (floatval($params['debit']) != 0.0 && floatval($params['credit']) != 0.0) {
+            gvv_error("Invalid accounting entry: both debit and credit are non-zero");
+            return false;
+        }
+
+        // Validate account IDs are integers
+        if (!filter_var($params['compte1'], FILTER_VALIDATE_INT) || !filter_var($params['compte2'], FILTER_VALIDATE_INT)) {
+            gvv_error("Invalid account IDs: must be integers");
+            return false;
+        }
+
+        // Sanitize string fields
+        $params['intitule'] = trim(strip_tags($params['intitule']));
+        $params['description'] = trim(strip_tags($params['description']));
+
+        return $params;
+    }
+
+    /**
+     * Validates solde parameters structure and content
+     * 
+     * @param array $params Parameters to validate
+     * @return array|false Validated parameters or false on validation failure
+     */
+    private function validate_solde_params($params) {
+        // Required fields for soldes
+        $required_fields = ['solde', 'compte_gvv'];
+        
+        // Check required fields exist
+        foreach ($required_fields as $field) {
+            if (!array_key_exists($field, $params)) {
+                gvv_error("Missing required field: $field");
+                return false;
+            }
+        }
+
+        // Validate solde is numeric
+        if (!is_numeric($params['solde'])) {
+            gvv_error("Invalid solde: must be numeric");
+            return false;
+        }
+
+        // Validate compte_gvv is integer
+        if (!filter_var($params['compte_gvv'], FILTER_VALIDATE_INT)) {
+            gvv_error("Invalid compte_gvv: must be integer");
+            return false;
+        }
+
+        return $params;
     }
 
     /**
@@ -473,10 +638,28 @@ class OpenFlyers extends CI_Controller {
             if (strpos($key, 'cb_') === 0) {
                 // Key starts with "cb_" ce sont les checkboxes actives
                 $line = str_replace("cb_", "", $key);
+                
+                // Validate line parameter
+                if (!ctype_digit($line)) {
+                    gvv_error("Invalid line parameter: $line");
+                    continue;
+                }
+                
                 $import_key = "import_" . $line;
-                $import_params = base64_decode($posts[$import_key]);
+                
+                // Check if import data exists
+                if (!isset($posts[$import_key])) {
+                    gvv_error("Missing import data for line: $line");
+                    continue;
+                }
 
-                $params = json_decode($import_params, true);
+                // Validate and decode parameters securely
+                $params = $this->validate_import_params($posts[$import_key], 'operations');
+                if ($params === false) {
+                    $status .= '<div class="text-danger">Erreur de validation - Ligne ' . $line . ': paramètres invalides</div>';
+                    continue;
+                }
+
                 $date = date_db2ht($params['date']);
                 $intitule = $params['intitule'];
                 $description = $params['description'];
