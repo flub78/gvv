@@ -1,15 +1,37 @@
 <?php
 
 /**
- * Classe pour parser le fichier CSV des relevés bancaires
+ * Bank statement CSV file parser for French banking formats
  * 
- * Parsing des relevés bancaires au format CSV, extraction des opérations
+ * Parses bank statement CSV files following French banking conventions and
+ * extracts structured data including account information, balance details,
+ * and individual operations. Handles multi-line operation entries with
+ * additional comments and provides automatic operation type classification.
  * 
+ * Supported CSV Structure:
+ * - Line 1: Bank name
+ * - Line 2: IBAN and section information  
+ * - Line 3: Column headers (skipped)
+ * - Line 4: Balance date information
+ * - Line 5: Balance amount
+ * - Line 7: Operation column titles
+ * - Line 8+: Operation data with potential multi-line comments
+ * 
+ * Operation Type Detection:
+ * - Automatically categorizes operations based on French banking labels
+ * - Supports card payments, transfers, checks, fees, and other common types
+ * - Falls back to 'inconnu' (unknown) for unrecognized operations
  */
 class ReleveParser {
 
     private $CI;
 
+    /**
+     * Initialize parser with required dependencies
+     * 
+     * Sets up the CSV parser with necessary CodeIgniter resources and
+     * loads the ReleveOperation library for creating operation objects.
+     */
     public function __construct() {
         $this->CI = &get_instance();
         $this->CI->load->library('rapprochements/ReleveOperation');
@@ -17,11 +39,15 @@ class ReleveParser {
     private $data = [];
 
     /**
-     * Checks if a string or at least one element of an array of strings is found within another string
+     * Search for pattern(s) within a string with array support
      * 
-     * @param string|array $pattern The string or array of strings to search for
-     * @param string $string The string to search in
-     * @return bool Returns true if pattern(s) found, false otherwise
+     * Utility method that checks if a string contains a specific pattern or any
+     * pattern from an array of patterns. Used extensively for operation type
+     * detection based on banking terminology.
+     * 
+     * @param string|array $pattern Single pattern string or array of pattern strings
+     * @param string $string The string to search within
+     * @return bool True if any pattern is found, false otherwise
      */
     function found_in($pattern, $string) {
         if (is_array($pattern)) {
@@ -36,10 +62,28 @@ class ReleveParser {
     }
 
     /**
-     * Attempt to determine the operation type. 
-     * Warning: this function may rely a lot on the bank conventions
-     * and so be fragile if the bank does not stick to the format.
-     * todo: to move inside the reconciliator
+     * Determine operation type from bank statement data
+     * 
+     * Analyzes operation fields (interbank label and operation nature) to classify
+     * the transaction type according to French banking conventions. Uses pattern
+     * matching on standard banking terminology to categorize operations.
+     * 
+     * Supported Operation Types:
+     * - paiement_cb: Card payments
+     * - encaissement_cb: Card receivables  
+     * - remise_especes: Cash deposits
+     * - cheque_debite: Check payments
+     * - frais_bancaire: Bank fees
+     * - remise_cheque: Check deposits
+     * - prelevement: Direct debits
+     * - virement_recu/emis: Transfers received/sent
+     * - inconnu: Unknown/unrecognized operations
+     * 
+     * Warning: Relies heavily on specific bank formatting conventions and may
+     * require updates if bank changes their labeling system.
+     * 
+     * @param array $operation Operation data array with required fields
+     * @return string Operation type code for categorization
      */
     function operation_type($operation) {
 
@@ -95,11 +139,15 @@ class ReleveParser {
     }
 
     /**
-     * Adds an operation to the data array
-     *
-     * @param array &$data Reference to the data array that will store the operation
-     * @param array $operation Operation details to be added
-     * @return void
+     * Add processed operation to the data structure
+     * 
+     * Converts raw operation data into a ReleveOperation object and adds it
+     * to the operations array. Handles type detection and data normalization
+     * for consistent processing by the reconciliation system.
+     * 
+     * @param array &$data Reference to the main data structure being built
+     * @param array $operation Raw operation data from CSV parsing
+     * @return void Modifies the data array by reference
      */
     function add_operation(&$data, $operation) {
         if (!isset($data['ops'])) {
@@ -122,6 +170,27 @@ class ReleveParser {
      * 
      * @param string $filePath Chemin vers le fichier CSV
      * @return array Structure de données parsée
+     */
+    /**
+     * Parse bank statement CSV file and extract structured data
+     * 
+     * Main parsing method that processes a bank statement CSV file following
+     * French banking format conventions. Extracts header information, account
+     * details, balance data, and all transaction operations with their comments.
+     * 
+     * File Structure Expected:
+     * 1. Bank name
+     * 2. IBAN and section
+     * 3. Headers (skipped)
+     * 4. Balance date
+     * 5. Balance amount
+     * 6. Empty line
+     * 7. Column titles
+     * 8+. Operations with potential multi-line comments
+     * 
+     * @param string $filePath Full path to the CSV file to parse
+     * @return array Structured data array with bank info, operations, and metadata
+     * @throws Exception If file doesn't exist, can't be opened, or has invalid format
      */
     public function parse($filePath) {
         $CI = &get_instance();
@@ -265,10 +334,16 @@ class ReleveParser {
 
 
     /**
-     * Retourne les types d'opérations reconnus
+     * Get recognized operation types with localized labels
      * 
-     * @return array Associative array des types d'opérations
-     * todo: to move inside the reconciliator
+     * Returns the complete mapping of operation type codes to their French
+     * language labels. Used for display purposes and type validation throughout
+     * the reconciliation system.
+     * 
+     * Todo: Consider moving this to the Reconciliator class for better separation
+     * of concerns.
+     * 
+     * @return array Associative array mapping type codes to French labels
      */
     function recognized_types() {
         return $operations = [
@@ -287,7 +362,13 @@ class ReleveParser {
         ];
     }
     /**
-     * Retourne les données parsées sous forme de JSON
+     * Export parsed data as formatted JSON string
+     * 
+     * Converts the internal parsed data structure to a pretty-printed JSON
+     * representation with Unicode support. Useful for debugging, data export,
+     * or API responses.
+     * 
+     * @return string JSON representation of parsed bank statement data
      */
     public function toJson() {
         return json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);

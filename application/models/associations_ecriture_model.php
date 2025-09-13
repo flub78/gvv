@@ -15,8 +15,15 @@ class Associations_ecriture_model extends Common_Model {
     protected $primary_key = 'id';
 
     /**
-     * Retourne le tableau pour l'affichage par page
-     * @return objet La liste
+     * Retrieve paginated associations for display in management interface
+     * 
+     * Fetches associations between bank statement operations and GVV accounting entries
+     * with additional metadata for display. Includes section information and handles
+     * orphaned associations without linked accounting entries.
+     * 
+     * @param int $nb Maximum number of results to return (default: 1000)
+     * @param int $debut Starting offset for pagination (default: 0)  
+     * @return array Array of associations with metadata for table display
      */
     public function select_page($nb = 1000, $debut = 0) {
         $this->load->model('comptes_model');
@@ -62,6 +69,16 @@ class Associations_ecriture_model extends Common_Model {
         return $select;
     }
 
+    /**
+     * Create association if it doesn't already exist
+     * 
+     * Validates input data and creates a new association between a bank statement
+     * operation and a GVV accounting entry if no matching association exists.
+     * Prevents duplicate associations for the same string_releve and ecriture_id.
+     * 
+     * @param array $data Association data containing 'string_releve' and 'id_ecriture_gvv'
+     * @return bool|int True if existing association found, new ID if created, false on failure
+     */
     function check_and_create($data) {
 
         // Input validation
@@ -91,7 +108,13 @@ class Associations_ecriture_model extends Common_Model {
     }
 
     /**
-     * Retourne une chaîne qui identifie une ligne de façon unique.
+     * Generate human-readable identifier for association record
+     * 
+     * Creates a display string combining the association ID and bank statement
+     * operation identifier for use in user interfaces and logging.
+     * 
+     * @param string|int $key The association ID to generate image for
+     * @return string Human-readable identifier or error message if not found
      */
     public function image($key) {
         if ($key == "")
@@ -105,9 +128,14 @@ class Associations_ecriture_model extends Common_Model {
     }
 
     /**
-     * Retourne les associations d'écriture par la chaîne de relevé.
-     * @param string $string_releve
-     * @return array
+     * Retrieve associations by bank statement operation identifier
+     * 
+     * Fetches all reconciliation associations for a specific bank statement operation
+     * identified by its string_releve. Includes the full accounting entry data for
+     * each associated GVV transaction. Supports multiple reconciliations per operation.
+     * 
+     * @param string $string_releve Bank statement operation identifier
+     * @return array Array of associations with embedded accounting entry data
      */
     public function get_by_string_releve($string_releve) {
         
@@ -146,9 +174,14 @@ class Associations_ecriture_model extends Common_Model {
     }
 
     /**
-     * Supprime une association d'écriture par la chaîne de relevé.
-     * @param string $string_releve
-     * @return bool
+     * Delete association by bank statement operation identifier
+     * 
+     * Removes all reconciliation associations for a specific bank statement operation
+     * identified by its string_releve. Used when reconciliations need to be cleared
+     * or redone for a specific bank operation.
+     * 
+     * @param string $string_releve Bank statement operation identifier
+     * @return bool True on successful deletion, false on failure
      */
     public function delete_by_string_releve($string_releve) {
         // Input validation: ensure string_releve is not empty and has reasonable length
@@ -168,6 +201,16 @@ class Associations_ecriture_model extends Common_Model {
         return $this->db->delete($this->table);
     }
 
+    /**
+     * Retrieve all associations for a specific GVV accounting entry
+     * 
+     * Fetches all bank statement reconciliations associated with a specific
+     * GVV accounting entry. Used to check reconciliation status and display
+     * reconciled bank operations for an accounting entry.
+     * 
+     * @param int $id_ecriture_gvv GVV accounting entry ID
+     * @return array Array of associations for the specified accounting entry
+     */
     public function get_rapproches($id_ecriture_gvv) {
         // Input validation
         if (empty($id_ecriture_gvv) || !is_numeric($id_ecriture_gvv)) {
@@ -181,9 +224,14 @@ class Associations_ecriture_model extends Common_Model {
     }
 
     /**
-     * Supprime les rapprochements par l'ID de l'écriture.
-     * @param int $id_ecriture_gvv
-     * @return bool
+     * Delete all associations for a specific GVV accounting entry
+     * 
+     * Removes all bank statement reconciliations associated with a specific
+     * GVV accounting entry. Used when an accounting entry is deleted or when
+     * all its reconciliations need to be cleared.
+     * 
+     * @param int $id_ecriture_gvv GVV accounting entry ID
+     * @return bool True on successful deletion, false on failure
      */
     function delete_rapprochements($id_ecriture_gvv) {
         // Input validation

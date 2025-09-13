@@ -1,10 +1,24 @@
 <?php
 
 /**
- * Classe pour représenter une opération de relevé bancaire
+ * Individual bank statement operation with reconciliation capabilities
  * 
- * Cette classe encapsule les données d'une opération bancaire
- * et fournit des méthodes pour accéder et manipuler ces données.
+ * Represents a single operation from a bank statement and provides comprehensive
+ * reconciliation functionality including automatic matching suggestions, manual
+ * reconciliation support, and HTML rendering for user interfaces.
+ * 
+ * Core Functionality:
+ * - Parses and validates bank operation data
+ * - Generates reconciliation suggestions (single, multiple, combinations)
+ * - Tracks reconciliation status and history  
+ * - Provides HTML rendering for display and interaction
+ * - Supports smart matching algorithms with correlation scoring
+ * 
+ * Reconciliation Types:
+ * - Single proposals: One-to-one matches with GVV entries
+ * - Multiple proposals: One-to-many choices for manual selection
+ * - Combination proposals: Many-to-one matches totaling operation amount
+ * - Manual reconciliation: User-directed matching interface
  */
 class StatementOperation {
     private $CI;
@@ -33,7 +47,18 @@ class StatementOperation {
      */
 
     /**
-     * Constructeur de la classe
+     * Initialize statement operation with parsed bank data and reconciliation context
+     * 
+     * Creates a StatementOperation instance from parsed bank statement data and
+     * immediately begins reconciliation analysis. Loads required libraries for
+     * reconciliation processing and smart matching algorithms.
+     * 
+     * Expected data structure:
+     * - 'parser_info': Raw bank operation data from ReleveParser
+     * - 'gvv_bank_account': Associated GVV chart of accounts ID
+     * - 'recognized_types': Array mapping operation types to display labels
+     * 
+     * @param array|null $data Configuration array with operation data and context
      */
     public function __construct($data = null) {
         $this->CI = &get_instance();
@@ -58,15 +83,38 @@ class StatementOperation {
         $this->reconciliate();
     }
 
+    /**
+     * Store correlation score for a specific GVV accounting entry
+     * 
+     * Used by smart matching algorithms to store correlation coefficients
+     * between this bank operation and potential GVV accounting entry matches.
+     * Higher correlations indicate better matching likelihood.
+     * 
+     * @param int $ecriture_id GVV accounting entry ID
+     * @param float $correlation Correlation coefficient (typically 0.0-1.0)
+     * @param string $image Human-readable description of the accounting entry
+     * @return void
+     */
     public function set_correlation($ecriture_id, $correlation, $image) {
         $this->correlations[$ecriture_id] = ['correlation' => $correlation, 'image' => $image];
     }
 
     /**
-     * Génère une représentation HTML de l'opération
+     * Generate comprehensive HTML representation for reconciliation interface
      * 
-     * @param bool $non_manual Afficher les boutons de rapprochement manuel (défaut: true)
-     * @return string Représentation HTML de l'opération
+     * Creates a complete HTML table showing the bank statement operation details,
+     * current reconciliation status, matching suggestions, and available actions.
+     * Includes interactive elements for reconciliation selection and manual matching.
+     * 
+     * Output includes:
+     * - Operation details (date, amount, type, description)
+     * - Current reconciliation status and associations
+     * - Automatic matching suggestions with selection controls
+     * - Manual reconciliation button (when applicable)
+     * - Multiple combination suggestions for complex matches
+     * 
+     * @param bool $non_manual Whether to show manual reconciliation button (default: true)
+     * @return string Complete HTML representation for display in reconciliation interface
      */
     public function to_HTML($non_manual = true) {
         $html = "";
@@ -196,6 +244,15 @@ class StatementOperation {
      *
      * @return string The HTML content to display when no proposals are present.
      */
+    /**
+     * Generate HTML for operations with no matching suggestions
+     * 
+     * Creates HTML display for bank statement operations where no automatic
+     * reconciliation suggestions could be found. Shows operation details with
+     * indication that manual intervention is required.
+     * 
+     * @return string HTML for operations requiring manual reconciliation
+     */
     public function no_proposal_html() {
         $html = "";
         $html .= '<tr>';
@@ -230,6 +287,15 @@ class StatementOperation {
      * structure and content of the HTML will depend on the implementation details.
      *
      * @return string The HTML markup for the unique proposal.
+     */
+    /**
+     * Generate HTML for operations with a single reconciliation suggestion
+     * 
+     * Creates HTML display for bank statement operations where exactly one
+     * potential GVV accounting entry match was found. Includes auto-selection
+     * checkbox and match confidence indicators.
+     * 
+     * @return string HTML for operations with unique reconciliation suggestions
      */
     public function unique_proposal_html() {
         $html = "";
@@ -311,6 +377,15 @@ class StatementOperation {
      * of statement operations or rapprochements.
      *
      * @return string The generated HTML for multiple proposals.
+     */
+    /**
+     * Generate HTML for operations with multiple combination reconciliation options
+     * 
+     * Creates HTML display for bank statement operations where multiple GVV
+     * accounting entries can be combined to match the operation amount. Shows
+     * each combination as a selectable group with individual entry details.
+     * 
+     * @return string HTML for operations with multiple combination suggestions
      */
     public function multiple_combinations_html() {
         $html = "";
@@ -408,6 +483,17 @@ class StatementOperation {
      * 
      * @param string $title Titre du dump
      * @param bool $exit Indique si le script doit s'arrêter après le dump
+     */
+    /**
+     * Debug output of complete operation state and reconciliation data
+     * 
+     * Provides comprehensive debug information including operation details,
+     * reconciliation status, matching proposals, correlation scores, and
+     * internal state for troubleshooting and analysis.
+     * 
+     * @param string $title Debug output title (default: "")
+     * @param bool $exit Whether to terminate execution after dump (default: false)
+     * @return void Outputs debug information
      */
     public function dump($title = "", $exit = false) {
         $tab = "    ";
@@ -520,34 +606,99 @@ class StatementOperation {
         }
     }
 
+    /**
+     * Get operation date in database format (YYYY-MM-DD)
+     * 
+     * Returns the transaction date as recorded in the bank statement,
+     * formatted for database storage and date comparisons.
+     * 
+     * @return string Operation date in YYYY-MM-DD format
+     */
     public function date() {
         return isset($this->parser_info->date) ? $this->parser_info->date : null;
     }
 
+    /**
+     * Get operation date in localized display format
+     * 
+     * Returns the transaction date formatted for display in user interfaces
+     * according to local date format preferences (typically DD/MM/YYYY).
+     * 
+     * @return string Operation date in localized format
+     */
     public function local_date() {
         return date_db2ht($this->date());
     }
 
+    /**
+     * Get value date in database format (YYYY-MM-DD)
+     * 
+     * Returns the value date (effective date) when the transaction was actually
+     * processed by the bank, which may differ from the operation date.
+     * 
+     * @return string Value date in YYYY-MM-DD format
+     */
     public function value_date() {
         return isset($this->parser_info->value_date) ? $this->parser_info->value_date : null;
     }
 
+    /**
+     * Get value date in localized display format
+     * 
+     * Returns the value date formatted for display in user interfaces
+     * according to local date format preferences (typically DD/MM/YYYY).
+     * 
+     * @return string Value date in localized format
+     */
     public function local_value_date() {
         return date_db2ht($this->value_date());
     }
 
+    /**
+     * Get operation nature/description from bank statement
+     * 
+     * Returns the raw nature or description field from the bank statement
+     * that categorizes or describes the type of transaction.
+     * 
+     * @return string|null Operation nature or null if not available
+     */
     public function nature() {
         return isset($this->parser_info->nature) ? $this->parser_info->nature : null;
     }
 
+    /**
+     * Get debit amount for the operation
+     * 
+     * Returns the debit amount if this is a debit transaction, 
+     * or null if this is a credit transaction.
+     * 
+     * @return float|null Debit amount or null if not a debit
+     */
     public function debit() {
         return isset($this->parser_info->debit) ? $this->parser_info->debit : null;
     }
 
+    /**
+     * Get credit amount for the operation
+     * 
+     * Returns the credit amount if this is a credit transaction,
+     * or null if this is a debit transaction.
+     * 
+     * @return float|null Credit amount or null if not a credit
+     */
     public function credit() {
         return isset($this->parser_info->credit) ? $this->parser_info->credit : null;
     }
 
+    /**
+     * Get absolute amount for reconciliation matching
+     * 
+     * Returns the absolute value of the operation amount, whether it's
+     * a debit or credit. Used for finding matching GVV accounting entries
+     * regardless of transaction direction.
+     * 
+     * @return float Absolute amount of the operation
+     */
     public function amount() {
         if (!empty($this->debit())) {
             $amount = $this->debit();
@@ -561,27 +712,76 @@ class StatementOperation {
         return null;
     }
 
+    /**
+     * Get currency code for the operation
+     * 
+     * Returns the ISO currency code (e.g., 'EUR', 'USD') for this
+     * bank statement operation.
+     * 
+     * @return string|null Currency code or null if not specified
+     */
     public function currency() {
         return isset($this->parser_info->currency) ? $this->parser_info->currency : null;
     }
 
+    /**
+     * Get interbank label/description for the operation
+     * 
+     * Returns the standardized interbank communication label that
+     * provides additional transaction details and routing information.
+     * 
+     * @return string|null Interbank label or null if not available
+     */
     public function interbank_label() {
         return isset($this->parser_info->interbank_label) ? $this->parser_info->interbank_label : null;
     }
 
+    /**
+     * Get additional comments/details for the operation
+     * 
+     * Returns an array of additional comment fields that provide
+     * supplementary information about the bank statement operation.
+     * 
+     * @return array Array of comment strings
+     */
     public function comments() {
         return isset($this->parser_info->comments) ? $this->parser_info->comments : null;
     }
 
+    /**
+     * Get line number of operation in bank statement
+     * 
+     * Returns the sequential line number of this operation within the
+     * original bank statement file, used for identification and navigation.
+     * 
+     * @return int Line number in the bank statement
+     */
     public function line() {
         return isset($this->parser_info->line) ? $this->parser_info->line : null;
     }
 
+    /**
+     * Get operation type code from bank statement
+     * 
+     * Returns the bank-specific operation type code that categorizes
+     * the transaction (e.g., 'cheque_debite', 'virement_recu', etc.).
+     * 
+     * @return string|null Operation type code or null if not available
+     */
     public function type() {
         // todo move the treatment to here
         return isset($this->parser_info->type) ? $this->parser_info->type : null;
     }
 
+    /**
+     * Get human-readable operation type description
+     * 
+     * Returns the localized, human-readable description for the operation
+     * type, suitable for display in user interfaces. Maps type codes to
+     * descriptive French labels.
+     * 
+     * @return string|null Operation type description or 'autre' if unknown
+     */
     public function type_string() {
         if (isset($this->parser_info->type)) {
             if (isset($this->recognized_types[$this->parser_info->type])) {
@@ -593,24 +793,61 @@ class StatementOperation {
         return null;
     }
 
+    /**
+     * Check if operation has been reconciled with GVV accounting entries
+     * 
+     * Returns true if this bank statement operation has been successfully
+     * matched and reconciled with one or more GVV accounting entries.
+     * 
+     * @return bool True if reconciled, false otherwise
+     */
     public function is_rapproched() {
         return !empty($this->reconciliated);
     }
 
+    /**
+     * Check if operation has exactly one reconciliation suggestion
+     * 
+     * Returns true if exactly one potential GVV accounting entry match
+     * was found, indicating high confidence for automatic reconciliation.
+     * 
+     * @return bool True if exactly one proposal exists
+     */
     public function is_unique() {
         return isset($this->proposals) ? (count($this->proposals) == 1) : 0;
     }
 
+    /**
+     * Get count of individual reconciliation suggestions
+     * 
+     * Returns the number of single GVV accounting entries that could
+     * potentially match this bank statement operation's amount.
+     * 
+     * @return int Number of individual reconciliation proposals
+     */
     public function choices_count() {
         return isset($this->proposals) ? count($this->proposals) : 0;
     }
 
+    /**
+     * Get count of multiple combination reconciliation suggestions
+     * 
+     * Returns the number of combination sets where multiple GVV accounting
+     * entries together total the bank statement operation amount.
+     * 
+     * @return int Number of multiple combination proposals
+     */
     public function multiple_count() {
         return isset($this->multiple_combinations) ? count($this->multiple_combinations) : 0;
     }
 
     /**
-     * True if there are multiple proposals
+     * Check if operation has multiple combination reconciliation options
+     * 
+     * Returns true if one or more combination sets of GVV accounting entries
+     * were found that together match the bank statement operation amount.
+     * 
+     * @return bool True if multiple combinations are available
      */
     public function is_multiple_combination() {
         if (!isset($this->multiple_combinations)) {
@@ -622,21 +859,51 @@ class StatementOperation {
         return true;
     }
 
+    /**
+     * Check if operation has multiple individual reconciliation choices
+     * 
+     * Returns true if more than one potential GVV accounting entry match
+     * was found, requiring user selection for reconciliation.
+     * 
+     * @return bool True if multiple individual proposals exist
+     */
     public function is_multiple() {
         return isset($this->proposals) ? (count($this->proposals) > 1) : false;
     }
 
+    /**
+     * Get existing reconciliation associations for this operation
+     * 
+     * Returns the array of ReconciliationLine objects representing
+     * current reconciliations between this operation and GVV entries.
+     * 
+     * @return ReconciliationLine[] Array of current reconciliation associations
+     */
     public function reconciliated() {
         return $this->reconciliated;
     }
 
+    /**
+     * Check if no reconciliation suggestions were found
+     * 
+     * Returns true if no reconciliation options exist for this operation:
+     * no existing reconciliations, no individual proposals, and no
+     * multiple combination suggestions.
+     * 
+     * @return bool True if no reconciliation options are available
+     */
     public function nothing_found() {
         return empty($this->reconciliated) && empty($this->proposals) && empty($this->multiple_combinations);
     }
 
     /**
-     * Récupère les lignes de rapprochement associées à cette opération.
-     * @return array
+     * Retrieve existing reconciliation associations from database
+     * 
+     * Fetches current reconciliation associations for this bank statement
+     * operation from the database and converts them to ReconciliationLine
+     * objects for display and management.
+     * 
+     * @return ReconciliationLine[] Array of current reconciliation lines
      */
     public function get_reconciliated() {
         $lines = [];
@@ -730,13 +997,18 @@ class StatementOperation {
     }
 
     /**
-     * Recherche des combinaisons multiples d'écritures dont la somme des montants est égale au montant de l'opération.
+     * Find and analyze multiple GVV entry combinations matching operation amount
      * 
-     * Cette méthode utilise une recherche récursive pour identifier toutes les combinaisons possibles
-     * d'écritures qui, lorsqu'elles sont additionnées, correspondent au montant spécifié dans l'opération
-     * de relevé bancaire. Les combinaisons trouvées sont ensuite stockées sous forme d'objets MultiProposalCombination.
+     * Performs recursive search to identify all possible combinations of GVV
+     * accounting entries that together equal this bank statement operation's amount.
+     * Creates MultiProposalCombination objects for each valid combination found.
      * 
-     * @return void
+     * Handles performance optimization:
+     * - Limits recursion depth to prevent server overload
+     * - Integrates smart matching correlations when enabled
+     * - Converts single-entry combinations to individual proposals
+     * 
+     * @return void Updates internal multiple_combinations array
      */
     public function get_multiple_combinations() {
         $amount = $this->amount();
@@ -883,14 +1155,14 @@ class StatementOperation {
     }
 
     /**
-     * Génère une chaîne unique représentant l'opération de relevé bancaire.
+     * Generate unique identifier string for this bank statement operation
      * 
-     * Cette chaîne est utilisée pour identifier de façon unique une opération,
-     * notamment lors du rapprochement avec des écritures comptables.
-     * Elle concatène plusieurs champs clés de l'opération, séparés par des underscores,
-     * puis remplace tous les caractères non alphanumériques par des underscores.
+     * Creates a unique string by concatenating key operation fields (date, nature,
+     * amount, currency, value date, interbank label, and comments) and normalizing
+     * to alphanumeric characters. Used as a stable identifier for reconciliation
+     * associations across database operations.
      * 
-     * @return string Chaîne unique représentant l'opération
+     * @return string Unique alphanumeric identifier for this operation
      */
     public function str_releve() {
         $str = "";

@@ -46,7 +46,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Page de selection du fichier journal OpenFLyers
+     * Display bank statement file selection page
+     * 
+     * Loads the initial page for bank reconciliation where users can select
+     * a bank account and upload a bank statement file. Initializes filter
+     * parameters from session data and prepares dropdown selectors.
+     * 
+     * @return void Loads the bank statement selection view
      */
     function select_releve() {
         $data = array();
@@ -103,7 +109,14 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Import a CSV journal 
+     * Import a bank statement CSV file via file upload
+     * 
+     * Handles the file upload process for bank statement files, validates the upload,
+     * and redirects to the import processing page. Cleans up previous temporary files
+     * to maintain disk space.
+     * 
+     * @return void Redirects to appropriate view based on upload success/failure
+     * @throws Exception If file upload fails or directory permissions are inadequate
      */
     public function import_releve() {
 
@@ -223,7 +236,14 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Import a CSV listing from a file - Version 2 uniquement avec Reconciliator
+     * Import and process bank statement from uploaded file using Reconciliator
+     * 
+     * Main entry point for bank reconciliation. Processes the uploaded bank statement file,
+     * applies filters, generates HTML tables for display, and loads the reconciliation interface.
+     * Handles both bank statement operations and GVV accounting entries for comparison.
+     * 
+     * @return void Loads the reconciliation view or error view on exception
+     * @throws Exception If file processing fails or reconciliator encounters errors
      */
     public function import_releve_from_file() {
 
@@ -292,6 +312,16 @@ class Rapprochements extends CI_Controller {
         }
     }
 
+    /**
+     * Process bank reconciliation between statement operations and GVV accounting entries
+     * 
+     * Handles both single and multiple reconciliations, validates user selections,
+     * prevents duplicate assignments, and creates associations between bank statement
+     * operations and GVV accounting entries. Supports manual mode for direct reconciliation.
+     * 
+     * @return void Redirects to import page with success/error status
+     * @throws Exception If validation fails or database operations encounter errors
+     */
     public function rapprochez() {
         // Rapproche les écritures sélectionnées
 
@@ -424,7 +454,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Supprime les rapprochements sélectionnés
+     * Delete selected reconciliation associations
+     * 
+     * Processes POST data to identify and delete reconciliation associations
+     * between bank statement operations and GVV accounting entries based on
+     * string_releve identifiers from selected checkboxes.
+     * 
+     * @return void Redirects to import page after processing deletions
      */
     function delete_rapprochement() {
         // Supprime les rapprochements sélectionnés
@@ -498,12 +534,14 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Filtrage des opérations
-     *     [startDate] => 2025-02-01
-     *       [endDate] => 2025-01-31
-     *       [filter_type] => unmatched
-     *       [type_selector] => paiement_cb
-     *       [button] => Filtrer
+     * Filter bank reconciliation operations based on user criteria
+     * 
+     * Processes filter form submissions to store filter criteria in session.
+     * Validates date formats, filter types, and return URLs for security.
+     * Supports filtering by date range, reconciliation status, and operation type.
+     * 
+     * @return void Redirects to the appropriate return URL or import page
+     * @throws Exception If validation fails or session operations encounter errors
      */
     public function filter() {
         // Redirection vers la page de sélection du relevé
@@ -550,7 +588,12 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Change le nombre de jours maximum pour le rapprochement
+     * Update maximum days window for bank reconciliation matching (AJAX)
+     * 
+     * Updates the session variable for the maximum number of days used in
+     * automatic reconciliation matching algorithms. Returns JSON response.
+     * 
+     * @return void Outputs JSON response with success status
      */
     public function max_days_change() {
         // Change le nombre de jours maximum pour le rapprochement
@@ -565,7 +608,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Change le mode de rapprochement intelligent
+     * Toggle smart reconciliation mode (AJAX)
+     * 
+     * Updates the session variable for intelligent reconciliation mode which
+     * enables advanced matching algorithms for automatic reconciliation.
+     * Returns JSON response with operation status.
+     * 
+     * @return void Outputs JSON response with success status
      */
     public function smart_mode_change() {
         // Change le mode de rapprochement intelligent
@@ -579,7 +628,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Supprime tous les rapprochements ou les écritures
+     * Delete all selected reconciliations or accounting entries
+     * 
+     * Bulk operation to delete either reconciliation associations or both
+     * reconciliations and the underlying accounting entries based on user selection.
+     * Processes checkboxes with 'cbdel_' prefix to identify target entries.
+     * 
+     * @return void Redirects to import page with status message
      */
     function delete_all() {
 
@@ -618,11 +673,14 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Converts GVV lines to a table format for display
+     * Converts GVV accounting entries to HTML table format for display
      *
-     * @param array $gvv_lines Array of GVV lines to convert
-     * @param string $checkbox_prefix Prefix for checkbox names ('cb_' for reconciliation, 'cbdel_' for deletion)
-     * @return array Formatted array suitable for table display
+     * Transforms an array of GVV accounting lines into a formatted array suitable
+     * for HTML table display. Adds checkboxes, status badges, and formatted data
+     * columns. Reconciled entries show green badges, unreconciled show red badges.
+     *
+     * @param array $gvv_lines Array of GVV accounting entries to convert
+     * @return array Formatted array with HTML elements suitable for table display
      */
     function to_ecritures_table($gvv_lines) {
         // gvv_dump($gvv_lines);
@@ -654,7 +712,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Rapproche une seule opération (appelé via AJAX)
+     * Reconcile a single bank operation with a GVV accounting entry (AJAX)
+     * 
+     * Creates a reconciliation association between a bank statement operation
+     * and a GVV accounting entry. Validates inputs and returns JSON response
+     * with operation status. Only accessible via AJAX requests.
+     * 
+     * @return void Outputs JSON response with success/error status and message
      */
     public function rapprocher_unique() {
         // Vérifier que c'est une requête AJAX
@@ -702,7 +766,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Supprime un rapprochement unique (appelé via AJAX)
+     * Delete a single reconciliation association (AJAX)
+     * 
+     * Removes the reconciliation association for a specific bank statement operation
+     * identified by its string_releve. Validates input and returns JSON response
+     * with operation status. Only accessible via AJAX requests.
+     * 
+     * @return void Outputs JSON response with success/error status and message
      */
     public function supprimer_rapprochement_unique() {
         // Vérifier que c'est une requête AJAX
@@ -744,7 +814,14 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Rapproche plusieurs opérations en une seule transaction (appelé via AJAX)
+     * Reconcile multiple GVV entries with a single bank statement operation (AJAX)
+     * 
+     * Creates multiple reconciliation associations between one bank statement operation
+     * and several GVV accounting entries. Validates inputs, processes each reconciliation,
+     * and returns detailed JSON response with success/error counts and messages.
+     * Only accessible via AJAX requests.
+     * 
+     * @return void Outputs JSON response with detailed operation results
      */
     public function rapprocher_multiple() {
         // Vérifier que c'est une requête AJAX
@@ -829,7 +906,13 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Supprime le rapprochement d'une écriture unique (appelé via AJAX depuis l'onglet GVV)
+     * Delete reconciliation associations for a specific GVV accounting entry (AJAX)
+     * 
+     * Removes all reconciliation associations for a specific GVV accounting entry
+     * identified by its ecriture_id. Called from the GVV entries tab to clean up
+     * reconciliations. Only accessible via AJAX requests.
+     * 
+     * @return void Outputs JSON response with success/error status and message
      */
     public function supprimer_rapprochement_ecriture() {
         // Vérifier que c'est une requête AJAX
@@ -868,7 +951,15 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
-     * Page de rapprochement manuel pour une StatementOperation spécifique
+     * Display manual reconciliation page for a specific bank statement operation
+     * 
+     * Loads the manual reconciliation interface for a single bank statement operation
+     * identified by line number. Retrieves the statement operation data, available
+     * GVV accounting entries for matching, and displays the manual reconciliation form.
+     * Applies session filters to limit the displayed GVV entries.
+     * 
+     * @return void Loads the manual reconciliation view or shows error page
+     * @throws Exception If operation is not found or reconciliator encounters errors
      */
     public function rapprochement_manuel() {
         $line = $this->input->get('line');

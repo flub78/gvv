@@ -1,12 +1,18 @@
 <?php
 
 /**
- * Classe pour gérer les rapprochements bancaires
+ * Bank reconciliation engine for matching statement operations with GVV entries
  * 
- * Cette classe fournit des méthodes pour effectuer des rapprochements
- * entre les opérations bancaires et les écritures comptables.
+ * This class manages the complete bank reconciliation process including statement
+ * parsing, operation filtering, automatic matching suggestions, and reconciliation
+ * status tracking. It supports multiple filter types, date ranges, and operation
+ * categories while maintaining reconciliation statistics.
  * 
- * Elle prend en charge le filtre et le résultat dépend du filtre.
+ * Supports filtering by:
+ * - Date ranges (start/end dates)
+ * - Reconciliation status (matched/unmatched)
+ * - Operation types (various bank operation categories)
+ * - Matching complexity (unique/choices/multiple/no suggestions)
  */
 class Reconciliator {
     private $CI;
@@ -22,7 +28,13 @@ class Reconciliator {
     private $no_suggestion_count = 0;
 
     /**
-     * Constructeur de la classe
+     * Initialize reconciliation engine with parsed bank statement data
+     * 
+     * Creates a new Reconciliator instance and processes the parsed bank statement
+     * data to create StatementOperation objects, apply session filters, and generate
+     * reconciliation suggestions. Loads required models and libraries for processing.
+     * 
+     * @param array|null $parser_result Parsed bank statement data from ReleveParser
      */
     public function __construct($parser_result = null) {
         $this->CI = &get_instance();
@@ -39,34 +51,66 @@ class Reconciliator {
         $this->reconciliate();
     }
 
+    /**
+     * Set the source filename for the bank statement
+     * 
+     * Stores the full path of the uploaded bank statement file for reference
+     * in display headers and logging operations.
+     * 
+     * @param string $filename Full path to the bank statement file
+     * @return void
+     */
     public function set_filename($filename) {
         $this->filename = $filename;
     }
 
+    /**
+     * Get the full path of the bank statement source file
+     * 
+     * Returns the complete filesystem path to the uploaded bank statement file
+     * that was processed to create this reconciliation session.
+     * 
+     * @return string Full path to the bank statement file
+     */
     public function filename() {
         return $this->filename;
     }
 
+    /**
+     * Get the filename without path of the bank statement source file
+     * 
+     * Returns only the filename portion (without directory path) of the uploaded
+     * bank statement file for display in user interfaces.
+     * 
+     * @return string Filename without path
+     */
     public function basename() {
         return basename($this->filename);
     }
 
     /**
-     * Effectue le rapprochement entre les opérations bancaires et les écritures
+     * Debug dump of raw parser result data
      * 
-     * @param array $operations_bancaires Liste des opérations bancaires
-     * @param array $ecritures_comptables Liste des écritures comptables
-     * @return array Résultat du rapprochement avec les correspondances trouvées
+     * Outputs the complete parsed bank statement data structure for debugging
+     * purposes. Shows the raw data before reconciliation processing.
+     * 
+     * @param bool $exit Whether to terminate script execution after dump (default: true)
+     * @return void Outputs debug information
      */
     public function dump_parser_result($exit = true) {
         gvv_dump($this->parser_result, $exit);
     }
 
     /**
-     * Affiche un dump pour le débogage
+     * Debug dump of processed reconciliation data
      * 
-     * @param string $title Titre du dump
-     * @param bool $exit Indique si le script doit s'arrêter après le dump
+     * Outputs comprehensive reconciliation information including bank details,
+     * account mappings, date ranges, operation counts, and individual statement
+     * operations for debugging and analysis.
+     * 
+     * @param string $title Title for the debug output (default: "")
+     * @param bool $exit Whether to terminate script execution after dump (default: true)
+     * @return void Outputs debug information
      */
     public function dump($title = "", $exit = true) {
         echo "<pre>";
@@ -89,6 +133,23 @@ class Reconciliator {
         }
     }
 
+    /**
+     * Execute the core reconciliation processing logic
+     * 
+     * Processes the parsed bank statement data by:
+     * 1. Looking up GVV account associations for the bank IBAN
+     * 2. Applying session filters (date range, operation type, reconciliation status)
+     * 3. Creating StatementOperation objects with matching suggestions
+     * 4. Maintaining reconciliation statistics for display
+     * 
+     * This method applies complex filtering logic including:
+     * - Date-based filtering using session startDate/endDate
+     * - Type-based filtering using operation categories
+     * - Status-based filtering (matched/unmatched operations)
+     * - Complexity-based filtering (unique/choices/multiple suggestions)
+     * 
+     * @return void Updates internal operations array and statistics counters
+     */
     private function reconciliate() {
         if ($this->parser_result === null) {
             $this->dump("No parser result to reconciliate", false);
@@ -203,62 +264,145 @@ class Reconciliator {
         // $this->dump("Reconciliator", false);
     }
 
+    /**
+     * Get bank name from statement header
+     * 
+     * Returns the name of the bank that issued the statement, as parsed from
+     * the statement file header information.
+     * 
+     * @return string|null Bank name or null if not available
+     */
     public function bank() {
         return $this->parser_result['bank'] ?? null;
     }
 
+    /**
+     * Get IBAN account number from statement header
+     * 
+     * Returns the International Bank Account Number (IBAN) for the account
+     * that this bank statement represents.
+     * 
+     * @return string|null IBAN account number or null if not available
+     */
     public function iban() {
         return $this->parser_result['iban'] ?? null;
     }
 
+    /**
+     * Get section/club identifier from statement header
+     * 
+     * Returns the section or club identifier associated with this bank account,
+     * used for multi-club installations to separate financial data.
+     * 
+     * @return string|null Section identifier or null if not available
+     */
     public function section() {
         return $this->parser_result['section'] ?? null;
     }
 
+    /**
+     * Get account balance from statement header
+     * 
+     * Returns the final account balance as of the statement end date,
+     * typically used for balance verification after reconciliation.
+     * 
+     * @return float|null Account balance or null if not available
+     */
     public function solde() {
         return $this->parser_result['solde'] ?? null;
     }
 
+    /**
+     * Get associated GVV chart of accounts ID for this bank account
+     * 
+     * Returns the GVV accounting system account ID that corresponds to this
+     * bank account, used for automatic account assignment during reconciliation.
+     * 
+     * @return string|null GVV account ID or null if no association exists
+     */
     public function gvv_bank_account() {
         return $this->gvv_bank_account;
     }
 
     /**
-     * Retourne la date de solde en français
+     * Get balance date in localized format
+     * 
+     * Returns the date when the account balance was calculated, formatted
+     * for display in the local date format preference.
+     * 
+     * @return string|null Balance date in local format or null if not available
      */
     public function date_solde() {
         return $this->parser_result['date_solde'] ?? null;
     }
 
+    /**
+     * Get statement period start date in database format
+     * 
+     * Returns the start date of the bank statement period in YYYY-MM-DD format
+     * for database queries and date comparisons.
+     * 
+     * @return string|null Start date in database format or null if not available
+     */
     public function start_date() {
         return $this->parser_result['start_date'] ?? null;
     }
 
+    /**
+     * Get statement period end date in database format
+     * 
+     * Returns the end date of the bank statement period in YYYY-MM-DD format
+     * for database queries and date comparisons.
+     * 
+     * @return string|null End date in database format or null if not available
+     */
     public function end_date() {
         return $this->parser_result['end_date'] ?? null;
     }
 
+    /**
+     * Get statement period start date in localized format
+     * 
+     * Returns the start date of the bank statement period formatted for
+     * display in user interfaces using local date format preferences.
+     * 
+     * @return string Start date in localized format
+     */
     public function local_start_date() {
         return date_db2ht($this->start_date());
     }
 
+    /**
+     * Get statement period end date in localized format
+     * 
+     * Returns the end date of the bank statement period formatted for
+     * display in user interfaces using local date format preferences.
+     * 
+     * @return string End date in localized format
+     */
     public function local_end_date() {
         return date_db2ht($this->end_date());
     }
 
     /**
-     * Retourne les titres des colonnes du parser_result si disponibles
-     *
-     * @return array|null
+     * Get column titles from parsed statement data
+     * 
+     * Returns the column headers from the bank statement file, typically
+     * used for validation or debugging of the parsing process.
+     * 
+     * @return array|null Array of column titles or null if not available
      */
     public function titles() {
         return $this->parser_result['titles'] ?? null;
     }
 
     /**
-     * Retourne le nombre total d'opérations bancaires dans le parser_result
-     *
-     * @return int
+     * Get total number of operations in the original bank statement
+     * 
+     * Returns the count of all operations in the parsed bank statement data
+     * before any filtering is applied. Used for statistics display.
+     * 
+     * @return int Total operation count
      */
     public function total_operation_count() {
         if (isset($this->parser_result['ops']) && is_array($this->parser_result['ops'])) {
@@ -267,26 +411,51 @@ class Reconciliator {
         return 0;
     }
 
+    /**
+     * Get number of operations after filtering
+     * 
+     * Returns the count of bank statement operations that remain visible
+     * after applying all active filters (date, type, reconciliation status).
+     * 
+     * @return int Filtered operation count
+     */
     public function filtered_operations_count() {
         return count($this->operations);
     }
 
+    /**
+     * Get number of already reconciled operations
+     * 
+     * Returns the count of bank statement operations that have been successfully
+     * matched with GVV accounting entries in previous reconciliation sessions.
+     * 
+     * @return int Count of reconciled operations
+     */
     public function rapproched_operations_count() {
         return $this->rapproched_operations_count;
     }
 
     /**
-     * Retourne la liste des opérations filtrées
+     * Get filtered statement operations as StatementOperation objects
+     * 
+     * Returns the array of StatementOperation objects that passed all filtering
+     * criteria and are available for display and reconciliation.
+     * 
+     * @return StatementOperation[] Array of filtered statement operations
      */
     public function get_operations() {
         return $this->operations;
     }
 
     /**
-     * Retourne une StatementOperation par son numéro de ligne
-     *
-     * @param int $line_number Numéro de ligne de l'opération
-     * @return StatementOperation|null L'opération trouvée ou null si non trouvée
+     * Find statement operation by line number
+     * 
+     * Searches through the filtered operations to find a StatementOperation
+     * with the specified line number. Used for manual reconciliation interfaces
+     * where operations are identified by their position in the statement.
+     * 
+     * @param int $line_number Line number of the operation to find
+     * @return StatementOperation|null Found operation or null if not found
      */
     public function get_operation_by_line($line_number) {
         foreach ($this->operations as $operation) {
@@ -298,7 +467,13 @@ class Reconciliator {
     }
 
     /**
-     * Retourne l'en-tête du relevé bancaire s'il est disponible
+     * Generate formatted header information for reconciliation display
+     * 
+     * Creates a structured array containing bank statement metadata, account
+     * associations, date ranges, reconciliation statistics, and file information
+     * for display in the reconciliation interface header.
+     * 
+     * @return array Multi-dimensional array of header information for display
      */
     public function header() {
         $header = [];
@@ -344,6 +519,15 @@ class Reconciliator {
         return $header;
     }
 
+    /**
+     * Generate HTML output for all filtered statement operations
+     * 
+     * Converts all filtered StatementOperation objects to their HTML representation
+     * for display in the reconciliation interface. Each operation includes its
+     * matching suggestions, reconciliation status, and action controls.
+     * 
+     * @return string Concatenated HTML for all statement operations
+     */
     public function to_HTML() {
         $res = "";
         
@@ -354,9 +538,13 @@ class Reconciliator {
     }
 
     /**
-     * Retourne les types d'opérations reconnus
+     * Get recognized bank operation types with localized labels
      * 
-     * @return array Associative array des types d'opérations
+     * Returns an associative array mapping operation type codes to their
+     * human-readable French labels. Used for operation categorization,
+     * filtering, and display purposes throughout the reconciliation system.
+     * 
+     * @return array Associative array of operation types and their labels
      */
     function recognized_types() {
         return  [

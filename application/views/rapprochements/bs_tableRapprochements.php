@@ -17,10 +17,10 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Vue table pour les terrains
+ * Vue table pour les rapprochements bancaires
  * 
  * @package vues
- * @file bs_tableOperations.php
+ * @file bs_tableRapprochements.php
  */
 
 $this->load->view('bs_header');

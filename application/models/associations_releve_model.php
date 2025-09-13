@@ -17,8 +17,15 @@ class Associations_releve_model extends Common_Model {
     protected $primary_key = 'id';
 
     /**
-     *	Retourne le tableau tableau utilisé pour l'affichage par page
-     *	@return objet		  La liste
+     * Retrieve paginated bank statement associations for display
+     * 
+     * Fetches associations between bank statement accounts and GVV chart of accounts
+     * with additional metadata for management interface display. Includes section
+     * information and handles orphaned associations without linked GVV accounts.
+     * 
+     * @param int $nb Maximum number of results to return (default: 1000)
+     * @param int $debut Starting offset for pagination (default: 0)
+     * @return array Array of associations with metadata for table display
      */
     public function select_page($nb = 1000, $debut = 0) {
         $this->load->model('comptes_model');
@@ -61,11 +68,15 @@ class Associations_releve_model extends Common_Model {
     }
 
     /**
-     * Récupère l'identifiant du compte GVV associé à un relevé
+     * Retrieve GVV account ID associated with bank statement operation
      * 
-     * @param int $releve_id Identifiant du compte dans le relevé
-     * @param int $section_id Identifiant optionnel de la section
-     * @return string Identifiant du compte GVV, ou chaîne vide si non trouvé
+     * Looks up the GVV chart of accounts ID that corresponds to a bank statement
+     * operation identifier. Optionally filters by section for multi-club installations.
+     * Used for automatic account assignment during reconciliation.
+     * 
+     * @param string $string Bank statement operation identifier
+     * @param int $section_id Optional section ID for filtering (default: 0)
+     * @return string GVV account ID, or empty string if no association found
      */
     public function get_gvv_account($string, $section_id = 0) {
 
@@ -83,10 +94,14 @@ class Associations_releve_model extends Common_Model {
     }
 
     /**
-     * Retrieves the id of an association where id_compte_gvv is NULL for a given string_releve
+     * Find association ID for bank statement operations without GVV account mapping
      * 
-     * @param string $string_releve The string_releve value to search for
-     * @return mixed Returns the association ID if found, empty string otherwise
+     * Retrieves the association ID for bank statement operations that have been
+     * identified but not yet mapped to a specific GVV chart of accounts entry.
+     * Used to identify unmapped operations that need manual account assignment.
+     * 
+     * @param string $string_releve Bank statement operation identifier
+     * @return mixed Association ID if found, empty string otherwise
      */
     public function associated_to_null($string_releve) {
         $this->db->select('id')
@@ -99,10 +114,13 @@ class Associations_releve_model extends Common_Model {
     }
 
     /**
-     * Retourne une chaîne de caractère qui identifie une ligne de façon unique.
-     * Cette chaîne est utilisé dans les affichages.
-     * Par défaut elle retourne la valeur de la clé, mais elle est conçue pour être
-     * surchargée.
+     * Generate human-readable identifier for bank statement association record
+     * 
+     * Creates a display string combining the association ID, bank statement operation
+     * identifier, and operation type for use in user interfaces and logging.
+     * 
+     * @param string|int $key The association ID to generate image for
+     * @return string Human-readable identifier or error message if not found
      */
     public function image($key) {
         if ($key == "")
