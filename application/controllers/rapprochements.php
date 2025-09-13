@@ -510,12 +510,22 @@ class Rapprochements extends CI_Controller {
         $post = $this->input->post();
         // gvv_dump($post);
         $button = $post['button'] ?? '';
+        
         if ($button == 'Filtrer') {
-            // On filtre les opérations
-            $start_date = $post['startDate'] ?? '';
-            $end_date = $post['endDate'] ?? '';
-            $filter_type = $post['filter_type'] ?? '';
-            $type_selector = $post['type_selector'] ?? '';
+            // Validate and sanitize input data
+            $start_date = $this->_validate_date($post['startDate'] ?? '');
+            $end_date = $this->_validate_date($post['endDate'] ?? '');
+            $filter_type = $this->_validate_filter_type($post['filter_type'] ?? '');
+            $type_selector = $this->_validate_type_selector($post['type_selector'] ?? '');
+            
+            // Additional date logic validation
+            if ($start_date && $end_date && $start_date > $end_date) {
+                gvv_error("Filter validation: Start date ($start_date) is after end date ($end_date)");
+                $this->session->set_userdata('status', 'Erreur: La date de début doit être antérieure à la date de fin.');
+                // Reset to safe defaults
+                $start_date = '';
+                $end_date = '';
+            }
 
             $this->session->set_userdata('startDate', $start_date);
             $this->session->set_userdata('endDate', $end_date);
@@ -530,8 +540,8 @@ class Rapprochements extends CI_Controller {
             $this->session->set_userdata('filter_active', false);
         }
 
-        // Check for return_url parameter to redirect back to the correct page
-        $return_url = $post['return_url'] ?? '';
+        // Validate return_url parameter
+        $return_url = $this->_validate_return_url($post['return_url'] ?? '');
         if (!empty($return_url)) {
             redirect($return_url);
         } else {
@@ -935,6 +945,100 @@ class Rapprochements extends CI_Controller {
             gvv_error($msg);
             show_error($msg, 500);
         }
+    }
+
+    /**
+     * Validate date input (YYYY-MM-DD format)
+     * @param string $date Input date string
+     * @return string Validated date or empty string if invalid
+     */
+    private function _validate_date($date) {
+        if (empty($date)) {
+            return '';
+        }
+        
+        // Check format and validate date
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date_parts = explode('-', $date);
+            if (checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                return $date;
+            }
+        }
+        
+        gvv_error("Invalid date format: $date");
+        return '';
+    }
+
+    /**
+     * Validate filter type selection
+     * @param string $filter_type Input filter type
+     * @return string Validated filter type or default
+     */
+    private function _validate_filter_type($filter_type) {
+        $valid_types = [
+            'display_all',
+            'filter_matched', 
+            'filter_unmatched',
+            'filter_unmatched_1',
+            'filter_unmatched_choices',
+            'filter_unmatched_multi',
+            'filter_unmatched_0'
+        ];
+        
+        if (in_array($filter_type, $valid_types)) {
+            return $filter_type;
+        }
+        
+        if (!empty($filter_type)) {
+            gvv_error("Invalid filter type: $filter_type");
+        }
+        return 'display_all'; // Default
+    }
+
+    /**
+     * Validate type selector input
+     * @param string $type_selector Input type selector
+     * @return string Validated type selector
+     */
+    private function _validate_type_selector($type_selector) {
+        if (empty($type_selector)) {
+            return '';
+        }
+        
+        // Sanitize and validate - should be numeric ID or empty
+        $type_selector = trim($type_selector);
+        if ($type_selector === '' || ctype_digit($type_selector)) {
+            return $type_selector;
+        }
+        
+        gvv_error("Invalid type selector: $type_selector");
+        return '';
+    }
+
+    /**
+     * Validate return URL to prevent open redirect vulnerability
+     * @param string $return_url Input return URL
+     * @return string Validated return URL or empty string
+     */
+    private function _validate_return_url($return_url) {
+        if (empty($return_url)) {
+            return '';
+        }
+        
+        // Only allow internal URLs (relative paths or same domain)
+        $parsed_url = parse_url($return_url);
+        
+        // Allow relative URLs
+        if (!isset($parsed_url['scheme']) && !isset($parsed_url['host'])) {
+            // Remove any potential dangerous characters
+            $return_url = filter_var($return_url, FILTER_SANITIZE_URL);
+            if ($return_url) {
+                return $return_url;
+            }
+        }
+        
+        gvv_error("Invalid or potentially dangerous return URL: $return_url");
+        return '';
     }
 }
 /* End of file rapprochements.php */

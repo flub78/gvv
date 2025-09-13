@@ -77,13 +77,21 @@ if (count($current_list) > 15) {
 - **Risk**: LOW-MEDIUM - Mitigated by depth limit
   
 
-### 3. **Insufficient Input Validation**
+### 3. **~~Insufficient Input Validation~~** - ✅ FIXED
 - **Location**: `application/controllers/rapprochements.php:540-580`
 - **Method**: `filter()`
-- **Issue**: POST data processed without validation
-- **Fields**: `startDate`, `endDate`, `filter_type`, `type_selector`
-- **Impact**: Invalid data propagation, application errors
-- **Risk**: MEDIUM - Data validation failure
+- **Issue**: ~~POST data processed without validation~~ **RESOLVED**
+- **Fix Applied**: Added comprehensive input validation including:
+  - Date format validation (YYYY-MM-DD) with `checkdate()` verification
+  - Filter type validation against allowed values with safe defaults
+  - Type selector sanitization and numeric validation
+  - Return URL validation to prevent open redirect vulnerabilities
+  - Date logic validation (start date must be before end date)
+  - Error logging for invalid inputs
+- **Fields**: `startDate`, `endDate`, `filter_type`, `type_selector`, `return_url`
+- **Status**: **RESOLVED** - All filter inputs now properly validated and sanitized
+- **Impact**: ~~Invalid data propagation, application errors~~ **RESOLVED**
+- **Risk**: ~~MEDIUM - Data validation failure~~ **RESOLVED**
 
 ### 4. **JavaScript Global Variable Pollution**
 - **Location**: `assets/javascript/reconciliate.js:28-40`
