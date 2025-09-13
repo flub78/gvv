@@ -509,7 +509,13 @@ class Rapprochements extends CI_Controller {
             $this->session->set_userdata('filter_active', false);
         }
 
-        redirect('rapprochements/import_releve_from_file');
+        // Check for return_url parameter to redirect back to the correct page
+        $return_url = $post['return_url'] ?? '';
+        if (!empty($return_url)) {
+            redirect($return_url);
+        } else {
+            redirect('rapprochements/import_releve_from_file');
+        }
     }
 
     /**

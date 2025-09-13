@@ -67,6 +67,7 @@ echo '</div>';
             <div class="accordion-body">
                 <div>
                     <form action="<?= "filter/" ?>" method="post" accept-charset="utf-8" name="saisie">
+                        <input type="hidden" name="return_url" value="<?= current_url() . (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
                         <div>
                             <div class="row mb-3">
                                 <div class="col">
