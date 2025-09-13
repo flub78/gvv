@@ -34,6 +34,19 @@ Since the technical context is already established, focus your prompts on:
 
 Since GVV's technical context is documented in `.github/copilot-instructions.md`, these templates focus on the request-specific elements:
 
+### General prompt recommendations
+
+**Streamlined Template:**
+```
+Context: GVV project (see copilot-instructions.md)
+Goals: [Specific component/feature to design]
+Current State: [What exists now that relates to this]
+Requirements: [Specific functional needs]
+Integration: [How it connects to existing GVV systems]
+Constraints: [Any specific limitations beyond standard GVV constraints]
+Output: [What format you need - diagram, code structure, etc.]
+```
+
 ### Design Notes & Architecture
 
 **Streamlined Template:**
@@ -135,10 +148,10 @@ Success Criteria: [How to measure improvement]
 ```
 Context: GVV project (see copilot-instructions.md)
 Review: The Rapprochement feature, its controller, model, library and views
-Review goals: identify bugs, potential bugs, inefficient implementations, poor style, code duplications
+Review goals: identify bugs, potential bugs, inefficient implementations, poor style, high complexity, code duplications
 Current Issues: [Problems with existing code]
 Desired Outcome: A synthetic md file, organized by remark criticity, with exact location where problem occur
-Constraints: No code modification
+Constraints: No code modification, include the date in the review result
 Method: if required you may process by steps, and produce separate reports for bug and potential bugs, poor style and code duplication
 Success Criteria: The quality of you analysis will be evaluated by humans
 ```
