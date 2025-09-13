@@ -1,7 +1,5 @@
 # Liste des choses à faire
 
-Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail lourd, et le GVV actuel doit être maintenu pour s'adapter aux nouveaux besoins des utilisateurs.
-
 
 ## Bugs
 
@@ -13,7 +11,6 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
 ## Reste à faire
 
 * [] OpenFlyers afficher les vols non existant dans les imports OF
-* [x] Rapprochements bancaires
 * [] Sauvegarde/restauration des medias et attachements
 
 * [x] Gérer la configuration dans la base.
@@ -111,3 +108,4 @@ Il existe un projet de ré-écriture complet de GVV, néanmoins c'est un travail
   * grand journal, montants
   * Ventes, cadrer Produit à gauche
 * [x] supprimer les textes orientés planeur dans les pages
+* [x] Rapprochements bancaires

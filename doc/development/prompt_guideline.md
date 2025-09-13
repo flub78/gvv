@@ -129,6 +129,20 @@ Migration Strategy: [How to implement safely without breaking existing functiona
 Success Criteria: [How to measure improvement]
 ```
 
+### Code Review
+
+**Template:**
+```
+Context: GVV project (see copilot-instructions.md)
+Review: The Rapprochement feature, its controller, model, library and views
+Review goals: identify bugs, potential bugs, inefficient implementations, poor style, code duplications
+Current Issues: [Problems with existing code]
+Desired Outcome: A synthetic md file, organized by remark criticity, with exact location where problem occur
+Constraints: No code modification
+Method: if required you may process by steps, and produce separate reports for bug and potential bugs, poor style and code duplication
+Success Criteria: The quality of you analysis will be evaluated by humans
+```
+
 ## Advanced Prompt Techniques
 
 ### 1. Reference Existing Context
@@ -149,19 +163,6 @@ Success Criteria: [How to measure improvement]
 "Extend [existing GVV class/system] without breaking current functionality"
 ```
 
-## Quick Reference: What NOT to Repeat
-
-❌ **Don't repeat basic GVV context** - it's in copilot-instructions.md
-❌ **Don't re-explain CodeIgniter 2.x patterns** - already documented  
-❌ **Don't list standard PHP 7.4/MySQL constraints** - established in project docs
-❌ **Don't repeat directory structure** - covered in existing documentation
-
-✅ **DO focus on:**
-- Specific problem/feature details
-- Unique requirements for this request
-- Integration points with existing code
-- Testing and validation criteria
-- Migration strategies for changes
 
 ## Optimized Examples
 
@@ -282,20 +283,5 @@ Current Request: Please implement ONLY step 1 (backup configuration system):
 Please stop after step 1 for review and confirmation before proceeding.
 ```
 
-### Bug Fix with Verification Steps
-```
-Context: GVV project (see copilot-instructions.md)
-Problem: [Describe issue]
-Fix Approach: [Outline solution strategy]
-Implementation Steps:
-1. Analyze current code and confirm root cause
-2. Design fix approach
-3. Implement minimal fix
-4. Add tests to prevent regression
-5. Update documentation if needed
-
-Request: Please start with step 1 (analysis and root cause confirmation).
-Provide detailed analysis and stop for confirmation before implementing any changes.
-```
 
 This approach creates more focused, actionable prompts while leveraging the comprehensive context already established in the GVV Copilot Instructions.

@@ -47,16 +47,96 @@ if ($errors) {
     echo '</div>';
 }
 
-
 // Bouton de retour
 echo '<div class="mb-3">';
 echo '<a href="' . site_url('rapprochements/import_releve_from_file') . '" class="btn btn-secondary">';
 echo '<i class="fas fa-arrow-left"></i> Retour au relevé';
 echo '</a>';
 echo '</div>';
+?>
 
-echo '<h4>Rapprochement manuel de l\'opération</h4>';
+<!-- Filtre -->
+<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                <?= $this->lang->line("gvv_str_filter") ?>
+            </button>
+        </h2>
+        <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panelsStayOpen-headingOne">
+            <div class="accordion-body">
+                <div>
+                    <form action="<?= "filter/" ?>" method="post" accept-charset="utf-8" name="saisie">
+                        <div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="startDate" class="form-label">Date début affichage</label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" value="<?= isset($startDate) ? $startDate : '' ?>">
+                                </div>
+                                <div class="col">
+                                    <label for="endDate" class="form-label">Date fin affichage</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" value="<?= isset($endDate) ? $endDate : '' ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Afficher</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_all" value="display_all" <?= (!isset($filter_type) || $filter_type == 'display_all') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_all">Tout</label>
+                                </div>
 
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_matched" value="filter_matched" <?= (isset($filter_type) && $filter_type == 'filter_matched') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_matched">Les écritures rapprochées</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched" value="filter_unmatched" <?= (isset($filter_type) && $filter_type == 'filter_unmatched') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched">Les écritures non rapprochées</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_1" value="filter_unmatched_1" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_1') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_1">Non rapprochées, suggestion unique</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_choices" value="filter_unmatched_choices" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_choices') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_choices">Non rapprochées, plusieurs choix de rapprochement</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_multi" value="filter_unmatched_multi" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_multi') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched_multi">Non rapprochées, suggestion de combinaisons</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="filter_type" id="filter_unmatched_O" value="filter_unmatched_0" <?= (isset($filter_type) && $filter_type == 'filter_unmatched_0') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="filter_unmatched">Non rapprochées sans suggestions</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label for="type_selector" class="form-label">Type d'opération</label>
+                                <?= $type_dropdown ?>
+                            </div>
+                        </div>
+                        <div>
+
+                            <div class="mb-2 mt-2">
+                                <?= filter_buttons() ?>
+
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
 ?>
 
 <script>
@@ -90,48 +170,48 @@ echo '<h4>Rapprochement manuel de l\'opération</h4>';
                     </small>
                 </div>
             </div>
-            
 
-<?php
-        echo form_open_multipart('rapprochements/rapprochez');
-        
-        // Inputs hidden pour le mode manuel
-        echo '<input type="hidden" name="manual_mode" value="1">';
-        echo '<input type="hidden" name="line" value="' . $line . '">';
-        
-        echo '<div class="mt-3">';
-        
-        // Créer une version modifiée du tableau pour le rapprochement manuel
-        $modified_gvv_lines = array();
-        foreach ($gvv_lines as $row) {
-            $modified_row = array();
-            foreach ($row as $index => $cell) {
-                if ($index === 0) {
-                    // Remplacer cbdel_ par cb_ dans la première colonne (checkboxes)
-                    // Extraire l'ID de l'écriture de la checkbox
-                    if (preg_match('/cbdel_(\d+)/', $cell, $matches)) {
-                        $ecriture_id = $matches[1];
-                        $modified_cell = str_replace('cbdel_', 'cb_', $cell);
-                        // Ajouter l'input hidden avec string_releve_{ecriture_id}
-                        $modified_cell .= '<input type="hidden" name="string_releve_' . $ecriture_id . '" value="' . htmlspecialchars($string_releve) . '">';
-                        $modified_row[] = $modified_cell;
+
+            <?php
+            echo form_open_multipart('rapprochements/rapprochez');
+
+            // Inputs hidden pour le mode manuel
+            echo '<input type="hidden" name="manual_mode" value="1">';
+            echo '<input type="hidden" name="line" value="' . $line . '">';
+
+            echo '<div class="mt-3">';
+
+            // Créer une version modifiée du tableau pour le rapprochement manuel
+            $modified_gvv_lines = array();
+            foreach ($gvv_lines as $row) {
+                $modified_row = array();
+                foreach ($row as $index => $cell) {
+                    if ($index === 0) {
+                        // Remplacer cbdel_ par cb_ dans la première colonne (checkboxes)
+                        // Extraire l'ID de l'écriture de la checkbox
+                        if (preg_match('/cbdel_(\d+)/', $cell, $matches)) {
+                            $ecriture_id = $matches[1];
+                            $modified_cell = str_replace('cbdel_', 'cb_', $cell);
+                            // Ajouter l'input hidden avec string_releve_{ecriture_id}
+                            $modified_cell .= '<input type="hidden" name="string_releve_' . $ecriture_id . '" value="' . htmlspecialchars($string_releve) . '">';
+                            $modified_row[] = $modified_cell;
+                        } else {
+                            $modified_row[] = $cell;
+                        }
                     } else {
                         $modified_row[] = $cell;
                     }
-                } else {
-                    $modified_row[] = $cell;
                 }
+                $modified_gvv_lines[] = $modified_row;
             }
-            $modified_gvv_lines[] = $modified_row;
-        }
-        
-        echo table_from_array($modified_gvv_lines, array(
-            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
-            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
-            'class' => 'datatable_500 table'
-        ));
-        echo '</div>';
-?>
+
+            echo table_from_array($modified_gvv_lines, array(
+                'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+                'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+                'class' => 'datatable_500 table'
+            ));
+            echo '</div>';
+            ?>
 
         </div>
     </div>
