@@ -23,11 +23,11 @@ $this->load->view('bs_banner');
 echo '<div id="body" class="body container-fluid">';
 echo heading("Tests", 3);
 
-echo p("Cette page permet l'activation des tests unitaires. Note: elle doit être activable par tout les utilisateurs, pas seulement les administrateurs.");
+echo p("Cette page permet l'activation des tests unitaires CodeIgniter. Note: elle doit être activable par tout les utilisateurs, pas seulement les administrateurs.");
+echo p("Les tests CodeIgniter vont être graduellement remplacés par des tests phpunit");
 
 echo heading("Tests des librairies et helpers", 4);
 $list = array(
-	anchor(controller_url("tests/test_helpers"), "Helpers"),
 	anchor(controller_url("tests/test_libraries"), "Libraries")
 );
 echo ul($list);
