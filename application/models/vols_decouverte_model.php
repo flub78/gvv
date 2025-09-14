@@ -25,24 +25,91 @@ class Vols_decouverte_model extends Common_Model {
      */
     public function select_page($nb = 1000, $debut = 0) {
         $to_select = 'id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix';
-        // select per section
+        
+        // Build the where clause based on active filters
+        $where_conditions = [];
+        $db = $this->db;
+        
+        // Section filter
         if ($this->section) {
-            // select elements from vols_decouverte where product has club equal to $this->section_id
-            $db_res = $this->db
-                ->select($to_select)
-                ->from('vols_decouverte')
-                ->where('club', $this->section_id)
-                ->order_by('date_vente desc')
-                ->get();
-            $select = $this->get_to_array($db_res);
-        } else {
-            $db_res = $this->db
-            ->select($to_select)
-            ->from('vols_decouverte')
-            ->order_by('date_vente desc')
-            ->get();
-        $select = $this->get_to_array($db_res);
+            $where_conditions[] = ['field' => 'club', 'value' => $this->section_id];
         }
+        
+        // Apply session filters
+        $filter_active = $this->session->userdata('vd_filter_active');
+        if ($filter_active) {
+            // Date/Year filtering with precedence logic
+            $use_date_range = $this->session->userdata('vd_use_date_range');
+            $startDate = $this->session->userdata('vd_startDate');
+            $endDate = $this->session->userdata('vd_endDate');
+            $year = $this->session->userdata('vd_year');
+            
+            if ($use_date_range && $startDate && $endDate) {
+                // Use date range (takes precedence)
+                $where_conditions[] = ['field' => 'date_vente >=', 'value' => $startDate];
+                $where_conditions[] = ['field' => 'date_vente <=', 'value' => $endDate];
+            } elseif ($year && $year != date('Y')) {
+                // Use year filter
+                $start_year = $year . '-01-01';
+                $end_year = $year . '-12-31';
+                $where_conditions[] = ['field' => 'date_vente >=', 'value' => $start_year];
+                $where_conditions[] = ['field' => 'date_vente <=', 'value' => $end_year];
+            }
+            
+            // Filter type conditions
+            $filter_type = $this->session->userdata('vd_filter_type');
+            if ($filter_type && $filter_type != 'all') {
+                switch ($filter_type) {
+                    case 'done':
+                        $where_conditions[] = ['field' => 'date_vol IS NOT NULL', 'value' => null, 'no_escape' => true];
+                        $where_conditions[] = ['field' => 'cancelled', 'value' => 0];
+                        break;
+                    case 'todo':
+                        $where_conditions[] = ['field' => 'date_vol IS NULL', 'value' => null, 'no_escape' => true];
+                        $where_conditions[] = ['field' => 'cancelled', 'value' => 0];
+                        // Not expired
+                        $one_year_ago = date('Y-m-d', strtotime('-1 year'));
+                        $where_conditions[] = ['field' => 'date_vente >=', 'value' => $one_year_ago];
+                        break;
+                    case 'cancelled':
+                        $where_conditions[] = ['field' => 'cancelled', 'value' => 1];
+                        break;
+                    case 'expired':
+                        $where_conditions[] = ['field' => 'date_vol IS NULL', 'value' => null, 'no_escape' => true];
+                        $where_conditions[] = ['field' => 'cancelled', 'value' => 0];
+                        // Expired (older than 1 year)
+                        $one_year_ago = date('Y-m-d', strtotime('-1 year'));
+                        $where_conditions[] = ['field' => 'date_vente <', 'value' => $one_year_ago];
+                        break;
+                }
+            }
+        } else {
+            // No filters active - show current year by default only if year selector is used
+            $year = $this->session->userdata('vd_year');
+            if ($year && $year != date('Y')) {
+                $start_year = $year . '-01-01';
+                $end_year = $year . '-12-31';
+                $where_conditions[] = ['field' => 'date_vente >=', 'value' => $start_year];
+                $where_conditions[] = ['field' => 'date_vente <=', 'value' => $end_year];
+            }
+        }
+        
+        // Build query
+        $db->select($to_select)->from('vols_decouverte');
+        
+        // Apply where conditions
+        foreach ($where_conditions as $condition) {
+            if (isset($condition['no_escape']) && $condition['no_escape']) {
+                $db->where($condition['field']);
+            } else {
+                $db->where($condition['field'], $condition['value']);
+            }
+        }
+        
+        $db->order_by('date_vente desc');
+        $db_res = $db->get();
+        $select = $this->get_to_array($db_res);
+        
         $i = 0;
         foreach ($select as $elt) {
             $product = $elt['product'];
@@ -137,5 +204,31 @@ class Vols_decouverte_model extends Common_Model {
         } else {
             return ($year - 2000) * 10000;
         }
+    }
+
+    /**
+     * Get available years for year selector dropdown
+     *
+     * @return array Associative array of years available in the database
+     */
+    public function get_available_years() {
+        $query = $this->db->select('DISTINCT(YEAR(date_vente)) as year')
+                          ->from('vols_decouverte')
+                          ->order_by('year', 'DESC')
+                          ->get();
+        
+        $years = [];
+        foreach ($query->result_array() as $row) {
+            $year = $row['year'];
+            $years[$year] = (string)$year;
+        }
+        
+        // Always include current year if not present
+        $current_year = date('Y');
+        if (!isset($years[$current_year])) {
+            $years[$current_year] = (string)$current_year;
+        }
+        
+        return $years;
     }
 }/* End of file */

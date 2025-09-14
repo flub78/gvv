@@ -54,6 +54,12 @@ $lang['gvv_vols_decouverte_filtre_todo'] = "A faire";
 $lang['gvv_vols_decouverte_filtre_cancelled'] = "Supprimés";
 $lang['gvv_vols_decouverte_filtre_obsolete'] = "Périmés";
 
+$lang['gvv_vols_decouverte_filter_all'] = "Tous";
+$lang['gvv_vols_decouverte_filter_done'] = "Effectués";
+$lang['gvv_vols_decouverte_filter_todo'] = "À faire";
+$lang['gvv_vols_decouverte_filter_cancelled'] = "Annulés";
+$lang['gvv_vols_decouverte_filter_expired'] = "Expirés";
+
 $lang['gvv_vols_decouverte_action_print'] = "Imprimer";
 $lang['gvv_vols_decouverte_action_email'] = "Envoyer par email";
 $lang['gvv_vols_decouverte_action_plan'] = "Planifier";

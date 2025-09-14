@@ -47,6 +47,142 @@ class Vols_decouverte extends Gvv_Controller {
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
         $this->load->model('configuration_model');
+        $this->load->library('session');
+    }
+
+    /**
+     * Filter discovery flights based on user criteria
+     * Handles filter form submissions and stores criteria in session
+     */
+    public function filter() {
+        $post = $this->input->post();
+        $button = $post['button'] ?? '';
+        
+        if ($button == 'Filtrer') {
+            // Validate and store filter parameters
+            $start_date = $this->_validate_date($post['startDate'] ?? '');
+            $end_date = $this->_validate_date($post['endDate'] ?? '');
+            $filter_type = $this->_validate_filter_type($post['filter_type'] ?? '');
+            $year = $this->_validate_year($post['year'] ?? date('Y'));
+            
+            // Date logic validation
+            if ($start_date && $end_date && $start_date > $end_date) {
+                $this->session->set_userdata('vd_filter_error', 'La date de début doit être antérieure à la date de fin.');
+                $start_date = '';
+                $end_date = '';
+            }
+
+            // When start and end dates are set, they take precedence over year
+            if ($start_date && $end_date) {
+                $this->session->set_userdata('vd_use_date_range', true);
+            } else {
+                $this->session->set_userdata('vd_use_date_range', false);
+            }
+
+            $this->session->set_userdata('vd_startDate', $start_date);
+            $this->session->set_userdata('vd_endDate', $end_date);
+            $this->session->set_userdata('vd_filter_type', $filter_type);
+            $this->session->set_userdata('vd_year', $year);
+            $this->session->set_userdata('vd_filter_active', true);
+        } else {
+            // Clear filters but keep the year selector
+            $this->session->unset_userdata(['vd_startDate', 'vd_endDate', 'vd_filter_type', 'vd_use_date_range']);
+            $this->session->set_userdata('vd_filter_active', false);
+        }
+
+        // Redirect back to page
+        $return_url = $this->_validate_return_url($post['return_url'] ?? '');
+        if (!empty($return_url)) {
+            redirect($return_url);
+        } else {
+            redirect('vols_decouverte/page');
+        }
+    }
+
+    /**
+     * Validate date input (YYYY-MM-DD format)
+     */
+    private function _validate_date($date) {
+        if (empty($date)) {
+            return '';
+        }
+        
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date_parts = explode('-', $date);
+            if (checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
+                return $date;
+            }
+        }
+        
+        return '';
+    }
+
+    /**
+     * Validate filter type selection
+     */
+    private function _validate_filter_type($filter_type) {
+        $valid_types = ['all', 'done', 'todo', 'cancelled', 'expired'];
+        return in_array($filter_type, $valid_types) ? $filter_type : 'all';
+    }
+
+    /**
+     * Validate year input
+     */
+    private function _validate_year($year) {
+        if (is_numeric($year) && $year >= 2000 && $year <= date('Y') + 10) {
+            return (int)$year;
+        }
+        return date('Y');
+    }
+
+    /**
+     * Validate return URL to prevent open redirect vulnerability
+     */
+    private function _validate_return_url($return_url) {
+        if (empty($return_url)) {
+            return '';
+        }
+        
+        // Only allow internal URLs (relative paths)
+        $parsed_url = parse_url($return_url);
+        if (!isset($parsed_url['scheme']) && !isset($parsed_url['host'])) {
+            $return_url = filter_var($return_url, FILTER_SANITIZE_URL);
+            if ($return_url) {
+                return $return_url;
+            }
+        }
+        
+        return '';
+    }
+
+    /**
+     * Page override to provide filter data to the view
+     */
+    public function page($year = null) {
+        // Set year from parameter or session
+        if ($year !== null) {
+            $this->session->set_userdata('vd_year', $year);
+        }
+        $current_year = $this->session->userdata('vd_year') ?: date('Y');
+        
+        // Prepare filter data for the view
+        $this->data['filter_active'] = $this->session->userdata('vd_filter_active') ?: false;
+        $this->data['startDate'] = $this->session->userdata('vd_startDate') ?: '';
+        $this->data['endDate'] = $this->session->userdata('vd_endDate') ?: '';
+        $this->data['filter_type'] = $this->session->userdata('vd_filter_type') ?: 'all';
+        $this->data['year'] = $current_year;
+        $this->data['year_selector'] = $this->gvv_model->get_available_years();
+        $this->data['controller'] = $this->controller;
+        
+        // Handle filter error messages
+        $filter_error = $this->session->userdata('vd_filter_error');
+        if ($filter_error) {
+            $this->data['filter_error'] = $filter_error;
+            $this->session->unset_userdata('vd_filter_error');
+        }
+        
+        // Call parent page method
+        return parent::page();
     }
 
     /**
