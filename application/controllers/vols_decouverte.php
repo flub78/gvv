@@ -58,8 +58,8 @@ class Vols_decouverte extends Gvv_Controller {
         $post = $this->input->post();
         $button = $post['button'] ?? '';
         
-        if ($button == 'Filtrer') {
-            // Validate and store filter parameters
+        if ($button == $this->lang->line("gvv_str_select")) {
+            // Enable filtering - validate and store filter parameters
             $start_date = $this->_validate_date($post['startDate'] ?? '');
             $end_date = $this->_validate_date($post['endDate'] ?? '');
             $filter_type = $this->_validate_filter_type($post['filter_type'] ?? '');
@@ -77,10 +77,12 @@ class Vols_decouverte extends Gvv_Controller {
             $this->session->set_userdata('vd_filter_type', $filter_type);
             $this->session->set_userdata('vd_year', $year);
             $this->session->set_userdata('vd_filter_active', true);
+            $this->session->set_userdata('filter_active', true); // For filter_buttons() helper
         } else {
-            // Clear filters but keep the year selector
-            $this->session->unset_userdata(['vd_startDate', 'vd_endDate', 'vd_filter_type']);
-            $this->session->set_userdata('vd_filter_active', false);
+            // Disable filtering - clear filters but keep the year selector
+            foreach (array('vd_startDate', 'vd_endDate', 'vd_filter_type', 'vd_filter_active', 'filter_active') as $field) {
+                $this->session->unset_userdata($field);
+            }
         }
 
         // Redirect back to page
