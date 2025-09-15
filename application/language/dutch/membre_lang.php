@@ -33,6 +33,7 @@ $lang['membre_fieldset_information'] = "Informatie";
 $lang['membre_filter_active'] = "Actief";
 $lang['membre_filter_age'] = "Leeftijd";
 $lang['membre_filter_category'] = "Categorie";
+$lang['membre_filter_validation'] = "Validatie";
 $lang['membre_filter_all'] = "Alle";
 
 $lang['membre_button_subscription'] = "Inschrijven";
@@ -74,6 +75,9 @@ $lang['gvv_membres_field_numlicencefed'] = "N° verzekering";
 $lang['gvv_membres_field_vallicencefed'] = "Datum verzekering";
 $lang['gvv_membres_field_dateivv'] = "Datum FI/FE";
 $lang['gvv_membres_field_pays'] = "Land";
+$lang['gvv_membres_field_place_of_birth'] = "Geboorteplaats";
+$lang['gvv_membres_field_inscription_date'] = "Inschrijvingsdatum";
+$lang['gvv_membres_field_validation_date'] = "Validatiedatum";
 
 $lang['gvv_membres_field_mlieun'] = "Geboorteplaats";
 $lang['gvv_membres_field_msexe'] = "Geslacht";
@@ -107,6 +111,7 @@ $lang['gvv_membres_short_field_photo'] = "Foto";
 
 $lang['membres_filter_active_select'] = array(0 => 'Alle', 1 => 'Inactief', 2 => 'Actief');
 $lang['membres_filter_age'] = array(0 => 'Alle', 1 => '-25 jaar', 2 => '+25 jaar');
+$lang['membres_filter_validation'] = array(0 => 'Alle', 1 => 'In afwachting van validatie', 2 => 'Gevalideerd');
 
 $lang['membres_niveaux'] = array(
 	PRESIDENT => "Voorzitter",

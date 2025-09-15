@@ -31,6 +31,7 @@ $lang['membre_fieldset_information'] = "Informations";
 $lang['membre_filter_active'] = "Active";
 $lang['membre_filter_age'] = "Age";
 $lang['membre_filter_category'] = "Catégories";
+$lang['membre_filter_validation'] = "Validation";
 $lang['membre_filter_all'] = "All";
 
 $lang['membre_button_subscription'] = "Subscription";
@@ -71,6 +72,9 @@ $lang['gvv_membres_field_numlicencefed'] = "Insurance number";
 $lang['gvv_membres_field_vallicencefed'] = "Insurance date";
 $lang['gvv_membres_field_dateivv'] = "Glider instructor validity date";
 $lang['gvv_membres_field_pays'] = "Country";
+$lang['gvv_membres_field_place_of_birth'] = "Place of birth";
+$lang['gvv_membres_field_inscription_date'] = "Registration date";
+$lang['gvv_membres_field_validation_date'] = "Validation date";
 
 $lang['gvv_membres_field_mlieun'] = "Birthplace";
 $lang['gvv_membres_field_msexe'] = "Gender";
@@ -102,6 +106,7 @@ $lang['gvv_membres_short_field_photo'] = "Picture";
 
 $lang['membres_filter_active_select'] = array(0 => 'All', 1 => 'inactive', 2 => 'active');
 $lang['membres_filter_age'] = array(0 => 'All', 1 => '-25 year', 2 => '+25 year');
+$lang['membres_filter_validation'] = array(0 => 'All', 1 => 'Pending validation', 2 => 'Validated');
 
 $lang['membres_niveaux'] = array(
 	PRESIDENT => "President",

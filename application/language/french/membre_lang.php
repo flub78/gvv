@@ -32,6 +32,7 @@ $lang['membre_fieldset_information'] = "Informations";
 $lang['membre_filter_active'] = "Actifs";
 $lang['membre_filter_age'] = "Age";
 $lang['membre_filter_category'] = "Catégorie";
+$lang['membre_filter_validation'] = "Validation";
 $lang['membre_filter_all'] = "Tous";
 
 $lang['membre_button_subscription'] = "Adhésion";
@@ -73,6 +74,9 @@ $lang['gvv_membres_field_numlicencefed'] = "N° licence/assurance";
 $lang['gvv_membres_field_vallicencefed'] = "Date licence/assurance";
 $lang['gvv_membres_field_dateivv'] = "Validité instructeur planeur";
 $lang['gvv_membres_field_pays'] = "Pays";
+$lang['gvv_membres_field_place_of_birth'] = "Lieu de naissance";
+$lang['gvv_membres_field_inscription_date'] = "Date d'inscription";
+$lang['gvv_membres_field_validation_date'] = "Date de validation par le CA";
 
 $lang['gvv_membres_field_mlieun'] = "Lieu de naisance";
 $lang['gvv_membres_field_msexe'] = "Genre";
@@ -104,6 +108,7 @@ $lang['gvv_membres_short_field_photo'] = "Photo";
 
 $lang['membres_filter_active_select'] = array(0 => 'Tous', 1 => 'inactifs', 2 => 'actifs');
 $lang['membres_filter_age'] = array(0 => 'Tous', 1 => '-25 ans', 2 => '+25 ans');
+$lang['membres_filter_validation'] = array(0 => 'Tous', 1 => 'En attente de validation', 2 => 'Validés');
 
 $lang['membres_niveaux'] = array(
 	PRESIDENT => "Président",

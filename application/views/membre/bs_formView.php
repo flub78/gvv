@@ -160,6 +160,10 @@ $table[$row][] = $this->gvvmetadata->input_field("membres", 'mdaten', $mdaten)
     . $tabs . $this->lang->line("gvv_membres_field_categorie") . ": " . radio_field('m25ans', $m25ans, $attrs25);
 
 $row++;
+$table[$row][] = $this->lang->line("gvv_membres_field_place_of_birth");
+$table[$row][] = $this->gvvmetadata->input_field("membres", 'place_of_birth', $place_of_birth);
+
+$row++;
 $table[$row][] = "";
 $table[$row][] = $tabs .  $this->lang->line("gvv_membres_field_actif") .  ": "
     . "<span title=\"" . $this->lang->line("membre_tooltip_active") . "\">"
@@ -167,6 +171,12 @@ $table[$row][] = $tabs .  $this->lang->line("gvv_membres_field_actif") .  ": "
     . $tabs . $this->lang->line("gvv_membres_field_numlicencefed") .  ": "
     . $this->gvvmetadata->input_field("membres", 'licfed', $licfed)
     . "";
+
+$row++;
+$table[$row][] = $this->lang->line("gvv_membres_field_inscription_date");
+$table[$row][] = $this->gvvmetadata->input_field("membres", 'inscription_date', $inscription_date)
+    . $tabs . $this->lang->line("gvv_membres_field_validation_date") . ": "
+    . $this->gvvmetadata->input_field("membres", 'validation_date', $validation_date);
 
 display_form_table($table);
 echo "</div>\n";

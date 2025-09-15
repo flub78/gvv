@@ -114,7 +114,7 @@ class Membres_model extends Common_Model {
      * @return objet La liste
      */
     public function select_page($nb = 1000, $debut = 0, $selection = array()) {
-        $select = $this->db->select('mlogin, mprenom, trigramme, mnom, madresse, cp, ville, mtelf, mtelm, memail, mdaten, m25ans, msexe, actif, categorie, photo')->from($this->table)->order_by('mnom, mprenom')->where($selection)->
+        $select = $this->db->select('mlogin, mprenom, trigramme, mnom, madresse, cp, ville, mtelf, mtelm, memail, mdaten, m25ans, msexe, actif, categorie, photo, place_of_birth, inscription_date, validation_date')->from($this->table)->order_by('mnom, mprenom')->where($selection)->
         // ->limit($nb, $debut)
         get()->result_array();
 

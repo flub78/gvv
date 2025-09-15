@@ -75,6 +75,11 @@ $this->lang->load('membre');
 
                         </div>
 
+                        <!-- Validation -->
+                        <div class="d-md-flex flex-row  mb-2">
+                            <?= $this->lang->line("membre_filter_validation") . ": " .  enumerate_radio_fields($this->lang->line("membres_filter_validation"), 'filter_validation', $filter_validation) ?>
+                        </div>
+
                         <div class="d-md-flex flex-row">
                             <?= filter_buttons() ?>
                         </div>

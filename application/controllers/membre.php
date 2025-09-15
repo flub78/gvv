@@ -45,7 +45,8 @@ class Membre extends Gvv_Controller {
         'filter_active',
         'filter_membre_actif',
         'filter_categorie',
-        'filter_25'
+        'filter_25',
+        'filter_validation'
     );
 
     /**
@@ -162,6 +163,20 @@ class Membre extends Gvv_Controller {
                     $selection .= " and ";
                 }
                 $selection .= "(categorie = \"$categorie\" )";
+            }
+
+            $filter_validation = $this->session->userdata('filter_validation');
+            if ($filter_validation) {
+                if ($selection) {
+                    $selection .= " and ";
+                }
+                if ($filter_validation == 1) {
+                    // En attente de validation - validation_date is null
+                    $selection .= "(validation_date IS NULL )";
+                } else if ($filter_validation == 2) {
+                    // Validés - validation_date is not null
+                    $selection .= "(validation_date IS NOT NULL )";
+                }
             }
         }
 
