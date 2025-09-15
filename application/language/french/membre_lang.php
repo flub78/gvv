@@ -32,7 +32,7 @@ $lang['membre_fieldset_information'] = "Informations";
 $lang['membre_filter_active'] = "Actifs";
 $lang['membre_filter_age'] = "Age";
 $lang['membre_filter_category'] = "Catégorie";
-$lang['membre_filter_validation'] = "Validation";
+$lang['membre_filter_validation'] = "Membre du club";
 $lang['membre_filter_all'] = "Tous";
 
 $lang['membre_button_subscription'] = "Adhésion";
@@ -108,7 +108,7 @@ $lang['gvv_membres_short_field_photo'] = "Photo";
 
 $lang['membres_filter_active_select'] = array(0 => 'Tous', 1 => 'inactifs', 2 => 'actifs');
 $lang['membres_filter_age'] = array(0 => 'Tous', 1 => '-25 ans', 2 => '+25 ans');
-$lang['membres_filter_validation'] = array(0 => 'Tous', 1 => 'En attente de validation', 2 => 'Validés');
+$lang['membres_filter_validation'] = array(0 => 'Tous', 1 => 'En attente de validation par le CA', 2 => 'Validés');
 
 $lang['membres_niveaux'] = array(
 	PRESIDENT => "Président",
