@@ -72,13 +72,6 @@ class Vols_decouverte extends Gvv_Controller {
                 $end_date = '';
             }
 
-            // When start and end dates are set, they take precedence over year
-            if ($start_date && $end_date) {
-                $this->session->set_userdata('vd_use_date_range', true);
-            } else {
-                $this->session->set_userdata('vd_use_date_range', false);
-            }
-
             $this->session->set_userdata('vd_startDate', $start_date);
             $this->session->set_userdata('vd_endDate', $end_date);
             $this->session->set_userdata('vd_filter_type', $filter_type);
@@ -86,7 +79,7 @@ class Vols_decouverte extends Gvv_Controller {
             $this->session->set_userdata('vd_filter_active', true);
         } else {
             // Clear filters but keep the year selector
-            $this->session->unset_userdata(['vd_startDate', 'vd_endDate', 'vd_filter_type', 'vd_use_date_range']);
+            $this->session->unset_userdata(['vd_startDate', 'vd_endDate', 'vd_filter_type']);
             $this->session->set_userdata('vd_filter_active', false);
         }
 
