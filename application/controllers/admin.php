@@ -116,8 +116,9 @@ class Admin extends CI_Controller {
         gvv_info("Backup media command: " . $command);
         exec($command, $output, $return_code);
         gvv_info("Backup media return code: " . $return_code . ", Output: " . implode("\n", $output));
-        
-        if ($return_code == 0 && file_exists($full_backup_path)) {
+
+        // if ($return_code == 0 && file_exists($full_backup_path)) {
+        if ($return_code == 0) {
             // Load the download helper and send the file to browser
             $this->load->helper('download');
             $data = file_get_contents($full_backup_path);
