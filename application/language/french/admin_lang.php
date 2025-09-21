@@ -11,13 +11,15 @@ $lang['gvv_admin_title_config'] = "Configuration";
 $lang['gvv_admin_title_admin'] = "Administration";
 $lang['gvv_admin_title_rights'] = "Gestion des droits";
 $lang['gvv_admin_title_tests'] = "Tests";
-$lang['gvv_admin_title_restore'] = "Restauration de la base de données";
+$lang['gvv_admin_title_restore'] = "Restauration des données";
 
 $lang['gvv_admin_menu_config'] = "Configuration du club";
 $lang['gvv_admin_menu_certificates'] = "Types de dates et certificats";
 
 $lang['gvv_admin_menu_backup'] = "Sauvegarde de la base de données";
-$lang['gvv_admin_menu_restore'] = "Restauration de la base de données";
+$lang['gvv_admin_menu_backup_media'] = "Sauvegarde des médias";
+$lang['gvv_admin_menu_restore'] = "Restauration des données";
+$lang['gvv_admin_menu_restore_media'] = "Restauration des médias";
 $lang['gvv_admin_menu_migrate'] = "Migration de la base de données";
 $lang['gvv_admin_menu_structure'] = "Structure de la base de données";
 $lang['gvv_admin_menu_default'] = "Sauvegarde des tables par défaut";
@@ -35,4 +37,13 @@ $lang['gvv_admin_db_warning'] = "Attention, par défaut la restauration de la ba
 $lang['gvv_admin_db_select'] = "Choisissez la sauvegarde que vous voulez recharger.";
 $lang['gvv_admin_db_overwrite'] = "Ecraser la base actuelle";
 $lang['gvv_admin_db_success'] = "La base a été rechargée depuis la sauvegarde";
+
+// Media backup/restore
+$lang['gvv_admin_media_backup_title'] = "Sauvegarde des médias";
+$lang['gvv_admin_media_restore_title'] = "Restauration des médias";
+$lang['gvv_admin_media_backup_desc'] = "Télécharger tous les fichiers médias (images, documents) dans une archive";
+$lang['gvv_admin_media_restore_desc'] = "Restaurer les fichiers médias depuis une archive";
+$lang['gvv_admin_media_merge'] = "Fusionner avec les fichiers existants";
+$lang['gvv_admin_media_replace'] = "Remplacer tous les fichiers existants";
+$lang['gvv_admin_media_success'] = "Les médias ont été restaurés avec succès depuis";
 

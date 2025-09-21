@@ -49,7 +49,7 @@ echo ul($list, $attributes);
 
 echo heading("gvv_admin_title_admin", 4);
 $list = array(
-	anchor(controller_url('admin/backup'), $this->lang->line("gvv_admin_menu_backup"), array("class" => "jbutton")),
+	anchor(controller_url('admin/backup_form'), 'Sauvegardes', array("class" => "jbutton")),
 	anchor(controller_url('admin/restore'), $this->lang->line("gvv_admin_menu_restore"), array("class" => "jbutton")),
 	anchor(controller_url('migration'), $this->lang->line("gvv_admin_menu_migrate"), array("class" => "jbutton"))
 );

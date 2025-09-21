@@ -137,7 +137,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
                 <li><a class="dropdown-item" href="#"><?= translation("gvv_menu_admin_system") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= controller_url("admin/backup") ?>"><?= translation("welcome_database_backup_title") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("admin/backup_form") ?>">Sauvegarde des données</a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("admin/restore") ?>"><?= translation("gvv_admin_menu_restore") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("migration") ?>"><?= translation("gvv_admin_menu_migrate") ?></a></li>
 

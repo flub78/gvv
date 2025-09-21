@@ -51,6 +51,84 @@ class Admin extends CI_Controller {
     }
 
     /**
+     * Sauvegarde des fichiers média
+     */
+    public function backup_media() {
+        $this->load->helper('file');
+        
+        // Path to uploads directory (excluding restore subdirectory)
+        $uploads_path = './uploads';
+        
+        // Check if uploads directory exists
+        if (!is_dir($uploads_path)) {
+            show_error('Le répertoire uploads n\'existe pas');
+            return;
+        }
+        
+        // Check if there are any files to backup (excluding restore directory)
+        $files = glob($uploads_path . '/*');
+        $has_content = false;
+        foreach ($files as $file) {
+            if (basename($file) !== 'restore') {
+                $has_content = true;
+                break;
+            }
+        }
+        
+        if (!$has_content) {
+            show_error('Aucun fichier média à sauvegarder (le répertoire uploads est vide)');
+            return;
+        }
+        
+        // Get club name and create filename following same convention as database
+        $nom_club = $this->config->item('nom_club');
+        if (!$nom_club) {
+            $nom_club = 'gvv_club'; // fallback
+        }
+        $clubid = 'gvv_' . strtolower(str_replace(' ', '_', $nom_club)) . '_media_';
+        $dt = date("Y_m_d");
+        $filename = $clubid . "$dt.tar.gz";
+        
+        $backup_path = './backups';
+        
+        // Ensure backups directory exists
+        if (!is_dir($backup_path)) {
+            mkdir($backup_path, 0755, true);
+        }
+        
+        $full_backup_path = $backup_path . '/' . $filename;
+        
+        // Create tar.gz archive excluding the restore subdirectory
+        // Use absolute paths to avoid issues
+        $abs_uploads_path = realpath($uploads_path);
+        $abs_backup_path = realpath($backup_path);
+        
+        if (!$abs_uploads_path) {
+            show_error('Impossible de résoudre le chemin du répertoire uploads');
+            return;
+        }
+        
+        // Create tar.gz archive excluding the restore subdirectory
+        $command = "cd " . escapeshellarg($abs_uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($abs_backup_path . '/' . $filename) . " .";
+        
+        exec($command, $output, $return_code);
+        
+        if ($return_code === 0 && file_exists($full_backup_path)) {
+            // Load the download helper and send the file to browser
+            $this->load->helper('download');
+            $data = file_get_contents($full_backup_path);
+            force_download($filename, $data);
+            
+            // Clean up the temporary backup file after download
+            unlink($full_backup_path);
+        } else {
+            show_error('Erreur lors de la création de la sauvegarde des médias. Code de retour: ' . $return_code . 
+                      '<br>Commande: ' . htmlspecialchars($command) . 
+                      '<br>Sortie: ' . implode('<br>', $output));
+        }
+    }
+
+    /**
      * Affiche la page de restauration
      *
      * A completer. Peut-être vaudrait-il mieux ne pas supporter
@@ -75,6 +153,13 @@ class Admin extends CI_Controller {
             $error['backups'] = $backups;
         }
         load_last_view('admin/restore_form', $error);
+    }
+
+    /**
+     * Affiche la page de sauvegarde unifiée
+     */
+    public function backup_form() {
+        load_last_view('admin/backup_form', array());
     }
 
     /**
@@ -175,6 +260,225 @@ class Admin extends CI_Controller {
     }
 
     /**
+     * Restaure les fichiers média
+     */
+    public function do_restore_media() {
+        $upload_path = './uploads/restore/';
+        if (! file_exists($upload_path)) {
+            if (! mkdir($upload_path, 0755, true)) {
+                die("Cannot create " . $upload_path);
+            }
+        }
+
+        // delete all files in the uploads/restore directory
+        $files = glob($upload_path . '*');
+        foreach ($files as $file) {
+            if (is_file($file))
+                unlink($file);
+        }
+
+        // upload archive
+        $config['upload_path'] = $upload_path;
+        $config['allowed_types'] = 'tar|gz|tgz'; // Allow tar, gz, and tgz files
+        $config['max_size'] = '500000'; // 500MB for media files
+        $config['file_ext_tolower'] = FALSE; // Don't force lowercase extension checking
+        $config['remove_spaces'] = FALSE; // Don't remove spaces from filenames
+
+        $this->load->library('upload', $config);
+
+        $merge_media = $this->input->post('merge_media');
+
+        if (! $this->upload->do_upload()) {
+            $error = array(
+                'error' => $this->upload->display_errors(),
+                'merge_media' => 1
+            );
+            load_last_view('admin/restore_form', $error);
+        } else {
+            $data = $this->upload->data();
+            $filename = $config['upload_path'] . $data['file_name'];
+            
+            // Custom validation: ensure we only accept archive files
+            $file_ext = strtolower(pathinfo($data['orig_name'], PATHINFO_EXTENSION));
+            $orig_name_lower = strtolower($data['orig_name']);
+            
+            // Check if it's a valid archive file
+            $is_valid_archive = in_array($file_ext, ['tar', 'gz', 'tgz']) || 
+                               strpos($orig_name_lower, '.tar.gz') !== false ||
+                               strpos($orig_name_lower, '.tar') !== false;
+            
+            if (!$is_valid_archive) {
+                // Remove uploaded file and show error
+                unlink($filename);
+                $error = array(
+                    'error' => 'Seuls les fichiers d\'archive (.tar, .gz, .tgz, .tar.gz) sont autorisés pour la restauration des médias.',
+                    'merge_media' => 1
+                );
+                load_last_view('admin/restore_form', $error);
+                return;
+            }
+            
+            // Handle different archive formats
+            $file_ext = strtolower(pathinfo($data['orig_name'], PATHINFO_EXTENSION));
+            $orig_name_lower = strtolower($data['orig_name']);
+            
+            if (in_array($file_ext, ['tar', 'gz', 'tgz']) || strpos($orig_name_lower, '.tar.gz') !== false) {
+                // Extract tar.gz archive to uploads directory
+                $uploads_path = './uploads/';
+                
+                if (!$merge_media) {
+                    // If not merging, backup existing uploads first
+                    $backup_existing = './uploads_backup_' . date('Y_m_d_H_i_s');
+                    if (is_dir($uploads_path)) {
+                        // Create backup of existing directory
+                        $command_backup = "cp -r " . escapeshellarg(rtrim($uploads_path, '/')) . " " . escapeshellarg($backup_existing);
+                        exec($command_backup, $backup_output, $backup_return);
+                        
+                        if ($backup_return === 0) {
+                            // Remove existing content except restore directory
+                            $existing_files = glob($uploads_path . '*');
+                            foreach ($existing_files as $existing_file) {
+                                if (basename($existing_file) !== 'restore') {
+                                    if (is_dir($existing_file)) {
+                                        $this->remove_directory($existing_file);
+                                    } else {
+                                        unlink($existing_file);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Ensure uploads directory exists
+                if (!is_dir($uploads_path)) {
+                    mkdir($uploads_path, 0755, true);
+                }
+                
+                // Get absolute paths
+                $abs_uploads_path = realpath($uploads_path);
+                $abs_filename = realpath($filename);
+                
+                if (!$abs_uploads_path || !$abs_filename) {
+                    show_error('Erreur lors de la résolution des chemins pour la restauration');
+                    return;
+                }
+                
+                // Extract archive with multiple fallback methods
+                $success = false;
+                $extraction_method = '';
+                
+                // Method 1: Try with full path to tar
+                if (!$success) {
+                    $tar_path = '/usr/bin/tar';
+                    if (file_exists($tar_path)) {
+                        if ($file_ext === 'gz' && strpos($orig_name_lower, '.tar.gz') !== false) {
+                            $options = "-xzf";
+                        } else if ($file_ext === 'tgz') {
+                            $options = "-xzf";
+                        } else {
+                            $options = "-xf";
+                        }
+                        $command = "cd " . escapeshellarg($abs_uploads_path) . " && " 
+                        . $tar_path . " --overwrite --no-same-owner --no-same-permissions $options " . escapeshellarg($abs_filename) . " 2>&1";
+
+                        gvv_info("Method 1 - Full path tar command: " . $command);
+                        exec($command, $output, $return_code);
+                        gvv_info("Method 1 - Return code: " . $return_code . ", Output: " . implode("\n", $output));
+                        
+                        if ($return_code === 0) {
+                            $success = true;
+                            $extraction_method = 'full_path_tar';
+                        }
+                    }
+                }
+                
+                // Method 2: Try without cd, using absolute paths
+                if (!$success) {
+                    if ($file_ext === 'gz' && strpos($orig_name_lower, '.tar.gz') !== false) {
+                        $command = "tar --no-same-owner --no-same-permissions -xzf " . escapeshellarg($abs_filename) . " -C " . escapeshellarg($abs_uploads_path) . " 2>&1";
+                    } else if ($file_ext === 'tgz') {
+                        $command = "tar --no-same-owner --no-same-permissions -xzf " . escapeshellarg($abs_filename) . " -C " . escapeshellarg($abs_uploads_path) . " 2>&1";
+                    } else {
+                        $command = "tar --no-same-owner --no-same-permissions -xf " . escapeshellarg($abs_filename) . " -C " . escapeshellarg($abs_uploads_path) . " 2>&1";
+                    }
+                    
+                    gvv_info("Method 2 - Direct extraction command: " . $command);
+                    exec($command, $output2, $return_code2);
+                    gvv_info("Method 2 - Return code: " . $return_code2 . ", Output: " . implode("\n", $output2));
+                    
+                    if ($return_code2 === 0) {
+                        $success = true;
+                        $extraction_method = 'direct_tar';
+                        $return_code = $return_code2;
+                        $output = $output2;
+                    }
+                }
+                
+                // Method 3: Try PharData (PHP built-in)
+                if (!$success && (strpos($orig_name_lower, '.tar.gz') !== false || $file_ext === 'tgz')) {
+                    gvv_info("Method 3 - Trying PharData extraction");
+                    try {
+                        $phar = new PharData($abs_filename);
+                        $phar->extractTo($abs_uploads_path, null, true);
+                        $success = true;
+                        $extraction_method = 'phardata';
+                        $return_code = 0;
+                        gvv_info("Method 3 - PharData extraction successful");
+                    } catch (Exception $e) {
+                        gvv_error("Method 3 - PharData extraction failed: " . $e->getMessage());
+                    }
+                }
+                
+                gvv_info("Extraction result - Success: " . ($success ? 'YES' : 'NO') . ", Method: " . $extraction_method);
+                
+                // Clean up
+                // unlink($filename);
+                
+                if ($success) {
+                    $data['file_name'] = $data['orig_name'];
+                    $data['restore_type'] = 'media';
+                    $data['extraction_method'] = $extraction_method;
+                    gvv_info("Media restoration successful using method: " . $extraction_method);
+                    load_last_view('admin/restore_success', $data);
+                } else {
+                    $error_message = 'Erreur lors de la restauration des médias. ';
+                    if (isset($return_code)) {
+                        $error_message .= 'Code de retour: ' . $return_code . '. ';
+                    }
+                    if (!empty($output)) {
+                        $error_message .= 'Détails: ' . implode("\n", $output);
+                    }
+                    gvv_error("Media restoration failed: " . $error_message);
+                    show_error($error_message);
+                }
+            } else {
+                show_error('Format de fichier non supporté pour la restauration des médias. Formats acceptés: .tar.gz, .tgz, .tar');
+            }
+        }
+    }
+
+    /**
+     * Helper method to remove a directory recursively
+     */
+    private function remove_directory($dir) {
+        if (!is_dir($dir)) {
+            return false;
+        }
+        
+        $files = array_diff(scandir($dir), array('.', '..'));
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->remove_directory($path);
+            } else {
+                unlink($path);
+            }
+        }
+        return rmdir($dir);
+    }
+
+    /**
      * Restauration de la base de données
      *
      * A completer. Peut-etre vaudrait-il mieux ne pas supporter
@@ -223,10 +527,12 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Analyse la structure de la mbase de données
+     * Analyse la structure de la base de données
      */
     function metadata() {
         $this->load->library('gvvmetadata');
         $this->gvvmetadata->dump();
     }
+
+
 }
