@@ -115,7 +115,7 @@ class Admin extends CI_Controller {
         
         exec($command, $output, $return_code);
         
-        if ($return_code === 0 && file_exists($full_backup_path)) {
+        if ($return_code == 0 && file_exists($full_backup_path)) {
             // Load the download helper and send the file to browser
             $this->load->helper('download');
             $data = file_get_contents($full_backup_path);
