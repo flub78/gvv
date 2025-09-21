@@ -113,7 +113,9 @@ class Admin extends CI_Controller {
         // Create tar.gz archive excluding the restore subdirectory
         $command = "cd " . escapeshellarg($abs_uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($abs_backup_path . '/' . $filename) . " .";
         
+        gvv_info("Backup media command: " . $command);
         exec($command, $output, $return_code);
+        gvv_info("Backup media return code: " . $return_code . ", Output: " . implode("\n", $output));
         
         if ($return_code == 0 && file_exists($full_backup_path)) {
             // Load the download helper and send the file to browser
