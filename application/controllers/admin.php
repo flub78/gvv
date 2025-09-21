@@ -87,7 +87,9 @@ class Admin extends CI_Controller {
         }
         $clubid = 'gvv_' . strtolower(str_replace(' ', '_', $nom_club)) . '_media_';
         $dt = date("Y_m_d");
-        $filename = $clubid . "$dt.tar.gz";
+        // Replace any quote or non-printable character by _
+        $safe_clubid = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]/', '_', $clubid);
+        $filename = $safe_clubid . "$dt.tar.gz";
         
         $backup_path = './backups';
         
