@@ -223,8 +223,10 @@ echo form_close();
 echo form_close();
          ?>
         
-        <p class="mt-2">Les écritures présentes dans GVV et absente de l'import OpenFlyers sont en rouge:
+        <p class="mt-2">Les écritures présentes dans GVV et absente de l'import OpenFlyers sont en rouge, exemple:
             <span class="bg-danger badge text-white rounded-pill">OpenFlyers : 33590</span>
+        </p>
+        <p class="mt-2">Une écriture est synchronisée si le champ "Référence" contient un numéro d'écriture qui existe dans OpenFlyers. Si des modifications sont apportées dans OpenFlyers après synchronisation, et des écritures supprimées, il faut les supprimer de GVV, sous faute de désynchroniser les soldes OpenFlyers et GVV.
         </p>
 
     </div>

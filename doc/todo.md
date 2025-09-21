@@ -7,11 +7,16 @@
 * [] **la page après changement de la checkbox gel est incorrecte**
   
 * [] **Déconnexion intempestive**
+* [] Vérifier les exports pdf/csv des comptes
   
 ## Reste à faire
 
-* [] OpenFlyers afficher les vols non existant dans les imports OF
 * [] Sauvegarde/restauration des medias et attachements
+
+* [] Attachements lors de la création d'écriture
+  * [] tester les téléchargements avec espace (upload->do_upload)
+  * [] Les attachements devraient-être listé par section et par années
+  * [] compression des attachements
 
 * [x] Gérer la configuration dans la base.
 * [] Images de configuration
@@ -19,17 +24,14 @@
   
 * [] gestion des vols de découverte
   * [x] Fonctionnalité minimum
-  * [ ] filtre
-  * [ ] présentation par année
+  * [x] filtre
+  * [x] présentation par année
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
   
 * [] Compléter les exports CSV manquants
   
-* [] Attachements lors de la création d'écriture
-  * [] tester les téléchargements avec espace (upload->do_upload)
-  * [] Les attachements devraient-être listé par section et par années
-  * [] compression des attachements
+
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
@@ -40,18 +42,18 @@
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
 * [] Reservation des avions                                   10j
-* [] Paiements en ligne                                        10j
+* [] Paiements en ligne                                       10j
 * [] Attachements sur les achats
 
 
 ## Dette technique
 
 * [] Supprimer les vues non bootstrap (emails)
-* [] Utiliser les flexbox plutôt que les tableaux
+* [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 * [] Warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
-* [] Traduire la vue dashboard
+* [] Traduire la vue dashboard (basse priorité)
 
 
 ## Fait récemment
@@ -98,6 +100,7 @@
   * [x] Annulation des imports
   * [x] prendre la date en compte pour l'import des soldes
   * [x] Openflyers fusionner import et vérification des soldes
+  * [x] OpenFlyers afficher les vols non existant dans les imports OF
 * [x] Export CSV du tableau de bord
 * [x] Gérer les suggestions de saisie par section
 * [x] Pb de parseur des opérations en cas de flux à plus de deux comptes
