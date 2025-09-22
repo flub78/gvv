@@ -1053,7 +1053,7 @@ class StatementOperation {
         $combinations_array = $this->search_combinations($sequence, $amount);
 
         // Convertir les combinaisons en objets MultiProposalCombination
-        $this->multiple_combinations = [];
+        $multiple_combinations = [];
         if ($combinations_array) {
             foreach ($combinations_array as $combination_data) {
                 $multi_proposal_data = [
@@ -1064,10 +1064,29 @@ class StatementOperation {
                     'type_string' => $this->type_string(),
                     'correlations' => $this->correlations // Passer les corrélations
                 ];
-                $this->multiple_combinations[] = new MultiProposalCombination($multi_proposal_data);
+                $multiple_combinations[] = new MultiProposalCombination($multi_proposal_data);
             }
-            // gvv_dump($this->multiple_combinations, false, "multiple proposals objects created");
+            // gvv_dump($multiple_combinations, false, "multiple proposals objects created");
         }
+
+        if ($smart_mode) {
+            // Filtrer les combinaisons avec une confiance > 96%
+            $high_confidence_combinations = [];
+            foreach ($multiple_combinations as $combination) {
+                if ($combination->confidence > 96) {
+                    $high_confidence_combinations[] = $combination;
+                }
+            }
+            if (!empty($high_confidence_combinations)) {
+                $multiple_combinations = $high_confidence_combinations;
+            }
+            // Debug facultatif
+            // foreach ($multiple_combinations as $combination) {
+            //     echo "Combination confidence: " . $combination->confidence . "\n";
+            //     $combination->dump("", false);
+            // }
+        }
+        $this->multiple_combinations = $multiple_combinations;
 
         if (count($this->multiple_combinations) == 1) {
             $combi = $this->multiple_combinations[0];

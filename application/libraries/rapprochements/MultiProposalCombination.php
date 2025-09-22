@@ -36,7 +36,7 @@ class MultiProposalCombination {
             // $data['combination_data'] est un array d'écritures
             $this->combination_data = $data['combination_data'];
             $this->calculateTotalAmount();
-            $this->confidence = 70; // Confiance plus faible pour les combinaisons multiples
+
         }
 
         if (isset($data['combinationId'])) {
@@ -61,6 +61,7 @@ class MultiProposalCombination {
         if (isset($data['correlations'])) {
             $this->correlations = $data['correlations'];
         }
+        $this->calculateConfidence();
     }
 
     /**
@@ -74,6 +75,27 @@ class MultiProposalCombination {
             }
         }
         $this->totalAmount = $total;
+    }
+
+    private function calculateConfidence() {
+        if (!empty($this->combination_data) && !empty($this->correlations)) {
+            $sum = 0;
+            $count = 0;
+            foreach ($this->combination_data as $ecriture) {
+            if (isset($ecriture['ecriture'])) {
+                $id = $ecriture['ecriture'];
+                if (isset($this->correlations[$id]['correlation'])) {
+                $sum += $this->correlations[$id]['correlation'];
+                $count++;
+                }
+            }
+            }
+            if ($count > 0) {
+            $this->confidence = round(($sum / $count) * 100);
+            return $this->confidence;
+            }
+        }
+        return $this->confidence = 5;
     }
 
     /**
