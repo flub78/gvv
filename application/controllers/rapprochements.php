@@ -191,7 +191,7 @@ class Rapprochements extends CI_Controller {
 
     private function get_filtered_gvv_lines($startDate, $endDate, $gvv_bank) {
         $gvv_lines = $this->get_gvv_lines($startDate, $endDate, $gvv_bank);
-        
+
         $filter_active = $this->session->userdata('filter_active');
         $startDate = $this->session->userdata('startDate');
         if (!$startDate) {
@@ -325,17 +325,17 @@ class Rapprochements extends CI_Controller {
         // Rapproche les écritures sélectionnées
 
         $post = $this->input->post();
-        
+
         // Input validation for POST data
         if (empty($post) || !is_array($post)) {
             $this->session->set_userdata('errors', ['Aucune donnée reçue pour le rapprochement']);
             redirect('rapprochements/import_releve_from_file');
             return;
         }
-        
+
         $counts = [];
         $operations = [];
-        
+
         // Déterminer si c'est un rapprochement manuel
         $is_manual = $this->input->post('manual_mode') === '1';
 
@@ -352,19 +352,19 @@ class Rapprochements extends CI_Controller {
 
                 if (isset($post['string_releve_' . $line])) {
                     $string_releve = $post['string_releve_' . $line];
-                    
+
                     // Validate string_releve input
                     if (empty($string_releve) || !is_string($string_releve)) {
                         gvv_error("Invalid string_releve for line $line");
                         continue; // Skip this operation
                     }
-                    
+
                     // Check string length for security
                     if (strlen($string_releve) > 500) {
                         gvv_error("String releve too long for line $line: " . strlen($string_releve) . " characters");
                         continue; // Skip this operation
                     }
-                    
+
                     $operations[$line] = ['string_releve' => $string_releve];
                 } else {
                     gvv_dump('string_releve_' . $line . "not defined");
@@ -547,14 +547,14 @@ class Rapprochements extends CI_Controller {
         $post = $this->input->post();
         // gvv_dump($post);
         $button = $post['button'] ?? '';
-        
+
         if ($button == 'Filtrer') {
             // Validate and sanitize input data
             $start_date = $this->_validate_date($post['startDate'] ?? '');
             $end_date = $this->_validate_date($post['endDate'] ?? '');
             $filter_type = $this->_validate_filter_type($post['filter_type'] ?? '');
             $type_selector = $this->_validate_type_selector($post['type_selector'] ?? '');
-            
+
             // Additional date logic validation
             if ($start_date && $end_date && $start_date > $end_date) {
                 gvv_error("Filter validation: Start date ($start_date) is after end date ($end_date)");
@@ -692,11 +692,15 @@ class Rapprochements extends CI_Controller {
                 $badge = '<span class="bg-success badge text-white rounded-pill ms-1 cursor-pointer supprimer-rapprochement-badge" 
                             data-ecriture-id="' . $line['id'] . '" 
                             title="Cliquez pour supprimer le rapprochement">' . $line['id'] . '</span>';
-                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">' . $badge;
+                $element = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">' . $badge;
             } else {
-                $elt[] = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
+                $element = '<input type="checkbox" name="cbdel_' . $line['id'] . '" value="1"">'
                     . '<span class="bg-danger badge text-white rounded-pill ms-1">' . $line['id'] . '</span>';
             }
+            $element .= anchor_ecriture_edit($line['id'], ' class="ms-1"');
+            $element .= anchor_ecriture_delete($line['id'], ' class="ms-1"');
+            $elt[] = $element;
+
 
             $elt[] = date_db2ht($line['date_op']);
             $elt[] = euro($line['montant']);
@@ -856,7 +860,7 @@ class Rapprochements extends CI_Controller {
                             break;
                         }
                     }
-                    
+
                     if (!$validation_failed) {
                         $success_count = 0;
                         $errors = array();
@@ -1046,7 +1050,7 @@ class Rapprochements extends CI_Controller {
         if (empty($date)) {
             return '';
         }
-        
+
         // Check format and validate date
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $date_parts = explode('-', $date);
@@ -1054,7 +1058,7 @@ class Rapprochements extends CI_Controller {
                 return $date;
             }
         }
-        
+
         gvv_error("Invalid date format: $date");
         return '';
     }
@@ -1067,18 +1071,18 @@ class Rapprochements extends CI_Controller {
     private function _validate_filter_type($filter_type) {
         $valid_types = [
             'display_all',
-            'filter_matched', 
+            'filter_matched',
             'filter_unmatched',
             'filter_unmatched_1',
             'filter_unmatched_choices',
             'filter_unmatched_multi',
             'filter_unmatched_0'
         ];
-        
+
         if (in_array($filter_type, $valid_types)) {
             return $filter_type;
         }
-        
+
         if (!empty($filter_type)) {
             gvv_error("Invalid filter type: $filter_type");
         }
@@ -1094,13 +1098,13 @@ class Rapprochements extends CI_Controller {
         if (empty($type_selector)) {
             return '';
         }
-        
+
         // Sanitize and validate - should be numeric ID or empty
         $type_selector = trim($type_selector);
         if ($type_selector === '' || ctype_digit($type_selector)) {
             return $type_selector;
         }
-        
+
         gvv_error("Invalid type selector: $type_selector");
         return '';
     }
@@ -1114,10 +1118,10 @@ class Rapprochements extends CI_Controller {
         if (empty($return_url)) {
             return '';
         }
-        
+
         // Only allow internal URLs (relative paths or same domain)
         $parsed_url = parse_url($return_url);
-        
+
         // Allow relative URLs
         if (!isset($parsed_url['scheme']) && !isset($parsed_url['host'])) {
             // Remove any potential dangerous characters
@@ -1126,7 +1130,7 @@ class Rapprochements extends CI_Controller {
                 return $return_url;
             }
         }
-        
+
         gvv_error("Invalid or potentially dangerous return URL: $return_url");
         return '';
     }

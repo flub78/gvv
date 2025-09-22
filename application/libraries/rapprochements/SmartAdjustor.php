@@ -32,8 +32,8 @@ class SmartAdjustor {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $this->correlation($statement_operation, $key, $ecriture, $operation_type);
             $statement_operation->set_correlation($key, $correlation, $ecriture);
-            if ($correlation >= 0.9) {
-                $threshold = 0.9;
+            if ($correlation >= 0.91) {
+                $threshold = 0.91;
                 break;
             }
         }
@@ -63,6 +63,40 @@ class SmartAdjustor {
         return $filtered_sel;
     }
 
+    /**
+     * Vérifie si l'écriture matche des mots clé pour des types différents. C'est un indice de faible corrélation. Par exemple si on trouve chèque dans une écriture ce n'est surement pas un virement, etc.
+     */
+    public function match_other_types($ecriture_image, $operation_type) {
+
+        $all_keywords = ['cheque', 'frais', 'commission', 'carte', 'cb', 'prelevement', 'vir', 'virement', 'transfer', 'encaissement', 'remise', 'espèces', 'liquide', 'regularisation'];
+
+        $keywords_by_type = [
+            'cheque_debite' => ['cheque'],
+            'frais_bancaire' => ['frais', 'commission'],
+            'paiement_cb' => ['carte', 'cb'],
+            'prelevement' => ['prelevement'],
+            'prelevement_pret' => ['prelevement'],
+            'virement_emis' => ['virement', 'vir', 'transfer'],
+            'virement_recu' => ['virement', 'vir', 'transfer'],
+            'encaissement_cb' => ['encaissement', 'carte', 'cb'],
+            'remise_cheque' => ['remise', 'cheque'],
+            'remise_especes' => ['remise', 'especes', 'liquide'],
+            'regularisation_frais' => ['regularisation']
+        ];
+
+        // si on trouve dans l'écriture des mots clés définis dans $all_keywords mais pas dans ceux du type courant, on retourne true, sinon false
+        $type_keywords = isset($keywords_by_type[$operation_type]) ? $keywords_by_type[$operation_type] : [];
+        foreach ($all_keywords as $keyword) {
+            if (in_array($keyword, $type_keywords)) {
+                continue;
+            }
+            if (strpos($ecriture_image, $keyword) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Calcule le coefficient de corrélation entre l'écriture comptable et l'opération
@@ -76,6 +110,15 @@ class SmartAdjustor {
     public function correlation($statement_operation, $key, $ecriture, $operation_type) {
         // Corrélation de base
         $correlation = 0.5;
+
+        $nature = $statement_operation->nature();
+        // Nettoyer la nature de l'opération
+        $nature = $this->cleanup_string($nature);
+        $ecriture_image = $this->cleanup_string($ecriture);
+
+        if ($this->match_other_types($ecriture_image, $operation_type)) {
+            return 0.1; // Faible corrélation si des mots clés d'autres types sont trouvés dans l'image
+        }
 
         // Appeler la fonction de corrélation appropriée selon le type
         switch ($operation_type) {
@@ -277,6 +320,13 @@ class SmartAdjustor {
         return '';
     }
 
+    /**
+     * Nettoie une chaîne de caractères pour la corrélation
+     * 
+     * Supprime les éléments non pertinents, passe tout en minuscules, enlève la ponctuation et les espaces multiples.
+     * @param string $str La chaîne à nettoyer
+     * @return string La chaîne nettoyée
+     */
     private function cleanup_string($str) {
         // Safety check: ensure we have a string
         if (!is_string($str)) {
@@ -336,8 +386,8 @@ class SmartAdjustor {
         $nature = $this->cleanup_string($nature);
         $ecriture_image = $this->cleanup_string($ecriture);
 
-        if (stripos($ecriture_image, 'cheque') !== false ) {
-            return 0.1; // Faible corrélation si chèque
+        if ($this->match_other_types($ecriture_image, 'virement_recu')) {
+            return 0.1; // Faible corrélation si des mots clés d'autres types sont trouvés
         }
 
         // Analyser les informations de l'expéditeur depuis les commentaires
@@ -352,10 +402,10 @@ class SmartAdjustor {
             $id = $matches[1];
             // Si l'id est trouvé dans la description de l'écriture, corrélation très forte
             if (!empty($id) && stripos($ecriture_image, $id) !== false) {
-            return 0.98;
+                return 0.98;
             }
         }
-        
+
         // Rechercher la nature de l'opération dans la description de l'écriture
         if (!empty($nature) && stripos($ecriture_image, $nature) !== false) {
             return 0.96; // Corrélation élevée si référence trouvée
@@ -437,9 +487,9 @@ class SmartAdjustor {
         if (preg_match('/cheque\s*(\d{3,})/i', $statement_operation->nature(), $matches)) {
             // Numéro de chèque trouvé dans la nature de l'opération
             // On pourrait utiliser $matches[1] comme identifiant de chèque si besoin
-             if (stripos($ecriture_image, $matches[1]) !== false) {
-                 return 0.97;
-             }
+            if (stripos($ecriture_image, $matches[1]) !== false) {
+                return 0.97;
+            }
         }
 
         // élimine les virements
@@ -477,8 +527,9 @@ class SmartAdjustor {
      * @return float coefficient de corrélation
      */
     private function correlateRemiseEspeces($statement_operation, $key, $ecriture) {
-        $nature = $statement_operation->nature();
-        $libelle = $statement_operation->interbank_label();
+        $nature = $this->cleanup_string($statement_operation->nature());
+        $libelle = $this->cleanup_string($statement_operation->interbank_label());
+        $ecriture_image = $this->cleanup_string($ecriture);
 
         // Corrélation élevée si des termes de dépôt d'espèces sont trouvés
         if (
@@ -489,7 +540,6 @@ class SmartAdjustor {
         }
 
         // Vérifier la description de l'écriture pour les termes de dépôt d'espèces
-        $ecriture_image = $this->getEcritureImage($ecriture);
         if (stripos($ecriture_image, 'espèces') !== false || stripos($ecriture_image, 'liquide') !== false) {
             return 0.8;
         }

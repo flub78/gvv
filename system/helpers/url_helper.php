@@ -202,6 +202,41 @@ if ( ! function_exists('anchor_ecriture')) {
 	}
 }
 
+if ( ! function_exists('anchor_ecriture_edit')) {
+	function anchor_ecriture_edit($ecriture, $attributes = '')
+	{
+		$url = controller_url("compta/edit/") . $ecriture;
+		$img_url = base_url('themes/binary-news/images/pencil.png');
+		$img = '<img class="icon" src="'.$img_url.'" title="Changer" alt="">';
+		return anchor($url, $img, $attributes);
+	}
+}
+
+if ( ! function_exists('anchor_ecriture_delete')) {
+	function anchor_ecriture_delete($ecriture, $attributes = '')
+	{
+		$CI =& get_instance();
+		$CI->load->model('ecritures_model');
+		$ecriture_data = $CI->ecritures_model->get_by_id('id', $ecriture);
+		if ($ecriture_data) {
+			$date = isset($ecriture_data->date) ? $ecriture_data->date : '';
+			$compte = isset($ecriture_data->compte) ? $ecriture_data->compte : '';
+			$libelle = isset($ecriture_data->libelle) ? $ecriture_data->libelle : '';
+			$montant = isset($ecriture_data->montant) ? $ecriture_data->montant : '';
+			$comment = isset($ecriture_data->comment) ? $ecriture_data->comment : '';
+			$confirm = "Êtes vous sûr de vouloir supprimer la ligne du $date $compte $montant $libelle$comment?";
+		} else {
+			$confirm = "Êtes vous sûr de vouloir supprimer cette écriture ?";
+		}
+		$url = controller_url("compta/delete/") . $ecriture;
+		$img_url = base_url('themes/binary-news/images/delete.png');
+		$img = '<img class="icon" src="'.$img_url.'" title="Supprimer" alt="">';
+		$onclick = "return confirm('".htmlspecialchars($confirm, ENT_QUOTES, 'UTF-8')."')";
+		$attributes = trim($attributes . ' onclick="'.$onclick.'"');
+		return anchor($url, $img, $attributes);
+	}
+}
+
 // ------------------------------------------------------------------------
 
 /**
