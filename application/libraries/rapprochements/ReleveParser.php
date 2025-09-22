@@ -87,6 +87,7 @@ class ReleveParser {
      */
     function operation_type($operation) {
 
+        // Primary checks based on interbank label
         if ($this->found_in(['FACTURES CARTES PAYEES', 'PAIEMENT CB'], $operation["Libellé interbancaire"])) {
             return 'paiement_cb';
 
@@ -118,8 +119,12 @@ class ReleveParser {
             return 'virement_emis';
         }
 
-        if ($this->found_in(['VIR INST RE', 'VIR RECU'], $operation["Nature de l'opération"])) {
+        // Secondary checks based on operation nature if interbank label is insufficient
+        if ($this->found_in(['VIR INST RE', 'VIR RECU', 'VIREMENT RECU'], $operation["Nature de l'opération"])) {
             return 'virement_recu';
+
+        } elseif ($this->found_in('DEBIT MENSUEL CARTE BLEUE', $operation["Nature de l'opération"])) {
+            return 'paiement_cb';
 
         } elseif ($this->found_in(['VIR EUROPEEN EMIS', 'VIR INSTANTANE EMIS', 'AUTRES VIREMENTS EMIS'], $operation["Nature de l'opération"])) {
             return 'virement_emis';
