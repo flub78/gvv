@@ -102,6 +102,7 @@ class Rapprochements extends CI_Controller {
         $this->load->library('rapprochements/ReleveParser');
         $parser = new ReleveParser();
         $parser_result = $parser->parse($filename);
+        // gvv_dump($parser_result);
         $this->shared_reconciliator = new Reconciliator($parser_result);
         $this->shared_reconciliator->set_filename($filename);
 
@@ -265,8 +266,6 @@ class Rapprochements extends CI_Controller {
             $reconciliator = $this->get_reconciliator();
 
             $data['section'] = $this->sections_model->section();
-
-            // Version 2 uniquement - utilise l'objet Reconciliator
             $data['header'] = $reconciliator->header();
             $data['count_selected'] = $reconciliator->filtered_operations_count();
             $data['html_tables'] = $reconciliator->to_HTML();

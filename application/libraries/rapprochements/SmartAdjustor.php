@@ -133,7 +133,7 @@ class SmartAdjustor {
     }
 
     /**
-     * Corrélation pour les opérations de chèque
+     * Corrélation pour les opérations de chèque débité
      *
      * @param StatementOperation $statement_operation L'opération de relevé
      * @param string $key Clé de l'écriture comptable GVV
@@ -152,6 +152,11 @@ class SmartAdjustor {
         $ecriture_image = $this->getEcritureImage($ecriture);
         if (stripos($ecriture_image, 'cheque') !== false || stripos($ecriture_image, 'chèque') !== false) {
             return 0.8;
+        }
+
+        // élimine les virements
+        if (stripos($ecriture_image, 'vir') !== false) {
+            return 0.6;
         }
 
         return 0.7;
@@ -282,6 +287,7 @@ class SmartAdjustor {
         $str = strtolower($str);
 
         // Nettoyer les préfixes communs
+        // On ne supprime que les informations qui ne servent à rien pour la corrélation
         $str = str_replace([
             'de: m ou mme',
             'de: mr ou mme',
@@ -295,13 +301,9 @@ class SmartAdjustor {
             'date:',
             'motif:',
             'et',
-            'vir inst re',
-            'vir recu',
-            'virement',
             '&nbsp;',
             'compte',
-            'eur',
-            'cotisation'
+            'eur'
         ], '', $str);
 
         $str = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
@@ -332,7 +334,11 @@ class SmartAdjustor {
 
         // Nettoyer la nature de l'opération
         $nature = $this->cleanup_string($nature);
-        $ecriture_image = $this->cleanup_string($this->getEcritureImage($ecriture));
+        $ecriture_image = $this->cleanup_string($ecriture);
+
+        if (stripos($ecriture_image, 'cheque') !== false ) {
+            return 0.1; // Faible corrélation si chèque
+        }
 
         // Analyser les informations de l'expéditeur depuis les commentaires
         $comment = "";
@@ -341,6 +347,15 @@ class SmartAdjustor {
         }
         $cmt = $this->cleanup_string($comment);
 
+        // Extraire un identifiant numérique depuis la nature, ex: "vir recu 1234567"
+        if (preg_match('/(\d{5,})\w?/', $nature, $matches)) {
+            $id = $matches[1];
+            // Si l'id est trouvé dans la description de l'écriture, corrélation très forte
+            if (!empty($id) && stripos($ecriture_image, $id) !== false) {
+            return 0.98;
+            }
+        }
+        
         // Rechercher la nature de l'opération dans la description de l'écriture
         if (!empty($nature) && stripos($ecriture_image, $nature) !== false) {
             return 0.96; // Corrélation élevée si référence trouvée
@@ -371,9 +386,9 @@ class SmartAdjustor {
         }
 
         // Corrélation de base pour les opérations de virement
-        // if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
-        //     return 0.7;
-        // }
+        if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
+            return 0.7;
+        }
 
         return 0.1;
     }
@@ -415,8 +430,22 @@ class SmartAdjustor {
      * @return float coefficient de corrélation
      */
     private function correlateRemiseCheque($statement_operation, $key, $ecriture) {
-        $nature = $statement_operation->nature();
-        $libelle = $statement_operation->interbank_label();
+        $nature =  $this->cleanup_string($statement_operation->nature());
+        $libelle = $this->cleanup_string($statement_operation->interbank_label());
+        $ecriture_image = $this->cleanup_string($this->getEcritureImage($ecriture));
+
+        if (preg_match('/cheque\s*(\d{3,})/i', $statement_operation->nature(), $matches)) {
+            // Numéro de chèque trouvé dans la nature de l'opération
+            // On pourrait utiliser $matches[1] comme identifiant de chèque si besoin
+             if (stripos($ecriture_image, $matches[1]) !== false) {
+                 return 0.97;
+             }
+        }
+
+        // élimine les virements
+        if (stripos($ecriture_image, 'vir') !== false) {
+            return 0.1;
+        }
 
         // Corrélation élevée si remise ou cheque trouvé
         if (
@@ -427,13 +456,14 @@ class SmartAdjustor {
         }
 
         // Vérifier la description de l'écriture pour les termes de remise de chèque
-        $ecriture_image = $this->getEcritureImage($ecriture);
         if (
             stripos($ecriture_image, 'remise') !== false &&
             (stripos($ecriture_image, 'cheque') !== false || stripos($ecriture_image, 'chèque') !== false)
         ) {
             return 0.8;
         }
+
+
 
         return 0.8;
     }
