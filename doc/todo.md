@@ -22,33 +22,7 @@
 * [] Images de configuration
 * [] Support du markdown
   
-* [] gestion des vols de découverte
-  * [x] Fonctionnalité minimum
-  * [x] filtre
-  * [x] présentation par année
-  * [ ] export CSV et Pdf
-  * [ ] Import des informations planeur
-  
-* [] Compléter les exports CSV/PDF manquants
-
-  - [x] application/views/plan_comptable/bs_tableView.php
-  - [x] application/views/planeur/bs_tableView.php
-  - [x] application/views/avion/bs_tableView.php
-  - [x] application/views/sections/bs_tableView.php
-
-  - application/views/attachments/bs_tableView.php
-  - application/views/associations_ecriture/bs_tableView.php
-  - application/views/associations_releve/bs_tableView.php
-  - application/views/categorie/bs_tableView.php
-  - application/views/historique/bs_tableView.php
-  - application/views/licences/bs_tableView.php
-  - application/views/pompes/bs_tableView.php
-  - application/views/tarifs/bs_tableView.php
-  - application/views/user_roles_per_section/bs_tableView.php
-  - application/views/event/bs_tableView.php
-  - application/views/achats/bs_tableView.php
-  
-
+  * [ ] Import des informations planeur dans les vols de découverte
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
@@ -62,6 +36,7 @@
 * [] Paiements en ligne                                       10j
 * [] Attachements sur les achats
 
+* [] Désactive la capacité d'envoyer des emails et remplace la par la capacité de sélectionner les adresses emails. Il faut pouvoir sélectionner les adresses des membres du conseil, des instructeurs, des trésoriers, etc. Ceci par section ou pour tout le club. Après selection il faut pouvoir soir copier les adresses depuis un textarea ou activer un bouton mailto. Dans le cas du bouton on doit pouvoir sélectionner une adresse d'expéditeur et choisi si on envoie le mail en to ou à soi même avec les destinataires en icc. Pour l'instant n’implémente que les filtres existantes sur la fonction email. Le GUI ne doit pas permettre d'envoyer des emails à dues utilisateurs inactifs. Laisser un paramètre dans l'URL pour pouvoir sélectionner les utilisateurs non actifs. Laisse le code mais désactive l'option.
 
 ## Dette technique
 
@@ -133,3 +108,28 @@
   * Ventes, cadrer Produit à gauche
 * [x] supprimer les textes orientés planeur dans les pages
 * [x] Rapprochements bancaires
+  
+* [x] Compléter les exports CSV/PDF manquants
+
+  - [x] application/views/plan_comptable/bs_tableView.php
+  - [x] application/views/planeur/bs_tableView.php
+  - [x] application/views/avion/bs_tableView.php
+  - [x] application/views/sections/bs_tableView.php
+
+  - application/views/attachments/bs_tableView.php
+  - application/views/associations_ecriture/bs_tableView.php
+  - application/views/associations_releve/bs_tableView.php
+  - application/views/categorie/bs_tableView.php
+  - application/views/historique/bs_tableView.php
+  - application/views/licences/bs_tableView.php
+  - application/views/pompes/bs_tableView.php
+  - application/views/tarifs/bs_tableView.php
+  - application/views/user_roles_per_section/bs_tableView.php
+  - application/views/event/bs_tableView.php
+  - application/views/achats/bs_tableView.php
+
+* [x] gestion des vols de découverte
+  * [x] Fonctionnalité minimum
+  * [x] filtre
+  * [x] présentation par année
+  * [x] export CSV et Pdf
