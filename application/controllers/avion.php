@@ -137,4 +137,38 @@ class Avion extends Gvv_Controller {
         }
         parent::create();
     }
+
+    /**
+     * Export de la liste des avions en CSV ou PDF
+     */
+    public function export($mode = 'csv') {
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+        $selection = $this->selection();
+        $rows = $this->gvv_model->select_page(10000, 0, $selection);
+
+        // Do not include action/link column 'vols'
+        $fields = array('macmodele', 'macconstruc', 'macimmat', 'section_name', 'macplaces', 'macrem', 'maprive', 'actif', 'fabrication');
+        $title = $this->lang->line('gvv_avion_title_list');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('vue_avions', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('L');
+        $width = array(45, 35, 30, 40, 18, 18, 20, 15, 30);
+        $this->gvvmetadata->pdf_table('vue_avions', $rows, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+        $pdf->Output();
+    }
 }

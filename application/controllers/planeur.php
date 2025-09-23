@@ -155,4 +155,42 @@ class Planeur extends Gvv_Controller {
 
         $this->unit->save_coverage();
     }
+
+    /**
+     * Export de la liste des planeurs en CSV ou PDF
+     */
+    public function export($mode = 'csv') {
+        // Access control
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Build selection from current filters
+        $selection = $this->selection();
+        $rows = $this->gvv_model->select_page(10000, 0, $selection);
+
+        // Columns to export (omit action/link columns like 'vols')
+        $fields = array('mpimmat', 'mpmodele', 'mpconstruc', 'mpnumc', 'mpbiplace', 'mpautonome', 'mptreuil', 'mpprive', 'actif', 'fabrication');
+        $title = $this->lang->line('gvv_planeur_title_list');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('vue_planeurs', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        // PDF
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('L');
+        $width = array(30, 45, 35, 25, 20, 20, 20, 20, 15, 30);
+        $this->gvvmetadata->pdf_table('vue_planeurs', $rows, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+        $pdf->Output();
+    }
 }

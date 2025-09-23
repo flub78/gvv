@@ -31,10 +31,10 @@
   
 * [] Compléter les exports CSV/PDF manquants
 
-  - application/views/plan_comptable/bs_tableView.php
-  - application/views/planeur/bs_tableView.php
-  - application/views/avion/bs_tableView.php
-  - application/views/sections/bs_tableView.php
+  - [x] application/views/plan_comptable/bs_tableView.php
+  - [x] application/views/planeur/bs_tableView.php
+  - [x] application/views/avion/bs_tableView.php
+  - [x] application/views/sections/bs_tableView.php
 
   - application/views/attachments/bs_tableView.php
   - application/views/associations_ecriture/bs_tableView.php

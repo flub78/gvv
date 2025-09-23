@@ -94,4 +94,35 @@ class Sections extends Gvv_Controller {
         $this->tests_results('xml');
         $this->tests_results($format);
     }
+
+    /**
+     * Export de la liste des sections en CSV ou PDF
+     */
+    public function export($mode = 'csv') {
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+        $rows = $this->gvv_model->select_page(10000, 0);
+        $fields = array('nom', 'description');
+        $title = $this->lang->line('gvv_sections_title');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('vue_sections', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('P');
+        $width = array(60, 120);
+        $this->gvvmetadata->pdf_table('vue_sections', $rows, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+        $pdf->Output();
+    }
 }
