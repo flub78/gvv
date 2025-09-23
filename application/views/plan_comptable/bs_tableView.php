@@ -39,6 +39,12 @@ $attrs = array(
 
 echo $this->gvvmetadata->empty_table("planc", $attrs);
 
+$bar = array(
+    array('label' => "Excel", 'url' => "$controller/export/csv", 'role' => 'ca'),
+    array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
+);
+echo button_bar4($bar);
+
 echo '</div>';
 
 ?>

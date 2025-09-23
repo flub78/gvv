@@ -222,7 +222,7 @@ $url = controller_url($controller);
 
     $bar = array(
         array('label' => "Excel", 'url' => "comptes/dashboard/csv", 'role' => 'ca'),
-        // array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
+        array('label' => "Pdf", 'url' => "comptes/dashboard/pdf", 'role' => 'ca'),
     );
     echo button_bar4($bar);
 

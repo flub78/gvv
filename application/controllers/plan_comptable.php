@@ -185,7 +185,7 @@ class Plan_Comptable extends Gvv_Controller {
         $rResultTotal = $this->database->sql($sQuery, true);
         // gvv_debug(var_export($rResultTotal, true));
         $iTotal = $rResultTotal[0][0]['COUNT(pcode)'];
-        gvv_debug("\$iTotal = $iTotal");
+        gvv_debug("$iTotal = $iTotal");
 
         /*
          * Output
@@ -223,6 +223,33 @@ class Plan_Comptable extends Gvv_Controller {
         $json = json_encode($output);
         gvv_debug("json = $json");
         echo $json;
+    }
+
+    /**
+     * Export du plan comptable en CSV ou PDF
+     */
+    public function export($mode = "csv") {
+        $query = $this->db->select('pcode, pdesc')->from('planc')->order_by('pcode')->get();
+        $rows = $query->result_array();
+        $title = 'Plan comptable';
+
+        if ($mode === 'csv') {
+            $this->gvvmetadata->csv_table('planc', $rows, array(
+                'title' => $title,
+                'fields' => array('pcode', 'pdesc')
+            ));
+            return;
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('P');
+        $this->gvvmetadata->pdf_table('planc', $rows, $pdf, array(
+            'title' => $title,
+            'width' => array(30, 160),
+            'fields' => array('pcode', 'pdesc')
+        ));
+        $pdf->Output();
     }
 
     /**

@@ -292,6 +292,10 @@ class Comptes extends Gvv_Controller {
 
         if ($mode == "csv") {
             $this->csv_dashboard($this->data);
+            return;
+        } else if ($mode == "pdf") {
+            $this->pdf_dashboard($this->data);
+            return;
         }
         $this->push_return_url("resultat");
 
@@ -346,6 +350,81 @@ class Comptes extends Gvv_Controller {
         $csv_data = array_merge($csv_data, $data['immos']);
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export du dashboard en PDF
+     */
+    function pdf_dashboard($data) {
+        $title = $this->lang->line("gvv_comptes_title_dashboard");
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+
+        // Landscape to fit more columns
+        $pdf->AddPage('L');
+        $pdf->title($title, 1);
+
+        // Helper to compute dynamic widths
+        $compute_widths = function($cols, $leadingCols = 2) {
+            // Landscape A4: ~277mm usable width, stay a bit smaller for margins
+            $usable = 270;
+            $w = array();
+            if ($cols <= 0) return $w;
+            if ($leadingCols == 2) {
+                $w0 = 20; // code or first column
+                $w1 = 90; // name/label
+                $w[] = $w0; $w[] = $w1;
+                $remain = $usable - $w0 - $w1;
+                $rest = max(0, $cols - 2);
+                $each = ($rest > 0) ? ($remain / $rest) : 0;
+                for ($i = 0; $i < $rest; $i++) $w[] = $each;
+            } else if ($leadingCols == 1) {
+                $w0 = 60;
+                $w[] = $w0;
+                $remain = $usable - $w0;
+                $rest = max(0, $cols - 1);
+                $each = ($rest > 0) ? ($remain / $rest) : 0;
+                for ($i = 0; $i < $rest; $i++) $w[] = $each;
+            } else {
+                $each = $usable / $cols;
+                for ($i = 0; $i < $cols; $i++) $w[] = $each;
+            }
+            return $w;
+        };
+        $compute_align = function($cols, $leadingCols = 2) {
+            $align = array();
+            for ($i = 0; $i < $cols; $i++) {
+                if ($i < $leadingCols) $align[] = 'L'; else $align[] = 'R';
+            }
+            return $align;
+        };
+
+        // Small helper to standardize spacing: minimal gap before table, larger after
+        $render_section = function($section_title, $table_data, $leadingCols) use ($pdf, $compute_widths, $compute_align) {
+            if (empty($table_data)) return;
+            $pdf->title($section_title, 2);
+            // Reduce space after title (move up a bit)
+            $pdf->SetY($pdf->GetY() - 3);
+            $cols = count($table_data[0]);
+            $pdf->table($compute_widths($cols, $leadingCols), 6, $compute_align($cols, $leadingCols), $table_data);
+            // Add larger space after table before next title
+            $pdf->Ln(6);
+        };
+
+        // Charges
+        $render_section("Charges par sections", isset($data['charges']) ? $data['charges'] : array(), 2);
+        // Produits
+        $render_section("Produits par sections", isset($data['produits']) ? $data['produits'] : array(), 2);
+        // Résultat
+        $render_section("Résultat avant répartition", isset($data['resultat']) ? $data['resultat'] : array(), 1);
+        // Actifs financiers
+        $render_section("Actifs financiers", isset($data['disponible']) ? $data['disponible'] : array(), 1);
+        // Dettes
+        $render_section("Dettes", isset($data['dettes']) ? $data['dettes'] : array(), 1);
+        // Immos
+        $render_section("Immobilisations", isset($data['immos']) ? $data['immos'] : array(), 1);
+
+        $pdf->Output();
     }
 
 

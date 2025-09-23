@@ -7,7 +7,7 @@
 * [] **la page après changement de la checkbox gel est incorrecte**
   
 * [] **Déconnexion intempestive**
-* [] Vérifier les exports pdf/csv des comptes
+
   
 ## Reste à faire
 
@@ -29,7 +29,24 @@
   * [ ] export CSV et Pdf
   * [ ] Import des informations planeur
   
-* [] Compléter les exports CSV manquants
+* [] Compléter les exports CSV/PDF manquants
+
+  - application/views/plan_comptable/bs_tableView.php
+  - application/views/planeur/bs_tableView.php
+  - application/views/avion/bs_tableView.php
+  - application/views/sections/bs_tableView.php
+
+  - application/views/attachments/bs_tableView.php
+  - application/views/associations_ecriture/bs_tableView.php
+  - application/views/associations_releve/bs_tableView.php
+  - application/views/categorie/bs_tableView.php
+  - application/views/historique/bs_tableView.php
+  - application/views/licences/bs_tableView.php
+  - application/views/pompes/bs_tableView.php
+  - application/views/tarifs/bs_tableView.php
+  - application/views/user_roles_per_section/bs_tableView.php
+  - application/views/event/bs_tableView.php
+  - application/views/achats/bs_tableView.php
   
 
   
@@ -58,6 +75,9 @@
 
 ## Fait récemment
 
+* [x] Vérifier les exports pdf/csv des comptes
+  * Testé sur Echéance pret ULM, OK en local, OK Chez Ionos, CSV et PDF
+  * Testé sur compte client Ionos, OK CSV et PDF
 * [x] Correction du téléchargement des photos                                  
 * [x] Documentation de la sauvegarde automatique            
 * [x] Vue des photos dans la fiche membre            
