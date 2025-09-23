@@ -641,4 +641,40 @@ EOD;
         QRcode::png('https://example.com');
         QRcode::png('https://example.com', 'qrcode.png');
     }
+
+    /**
+     * Export de la liste des vols de découverte en CSV ou PDF
+     */
+    public function export($mode = 'csv') {
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Respect current filters/year via model
+        $rows = $this->gvv_model->select_page(10000, 0);
+
+        // Fields to export (exclude action columns)
+        $fields = array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol', 'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation', 'prix');
+        $title = $this->lang->line('gvv_vols_decouverte_title');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('vue_vols_decouverte', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('L');
+        // Landscape widths summed to ~270mm
+        $width = array(12, 22, 50, 40, 12, 18, 28, 22, 12, 18, 18, 18);
+        $this->gvvmetadata->pdf_table('vue_vols_decouverte', $rows, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+        $pdf->Output();
+    }
 }
