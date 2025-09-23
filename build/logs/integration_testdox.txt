@@ -23,3 +23,11 @@ Form Elements Integration
  [x] Dropdown field function
  [x] Helper with database integration
 
+Smart Adjustor Correlation Integration
+ [x] Correlation for frison against all images
+ [x] Correlation for bleuse against all images
+ [x] Correlation for lobry against all images
+ [x] Correlation for prelevement against all images
+ [x] Correlation for frais bancaire against all images
+ [x] Correlation for virement emis against all images
+
