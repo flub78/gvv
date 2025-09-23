@@ -490,8 +490,8 @@ class Reconciliator {
         } else {
             // On affiche un sélecteur
             $compte_selector = $this->CI->comptes_model->selector_with_null(['codec' => 512], TRUE);
-            $attrs = 'class="form-control big_select" onchange="associateAccount(this, \''
-                . $this->iban()  . '\')"';
+            $iban_js = htmlspecialchars($this->iban(), ENT_QUOTES);
+            $attrs = "class=\"form-control big_select\" onchange=\"associateAccount(this, '$iban_js')\"";
             $compte_bank_gvv = dropdown_field(
                 "compte_bank",
                 "",
@@ -503,7 +503,35 @@ class Reconciliator {
 
         $header[] = ["Section: ",  $this->section(), 'Fichier', $this->basename()];
 
-        $header[] = ["Date de solde: ",  $this->date_solde(), "Solde: ", euro($this->solde())];
+        // Build Solde bancaire/GVV value
+        // Normalize bank statement balance (CSV may use spaces and comma decimal)
+        $bank_raw = (string)$this->solde();
+        // Replace non-breaking spaces and regular spaces, then convert comma to dot
+        $bank_clean = str_replace(["\xC2\xA0", ' '], '', $bank_raw);
+        $bank_solde = (float) str_replace(',', '.', $bank_clean);
+        $date_solde = $this->date_solde();
+        $gvv_solde = null;
+        if ($gvv_bank_acount && $date_solde) {
+            // Use same method as comptes/detail: solde_compte at a given date
+            $this->CI->load->model('ecritures_model');
+            $gvv_solde = $this->CI->ecritures_model->solde_compte($gvv_bank_acount, $date_solde, "<=");
+            // Bank accounts are negative in accounting when there is money => invert sign for comparison with bank statement
+            if ($gvv_solde !== null) {
+                $gvv_solde = -1.0 * (float)$gvv_solde;
+            }
+        }
+        $bank_str = euro($bank_solde);
+        $gvv_str = ($gvv_solde === null) ? 'n/a' : euro($gvv_solde);
+        $combined = $bank_str . ' / ' . $gvv_str;
+        if ($gvv_solde !== null) {
+            // Compare with a tolerance of 1 cent
+            $diff = abs(round(((float)$bank_solde) - ((float)$gvv_solde), 2));
+            if ($diff > 0.00) {
+                $combined = '<span class="text-danger">' . $combined . '</span>';
+            }
+        }
+
+        $header[] = ["Date de solde: ",  $date_solde, "Solde: bancaire/GVV", $combined];
         $header[] = ["Date de début: ",  $this->local_start_date(), "Date de fin: ",  $this->local_end_date()];
 
         // $rap = $ot['count_rapproches'] . ", Choix: " . $ot['count_choices'] . ", Uniques: " . $ot['count_uniques'];

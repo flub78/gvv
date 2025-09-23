@@ -25,12 +25,13 @@ autobackup.sh
 .phpunit.result.cache
 
 # Build logs directory
-build/logs/
+build/logs/*
 application/config/debug.php
 application/tests/data/parser_result.txt
 application/tests/data/reconciliator.tct
 application/tests/data/string_images.php
 build/logs/integration_testdox.txt
 build/results/Correlatiion_test_result.txt
+build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
