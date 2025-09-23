@@ -321,6 +321,27 @@ class SmartAdjustor {
     }
 
     /**
+     * Extraire des tokens assimilables à des noms/prénoms depuis une chaîne.
+     * Filtre les mots très courts et un petit jeu de mots vides.
+     */
+    private function extract_name_tokens($str) {
+        $clean = $this->cleanup_string($str);
+        if ($clean === '') return [];
+        $tokens = preg_split('/\s+/', $clean);
+        $stop = [
+            'vol','voile','virement','vir','transfer','releve','rc','ref','cumulus','bnp','bpop','vi','bia','rem','net','autres','emis','recu','recus','reçus',
+            'le','la','les','des','du','de','d','a','au','aux','et','ou','sur','compte','cdn','gvv','assurance','contrat','autre','releve','relevé','euro','euros'
+        ];
+        $res = [];
+        foreach ($tokens as $t) {
+            if (strlen($t) <= 2) continue;
+            if (in_array($t, $stop, true)) continue;
+            $res[] = $t;
+        }
+        return array_values(array_unique($res));
+    }
+
+    /**
      * Nettoie une chaîne de caractères pour la corrélation
      * 
      * Supprime les éléments non pertinents, passe tout en minuscules, enlève la ponctuation et les espaces multiples.
@@ -382,61 +403,69 @@ class SmartAdjustor {
         $nature = $statement_operation->nature();
         $comments = $statement_operation->comments();
 
-        // Nettoyer la nature de l'opération
+        // Nettoyer
         $nature = $this->cleanup_string($nature);
         $ecriture_image = $this->cleanup_string($ecriture);
 
         if ($this->match_other_types($ecriture_image, 'virement_recu')) {
-            return 0.1; // Faible corrélation si des mots clés d'autres types sont trouvés
+            return 0.1;
         }
 
-        // Analyser les informations de l'expéditeur depuis les commentaires
+        // Concat commentaires
         $comment = "";
-        foreach ($comments as $c) {
-            $comment .= $c . " ";
-        }
+        foreach ($comments as $c) { $comment .= $c . " "; }
         $cmt = $this->cleanup_string($comment);
 
-        // Extraire un identifiant numérique depuis la nature, ex: "vir recu 1234567"
+        // Références explicites (inchangé)
         if (preg_match('/(\d{5,})\w?/', $nature, $matches)) {
             $id = $matches[1];
-            // Si l'id est trouvé dans la description de l'écriture, corrélation très forte
             if (!empty($id) && stripos($ecriture_image, $id) !== false) {
                 return 0.98;
             }
         }
-
-        // Rechercher la nature de l'opération dans la description de l'écriture
         if (!empty($nature) && stripos($ecriture_image, $nature) !== false) {
-            return 0.96; // Corrélation élevée si référence trouvée
+            return 0.96;
         }
 
-        $cmt_list = explode(' ', $cmt);
+        // Amélioration: recouper nom/prénom expéditeur vs image
+        $sender_tokens   = $this->extract_name_tokens($cmt);
+        $ecriture_tokens = $this->extract_name_tokens($ecriture_image);
+        $overlap = count(array_intersect($sender_tokens, $ecriture_tokens));
+        $foreign_tokens = array_diff($ecriture_tokens, $sender_tokens);
 
-        $score = 0;
-        $word_count = 0;
-        $matches = [];
+        if ($overlap >= 2) {
+            // Nom + prénom retrouvés
+            return 0.97;
+        }
+        if ($overlap === 1) {
+            // Un seul token (nom OU prénom)
+            return 0.88;
+        }
+        if ($overlap === 0 && count($sender_tokens) > 0 && count($foreign_tokens) >= 2) {
+            // L'image mentionne d'autres personnes -> faible
+            return 0.1;
+        }
+
+        // Matching générique des commentaires (logique existante)
+        $cmt_list = explode(' ', $cmt);
+        $score = 0; $word_count = 0;
         foreach ($cmt_list as $word) {
             $word = trim($word);
-            if (strlen($word) > 1) { // Ne considérer que les mots de plus de 1 caractère
+            if (strlen($word) > 1) {
                 $word_count++;
-                if (stripos($ecriture_image, $word) !== false) {
-                    $score++;
-                    $matches[] = $word;
-                }
+                if (stripos($ecriture_image, $word) !== false) { $score++; }
             }
         }
-
-        if ($score == 1) {
-            // Un seul mot correspondant donne une corrélation de 0.51
-            return 0.51;
-        } elseif ($score > 1) {
+        if ($score == 1) { return 0.51; }
+        if ($score > 1 && $word_count > 0) {
             $res = 0.51 + 0.49 * (($score - 1) / $word_count);
+            if (count($sender_tokens) > 0 && count($foreign_tokens) >= 2) { $res = min($res, 0.15); }
             return $res;
         }
 
-        // Corrélation de base pour les opérations de virement
+        // Corrélation de base pour les virements
         if (stripos($nature, 'virement') !== false || stripos($nature, 'vir') !== false) {
+            if (count($sender_tokens) > 0 && count($foreign_tokens) >= 2) { return 0.1; }
             return 0.7;
         }
 
@@ -444,190 +473,116 @@ class SmartAdjustor {
     }
 
     /**
-     * Corrélation pour les encaissements par carte bancaire
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @param string $key Clé de l'écriture comptable GVV
-     * @param mixed $ecriture Image de l'écriture
-     * @return float coefficient de corrélation
+     * Corrélation pour les encaissements par carte bancaire (CB)
      */
     private function correlateEncaissementCB($statement_operation, $key, $ecriture) {
-        $nature = $statement_operation->nature();
+        $nature = $this->cleanup_string($statement_operation->nature());
+        $ecriture_image = $this->cleanup_string($ecriture);
 
-        // Vérifier les termes liés à la carte dans la nature de l'opération
-        if (stripos($nature, 'carte') !== false || stripos($nature, 'cb') !== false) {
-            return 0.8;
+        if ($this->match_other_types($ecriture_image, 'encaissement_cb')) {
+            return 0.1;
         }
 
-        // Vérifier si la description de l'écriture contient des termes d'encaissement par carte
-        $ecriture_image = $this->getEcritureImage($ecriture);
-        if (
-            stripos($ecriture_image, 'encaissement') !== false &&
-            (stripos($ecriture_image, 'carte') !== false || stripos($ecriture_image, 'cb') !== false)
-        ) {
+        if (strpos($nature, 'encaissement') !== false || strpos($nature, 'carte') !== false || strpos($nature, 'cb') !== false) {
             return 0.8;
         }
-
-        return 0.7;
+        if (strpos($ecriture_image, 'encaissement') !== false || strpos($ecriture_image, 'carte') !== false || strpos($ecriture_image, 'cb') !== false) {
+            return 0.7;
+        }
+        return 0.6;
     }
 
     /**
      * Corrélation pour les remises de chèques
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @param string $key Clé de l'écriture comptable GVV
-     * @param mixed $ecriture Image de l'écriture
-     * @return float coefficient de corrélation
      */
     private function correlateRemiseCheque($statement_operation, $key, $ecriture) {
-        $nature =  $this->cleanup_string($statement_operation->nature());
-        $libelle = $this->cleanup_string($statement_operation->interbank_label());
-        $ecriture_image = $this->cleanup_string($this->getEcritureImage($ecriture));
+        $nature = $this->cleanup_string($statement_operation->nature());
+        $ecriture_image = $this->cleanup_string($ecriture);
 
-        if (preg_match('/cheque\s*(\d{3,})/i', $statement_operation->nature(), $matches)) {
-            // Numéro de chèque trouvé dans la nature de l'opération
-            // On pourrait utiliser $matches[1] comme identifiant de chèque si besoin
-            if (stripos($ecriture_image, $matches[1]) !== false) {
-                return 0.97;
-            }
-        }
-
-        // élimine les virements
-        if (stripos($ecriture_image, 'vir') !== false) {
+        if ($this->match_other_types($ecriture_image, 'remise_cheque')) {
             return 0.1;
         }
 
-        // Corrélation élevée si remise ou cheque trouvé
-        if (
-            stripos($nature, 'remise') !== false || stripos($libelle, 'remise') !== false ||
-            stripos($nature, 'cheque') !== false || stripos($libelle, 'cheque') !== false
-        ) {
-            return 0.9;
+        $hasRemiseNature = (strpos($nature, 'remise') !== false);
+        $hasChequeNature = (strpos($nature, 'cheque') !== false || strpos($nature, 'chq') !== false);
+        if ($hasRemiseNature && $hasChequeNature) {
+            return 0.85;
         }
 
-        // Vérifier la description de l'écriture pour les termes de remise de chèque
-        if (
-            stripos($ecriture_image, 'remise') !== false &&
-            (stripos($ecriture_image, 'cheque') !== false || stripos($ecriture_image, 'chèque') !== false)
-        ) {
-            return 0.8;
+        $hasRemiseImage = (strpos($ecriture_image, 'remise') !== false);
+        $hasChequeImage = (strpos($ecriture_image, 'cheque') !== false || strpos($ecriture_image, 'chq') !== false);
+        if ($hasRemiseNature || $hasChequeNature || $hasRemiseImage || $hasChequeImage) {
+            return 0.75;
         }
 
-
-
-        return 0.8;
+        return 0.6;
     }
 
     /**
-     * Corrélation pour les remises d'espèces
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @param string $key Clé de l'écriture comptable GVV
-     * @param mixed $ecriture Image de l'écriture
-     * @return float coefficient de corrélation
+     * Corrélation pour les remises d'espèces (liquide)
      */
     private function correlateRemiseEspeces($statement_operation, $key, $ecriture) {
         $nature = $this->cleanup_string($statement_operation->nature());
-        $libelle = $this->cleanup_string($statement_operation->interbank_label());
         $ecriture_image = $this->cleanup_string($ecriture);
 
-        // Corrélation élevée si des termes de dépôt d'espèces sont trouvés
-        if (
-            stripos($nature, 'espèces') !== false || stripos($libelle, 'espèces') !== false ||
-            stripos($nature, 'remise') !== false || stripos($libelle, 'remise') !== false
-        ) {
-            return 0.9;
+        if ($this->match_other_types($ecriture_image, 'remise_especes')) {
+            return 0.1;
         }
 
-        // Vérifier la description de l'écriture pour les termes de dépôt d'espèces
-        if (stripos($ecriture_image, 'espèces') !== false || stripos($ecriture_image, 'liquide') !== false) {
-            return 0.8;
+        $hasEspecesNature = (strpos($nature, 'especes') !== false || strpos($nature, 'liquide') !== false || strpos($nature, 'cash') !== false);
+        $hasRemiseNature = (strpos($nature, 'remise') !== false);
+        if ($hasRemiseNature && $hasEspecesNature) {
+            return 0.85;
         }
 
-        return 0.9;
+        $hasEspecesImage = (strpos($ecriture_image, 'especes') !== false || strpos($ecriture_image, 'liquide') !== false || strpos($ecriture_image, 'cash') !== false);
+        $hasRemiseImage = (strpos($ecriture_image, 'remise') !== false);
+        if ($hasRemiseNature || $hasEspecesNature || $hasEspecesImage || $hasRemiseImage) {
+            return 0.7;
+        }
+
+        return 0.6;
     }
 
     /**
      * Corrélation pour les régularisations de frais
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @param string $key Clé de l'écriture comptable GVV
-     * @param mixed $ecriture Image de l'écriture
-     * @return float coefficient de corrélation
      */
     private function correlateRegularisationFrais($statement_operation, $key, $ecriture) {
-        $nature = $statement_operation->nature();
-        $libelle = $statement_operation->interbank_label();
+        $nature = $this->cleanup_string($statement_operation->nature());
+        $ecriture_image = $this->cleanup_string($ecriture);
 
-        // Vérifier les termes de régularisation ou frais
-        if (
-            stripos($nature, 'regularisation') !== false || stripos($libelle, 'regularisation') !== false ||
-            stripos($nature, 'régularisation') !== false || stripos($libelle, 'régularisation') !== false
-        ) {
+        if ($this->match_other_types($ecriture_image, 'regularisation_frais')) {
+            return 0.1;
+        }
+
+        if (strpos($nature, 'regularisation') !== false || strpos($ecriture_image, 'regularisation') !== false) {
             return 0.8;
         }
-
-        // Vérifier la description de l'écriture pour les termes de régularisation
-        $ecriture_image = $this->getEcritureImage($ecriture);
-        if (stripos($ecriture_image, 'regularisation') !== false || stripos($ecriture_image, 'régularisation') !== false) {
+        if (strpos($nature, 'frais') !== false || strpos($ecriture_image, 'frais') !== false || strpos($ecriture_image, 'commission') !== false) {
             return 0.7;
         }
-
-        return 0.5;
+        return 0.6;
     }
 
     /**
-     * Corrélation pour les opérations inconnues
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @param string $key Clé de l'écriture comptable GVV
-     * @param mixed $ecriture Image de l'écriture
-     * @return float coefficient de corrélation
+     * Corrélation par défaut pour type inconnu
      */
     private function correlateInconnu($statement_operation, $key, $ecriture) {
-        // Pour les opérations inconnues, nous avons une faible confiance
-        // mais nous pouvons encore essayer de faire correspondre basé sur le montant et la proximité de date
-        return 0.3;
-    }
+        $nature = $this->cleanup_string($statement_operation->nature());
+        $ecriture_image = $this->cleanup_string($ecriture);
 
-    /**
-     * Retourne capital et intérêts pour les prêts
-     *
-     * @param StatementOperation $statement_operation L'opération de relevé
-     * @return array Tableau avec 'capital' et 'interets' ou tableau vide
-     */
-    public function remboursement($statement_operation) {
-        // Vérifier si l'opération est un remboursement
-        if ($statement_operation->type() === 'prelevement_pret') {
-
-            // Extraire les montants de capital amorti et intérêts des commentaires
-            $capital = 0.0;
-            $interets = 0.0;
-            $comments = $statement_operation->comments();
-
-            // Vérifier si nous avons des commentaires et que le premier correspond à 'CAPITAL AMORTI'
-            if (!empty($comments[0]) && strpos($comments[0], 'CAPITAL AMORTI') !== false) {
-                // Extraire la valeur numérique après ': '
-                $parts = explode(': ', $comments[0]);
-                if (count($parts) == 2) {
-                    $capital = str_replace(',', '.', trim($parts[1]));
-                }
-
-                // Vérifier le montant des intérêts dans les commentaires
-                if (!empty($comments[1]) && strpos($comments[1], 'INTERETS') !== false) {
-                    $parts = explode(': ', $comments[1]);
-                    if (count($parts) == 2) {
-                        $interets = str_replace(',', '.', trim($parts[1]));
-                    }
-
-                    // Retourner un tableau avec les montants de capital et intérêts
-                    return [
-                        'capital' => $capital,
-                        'interets' => $interets
-                    ];
-                }
-            }
+        // léger matching par mots communs
+        $nature_tokens = preg_split('/\s+/', $nature);
+        $score = 0; $count = 0;
+        foreach ($nature_tokens as $tok) {
+            $tok = trim($tok);
+            if (strlen($tok) < 3) { continue; }
+            $count++;
+            if (strpos($ecriture_image, $tok) !== false) { $score++; }
         }
-        return [];
+        if ($count > 0 && $score > 0) {
+            return 0.55 + 0.4 * ($score / $count);
+        }
+        return 0.5;
     }
 }
