@@ -41,6 +41,8 @@ class Rapprochements extends CI_Controller {
         $this->lang->load('rapprochements');
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');
+        $this->config->load('debug');
+
 
         $this->load->library('rapprochements/Reconciliator');
     }
@@ -102,9 +104,16 @@ class Rapprochements extends CI_Controller {
         $this->load->library('rapprochements/ReleveParser');
         $parser = new ReleveParser();
         $parser_result = $parser->parse($filename);
-        // gvv_dump($parser_result);
+
+        if ($this->config->item('rappro_parser_result')) {
+            gvv_dump($parser_result);
+        }
+
         $this->shared_reconciliator = new Reconciliator($parser_result);
+        
         $this->shared_reconciliator->set_filename($filename);
+
+        // $this->shared_reconciliator->dump();
 
         return $this->shared_reconciliator;
     }

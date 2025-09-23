@@ -26,3 +26,7 @@ autobackup.sh
 
 # Build logs directory
 build/logs/
+application/config/debug.php
+application/tests/data/parser_result.txt
+application/tests/data/reconciliator.tct
+application/tests/data/string_images.php

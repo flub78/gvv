@@ -198,6 +198,8 @@ class Reconciliator {
                 'recognized_types' => $this->recognized_types()
             ]);
 
+            // gvv_dump($statement_operation->str_releve(), false);
+
             if ($filter_active) {
 
                 if ($filter_type && ($filter_type != "display_all")) {
@@ -246,6 +248,8 @@ class Reconciliator {
                 }
             }
 
+            // Cette opération a passé tous les filtres, on la conserve
+            // et on met à jour les compteurs
             $this->operations[] = $statement_operation;
 
             if ($statement_operation->is_rapproched()) {

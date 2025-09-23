@@ -973,7 +973,6 @@ class StatementOperation {
         $reference_date = $this->value_date();
 
         $lines = $this->CI->ecritures_model->ecriture_selector($start_date, $end_date, $amount, $compte1, $compte2, $reference_date, $delta);
-
         $smart_mode = $this->CI->session->userdata('rapprochement_smart_mode') ?? false;
         if ($smart_mode && $smart) {
             $lines = $this->smart_agent->smart_adjust($lines, $this);
