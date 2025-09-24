@@ -50,6 +50,8 @@ echo ($this->gvvmetadata->form('configuration', array(
 	'description' => $description,
 )));
 
+?>
+<?php
 echo validation_button($action);
 echo form_close();
 

@@ -104,15 +104,16 @@ class Admin extends CI_Controller {
         // Use absolute paths to avoid issues
         $abs_uploads_path = realpath($uploads_path);
         $abs_backup_path = realpath($backup_path);
-        
+        $abs_filename = $abs_backup_path . '/' . $filename;
+
         if (!$abs_uploads_path) {
             show_error('Impossible de résoudre le chemin du répertoire uploads');
             return;
         }
         
         // Create tar.gz archive excluding the restore subdirectory
-        $command = "cd " . escapeshellarg($abs_uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($abs_backup_path . '/' . $filename) . " .";
-        
+        $command = "cd " . escapeshellarg($abs_uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($abs_filename) . " .";
+
         gvv_info("Backup media command: " . $command);
         exec($command, $output, $return_code);
         gvv_info("Backup media return code: " . $return_code . ", Output: " . implode("\n", $output));
@@ -121,11 +122,11 @@ class Admin extends CI_Controller {
         if ($return_code == 0) {
             // Load the download helper and send the file to browser
             $this->load->helper('download');
-            $data = file_get_contents($full_backup_path);
+            $data = file_get_contents($abs_filename);
             force_download($filename, $data);
             
             // Clean up the temporary backup file after download
-            unlink($full_backup_path);
+            unlink($abs_filename);
         } else {
             show_error('Erreur lors de la création de la sauvegarde des médias. Code de retour: ' . $return_code . 
                       '<br>Commande: ' . htmlspecialchars($command) . 
