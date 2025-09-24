@@ -87,8 +87,9 @@ class Admin extends CI_Controller {
         }
         $clubid = 'gvv_' . strtolower(str_replace(' ', '_', $nom_club)) . '_media_';
         $dt = date("Y_m_d");
-        // Replace any quote or non-printable character by _
-        $safe_clubid = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]/', '_', $clubid);
+        
+        // Properly handle accented characters by transliterating them to ASCII
+        $safe_clubid = $this->transliterate_to_ascii($clubid);
         $filename = $safe_clubid . "$dt.tar.gz";
 
         $backupdir = getcwd() . "/backups/";
@@ -526,6 +527,44 @@ class Admin extends CI_Controller {
     function metadata() {
         $this->load->library('gvvmetadata');
         $this->gvvmetadata->dump();
+    }
+
+    /**
+     * Transliterate accented characters to ASCII equivalents
+     * @param string $text
+     * @return string
+     */
+    private function transliterate_to_ascii($text) {
+        // Define character mappings
+        $transliterations = array(
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+            'ç' => 'c', 'ñ' => 'n',
+            'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A',
+            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O',
+            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
+            'Ý' => 'Y', 'Ÿ' => 'Y',
+            'Ç' => 'C', 'Ñ' => 'N'
+        );
+        
+        // Apply transliterations
+        $result = strtr($text, $transliterations);
+        
+        // Remove any remaining non-ASCII characters and replace with underscore
+        $result = preg_replace('/[^\x20-\x7E]/', '_', $result);
+        
+        // Clean up quotes, control characters, and multiple underscores
+        $result = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]+/', '_', $result);
+        $result = preg_replace('/_+/', '_', $result);
+        $result = trim($result, '_');
+        
+        return $result;
     }
 
 
