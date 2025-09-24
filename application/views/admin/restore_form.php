@@ -97,8 +97,25 @@ echo '<p>Sélectionnez un fichier de sauvegarde des médias (.tar.gz, .tgz ou .t
 echo form_open_multipart('admin/do_restore_media');
 echo '<div class="mb-3">';
 echo '<label for="userfile_media" class="form-label">Fichier de sauvegarde des médias</label>';
-echo '<input type="file" class="form-control" name="userfile" id="userfile_media" accept=".tar.gz,.tgz,.tar" />';
+echo '<input type="file" class="form-control" name="userfile" id="userfile_media" accept=".tar,.gz,.tgz,application/gzip,application/x-tar,application/x-gzip" />';
+echo '<div class="form-text">Taille maximum autorisée par le serveur: ' . ini_get('upload_max_filesize') . '</div>';
 echo '</div>';
+
+// Add JavaScript for client-side file size validation
+echo '<script>
+document.getElementById("userfile_media").addEventListener("change", function() {
+    const file = this.files[0];
+    if (file) {
+        const maxSize = ' . (int)(ini_get('upload_max_filesize')) * 1024 * 1024 . '; // Convert to bytes
+        const fileSize = file.size;
+        
+        if (fileSize > maxSize) {
+            alert("Attention: Le fichier sélectionné (" + (fileSize / (1024*1024)).toFixed(1) + " MB) dépasse la taille maximum autorisée par le serveur (' . ini_get('upload_max_filesize') . ').\n\nVeuillez contacter l\'administrateur pour augmenter les limites du serveur ou utilisez un fichier plus petit.");
+            this.value = "";
+        }
+    }
+});
+</script>';
 
 $checked_merge = isset($merge_media) && $merge_media ? ' checked="checked" ' : ' checked="checked" '; // Default to merge
 

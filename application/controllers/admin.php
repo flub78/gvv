@@ -274,14 +274,93 @@ class Admin extends CI_Controller {
 
         // upload archive
         $config['upload_path'] = $upload_path;
-        $config['allowed_types'] = 'tar|gz|tgz'; // Allow tar, gz, and tgz files
-        $config['max_size'] = '500000'; // 500MB for media files
+        $config['allowed_types'] = '*'; // Allow all file types initially, we'll validate manually
+        $config['max_size'] = '0'; // No size limit initially, we'll check server limits
         $config['file_ext_tolower'] = FALSE; // Don't force lowercase extension checking
         $config['remove_spaces'] = FALSE; // Don't remove spaces from filenames
+        $config['overwrite'] = TRUE; // Allow overwriting files
 
         $this->load->library('upload', $config);
 
         $merge_media = $this->input->post('merge_media');
+
+        // Debug: Log what we receive
+        gvv_info("Media restore - POST data: " . print_r($_POST, true));
+        gvv_info("Media restore - FILES data: " . print_r($_FILES, true));
+        
+        // Debug: Log server upload limits
+        $upload_max = ini_get('upload_max_filesize');
+        $post_max = ini_get('post_max_size');
+        $memory_limit = ini_get('memory_limit');
+        $max_execution = ini_get('max_execution_time');
+        gvv_info("Server limits - upload_max_filesize: $upload_max, post_max_size: $post_max, memory_limit: $memory_limit, max_execution_time: $max_execution");
+
+        // Check if both POST and FILES are empty - this indicates the form submission was rejected due to size limits
+        if (empty($_POST) && empty($_FILES)) {
+            $uploads_path = realpath('./uploads');
+            $error = array(
+                'error' => 'Le fichier sélectionné dépasse probablement la taille maximum autorisée par le serveur (' . $upload_max . ').<br>' .
+                          'Limites actuelles du serveur:<br>' .
+                          '- Taille maximum par fichier: ' . $upload_max . '<br>' .
+                          '- Taille maximum des données POST: ' . $post_max . '<br><br>' .
+                          '<strong>Solutions alternatives:</strong><br>' .
+                          '1. Contacter l\'administrateur pour augmenter les limites du serveur<br>' .
+                          '2. Utiliser un fichier plus petit<br>' .
+                          '3. <strong>Extraction manuelle via SSH:</strong><br>' .
+                          '<code>cd ' . $uploads_path . '<br>' .
+                          'tar -xzf /chemin/vers/votre/fichier.tar.gz</code><br>' .
+                          'Puis ajuster les permissions si nécessaire.',
+                'merge_media' => 1
+            );
+            load_last_view('admin/restore_form', $error);
+            return;
+        }
+
+        // Check if file was actually uploaded
+        if (empty($_FILES['userfile']['name']) || $_FILES['userfile']['error'] != UPLOAD_ERR_OK) {
+            $upload_error = '';
+            if (!empty($_FILES['userfile']['error'])) {
+                switch($_FILES['userfile']['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                        $uploads_path = realpath('./uploads');
+                        $upload_error = 'Le fichier dépasse la taille maximum autorisée par le serveur (' . ini_get('upload_max_filesize') . ').<br>' .
+                                       '<strong>Solution alternative:</strong> Extraction manuelle via SSH:<br>' .
+                                       '<code>cd ' . $uploads_path . '<br>' .
+                                       'tar -xzf /chemin/vers/votre/fichier.tar.gz</code>';
+                        break;
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $uploads_path = realpath('./uploads');
+                        $upload_error = 'Le fichier dépasse la taille maximum autorisée par le formulaire.<br>' .
+                                       '<strong>Solution alternative:</strong> Extraction manuelle via SSH:<br>' .
+                                       '<code>cd ' . $uploads_path . '<br>' .
+                                       'tar -xzf /chemin/vers/votre/fichier.tar.gz</code>';
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $upload_error = 'Le fichier n\'a été que partiellement téléchargé.';
+                        break;
+                    case UPLOAD_ERR_NO_FILE:
+                        $upload_error = 'Aucun fichier n\'a été sélectionné.';
+                        break;
+                    case UPLOAD_ERR_NO_TMP_DIR:
+                        $upload_error = 'Répertoire temporaire manquant sur le serveur.';
+                        break;
+                    case UPLOAD_ERR_CANT_WRITE:
+                        $upload_error = 'Échec de l\'écriture du fichier sur le disque.';
+                        break;
+                    default:
+                        $upload_error = 'Erreur inconnue lors du téléchargement.';
+                }
+            } else {
+                $upload_error = 'Vous n\'avez pas sélectionné de fichier à envoyer.';
+            }
+            
+            $error = array(
+                'error' => $upload_error,
+                'merge_media' => 1
+            );
+            load_last_view('admin/restore_form', $error);
+            return;
+        }
 
         if (! $this->upload->do_upload()) {
             $error = array(
