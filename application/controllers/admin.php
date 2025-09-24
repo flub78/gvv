@@ -90,29 +90,17 @@ class Admin extends CI_Controller {
         // Replace any quote or non-printable character by _
         $safe_clubid = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]/', '_', $clubid);
         $filename = $safe_clubid . "$dt.tar.gz";
-        
-        $backup_path = './backups';
-        
-        // Ensure backups directory exists
-        if (!is_dir($backup_path)) {
-            mkdir($backup_path, 0755, true);
-        }
-        
-        $full_backup_path = $backup_path . '/' . $filename;
-        
-        // Create tar.gz archive excluding the restore subdirectory
-        // Use absolute paths to avoid issues
-        $abs_uploads_path = realpath($uploads_path);
-        $abs_backup_path = realpath($backup_path);
-        $abs_filename = $abs_backup_path . '/' . $filename;
 
-        if (!$abs_uploads_path) {
-            show_error('Impossible de résoudre le chemin du répertoire uploads');
-            return;
+        $backupdir = getcwd() . "/backups/";
+                
+        // Ensure backups directory exists
+        if (!is_dir($backupdir)) {
+            mkdir($backupdir, 0755, true);
         }
+        $filepath = $backupdir . '/' . $filename;
         
         // Create tar.gz archive excluding the restore subdirectory
-        $command = "cd " . escapeshellarg($abs_uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($abs_filename) . " .";
+        $command = "cd " . escapeshellarg($uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($filepath) . " .";
 
         gvv_info("Backup media command: " . $command);
         exec($command, $output, $return_code);
@@ -122,11 +110,11 @@ class Admin extends CI_Controller {
         if ($return_code == 0) {
             // Load the download helper and send the file to browser
             $this->load->helper('download');
-            $data = file_get_contents($abs_filename);
+            $data = file_get_contents($filepath);
             force_download($filename, $data);
             
             // Clean up the temporary backup file after download
-            unlink($abs_filename);
+            unlink($filepath);
         } else {
             show_error('Erreur lors de la création de la sauvegarde des médias. Code de retour: ' . $return_code . 
                       '<br>Commande: ' . htmlspecialchars($command) . 

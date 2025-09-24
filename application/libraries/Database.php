@@ -190,7 +190,6 @@ class Database {
 
 		gvv_debug("backup: backup dir $dirname exist");
 
-
 		// compute a filename
 		date_default_timezone_set('Europe/Paris');
 
