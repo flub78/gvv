@@ -37,6 +37,7 @@ class Mails extends Gvv_Controller {
         $this->load->model('membres_model');
         $this->load->model('comptes_model');
         $this->load->library('email');
+        $this->lang->load('mails');
     }
 
     /**
@@ -259,6 +260,46 @@ Tu es débiteur de -100.
         );
         $replaced = $this->personalise_message($msg, $info);
         $this->unit->run($replaced, $expected, 'personalise_message');
+    }
+
+    /**
+     * Email address selector - provides a tool to copy email addresses or launch a mailer client
+     * instead of sending emails directly from the application
+     */
+    function addresses() {
+        $this->data['controller'] = $this->controller;
+        $this->data['selection'] = $this->config->item('listes_de_destinataires');
+        $this->data['action'] = 'addresses';
+        $this->data['has_modification_rights'] = $this->dx_auth->is_role($this->modification_level, true, true);
+        
+        // Default values - ensure empty string for default "Select a list" option
+        $this->data['selected_list'] = '';
+        $this->data['email_addresses'] = '';
+        $this->data['subject'] = '';
+        $this->data['send_to_self'] = false;
+        
+        return load_last_view('mails/addresses', $this->data, $this->unit_test);
+    }
+
+    /**
+     * AJAX method to get email addresses for the selected list
+     */
+    function ajax_get_addresses() {
+        $selection = $this->input->post('selection');
+        
+        $queries = $this->config->item('listes_de_requetes');
+        $query = isset($queries[$selection]) ? $queries[$selection] : array();
+        
+        // Get email addresses using the existing emails() method from membres_model
+        $email_list = $this->membres_model->emails($query);
+        
+        $json = array(
+            'addresses' => $email_list,
+            'count' => substr_count($email_list, ',') + ($email_list ? 1 : 0)
+        );
+        
+        header('Content-Type: application/json');
+        echo json_encode($json);
     }
 
     /**
