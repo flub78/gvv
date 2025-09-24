@@ -330,18 +330,23 @@ class Vols_decouverte extends Gvv_Controller {
         $this->load->library('email');
 
         $sender = "info@aeroclub-abbeville.fr";
+        $sender = $this->configuration_model->get_param('vd.email.sender_email');
 
         // Configure email settings
         $this->email->clear();
         $config['mailtype'] = 'html';
         // Configure SMTP settings for Ionos
+        $smtp_host = $this->configuration_model->get_param('vd.email.smtp_host');
+        $smtp_pass = $this->configuration_model->get_param('vd.email.smtp_password');
+        $smtp_crypto = $this->configuration_model->get_param('vd.email.smtp_crypto');
+        $smtp_port = $this->configuration_model->get_param('vd.email.smtp_port');
         $config = array(
             'protocol'    => 'smtp',
-            'smtp_host'   => 'smtp.ionos.fr',  // or smtp.ionos.com depending on your account
-            'smtp_port'   => 587,
+            'smtp_host'   => $smtp_host,  // or smtp.ionos.com depending on your account
+            'smtp_port'   => $smtp_port,
             'smtp_user'   => $sender,  // Your full email address
-            'smtp_pass'   => $this->config->item('email_password'), // config/config.php
-            'smtp_crypto' => 'tls',
+            'smtp_pass'   => $smtp_pass, // config/config.php
+            'smtp_crypto' => $smtp_crypto,
             'mailtype'    => 'html',
             'charset'     => 'utf-8',
             'wordwrap'    => TRUE,

@@ -22,7 +22,7 @@
 * [] Images de configuration
 * [] Support du markdown
   
-  * [ ] Import des informations planeur dans les vols de découverte
+* [ ] Import des informations planeur dans les vols de découverte
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
@@ -36,7 +36,9 @@
 * [] Paiements en ligne                                       10j
 * [] Attachements sur les achats
 
-* [] Désactive la capacité d'envoyer des emails et remplace la par la capacité de sélectionner les adresses emails. Il faut pouvoir sélectionner les adresses des membres du conseil, des instructeurs, des trésoriers, etc. Ceci par section ou pour tout le club. Après selection il faut pouvoir soir copier les adresses depuis un textarea ou activer un bouton mailto. Dans le cas du bouton on doit pouvoir sélectionner une adresse d'expéditeur et choisi si on envoie le mail en to ou à soi même avec les destinataires en icc. Pour l'instant n’implémente que les filtres existantes sur la fonction email. Le GUI ne doit pas permettre d'envoyer des emails à dues utilisateurs inactifs. Laisser un paramètre dans l'URL pour pouvoir sélectionner les utilisateurs non actifs. Laisse le code mais désactive l'option.
+* [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
+  * [x] MVP
+  il faut pouvoir sélectionner par section. Ca ne pourra être vraiment opérationnel que quand les rôles par section seront en place. Pour l'instant on a pas vraiment l'information si un membre est instructeur ULM ou qu'il est encore actif dans une section.
 
 ## Dette technique
 
