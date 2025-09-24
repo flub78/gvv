@@ -530,6 +530,7 @@ EOD;
         $baie = isset($data['baie']) ? $checked : $unchecked;
         $falaise = isset($data['falaises']) ? $checked : $unchecked;
         $autre = isset($data['autre']) ? $checked : $unchecked;
+        $noyelles = isset($data['noyelles']) ? $checked : $unchecked;
         $planeur = isset($data['planeur']) ? $checked : $unchecked;
         $abbeville_ulm = isset($data['abbeville_ulm']) ? $checked : $unchecked;
         $baie_ulm = isset($data['baie_ulm']) ? $checked : $unchecked;
@@ -548,7 +549,7 @@ EOD;
             <br /> {$abbeville} Tour d'Abbeville (15 mn environ) pour 2 personnes
             <br /><br />{$baie} Baie de Somme (30 mn environ) pour 2 personnes
             <br /><br />{$falaise} Falaises ou Marquenterre (40 mn) pour 2 personnes
-            <br /><br />{$autre} Autre (à détailler) :
+            <br /><br />{$noyelles} Noyelles - Portes de la baie (20 mn) pour 2 personnes:
         </td>
         <td width="34%" style="vertical-align: top;">
             <br /><br />{$planeur} Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
