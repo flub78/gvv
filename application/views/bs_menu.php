@@ -363,8 +363,8 @@ $section_count = $CI->sections_model->safe_count_all();
 
         </div>
 
-        <form class="d-flex ms-5">
-          <div class="text-white me-1 text-center">
+        <form class="d-flex ms-5 bg-dark border-0"> 
+          <div class="text-white bg-dark me-1 text-center">
             <?= $gvv_user ?>
             <div class="text-white me-1 text-center">
               <?= $gvv_role ?>

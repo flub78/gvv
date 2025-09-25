@@ -65,3 +65,19 @@ footer p {
 	color: #7BA813;
 	background: inherit;
 }
+
+form {
+    background-color: #e1e4e7;
+	border: 1px solid #7e9bae;
+	border-radius: 4px;
+	padding: 10px;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="number"],
+form textarea,
+form select {
+    background-color: white;
+}
