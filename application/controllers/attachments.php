@@ -203,4 +203,16 @@ class Attachments extends Gvv_Controller {
         gvv_debug("Hello {$msg} {$to}!" . PHP_EOL);
         echo "Hello {$msg} {$to}! " . PHP_EOL;
     }
+
+    /**
+     * Page with year selector like other views
+     */
+    function page($premier = 0, $message = '', $selection = array()) {
+        // Provide year and selector to the view
+        $this->data['controller'] = $this->controller;
+        $this->data['year'] = $this->session->userdata('year') ?: date('Y');
+        $this->data['year_selector'] = $this->gvv_model->get_available_years();
+
+        return parent::page($premier, $message, $selection);
+    }
 }

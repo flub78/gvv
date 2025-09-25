@@ -21,7 +21,27 @@ class Attachments_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($per_page = 0, $premier = 0, $selection = []) {
-        $select = $this->select_columns('id, referenced_table, referenced_id, description, file', $per_page, $premier, $selection);
+        // Build a join with sections to also retrieve the section name
+        $this->db->select($this->table . '.id, ' . $this->table . '.referenced_table, ' . $this->table . '.referenced_id, ' . $this->table . '.description, ' . $this->table . '.file, ' . $this->table . '.club, sections.nom as section');
+        $this->db->from($this->table);
+        $this->db->join('sections', $this->table . '.club = sections.id', 'left');
+        if (!empty($selection)) {
+            $this->db->where($selection);
+        }
+        // select per section (like in other models)
+        if ($this->section) {
+            $this->db->where('sections.id', $this->section_id);
+        }
+        // filter by year selected in session based on file path ./uploads/attachments/<year>/...
+        $year = $this->session->userdata('year');
+        if ($year) {
+            $this->db->like($this->table . '.file', '/attachments/' . $year . '/', 'both');
+        }
+        if ($per_page) {
+            $this->db->limit($per_page, $premier);
+        }
+        $query = $this->db->get();
+        $select = $this->get_to_array($query);
 
         foreach ($select as $key => $elt) {
             $referenced_table = $elt['referenced_table'];
@@ -43,6 +63,32 @@ class Attachments_model extends Common_Model {
         return $select;
     }
 
+    /**
+     * Build a year selector from the attachments file path (./uploads/attachments/<year>/...)
+     */
+    public function get_available_years() {
+        $years = [];
+        // Query distinct years from file path using MySQL string functions
+        $this->db->select("DISTINCT(LEFT(SUBSTRING_INDEX(file, 'attachments/', -1), 4)) as year", false);
+        $this->db->from($this->table);
+        $this->db->like('file', 'attachments/');
+        $this->db->order_by('year', 'DESC');
+        $query = $this->db->get();
+        if ($query) {
+            foreach ($query->result_array() as $row) {
+                $y = $row['year'];
+                if ($y && ctype_digit($y)) {
+                    $years[$y] = $y;
+                }
+            }
+        }
+        // Ensure current year exists
+        $current_year = date('Y');
+        if (!isset($years[$current_year])) {
+            $years[$current_year] = $current_year;
+        }
+        return $years;
+    }
 
     /**
      * Retourne une chaine de caractère qui identifie une ligne de façon unique.

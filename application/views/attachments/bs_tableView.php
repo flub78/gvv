@@ -31,12 +31,20 @@ $this->lang->load('attachments');
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_attachments_title", 3);
+// Provide controller to JS
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
+
+// Year selector like other views
+?>
+<div class='mb-3'>
+    <?= year_selector($controller, $year, $year_selector) ?>
+</div>
+<?php
 
 $attrs = array(
     'controller' => $controller,
     'actions' => array('edit', 'delete'),
-    'fields' => array('referenced_table', 'referenced_id', 'description', 'file'),
+    'fields' => array('referenced_table', 'referenced_id', 'description', 'file', 'section'),
     'mode' => "rw",
     'class' => "datatable table table-striped"
 );

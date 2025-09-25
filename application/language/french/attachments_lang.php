@@ -16,3 +16,4 @@ $lang['gvv_vue_attachments_short_field_referenced_table'] = "Table";
 $lang['gvv_vue_attachments_short_field_referenced_id'] = "Element";
 $lang['gvv_vue_attachments_short_field_description'] = "Description";
 $lang['gvv_vue_attachments_short_field_file'] = "Fichier";
+$lang['gvv_vue_attachments_short_field_section'] = "Section";

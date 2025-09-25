@@ -7,13 +7,13 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class Migration_Configuration_File extends CI_Migration {
+class Migration_Section_For_Attachements extends CI_Migration {
 
     protected $migration_number;
 
     function __construct() {
         parent::__construct();
-        $this->migration_number = 37;
+        $this->migration_number = 38;
     }
 
     private function run_queries($sqls = array()) {
@@ -32,8 +32,9 @@ class Migration_Configuration_File extends CI_Migration {
         $errors = 0;
 
         $sqls = array(
-            "ALTER TABLE `configuration` ADD `file` VARCHAR(255) DEFAULT NULL COMMENT 'Fichier de configuration'",
-            "ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL;"
+            "ALTER TABLE `attachments` ADD `club` TINYINT NULL DEFAULT '0' COMMENT 'Commentaire gestion multi-section' AFTER `file`;",
+            "UPDATE `attachments` SET `club` = 3 WHERE `user_id` = 'pmaignan';",
+            "UPDATE `attachments` SET `club` = 4 WHERE `user_id` = 'calegre';"
         );
 
         $errors += $this->run_queries($sqls);
@@ -45,8 +46,7 @@ class Migration_Configuration_File extends CI_Migration {
     public function down() {
         $errors = 0;
         $sqls = array(
-            "ALTER TABLE `configuration` DROP `file`",
-            "ALTER TABLE `configuration` CHANGE `valeur` `valeur` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;"
+            "ALTER TABLE `attachments` DROP `club`"
         );
 
         $errors += $this->run_queries($sqls);

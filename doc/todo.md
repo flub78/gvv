@@ -11,15 +11,12 @@
   
 ## Reste à faire
 
-* [] Sauvegarde/restauration des medias et attachements
+* [] Images de configuration
 
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
-  * [] Les attachements devraient-être listé par section et par années
   * [] compression des attachements
 
-* [x] Gérer la configuration dans la base.
-* [] Images de configuration
 * [] Support du markdown
   
 * [ ] Import des informations planeur dans les vols de découverte
@@ -34,7 +31,7 @@
   
 * [] Reservation des avions                                   10j
 * [] Paiements en ligne                                       10j
-* [] Attachements sur les achats
+* [] Attachements sur les achatss
 
 * [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
   * [x] MVP
@@ -135,3 +132,7 @@
   * [x] filtre
   * [x] présentation par année
   * [x] export CSV et Pdf
+
+* [x] Les attachements devraient-être listé par section et par années
+* [x] Gérer la configuration dans la base.
+* [x] Sauvegarde/restauration des medias et attachements

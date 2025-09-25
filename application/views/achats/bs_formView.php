@@ -59,5 +59,6 @@ echo ($this->gvvmetadata->form('achats', array(
 echo validation_button ($action);
 echo form_close();
 
+echo '<p class="mt-1">On ne peut pas attacher de justificatifs aux achats qui sont des écritures passées directement par GVV.</p>';
 echo '</div>';
 ?>
