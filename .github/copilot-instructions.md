@@ -2,16 +2,18 @@
 
 ## Project Overview
 
-**GVV (Gestion Vol à voile)** is a web application for managing gliding clubs, developed in PHP since 2011. It serves as an alternative to GiVAV and is used by 5-6 gliding associations. The application handles member management, aircraft fleet management, flight logging, billing, basic accounting, flight calendars, and email communications.
+**GVV (Gestion Vol à voile)** is a web application for managing gliding clubs, developed in PHP since 2011. It is used by 5-6 gliding associations. The application handles member management, aircraft fleet management, flight logging, billing, basic accounting, flight calendars, and email communications.
 
 ## High-Level Details
 
 - **Type**: Web application for gliding club management
 - **Languages**: PHP 7.4, MySQL 5.x, HTML, CSS, JavaScript
-- **Framework**: CodeIgniter 2.x (legacy version)
+- **Framework**: CodeIgniter 2.x (legacy version), bootstrap 5 for UI. Each time that it is possible use bootstrap classes for UI.
+- **Database**: MySQL with migrations managed via CodeIgniter
+- **Version Control**: Github
 - **Size**: ~50 controllers, extensive model layer, multi-language support (French, English, Dutch)
 - **Target Runtime**: Apache/Nginx web server with PHP 7.4 and MySQL
-- **Status**: Maintenance mode - stable but no major feature development planned
+- **Status**: Deployed for 12 years, stable, some legacy code
 
 ## Environment Setup
 
@@ -110,10 +112,12 @@ Copy `application/config/database.example.php` to `database.php` and configure:
 4. **File Permissions**: Web-writable directories need proper permissions
 5. **Third-party Code**: Located in `application/third_party/` - handle with care
 6. **Legacy Code**: This is a maintenance-mode project - avoid major architectural changes
+7. **Data driven**: The project uses the database schema plus metadata defined in Gvvmetadata.php. Use the same approach for new features and respect this approach for modifications.
+8. **Code reuse**: The project has a lot of code. Before adding new code, check if similar functionality already exists and can be reused or adapted.
 
 ### Common Paths for Changes
 - **New Features**: Add controllers in `application/controllers/`
-- **Database**: Add models in `application/models/`, migrations in `application/migrations/`
+- **Database**: Add models in `application/models/`, migrations in `application/migrations/`. When creating a migration update the config/migration.php file to set the migration version to the latest migration number.
 - **UI Changes**: Modify views in `application/views/` and assets in `assets/`
 - **Configuration**: Update files in `application/config/`
 - **Business Logic**: Add libraries in `application/libraries/`
