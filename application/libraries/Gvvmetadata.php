@@ -330,7 +330,7 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['memail']['Subtype'] = 'email';
                 $this->field['membres']['memailparent']['Subtype'] = 'email';
                 $this->field['membres']['photo']['Subtype'] = 'upload_image';
-                
+
                 $this->field['membres']['inscription_date']['Type'] = 'date';
                 $this->field['membres']['validation_date']['Type'] = 'date';
 
@@ -848,6 +848,7 @@ class GVVMetadata extends Metadata {
 
                         "vd.ulm.contact_name" => "Nom du contact ULM",
                         "vd.ulm.contact_tel" => "Téléphone du contact ULM",
+                        "vd.background_image" => "Image de fond des bons vols de découverte",
                 ];
 
                 $this->field['configuration']['club']['Subtype'] = 'selector';
@@ -855,6 +856,9 @@ class GVVMetadata extends Metadata {
 
                 $this->field['configuration']['lang']['Subtype'] = 'enumerate';
                 $this->field['configuration']['lang']['Enumerate'] = ["french" => "Français", "english" => "English", "deutch" => "Deutsch"];
+
+                $this->field['configuration']['file']['Subtype'] = 'loader';
+                $this->field['configuration']['file']['Subtype'] = 'upload_image';
 
                 // $this->dump();
         }

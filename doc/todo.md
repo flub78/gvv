@@ -12,6 +12,7 @@
 ## Reste à faire
 
 * [] Images de configuration
+* [] gestion des droits multi sections
 
 * [] Attachements lors de la création d'écriture
   * [] tester les téléchargements avec espace (upload->do_upload)
@@ -25,7 +26,6 @@
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
   
-* [] gestion des droits multi sections
 * [] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
