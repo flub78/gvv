@@ -19,8 +19,9 @@ class Dbchecks_model extends Common_Model {
      *
      * @return boolean[][][]|NULL[][][]|mixed[][][]|unknown[][][]
      */
-    public function unreferenced_accounts() {
+    public function unreferenced_accounts($html = true) {
 
+        // Fetch la liste des comptes
         // Hash table pour les comptes
         $comptes = [];
         $query = $this->db->query('SELECT * FROM `comptes`');
@@ -35,6 +36,7 @@ class Dbchecks_model extends Common_Model {
             $comptes[$id] = $elt;
         }
 
+        // Fetch la liste des achats
         // Hash table pour les achats
         $achats = [];
         $query = $this->db->query('SELECT * FROM `achats`');
@@ -70,6 +72,10 @@ class Dbchecks_model extends Common_Model {
                 $row->compte2
             ];
 
+            if ($html) {
+                $elt[0] .= anchor_ecriture_edit($row->id, ' class="ms-1"');
+                $elt[0] .= anchor_ecriture_delete($row->id, ' class="ms-1"');
+            }
             if (array_key_exists($row->compte1, $comptes)) {
                 $elt[5] = $comptes[$row->compte1]['nom'];
             } else {
