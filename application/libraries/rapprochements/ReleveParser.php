@@ -162,7 +162,8 @@ class ReleveParser {
         $type = $this->operation_type($operation);
         if ($type) {
             if ($type == "inconnu") {
-                echo "<pre> Type d'opération inconnu: " . print_r($operation, true) . "</pre><br>";
+                // echo "<pre> Type d'opération inconnu: " . print_r($operation, true) . "</pre><br>";
+                gvv_error("Type d'opération inconnu dans le relevé: " . print_r($operation, true));
             }
             $operation['type'] = $type;
             $op = new ReleveOperation($operation);
