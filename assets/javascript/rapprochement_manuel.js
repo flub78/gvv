@@ -40,7 +40,43 @@ document.addEventListener('DOMContentLoaded', function() {
                             const amountText = cells[2].textContent.trim();
                             const amount = parseFloat(amountText.replace(/[^\d.,-]/g, '').replace(',', '.'));
                             if (!isNaN(amount)) {
-                                selectedSum += amount;
+
+                                // We must find if the amount should be added or subtracted.
+                                // The amount is subtracted if Compte1 (debit account) is the account being reconciled $gvv_bank_account in the view
+                                // and added if Compte2 (credit account) is the account being reconciled.
+                                // This logic assumes that the OPERATION_AMOUNT is always positive for credits and negative for debits.
+
+                                // Get the account numbers from the row (assuming columns 5 and 6)
+                                // Extract account numbers from HTML using regex
+                                const compte1Html = cells[5].innerHTML.trim();
+                                const compte2Html = cells[6].innerHTML.trim();
+                                const bankAccount = String(window.GVV_BANK_ACCOUNT); // should be set in the view
+
+                                // Regex to extract account number from href attribute
+                                function extractAccountNumber(html) {
+                                    const match = html.match(/journal_compte\/(\d+)/);
+                                    return match ? match[1] : null;
+                                }
+                                const compte1Num = extractAccountNumber(compte1Html);
+                                const compte2Num = extractAccountNumber(compte2Html);
+
+                                console.log('compte1Num:', compte1Num, 'compte2Num:', compte2Num, 'bankAccount:', bankAccount, 'amount:', amount);
+
+                                if (bankAccount) {
+                                    if (compte1Num === bankAccount) {
+                                        // Subtract amount if Compte1 is the bank account
+                                        selectedSum -= amount;
+                                    } else if (compte2Num === bankAccount) {
+                                        // Add amount if Compte2 is the bank account
+                                        selectedSum += amount;
+                                    } else {
+                                        // Fallback: add amount (should not happen if data is correct)
+                                        selectedSum += amount;
+                                    }
+                                } else {
+                                    // If bankAccount is not defined, fallback to adding
+                                    selectedSum += amount;
+                                }
                             }
                         }
                     }
@@ -182,28 +218,49 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check that the sum of selected entries matches the statement operation amount
             const operationAmount = window.OPERATION_AMOUNT || 0;
             let selectedSum = 0;
+            const bankAccount = String(window.GVV_BANK_ACCOUNT || '');
+
+            // Helper identical to the one used in updateRapprocherButton
+            function extractAccountNumber(html) {
+                const match = html.match(/journal_compte\/(\d+)/);
+                return match ? match[1] : null;
+            }
             
             checkedBoxes.forEach(function(checkbox) {
-                // Find the row containing this checkbox
                 const row = checkbox.closest('tr');
-                if (row) {
-                    // The amount should be in the 3rd column (index 2)
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length >= 3) {
-                        const amountText = cells[2].textContent.trim();
-                        // Parse amount: remove currency symbols, spaces, and convert comma to dot
-                        const amount = parseFloat(amountText.replace(/[^\d.,-]/g, '').replace(',', '.'));
-                        if (!isNaN(amount)) {
-                            selectedSum += amount;
-                        }
+                if (!row) return;
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 7) return; // Need amount + account columns
+                const amountText = cells[2].textContent.trim();
+                const amount = parseFloat(amountText.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                if (isNaN(amount)) return;
+
+                // Determine sign according to bank account position (Compte1 = cells[5], Compte2 = cells[6])
+                const compte1Html = cells[5].innerHTML.trim();
+                const compte2Html = cells[6].innerHTML.trim();
+                const compte1Num = extractAccountNumber(compte1Html);
+                const compte2Num = extractAccountNumber(compte2Html);
+                console.log('[submit] compte1Num:', compte1Num, 'compte2Num:', compte2Num, 'bankAccount:', bankAccount, 'raw amount:', amount);
+
+                if (bankAccount) {
+                    if (compte1Num === bankAccount) {
+                        // Subtract (same rationale as in updateRapprocherButton)
+                        selectedSum -= amount;
+                    } else if (compte2Num === bankAccount) {
+                        selectedSum += amount;
+                    } else {
+                        // Fallback add
+                        selectedSum += amount;
                     }
+                } else {
+                    selectedSum += amount;
                 }
             });
             
             console.log('Operation amount:', operationAmount);
-            console.log('Selected sum:', selectedSum);
+            console.log('Selected sum (signed logic):', selectedSum);
             
-            // Check if amounts match (with small tolerance for floating point precision)
+            // Consistent tolerance & comparison with first control
             const tolerance = 0.01;
             const difference = Math.abs(selectedSum - Math.abs(operationAmount));
             
@@ -214,8 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             
-            // Allow form to submit normally - our validation passed
-            console.log('Form validation passed, submitting...');
+            console.log('Form validation passed with signed logic, submitting...');
             return true;
         }, true); // Use capture phase to run before any other validation
         

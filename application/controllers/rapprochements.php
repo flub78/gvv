@@ -975,6 +975,7 @@ class Rapprochements extends CI_Controller {
      */
     public function rapprochement_manuel() {
         $line = $this->input->get('line');
+        $gvv_bank_account = $this->input->get('gvv_bank_account');
 
         if (!$line) {
             show_error('Paramètre line manquant', 400);
@@ -1008,6 +1009,7 @@ class Rapprochements extends CI_Controller {
             $data['amount'] = $amount;
             $data['date'] = $date;
             $data['nature'] = $nature;
+            $data['gvv_bank_account'] = $gvv_bank_account;
 
             // Récupérer les paramètres de session pour la cohérence
             $data['maxDays'] = $this->session->userdata('rapprochement_delta') ?? 5;

@@ -146,7 +146,7 @@ class StatementOperation {
         if (!$this->is_rapproched() && $non_manual) {
             $line_number = $this->line();
             $html .= ' <button type="button" class="badge bg-primary text-white rounded-pill ms-2 border-0" 
-                         onclick="window.location.href=\'' . site_url('rapprochements/rapprochement_manuel?line=' . $line_number) . '\'" 
+                         onclick="window.location.href=\'' . site_url('rapprochements/rapprochement_manuel?line=' . $line_number . '&gvv_bank_account=' . $this->gvv_bank_account) . '\'" 
                          title="Rapprochement manuel">
                          Rapprochement manuel
                       </button>';

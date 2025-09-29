@@ -28,10 +28,20 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
 $this->lang->load('openflyers');
-
+if (isset($gvv_bank_account)) {
+    echo "<script>window.GVV_BANK_ACCOUNT = " . json_encode($gvv_bank_account) . ";</script>";
+}
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("Rapprochement manuel", 3);
+
+if (isset($gvv_bank_account) && $gvv_bank_account) {
+    $anchor = anchor_compte($gvv_bank_account);
+    echo '<div class="mb-3">';
+    echo '<strong>Compte bancaire : </strong>';
+    echo $anchor;
+    echo '</div>';
+}
 
 if ($status) {
     echo '<div class="border border-primary border-3 rounded p-2">';
@@ -207,7 +217,7 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
             }
 
             echo table_from_array($modified_gvv_lines, array(
-                'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
+                'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
                 'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
                 'class' => 'datatable_500 table'
             ));
