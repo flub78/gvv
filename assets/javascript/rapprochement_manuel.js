@@ -234,4 +234,87 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Button click allowed');
         }, true); // Use capture phase
     }
+
+    // Post-init: renforcer l'apparence cliquable des badges et accessibilité
+    function enhanceRapprochementBadges() {
+        document.querySelectorAll('.supprimer-rapprochement-badge').forEach(function(badge){
+            badge.style.cursor = 'pointer';
+            badge.setAttribute('role', 'button');
+            badge.setAttribute('tabindex', '0');
+            if (!badge.getAttribute('title')) {
+                badge.setAttribute('title', "Cliquez pour supprimer le rapprochement");
+            }
+        });
+    }
+    enhanceRapprochementBadges();
+
+    // Support clavier (Entrée / Espace)
+    document.addEventListener('keydown', function(e){
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('supprimer-rapprochement-badge')) {
+            e.preventDefault();
+            e.target.click();
+        }
+    });
+
+    // Observer si le tableau est redraw (ex: DataTables) pour réappliquer
+    const observer = new MutationObserver(function(mutations){
+        let shouldEnhance = false;
+        mutations.forEach(m => {
+            if (m.addedNodes && m.addedNodes.length) {
+                m.addedNodes.forEach(n => {
+                    if (n.nodeType === 1 && (n.classList.contains('supprimer-rapprochement-badge') || n.querySelector && n.querySelector('.supprimer-rapprochement-badge'))) {
+                        shouldEnhance = true;
+                    }
+                });
+            }
+        });
+        if (shouldEnhance) enhanceRapprochementBadges();
+    });
+    observer.observe(document.body, {childList:true, subtree:true});
+
+    // === Suppression d'un rapprochement via clic sur le badge vert (même comportement que sur l'onglet GVV) ===
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('supprimer-rapprochement-badge')) {
+            console.log('Click badge suppression rapprochement', e.target);
+            e.preventDefault();
+            e.stopPropagation();
+
+            const badge = e.target;
+            const ecritureId = badge.getAttribute('data-ecriture-id');
+            if (!ecritureId) return;
+
+            if (!confirm("Êtes-vous sûr de vouloir supprimer le rapprochement de l'écriture " + ecritureId + ' ?')) {
+                return;
+            }
+
+            const originalText = badge.textContent;
+            badge.textContent = '...';
+            badge.style.pointerEvents = 'none';
+
+            fetch(window.APP_BASE_URL + 'rapprochements/supprimer_rapprochement_ecriture', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'ecriture_id=' + encodeURIComponent(ecritureId)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    badge.textContent = originalText;
+                    badge.style.pointerEvents = 'auto';
+                    alert('Erreur lors de la suppression du rapprochement: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                badge.textContent = originalText;
+                badge.style.pointerEvents = 'auto';
+                alert('Erreur de communication avec le serveur');
+            });
+        }
+    });
 });

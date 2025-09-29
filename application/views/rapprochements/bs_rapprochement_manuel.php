@@ -165,7 +165,7 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
                 <p class="text-muted mb-0">Sélectionner une ou plusieurs écritures GVV pour le rapprochement</p>
                 <div id="amount-indicator" class="alert alert-info d-none" role="alert">
                     <small>
-                        <strong>Montant opération:</strong> <span id="operation-amount"><?php echo number_format(abs($amount), 2, ',', ' '); ?> €</span><br>
+                        <strong>Montant opération:</strong> <span id="operation-amount"><?php echo number_format($amount, 2, ',', ' '); ?> €</span><br>
                         <strong>Montant sélectionné:</strong> <span id="selected-amount">0,00 €</span><br>
                         <strong>Écart:</strong> <span id="difference-amount">0,00 €</span>
                     </small>
