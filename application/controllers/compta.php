@@ -228,6 +228,10 @@ class Compta extends Gvv_Controller {
         foreach ($fields_list as $field) {
             $this->data[$field] = $this->input->post($field);
         }
+        // 'annee_exercise'
+        if (!isset($this->data['annee_exercise']) || empty($this->data['annee_exercise'])) {
+            $this->data['annee_exercise'] = date("Y");
+        }
 
         $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
 
