@@ -318,7 +318,12 @@ class GrandLivreParser {
         $current_client = $CI->session->userdata('current_client');
 
         // values for the compte selector select
-        $compte_selector = $CI->comptes_model->selector_with_null(["codec =" => "411"], TRUE);
+        // Initialement on ne proposait que les comptes clients (codec 411)
+        // mais en fait on peut avoir des comptes de charges (6xx) et des produits (7xx)
+        $compte_selector = $CI->comptes_model->selector_with_null([
+            "codec >=" => "4",
+            'codec <' => "8"
+        ], TRUE);
 
         // $table = $this->parse($filePath);
         $line = 0;
