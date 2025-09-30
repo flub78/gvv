@@ -48,6 +48,7 @@ echo ($this->gvvmetadata->form('configuration', array(
 	'categorie' => $categorie,
 	'club' => $club,
 	'description' => $description,
+	'file' => $file
 )));
 
 ?>

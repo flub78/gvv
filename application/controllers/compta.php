@@ -273,7 +273,7 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Ecriture entre un compte de charge et un compte de banque
+     * Écriture entre deux comptes
      */
     function ecriture(string $title_key, $emploi_selection, $resource_selection, $message = "") {
         parent::create(FALSE);
