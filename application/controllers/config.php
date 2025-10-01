@@ -138,6 +138,7 @@ class Config extends CI_Controller {
         $this->config->load('club');
         $this->load->helper('file');
         $this->load->helper('directory');
+        $this->load->helper('validation_helper');
 
         $themes_dir = directory_map("./themes");
         foreach ( $themes_dir as $key => $values ) {
