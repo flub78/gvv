@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit bootstrap="application/tests/integration_bootstrap.php"
+<phpunit bootstrap="application/tests/mysql_bootstrap.php"
          colors="true"
          verbose="true">
     <testsuites>
-		<testsuite name="IntegrationTests">
-			<directory>application/tests/integration</directory>
-			<exclude>application/tests/integration/ConfigurationModelMySqlTest.php</exclude>
+		<testsuite name="MySQLIntegrationTests">
+			<file>application/tests/integration/ConfigurationModelMySqlTest.php</file>
 		</testsuite>
 	</testsuites>
 	<logging>
-		<log type="junit" target="build/logs/integration_junit.xml"/>
-		<log type="testdox-text" target="build/logs/integration_testdox.txt"/>
+		<log type="junit" target="build/logs/junit_mysql.xml"/>
+		<log type="testdox-text" target="build/logs/testdox_mysql.txt"/>
 	</logging>
 	<php>
 		<const name="PHPUNIT_TEST" value="1" />

@@ -33,10 +33,16 @@ echo "======================================="
 phpunit --configuration phpunit_enhanced.xml
 
 echo ""
+echo "🔹 Running MySQL Integration Test (Configuration Model)..."
+echo "==========================================================="
+phpunit --configuration phpunit_mysql.xml
+
+echo ""
 echo "✅ All test categories completed!"
 echo ""
 echo "📊 Test Coverage Summary:"
 echo "- Unit Tests: 24 tests (validation, models, libraries)"
 echo "- Integration Tests: 6 tests (real database operations)"
 echo "- Enhanced Tests: 41 tests (CI helpers and libraries)"
-echo "- Total: 71 tests across all categories"
+echo "- MySQL Integration: 9 tests (Configuration model with real MySQL)"
+echo "- Total: 80 tests across all categories"
