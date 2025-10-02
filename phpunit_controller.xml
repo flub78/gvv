@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit colors="true"
+         verbose="true">
+    <testsuites>
+		<testsuite name="ControllerTests">
+			<file>application/tests/controllers/ConfigurationControllerTest.php</file>
+		</testsuite>
+	</testsuites>
+	<logging>
+		<log type="junit" target="build/logs/junit_controller.xml"/>
+		<log type="testdox-text" target="build/logs/testdox_controller.txt"/>
+	</logging>
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+	</php>
+	<filter>
+		<whitelist>
+			<directory suffix=".php">application</directory>
+			<exclude>
+				<directory suffix=".php">system</directory>
+				<directory suffix=".php">application/tests</directory>
+			</exclude>
+		</whitelist>
+	</filter>
+</phpunit>
