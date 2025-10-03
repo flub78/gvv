@@ -136,6 +136,7 @@ class RealMySQLDatabase {
     private $limit_clause = '';
     private $order_clause = '';
     private $from_table = '';
+    private $join_clauses = [];
     private $last_executed_query;
 
     public function select($fields) {
@@ -187,6 +188,11 @@ class RealMySQLDatabase {
 
         $sql = "SELECT " . $this->select_fields . " FROM " . $table_to_use;
 
+        // Add JOIN clauses
+        if (!empty($this->join_clauses)) {
+            $sql .= " " . implode(' ', $this->join_clauses);
+        }
+
         if (!empty($this->where_conditions)) {
             $sql .= " WHERE " . implode(' AND ', $this->where_conditions);
         }
@@ -202,6 +208,7 @@ class RealMySQLDatabase {
         $this->limit_clause = '';
         $this->order_clause = '';
         $this->from_table = '';
+        $this->join_clauses = [];
 
         return $this->query($sql);
     }
@@ -274,6 +281,39 @@ class RealMySQLDatabase {
 
         return $this->affected_rows() > 0;
     }
+
+    public function count_all($table) {
+        $sql = "SELECT COUNT(*) as count FROM " . $table;
+        $result = $this->query($sql);
+        $row = $result->row_array();
+        return $row ? (int)$row['count'] : 0;
+    }
+
+    public function count_all_results($table = '') {
+        // Use from_table if set, otherwise use parameter
+        $table_to_use = !empty($this->from_table) ? $this->from_table : $table;
+
+        $sql = "SELECT COUNT(*) as count FROM " . $table_to_use;
+
+        if (!empty($this->where_conditions)) {
+            $sql .= " WHERE " . implode(' AND ', $this->where_conditions);
+        }
+
+        $this->last_executed_query = $sql;
+
+        // Reset query builder state
+        $this->where_conditions = [];
+        $this->from_table = '';
+
+        $result = $this->query($sql);
+        $row = $result->row_array();
+        return $row ? (int)$row['count'] : 0;
+    }
+
+    public function join($table, $condition, $type = 'INNER') {
+        $this->join_clauses[] = strtoupper($type) . " JOIN " . $table . " ON " . $condition;
+        return $this;
+    }
 }
 
 /**
@@ -313,6 +353,18 @@ class RealQueryResult {
 
         $row = $this->result->fetch_assoc();
         return $row ? (object)$row : null;
+    }
+
+    public function result() {
+        if ($this->result === true || $this->result === false) {
+            return [];
+        }
+
+        $rows = [];
+        while ($row = $this->result->fetch_assoc()) {
+            $rows[] = (object)$row;
+        }
+        return $rows;
     }
 
     public function num_rows() {
@@ -373,6 +425,10 @@ class MockLoader {
     }
 
     public function helper($helpers = array()) {
+        return true;
+    }
+
+    public function language($langfile, $idiom = '', $return = FALSE, $add_suffix = TRUE, $alt_path = '') {
         return true;
     }
 }
@@ -502,5 +558,9 @@ if (!function_exists('gvv_debug')) {
 // Load the Common_model
 require_once APPPATH . 'models/common_model.php';
 
-// Load the Configuration_model
+// Load model files for testing
 require_once APPPATH . 'models/configuration_model.php';
+require_once APPPATH . 'models/sections_model.php';
+require_once APPPATH . 'models/attachments_model.php';
+require_once APPPATH . 'models/achats_model.php';
+require_once APPPATH . 'models/user_roles_per_section_model.php';

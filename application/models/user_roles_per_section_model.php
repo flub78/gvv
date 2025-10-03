@@ -78,7 +78,7 @@ class User_roles_per_section_model extends Common_Model {
      *
      * @param $where selection
      */
-    public function selector_with_all($where = array()) {
+    public function selector_with_all($where = array(), $filter_section = false) {
         $result = $this->selector($where);
         $result[] = $this->lang->line("all_sections");
         return $result;

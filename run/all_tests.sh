@@ -36,7 +36,7 @@ phpunit --configuration phpunit_enhanced.xml
 echo ""
 echo "🔹 Running MySQL Integration Test (Configuration Model)..."
 echo "==========================================================="
-phpunit --configuration phpunit_mysql.xml
+phpunit --configuration phpunit_mysql.xml 
 
 echo ""
 echo "🔹 Running Controller Tests..."

@@ -5,6 +5,9 @@
     <testsuites>
 		<testsuite name="MySQLIntegrationTests">
 			<file>application/tests/integration/ConfigurationModelMySqlTest.php</file>
+			<file>application/tests/integration/SectionsModelMySqlTest.php</file>
+			<file>application/tests/integration/AttachmentsModelMySqlTest.php</file>
+			<file>application/tests/integration/UserRolesPerSectionModelMySqlTest.php</file>
 		</testsuite>
 	</testsuites>
 	<logging>
