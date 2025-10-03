@@ -602,12 +602,17 @@ EOD;
         if ($output == "S") return $res;
     }
 
-
+    /**
+     * Edition avant vol (checklist, pré-vol, post-vol)
+     */
     function pre_flight($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
         $this->edit($id);
     }
 
+    /**
+     * Edition après vol (date du vol)
+     */
     function done($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
         $this->edit($id);
@@ -625,6 +630,9 @@ EOD;
         $this->tests_results($format);
     }
 
+    /**
+     * Test de la génération du QR code
+     */
     function qr() {
 
         $originalNumber = 12345;

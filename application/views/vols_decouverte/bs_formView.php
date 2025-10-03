@@ -40,7 +40,7 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 // hidden controller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 echo form_hidden('saisie_par', $saisie_par, '');
-
+echo form_hidden('id', $id);
 
 // echo validation_errors();
 
@@ -87,21 +87,21 @@ if ($modification_type == 'edit') {
 		echo form_hidden('pilote', $pilote, '');
 		echo form_hidden('airplane_immat', $airplane_immat, '');
 
-		?>
-	<div class="d-flex flex-wrap">
-		<div class="m-2 ">
-			<div class="mb-2 ">Numéro: <?= $id ?> </div>
-			<div class="mb-2 ">Date de vente: <?= date_db2ht($date_vente) ?> </div>
-			<div class="mb-2 ">Description: <?= $description ?></div>
-			<div class="mb-2 ">Bénéficiaire: <?= $beneficiaire ?></div>
-		</div>
-		<div class="m-2 ">
-			<div class="mb-2 ">De la part de: <?= $de_la_part ?></div>
-			<div class="mb-2 ">Email bénéficiaire: <?= $beneficiaire_email ?></div>
-		</div>
+?>
+		<div class="d-flex flex-wrap">
+			<div class="m-2 ">
+				<div class="mb-2 ">Numéro: <?= $id ?> </div>
+				<div class="mb-2 ">Date de vente: <?= date_db2ht($date_vente) ?> </div>
+				<div class="mb-2 ">Description: <?= $description ?></div>
+				<div class="mb-2 ">Bénéficiaire: <?= $beneficiaire ?></div>
+			</div>
+			<div class="m-2 ">
+				<div class="mb-2 ">De la part de: <?= $de_la_part ?></div>
+				<div class="mb-2 ">Email bénéficiaire: <?= $beneficiaire_email ?></div>
+			</div>
 
-	</div>
-<?php
+		</div>
+	<?php
 
 		echo ($this->gvvmetadata->form('vols_decouverte', array(
 			'urgence' => $urgence,
@@ -110,21 +110,21 @@ if ($modification_type == 'edit') {
 		// done
 		echo form_hidden('urgence', $urgence, '');
 
-		?>
-	<div class="d-flex flex-wrap">
-		<div class="m-2 ">
-			<div class="mb-2 ">Numéro: <?= $id ?> </div>
-			<div class="mb-2 ">Date de vente: <?= date_db2ht($date_vente) ?> </div>
-			<div class="mb-2 ">Description: <?= $description ?></div>
-			<div class="mb-2 ">Bénéficiaire: <?= $beneficiaire ?></div>
-		</div>
-		<div class="m-2 ">
-			<div class="mb-2 ">De la part de: <?= $de_la_part ?></div>
-			<div class="mb-2 ">Email bénéficiaire: <?= $beneficiaire_email ?></div>
-			<div class="mb-2 ">Contact en cas d'urgence: <?= $urgence ?></div>
-		</div>
+	?>
+		<div class="d-flex flex-wrap">
+			<div class="m-2 ">
+				<div class="mb-2 ">Numéro: <?= $id ?> </div>
+				<div class="mb-2 ">Date de vente: <?= date_db2ht($date_vente) ?> </div>
+				<div class="mb-2 ">Description: <?= $description ?></div>
+				<div class="mb-2 ">Bénéficiaire: <?= $beneficiaire ?></div>
+			</div>
+			<div class="m-2 ">
+				<div class="mb-2 ">De la part de: <?= $de_la_part ?></div>
+				<div class="mb-2 ">Email bénéficiaire: <?= $beneficiaire_email ?></div>
+				<div class="mb-2 ">Contact en cas d'urgence: <?= $urgence ?></div>
+			</div>
 
-	</div>
+		</div>
 <?php
 
 		echo ($this->gvvmetadata->form('vols_decouverte', array(
