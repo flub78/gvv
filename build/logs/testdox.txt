@@ -30,6 +30,14 @@ Bitfield
  [x] Edge cases
  [x] Complex scenarios
 
+Language Completeness
+ [x] Reference language directory exists
+ [ ] English has all language files
+ [ ] Dutch has all language files
+ [ ] English has all translation keys
+ [ ] Dutch has all translation keys
+ [x] Reference language has translation files
+
 Configuration Controller
  [x] Json output parsing
  [x] Html output parsing
