@@ -36,3 +36,4 @@ build/results/Correlatiion_test_result.txt
 build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
+build/coverage-data/*

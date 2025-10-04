@@ -7,7 +7,7 @@ This document provides a comprehensive test plan for the GVV (Gestion Vol à voi
 **Current Status:**
 - ✅ **38 tests passing** across 220 assertions
 - ✅ **4 test types** implemented: Unit, Integration, MySQL, Controllers
-- ⚠️ **Code coverage**: Not yet configured (requires Xdebug or PCOV)
+- ✅  **Code coverage**: some tests using xdebug
 - 📈 **Test infrastructure**: Mature and functional
 
 ---

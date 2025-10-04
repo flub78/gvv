@@ -18,7 +18,7 @@ PHP_BIN="/usr/bin/php7.4"
 show_help() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
-    echo "Run all GVV PHPUnit tests (119 tests across all suites)"
+    echo "Run all GVV PHPUnit tests (125 tests across all suites)"
     echo ""
     echo "Options:"
     echo "  -c, --coverage     Generate code coverage report (slower ~60s)"
@@ -30,10 +30,11 @@ show_help() {
     echo ""
     echo "Test Suites Included:"
     echo "  - Unit Tests (38 tests): helpers, models, libraries, i18n, controllers"
-    echo "  - Enhanced Tests (40 tests): CI framework helpers/libraries"
     echo "  - Integration Tests (35 tests): database operations, metadata"
+    echo "  - Enhanced Tests (40 tests): CI framework helpers/libraries"
+    echo "  - Controller Tests (6 tests): JSON/HTML/CSV output parsing"
     echo "  - MySQL Tests (9 tests): real database CRUD"
-    echo "  Total: ~122 tests"
+    echo "  Total: ~128 tests"
     exit 0
 }
 
@@ -70,7 +71,7 @@ fi
 echo -e "${YELLOW}Configuration:${NC}"
 echo "  PHP: 7.4.33"
 echo "  Coverage: $([ "$COVERAGE" = true ] && echo 'ENABLED' || echo 'DISABLED')"
-echo "  Test suites: ALL (4 suites, ~122 tests)"
+echo "  Test suites: ALL (5 suites, ~128 tests)"
 echo ""
 
 # Track results
@@ -87,10 +88,13 @@ if [ "$COVERAGE" = true ]; then
     fi
 
     # Create output directories
-    mkdir -p build/coverage build/logs
+    mkdir -p build/coverage build/logs build/coverage-data
 
     # Set Xdebug mode
     export XDEBUG_MODE=coverage
+
+    # Clean up old coverage data files
+    rm -f build/coverage-data/*.cov
 
     echo -e "${YELLOW}Running ALL tests WITH code coverage...${NC}"
     echo -e "${YELLOW}(This will take 60-90 seconds)${NC}"
@@ -105,6 +109,7 @@ run_suite() {
     local suite_name=$1
     local config_file=$2
     local description=$3
+    local suite_id=$4
 
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${CYAN}$suite_name${NC}"
@@ -112,10 +117,13 @@ run_suite() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     if [ "$COVERAGE" = true ]; then
-        # Run with coverage, suppress compatibility warnings
-        $PHP_BIN vendor/bin/phpunit --configuration "$config_file" 2>&1 | \
+        # Run with coverage, save to individual .cov file
+        # Note: We still generate temp reports via logging config, but merge later
+        $PHP_BIN vendor/bin/phpunit --configuration "$config_file" \
+            --coverage-php "build/coverage-data/${suite_id}.cov" 2>&1 | \
             grep -v "Declaration of.*should be compatible" | \
-            grep -v "Xdebug.*Step Debug" || true
+            grep -v "Xdebug.*Step Debug" | \
+            grep -v "Generating code coverage report" || true
     else
         # Run without coverage
         $PHP_BIN vendor/bin/phpunit --configuration "$config_file" --no-coverage 2>&1 | \
@@ -134,24 +142,29 @@ run_suite() {
 
 # Run each test suite with its proper bootstrap
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 1/4: Unit Tests${NC}"
+echo -e "${BLUE}  Test Suite 1/5: Unit Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "Unit Tests" "phpunit.xml" "Helpers, Models, Libraries, i18n, Controllers"
+run_suite "Unit Tests" "phpunit.xml" "Helpers, Models, Libraries, i18n, Controllers" "unit"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 2/4: Integration Tests${NC}"
+echo -e "${BLUE}  Test Suite 2/5: Integration Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "Integration Tests" "phpunit_integration.xml" "Real database operations, metadata"
+run_suite "Integration Tests" "phpunit_integration.xml" "Real database operations, metadata" "integration"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 3/4: Enhanced Tests${NC}"
+echo -e "${BLUE}  Test Suite 3/5: Enhanced Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "Enhanced Tests" "phpunit_enhanced.xml" "CI framework helpers and libraries"
+run_suite "Enhanced Tests" "phpunit_enhanced.xml" "CI framework helpers and libraries" "enhanced"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 4/4: MySQL Tests${NC}"
+echo -e "${BLUE}  Test Suite 4/5: Controller Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "MySQL Tests" "phpunit.xml" "Real database CRUD operations"
+run_suite "Controller Tests" "phpunit_controller.xml" "JSON/HTML/CSV output parsing" "controller"
+
+echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}  Test Suite 5/5: MySQL Tests${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
+run_suite "MySQL Tests" "phpunit.xml" "Real database CRUD operations" "mysql"
 
 # Final summary
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
@@ -163,23 +176,21 @@ if [ $FAILED_SUITES -eq 0 ]; then
     echo -e "${GREEN}✓ All test suites passed!${NC}"
 
     if [ "$COVERAGE" = true ]; then
-        if [ -f "build/coverage/index.html" ]; then
+        echo ""
+        echo -e "${YELLOW}Merging coverage data from all test suites...${NC}"
+
+        # Merge coverage using PHP script
+        $PHP_BIN merge-coverage.php
+
+        if [ $? -eq 0 ]; then
             echo ""
             echo -e "${GREEN}Coverage reports generated:${NC}"
             echo "  HTML: file://$(pwd)/build/coverage/index.html"
             echo "  Clover: build/logs/clover.xml"
             echo ""
-
-            # Show coverage summary if available
-            if [ -f "build/logs/clover.xml" ]; then
-                echo -e "${YELLOW}Coverage Summary:${NC}"
-                # Extract basic stats from clover.xml
-                grep -o 'elements="[0-9]*"' build/logs/clover.xml | head -1
-                grep -o 'coveredelements="[0-9]*"' build/logs/clover.xml | head -1
-            fi
-
-            echo ""
             echo -e "${CYAN}View detailed coverage: firefox build/coverage/index.html${NC}"
+        else
+            echo -e "${RED}Error: Failed to merge coverage data${NC}"
         fi
     else
         echo ""
