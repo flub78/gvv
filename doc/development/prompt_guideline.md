@@ -100,6 +100,15 @@ Fix Requirements: Maintain backward compatibility, follow CI 2.x patterns, suppo
 Testing: Open different records in multiple tabs, verify each updates correctly
 ```
 
+```
+Context: GVV project (see copilot-instructions.md)
+Problem: Some users experiment unwanted disconnections. There is no obvious pattern like poor Internet connection, specific browser or operating systems that could explain it. Some others users are almost never experimenting this problem. 
+
+Expected vs Actual: Users should stay connected until they logout or the 2 hours time out.
+Testing: As it is not really reproductible, analyze the code and provide advices.
+Generate: a document doc/bugs/disconnection_issue.md with your analyse and advices.
+```
+
 ### New Features
 
 ### New Features
