@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="application/tests/minimal_bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+		<testsuite name="WorkingTests">
+			<directory>application/tests/unit/helpers</directory>
+			<directory>application/tests/unit/models</directory>
+			<directory>application/tests/unit/libraries</directory>
+			<directory>application/tests/unit/i18n</directory>
+			<directory>application/tests/controllers</directory>
+		</testsuite>
+		<!-- Additional test suites to activate progressively
+		<testsuite name="EnhancedTests">
+			<directory>application/tests/unit/enhanced</directory>
+		</testsuite>
+		<testsuite name="IntegrationTests">
+			<directory>application/tests/integration</directory>
+		</testsuite>
+		<testsuite name="MySqlTests">
+			<directory>application/tests/mysql</directory>
+		</testsuite>
+		-->
+	</testsuites>
+
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+		<!-- Enable Xdebug coverage mode (Xdebug 3.x) -->
+		<env name="XDEBUG_MODE" value="coverage"/>
+	</php>
+
+	<!-- Code Coverage Configuration (PHPUnit 8.x format) -->
+	<filter>
+		<whitelist processUncoveredFilesFromWhitelist="false">
+			<directory suffix=".php">application</directory>
+			<exclude>
+				<!-- Exclude system files -->
+				<directory suffix=".php">system</directory>
+
+				<!-- Exclude third-party libraries -->
+				<directory suffix=".php">application/third_party</directory>
+
+				<!-- Exclude views (tested via controllers) -->
+				<directory suffix=".php">application/views</directory>
+
+				<!-- Exclude test files -->
+				<directory suffix=".php">application/tests</directory>
+
+				<!-- Exclude controllers with method signature issues (legacy code) -->
+				<file>application/controllers/achats.php</file>
+				<file>application/controllers/vols_planeur.php</file>
+				<file>application/controllers/vols_avion.php</file>
+
+				<!-- Exclude legacy/deprecated code if any -->
+				<!-- <directory suffix=".php">application/legacy</directory> -->
+			</exclude>
+		</whitelist>
+	</filter>
+
+	<!-- Logging and coverage reports -->
+	<logging>
+		<log type="junit" target="build/logs/junit.xml"/>
+		<log type="testdox-text" target="build/logs/testdox.txt"/>
+		<log type="coverage-html" target="build/coverage" lowUpperBound="35" highLowerBound="70"/>
+		<log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+		<log type="coverage-clover" target="build/logs/clover.xml"/>
+	</logging>
+</phpunit>

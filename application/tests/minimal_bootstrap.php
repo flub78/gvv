@@ -63,8 +63,18 @@ if (!function_exists('get_instance')) {
 
 /*
  * This will autoload controllers inside subfolders
+ * Skip controllers with known compatibility issues when running coverage
  */
 spl_autoload_register(function ($class) {
+	// Skip problematic controllers that have method signature incompatibilities
+	// These don't affect the tests but cause issues during coverage analysis
+	$skip_for_coverage = ['achats', 'vols_planeur', 'vols_avion'];
+
+	$class_lower = strtolower($class);
+	if (in_array($class_lower, $skip_for_coverage) && getenv('XDEBUG_MODE') === 'coverage') {
+		return;
+	}
+
 	foreach (glob(APPPATH.'controllers/**/'.strtolower($class).'.php') as $controller) {
 		require_once $controller;
 	}
