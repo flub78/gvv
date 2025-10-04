@@ -7,12 +7,6 @@
 			<directory>application/tests/unit/helpers</directory>
 			<directory>application/tests/unit/models</directory>
 			<directory>application/tests/unit/libraries</directory>
-			<exclude>application/tests/unit/helpers/AssetsHelperTest.php</exclude>
-			<exclude>application/tests/unit/helpers/FormElementsHelperTest.php</exclude>
-			<exclude>application/tests/unit/helpers/CsvHelperTest.php</exclude>
-			<exclude>application/tests/unit/libraries/WidgetLibraryTest.php</exclude>
-			<exclude>application/tests/unit/libraries/ButtonLibraryTest.php</exclude>
-			<exclude>application/tests/unit/libraries/LogLibraryTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<logging>

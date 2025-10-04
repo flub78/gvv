@@ -7,29 +7,6 @@ Assets Helper
  [x] Controller url function
  [x] Image dir function
 
-Form Elements Helper
- [x] Checkbox array function
- [x] Input field function
- [x] Dropdown field function
- [x] Add first row function
- [x] Add first col function
- [x] Complete table manipulation
-
-Csv Helper
- [x] Csv file function
- [x] Csv file with empty table
- [x] Csv file with single row
-
-Widget Library
- [x] Widget library loaded
- [x] Widget default attribute
- [x] Widget attribute modification
- [x] Widget display
- [x] Widget image method
- [x] Widget multiple attributes
- [x] Widget non existent attribute
- [x] Widget set get workflow
-
 Button Library
  [x] Button library loaded
  [x] Button default attribute
@@ -40,6 +17,19 @@ Button Library
  [x] Button without attributes
  [x] Button inheritance behavior
 
+Csv Helper
+ [x] Csv file function
+ [x] Csv file with empty table
+ [x] Csv file with single row
+
+Form Elements Helper
+ [x] Checkbox array function
+ [x] Input field function
+ [x] Dropdown field function
+ [x] Add first row function
+ [x] Add first col function
+ [x] Complete table manipulation
+
 Log Library
  [x] System user information
  [x] Log directory permissions
@@ -49,4 +39,14 @@ Log Library
  [x] Log file method
  [x] Log file size method
  [x] Count lines method
+
+Widget Library
+ [x] Widget library loaded
+ [x] Widget default attribute
+ [x] Widget attribute modification
+ [x] Widget display
+ [x] Widget image method
+ [x] Widget multiple attributes
+ [x] Widget non existent attribute
+ [x] Widget set get workflow
 

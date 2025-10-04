@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit bootstrap="application/tests/mysql_bootstrap.php"
+<phpunit bootstrap="application/tests/integration_bootstrap.php"
          colors="true"
          verbose="true">
     <testsuites>

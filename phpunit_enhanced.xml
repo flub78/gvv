@@ -4,12 +4,7 @@
          verbose="true">
     <testsuites>
 		<testsuite name="EnhancedTests">
-			<file>application/tests/unit/helpers/AssetsHelperTest.php</file>
-			<file>application/tests/unit/helpers/FormElementsHelperTest.php</file>
-			<file>application/tests/unit/helpers/CsvHelperTest.php</file>
-			<file>application/tests/unit/libraries/WidgetLibraryTest.php</file>
-			<file>application/tests/unit/libraries/ButtonLibraryTest.php</file>
-			<file>application/tests/unit/libraries/LogLibraryTest.php</file>
+			<directory>application/tests/unit/enhanced</directory>
 		</testsuite>
 	</testsuites>
 	<logging>

@@ -5,7 +5,6 @@
     <testsuites>
 		<testsuite name="IntegrationTests">
 			<directory>application/tests/integration</directory>
-			<exclude>application/tests/integration/ConfigurationModelMySqlTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<logging>
