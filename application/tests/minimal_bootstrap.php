@@ -34,6 +34,15 @@ if (!function_exists('gvv_debug')) {
     }
 }
 
+// Mock CI_Controller base class
+if (!class_exists('CI_Controller')) {
+    class CI_Controller {
+        public function __construct() {
+            // Mock constructor
+        }
+    }
+}
+
 // Mock get_instance function
 if (!function_exists('get_instance')) {
     function &get_instance() {
@@ -54,7 +63,7 @@ if (!function_exists('get_instance')) {
 
 /*
  * This will autoload controllers inside subfolders
- */ 
+ */
 spl_autoload_register(function ($class) {
 	foreach (glob(APPPATH.'controllers/**/'.strtolower($class).'.php') as $controller) {
 		require_once $controller;

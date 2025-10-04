@@ -30,3 +30,15 @@ Bitfield
  [x] Edge cases
  [x] Complex scenarios
 
+Configuration Controller
+ [x] Json output parsing
+ [x] Html output parsing
+ [x] Csv output parsing
+ [x] Http status codes
+ [x] Response headers
+ [x] Form validation logic
+
+Controller
+ [x] Load controller from subfolder
+ [x] Load inexistent controller from subfolder
+
