@@ -4,15 +4,15 @@
          verbose="true">
     <testsuites>
 		<testsuite name="WorkingTests">
-			<directory>application/tests/unit/helpers</directory>
-			<directory>application/tests/unit/models</directory>
-			<directory>application/tests/unit/libraries</directory>
-			<exclude>application/tests/unit/helpers/AssetsHelperTest.php</exclude>
-			<exclude>application/tests/unit/helpers/FormElementsHelperTest.php</exclude>
-			<exclude>application/tests/unit/helpers/CsvHelperTest.php</exclude>
-			<exclude>application/tests/unit/libraries/WidgetLibraryTest.php</exclude>
-			<exclude>application/tests/unit/libraries/ButtonLibraryTest.php</exclude>
-			<exclude>application/tests/unit/libraries/LogLibraryTest.php</exclude>
+			<directory>application/tests/helpers</directory>
+			<directory>application/tests/models</directory>
+			<directory>application/tests/libraries</directory>
+			<exclude>application/tests/helpers/AssetsHelperTest.php</exclude>
+			<exclude>application/tests/helpers/FormElementsHelperTest.php</exclude>
+			<exclude>application/tests/helpers/CsvHelperTest.php</exclude>
+			<exclude>application/tests/libraries/WidgetLibraryTest.php</exclude>
+			<exclude>application/tests/libraries/ButtonLibraryTest.php</exclude>
+			<exclude>application/tests/libraries/LogLibraryTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<logging>
