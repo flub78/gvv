@@ -402,18 +402,33 @@ class MockConfig {
     }
 }
 
+// Mock Lang class
+class MockLang {
+    public function load($file) {
+        // Mock language file loading
+        return true;
+    }
+
+    public function line($key) {
+        // Return mock translation
+        return $key;
+    }
+}
+
 // Create a mock CI instance
 class MockCI {
     public $load;
     public $db;
     public $session;
     public $config;
-    
+    public $lang;
+
     public function __construct() {
         $this->load = new MockLoader();
         $this->db = new RealDatabase($GLOBALS['test_db_config']);
         $this->session = new MockSession();
         $this->config = new MockConfig();
+        $this->lang = new MockLang();
     }
 }
 

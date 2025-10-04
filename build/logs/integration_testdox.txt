@@ -23,6 +23,18 @@ Form Elements Integration
  [x] Dropdown field function
  [x] Helper with database integration
 
+Gvvmetadata
+ [x] Tables list returns multiple tables
+ [x] Each table has primary key
+ [x] Table image element
+ [x] Autogen key
+ [x] Each table has multiple fields
+ [x] Field name returns non empty string
+ [x] Field type returns non empty string
+ [x] Field subtype returns string
+ [x] Field default
+ [x] Field attr
+
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
  [x] Correlation for bleuse against all images
