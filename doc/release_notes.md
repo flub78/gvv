@@ -8,18 +8,6 @@ Ce fichier retrace les dernières évolutions de façon un peu plus synthétique
 
 ## Depuis le migration sous Github (juin 2024):
 
-* Support d'un tarif de remorqué différent à l'extérieur
-* Meilleur documentation d'installation
-* Interdiction des écritures sur un même compte
-* Menu avec filtre pour sélectionner les pilotes, les comptes, les machines
-* Amélioration des sauvegardes automatiques
-* Attachements de pièces justificatives sur les écritures
-* Réactivation des photos des membres
-* Suppression du support pour firefox < 46
-* Tous les exports CSV (Excel) sont maintenant en UTF8
-* Correction des exports CSV et PDF
-* Mise à jour automatique de la date de gel et suppression de la possibilité de la modifier
-* Support des écritures et cumuls à plus d'un million d'euro
-* Remplacement des fieldset Jquery par des accordéons Bootstrap
-* Structure des vues plus moderne (remplacement des tables par des div)
-  
+La liste des modifications est dans l'historique github.
+
+https://github.com/flub78/gvv/commits/main/
