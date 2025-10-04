@@ -1,3 +1,16 @@
+Bitfields Helper
+ [x] Array 2 int nominal cases
+ [x] Array 2 int with duplicates
+ [x] Array 2 int with incorrect data
+ [x] Array 2 int with mixed keys
+ [x] Int 2 array nominal cases
+ [x] Int 2 array edge cases
+ [x] Int 2 array with incorrect data
+ [x] Roundtrip array to int to array
+ [x] Roundtrip int to array to int
+ [x] Int 2 array keys match values
+ [x] Powers of two
+
 Debug Example
  [x] Debugging example
  [x] Debugging with helpers
