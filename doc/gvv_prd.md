@@ -255,7 +255,7 @@ Gliding clubs face complex operational challenges:
 ## 5. Constraints and Dependencies
 
 ### 5.1 Technical Limitations
-- **Legacy Framework**: CodeIgniter 2.x limits modern PHP features
+- **Legacy Framework**: CodeIgniter 2.x limits modern PHP features, no composer
 - **PHP Version Lock**: Requires PHP 7.4 specifically (not compatible with newer versions)
 - **Single-Tenant Architecture**: Each club requires separate installation
 - **Limited Mobile Optimization**: Responsive design but not native mobile app
