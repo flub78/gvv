@@ -1,5 +1,44 @@
 # GitHub Copilot Prompt Guidelines for GVV Project
 
+## Table of Contents
+
+- [GitHub Copilot Prompt Guidelines for GVV Project](#github-copilot-prompt-guidelines-for-gvv-project)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Prompt Structure Best Practices](#prompt-structure-best-practices)
+    - [Reference Existing Context](#reference-existing-context)
+    - [Focus on the Specific Request](#focus-on-the-specific-request)
+    - [Recommended points](#recommended-points)
+  - [Prompt Templates by Use Case](#prompt-templates-by-use-case)
+    - [Design Notes \& Architecture](#design-notes--architecture)
+  - [Optimized Prompt Templates](#optimized-prompt-templates)
+    - [General prompt recommendations](#general-prompt-recommendations)
+    - [Design Notes \& Architecture](#design-notes--architecture-1)
+    - [Bug Fixes](#bug-fixes)
+    - [New Features](#new-features)
+    - [New Features](#new-features-1)
+    - [Code Refactoring](#code-refactoring)
+    - [Code Review](#code-review)
+    - [phpunit test](#phpunit-test)
+  - [Advanced Prompt Techniques](#advanced-prompt-techniques)
+    - [1. Reference Existing Context](#1-reference-existing-context)
+    - [2. Multi-Step Analysis](#2-multi-step-analysis)
+    - [3. Specific Integration Points](#3-specific-integration-points)
+  - [Optimized Examples](#optimized-examples)
+    - [Efficient Bug Fix Prompt](#efficient-bug-fix-prompt)
+    - [Efficient Feature Request](#efficient-feature-request)
+    - [Efficient Refactoring Prompt](#efficient-refactoring-prompt)
+  - [Key Principles for Efficient Prompts](#key-principles-for-efficient-prompts)
+  - [Workflow Recommendations for GitHub Copilot](#workflow-recommendations-for-github-copilot)
+    - [Work in Small Steps](#work-in-small-steps)
+    - [Request Clarification When in Doubt](#request-clarification-when-in-doubt)
+    - [Multi-Step Process Management](#multi-step-process-management)
+    - [Incremental Implementation Pattern](#incremental-implementation-pattern)
+  - [Example: Step-by-Step Implementation](#example-step-by-step-implementation)
+    - [Complex Feature with Incremental Approach](#complex-feature-with-incremental-approach)
+
+---
+
 ## Overview
 
 This document provides guidelines for crafting effective prompts when using GitHub Copilot to work on the GVV project. It complements the existing [GVV Copilot Instructions](../../.github/copilot-instructions.md) which already covers the technical context, architecture, and development guidelines.
@@ -163,6 +202,22 @@ Desired Outcome: A synthetic md file, organized by remark criticity, with exact 
 Constraints: No code modification, include the date in the review result
 Method: if required you may process by steps, and produce separate reports for bug and potential bugs, poor style and code duplication
 Success Criteria: The quality of you analysis will be evaluated by humans
+```
+
+### phpunit test
+
+**Template:**
+```
+Context: GVV project (see copilot-instructions.md)
+create: a new phpunit test for the bitfields_helper.php
+details:
+determine if it must be a unit or integration test; and create the test in the related directory
+for all the functions
+* test nominal cases for expected results
+* test with incorrect data and checks behavior
+* the code coverage of the test mus exceed 70 %
+* update the scripts to run the test if necessary
+Success Criteria: A passing test, if issues are discovered in the file under test, report them and suggest fixes.
 ```
 
 ## Advanced Prompt Techniques

@@ -9,6 +9,9 @@ define('APPPATH', dirname(__FILE__) . '/../');
 // Load the validation helper functions
 require_once APPPATH . 'helpers/validation_helper.php';
 
+// Load the bitfields helper functions
+require_once APPPATH . 'helpers/bitfields_helper.php';
+
 // Load library files for testing
 function load_library($library_name) {
     $library_file = APPPATH . 'libraries/' . $library_name . '.php';
