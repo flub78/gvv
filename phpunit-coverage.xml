@@ -10,7 +10,6 @@
 			<directory>application/tests/unit/i18n</directory>
 			<directory>application/tests/controllers</directory>
 		</testsuite>
-		<!-- Additional test suites to activate progressively
 		<testsuite name="EnhancedTests">
 			<directory>application/tests/unit/enhanced</directory>
 		</testsuite>
@@ -20,7 +19,6 @@
 		<testsuite name="MySqlTests">
 			<directory>application/tests/mysql</directory>
 		</testsuite>
-		-->
 	</testsuites>
 
 	<php>
