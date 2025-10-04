@@ -23,3 +23,8 @@ $lang['gvv_config_field_planche_auto'] = "Automatic flights log URL";
 $lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_mod'] = "Message of the day";
 $lang['gvv_no_more_mod'] = "Do not display this message again";
+
+$lang['gvv_config_ffvv_id'] = "FFVV login ID";
+$lang['gvv_config_ffvv_pwd'] = "FFVV login password";
+$lang['gvv_config_ffvv_product'] = "FFVV license billing product";
+$lang['gvv_config_gesasso'] = "Export to Gesasso";

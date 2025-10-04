@@ -110,3 +110,6 @@ $lang['comptes_cloture_error_120'] = "Sluiting niet mogelijk omdat er geen reken
 $lang['comptes_cloture_error_129'] = "Sluiting niet mogelijk omdat er geen rekening 129 is";
 
 $lang['comptes_balance_general'] = array('Gedetailleerd' => 0, 'Algemeen' => 1);
+
+$lang['gvv_comptes_title_dashboard'] = "Dashboard";
+$lang['comptes_bilan_prets'] = "Leningen";

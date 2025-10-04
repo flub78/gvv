@@ -118,3 +118,4 @@ $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', '
 $lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
 
 $lang['valid_numeric'] = "Non decimal value";
+$lang['gvv_compta_title_remb_capital'] = "Loan capital repayment";

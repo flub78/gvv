@@ -20,6 +20,7 @@ $lang['welcome_comment'] = "Opmerkingen";
 
 $lang['welcome_options'] =  array(
 	"" => "",
+	"Absent" => "afwezig",
 	"Inst" => "instructeur",
 	"Rem" => "sleeppiloot",
 	"Entretien" => "onderhoud",
@@ -30,6 +31,8 @@ $lang['welcome_options'] =  array(
 	"Simu" => "simulator",
 	"Cours" => "theorieles"
 );
+
+$lang['welcome_confirm_delete'] = "Weet u zeker dat u dit element wilt verwijderen?";
 
 $lang['welcome_forbiden_title'] = "Geen toegang";
 $lang['welcome_forbiden_text'] = "Geen toegang tot deze pagina, onvoldoende rechten of pagina in onderhoud.  Contacteer de beheerder.";

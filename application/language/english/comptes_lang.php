@@ -110,3 +110,6 @@ $lang['comptes_cloture_error_120'] = "Closing impossible, no account 120";
 $lang['comptes_cloture_error_129'] = "Closing impossible, no account 129";
 
 $lang['comptes_balance_general'] = array('Detailed' => 0, 'General' => 1);
+
+$lang['gvv_comptes_title_dashboard'] = "Dashboard";
+$lang['comptes_bilan_prets'] = "Loans";

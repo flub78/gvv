@@ -26,3 +26,6 @@ $lang['gvv_events_types_short_field_ordre'] = "Volgorde";
 $lang['gvv_events_types_enum_activite'] = array(0 => 'Andere', 1 => 'Zwever', 2 => 'Motorvliegtuig', 3 => 'ULM' , 4 => 'FAI');
 
 
+
+$lang['gvv_events_types_field_annual'] = "Jaarlijks";
+$lang['gvv_events_types_short_field_annual'] = "Jaar";

@@ -25,3 +25,7 @@ $lang['gvv_events_short_field_date_expiration'] = "Validity";
 
 $lang['gvv_events_type_selector'] = array("aucun" => "None", "planeur" => "Glider", "avion" => "Airplane");
 
+
+$lang['gvv_events_title_training_vv'] = "Gliding training";
+$lang['gvv_events_title_training_avion'] = "Aircraft training";
+$lang['gvv_events_title_training_ulm'] = "ULM training";

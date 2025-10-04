@@ -25,3 +25,8 @@ $lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_mod'] = "Message du jour";
 $lang['gvv_no_more_mod'] = "Ne plus afficher ce message";
 
+
+$lang['gvv_config_ffvv_id'] = "FFVV login ID";
+$lang['gvv_config_ffvv_pwd'] = "FFVV login wachtwoord";
+$lang['gvv_config_ffvv_product'] = "FFVV licentie facturering product";
+$lang['gvv_config_gesasso'] = "Export naar Gesasso";

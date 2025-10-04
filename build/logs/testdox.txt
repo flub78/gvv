@@ -32,10 +32,10 @@ Bitfield
 
 Language Completeness
  [x] Reference language directory exists
- [ ] English has all language files
- [ ] Dutch has all language files
- [ ] English has all translation keys
- [ ] Dutch has all translation keys
+ [x] English has all language files
+ [x] Dutch has all language files
+ [x] English has all translation keys
+ [x] Dutch has all translation keys
  [x] Reference language has translation files
 
 Configuration Controller
