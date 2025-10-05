@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="application/tests/enhanced_bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="Form Elements Helper Tests">
+            <file>application/tests/unit/enhanced/FormElementsHelperTest.php</file>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <file>application/helpers/form_elements_helper.php</file>
+        </whitelist>
+    </filter>
+</phpunit>

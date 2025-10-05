@@ -1,6 +1,6 @@
 # Command: phpunit
 
-Generate a phpunit test for the file specified in $ARGUMENT
+Generate a phpunit test for the file specified in $ARGUMENTS
 
 ## Steps
 1. Read the file at path: $ARGUMENTS
@@ -11,4 +11,5 @@ Generate a phpunit test for the file specified in $ARGUMENT
 6. Always test for nominal and non nominal cases
 7. Run the generated test and check that it passes
 8. Aims for 80 % of test coverage, run it with coverage information to check it
+9. report bug if some are found in the module under test
  

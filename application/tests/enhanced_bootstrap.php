@@ -84,6 +84,16 @@ if (!function_exists('form_checkbox')) {
     require_once BASEPATH . 'helpers/form_helper.php';
 }
 
+// Load CodeIgniter HTML helper functions (needed for nbs())
+if (!function_exists('nbs')) {
+    require_once BASEPATH . 'helpers/html_helper.php';
+}
+
+// Load validation helper for euro() function
+if (!function_exists('euro')) {
+    require_once APPPATH . 'helpers/validation_helper.php';
+}
+
 // Enhanced mock config class that properly implements item() method
 class EnhancedMockConfig {
     public function item($item) {

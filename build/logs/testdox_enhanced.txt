@@ -29,6 +29,29 @@ Form Elements Helper
  [x] Add first row function
  [x] Add first col function
  [x] Complete table manipulation
+ [x] To list function
+ [x] To list empty array
+ [x] Highlight with html
+ [x] Highlight without html
+ [x] Checkbox field function
+ [x] Checkbox field unchecked
+ [x] Radio field function
+ [x] Radio field with attributes
+ [x] Enumerate radio fields function
+ [x] Enumerate radio fields with selection
+ [x] Add first row empty table
+ [x] Dropdown field null attrs
+ [x] Dropdown field empty options
+ [x] Account sums function
+ [x] Account sums negative solde
+ [x] Display form table function
+ [x] Display form table empty
+ [x] Input field with attributes
+ [x] E form dropdown function
+ [x] Checkbox array checked
+ [x] Checkbox array unchecked
+ [x] Checkbox array null array
+ [x] Add first col extra values
 
 Log Library
  [x] System user information
