@@ -8,13 +8,11 @@ use PHPUnit\Framework\TestCase;
  * Tests the array2int and int2array functions which convert between
  * bitfield arrays and integer representations.
  */
-class BitfieldsHelperTest extends TestCase
-{
+class BitfieldsHelperTest extends TestCase {
     /**
      * Test array2int with nominal cases
      */
-    public function testArray2IntNominalCases()
-    {
+    public function testArray2IntNominalCases() {
         // Test empty array
         $this->assertEquals(0, array2int(array()));
 
@@ -40,8 +38,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test array2int with duplicate values
      */
-    public function testArray2IntWithDuplicates()
-    {
+    public function testArray2IntWithDuplicates() {
         // Duplicate values should give same result (OR is idempotent)
         $this->assertEquals(3, array2int(array(1, 2, 1, 2)));
         $this->assertEquals(7, array2int(array(1, 2, 4, 1)));
@@ -51,8 +48,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test array2int with null/false/empty values
      */
-    public function testArray2IntWithIncorrectData()
-    {
+    public function testArray2IntWithIncorrectData() {
         // Test with null - should return 0
         $this->assertEquals(0, array2int(null));
 
@@ -72,8 +68,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test array2int with mixed key types
      */
-    public function testArray2IntWithMixedKeys()
-    {
+    public function testArray2IntWithMixedKeys() {
         // Test with associative array (values should be used, not keys)
         $this->assertEquals(3, array2int(array('a' => 1, 'b' => 2)));
         $this->assertEquals(7, array2int(array(0 => 1, 1 => 2, 2 => 4)));
@@ -82,8 +77,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test int2array with nominal cases
      */
-    public function testInt2ArrayNominalCases()
-    {
+    public function testInt2ArrayNominalCases() {
         // Test zero - should return empty array
         $this->assertEquals(array(), int2array(0));
 
@@ -120,8 +114,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test int2array with edge cases
      */
-    public function testInt2ArrayEdgeCases()
-    {
+    public function testInt2ArrayEdgeCases() {
         // Test consecutive bits
         $this->assertEquals(array(1 => 1, 2 => 2, 4 => 4), int2array(7));
         $this->assertEquals(array(1 => 1, 2 => 2, 4 => 4, 8 => 8, 16 => 16, 32 => 32, 64 => 64), int2array(127));
@@ -134,8 +127,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test int2array with incorrect data
      */
-    public function testInt2ArrayWithIncorrectData()
-    {
+    public function testInt2ArrayWithIncorrectData() {
         // Note: Negative numbers cause infinite loop in int2array due to bitwise operations
         // This is a limitation of the function design
 
@@ -158,8 +150,7 @@ class BitfieldsHelperTest extends TestCase
     /**
      * Test roundtrip conversion (array -> int -> array)
      */
-    public function testRoundtripArrayToIntToArray()
-    {
+    public function testRoundtripArrayToIntToArray() {
         $testCases = array(
             array(1, 2, 4),
             array(1, 8, 32),
@@ -178,45 +169,51 @@ class BitfieldsHelperTest extends TestCase
             $decodedValues = array_values($decoded);
             sort($decodedValues);
 
-            $this->assertEquals($originalValues, $decodedValues,
-                "Roundtrip failed for array: " . implode(', ', $original));
+            $this->assertEquals(
+                $originalValues,
+                $decodedValues,
+                "Roundtrip failed for array: " . implode(', ', $original)
+            );
         }
     }
 
     /**
      * Test roundtrip conversion (int -> array -> int)
      */
-    public function testRoundtripIntToArrayToInt()
-    {
+    public function testRoundtripIntToArrayToInt() {
         $testCases = array(1, 2, 3, 5, 7, 10, 15, 31, 63, 127, 255, 1023);
 
         foreach ($testCases as $original) {
             $decoded = int2array($original);
             $encoded = array2int($decoded);
 
-            $this->assertEquals($original, $encoded,
-                "Roundtrip failed for int: " . $original);
+            $this->assertEquals(
+                $original,
+                $encoded,
+                "Roundtrip failed for int: " . $original
+            );
         }
     }
 
     /**
      * Test that array keys in int2array result match values
      */
-    public function testInt2ArrayKeysMatchValues()
-    {
+    public function testInt2ArrayKeysMatchValues() {
         $result = int2array(15); // 15 = 1 | 2 | 4 | 8
 
         foreach ($result as $key => $value) {
-            $this->assertEquals($key, $value,
-                "Key should match value in int2array result");
+            $this->assertEquals(
+                $key,
+                $value,
+                "Key should match value in int2array result"
+            );
         }
     }
 
     /**
      * Test power of two values (common use case for bitfields)
      */
-    public function testPowersOfTwo()
-    {
+    public function testPowersOfTwo() {
         for ($i = 0; $i < 10; $i++) {
             $pow = pow(2, $i);
 
@@ -231,5 +228,3 @@ class BitfieldsHelperTest extends TestCase
         }
     }
 }
-
-?>

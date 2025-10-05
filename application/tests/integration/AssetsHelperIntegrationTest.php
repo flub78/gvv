@@ -131,13 +131,114 @@ class AssetsHelperIntegrationTest extends TestCase
             'admin' => ['admin.css', 'admin.js'],
             'style-responsive' => ['style-responsive.css', 'style-responsive.js']
         ];
-        
+
         foreach ($test_cases as $name => $expected) {
             $css = css_url($name);
             $js = js_url($name);
-            
+
             $this->assertStringContainsString($expected[0], $css, "CSS URL should contain correct filename for $name");
             $this->assertStringContainsString($expected[1], $js, "JS URL should contain correct filename for $name");
+        }
+    }
+
+    /**
+     * Test image_dir() function
+     */
+    public function testImageDir()
+    {
+        $image_dir = image_dir();
+
+        $this->assertEquals('assets/images/', $image_dir, "Image directory should be assets/images/");
+        $this->assertStringEndsWith('/', $image_dir, "Image directory should end with slash");
+        $this->assertStringStartsWith('assets/', $image_dir, "Image directory should start with assets/");
+    }
+
+    /**
+     * Test img_url() function
+     */
+    public function testImgUrl()
+    {
+        $img = img_url('logo.png');
+        $theme = theme();
+        $expected = $theme . '/images/logo.png';
+
+        $this->assertEquals($expected, $img, "Image URL should be correctly generated");
+        $this->assertStringContainsString('/images/', $img, "Image URL should contain /images/ path");
+        $this->assertStringStartsWith($theme, $img, "Image URL should start with theme URL");
+        $this->assertStringEndsWith('logo.png', $img, "Image URL should end with filename");
+    }
+
+    /**
+     * Test img_url() with different image types
+     */
+    public function testImgUrlDifferentTypes()
+    {
+        $test_cases = ['icon.svg', 'banner.jpg', 'avatar.gif', 'diagram.png'];
+
+        foreach ($test_cases as $filename) {
+            $img = img_url($filename);
+            $this->assertStringEndsWith($filename, $img, "Image URL should end with $filename");
+            $this->assertStringContainsString('/images/', $img, "Image URL should contain /images/ for $filename");
+        }
+    }
+
+    /**
+     * Test asset_url() function
+     */
+    public function testAssetUrl()
+    {
+        $asset = asset_url('custom.css');
+        $theme = theme();
+        $expected = $theme . '/assets/custom.css';
+
+        $this->assertEquals($expected, $asset, "Asset URL should be correctly generated");
+        $this->assertStringContainsString('/assets/', $asset, "Asset URL should contain /assets/ path");
+        $this->assertStringStartsWith($theme, $asset, "Asset URL should start with theme URL");
+        $this->assertStringEndsWith('custom.css', $asset, "Asset URL should end with filename");
+    }
+
+    /**
+     * Test controller_url() function
+     */
+    public function testControllerUrl()
+    {
+        $controller = controller_url('members/list');
+        $site = site_url();
+
+        $this->assertStringStartsWith($site, $controller, "Controller URL should start with site URL");
+        $this->assertStringContainsString('members/list', $controller, "Controller URL should contain controller path");
+    }
+
+    /**
+     * Test controller_url() with different paths
+     */
+    public function testControllerUrlDifferentPaths()
+    {
+        $test_cases = ['vols', 'machines/edit/1', 'users/profile', 'reports/monthly'];
+
+        foreach ($test_cases as $path) {
+            $url = controller_url($path);
+            $this->assertStringContainsString($path, $url, "Controller URL should contain path: $path");
+            $this->assertStringStartsWith('http', $url, "Controller URL should be absolute for $path");
+        }
+    }
+
+    /**
+     * Test jqueryui_theme() function
+     */
+    public function testJqueryuiTheme()
+    {
+        $jquery_theme = jqueryui_theme();
+
+        $this->assertIsString($jquery_theme, "jQuery UI theme should be a string");
+        $this->assertNotEmpty($jquery_theme, "jQuery UI theme should not be empty");
+
+        // Should return either configured palette or default 'base'
+        $palette = config_item('palette');
+        if ($palette) {
+            $this->assertEquals($palette, $jquery_theme, "jQuery UI theme should match config palette");
+        } else {
+            $this->assertEquals('base', $jquery_theme, "jQuery UI theme should default to 'base'");
         }
     }
 }

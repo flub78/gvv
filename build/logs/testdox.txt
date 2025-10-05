@@ -1,65 +1,16 @@
-Bitfields Helper
- [x] Array 2 int nominal cases
- [x] Array 2 int with duplicates
- [x] Array 2 int with incorrect data
- [x] Array 2 int with mixed keys
- [x] Int 2 array nominal cases
- [x] Int 2 array edge cases
- [x] Int 2 array with incorrect data
- [x] Roundtrip array to int to array
- [x] Roundtrip int to array to int
- [x] Int 2 array keys match values
- [x] Powers of two
-
-Debug Example
- [x] Debugging example
- [x] Debugging with helpers
-
-Validation Helper
- [x] Date db 2 ht
- [x] Date ht 2 db
- [x] French date compare
- [x] Minute to time
- [x] Decimal to time
- [x] Euro
- [x] Email validation
-
-Configuration Model
- [x] Image method logic
- [x] Configuration key validation
- [x] Configuration value sanitization
- [x] Language parameter logic
- [x] Configuration categories
- [x] Configuration priority
-
-Bitfield
- [x] Constructor
- [x] To string
- [x] Bit operations
- [x] From conversions
- [x] To conversions
- [x] Serialization
- [x] Iterator
- [x] Edge cases
- [x] Complex scenarios
-
-Language Completeness
- [x] Reference language directory exists
- [x] English has all language files
- [x] Dutch has all language files
- [x] English has all translation keys
- [x] Dutch has all translation keys
- [x] Reference language has translation files
-
-Configuration Controller
- [x] Json output parsing
- [x] Html output parsing
- [x] Csv output parsing
- [x] Http status codes
- [x] Response headers
- [x] Form validation logic
-
-Controller
- [x] Load controller from subfolder
- [x] Load inexistent controller from subfolder
+Assets Helper Integration
+ [ ] Theme function integration
+ [ ] Css url function integration
+ [ ] Js url function integration
+ [ ] Multiple asset functions
+ [ ] Helper loading mechanism
+ [ ] Config integration
+ [ ] Different asset names
+ [ ] Image dir
+ [ ] Img url
+ [ ] Img url different types
+ [ ] Asset url
+ [ ] Controller url
+ [ ] Controller url different paths
+ [ ] Jqueryui theme
 
