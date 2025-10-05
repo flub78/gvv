@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="application/tests/integration_bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="Log Helper Integration Tests">
+            <file>application/tests/integration/LogHelperIntegrationTest.php</file>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <file>application/helpers/log_helper.php</file>
+        </whitelist>
+    </filter>
+</phpunit>

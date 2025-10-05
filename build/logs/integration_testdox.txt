@@ -42,6 +42,44 @@ Gvvmetadata
  [x] Field default
  [x] Field attr
 
+Log Helper Integration
+ [x] Gvv log info
+ [x] Gvv log error
+ [x] Gvv log debug
+ [x] Gvv info
+ [x] Gvv info special characters
+ [x] Gvv error
+ [x] Gvv error long message
+ [x] Gvv debug
+ [x] Gvv debug with array
+ [x] Current logfile
+ [x] Current logfile path structure
+ [x] Occurences
+ [x] Occurences non existent
+ [x] Occurences gvv prefix
+ [x] Occurences error pattern
+ [x] Gvv dump no die
+ [x] Gvv dump empty
+ [x] Gvv dump array
+ [x] Gvv assert true
+ [x] Gvv assert false
+ [x] Gvv assert error format
+ [x] Multiple log levels
+ [x] Gvv prefix consistency
+ [x] Gvv log with php error
+ [x] Gvv info with php error
+ [x] Gvv error with php error
+ [x] Gvv debug with php error
+ [x] Gvv dump numeric
+ [x] Gvv dump boolean
+ [x] Gvv dump null
+ [x] Gvv dump object
+ [x] Gvv assert with complex message
+ [x] Current logfile format
+ [x] Gvv info empty message
+ [x] Gvv info with newlines
+ [x] Sequential logging
+
 My Html Helper Integration
  [x] P basic
  [x] P with attributes

@@ -458,11 +458,47 @@ if (!class_exists('CI_Model')) {
     }
 }
 
-// Add missing functions that models might need
-if (!function_exists('gvv_error')) {
-    function gvv_error($message) {
-        // Mock error function
-        error_log("GVV Error: " . $message);
+// Note: gvv_error and other gvv logging functions are loaded from log_helper.php
+// We removed the mock here to allow the real log_helper functions to be used
+
+// Add log_message function for log_helper
+if (!function_exists('log_message')) {
+    function log_message($level, $message, $php_error = FALSE) {
+        // Write to actual log file like CodeIgniter does
+        $log_path = APPPATH . 'logs/';
+
+        // Create logs directory if it doesn't exist
+        if (!is_dir($log_path)) {
+            mkdir($log_path, 0755, true);
+        }
+
+        $filepath = $log_path . 'log-' . date('Y-m-d') . '.php';
+
+        // Create log file header if file doesn't exist
+        if (!file_exists($filepath)) {
+            $newfile = TRUE;
+            $message_header = "<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>\n\n";
+        } else {
+            $newfile = FALSE;
+            $message_header = '';
+        }
+
+        // Format log message
+        $level = strtoupper($level);
+        $log_line = $level . ' - ' . date('Y-m-d H:i:s') . ' --> ' . $message . "\n";
+
+        // Write to log file
+        if ($fp = @fopen($filepath, 'a')) {
+            flock($fp, LOCK_EX);
+            fwrite($fp, $message_header . $log_line);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+
+            @chmod($filepath, 0644);
+            return TRUE;
+        }
+
+        return FALSE;
     }
 }
 
