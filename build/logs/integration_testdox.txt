@@ -1,3 +1,119 @@
+Assets Helper Integration
+ [x] Theme function integration
+ [x] Css url function integration
+ [x] Js url function integration
+ [x] Multiple asset functions
+ [x] Helper loading mechanism
+ [x] Config integration
+ [x] Different asset names
+ [x] Image dir
+ [x] Img url
+ [x] Img url different types
+ [x] Asset url
+ [x] Controller url
+ [x] Controller url different paths
+ [x] Jqueryui theme
+
+Categorie Model Integration
+ [x] Basic crud operations
+ [x] Image method
+ [x] Select page method
+ [x] Database constraints
+ [x] Multiple categories and search
+ [x] Transaction rollback
+
+Form Elements Integration
+ [x] Add first row integration
+ [x] Add first col integration
+ [x] Complete table workflow
+ [x] Input field function
+ [x] Dropdown field function
+ [x] Helper with database integration
+
+Gvvmetadata
+ [x] Tables list returns multiple tables
+ [x] Each table has primary key
+ [x] Table image element
+ [x] Autogen key
+ [x] Each table has multiple fields
+ [x] Field name returns non empty string
+ [x] Field type returns non empty string
+ [x] Field subtype returns string
+ [x] Field default
+ [x] Field attr
+
 My Html Helper Integration
- [x] P
+ [x] P basic
+ [x] P with attributes
+ [x] P empty
+ [x] P with html
+ [x] Hr single
+ [x] Hr multiple
+ [x] Hr zero
+ [x] Heading default
+ [x] Heading levels
+ [x] Heading with attributes
+ [x] Html row basic
+ [x] Html row with attributes
+ [x] Html row empty
+ [x] Table from array basic
+ [x] Table from array with headers
+ [x] Table from array with title
+ [x] Table from array with class
+ [x] Table from array with alignment
+ [x] Table from array odd even classes
+ [x] Flatten basic
+ [x] Flatten with custom headers
+ [x] Flatten with missing fields
+ [x] Markup open
+ [x] Markup close
+ [x] Markup
+ [x] Markup different tags
+ [x] Input
+ [x] Str starts with
+ [x] Str ends with
+ [x] Str contains
+ [x] Html link
+ [x] Html script
+ [x] Attachment empty
+ [x] Attachment returns link
+ [x] Attachment pdf
+ [x] Cur page u r l
+ [x] Special characters
+ [x] Unicode characters
+ [x] Table from array empty data
+ [x] Markup with empty content
+ [x] Markup open empty attributes
+ [x] Echo p
+ [x] Echo p with attributes
+ [x] Echo hr
+ [x] Echo br
+ [x] Echo heading
+ [x] Echo div open
+ [x] Echo div close
+ [x] Echo div
+ [x] Echo input
+ [x] Echo article open
+ [x] Echo article close
+ [x] Echo article
+ [x] Echo section open
+ [x] Echo section close
+ [x] Echo section
+ [x] Echo html script
+ [x] Flat array basic
+ [x] Flat array with minutes format
+ [x] Flat array sorting
+ [x] Flat array with totals
+ [x] Flat array empty
+ [x] Flat array single cell
+ [x] Flat array with delete parameter
+ [x] Flat array duplicates
+
+Smart Adjustor Correlation Integration
+ [x] Correlation for frison against all images
+ [x] Correlation for bleuse against all images
+ [x] Correlation for lobry against all images
+ [x] Correlation for prelevement against all images
+ [x] Correlation for frais bancaire against all images
+ [x] Correlation for virement emis against all images
 

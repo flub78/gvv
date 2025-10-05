@@ -83,6 +83,8 @@ if (! function_exists('e_br')) {
  * @param
  *            integer
  * @return string
+ * 
+ * Todo: static analyzer says heading() override never used: The heading() function override attempts to add i18n translation support and add newlines, but it's never used because the core CI html_helper.php is loaded first and defines heading() already. 
  */
 if (! function_exists('heading')) {
     function heading($txt = '', $h = '1', $attrs = '') {
@@ -379,7 +381,7 @@ if (! function_exists('curPageURL')) {
         }
         $pageURL .= "://";
         if (isset($_SERVER["SERVER_NAME"])) {
-            $pageURL = $_SERVER["SERVER_NAME"];
+            $pageURL .= $_SERVER["SERVER_NAME"];
         }
         if (isset($_SERVER["SERVER_PORT"]) && $_SERVER["SERVER_PORT"] != "80") {
             $pageURL .= ":" . $_SERVER["SERVER_PORT"];
