@@ -22,15 +22,16 @@
 if (!defined('BASEPATH'))
     exit ('No direct script access allowed');
 
-if (!function_exists('mobile_url')) {
+// todo:  à supprimer une fois sûr de l'inutilité
+// if (!function_exists('mobile_url')) {
 
-    /**
-     * Base of the mobile url
-     *
-     */
-    function mobile_url($ctrl = "") {
-    	return base_url() . 'index.php/mobile/' . $ctrl;
-    }
-}
+//     /**
+//      * Base of the mobile url
+//      *
+//      */
+//     function mobile_url($ctrl = "") {
+//     	return base_url() . 'index.php/mobile/' . $ctrl;
+//     }
+// }
 
 if (!function_exists('load_last_view')) {}

@@ -10,6 +10,7 @@ define('APPPATH', dirname(__FILE__) . '/../');
 require_once APPPATH . 'helpers/validation_helper.php';
 require_once APPPATH . 'helpers/bitfields_helper.php';
 require_once APPPATH . 'helpers/assets_helper.php';
+require_once APPPATH . 'helpers/crypto_helper.php';
 
 // Load library files for testing
 function load_library($library_name) {
