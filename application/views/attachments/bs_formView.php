@@ -46,6 +46,7 @@ $this->lang->load('attachments');
 				<input type="hidden" name="referenced_table" value="<?= $referenced_table ?>" />
 				<input type="hidden" name="referenced_id" value="<?= $referenced_id ?>" />
 				<input type="hidden" name="user_id" value="<?= $user_id ?>" />
+				<input type="hidden" name="club" value="<?= isset($club) ? $club : 0 ?>" />
 
 				<?= ($this->gvvmetadata->form('attachments', array(
 					'description' => $description,

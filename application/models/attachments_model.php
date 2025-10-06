@@ -62,12 +62,15 @@ class Attachments_model extends Common_Model {
     }
 
     /**
-     * Build a year selector from the attachments file path (./uploads/attachments/<year>/...)
+     * Build a year selector from the attachments file path
+     * Handles both old format (./uploads/attachments/YYYY/file)
+     * and new format (./uploads/attachments/YYYY/SECTION/file)
      */
     public function get_available_years() {
         $years = [];
         // Query distinct years from file path using MySQL string functions
-        $this->db->select("DISTINCT(LEFT(SUBSTRING_INDEX(file, 'attachments/', -1), 4)) as year", false);
+        // Extract first 4 characters after 'attachments/' which should be the year
+        $this->db->select("DISTINCT(SUBSTRING(SUBSTRING_INDEX(file, 'attachments/', -1), 1, 4)) as year", false);
         $this->db->from($this->table);
         $this->db->like('file', 'attachments/');
         $this->db->order_by('year', 'DESC');

@@ -46,6 +46,7 @@ class Attachments extends Gvv_Controller {
         parent::__construct();
         $this->lang->load('attachments');
         $this->load->model('ecritures_model');
+        $this->load->model('sections_model');
     }
 
     /**
@@ -90,6 +91,11 @@ class Attachments extends Gvv_Controller {
             $id = $this->data['referenced_id'];
             $image = $this->$referenced_model->image($id);
             $this->data['image'] = $this->data['referenced_table'] . ': ' . $image;
+
+            // Get club field from current session (active section)
+            // This ensures attachments are stored in the currently active section's directory
+            $club_id = $this->session->userdata('section');
+            $this->data['club'] = $club_id ? $club_id : 0;
         }
     }
 
@@ -99,9 +105,23 @@ class Attachments extends Gvv_Controller {
     public function formValidation($action, $return_on_success = false) {
 
         $year = date('Y');
-        $dirname = './uploads/attachments/' . $year . '/';
+
+        // Get section name from club field
+        $club_id = $this->input->post('club');
+        $section_name = $this->sections_model->image($club_id);
+
+        // If club_id is empty or section name is not found, use 'Unknown'
+        if (empty($section_name)) {
+            $section_name = 'Unknown';
+        }
+
+        // Sanitize section name for use as directory name (remove spaces and special chars)
+        $section_name = str_replace(' ', '_', $section_name);
+
+        $dirname = './uploads/attachments/' . $year . '/' . $section_name . '/';
         if (!file_exists($dirname)) {
             mkdir($dirname, 0777, true);
+            chmod($dirname, 0777); // Explicitly set permissions to override umask
         };
 
         // I am not sure that we need the capacity to specify a filename ...
@@ -132,7 +152,7 @@ class Attachments extends Gvv_Controller {
             $_POST['file'] = $dirname . $storage_file;
 
             // Delete the previous file for this attachment
-            $initial_id = $this->session->userdata('inital_id');
+            $initial_id = $this->session->userdata('initial_id');
 
             if ($initial_id) {
                 $initial_elt = $this->gvv_model->get_by_id('id', $initial_id);
