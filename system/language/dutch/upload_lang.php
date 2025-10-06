@@ -15,6 +15,6 @@ $lang['upload_destination_error'] = "Er is een probleem opgetreden bij het verpl
 $lang['upload_no_filepath'] = "Het uploadpad lijkt niet correct te zijn.";
 $lang['upload_no_file_types'] = "U heeft geen toegestane bestandstypen gespecificeerd.";
 $lang['upload_bad_filename'] = "De bestandsnaam die u heeft opgegeven komt al voor op de server.";
-$lang['upload_not_writable'] = "De doellocatie op de server is niet schijfbaar";
+$lang['upload_not_writable'] = "De doellocatie op de server %s is niet schijfbaar";
 
 ?>

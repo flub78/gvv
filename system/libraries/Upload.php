@@ -718,7 +718,7 @@ class CI_Upload {
 
 		if ( ! is_really_writable($this->upload_path))
 		{
-			$this->set_error('upload_not_writable');
+			$this->set_error('upload_not_writable', [$this->upload_path]);
 			return FALSE;
 		}
 
@@ -891,7 +891,7 @@ class CI_Upload {
 	 * @param	string
 	 * @return	void
 	 */
-	public function set_error($msg)
+	public function set_error($msg, $parameter = array())
 	{
 		$CI =& get_instance();
 		$CI->lang->load('upload');
@@ -901,6 +901,10 @@ class CI_Upload {
 			foreach ($msg as $val)
 			{
 				$msg = ($CI->lang->line($val) == FALSE) ? $val : $CI->lang->line($val);
+				if (!empty($parameter))
+				{
+					$msg = sprintf($msg, ...$parameter);
+				}
 				$this->error_msg[] = $msg;
 				log_message('error', $msg);
 			}
@@ -908,6 +912,10 @@ class CI_Upload {
 		else
 		{
 			$msg = ($CI->lang->line($msg) == FALSE) ? $msg : $CI->lang->line($msg);
+			if (!empty($parameter))
+			{
+				$msg = sprintf($msg, ...$parameter);
+			}
 			$this->error_msg[] = $msg;
 			log_message('error', $msg);
 		}

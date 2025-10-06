@@ -15,7 +15,7 @@ $lang['upload_destination_error'] = "Une erreur est survenue lors du déplacemen
 $lang['upload_no_filepath'] = "Le chemin de destination semble invalide.";
 $lang['upload_no_file_types'] = "Vous n'avez pas spécifié les types de fichier autorisés.";
 $lang['upload_bad_filename'] = "Un fichier avec le même nom que celui que vous avez envoyé existe déjà sur le serveur.";
-$lang['upload_not_writable'] = "Le répertoire de destination ne semble pas être accessible en écriture.";
+$lang['upload_not_writable'] = "Le répertoire de destination %s n'est pas accessible en écriture.";
 
 
 /* End of file upload_lang.php */
