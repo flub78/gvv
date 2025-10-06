@@ -37,9 +37,7 @@ class Attachments_model extends Common_Model {
         if ($year) {
             $this->db->like($this->table . '.file', '/attachments/' . $year . '/', 'both');
         }
-        if ($per_page) {
-            $this->db->limit($per_page, $premier);
-        }
+ 
         $query = $this->db->get();
         $select = $this->get_to_array($query);
 

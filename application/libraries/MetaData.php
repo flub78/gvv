@@ -1218,6 +1218,7 @@ abstract class Metadata {
         } elseif ('email' == $subtype) {
             return $value;
             // return auto_link($value);
+
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
             if (!$value) return "";
             $url = site_url();
@@ -1744,6 +1745,7 @@ abstract class Metadata {
             } else {
                 return "file $filename not found";
             }
+
         } elseif ($subtype == 'upload_image') {
             $filename = "assets/uploads/$value";
             $img = (file_exists($filename)) ? img(array(
@@ -1772,7 +1774,8 @@ abstract class Metadata {
 
             $upload     = '<input type="submit" name="button_photo" id="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
-            return $img . $input . $upload;
+            return $img . $input; // . $upload;
+
         } elseif ($subtype == 'minute') {
             // echo "value=$value" . br();
             $sv = set_value($field, $value);

@@ -51,7 +51,7 @@ $this->lang->load('attachments');
 					'description' => $description,
 					'file' => $file
 				))); ?>
-
+				<?= validation_button($action, FALSE,FALSE); ?>
 			</form>
 		</div>
 	</div>

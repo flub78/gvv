@@ -680,7 +680,7 @@ if (! function_exists('validation_button')) {
     /**
      * Affiche un boutton de validation
      */
-    function validation_button($action, $with_delete = FALSE) {
+    function validation_button($action, $with_delete = FALSE, $with_continue = TRUE) {
         $CI = &get_instance();
         $res = "";
         if ($action != VISUALISATION) {
@@ -694,14 +694,17 @@ if (! function_exists('validation_button')) {
                     'class' => 'btn btn-primary mt-3'
                 ));
 
-                $res .= "</td><td>";
-                $res .= form_input(array(
-                    'type' => 'submit',
-                    'name' => 'button',
-                    'id' => 'validate_continue',
-                    'value' => $CI->lang->line("gvv_button_create_and_continue"),
-                    'class' => 'btn btn-primary mt-3'
-                ));
+                if ($with_continue) {
+                    $res .= "</td><td>";
+                    $res .= form_input(array(
+                        'type' => 'submit',
+                        'name' => 'button',
+                        'id' => 'validate_continue',
+                        'value' => $CI->lang->line("gvv_button_create_and_continue"),
+                        'class' => 'btn btn-primary mt-3'
+                    ));
+                }
+
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
                  * $res .= "</td><td>";
