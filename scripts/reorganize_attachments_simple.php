@@ -15,6 +15,9 @@ if (php_sapi_name() !== 'cli') {
     header_remove();
 }
 
+// Change to project root directory (parent of scripts/)
+chdir(__DIR__ . '/..');
+
 // Load database configuration from CodeIgniter config
 define('BASEPATH', TRUE); // Needed to load CI config
 $config_file = __DIR__ . '/../application/config/database.php';
