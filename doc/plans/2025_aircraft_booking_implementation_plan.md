@@ -29,16 +29,24 @@
 This plan details the step-by-step implementation of an aircraft booking system for GVV. The system will enable members to reserve aircraft through a visual calendar interface, with conflict prevention for both aircraft and instructor availability. The implementation will reuse the existing FullCalendar infrastructure currently used for member presence tracking.
 
 **Key Features:**
-- Visual drag-and-drop calendar interface
+- Visual drag-and-drop calendar interface (15-min grid, 30-min minimum)
 - Aircraft reservation management (create, modify, delete)
 - Instructor availability tracking
 - Aircraft unavailability blocks (maintenance, etc.)
 - Role-based permissions (Pilot, Instructor, Administrator)
-- Credit limit enforcement
+- Credit limit enforcement (phased implementation)
 - Conflict prevention (aircraft double-booking, instructor conflicts)
+- Section-specific bookings (users only see their section's aircraft)
+- Flexible cancellation (allowed at any time)
+- 30-day advance booking limit
 
-**Estimated Timeline:** 6-8 weeks
-**Estimated Effort:** 120-160 hours
+**Critical Dependencies:**
+1. **Authorization System:** New role-per-section authorization system must be completed and deployed first
+2. **Billing System:** Enhanced billing system needed for full credit limit enforcement (Phase 2)
+
+**Estimated Timeline:** 8-10 weeks (including dependency wait time)
+**Estimated Effort:** 120-160 hours (booking system only)
+**Start Condition:** Authorization system deployed to production
 
 ---
 
@@ -51,7 +59,10 @@ This plan details the step-by-step implementation of an aircraft booking system 
 - **Calendar:** FullCalendar.js (already in use)
 - **Data Source:** Local database (replacing Google Calendar for bookings)
 
-### Existing Components to Reuse
+### Existing Components to Analyze
+
+A **bookings controller** will be created to support the new feature.
+
 1. **Calendar Controller** (`application/controllers/calendar.php`)
    - Currently displays member presence intentions from Google Calendar
    - Will be extended to support aircraft bookings from local database
@@ -95,64 +106,120 @@ This plan details the step-by-step implementation of an aircraft booking system 
 
 Before proceeding with implementation, the following points need clarification:
 
-#### 1. **Section Assignment**
+#### 1. **Section Assignment** ✅
 - **Question:** Should aircraft bookings be section-specific (Planeur, ULM, Avion)?
 - **Impact:** Database schema (add section_id field), filtering logic, permissions
-- **Recommendation:** Yes, align with existing GVV section architecture
-- **Decision Needed:** ☐ Confirm section-based bookings
+- **Answer:** Aircraft booking should be per section. A user logged in one section should only see the resources belonging to this section. **Additionally, booking mechanism is only available for some sections** - need a flag in sections table to enable/disable booking feature per section.
+- **Implementation:**
+  - Add `section_id` field to `aircraft_bookings` table (required, not nullable)
+  - Add `booking_enabled` field to `sections` table (TINYINT(1), default 0)
+  - Filter all queries by current user's active section
+  - Check section's `booking_enabled` flag before displaying booking calendar
+  - Show error message if user tries to access bookings for a section where it's disabled
+  - Ensure aircraft selectors only show aircraft from user's current section
 
-#### 2. **Instructor Identification**
+#### 2. **Instructor Identification** ✅
 - **Question:** How are instructors identified in the system?
-  - Option A: By role in `membres` table (inst_glider, inst_airplane fields)
-  - Option B: By authorization role (needs new role type)
-  - Option C: Flag in membres table
-- **Current State:** `membres` table has `inst_glider` and `inst_airplane` fields (varchar(25))
-- **Decision Needed:** ☐ Confirm instructor identification method
+- **Answer:** Instructor identification will be based on the new user role per section mechanism that will be implemented before this feature.
+- **Implementation:**
+  - **Dependency:** Aircraft booking system depends on the new authorization system (per 2025_authorization_refactoring_prd.md)
+  - Use new role-per-section mechanism to identify instructors
+  - Query instructor list based on section-specific roles
+  - Update `selector_instructors()` method to use new authorization system
+  - **Timeline Impact:** Authorization system must be completed first
 
-#### 3. **Credit Limit Integration**
-- **Question:** Where is the member's credit balance stored?
-  - Current state: `membres.compte` field exists (int(11))
-  - How to calculate booking cost?
-  - Should we validate against balance or just flag?
-- **Decision Needed:** ☐ Confirm credit limit validation approach
+#### 3. **Credit Limit Integration** ✅
+- **Question:** Where is the member's credit balance stored and how to enforce limits?
+- **Answer:** Users have a 411 client account for each section. This account will be used to determine how many hours a user is allowed to reserve. The mechanism of the billing system will have to be completed to extract this information.
+- **Implementation:**
+  - **Dependency:** Billing system enhancements needed to expose credit balance
+  - Query 411 client account balance per section
+  - Calculate allowed hours based on account balance
+  - Implement validation to prevent bookings exceeding credit limit
+  - Display warning/error when user attempts to book beyond limit
+  - **Phased Approach:**
+    - **Phase 1 (MVP):** Implement stub method, log warning only (no blocking)
+    - **Phase 2 (Future):** Complete integration after billing system is enhanced
 
-#### 4. **Time Slot Granularity**
-- **Question:** What is the minimum booking duration?
-  - 15 minutes? 30 minutes? 1 hour?
-- **Impact:** Calendar display, validation rules
-- **Decision Needed:** ☐ Define minimum booking slot
-
-#### 5. **Maximum Advance Booking**
+#### 4. **Time Slot Granularity** ✅
+- **Question:** What is the minimum booking duration and time grid?
+- **Answer:** Minimal booking slot is 30 minutes. Reservations can be made every 15 minutes.
+- **Implementation:**
+  - **Calendar Display:** Configure FullCalendar with 15-minute slot intervals (`slotDuration: '00:15:00'`)
+  - **Validation:** Minimum booking duration must be 30 minutes
+  - **Snap Grid:** Allow bookings to start/end on 15-minute boundaries
+  - **Examples:**
+    - Valid: 09:00-09:30 (30 min), 09:15-09:45 (30 min), 09:00-10:30 (90 min)
+    - Invalid: 09:00-09:15 (only 15 min - too short)
+ 
+#### 5. **Maximum Advance Booking** ✅
 - **Question:** How far in advance can members book aircraft?
-  - 7 days? 30 days? 90 days? Unlimited?
-- **Decision Needed:** ☐ Define maximum advance booking period
+- **Answer:** 30 days
+- **Implementation:**
+  - Validate that `start_datetime` is not more than 30 days in the future
+  - Configuration value: `max_advance_days = 30`
+  - Error message: "Cannot book more than 30 days in advance"
+  - Calendar view should allow viewing beyond 30 days but prevent creation
 
-#### 6. **Cancellation Policy**
+#### 6. **Cancellation Policy** ✅
 - **Question:** Can users cancel/modify bookings up until start time?
-  - Or should there be a minimum advance notice (e.g., 24 hours)?
-- **Decision Needed:** ☐ Define cancellation policy
+- **Answer:** Users can cancel reservations at any time, even after start time.
+- **Implementation:**
+  - No minimum advance notice required for cancellation
+  - Set `min_cancellation_hours = 0`
+  - Allow cancellation/modification at any time (before, during, or after booking)
+  - Track cancellation reason and timestamp for audit purposes
+  - **Note:** Remove time-based restriction in `can_modify_booking()` method
 
-#### 7. **Recurring Bookings**
+#### 7. **Recurring Bookings** ✅
 - **Question:** Out of scope per PRD, but should we design the schema to support it later?
-- **Decision Needed:** ☐ Confirm schema should be future-proof for recurrence
+- **Answer:** Out of scope, no recurring/recursive bookings.
+- **Implementation:**
+  - Do not add recurrence fields to schema
+  - Each booking is independent
+  - Users must create individual bookings for each session
+  - **Future consideration:** If needed later, can add recurrence via separate table
 
-#### 8. **Multiple Aircraft Selection**
+#### 8. **Multiple Aircraft Selection** ✅
 - **Question:** Can a user book multiple aircraft for the same time slot?
-  - Use case: Training flights with multiple aircraft
-- **Decision Needed:** ☐ Confirm single vs multiple aircraft per booking
+- **Answer:** Instructors and admins can book multiple aircraft for the same time slot. Regular users cannot.
+- **Implementation:**
+  - **Regular Users:** Single aircraft per booking only
+  - **Instructors/Admins:** Can create multiple bookings for same time period
+  - Validation logic:
+    - Check user role before allowing overlapping personal bookings
+    - Regular users: Block if they have another booking at same time
+    - Instructors/Admins: Allow multiple simultaneous bookings
+  - Use case: Instructor supervising multiple training flights simultaneously
 
-#### 9. **Authorization Integration**
+#### 9. **Authorization Integration** ✅
 - **Question:** Should this use the new authorization system (per 2025_authorization_refactoring_prd.md) or current DX_Auth?
-- **Current State:** Authorization refactoring is in planning phase
-- **Recommendation:** Start with DX_Auth, migrate later
-- **Decision Needed:** ☐ Confirm authorization approach
-
-#### 10. **Existing Calendar Coexistence**
+- **Answer:** Yes, the new authorization system will be implemented beforehand.
+- **Implementation:**
+  - **Critical Dependency:** Aircraft booking system requires new authorization system to be completed first
+  - Use role-per-section mechanism for all authorization checks
+  - Roles needed:
+    - **Pilot:** Can create/modify/cancel own bookings only
+    - **Instructor:** Can create/modify bookings for others, view all bookings
+    - **Administrator:** Full access to all bookings and unavailability management
+  - **Timeline Impact:**
+    - Authorization system must be deployed before booking system development begins
+    - Update all permission checks to use new authorization API
+  - **Migration Strategy:** No DX_Auth fallback - wait for new system
+  
+#### 10. **Existing Calendar Coexistence** ✅
 - **Question:** Should aircraft bookings display alongside presence intentions in the same calendar?
-  - Option A: Separate calendar views (recommended)
-  - Option B: Combined view with filtering
-- **Decision Needed:** ☐ Confirm calendar integration approach
-
+- **Answer:** Option A - Separate calendar views
+- **Implementation:**
+  - Create dedicated booking calendar view at `/bookings/index`
+  - Keep presence calendar separate at `/calendar/index`
+  - No integration between the two calendars
+  - Different data sources:
+    - Presence calendar: Google Calendar API
+    - Booking calendar: Local database (`aircraft_bookings` table)
+  - Add menu link to "Aircraft Bookings" in navigation
+  - **Benefit:** Cleaner separation of concerns, simpler implementation
+- 
 ---
 
 ## Implementation Phases
@@ -260,6 +327,7 @@ Before proceeding with implementation, the following points need clarification:
 
 ### Phase 1: Database Schema & Migration
 - [ ] Create migration 040_aircraft_booking_schema.php
+- [ ] Add `booking_enabled` flag to `sections` table
 - [ ] Define `aircraft_bookings` table structure
 - [ ] Define `aircraft_unavailability` table structure
 - [ ] Add foreign key constraints
@@ -268,6 +336,7 @@ Before proceeding with implementation, the following points need clarification:
 - [ ] Test migration on clean database
 - [ ] Test migration rollback (down() method)
 - [ ] Generate seed data for testing
+- [ ] Enable booking for test sections (UPDATE sections SET booking_enabled=1 WHERE ...)
 - [ ] Validate schema with sample queries
 - [ ] Document schema in design_notes
 
@@ -297,8 +366,12 @@ Before proceeding with implementation, the following points need clarification:
 - [ ] Create application/controllers/bookings.php
 - [ ] Implement __construct() with authorization
 - [ ] Implement index() method (calendar view)
+- [ ] Add section `booking_enabled` check in index()
+- [ ] Show error if booking disabled for section
 - [ ] Implement events() AJAX endpoint (JSON feed)
+- [ ] Filter events by section_id
 - [ ] Implement create() AJAX endpoint
+- [ ] Add section_id to booking creation
 - [ ] Implement update() AJAX endpoint
 - [ ] Implement delete() AJAX endpoint
 - [ ] Implement get_instructor_availability() endpoint
@@ -311,6 +384,7 @@ Before proceeding with implementation, the following points need clarification:
 - [ ] Create application/tests/controllers/BookingsControllerTest.php
 - [ ] Write tests for each endpoint
 - [ ] Write tests for authorization scenarios
+- [ ] Write tests for booking_enabled section check
 - [ ] Execute controller tests
 
 ### Phase 4: Frontend - Calendar Integration
@@ -437,7 +511,7 @@ CREATE TABLE `aircraft_bookings` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `aircraft_id` VARCHAR(10) NOT NULL COMMENT 'Foreign key to machinesp.mpimmat or machinesa.macimmat',
   `aircraft_type` ENUM('planeur', 'avion', 'ulm') NOT NULL COMMENT 'Type of aircraft',
-  `section_id` INT(11) DEFAULT NULL COMMENT 'Foreign key to sections table (if applicable)',
+  `section_id` INT(11) NOT NULL COMMENT 'Foreign key to sections table - bookings are section-specific',
   `member_id` VARCHAR(25) NOT NULL COMMENT 'Foreign key to membres.mlogin',
   `instructor_id` VARCHAR(25) DEFAULT NULL COMMENT 'Optional instructor, foreign key to membres.mlogin',
   `start_datetime` DATETIME NOT NULL COMMENT 'Booking start date and time',
@@ -472,10 +546,11 @@ CREATE TABLE `aircraft_bookings` (
 **Key Design Decisions:**
 - **aircraft_id:** VARCHAR(10) to match existing aircraft tables (mpimmat, macimmat)
 - **aircraft_type:** Explicit enum to determine source table (machinesp vs machinesa)
-- **section_id:** Nullable for future multi-section support (CLARIFICATION NEEDED)
+- **section_id:** NOT NULL - All bookings are section-specific (per clarification #1)
 - **Timestamps:** Created/Updated tracking for audit trail
 - **Status tracking:** For future workflow (pending approval, completed flights, etc.)
 - **Soft links:** actual_flight_id links to completed flight but doesn't enforce FK (flights may be deleted)
+- **Cancellation:** Users can cancel at any time (per clarification #6)
 
 ### Table: aircraft_unavailability
 
@@ -541,6 +616,21 @@ LEFT JOIN machinesa ma ON ab.aircraft_type IN ('avion', 'ulm') AND ab.aircraft_i
 WHERE ab.status != 'cancelled';
 ```
 
+### Additional Schema Change: Sections Table
+
+**Purpose:** Add flag to enable/disable booking feature per section
+
+```sql
+ALTER TABLE `sections`
+ADD COLUMN `booking_enabled` TINYINT(1) NOT NULL DEFAULT 0
+COMMENT 'Enable aircraft booking feature for this section (0=disabled, 1=enabled)';
+```
+
+**Usage:**
+- Set to `1` for sections that should have booking calendar (e.g., Planeur, Avion)
+- Set to `0` for sections without booking (e.g., administrative sections)
+- Default is `0` (disabled) for safety
+
 ### Database Migration File
 
 **File:** `application/migrations/040_aircraft_booking_schema.php`
@@ -552,6 +642,7 @@ WHERE ab.status != 'cancelled';
  * GVV Migration 040: Aircraft Booking System
  *
  * Creates tables and views for aircraft reservation system
+ * Adds booking_enabled flag to sections table
  *
  * @author Claude Code
  * @date 2025-10-08
@@ -559,6 +650,13 @@ WHERE ab.status != 'cancelled';
 class Migration_Aircraft_booking_schema extends CI_Migration {
 
     public function up() {
+        // Add booking_enabled flag to sections table
+        $this->db->query("
+            ALTER TABLE `sections`
+            ADD COLUMN `booking_enabled` TINYINT(1) NOT NULL DEFAULT 0
+            COMMENT 'Enable aircraft booking feature for this section (0=disabled, 1=enabled)'
+        ");
+
         // Create aircraft_bookings table
         $this->db->query("
             CREATE TABLE `aircraft_bookings` (
@@ -586,6 +684,9 @@ class Migration_Aircraft_booking_schema extends CI_Migration {
         $this->db->query("DROP VIEW IF EXISTS `vue_aircraft_bookings`");
         $this->db->query("DROP TABLE IF EXISTS `aircraft_unavailability`");
         $this->db->query("DROP TABLE IF EXISTS `aircraft_bookings`");
+
+        // Remove booking_enabled flag from sections
+        $this->db->query("ALTER TABLE `sections` DROP COLUMN `booking_enabled`");
 
         echo "Migration 040: Aircraft booking schema rolled back.\n";
     }
@@ -910,10 +1011,11 @@ class Gvv_Bookings {
 
     protected $CI;
 
-    // Configuration (TODO: Move to config file after clarifications)
-    private $min_booking_minutes = 30;           // CLARIFICATION NEEDED
-    private $max_advance_days = 90;              // CLARIFICATION NEEDED
-    private $min_cancellation_hours = 2;         // CLARIFICATION NEEDED
+    // Configuration based on clarifications
+    private $min_booking_minutes = 30;           // Minimum booking duration: 30 minutes
+    private $booking_interval_minutes = 15;      // Bookings can start every 15 minutes
+    private $max_advance_days = 30;              // Maximum advance booking: 30 days
+    private $min_cancellation_hours = 0;         // No minimum notice for cancellation
 
     public function __construct() {
         $this->CI =& get_instance();
@@ -1221,17 +1323,8 @@ class Gvv_Bookings {
             return array('allowed' => false, 'reason' => 'You can only modify your own bookings');
         }
 
-        // Check if booking is too close to start time
-        $start = new DateTime($booking['start_datetime']);
-        $now = new DateTime();
-        $hours_until = ($start->getTimestamp() - $now->getTimestamp()) / 3600;
-
-        if ($hours_until < $this->min_cancellation_hours) {
-            return array(
-                'allowed' => false,
-                'reason' => "Cannot modify booking less than {$this->min_cancellation_hours} hours before start"
-            );
-        }
+        // No time restriction for cancellation (per clarification #6)
+        // Users can cancel at any time, even after booking has started
 
         return array('allowed' => true, 'reason' => '');
     }
@@ -1340,6 +1433,20 @@ class Bookings extends CI_Controller {
      * Display booking calendar
      */
     public function index() {
+        // Check if booking is enabled for current section
+        $this->load->model('Sections_model');
+        $section_id = $this->session->userdata('section_id');
+        $section_data = $this->Sections_model->get_by_id($section_id);
+
+        if (!$section_data || !$section_data['booking_enabled']) {
+            show_error(
+                $this->lang->line('booking_not_enabled_for_section'),
+                403,
+                $this->lang->line('booking_access_denied')
+            );
+            return;
+        }
+
         // Get aircraft list for section
         $this->load->model('Machinesp_model'); // Gliders
         $this->load->model('Machinesa_model'); // Airplanes/ULM
@@ -1361,7 +1468,8 @@ class Bookings extends CI_Controller {
             'current_user' => $this->dx_auth->get_username(),
             'is_admin' => $this->dx_auth->is_admin(),
             'is_instructor' => $this->dx_auth->is_role('instructeur'),
-            'section' => $section
+            'section' => $section,
+            'section_id' => $section_id
         );
 
         load_last_view('bookings_calendar', $data);
@@ -1894,7 +2002,8 @@ $(document).ready(function() {
             },
             slotMinTime: '07:00:00',
             slotMaxTime: '20:00:00',
-            slotDuration: '00:30:00', // 30-minute slots
+            slotDuration: '00:15:00', // 15-minute intervals (bookings can start every 15 min)
+            snapDuration: '00:15:00', // Snap to 15-minute grid
             allDaySlot: false,
             editable: true,
             selectable: true,
@@ -2226,6 +2335,8 @@ $lang['booking_cancelled'] = 'Réservation annulée';
 $lang['booking_create_failed'] = 'Échec de la création de la réservation';
 $lang['booking_update_failed'] = 'Échec de la mise à jour';
 $lang['booking_cancel_failed'] = 'Échec de l\'annulation';
+$lang['booking_not_enabled_for_section'] = 'La réservation d\'appareils n\'est pas activée pour cette section';
+$lang['booking_access_denied'] = 'Accès refusé';
 ```
 
 **(Similar files needed for English and Dutch)**
@@ -2334,14 +2445,39 @@ $lang['booking_cancel_failed'] = 'Échec de l\'annulation';
 
 ---
 
+## Summary of Clarification Decisions
+
+All prerequisite questions have been answered. Here's a quick reference:
+
+| # | Topic | Decision | Impact |
+|---|-------|----------|--------|
+| 1 | Section Assignment | Per section - users only see their section | Section_id field required (NOT NULL) |
+| 1b | Section Availability | Booking feature enabled per section | Add `booking_enabled` flag to sections table |
+| 2 | Instructor Identification | New authorization system role-per-section | **Blocks development until auth deployed** |
+| 3 | Credit Limit | 411 client account per section | Phase 1: stub, Phase 2: full integration |
+| 4 | Time Slot Granularity | 30-min minimum, 15-min intervals | Calendar: 15-min grid, validation: 30-min min |
+| 5 | Max Advance Booking | 30 days | Validate start_datetime <= now + 30 days |
+| 6 | Cancellation Policy | Anytime (even after start) | No time restriction in code |
+| 7 | Recurring Bookings | Not supported | No recurrence fields in schema |
+| 8 | Multiple Aircraft | Instructors/admins yes, pilots no | Role-based validation |
+| 9 | Authorization | New system (not DX_Auth) | **Critical dependency - must wait** |
+| 10 | Calendar Coexistence | Separate views | No integration with presence calendar |
+
+**Configuration Values:**
+```php
+min_booking_minutes = 30          // Minimum duration
+booking_interval_minutes = 15     // Grid interval
+max_advance_days = 30             // Maximum advance booking
+min_cancellation_hours = 0        // No cancellation restriction
+```
+
 ## Next Steps
 
-1. **Review this plan** with stakeholders
-2. **Obtain clarifications** on all prerequisite questions (Section II)
-3. **Approve budget and timeline**
+1. **Wait for Authorization System** deployment (critical dependency)
+2. **Review this updated plan** with stakeholders
+3. **Approve budget and timeline** (now 8-10 weeks including wait time)
 4. **Assign responsibilities**
-5. **Schedule kickoff meeting**
-6. **Begin Phase 0** implementation
+5. **Begin Phase 0** after authorization system is live
 
 ---
 
@@ -2350,6 +2486,8 @@ $lang['booking_cancel_failed'] = 'Échec de l\'annulation';
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2025-10-08 | Claude Code | Initial draft |
+| 1.1 | 2025-10-08 | Claude Code | Updated with clarification answers - all 10 questions resolved |
+| 1.2 | 2025-10-08 | Claude Code | Added `booking_enabled` flag to sections table - booking feature available per section |
 
 ---
 
