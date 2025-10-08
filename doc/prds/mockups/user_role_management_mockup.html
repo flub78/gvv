@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GVV - Gestion des Rôles Utilisateurs - Mockup</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --gvv-dark-bg: #2c3e50;
+            --gvv-green: #27ae60;
+            --gvv-light-bg: #ecf0f1;
+        }
+
+        body {
+            background-color: var(--gvv-light-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Header Navigation */
+        .gvv-header {
+            background-color: var(--gvv-dark-bg);
+            color: white;
+            padding: 10px 20px;
+            margin-bottom: 0;
+        }
+
+        .gvv-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gvv-nav .nav-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .gvv-nav .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .gvv-nav .nav-menu {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .gvv-nav .nav-menu a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .gvv-nav .nav-menu a:hover {
+            color: white;
+        }
+
+        .gvv-nav .user-info {
+            color: #bdc3c7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Banner */
+        .gvv-banner {
+            background: linear-gradient(135deg, var(--gvv-green) 0%, #229954 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gvv-banner::before {
+            content: '✈';
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-15deg);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+
+        .gvv-banner::after {
+            content: '🛩';
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%) rotate(15deg);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+
+        .gvv-banner h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+        }
+
+        .page-title {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .page-title h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--gvv-dark-bg);
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-panel h3 {
+            font-size: 1.2rem;
+            color: var(--gvv-dark-bg);
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-panel .filter-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        /* Table Container */
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* DataTables Styling */
+        table.dataTable {
+            border-collapse: collapse !important;
+        }
+
+        table.dataTable thead th {
+            background-color: var(--gvv-dark-bg);
+            color: white;
+            font-weight: 500;
+            padding: 12px;
+            border: none;
+        }
+
+        table.dataTable tbody td {
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Role Group Headers */
+        .role-group-header {
+            font-weight: 600;
+            color: var(--gvv-dark-bg);
+            background-color: #e8f4f8;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Checkbox Styling */
+        .role-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .role-checkbox:checked {
+            accent-color: var(--gvv-green);
+        }
+
+        /* User Status Badge */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Save Button */
+        .btn-save {
+            background-color: var(--gvv-green);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .btn-save:hover {
+            background-color: #229954;
+        }
+
+        .btn-save:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        .gvv-footer {
+            background-color: var(--gvv-green);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .legend-global {
+            background-color: #e8f4f8;
+        }
+
+        .legend-section {
+            background-color: #fff3cd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <div class="gvv-header">
+        <div class="gvv-nav">
+            <div class="nav-left">
+                <div class="logo">GVV</div>
+                <ul class="nav-menu">
+                    <li><a href="#">Gestion ▾</a></li>
+                    <li><a href="#">Membres ▾</a></li>
+                    <li><a href="#">Planeurs ▾</a></li>
+                    <li><a href="#">Avions ▾</a></li>
+                    <li><a href="#">Compta ▾</a></li>
+                    <li><a href="#">Ecritures ▾</a></li>
+                    <li><a href="#">Aide ▾</a></li>
+                    <li><a href="#">Dev ▾</a></li>
+                </ul>
+            </div>
+            <div class="user-info">
+                <span>fpeignot</span>
+                <span>admin</span>
+                <span>Section: <select class="form-select form-select-sm d-inline-block" style="width: auto;">
+                    <option>Planeur</option>
+                    <option>ULM</option>
+                    <option>Avion</option>
+                </select></span>
+                <span>👤</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banner -->
+    <div class="gvv-banner">
+        <h1>Gestion des Rôles Utilisateurs</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content container-fluid">
+
+        <!-- Page Title with Description -->
+        <div class="page-title">
+            <h2>Attribution des Rôles par Utilisateur</h2>
+            <p class="text-muted mb-0">Gérez les rôles globaux et spécifiques aux sections pour chaque utilisateur. Les modifications sont sauvegardées automatiquement.</p>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <h3>
+                <span>Filtre</span>
+                <span id="filter-toggle">▲</span>
+            </h3>
+            <div class="filter-content" id="filter-content">
+                <div>
+                    <label class="form-label">Section</label>
+                    <select class="form-select" id="filter-section">
+                        <option value="all">Toutes les sections</option>
+                        <option value="planeur">Planeur</option>
+                        <option value="ulm">ULM</option>
+                        <option value="avion">Avion</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Statut</label>
+                    <select class="form-select" id="filter-status">
+                        <option value="all">Tous</option>
+                        <option value="active" selected>Actifs uniquement</option>
+                        <option value="inactive">Inactifs uniquement</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Rôle</label>
+                    <select class="form-select" id="filter-role">
+                        <option value="all">Tous les rôles</option>
+                        <option value="admin">Admin</option>
+                        <option value="bureau">Bureau</option>
+                        <option value="ca">CA</option>
+                        <option value="tresorier">Trésorier</option>
+                        <option value="planchiste">Planchiste</option>
+                        <option value="user">Utilisateur</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-icon legend-global"></div>
+                    <span>Rôles Globaux (toute l'application)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-section"></div>
+                    <span>Rôles Sections (spécifiques à une section)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <table id="rolesTable" class="table table-striped table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Statut</th>
+                        <th style="background-color: #c7dde8;">Rôles Globaux</th>
+                        <th style="background-color: #ffebb5;">Section: Planeur</th>
+                        <th style="background-color: #ffebb5;">Section: ULM</th>
+                        <th style="background-color: #ffebb5;">Section: Avion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>fpeignot</strong></td>
+                        <td>f.peignot@example.com</td>
+                        <td><span class="status-badge status-active">Actif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="admin" data-section="global" checked> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="bureau" data-section="global"> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="ca" data-section="planeur" checked> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="tresorier" data-section="planeur"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="planchiste" data-section="planeur" checked> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="user" data-section="planeur" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="ca" data-section="ulm"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="tresorier" data-section="ulm"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="user" data-section="ulm"> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="planchiste" data-section="avion"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="fpeignot" data-role="user" data-section="avion"> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>agnes</strong></td>
+                        <td>agnes@example.com</td>
+                        <td><span class="status-badge status-active">Actif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="admin" data-section="global"> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="bureau" data-section="global"> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="ca" data-section="planeur"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="tresorier" data-section="planeur" checked> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="planchiste" data-section="planeur"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="user" data-section="planeur" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="ca" data-section="ulm"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="tresorier" data-section="ulm"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="user" data-section="ulm"> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="planchiste" data-section="avion"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="agnes" data-role="user" data-section="avion"> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>philippe</strong></td>
+                        <td>philippe@example.com</td>
+                        <td><span class="status-badge status-active">Actif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="admin" data-section="global"> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="bureau" data-section="global" checked> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="ca" data-section="planeur" checked> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="tresorier" data-section="planeur"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="planchiste" data-section="planeur" checked> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="user" data-section="planeur" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="ca" data-section="ulm" checked> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="tresorier" data-section="ulm"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="user" data-section="ulm" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="planchiste" data-section="avion"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="philippe" data-role="user" data-section="avion"> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>marie</strong></td>
+                        <td>marie@example.com</td>
+                        <td><span class="status-badge status-active">Actif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="admin" data-section="global"> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="bureau" data-section="global"> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="ca" data-section="planeur"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="tresorier" data-section="planeur"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="planchiste" data-section="planeur"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="user" data-section="planeur"> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="ca" data-section="ulm"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="tresorier" data-section="ulm" checked> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="user" data-section="ulm" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="planchiste" data-section="avion"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="marie" data-role="user" data-section="avion"> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>jean</strong></td>
+                        <td>jean@example.com</td>
+                        <td><span class="status-badge status-active">Actif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="admin" data-section="global"> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="bureau" data-section="global"> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="ca" data-section="planeur"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="tresorier" data-section="planeur"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="planchiste" data-section="planeur"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="user" data-section="planeur" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="ca" data-section="ulm"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="tresorier" data-section="ulm"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="user" data-section="ulm"> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="planchiste" data-section="avion" checked> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="jean" data-role="user" data-section="avion" checked> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>sophie</strong></td>
+                        <td>sophie@example.com</td>
+                        <td><span class="status-badge status-inactive">Inactif</span></td>
+                        <td style="background-color: #f5fbfd;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="admin" data-section="global"> Admin</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="bureau" data-section="global"> Bureau</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="ca" data-section="planeur"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="tresorier" data-section="planeur"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="planchiste" data-section="planeur"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="user" data-section="planeur" checked> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="ca" data-section="ulm"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="tresorier" data-section="ulm"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="planchiste" data-section="ulm"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="user" data-section="ulm"> Utilisateur</label></div>
+                        </td>
+                        <td style="background-color: #fffdf5;">
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="ca" data-section="avion"> CA</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="tresorier" data-section="avion"> Trésorier</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="planchiste" data-section="avion"> Planchiste</label></div>
+                            <div><label><input type="checkbox" class="role-checkbox" data-user="sophie" data-role="user" data-section="avion"> Utilisateur</label></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Floating Save Button -->
+    <button class="btn-save" id="saveButton" disabled>
+        💾 Sauvegarder les modifications
+    </button>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ✓ Modifications sauvegardées avec succès
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="gvv-footer">
+        Copyright © 2025 Philippe Boissel et Frédéric Peignot, GPL V3.0
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables
+            var table = $('#rolesTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+                },
+                "pageLength": 25,
+                "order": [[0, 'asc']],
+                "columnDefs": [
+                    { "orderable": false, "targets": [3, 4, 5, 6] }
+                ]
+            });
+
+            // Filter toggle
+            $('#filter-toggle').click(function() {
+                $('#filter-content').slideToggle();
+                $(this).text($(this).text() === '▲' ? '▼' : '▲');
+            });
+
+            // Track changes
+            var hasChanges = false;
+            var changes = [];
+
+            // Handle checkbox changes
+            $('.role-checkbox').change(function() {
+                hasChanges = true;
+                $('#saveButton').prop('disabled', false);
+
+                // Track the change
+                var change = {
+                    user: $(this).data('user'),
+                    role: $(this).data('role'),
+                    section: $(this).data('section'),
+                    checked: $(this).is(':checked')
+                };
+
+                // Remove previous change for same user/role/section
+                changes = changes.filter(function(c) {
+                    return !(c.user === change.user && c.role === change.role && c.section === change.section);
+                });
+
+                changes.push(change);
+
+                console.log('Change tracked:', change);
+            });
+
+            // Save button
+            $('#saveButton').click(function() {
+                if (!hasChanges) return;
+
+                console.log('Saving changes:', changes);
+
+                // Simulate AJAX save
+                setTimeout(function() {
+                    hasChanges = false;
+                    changes = [];
+                    $('#saveButton').prop('disabled', true);
+
+                    // Show success toast
+                    var toast = new bootstrap.Toast(document.getElementById('successToast'));
+                    toast.show();
+                }, 500);
+            });
+
+            // Filter handlers (basic implementation)
+            $('#filter-section, #filter-status, #filter-role').change(function() {
+                // In a real implementation, this would filter the DataTable
+                console.log('Filter changed:', {
+                    section: $('#filter-section').val(),
+                    status: $('#filter-status').val(),
+                    role: $('#filter-role').val()
+                });
+
+                // Example: Hide inactive users when "Actifs uniquement" is selected
+                if ($('#filter-status').val() === 'active') {
+                    table.rows().every(function() {
+                        var row = this.node();
+                        var statusBadge = $(row).find('.status-badge');
+                        if (statusBadge.hasClass('status-inactive')) {
+                            $(row).hide();
+                        } else {
+                            $(row).show();
+                        }
+                    });
+                } else {
+                    table.rows().every(function() {
+                        $(this.node()).show();
+                    });
+                }
+            });
+
+            // Keyboard shortcut: Ctrl+S to save
+            $(document).on('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (!$('#saveButton').prop('disabled')) {
+                        $('#saveButton').click();
+                    }
+                }
+            });
+
+            // Warn before leaving with unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                if (hasChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

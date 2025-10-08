@@ -173,6 +173,8 @@ Following `doc/development/workflow.md`:
 9. **Permissions**: Web-writable directories need `chmod +wx` (logs, uploads, assets/images)
 10. **No Composer**: Project uses manual dependency management (predates Composer)
 11. **Dababase access**: Use the credential from configuration/database.php to analyze the database schema or data.
+12. **Diagrams**: Use plantuml to generate class diagrams and database schemas
+13. **Mockups**: generate mockups in ASCII art, generate prototypes in self contained HTML files
 
 ## Important Integration Patterns
 

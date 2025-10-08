@@ -153,124 +153,15 @@ Use this checklist to track progress through the migration. Check off items as t
 
 ---
 
-## Executive Summary
+## Product Requirements
 
-This document outlines a comprehensive plan to refactor GVV's authorization system from a hierarchical role-based access control (RBAC) model to a flat, domain-based, section-aware authorization system. The new system will support both global and section-specific roles, provide improved UI for permission management, and implement row-level data access controls.
+The detailed product requirements, including the executive summary, current state analysis, goals, and UI mockups, have been extracted into a separate Product Requirements Document (PRD).
 
-## Current State Analysis
+For a complete overview of the "what" and "why" of this project, please refer to the full PRD:
+[**Authorization System Refactoring PRD**](../prds/2025_authorization_refactoring_prd.md)
 
-### Existing System (2011 Architecture)
+The remainder of this document focuses on the technical implementation plan.
 
-**Database Schema:**
-- `users` table: 292 users
-- `roles` table: 6 hierarchical roles (membre → planchiste → ca → bureau → tresorier → admin)
-- `permissions` table: Serialized URI permissions per role
-- `types_roles` table: 8 role types (already created for new system)
-- `user_roles_per_section` table: 219 section-role assignments (already populated)
-- `sections` table: 4 sections (Planeur, ULM, Avion, Général)
-
-**Current Roles Hierarchy:**
-```
-admin (2)
-  └─ tresorier (9)
-      └─ bureau (3)
-          └─ ca (8)
-              └─ planchiste (7)
-                  └─ membre (1)
-```
-
-**Current Role Types (types_roles):**
-1. user - Login and see user data
-2. auto_planchiste - Manage own data
-5. planchiste - Manage flight data
-6. ca - See all section data (global financial)
-7. bureau - See all section data (personal financial)
-8. tresorier - Edit financial data (one section)
-9. super-tresorier - Edit financial data (all sections)
-10. club-admin - Full access
-
-**Controllers Using check_uri_permissions():**
-- `backend.php` - User/role/permission management
-- `migration.php` - Database migration
-- `presences.php` - Attendance tracking
-- `rapports.php` - Report generation
-- `config.php` - Configuration management
-
-### Key Issues with Current System
-
-1. **Hierarchical Inheritance Problem:** Tresoriers inherit planchiste permissions (flight data), which is incorrect
-2. **No Section Granularity:** Permissions are global, can't have different roles per section
-3. **Complex URI Management:** Manually editing URIs in textarea is error-prone
-4. **No Row-Level Security:** Can't restrict "view own data" vs "view all data"
-5. **Poor UX:** No easy way to see/manage user permissions at a glance
-
-## Goals and Requirements
-
-### Functional Requirements
-
-1. **FR1: Flat Role Model**
-   - Eliminate parent_id hierarchy
-   - Roles are independent domains of authority
-   - No automatic permission inheritance
-
-2. **FR2: Section-Aware Roles**
-   - Global roles: admin, super-tresorier, bureau (association-wide)
-   - Section roles: tresorier, ca, planchiste, auto_planchiste, user (per-section)
-   - Users can have different roles in different sections
-
-3. **FR3: Improved Permission Management UI**
-   - Single page showing all users with checkboxes for role assignment
-   - Filter by section (users with 411 accounts in that section)
-   - Filter by active/inactive users
-   - DataTables integration with name search
-   - Clear indication of global vs section roles
-
-4. **FR4: Improved URI Permission Management**
-   - Organize URIs by section/domain
-   - Visual checklist instead of textarea
-   - Group URIs by controller/feature
-   - Show which roles have which permissions
-
-5. **FR5: Row-Level Data Access**
-   - Implement "own data" vs "all data" checks
-   - Examples:
-     - User: view own bills
-     - Tresorier: view all bills in section
-     - Auto_planchiste: edit own flights
-     - Planchiste: edit all flights in section
-
-6. **FR6: Admin Override**
-   - Maintain special 'admin' role
-   - Bypass all permission checks
-   - Association-wide access
-
-7. **FR7: Testing Framework**
-   - PHPUnit tests for each role
-   - Test authorized access grants entry
-   - Test unauthorized access denies entry
-   - Test row-level data access rules
-
-### Non-Functional Requirements
-
-1. **NFR1: Backward Compatibility During Migration**
-   - Admin users must retain access throughout migration
-   - Gradual rollout, not big-bang
-   - Rollback capability at each phase
-
-2. **NFR2: Performance**
-   - Permission checks < 10ms
-   - Session-based caching
-   - Minimal database queries per request
-
-3. **NFR3: Security**
-   - Audit trail for permission changes
-   - No privilege escalation vulnerabilities
-   - Default deny (no permissions unless granted)
-
-4. **NFR4: Maintainability**
-   - Clear documentation
-   - Self-explanatory code
-   - Easy to add new roles/permissions
 
 ## Proposed Architecture
 

@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GVV - Gestion des Permissions par Rôle - Mockup</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --gvv-dark-bg: #2c3e50;
+            --gvv-green: #27ae60;
+            --gvv-light-bg: #ecf0f1;
+        }
+
+        body {
+            background-color: var(--gvv-light-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Header Navigation */
+        .gvv-header {
+            background-color: var(--gvv-dark-bg);
+            color: white;
+            padding: 10px 20px;
+            margin-bottom: 0;
+        }
+
+        .gvv-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gvv-nav .nav-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .gvv-nav .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .gvv-nav .nav-menu {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .gvv-nav .nav-menu a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .gvv-nav .nav-menu a:hover {
+            color: white;
+        }
+
+        .gvv-nav .user-info {
+            color: #bdc3c7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Banner */
+        .gvv-banner {
+            background: linear-gradient(135deg, var(--gvv-green) 0%, #229954 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gvv-banner::before {
+            content: '🔐';
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+
+        .gvv-banner::after {
+            content: '⚙';
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+
+        .gvv-banner h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .page-title h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--gvv-dark-bg);
+        }
+
+        /* Role Selector Panel */
+        .role-selector {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .role-selector h3 {
+            font-size: 1.2rem;
+            color: var(--gvv-dark-bg);
+            margin-bottom: 20px;
+        }
+
+        .role-selector .selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .role-selector select {
+            font-size: 1.1rem;
+            padding: 10px;
+        }
+
+        .role-info {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border-left: 4px solid var(--gvv-green);
+        }
+
+        .role-info strong {
+            color: var(--gvv-dark-bg);
+        }
+
+        /* Permission Domain Section */
+        .domain-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .domain-header {
+            background: linear-gradient(135deg, var(--gvv-dark-bg) 0%, #34495e 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .domain-header h4 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        .domain-header .toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .domain-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        /* Permission Table */
+        .permission-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .permission-table thead th {
+            background-color: #f8f9fa;
+            color: var(--gvv-dark-bg);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .permission-table thead th:first-child {
+            width: 40%;
+        }
+
+        .permission-table thead th.action-column {
+            text-align: center;
+            width: 15%;
+        }
+
+        .permission-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .permission-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .permission-table .uri-cell {
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+
+        .permission-table .uri-path {
+            font-weight: 600;
+            color: var(--gvv-dark-bg);
+        }
+
+        .permission-table .uri-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+        .permission-table .action-column {
+            text-align: center;
+        }
+
+        .permission-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .permission-checkbox:checked {
+            accent-color: var(--gvv-green);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .quick-actions button {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            background-color: white;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-actions button:hover {
+            background-color: #f8f9fa;
+            border-color: var(--gvv-green);
+            color: var(--gvv-green);
+        }
+
+        /* Summary Panel */
+        .summary-panel {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .summary-panel h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background-color: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            bottom: 20px;
+            z-index: 100;
+        }
+
+        .action-buttons .left-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--gvv-green);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #229954;
+        }
+
+        .btn-primary:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-export {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-export:hover {
+            background-color: #2980b9;
+        }
+
+        /* Footer */
+        .gvv-footer {
+            background-color: var(--gvv-green);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        /* Row Level Access Badge */
+        .access-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .access-own {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .access-all {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Legend */
+        .legend {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            color: var(--gvv-dark-bg);
+            margin-bottom: 10px;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Permission Group Row */
+        .permission-group-row {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: var(--gvv-dark-bg);
+        }
+
+        /* Search box */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--gvv-green);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <div class="gvv-header">
+        <div class="gvv-nav">
+            <div class="nav-left">
+                <div class="logo">GVV</div>
+                <ul class="nav-menu">
+                    <li><a href="#">Gestion ▾</a></li>
+                    <li><a href="#">Membres ▾</a></li>
+                    <li><a href="#">Planeurs ▾</a></li>
+                    <li><a href="#">Avions ▾</a></li>
+                    <li><a href="#">Compta ▾</a></li>
+                    <li><a href="#">Ecritures ▾</a></li>
+                    <li><a href="#">Aide ▾</a></li>
+                    <li><a href="#">Dev ▾</a></li>
+                </ul>
+            </div>
+            <div class="user-info">
+                <span>fpeignot</span>
+                <span>admin</span>
+                <span>Section: <select class="form-select form-select-sm d-inline-block" style="width: auto;">
+                    <option>Planeur</option>
+                    <option>ULM</option>
+                    <option>Avion</option>
+                </select></span>
+                <span>👤</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banner -->
+    <div class="gvv-banner">
+        <h1>Gestion des Permissions par Rôle</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Page Title with Description -->
+        <div class="page-title">
+            <h2>Configuration des Permissions</h2>
+            <p class="text-muted mb-0">Définissez les permissions (URIs) assignées à chaque rôle. Les permissions sont organisées par domaine fonctionnel.</p>
+        </div>
+
+        <!-- Role Selector -->
+        <div class="role-selector">
+            <h3>Sélection du Rôle</h3>
+            <div class="selector-grid">
+                <div>
+                    <label class="form-label">Rôle *</label>
+                    <select class="form-select" id="role-select">
+                        <option value="">-- Sélectionnez un rôle --</option>
+                        <optgroup label="Rôles Globaux">
+                            <option value="admin">Admin</option>
+                            <option value="bureau">Bureau</option>
+                        </optgroup>
+                        <optgroup label="Rôles Sections">
+                            <option value="ca">CA (Conseil d'Administration)</option>
+                            <option value="tresorier" selected>Trésorier</option>
+                            <option value="planchiste">Planchiste</option>
+                            <option value="auto_planchiste">Auto-Planchiste</option>
+                            <option value="user">Utilisateur</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div id="section-selector-container">
+                    <label class="form-label">Section *</label>
+                    <select class="form-select" id="section-select">
+                        <option value="planeur" selected>Planeur</option>
+                        <option value="ulm">ULM</option>
+                        <option value="avion">Avion</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="role-info" id="role-info">
+                <strong>🔍 Rôle sélectionné:</strong> Trésorier (Section: Planeur)<br>
+                <strong>📝 Description:</strong> Gère la comptabilité et les factures pour la section Planeur. Peut voir toutes les factures de la section mais ne peut pas modifier les données de vol.
+            </div>
+        </div>
+
+        <!-- Summary Panel -->
+        <div class="summary-panel">
+            <h3>📊 Résumé des Permissions</h3>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="total-permissions">23</span>
+                    <span class="stat-label">Permissions Activées</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-domains">6</span>
+                    <span class="stat-label">Domaines Accessibles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-uris">47</span>
+                    <span class="stat-label">URIs Disponibles</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <input type="text" id="permission-search" placeholder="🔍 Rechercher une permission (URI, description...)">
+        </div>
+
+        <!-- Domain: Comptabilité -->
+        <div class="domain-section">
+            <div class="domain-header" data-domain="compta">
+                <h4>💰 Comptabilité</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('compta', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('compta', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">factures/</div>
+                                <div class="uri-description">Liste des factures <span class="access-badge access-all">Toutes</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/" data-action="create" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/" data-action="edit" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">factures/view/*</div>
+                                <div class="uri-description">Détails d'une facture <span class="access-badge access-all">Toutes</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/view/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/view/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/view/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/view/*" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">factures/pdf/*</div>
+                                <div class="uri-description">Génération PDF facture</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/pdf/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/pdf/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/pdf/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="factures/pdf/*" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">ecritures/</div>
+                                <div class="uri-description">Gestion des écritures comptables <span class="access-badge access-all">Toutes</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="ecritures/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="ecritures/" data-action="create" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="ecritures/" data-action="edit" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="ecritures/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">comptas/export</div>
+                                <div class="uri-description">Export comptable (Excel, CSV)</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="comptas/export" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="comptas/export" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="comptas/export" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="comptas/export" data-action="delete" disabled></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain: Vols Planeur -->
+        <div class="domain-section">
+            <div class="domain-header" data-domain="vols">
+                <h4>✈️ Vols Planeur</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('vols', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('vols', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">vols_planeur/</div>
+                                <div class="uri-description">Liste des vols <span class="access-badge access-own">Propres</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">vols_planeur/view/*</div>
+                                <div class="uri-description">Détails d'un vol <span class="access-badge access-own">Propres</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/view/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/view/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/view/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/view/*" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">vols_planeur/pdf</div>
+                                <div class="uri-description">Export PDF des vols</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/pdf" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/pdf" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/pdf" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="vols_planeur/pdf" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">presences/</div>
+                                <div class="uri-description">Gestion des présences</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="presences/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="presences/" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="presences/" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="presences/" data-action="delete"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain: Membres -->
+        <div class="domain-section">
+            <div class="domain-header" data-domain="membres">
+                <h4>👥 Membres</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('membres', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('membres', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">membre/</div>
+                                <div class="uri-description">Liste des membres <span class="access-badge access-all">Tous</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">membre/view/*</div>
+                                <div class="uri-description">Détails d'un membre <span class="access-badge access-all">Tous</span></div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/view/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/view/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/view/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/view/*" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">membre/coordonnees/*</div>
+                                <div class="uri-description">Coordonnées bancaires des membres</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/coordonnees/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/coordonnees/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/coordonnees/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="membre/coordonnees/*" data-action="delete" disabled></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain: Planeurs (Aircraft) -->
+        <div class="domain-section">
+            <div class="domain-header collapsed" data-domain="planeurs">
+                <h4>🛩️ Planeurs</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content" style="display: none;">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('planeurs', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('planeurs', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">planeur/</div>
+                                <div class="uri-description">Liste des planeurs de la flotte</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">planeur/view/*</div>
+                                <div class="uri-description">Détails d'un planeur (maintenance, heures)</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/view/*" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/view/*" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/view/*" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="planeur/view/*" data-action="delete" disabled></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain: Rapports -->
+        <div class="domain-section">
+            <div class="domain-header collapsed" data-domain="rapports">
+                <h4>📈 Rapports</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content" style="display: none;">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('rapports', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('rapports', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">rapports/financier</div>
+                                <div class="uri-description">Rapport financier de la section</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/financier" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/financier" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/financier" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/financier" data-action="delete" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">rapports/activite</div>
+                                <div class="uri-description">Rapport d'activité (statistiques vols)</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/activite" data-action="view" checked></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/activite" data-action="create" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/activite" data-action="edit" disabled></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="rapports/activite" data-action="delete" disabled></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain: Configuration -->
+        <div class="domain-section">
+            <div class="domain-header collapsed" data-domain="config">
+                <h4>⚙️ Configuration</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="domain-content" style="display: none;">
+                <div class="quick-actions">
+                    <button onclick="selectAllInDomain('config', true)">✓ Tout sélectionner</button>
+                    <button onclick="selectAllInDomain('config', false)">✗ Tout désélectionner</button>
+                </div>
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>URI / Action</th>
+                            <th class="action-column">Voir</th>
+                            <th class="action-column">Créer</th>
+                            <th class="action-column">Modifier</th>
+                            <th class="action-column">Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">config/</div>
+                                <div class="uri-description">Configuration de l'application</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="config/" data-action="view"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="config/" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="config/" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="config/" data-action="delete"></td>
+                        </tr>
+                        <tr>
+                            <td class="uri-cell">
+                                <div class="uri-path">backend/roles</div>
+                                <div class="uri-description">Gestion des rôles et permissions</div>
+                            </td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="backend/roles" data-action="view"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="backend/roles" data-action="create"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="backend/roles" data-action="edit"></td>
+                            <td class="action-column"><input type="checkbox" class="permission-checkbox" data-uri="backend/roles" data-action="delete"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="domain-section">
+            <div class="legend">
+                <div class="legend-title">📖 Légende</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="access-badge access-own">Propres</span>
+                        <span>= L'utilisateur ne voit que ses propres données</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="access-badge access-all">Tous/Toutes</span>
+                        <span>= L'utilisateur voit toutes les données de la section</span>
+                    </div>
+                    <div class="legend-item">
+                        <input type="checkbox" checked disabled style="width: 18px; height: 18px;">
+                        <span>= Permission activée</span>
+                    </div>
+                    <div class="legend-item">
+                        <input type="checkbox" disabled style="width: 18px; height: 18px;">
+                        <span>= Action non applicable pour cet URI</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div class="left-actions">
+                <button class="btn-export" onclick="exportPermissions()">📥 Exporter (JSON)</button>
+                <button class="btn-export" onclick="importPermissions()">📤 Importer</button>
+            </div>
+            <div class="right-actions">
+                <button class="btn-secondary" onclick="resetPermissions()">↺ Réinitialiser</button>
+                <button class="btn-primary" id="saveButton" disabled>💾 Sauvegarder les Permissions</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ✓ Permissions sauvegardées avec succès
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="gvv-footer">
+        Copyright © 2025 Philippe Boissel et Frédéric Peignot, GPL V3.0
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Track changes
+        var hasChanges = false;
+        var permissionChanges = [];
+
+        $(document).ready(function() {
+            // Domain section collapse/expand
+            $('.domain-header').click(function() {
+                $(this).toggleClass('collapsed');
+                $(this).next('.domain-content').slideToggle(300);
+            });
+
+            // Role selection change
+            $('#role-select, #section-select').change(function() {
+                updateRoleInfo();
+                // In real implementation, load permissions for selected role
+            });
+
+            // Handle checkbox changes
+            $('.permission-checkbox').not(':disabled').change(function() {
+                hasChanges = true;
+                $('#saveButton').prop('disabled', false);
+
+                var change = {
+                    uri: $(this).data('uri'),
+                    action: $(this).data('action'),
+                    checked: $(this).is(':checked')
+                };
+
+                console.log('Permission change:', change);
+                permissionChanges.push(change);
+
+                updateSummaryStats();
+            });
+
+            // Search functionality
+            $('#permission-search').on('input', function() {
+                var searchTerm = $(this).val().toLowerCase();
+
+                $('.permission-table tbody tr').each(function() {
+                    var text = $(this).text().toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Save button
+            $('#saveButton').click(function() {
+                if (!hasChanges) return;
+
+                var role = $('#role-select').val();
+                var section = $('#section-select').val();
+
+                console.log('Saving permissions for role:', role, 'section:', section);
+                console.log('Changes:', permissionChanges);
+
+                // Simulate AJAX save
+                setTimeout(function() {
+                    hasChanges = false;
+                    permissionChanges = [];
+                    $('#saveButton').prop('disabled', true);
+
+                    // Show success toast
+                    var toast = new bootstrap.Toast(document.getElementById('successToast'));
+                    toast.show();
+                }, 500);
+            });
+
+            // Keyboard shortcut: Ctrl+S to save
+            $(document).on('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (!$('#saveButton').prop('disabled')) {
+                        $('#saveButton').click();
+                    }
+                }
+            });
+
+            // Warn before leaving with unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                if (hasChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // Show/hide section selector based on role type
+            updateSectionVisibility();
+        });
+
+        function updateRoleInfo() {
+            var role = $('#role-select').val();
+            var section = $('#section-select').val();
+            var roleText = $('#role-select option:selected').text();
+
+            var descriptions = {
+                'admin': 'Accès complet à toutes les fonctionnalités de l\'application, sans restriction.',
+                'bureau': 'Membres du bureau, accès étendu à la gestion administrative et aux rapports.',
+                'ca': 'Membres du conseil d\'administration, accès à la gestion et aux décisions stratégiques.',
+                'tresorier': 'Gère la comptabilité et les factures pour la section. Peut voir toutes les factures de la section mais ne peut pas modifier les données de vol.',
+                'planchiste': 'Gère les vols et les présences. Peut modifier tous les vols et gérer les planifications pour la section.',
+                'auto_planchiste': 'Peut gérer uniquement ses propres vols. Accès limité aux données personnelles.',
+                'user': 'Utilisateur standard. Peut consulter ses propres données et effectuer des actions de base.'
+            };
+
+            var desc = descriptions[role] || 'Sélectionnez un rôle pour voir sa description.';
+            var sectionText = section ? ' (Section: ' + section.charAt(0).toUpperCase() + section.slice(1) + ')' : '';
+
+            $('#role-info').html(
+                '<strong>🔍 Rôle sélectionné:</strong> ' + roleText + sectionText + '<br>' +
+                '<strong>📝 Description:</strong> ' + desc
+            );
+
+            updateSectionVisibility();
+        }
+
+        function updateSectionVisibility() {
+            var role = $('#role-select').val();
+            var globalRoles = ['admin', 'bureau'];
+
+            if (globalRoles.includes(role)) {
+                $('#section-selector-container').hide();
+            } else {
+                $('#section-selector-container').show();
+            }
+        }
+
+        function updateSummaryStats() {
+            var totalChecked = $('.permission-checkbox:checked').not(':disabled').length;
+            var totalDomains = $('.domain-section').length;
+            var totalUris = $('.permission-checkbox').not(':disabled').length / 4; // 4 actions per URI
+
+            $('#total-permissions').text(totalChecked);
+            $('#total-domains').text(totalDomains);
+            $('#total-uris').text(Math.round(totalUris));
+        }
+
+        function selectAllInDomain(domain, checked) {
+            $('.domain-header[data-domain="' + domain + '"]').next('.domain-content')
+                .find('.permission-checkbox').not(':disabled').prop('checked', checked).trigger('change');
+        }
+
+        function resetPermissions() {
+            if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes les permissions pour ce rôle ?')) {
+                hasChanges = true;
+                $('#saveButton').prop('disabled', false);
+
+                // In real implementation, reload default permissions
+                $('.permission-checkbox').prop('checked', false);
+                console.log('Permissions reset');
+            }
+        }
+
+        function exportPermissions() {
+            var role = $('#role-select').val();
+            var section = $('#section-select').val();
+
+            var permissions = {
+                role: role,
+                section: section,
+                permissions: []
+            };
+
+            $('.permission-checkbox:checked').not(':disabled').each(function() {
+                permissions.permissions.push({
+                    uri: $(this).data('uri'),
+                    action: $(this).data('action')
+                });
+            });
+
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(permissions, null, 2));
+            var downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "permissions_" + role + "_" + section + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            console.log('Exported permissions:', permissions);
+        }
+
+        function importPermissions() {
+            alert('Fonctionnalité d\'import : Sélectionnez un fichier JSON de permissions exporté précédemment.');
+            // In real implementation, show file picker and load permissions
+        }
+    </script>
+</body>
+</html>
