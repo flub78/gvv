@@ -6,9 +6,13 @@
  * Usage: php scripts/reorganize_attachments_simple.php [--dry-run] [--verbose]
  */
 
-// Ensure we're running in CLI mode
+// Suppress any headers if running in CGI mode
 if (php_sapi_name() !== 'cli') {
-    die("This script must be run from the command line (CLI mode)\n");
+    // Remove any output buffering and headers
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    header_remove();
 }
 
 // Load database configuration from CodeIgniter config
