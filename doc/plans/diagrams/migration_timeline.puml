@@ -1,0 +1,73 @@
+@startuml migration_timeline
+
+title Authorization System Migration Timeline (12 Weeks)
+
+' Phase 1: Database Schema (Week 1)
+rectangle "Phase 1: Database Schema" as phase1 #LightBlue {
+  [Database Migration\n5 days] as DB
+  [Create types_roles data\n3 days] as ROLES
+  [Create migration table\n2 days] as MIGT
+}
+
+' Phase 2: Core Authorization Library (Week 2)
+rectangle "Phase 2: Core Library" as phase2 #LightGreen {
+  [Gvv_Authorization library\n5 days] as AUTH
+  [Permission caching\n3 days] as CACHE
+  [Unit tests (70%+)\n2 days] as AUTHTEST
+}
+
+' Phase 3: Migration Controller & UI (Week 3-4)
+rectangle "Phase 3: Migration UI" as phase3 #LightYellow {
+  [Authorization_migration controller\n5 days] as MIGCTRL
+  [Migration status UI\n3 days] as MIGUI
+  [Role assignment UI\n4 days] as ROLEUI
+}
+
+' Phase 4: Permission Management UI (Week 4-5)
+rectangle "Phase 4: Permission UI" as phase4 #LightPink {
+  [URI permissions UI\n5 days] as URIUI
+  [DataTables integration\n3 days] as DT
+  [Bulk operations\n2 days] as BULK
+}
+
+' Phase 5: Dual-Mode Controller (Week 5-6)
+rectangle "Phase 5: Dual-Mode" as phase5 #LightCyan {
+  [Gvv_Controller enhancement\n5 days] as GVVCTRL
+  [Feature flag logic\n3 days] as FLAGS
+  [Session management\n2 days] as SESS
+}
+
+' Phase 6: Progressive Migration (Week 6-7)
+rectangle "Phase 6: Testing" as phase6 #LightGoldenRodYellow {
+  [Early adopter configuration\n2 days] as EARLY
+  [Permission setup\n3 days] as SETUP
+  [User-by-user testing\n7 days] as USERTEST
+  [Monitoring dashboard\n3 days] as MONITOR
+}
+
+' Phase 7: Data Migration (Week 8-9)
+rectangle "Phase 7: Data Migration" as phase7 #LightSalmon {
+  [Migrate admin users\n2 days] as ADMIN
+  [Migrate CA/bureau users\n2 days] as MGMT
+  [Migrate section users\n3 days] as USERS
+  [Validation & rollback\n2 days] as VALID
+}
+
+' Phase 8: Global Enablement (Week 9-12)
+rectangle "Phase 8: Go Live" as phase8 #LightCoral {
+  [Final validation\n2 days] as FINAL
+  [Enable for all users\n1 day] as ENABLE
+  [Monitor production\n3 days] as PROD
+  [Deprecate old system\n2 days] as DEPRECATE
+}
+
+' Dependencies
+phase1 -down-> phase2 : Week 1→2
+phase2 -down-> phase3 : Week 2→3
+phase3 -down-> phase4 : Week 3→4
+phase4 -down-> phase5 : Week 4→5
+phase5 -down-> phase6 : Week 5→6
+phase6 -down-> phase7 : Week 6→8
+phase7 -down-> phase8 : Week 8→12
+
+@enduml

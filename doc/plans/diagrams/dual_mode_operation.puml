@@ -1,0 +1,84 @@
+@startuml dual_mode_operation
+!theme plain
+
+title Dual-Mode Authorization Operation During Migration
+
+actor "Admin" as admin
+actor "Migrated User" as migrated
+actor "Non-Migrated User" as nonmigrated
+
+rectangle "Configuration" as config #LightYellow {
+  [Feature Flags]
+  [Migrated Users List]
+}
+
+rectangle "migration_status" as mig_db #LightGray {
+  [userID]
+  [migrated]
+  [migrationDate]
+}
+
+rectangle "Decision Logic" as decision #E6F7FF {
+  [shouldUseNewAuthorization]
+}
+
+rectangle "OLD System" as old_system #FFCCCC {
+  [DX_Auth Library]
+  rectangle "Legacy DB" {
+    [users roleID]
+    [roles]
+    [permissions]
+  }
+}
+
+rectangle "NEW System" as new_system #CCFFCC {
+  [Gvv_Authorization Library]
+  rectangle "New DB" {
+    [user roles per section]
+    [types roles]
+    [role permissions]
+  }
+}
+
+rectangle "Management UI" as mgmt #FFF7E6 {
+  [Migration Dashboard]
+  [Early Permission Setup]
+}
+
+' User flows
+migrated --> decision
+admin --> decision
+nonmigrated --> decision
+
+decision --> new_system : Use new
+decision --> old_system : Use old
+
+config --> decision
+mig_db --> decision
+
+admin --> mgmt
+
+note right of decision
+  Checks:
+  1. Global config flag
+  2. User in migrated list
+  3. Database migration status
+  Returns: OLD or NEW system
+end note
+
+note right of mgmt
+  Admin can:
+  - Migrate individual users
+  - Configure permissions for
+    non-migrated users
+  - Monitor migration status
+  - Rollback if needed
+end note
+
+note bottom of new_system
+  Both systems run in parallel
+  No interference between them
+  Old tables remain untouched
+end note
+
+@enduml

@@ -1,0 +1,179 @@
+@startuml database_schema
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <i>x</i>
+!define unique(x) <color:green>x</color>
+!define not_null(x) <u>x</u>
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+' Users table
+class users {
+  primary_key(id): INT
+  not_null(username): VARCHAR(25)
+  not_null(password): VARCHAR(34)
+  not_null(email): VARCHAR(100)
+  foreign_key(role_id): INT
+  banned: TINYINT(1)
+  ban_reason: VARCHAR(255)
+  last_ip: VARCHAR(40)
+  last_login: DATETIME
+  created: DATETIME
+  modified: TIMESTAMP
+}
+
+' Sections table
+class sections {
+  primary_key(id): INT
+  not_null(nom): VARCHAR(64)
+  description: TEXT
+}
+
+' Types_roles table (NEW SYSTEM)
+class types_roles {
+  primary_key(id): INT
+  not_null(nom): VARCHAR(64)
+  description: VARCHAR(128)
+  not_null(scope): ENUM('global','section')
+  not_null(is_system_role): TINYINT(1)
+  not_null(display_order): INT
+  --
+  Examples:
+  1: user (section)
+  2: auto_planchiste (section)
+  5: planchiste (section)
+  6: ca (section)
+  7: bureau (global)
+  8: tresorier (section)
+  9: super-tresorier (global)
+  10: club-admin (global)
+}
+
+' User roles per section (Junction table)
+class user_roles_per_section {
+  primary_key(id): INT
+  foreign_key(user_id): INT
+  foreign_key(types_roles_id): INT
+  foreign_key(section_id): INT
+  foreign_key(granted_by): INT
+  granted_at: DATETIME
+  revoked_at: DATETIME
+  notes: TEXT
+}
+
+' Role permissions (NEW)
+class role_permissions {
+  primary_key(id): INT
+  foreign_key(types_roles_id): INT
+  foreign_key(section_id): INT
+  not_null(controller): VARCHAR(64)
+  action: VARCHAR(64)
+  permission_type: ENUM(view,create,edit,delete)
+  created: DATETIME
+  modified: TIMESTAMP
+  --
+  Defines URI access per role
+  section_id NULL = global
+  action NULL = wildcard
+}
+
+' Data access rules (NEW)
+class data_access_rules {
+  primary_key(id): INT
+  foreign_key(types_roles_id): INT
+  not_null(table_name): VARCHAR(64)
+  not_null(access_scope): ENUM(own,section,all)
+  field_name: VARCHAR(64)
+  section_field: VARCHAR(64)
+  description: TEXT
+  --
+  Row-level security rules
+}
+
+' Authorization audit log (NEW)
+class authorization_audit_log {
+  primary_key(id): INT
+  not_null(action_type): ENUM(...)
+  foreign_key(actor_user_id): INT
+  foreign_key(target_user_id): INT
+  foreign_key(types_roles_id): INT
+  foreign_key(section_id): INT
+  controller: VARCHAR(64)
+  action: VARCHAR(64)
+  ip_address: VARCHAR(45)
+  details: TEXT
+  created_at: DATETIME
+}
+
+' Migration status tracking (NEW)
+class authorization_migration_status {
+  primary_key(user_id): INT
+  not_null(migrated_to_new_system): TINYINT(1)
+  migration_date: DATETIME
+  foreign_key(migrated_by): INT
+  old_role_id: INT
+  old_role_name: VARCHAR(30)
+  notes: TEXT
+  rollback_count: INT
+}
+
+' OLD SYSTEM (deprecated)
+class roles <<deprecated>> {
+  primary_key(id): INT
+  parent_id: INT
+  name: VARCHAR(30)
+  --
+  OLD hierarchical roles
+  To be renamed after migration
+}
+
+class permissions <<deprecated>> {
+  primary_key(id): INT
+  foreign_key(role_id): INT
+  data: TEXT
+  --
+  OLD serialized permissions
+  To be renamed after migration
+}
+
+' Relationships
+users "1" -- "0..*" user_roles_per_section : has roles
+sections "1" -- "0..*" user_roles_per_section : contains
+types_roles "1" -- "0..*" user_roles_per_section : assigned to
+
+types_roles "1" -- "0..*" role_permissions : defines
+sections "0..1" -- "0..*" role_permissions : scoped to
+
+types_roles "1" -- "0..*" data_access_rules : controls
+
+users "1" -- "0..1" authorization_migration_status : tracks
+users "1" -- "0..*" authorization_audit_log : acts on
+users "0..1" -- "0..*" authorization_audit_log : target of
+
+' OLD system (dashed lines)
+users "1" ..> "1" roles : OLD role_id
+roles "1" ..> "0..*" permissions : OLD permissions
+
+note right of types_roles
+  **NEW SYSTEM**
+  Flat role model
+  No hierarchy
+  Global vs Section scope
+end note
+
+note right of user_roles_per_section
+  **Junction Table**
+  User can have multiple roles
+  Different roles per section
+  Audit trail of grants
+end note
+
+note left of roles
+  **DEPRECATED**
+  Hierarchical roles
+  Will be renamed to
+  roles_old after migration
+end note
+
+@enduml

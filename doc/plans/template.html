@@ -1,0 +1,613 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Linux Dev Local Testing</title>
+	<meta name="generator" content="Bluefish 2.0.2" />
+	<meta name="author" content="F.Peignot" />
+	<meta name="copyright" content="" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta name="ROBOTS" content="NOINDEX, NOFOLLOW" />
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
+	<meta http-equiv="content-style-type" content="text/css" />
+	<meta http-equiv="expires" content="0" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- All javascript -->
+	<!-- Bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<!-- Font awsome -->
+	<!-- script src="https://kit.fontawesome.com/408316024a.js" crossorigin="anonymous"></script -->
+
+	<script  type="text/javascript"  src="http://gvv.net/assets/javascript/408316024a.js" ></script>
+<link  rel="icon"  type="image/png"  href="http://gvv.net/favicon.png" ></link>
+<link  rel="stylesheet"  type="text/css"  href="http://gvv.net/assets/css/datatable_jui.css" ></link>
+<link  rel="stylesheet"  type="text/css"  href="http://gvv.net/assets/css/jquery-ui.css" ></link>
+<link  rel="stylesheet"  type="text/css"  href="http://gvv.net/assets/css/fullcalendar.css" ></link>
+<link  rel="stylesheet"  type="text/css"  href="http://gvv.net/assets/css/gvv.css" ></link>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/gvv.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/moment.min.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/selectall.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/jquery.min.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/jquery-ui.min.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/jquery.ui.datepicker-fr.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/jquery.coolfieldset.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/french_lang.js" ></script>
+<script  type="text/javascript"  src="http://gvv.net/assets/javascript/jquery.dataTables.min.js" ></script>
+
+	<script type="text/javascript" src="http://gvv.net/assets/javascript/multilevel.js"></script>
+	<link rel="stylesheet" type="text/css" href="http://gvv.net/assets/css/multilevel.css">
+	</link>
+	<link rel="stylesheet" type="text/css" href="http://gvv.net/assets/css/bs_styles.css">
+	</link>
+
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+	<!-- Version locale -->
+
+
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 fixed-top" style="position: sticky;">
+    <div class="container-fluid">
+
+      <a class="navbar-brand" href="http://gvv.net/calendar">GVV</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+        <span class="" role="button"><i class="fa fa-bars" aria-hidden="true" style="color:#e6e6ff"></i></span>
+      </button>
+
+              <div class="collapse navbar-collapse" id="mynavbar">
+          <ul class="navbar-nav me-auto">
+
+                          <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Gestion</a>
+                <ul class="dropdown-menu">
+
+                  <li><a class="dropdown-item" href="#">Vols de découverte&raquo;</a>
+                    <ul class="submenu dropdown-menu">
+
+                                              <li><a class="dropdown-item" href="http://gvv.net/vols_decouverte">Liste des bons</a></li>
+                        <li><a class="dropdown-item" href="http://gvv.net/vols_decouverte/select_by_id">Rechercher un bon</a></li>
+                                        </li>
+                </ul>
+
+
+              <li><a class="dropdown-item" href="#">Rapports &raquo;</a>
+                <ul class="submenu dropdown-menu">
+
+                  <li><a class="dropdown-item" href="http://gvv.net/alarmes">Validité licence</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/tickets/page">Consommation tickets</a></li>
+                                      <li><a class="dropdown-item" href="http://gvv.net/rapports/financier">Rapports financier</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/tickets/solde">Soldes tickets</a></li>
+                                                        <li><a class="dropdown-item" href="http://gvv.net/reports/page">Rapports utilisateur</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/rapports/ffvv">FFVV</a></li>
+                                                        <li><a class="dropdown-item" href="http://gvv.net/rapports/dgac">DGAC</a></li>
+                  
+
+                </ul>
+              </li>
+
+                              <li><a class="dropdown-item" href="#">HEVA &raquo;</a>
+                  <ul class="submenu dropdown-menu">
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/association">Association</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/licences">Licenciés</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/sales">Facturation club</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/players">Vente Licences</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/qualif_types">Types de qualif</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/FFVV/facturation">Facturation</a></li>
+                  </ul>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Club &raquo;</a>
+                  <ul class="submenu dropdown-menu">
+                    <li><a class="dropdown-item" href="http://gvv.net/config">Configuration du club</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/configuration">Paramètres de configuration</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/terrains/page">Gestion des terrains</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/historique">Historique des heures par machine</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/welcome/ca">Rapports d'activité</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/event/page">Certificats par pilote</a></li>
+                  </ul>
+                </li>
+
+              
+              
+                <li><a class="dropdown-item" href="#">Comptabilité &raquo;</a>
+                  <ul class="submenu dropdown-menu">
+                    <li><a class="dropdown-item" href="http://gvv.net/admin/backup">Sauvegarde de la base de données</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/comptes/cloture">Clôture des comptes</a></li>
+
+                    <li><a class="dropdown-item" href="http://gvv.net/plan_comptable/page">Plan comptable</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/tarifs/page">Produits et tarifs</a></li>
+                                          <li><a class="dropdown-item" href="http://gvv.net/types_ticket/page">Types de ticket</a></li>
+                                        <li><a class="dropdown-item" href="http://gvv.net/compta/create">Ecriture générale</a></li>
+
+                    <li><a class="dropdown-item" href="http://gvv.net/rapports/financier">Rapport financier annuel</a></li>
+
+                  </ul>
+                </li>
+
+
+
+              
+              
+                <li><a class="dropdown-item" href="#">Système &raquo;</a>
+                  <ul class="submenu dropdown-menu">
+                    <li><a class="dropdown-item" href="http://gvv.net/admin/backup_form">Sauvegarde des données</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/admin/restore">Restauration des données</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/migration">Migration de la base de données</a></li>
+
+                    <li><a class="dropdown-item" href="http://gvv.net/backend/users">Utilisateurs</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/backend/roles">Roles</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/backend/uri_permissions">Permissions</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/sections">Sections</a></li>
+                    <li><a class="dropdown-item" href="http://gvv.net/user_roles_per_section">Rôles des utilisateurs</a></li>
+                  </ul>
+                </li>
+
+                <li><a class="dropdown-item" href="http://gvv.net/admin/page">Admin</a></li>
+
+              
+          </ul>
+          </li>
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Membres</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="http://gvv.net/membre/page">Membres</a></li>
+                          <li><a class="dropdown-item" href="http://gvv.net/licences/per_year">Licences</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/mails/page">Courriel</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/mails/addresses">Adresses email</a></li>
+                        <li><a class="dropdown-item" href="http://gvv.net/membre/edit">Fiches</a></li>
+            <li><a class="dropdown-item" href="http://gvv.net/auth/change_password">Mot de passe</a></li>
+            <li><a class="dropdown-item" href="http://gvv.net/compta/mon_compte">Ma facture</a></li>
+            <li><a class="dropdown-item" href="http://gvv.net/calendar">Calendrier</a></li>
+
+          </ul>
+        </li>
+
+                  <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Planeurs</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/page">Liste des vols</a></li>
+                              <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/create">Saisie des vols</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/plancheauto_select">Planche automatique</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/gesasso">GESASSO</a></li>
+                            <li><a class="dropdown-item" href="http://gvv.net/planeur/page">Machines</a></li>
+
+              <li><a class="dropdown-item" href="#">Statistiques &raquo;</a>
+                <ul class="submenu dropdown-menu">
+                  <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/statistic">Mensuelles</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/cumuls">Annuelles</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/histo">Historiques</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/age">Age du parc</a></li>
+                </ul>
+              </li>
+              <li><a class="dropdown-item" href="#">Formation &raquo;</a>
+                <ul class="submenu dropdown-menu">
+                  <li><a class="dropdown-item" href="http://gvv.net/event/stats">Résultats annuels</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/event/formation">Club</a></li>
+                  <li><a class="dropdown-item" href="http://gvv.net/event/fai">Certificats FAI</a></li>
+                                      <li><a class="dropdown-item" href="http://gvv.net/vols_planeur/par_pilote_machine">Par pilotes</a></li>
+                                  </ul>
+              </li>
+            </ul>
+          </li>
+        
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Avions</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="http://gvv.net/vols_avion/page">Liste des vols</a></li>
+                          <li><a class="dropdown-item" href="http://gvv.net/vols_avion/create">Saisie des vols</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/avion/page">Machines</a></li>
+            
+            <li><a class="dropdown-item" href="#">Statistiques &raquo;</a>
+              <ul class="submenu dropdown-menu">
+
+                <li><a class="dropdown-item" href="http://gvv.net/vols_avion/statistic">Mensuelles</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/vols_avion/cumuls">Annuelles</a></li>
+
+              </ul>
+            </li>
+                          <li><a class="dropdown-item" href="http://gvv.net/pompes">Pompes</a></li>
+                      </ul>
+        </li>
+
+                  <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Compta</a>
+            <ul class="dropdown-menu">
+
+                              <li><a class="dropdown-item" href="http://gvv.net/compta/page">Journaux</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/comptes/general">Balance</a></li>
+              
+                              <li><a class="dropdown-item" href="http://gvv.net/comptes/page/411">Soldes pilote</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/comptes/resultat">Résultats</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/comptes/bilan">Bilan</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/achats/list_per_year">Ventes</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/comptes/tresorerie">Trésorerie</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/attachments">Justificatifs</a></li>
+                <li><a class="dropdown-item" href="http://gvv.net/comptes/dashboard">Tableau de bord</a></li>
+
+                                  <li><a class="dropdown-item" href="#">Synchronisation OpenFlyers</a>
+                    <ul class="submenu dropdown-menu">
+
+                      <li><a class="dropdown-item" href="http://gvv.net/openflyers/select_operations">Import des opérations</a></li>
+
+                      <li><a class="dropdown-item" href="http://gvv.net/openflyers/select_soldes">Import/vérification des soldes</a></li>
+
+                      <li><a class="dropdown-item" href="http://gvv.net/associations_of/page">Associations des comptes OpenFlyers</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="dropdown-item" href="http://gvv.net/rapprochements/select_releve">Rapprochement bancaire</a></li>
+
+
+                              
+            </ul>
+          </li>
+        
+                  <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Ecritures</a>
+            <ul class="dropdown-menu">
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/recettes">Recettes</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/reglement_pilote">Règlement par pilote</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/factu_pilote">Facturation manuelle d'un pilote</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/avoir_fournisseur">Enregistrement avoir fournisseur</a></li>
+
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/depenses">Dépenses</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/credit_pilote">Dépenses payées par un pilote</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/debit_pilote">Remboursement d'avance pilote</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/compta/utilisation_avoir_fournisseur">Paiement par avoir fournisseur</a></li>
+
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/virement">Virement bancaire</a></li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/depot_especes">Dépôt d’espèces</a></li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/retrait_liquide">Retrait de liquide</a></li>
+
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/compta/remb_capital">Remboursement de capital</a></li>
+            </ul>
+          </li>
+        
+        
+<!-- Navbar -->
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Aide</a>
+  <ul class="dropdown-menu">
+
+    <li><a class="dropdown-item" href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" rel="noopener noreferrer">Projet GVV</a></li>
+    <li><a class="dropdown-item" href="http://aeroclub-abbeville.fr/" target="_blank" rel="noopener noreferrer">Site du club</a></li>
+
+    <li><a class="dropdown-item" href="https://moncompte.ffvp.fr/" target="_blank" rel="noopener noreferrer">Comptes FFVP, GESASSO</a></li>
+
+    <li><a class="dropdown-item" href="https://www.ffvp.fr/" target="_blank" rel="noopener noreferrer">Site FFVP</a></li>
+    <li><a class="dropdown-item" href="https://www.ffvp.fr/les-rex" target="_blank" rel="noopener noreferrer">Retours d'expérience</a></li>
+    <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer">Prévisions vol à voile</a></li>
+          <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer">Licences assurance</a></li>
+    
+          <li><a class="dropdown-item" href="https://www.credit-du-nord.fr/" target="_blank" rel="noopener noreferrer">CDN</a></li>
+    
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+
+    <li><a class="dropdown-item" href="http://gvv.net/welcome/about">A propos de GVV</a></li>
+
+  </ul>
+</li>
+                  <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
+            <ul class="dropdown-menu">
+
+              <li><a class="dropdown-item" href="http://gvv.net/tests/index">Tests</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/admin/info">phpinfo</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net//user_guide">CodeIgniter</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/admin/metadata">Dump Metadata</a></li>
+            </ul>
+          </li>
+        
+
+        </ul> <!-- Fin des sous menus gauche -->
+
+        <!-- Nom, role et sous-menu utilisateur -->
+        
+<input type="hidden" name="gvv_user" value="fpeignot" />
+
+<input type="hidden" name="gvv_role" value="admin" />
+
+        </div>
+
+        <form class="d-flex ms-5 bg-dark border-0"> 
+          <div class="text-white bg-dark me-1 text-center">
+            fpeignot            <div class="text-white me-1 text-center">
+              admin            </div>
+
+                          <div>
+                Section: <select name="section" class="" onchange="updateSection(this.value)">
+<option value="2">ULM</option>
+<option value="1" selected="selected">Planeur</option>
+<option value="4">Général</option>
+<option value="3">Avion</option>
+<option value="5">Toutes</option>
+</select>              </div>
+            
+          </div>
+          <script>
+            function updateSection(value) {
+              // Store the current page URL before updating section
+              const currentPage = window.location.href;
+              console.log("Updating section to:", value);
+              $.post('http://gvv.net/user_roles_per_section/set_section', {
+                section: value
+              }, function(response) {
+                console.log("Section changed:", response);
+                window.location.href = JSON.parse(response).redirect;
+              });
+            }
+          </script>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle  text-white" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="fa-solid fa-user fa-2xl" dusk="user_icon"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="http://gvv.net/compta/mon_compte">Ma facture</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/auth/change_password">Mot de passe</a></li>
+                              <li><a class="dropdown-item" href="http://gvv.net/tickets/page">Consommation tickets</a></li>
+                            <li><a class="dropdown-item" href="http://gvv.net/alarmes">Validité licence</a></li>
+
+              <li><a class="dropdown-item" href="http://gvv.net/auth/logout">Quitter</a></li>
+            </ul>
+          </li>
+
+        </form>
+      
+    </div>
+
+  </nav><header class="container-fluid p-3 bg-success text-white text-center">
+    <!-- Ici on mettra la bannière -->
+    <div id="header_left"></div>
+    <h1 class="text-center header">GVV test local</h1>
+    <div id="header_right"></div>
+</header><div id="body" class="body container-fluid">
+	<h3>Avions</h3>
+
+	<input type="hidden" name="controller_url" value="http://gvv.net/avion" />
+
+	<input type="hidden" name="filter_active" value="1" />
+
+	<!-- Filtre -->
+	<div class="accordion accordion-flush collapsed mb-3" id="accordionPanelsStayOpenExample">
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="panelsStayOpen-headingOne">
+				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+					Filtre				</button>
+			</h2>
+			<div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse  show" aria-labelledby="panelsStayOpen-headingOne">
+				<div class="accordion-body">
+					<div>
+						<form action="http://gvv.net/avion/filterValidation/3" method="post" accept-charset="utf-8" name="saisie">
+							<div>
+
+								Actif: &nbsp;Tous&nbsp;<input type="radio" name="filter_machine_actif" value="0" id="Tous"  />&nbsp;&nbsp;inactifs&nbsp;<input type="radio" name="filter_machine_actif" value="1" id="inactifs"  />&nbsp;&nbsp;actifs&nbsp;<input type="radio" name="filter_machine_actif" value="2" checked="checked" id="actifs"  />&nbsp;
+							</div>
+							<div>
+								Propriétaire: &nbsp;Tous&nbsp;<input type="radio" name="filter_proprio" value="0" checked="checked" id="Tous"  />&nbsp;&nbsp;Club&nbsp;<input type="radio" name="filter_proprio" value="1" id="Club"  />&nbsp;&nbsp;Privé&nbsp;<input type="radio" name="filter_proprio" value="2" id="Privé"  />&nbsp;&nbsp;Externe&nbsp;<input type="radio" name="filter_proprio" value="3" id="Externe"  />&nbsp;
+								<div class="mb-2 mt-2">
+									<!-- Bouttons filtrer, afficher tout --><div class="d-flex align-items-center"><input type="submit" name="button" value="Filtrer" class="btn btn-warning rounded me-2" /><input type="submit" name="button"  value="Ne pas filtrer" class="btn btn-secondary rounded" /><p class="mb-0 ms-3 border border-success border-3 rounded p-1">Filtre actif</p></div>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+<table class="datatable table table-striped">
+	<thead><tr><th class="ui-state-default" ></th><th class="ui-state-default" ><a href="http://gvv.net//avion/create/"><img class="icon" src="http://gvv.net/themes/binary-news/images/add.png" class="icon" title="Ajouter" alt=""/></a></th><th align="left"  class="ui-state-default" >Modèle</th><th align="left"  class="ui-state-default" >Constructeur</th><th align="left"  class="ui-state-default" >Immatriculation</th><th align="left"  class="ui-state-default" >Section</th><th align="right"  class="ui-state-default" >Places</th><th align="right"  class="ui-state-default" >Remorqueur</th><th align="right"  class="ui-state-default" >Pirvé</th><th align="right"  class="ui-state-default" >Actif</th><th align="left"  class="ui-state-default" >Vols</th><th align="right"  class="ui-state-default" >Année</th></tr></thead>
+	<tr class="odd"  >		<td><a href="http://gvv.net/avion/edit/F-BLIT"><img class="icon" src="http://gvv.net/themes/binary-news/images/pencil.png" class="icon" title="Changer" alt=""/></a></td>
+		<td><a href="http://gvv.net/avion/delete/F-BLIT" onclick="return confirm('Êtes vous sûr de vouloir supprimer F-BLIT?')" ><img class="icon" src="http://gvv.net/themes/binary-news/images/delete.png" class="icon" title="Supprimer" alt=""/></a></td>
+		<td align="left">MS893-L</td>
+		<td align="left">SOCATA</td>
+		<td align="left">F-BLIT</td>
+		<td align="left">Planeur</td>
+		<td align="right">2</td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="right"></td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="left"><a href="http://gvv.net/vols_avion/vols_de_la_machine/F-BLIT">vols</a></td>
+		<td align="right">1980</td>
+	</tr>
+	<tr class="even"  >		<td><a href="http://gvv.net/avion/edit/F-JRYP"><img class="icon" src="http://gvv.net/themes/binary-news/images/pencil.png" class="icon" title="Changer" alt=""/></a></td>
+		<td><a href="http://gvv.net/avion/delete/F-JRYP" onclick="return confirm('Êtes vous sûr de vouloir supprimer F-JRYP?')" ><img class="icon" src="http://gvv.net/themes/binary-news/images/delete.png" class="icon" title="Supprimer" alt=""/></a></td>
+		<td align="left">Ikarus C42 C</td>
+		<td align="left">Comco Ikarus-TROYES</td>
+		<td align="left">F-JRYP</td>
+		<td align="left">Planeur</td>
+		<td align="right">2</td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="right"></td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="left"><a href="http://gvv.net/vols_avion/vols_de_la_machine/F-JRYP">vols</a></td>
+		<td align="right">2018</td>
+	</tr>
+	<tr class="odd"  >		<td><a href="http://gvv.net/avion/edit/F-JUFA"><img class="icon" src="http://gvv.net/themes/binary-news/images/pencil.png" class="icon" title="Changer" alt=""/></a></td>
+		<td><a href="http://gvv.net/avion/delete/F-JUFA" onclick="return confirm('Êtes vous sûr de vouloir supprimer F-JUFA?')" ><img class="icon" src="http://gvv.net/themes/binary-news/images/delete.png" class="icon" title="Supprimer" alt=""/></a></td>
+		<td align="left">Dynamic</td>
+		<td align="left">AEROPOOL</td>
+		<td align="left">F-JUFA</td>
+		<td align="left">Planeur</td>
+		<td align="right">2</td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="right"></td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="left"><a href="http://gvv.net/vols_avion/vols_de_la_machine/F-JUFA">vols</a></td>
+		<td align="right">2012</td>
+	</tr>
+	<tr class="even"  >		<td><a href="http://gvv.net/avion/edit/YP"><img class="icon" src="http://gvv.net/themes/binary-news/images/pencil.png" class="icon" title="Changer" alt=""/></a></td>
+		<td><a href="http://gvv.net/avion/delete/YP" onclick="return confirm('Êtes vous sûr de vouloir supprimer YP?')" ><img class="icon" src="http://gvv.net/themes/binary-news/images/delete.png" class="icon" title="Supprimer" alt=""/></a></td>
+		<td align="left">Ikarus C42 B</td>
+		<td align="left">Comco Ikarus LILLE</td>
+		<td align="left">YP</td>
+		<td align="left">Planeur</td>
+		<td align="right">2</td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="right"></td>
+		<td align="right"><img class="icon" src="http://gvv.net/themes/binary-news/images/tick.png" alt=""/></td>
+		<td align="left"><a href="http://gvv.net/vols_avion/vols_de_la_machine/YP">vols</a></td>
+		<td align="right">0</td>
+	</tr>
+</table>
+<br /><br /><div class="ui-widget ui-buttonbar"><div class="ui-widget-header ui-corner-top"><table><tr>
+	<td><a href="http://gvv.net/avion/export/csv" class="jbutton btn">Excel</a></td>
+	<td><a href="http://gvv.net/avion/export/pdf" class="jbutton btn">Pdf</a></td>
+</tr></table></div></div></div><footer class="container-fluid p-3 mt-3 bg-success text-white text-center">
+    <p>
+        Copyright (&#169;) 2025 Philippe Boissel et Frédéric Peignot, GPL V3.0        Page générée en 0.0502 secondes    </p>
+</footer>
+
+<script type="text/javascript">
+    <!--
+    $(document).ready(function() {
+        // notre code ici
+        $(".jbutton").button();
+        $("#tabs").tabs();
+
+        var execute = function() {
+            //$("#dialog").parent().hide();
+            $("#dialog").dialog("close");
+        };
+        var cancel = function() {
+            alert("Cancel")
+        };
+        var dialogOpts = {
+            modal: true,
+            buttons: {
+                "Ok": execute
+            }
+        };
+        $("#dialog").dialog(dialogOpts);
+
+        $(".datepicker").datepicker({
+            changeYear: true,
+            yearRange: "1930:2030"
+        });
+
+        $('.datatable').dataTable({
+            "bFilter": true,
+            "bPaginate": true,
+            "iDisplayLength": 100,
+            "bStateSave": false,
+            "bSort": true,
+            "bInfo": true,
+            "bJQueryUI": true,
+            "bRetrieve": false,
+            "bAutoWidth": true,
+            "sPaginationType": "full_numbers",
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage,
+
+            // Add the page length menu options
+            "aLengthMenu": [
+                [10, 25, 50, 100, 500, 1000, -1],
+                [10, 25, 50, 100, 500, 1000, "Tous les"]
+            ]
+        });
+
+        // "bFilter": true,
+        // "iDisplayLength": 100,
+        // "bStateSave": false,
+        // "bSort": true,
+        // "bInfo": true,
+        // "bJQueryUI": true,
+        // "bRetrieve": false,
+        // "bAutoWidth": true,
+        // "scrollY": "500px", // Add this for vertical scrolling
+        // "scrollCollapse": true, // Add this to collapse when less data
+        // "search": {
+        //     "caseInsensitive": true
+        // },
+        // "oLanguage": olanguage,
+
+        $('.datatable_500').dataTable({
+            "bFilter": true,
+            "bPaginate": false,
+            "scrollY": "500px", // Add this for vertical scrolling
+            "scrollCollapse": true, // Add this to collapse when less data
+            "iDisplayLength": 100,
+            "bStateSave": false,
+            "bSort": true,
+            "bInfo": true,
+            "bJQueryUI": true,
+            "bRetrieve": false,
+            "bAutoWidth": true,
+            "sPaginationType": "full_numbers",
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage
+        });
+
+
+        $('.fixed_datatable').dataTable({
+            "bFilter": false,
+            "bPaginate": false,
+            "bStateSave": false,
+            "bSort": false,
+            "bInfo": false,
+            "bAutoWidth": true,
+            "bJQueryUI": true,
+        });
+
+        // to replace the select by an input that select values in the dropdown
+        $('.big_select').select2({
+            placeholder: 'Filtre...',
+            width: '300px',
+            allowClear: true
+        });
+
+        // to replace the select by an input that select values in the dropdown
+        $('.big_select_large').select2({
+            placeholder: 'Filtre...',
+            width: '100%',
+            allowClear: false
+        });
+
+    });
+
+                $('.datatable_500').closest('.dataTables_wrapper').css({
+                'max-height': '500px',
+                'overflow-y': 'auto'
+            });
+    //
+    -->
+</script>
+
+</body>
+
+</html>

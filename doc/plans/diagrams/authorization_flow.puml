@@ -1,0 +1,90 @@
+@startuml authorization_flow
+!theme plain
+skinparam defaultTextAlignment center
+skinparam activityFontSize 11
+
+title Authorization Flow Comparison: Old System vs New System
+
+|#LightBlue|Old System (DX_Auth)|
+start
+:User requests URI\n(controller/action);
+:Load user session;
+if (User logged in?) then (yes)
+  :Get user's role_id;
+  :Load role from roles table;
+  if (Role has permissions?) then (yes)
+    :Deserialize permissions blob;
+    :Check if URI matches\nany permission pattern;
+    if (URI matches?) then (yes)
+      :Grant access;
+      stop
+    else (no)
+      if (Role has parent?) then (yes)
+        :Check parent role\npermissions (recursive);
+        if (Parent allows?) then (yes)
+          :Grant access;
+          stop
+        else (no)
+          :Deny access;
+          stop
+        endif
+      else (no)
+        :Deny access;
+        stop
+      endif
+    endif
+  else (no)
+    :Deny access;
+    stop
+  endif
+else (no)
+  :Redirect to login;
+  stop
+endif
+
+|#LightGreen|New System (Gvv_Authorization)|
+start
+:User requests URI\n(controller/action);
+:Load user session;
+if (User logged in?) then (yes)
+  :Check migration status;
+  note right
+    Dual-mode operation:
+    - Check authorization_migration_status
+    - Check config flag
+    - Determine which system to use
+  end note
+  if (Using new system?) then (yes)
+    :Get all user roles from\nuser_roles_per_section;
+    :Determine current section context;
+    :Filter roles by section\n(global + current section);
+    :Query role_permissions\nfor filtered roles;
+    if (URI permission found?) then (yes)
+      :Grant access;
+      :Log to authorization_audit_log;
+      stop
+    else (no)
+      if (User has global admin role?) then (yes)
+        :Grant access (override);
+        :Log admin override;
+        stop
+      else (no)
+        :Deny access;
+        :Log denial;
+        stop
+      endif
+    endif
+  else (no - use old system)
+    :Use DX_Auth flow;
+    note right
+      Fall back to old
+      hierarchical system
+    end note
+    stop
+  endif
+else (no)
+  :Redirect to login;
+  stop
+endif
+
+@enduml

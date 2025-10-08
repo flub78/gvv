@@ -172,6 +172,7 @@ Following `doc/development/workflow.md`:
 8. **Multi-language**: Support French, English, Dutch in language files
 9. **Permissions**: Web-writable directories need `chmod +wx` (logs, uploads, assets/images)
 10. **No Composer**: Project uses manual dependency management (predates Composer)
+11. **Dababase access**: Use the credential from configuration/database.php to analyze the database schema or data.
 
 ## Important Integration Patterns
 

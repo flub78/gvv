@@ -1,0 +1,127 @@
+@startuml role_hierarchy_comparison
+!theme plain
+
+title Role System Comparison: Hierarchical vs Flat
+
+package "OLD SYSTEM (Hierarchical)" #FFCCCC {
+  class admin {
+    **Highest Level**
+    All permissions
+  }
+
+  class tresorier {
+    Financial permissions
+    + inherited from below
+  }
+
+  class bureau {
+    Management permissions
+    + inherited from below
+  }
+
+  class ca {
+    Committee permissions
+    + inherited from below
+  }
+
+  class planchiste {
+    Basic member permissions
+    + inherited from below
+  }
+
+  class membre {
+    Read-only permissions
+  }
+
+  admin -down-> tresorier : inherits
+  tresorier -down-> bureau : inherits
+  bureau -down-> ca : inherits
+  ca -down-> planchiste : inherits
+  planchiste -down-> membre : inherits
+
+  note right of admin
+    **Problem**: Rigid hierarchy
+    - Can't have CA without planchiste
+    - Can't have different roles per section
+    - Permissions accumulate upward
+  end note
+}
+
+package "NEW SYSTEM (Flat + Scoped)" #CCFFCC {
+
+  package "Global Roles" #E6F7FF {
+    class "club-admin" as club_admin {
+      **Global Scope**
+      Override all permissions
+      Manage all sections
+    }
+
+    class "super-tresorier" as super_tresorier {
+      **Global Scope**
+      Financial oversight
+      Cross-section reporting
+    }
+
+    class "bureau" as new_bureau {
+      **Global Scope**
+      Strategic decisions
+      Cross-section management
+    }
+  }
+
+  package "Section Roles" #FFF7E6 {
+    class "tresorier" as section_tresorier {
+      **Section Scope**
+      Section finances
+      Payments, invoices
+    }
+
+    class "ca" as section_ca {
+      **Section Scope**
+      Section committee
+      Member management
+    }
+
+    class "planchiste" as section_planchiste {
+      **Section Scope**
+      Flight operations
+      Aircraft management
+    }
+
+    class "auto_planchiste" as auto_planchiste {
+      **Section Scope**
+      Auto-assigned planchiste
+      Based on flight count
+    }
+
+    class "user" as basic_user {
+      **Section Scope**
+      Basic member
+      Own data only
+    }
+  }
+
+  note right of club_admin
+    **Advantages**: Flexible assignment
+    - User can be CA in Planeur
+    - AND user in ULM
+    - AND tresorier in Avion
+    - No forced inheritance
+  end note
+
+  note bottom of section_ca
+    **Section-Aware Permissions**
+
+    Example: User ID 42
+    - Role: ca in Planeur section
+    - Role: user in ULM section
+    - Role: tresorier in Avion section
+
+    When accessing /members/edit/123:
+    1. Check current section context
+    2. Filter user roles by section
+    3. Apply permissions for active roles
+  end note
+}
+
+@enduml

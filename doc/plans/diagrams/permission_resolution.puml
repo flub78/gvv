@@ -1,0 +1,80 @@
+@startuml permission_resolution
+!theme plain
+skinparam activityFontSize 11
+
+title New Authorization System: Permission Resolution Flow
+
+start
+
+:User requests URI: /members/edit/123;
+
+:Load user session data;
+
+if (User authenticated?) then (yes)
+  :Get user_id from session;
+  :Detect current section context\n(from URL, session, or default);
+
+  :Query user_roles_per_section\nWHERE user_id = ? AND revoked_at IS NULL;
+
+  :Filter roles by scope:\n- Include all global roles\n- Include section roles for current section;
+
+  if (User has roles?) then (yes)
+    :Extract types_roles_ids from filtered roles;
+
+    ' Check for admin override first
+    if (User has global "club-admin" role?) then (yes)
+      #LightGreen:✓ Grant access (admin override);
+      :Log authorization event\n(action=GRANT, reason=ADMIN_OVERRIDE);
+      stop
+    else (no)
+      ' Normal permission check
+      :Query role_permissions WHERE:\n- types_roles_id IN (...)\n- controller = current controller\n- (action = current action OR action IS NULL)\n- (section_id = current section OR section_id IS NULL)\n- permission_type = required type (view/edit/create/delete);
+
+      if (URI permission found?) then (yes)
+        ' Check data access rules
+        :Query data_access_rules\nfor user's roles + target resource;
+
+        if (Accessing data?) then (yes)
+          if (Data access rule exists?) then (yes)
+            :Evaluate access_scope:\n- own: Check if record belongs to user\n- section: Check if record.section_id matches\n- all: Always allow;
+
+            if (Access scope satisfied?) then (yes)
+              #LightGreen:✓ Grant access;
+              :Log authorization event\n(action=GRANT, details=scope);
+              stop
+            else (no)
+              #LightCoral:✗ Deny access\n(Insufficient data access);
+              :Log denial\n(reason=DATA_ACCESS_SCOPE);
+              :Redirect to error page;
+              stop
+            endif
+          else (no)
+            ' No data access rule = allow if URI permitted
+            #LightGreen:✓ Grant access\n(URI permission sufficient);
+            :Log authorization event;
+            stop
+          endif
+        else (no - just URI access)
+          #LightGreen:✓ Grant access;
+          :Log authorization event;
+          stop
+        endif
+      else (no)
+        #LightCoral:✗ Deny access\n(No URI permission);
+        :Log denial\n(reason=NO_URI_PERMISSION);
+        :Redirect to error page;
+        stop
+      endif
+    endif
+  else (no)
+    #LightCoral:✗ Deny access\n(No roles assigned);
+    :Log denial\n(reason=NO_ROLES);
+    :Redirect to error page;
+    stop
+  endif
+else (no)
+  :Redirect to login page;
+  stop
+endif
+
+@enduml
