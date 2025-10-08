@@ -115,7 +115,11 @@ foreach ($attachments as $attachment) {
 
     // Check if source file exists
     if (!file_exists($old_path)) {
+        $readable = is_readable($old_path) ? 'readable' : 'not readable';
+        $realpath = realpath($old_path);
         echo "ERROR: ID $id - Source file not found: $old_path\n";
+        echo "  Debug: $readable, realpath=" . ($realpath ? $realpath : 'false') . "\n";
+        echo "  CWD: " . getcwd() . "\n";
         $stats['errors']++;
         continue;
     }
