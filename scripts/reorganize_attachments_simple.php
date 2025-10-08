@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * Script to reorganize attachments by section (Standalone version)
@@ -5,11 +6,28 @@
  * Usage: php scripts/reorganize_attachments_simple.php [--dry-run] [--verbose]
  */
 
-// Database configuration
-$db_host = 'localhost';
-$db_user = 'gvv_user';
-$db_pass = 'lfoyfgbj';
-$db_name = 'gvv2';
+// Ensure we're running in CLI mode
+if (php_sapi_name() !== 'cli') {
+    die("This script must be run from the command line (CLI mode)\n");
+}
+
+// Load database configuration from CodeIgniter config
+define('BASEPATH', TRUE); // Needed to load CI config
+$config_file = __DIR__ . '/../application/config/database.php';
+if (!file_exists($config_file)) {
+    die("Error: Database config file not found at: $config_file\n");
+}
+require_once $config_file;
+
+if (!isset($db['default'])) {
+    die("Error: Database configuration not found in config file\n");
+}
+
+// Database configuration from CI config
+$db_host = $db['default']['hostname'];
+$db_user = $db['default']['username'];
+$db_pass = $db['default']['password'];
+$db_name = $db['default']['database'];
 
 // Parse command line arguments
 $dry_run = in_array('--dry-run', $GLOBALS['argv']);
