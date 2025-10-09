@@ -17,31 +17,28 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @filesource avion.php
- * @package controllers
- * Controleur des rapports utilisateur
+ * User-defined SQL reports with HTML/PDF/CSV export.
  */
 include('./application/libraries/Gvv_Controller.php');
+
 class Reports extends Gvv_Controller {
 
-    // Tout le travail est fait par le parent
     protected $controller = 'reports';
     protected $model = 'reports_model';
     protected $modification_level = 'ca';
     protected $rules = array(
-        'sql' => 'callback_safe_sql'
+        'sql' => 'callback_safe_sql'  // SQL injection protection
     );
 
-    /**
-     * Constructeur
-     */
     function __construct() {
         parent::__construct();
         $this->load->library('Database');
     }
 
     /**
-     * Duplique une requête
+     * Duplicates a report with "_clone" suffix
+     *
+     * @param string|int $id Report identifier
      */
     function clone_elt($id) {
         $data = $this->gvv_model->get_by_id('nom', $id);
@@ -51,7 +48,9 @@ class Reports extends Gvv_Controller {
     }
 
     /**
-     * Execute une requête SQL
+     * Executes SQL query and displays results in HTML table
+     *
+     * @param string|int $id Report identifier
      */
     function execute($id) {
         $elt = $this->gvv_model->get_by_id('nom', $id);
@@ -75,8 +74,11 @@ class Reports extends Gvv_Controller {
         load_last_view('message', $data);
     }
 
-    /*
-     * Activé par les boutons CVS et Pdf
+    /**
+     * Exports report as PDF or CSV
+     *
+     * @param string $type 'pdf' or 'csv'
+     * @param string|int $request Report identifier
      */
     public function export($type, $request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
@@ -97,8 +99,10 @@ class Reports extends Gvv_Controller {
         }
     }
 
-    /*
-     * Activé par le lien CVS
+    /**
+     * Direct CSV export endpoint
+     *
+     * @param string|int $request Report identifier
      */
     public function csv($request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
@@ -115,8 +119,10 @@ class Reports extends Gvv_Controller {
         $this->gen_csv($request, $title, $data, $fields);
     }
 
-    /*
-     * Activé par le lien Pdf
+    /**
+     * Direct PDF export endpoint
+     *
+     * @param string|int $request Report identifier
      */
     public function pdf($request) {
         $elt = $this->gvv_model->get_by_id('nom', $request);
@@ -133,8 +139,15 @@ class Reports extends Gvv_Controller {
         $this->gen_pdf($title, $data, $fields, $align, $width, $landscape);
     }
 
-    /*
-     * Génère un rapport pdf
+    /**
+     * Generates PDF with TCPDF
+     *
+     * @param string $title Report title
+     * @param array $data Result rows
+     * @param array $fields Column headers
+     * @param array $align Column alignments ('left', 'center', 'right')
+     * @param array $width Column widths in mm
+     * @param bool $landscape Orientation
      */
     private function gen_pdf($title, $data, $fields, $align, $width, $landscape) {
         $this->load->library('Pdf');
@@ -146,11 +159,13 @@ class Reports extends Gvv_Controller {
             $pdf->AddPage();
         }
 
+        // Convert alignment to PDF format (first character only)
         $align_pdf = array();
         foreach ($align as $elt) {
             $align_pdf[] = substr($elt, 0, 1);
         }
 
+        // Build header row
         $fields_pdf = array();
         $cnt = 0;
         foreach ($data[0] as $key => $value) {
@@ -166,8 +181,13 @@ class Reports extends Gvv_Controller {
         $pdf->Output();
     }
 
-    /*
-     * Génère un rapport csv
+    /**
+     * Generates semicolon-delimited CSV file
+     *
+     * @param string $request Report ID for filename
+     * @param string $title Report title
+     * @param array $data Result rows
+     * @param array $fields Column headers
      */
     private function gen_csv($request, $title, $data, $fields) {
         $res = "";
@@ -189,31 +209,25 @@ class Reports extends Gvv_Controller {
         $dt = date("Y_m_d");
         $filename = "gvv_" . $request . "_$dt.csv";
 
-        # $res = iconv('UTF-8', 'windows-1252', $res);
         $CI = &get_instance();
-        // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
         force_download($filename, $res);
     }
 
     /**
-     * (non-PHPdoc)
+     * Legacy unit tests (being migrated to PHPUnit)
      *
-     * @see Gvv_Controller::form_static_element()
-     */
-    // function form_static_element($action) {
-    // parent :: form_static_element($action);
-    // }
-
-    /**
-     * Tests unitaires pour le controleur
+     * @deprecated Use PHPUnit tests instead
      */
     function test_methodes() {
         $this->unit->run('Foo', 'is_string', 'test reports');
     }
 
     /**
-     * Test unitaire
+     * Legacy test runner
+     *
+     * @deprecated Use PHPUnit tests instead
+     * @param string $format Output format ('html' or 'text')
      */
     function test($format = "html") {
         parent::test($format);

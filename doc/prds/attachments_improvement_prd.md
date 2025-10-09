@@ -1,415 +1,415 @@
-# PRD: Attachments Feature Improvement
+# PRD : Amélioration de la Fonctionnalité des Pièces Jointes
 
-**Product:** GVV (Gestion Vol à Voile)
-**Feature:** Enhanced Attachments Management
-**Version:** 1.0
-**Status:** Draft
-**Created:** 2025-10-09
-**Author:** Product Owner / Treasurer Requirements
-
----
-
-## 1. Executive Summary
-
-This PRD outlines improvements to the GVV attachments system to enable inline attachment creation during accounting line entry and automatic file compression for storage optimization. These enhancements will improve the treasurer's workflow and reduce storage requirements without sacrificing document quality.
+**Produit :** GVV (Gestion Vol à Voile)
+**Fonctionnalité :** Gestion Améliorée des Pièces Jointes
+**Version :** 1.0
+**Statut :** Brouillon
+**Créé :** 2025-10-09
+**Auteur :** Product Owner / Exigences du Trésorier
 
 ---
 
-## 2. Background and Context
+## 1. Résumé Exécutif
 
-### 2.1 Current State
+Ce PRD décrit les améliorations du système de pièces jointes de GVV pour permettre la création de pièces jointes en ligne lors de la saisie de lignes comptables et la compression automatique des fichiers pour l'optimisation du stockage. Ces améliorations amélioreront le flux de travail du trésorier et réduiront les besoins de stockage sans sacrifier la qualité des documents.
 
-The GVV application includes an attachments system that allows users to associate files (invoices, receipts, contracts, etc.) with various database records. The current implementation:
+---
 
-- **Database:** `attachments` table with fields:
-  - `id` (BIGINT, primary key)
-  - `referenced_table` (VARCHAR, e.g., 'ecritures')
-  - `referenced_id` (VARCHAR, foreign key to referenced record)
+## 2. Contexte et Arrière-plan
+
+### 2.1 État Actuel
+
+L'application GVV inclut un système de pièces jointes qui permet aux utilisateurs d'associer des fichiers (factures, reçus, contrats, etc.) à divers enregistrements de base de données. L'implémentation actuelle :
+
+- **Base de Données :** Table `attachments` avec champs :
+  - `id` (BIGINT, clé primaire)
+  - `referenced_table` (VARCHAR, ex. 'ecritures')
+  - `referenced_id` (VARCHAR, clé étrangère vers l'enregistrement référencé)
   - `user_id` (VARCHAR)
-  - `filename` (VARCHAR, original filename)
+  - `filename` (VARCHAR, nom de fichier original)
   - `description` (VARCHAR)
-  - `file` (VARCHAR, path to uploaded file)
-  - `club` (TINYINT, section/club reference)
-  - `file_backup` (VARCHAR, backup path after migration 039)
+  - `file` (VARCHAR, chemin vers le fichier téléchargé)
+  - `club` (TINYINT, référence section/club)
+  - `file_backup` (VARCHAR, chemin de sauvegarde après migration 039)
 
-- **Storage Structure:** `./uploads/attachments/YYYY/SECTION/random_filename`
-  - Files organized by year and section (e.g., ULM, Avion, Planeur, Général)
-  - Recent migration (039) reorganized files into section-based subdirectories
+- **Structure de Stockage :** `./uploads/attachments/YYYY/SECTION/random_filename`
+  - Fichiers organisés par année et section (ex. ULM, Avion, Planeur, Général)
+  - Migration récente (039) a réorganisé les fichiers en sous-répertoires basés sur les sections
 
-- **Current Workflow:**
-  1. Create accounting line (écritures) in `compta` controller
-  2. Save the accounting line to get an ID
-  3. Edit the saved accounting line
-  4. Click "Add Attachment" in the attachments section
-  5. Upload files via separate `attachments/create` form
+- **Flux de Travail Actuel :**
+  1. Créer une ligne comptable (écritures) dans le contrôleur `compta`
+  2. Sauvegarder la ligne comptable pour obtenir un ID
+  3. Éditer la ligne comptable sauvegardée
+  4. Cliquer sur "Ajouter Pièce Jointe" dans la section des pièces jointes
+  5. Télécharger les fichiers via le formulaire séparé `attachments/create`
 
-- **Key Files:**
-  - Controller: `application/controllers/attachments.php`
-  - Model: `application/models/attachments_model.php`
-  - Views: `application/views/attachments/bs_formView.php`, `bs_tableView.php`
-  - Integration: `application/controllers/compta.php` (lines 46-48, 82-86)
-  - Helper: `application/helpers/MY_html_helper.php` (`attachment()` function)
+- **Fichiers Clés :**
+  - Contrôleur : `application/controllers/attachments.php`
+  - Modèle : `application/models/attachments_model.php`
+  - Vues : `application/views/attachments/bs_formView.php`, `bs_tableView.php`
+  - Intégration : `application/controllers/compta.php` (lignes 46-48, 82-86)
+  - Helper : `application/helpers/MY_html_helper.php` (fonction `attachment()`)
 
-### 2.2 Problems Identified
+### 2.2 Problèmes Identifiés
 
-**P1: Workflow Inefficiency (Treasurer)**
-- Cannot attach documents during initial accounting line creation
-- Requires two-step process: create line → edit line → attach files
-- Breaks natural workflow of data entry
-- Results in forgotten attachments or delayed uploads
+**P1 : Inefficacité du Flux de Travail (Trésorier)**
+- Impossible d'attacher des documents lors de la création initiale de la ligne comptable
+- Nécessite un processus en deux étapes : créer la ligne → éditer la ligne → attacher les fichiers
+- Brise le flux de travail naturel de saisie de données
+- Résulte en pièces jointes oubliées ou téléchargements retardés
 
-**P2: Storage Inefficiency (System Administrator)**
-- All files stored at full size without compression
-- Redundant storage of large files (invoices, scanned receipts)
-- No automatic optimization of images
-- No tracking of storage savings
-- Historical attachments (~300MB currently) taking up unnecessary space
+**P2 : Inefficacité de Stockage (Administrateur Système)**
+- Tous les fichiers stockés en taille complète sans compression
+- Stockage redondant de gros fichiers (factures, reçus scannés)
+- Pas d'optimisation automatique des images
+- Pas de suivi des économies de stockage
+- Pièces jointes historiques (~300MB actuellement) occupant un espace inutile
 
-**P3: Technical Limitation**
-- Attachment upload requires a `referenced_id` (foreign key)
-- This ID only exists *after* the accounting line is saved
-- No mechanism for "pending" attachments waiting for parent record creation
-
----
-
-## 3. Goals and Objectives
-
-### 3.1 Business Goals
-
-1. **Improve Treasurer Productivity:** Reduce time spent managing accounting line attachments by 50%
-2. **Reduce Storage Costs:** Achieve 30-50% reduction in attachment storage through compression
-3. **Maintain Document Quality:** Ensure all compressed files remain printable and readable on screen
-4. **Transparency:** Provide visibility into compression effectiveness through logging
-
-### 3.2 User Goals
-
-**Treasurer:**
-- Attach invoice scans while entering accounting lines (single workflow)
-- Retrieve attached documents quickly when reviewing past entries
-- Confidence that documents are preserved and accessible
-
-**System Administrator:**
-- Monitor storage usage and compression effectiveness
-- Ensure file compression happens automatically
-- Maintain system performance
-- Reclaim storage from historical attachments
+**P3 : Limitation Technique**
+- Le téléchargement de pièce jointe nécessite un `referenced_id` (clé étrangère)
+- Cet ID n'existe qu'*après* la sauvegarde de la ligne comptable
+- Pas de mécanisme pour les pièces jointes "en attente" attendant la création de l'enregistrement parent
 
 ---
 
-## 4. Target Users and Personas
+## 3. Objectifs et Buts
 
-### Persona 1: Marie - Club Treasurer
+### 3.1 Objectifs Métier
 
-**Background:**
-- Age: 52, treasurer for 5 years
-- Uses GVV weekly for accounting entry
-- Not highly technical but comfortable with web forms
-- Often enters 10-20 transactions per session with supporting documents
+1. **Améliorer la Productivité du Trésorier :** Réduire de 50% le temps passé à gérer les pièces jointes des lignes comptables
+2. **Réduire les Coûts de Stockage :** Obtenir une réduction de 30-50% du stockage des pièces jointes grâce à la compression
+3. **Maintenir la Qualité des Documents :** S'assurer que tous les fichiers compressés restent imprimables et lisibles à l'écran
+4. **Transparence :** Fournir une visibilité sur l'efficacité de la compression via la journalisation
 
-**Pain Points:**
-- Must scan invoices, save accounting line, then go back to attach them
-- Sometimes forgets to attach documents until audit time
-- Finds two-step process frustrating and time-consuming
+### 3.2 Objectifs Utilisateur
 
-**Desired Outcome:**
-- Upload invoice PDFs/images directly when creating accounting line
-- See immediate confirmation that files are attached
-- Quick access to previously attached documents
+**Trésorier :**
+- Attacher les scans de factures lors de la saisie des lignes comptables (flux de travail unique)
+- Récupérer rapidement les documents attachés lors de la révision des entrées passées
+- Confiance que les documents sont préservés et accessibles
 
-### Persona 2: Jean - System Administrator
-
-**Background:**
-- Age: 45, manages club IT infrastructure
-- Monitors server disk usage
-- Concerned about growing file storage requirements
-
-**Pain Points:**
-- Attachment folder growing rapidly (currently ~300MB)
-- High-resolution scans consuming unnecessary space
-- No automatic cleanup or optimization
-- Historical attachments taking up space with no way to compress them
-
-**Desired Outcome:**
-- Automatic compression of uploaded files
-- Logs showing compression ratios
-- Ability to tune compression settings if needed
-- Ability to batch-compress existing attachments to reclaim storage
+**Administrateur Système :**
+- Surveiller l'utilisation du stockage et l'efficacité de la compression
+- S'assurer que la compression des fichiers se fait automatiquement
+- Maintenir les performances du système
+- Récupérer l'espace de stockage des pièces jointes historiques
 
 ---
 
-## 5. Functional Requirements
+## 4. Utilisateurs Cibles et Personas
 
-### 5.1 FR1: Inline Attachment During Creation (Priority: HIGH)
+### Persona 1 : Marie - Trésorière de Club
 
-**Description:** Enable users to upload attachment files during accounting line creation, before the record is saved and receives an ID.
+**Contexte :**
+- Âge : 52 ans, trésorière depuis 5 ans
+- Utilise GVV chaque semaine pour la saisie comptable
+- Pas très technique mais à l'aise avec les formulaires web
+- Entre souvent 10-20 transactions par session avec documents justificatifs
 
-**User Story:**
-> As a treasurer, I want to attach invoice scans while I'm entering an accounting line, so that I can complete all data entry in one session without switching between forms.
+**Points de Douleur :**
+- Doit scanner les factures, sauvegarder la ligne comptable, puis revenir pour les attacher
+- Oublie parfois d'attacher les documents jusqu'au moment de l'audit
+- Trouve le processus en deux étapes frustrant et chronophage
 
-**Acceptance Criteria:**
-- AC1.1: Attachment upload control visible on accounting line creation form (`compta/create`)
-- AC1.2: User can select one or multiple files for upload
-- AC1.3: Files are uploaded immediately to temporary storage location
-- AC1.4: Upon form submission (accounting line save):
-  - If save succeeds: associate attachments with new accounting line ID and move to permanent storage
-  - If save fails: retain temporary files for form resubmission
-- AC1.5: User can remove uploaded files before final submission
-- AC1.6: Existing edit workflow continues to work unchanged
+**Résultat Souhaité :**
+- Télécharger les PDFs/images de factures directement lors de la création de la ligne comptable
+- Voir une confirmation immédiate que les fichiers sont attachés
+- Accès rapide aux documents attachés précédemment
+
+### Persona 2 : Jean - Administrateur Système
+
+**Contexte :**
+- Âge : 45 ans, gère l'infrastructure IT du club
+- Surveille l'utilisation du disque serveur
+- Préoccupé par les besoins croissants de stockage de fichiers
+
+**Points de Douleur :**
+- Le dossier des pièces jointes croît rapidement (actuellement ~300MB)
+- Les scans haute résolution consomment un espace inutile
+- Pas de nettoyage ou d'optimisation automatique
+- Les pièces jointes historiques occupent de l'espace sans moyen de les compresser
+
+**Résultat Souhaité :**
+- Compression automatique des fichiers téléchargés
+- Journaux montrant les ratios de compression
+- Capacité d'ajuster les paramètres de compression si nécessaire
+- Capacité de compresser par lot les pièces jointes existantes pour récupérer l'espace
 
 ---
 
-### 5.2 FR2: Automatic File Compression (Priority: HIGH)
+## 5. Exigences Fonctionnelles
 
-**Description:** Automatically compress uploaded files when compression provides meaningful storage savings, while maintaining document quality.
+### 5.1 EF1 : Pièce Jointe en Ligne lors de la Création (Priorité : HAUTE)
 
-**User Stories:**
-> As a system administrator, I want uploaded attachments to be compressed automatically, so that I can reduce server storage requirements without manual intervention.
+**Description :** Permettre aux utilisateurs de télécharger des fichiers de pièces jointes lors de la création de la ligne comptable, avant que l'enregistrement ne soit sauvegardé et reçoive un ID.
 
-> As an administrator, I want to compress already uploaded attachments to save place, so that I can recover storage space from historical files without losing data.
+**User Story :**
+> En tant que trésorier, je veux attacher les scans de factures pendant que je saisis une ligne comptable, afin de pouvoir compléter toute la saisie de données en une seule session sans basculer entre les formulaires.
 
-**Acceptance Criteria:**
-- AC2.1: System analyzes file type and size upon upload
-- AC2.2: Compression strategy based on file type:
-  - **Images (JPEG, PNG, GIF, BMP, WebP):**
-    - Resize to maximum dimensions (1600x1200 pixels) while maintaining aspect ratio
-    - Convert to JPEG format with quality 85
-    - Apply gzip compression to resulting file
-    - Store as `filename.jpg.gz`
-  - **All other files (PDF, DOCX, CSV, TXT, etc.):**
-    - Compress using PHP `gzencode()` function (level 9)
-    - No format conversion
-    - Store as `filename.ext.gz` (e.g., `invoice.pdf.gz`)
-- AC2.3: Original file preserved if compression ratio < 10% or file size < 100KB
-- AC2.4: Compression ratio logged to `application/logs/` with format:
+**Critères d'Acceptation :**
+- CA1.1 : Contrôle de téléchargement de pièce jointe visible sur le formulaire de création de ligne comptable (`compta/create`)
+- CA1.2 : L'utilisateur peut sélectionner un ou plusieurs fichiers à télécharger
+- CA1.3 : Les fichiers sont téléchargés immédiatement vers un emplacement de stockage temporaire
+- CA1.4 : Lors de la soumission du formulaire (sauvegarde ligne comptable) :
+  - Si la sauvegarde réussit : associer les pièces jointes au nouvel ID de ligne comptable et déplacer vers le stockage permanent
+  - Si la sauvegarde échoue : conserver les fichiers temporaires pour re-soumission du formulaire
+- CA1.5 : L'utilisateur peut retirer les fichiers téléchargés avant la soumission finale
+- CA1.6 : Le flux de travail d'édition existant continue de fonctionner sans changement
+
+---
+
+### 5.2 EF2 : Compression Automatique des Fichiers (Priorité : HAUTE)
+
+**Description :** Compresser automatiquement les fichiers téléchargés lorsque la compression offre des économies de stockage significatives, tout en maintenant la qualité des documents.
+
+**User Stories :**
+> En tant qu'administrateur système, je veux que les pièces jointes téléchargées soient compressées automatiquement, afin de réduire les besoins de stockage du serveur sans intervention manuelle.
+
+> En tant qu'administrateur, je veux compresser les pièces jointes déjà téléchargées pour économiser de l'espace, afin de récupérer l'espace de stockage des fichiers historiques sans perdre de données.
+
+**Critères d'Acceptation :**
+- CA2.1 : Le système analyse le type et la taille du fichier lors du téléchargement
+- CA2.2 : Stratégie de compression basée sur le type de fichier :
+  - **Images (JPEG, PNG, GIF, BMP, WebP) :**
+    - Redimensionner aux dimensions maximales (1600x1200 pixels) tout en maintenant le ratio d'aspect
+    - Convertir au format JPEG avec qualité 85
+    - Appliquer la compression gzip au fichier résultant
+    - Stocker comme `filename.jpg.gz`
+  - **Tous les autres fichiers (PDF, DOCX, CSV, TXT, etc.) :**
+    - Compresser en utilisant la fonction PHP `gzencode()` (niveau 9)
+    - Pas de conversion de format
+    - Stocker comme `filename.ext.gz` (ex. `invoice.pdf.gz`)
+- CA2.3 : Fichier original préservé si le ratio de compression < 10% ou la taille du fichier < 100KB
+- CA2.4 : Ratio de compression journalisé dans `application/logs/` avec le format :
   ```
   INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=gzip
   INFO - Attachment compression: file=scan.jpg, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd+gzip
   ```
-- AC2.5: Files decompressed and served transparently on download
-- AC2.6: Image resolution suitable for printing (300 DPI at A4 = ~1600x1200 pixels)
-- AC2.7: Smartphone photos automatically optimized (typically 3-8MB → 500KB-1MB)
+- CA2.5 : Fichiers décompressés et servis de manière transparente lors du téléchargement
+- CA2.6 : Résolution d'image adaptée à l'impression (300 DPI en A4 = ~1600x1200 pixels)
+- CA2.7 : Photos de smartphone automatiquement optimisées (typiquement 3-8MB → 500KB-1MB)
 
 ---
 
-### 5.3 FR3: Batch Compression of Existing Attachments (Priority: MEDIUM)
+### 5.3 EF3 : Compression par Lot des Pièces Jointes Existantes (Priorité : MOYENNE)
 
-**Description:** Provide CLI script for administrators to compress previously uploaded attachments.
+**Description :** Fournir un script CLI pour que les administrateurs puissent compresser les pièces jointes déjà téléchargées.
 
-**User Story:**
-> As an administrator, I want to compress already uploaded attachments to save place, so that I can recover storage space from historical files without losing data.
+**User Story :**
+> En tant qu'administrateur, je veux compresser les pièces jointes déjà téléchargées pour économiser de l'espace, afin de récupérer l'espace de stockage des fichiers historiques sans perdre de données.
 
-**Acceptance Criteria:**
-- AC3.1: CLI script available: `scripts/batch_compress_attachments.php`
-- AC3.2: Supports dry-run mode for testing without changes
-- AC3.3: Supports filtering by year, section, file type, minimum size
-- AC3.4: Shows progress bar and estimated time remaining
-- AC3.5: Generates detailed report of compression results
-- AC3.6: Supports resume on interruption
-- AC3.7: Backs up original files before compression
-- AC3.8: Rolls back on compression failure
-- AC3.9: Logs all operations with compression statistics
-- AC3.10 Treasurers can still view or download previous attachments
-
----
-
-### 5.4 FR4: Transparent Decompression (Priority: as HIGH than file compression)
-
-**Description:** Automatically decompress files when they are displayed or downloaded.
-
-**User Story:**
-> As a treasurer, I want to view or download attachments in their original usable format, without needing to know they were compressed for storage.
-
-**Acceptance Criteria:**
-- AC4.1: When user clicks attachment link, system detects if file is compressed (`.gz` extension)
-- AC4.2: If compressed, decompress on-the-fly using PHP `gzdecode()` before serving
-- AC4.3: Original filename restored (remove `.gz` extension)
-  - Images: Serve as `filename.jpg` (converted format)
-  - Other files: Serve with original extension (e.g., `invoice.pdf`)
-- AC4.4: Content-Type header matches served file format
-- AC4.5: No UI indication that file was compressed or resized
-- AC4.6: Download/view performance acceptable (<2 second delay for files up to 20MB)
-- AC4.7: Users unaware that smartphone photos were resized (transparent optimization)
+**Critères d'Acceptation :**
+- CA3.1 : Script CLI disponible : `scripts/batch_compress_attachments.php`
+- CA3.2 : Support du mode dry-run pour tester sans changements
+- CA3.3 : Support du filtrage par année, section, type de fichier, taille minimale
+- CA3.4 : Affiche une barre de progression et le temps restant estimé
+- CA3.5 : Génère un rapport détaillé des résultats de compression
+- CA3.6 : Support de la reprise en cas d'interruption
+- CA3.7 : Sauvegarde les fichiers originaux avant compression
+- CA3.8 : Annule en cas d'échec de compression
+- CA3.9 : Journalise toutes les opérations avec statistiques de compression
+- CA3.10 : Les trésoriers peuvent toujours voir ou télécharger les pièces jointes précédentes
 
 ---
 
-## 6. Non-Functional Requirements
+### 5.4 EF4 : Décompression Transparente (Priorité : aussi HAUTE que la compression de fichiers)
+
+**Description :** Décompresser automatiquement les fichiers lorsqu'ils sont affichés ou téléchargés.
+
+**User Story :**
+> En tant que trésorier, je veux voir ou télécharger les pièces jointes dans leur format original utilisable, sans avoir besoin de savoir qu'elles ont été compressées pour le stockage.
+
+**Critères d'Acceptation :**
+- CA4.1 : Quand l'utilisateur clique sur le lien de pièce jointe, le système détecte si le fichier est compressé (extension `.gz`)
+- CA4.2 : Si compressé, décompresser à la volée en utilisant PHP `gzdecode()` avant de servir
+- CA4.3 : Nom de fichier original restauré (retirer l'extension `.gz`)
+  - Images : Servir comme `filename.jpg` (format converti)
+  - Autres fichiers : Servir avec l'extension originale (ex. `invoice.pdf`)
+- CA4.4 : En-tête Content-Type correspond au format de fichier servi
+- CA4.5 : Pas d'indication dans l'interface que le fichier a été compressé ou redimensionné
+- CA4.6 : Performance de téléchargement/visualisation acceptable (<2 secondes de délai pour les fichiers jusqu'à 20MB)
+- CA4.7 : Les utilisateurs ignorent que les photos de smartphone ont été redimensionnées (optimisation transparente)
+
+---
+
+## 6. Exigences Non Fonctionnelles
 
 ### 6.1 Performance
-- File upload with compression completes within 3 seconds for files <10MB
-  - Image compression (resize + gzip): 1-2 seconds
-  - Document compression (gzip only): 0.5-1 second
-- Compression operations use pure PHP (no external processes)
-- Temporary file cleanup runs daily without impacting system performance
-- Download decompression adds <1 second to file serving time (in-memory operation)
-- Batch compression processes ~30-50 files per minute (depending on file types and sizes)
+- Le téléchargement de fichier avec compression se termine en 3 secondes pour les fichiers <10MB
+  - Compression d'image (redimensionnement + gzip) : 1-2 secondes
+  - Compression de document (gzip seulement) : 0.5-1 seconde
+- Les opérations de compression utilisent du PHP pur (pas de processus externes)
+- Le nettoyage des fichiers temporaires s'exécute quotidiennement sans impacter les performances système
+- La décompression au téléchargement ajoute <1 seconde au temps de service de fichier (opération en mémoire)
+- La compression par lot traite ~30-50 fichiers par minute (selon les types et tailles de fichiers)
 
-### 6.2 Storage
-- Achieve overall storage reduction of 40-70% for typical treasurer workflow:
-  - **Smartphone photos (3-8MB):** 80-90% reduction → 500KB-1MB
-  - **Scanned images (1-5MB):** 60-80% reduction
-  - **Text files (TXT, CSV):** 80-95% reduction
-  - **Office documents (PDF, DOCX, XLSX):** 10-40% reduction
-  - **Already compressed (ZIP, RAR):** Skip compression
-- Temporary file storage capped at 500MB
-- Automatic cleanup of abandoned temporary files after 24 hours
+### 6.2 Stockage
+- Obtenir une réduction globale du stockage de 40-70% pour le flux de travail typique du trésorier :
+  - **Photos de smartphone (3-8MB) :** Réduction de 80-90% → 500KB-1MB
+  - **Images scannées (1-5MB) :** Réduction de 60-80%
+  - **Fichiers texte (TXT, CSV) :** Réduction de 80-95%
+  - **Documents bureautiques (PDF, DOCX, XLSX) :** Réduction de 10-40%
+  - **Déjà compressés (ZIP, RAR) :** Passer la compression
+- Stockage de fichiers temporaires plafonné à 500MB
+- Nettoyage automatique des fichiers temporaires abandonnés après 24 heures
 
-### 6.3 Reliability
-- Compression failures fall back to storing original file
-- Original file preserved until compression confirmed successful
-- Atomic file operations (temp → permanent) to prevent data loss
-- Rollback capability if compression corrupts file
+### 6.3 Fiabilité
+- Les échecs de compression reviennent au stockage du fichier original
+- Fichier original préservé jusqu'à ce que la compression soit confirmée réussie
+- Opérations de fichier atomiques (temp → permanent) pour prévenir la perte de données
+- Capacité d'annulation si la compression corrompt le fichier
 
-### 6.4 Compatibility
-- Works with PHP 7.4
-- Compatible with existing CodeIgniter 2.x framework
-- No breaking changes to database schema
-- Backward compatible with existing uncompressed attachments
-- Supports existing workflows without modification
+### 6.4 Compatibilité
+- Fonctionne avec PHP 7.4
+- Compatible avec le framework CodeIgniter 2.x existant
+- Pas de changements cassants au schéma de base de données
+- Compatible en arrière avec les pièces jointes non compressées existantes
+- Supporte les flux de travail existants sans modification
 
-### 6.5 Usability
-- No change to user interface complexity
-- Inline upload feels like single workflow
-- No training required for existing users
-- Clear error messages if upload/compression fails
+### 6.5 Utilisabilité
+- Pas de changement à la complexité de l'interface utilisateur
+- Le téléchargement en ligne ressemble à un flux de travail unique
+- Pas de formation requise pour les utilisateurs existants
+- Messages d'erreur clairs si le téléchargement/compression échoue
 
 ---
 
-## 7. Success Metrics
+## 7. Métriques de Succès
 
-| Metric | Current | Target | How to Measure |
+| Métrique | Actuel | Cible | Comment Mesurer |
 |--------|---------|--------|----------------|
-| Avg time to create accounting line with attachment | ~3 min (create + edit + attach) | <1 min (single form) | User workflow timing |
-| Storage usage for attachments | 100% (no compression) | 30-50% | `du -sh uploads/attachments/` |
-| Average compression ratio | N/A | 50-70% (with image optimization) | Log analysis |
-| Smartphone photo size | 3-8 MB | 500KB-1MB | Log analysis |
-| Forgotten attachments | ~10% of entries | <2% | Audit of accounting lines |
-| Treasurer satisfaction | Baseline survey | >80% satisfied | User survey |
+| Temps moyen pour créer une ligne comptable avec pièce jointe | ~3 min (créer + éditer + attacher) | <1 min (formulaire unique) | Chronométrage du flux de travail utilisateur |
+| Utilisation du stockage pour les pièces jointes | 100% (pas de compression) | 30-50% | `du -sh uploads/attachments/` |
+| Ratio de compression moyen | N/A | 50-70% (avec optimisation d'image) | Analyse des journaux |
+| Taille de photo de smartphone | 3-8 MB | 500KB-1MB | Analyse des journaux |
+| Pièces jointes oubliées | ~10% des entrées | <2% | Audit des lignes comptables |
+| Satisfaction du trésorier | Enquête de base | >80% satisfait | Enquête utilisateur |
 
 ---
 
-## 8. Risks and Mitigations
+## 8. Risques et Atténuations
 
-| Risk | Impact | Probability | Mitigation |
+| Risque | Impact | Probabilité | Atténuation |
 |------|--------|-------------|------------|
-| Compression corrupts files | HIGH | LOW | Preserve original until verified; extensive testing |
-| Temp file storage fills disk | MEDIUM | MEDIUM | Strict size limits and 24-hour cleanup |
-| Session-based approach fails on restart | MEDIUM | LOW | Store temp file metadata in database |
-| Image compression degrades quality | MEDIUM | MEDIUM | Configurable quality settings; A/B test with users |
-| PDF compression breaks features | HIGH | MEDIUM | Detect PDF features before compression; skip if risky |
-| Performance impact on upload | LOW | MEDIUM | Make compression asynchronous; progress indicator |
-| User accidentally removes files | LOW | HIGH | Add confirmation dialog; allow undo |
+| La compression corrompt les fichiers | ÉLEVÉ | FAIBLE | Préserver l'original jusqu'à vérification ; tests approfondis |
+| Le stockage de fichiers temp remplit le disque | MOYEN | MOYEN | Limites de taille strictes et nettoyage 24h |
+| L'approche basée session échoue au redémarrage | MOYEN | FAIBLE | Stocker les métadonnées de fichier temp dans la base de données |
+| La compression d'image dégrade la qualité | MOYEN | MOYEN | Paramètres de qualité configurables ; test A/B avec utilisateurs |
+| La compression PDF casse les fonctionnalités | ÉLEVÉ | MOYEN | Détecter les fonctionnalités PDF avant compression ; passer si risqué |
+| Impact performance lors du téléchargement | FAIBLE | MOYEN | Rendre la compression asynchrone ; indicateur de progression |
+| L'utilisateur retire accidentellement des fichiers | FAIBLE | ÉLEVÉ | Ajouter dialogue de confirmation ; permettre annulation |
 
 ---
 
-## 9. Dependencies and Prerequisites
+## 9. Dépendances et Prérequis
 
-### 9.1 System Requirements
+### 9.1 Exigences Système
 
-**PHP Extensions (Required):**
-- `zlib` (for gzip compression/decompression) - Usually enabled by default in PHP 7.4
-- `gd` (for image resizing and optimization) - Available on production server
+**Extensions PHP (Requises) :**
+- `zlib` (pour compression/décompression gzip) - Habituellement activé par défaut dans PHP 7.4
+- `gd` (pour redimensionnement et optimisation d'images) - Disponible sur le serveur de production
 
-**Check Commands:**
+**Commandes de Vérification :**
 ```bash
 php7.4 -m | grep -E 'zlib|gd'
 ```
 
-**Expected Output:**
+**Sortie Attendue :**
 ```
 gd
 zlib
 ```
 
-**No External Tools Required:**
-- ✅ No Ghostscript needed
-- ✅ No ImageMagick CLI needed
-- ✅ No LibreOffice needed
-- ✅ Pure PHP implementation using built-in extensions only
+**Pas d'Outils Externes Requis :**
+- ✅ Pas besoin de Ghostscript
+- ✅ Pas besoin de CLI ImageMagick
+- ✅ Pas besoin de LibreOffice
+- ✅ Implémentation PHP pure utilisant uniquement les extensions intégrées
 
-### 9.2 Configuration Prerequisites
+### 9.2 Prérequis de Configuration
 
-- Ensure `uploads/attachments/temp/` is writable (0777 during development)
-- PHP `upload_max_filesize` configured appropriately (currently 20MB)
-- PHP `post_max_size` sufficient for multiple files
-- `max_file_uploads` set to 20 or higher
-
----
-
-## 10. Out of Scope
-
-The following items are explicitly out of scope for this release:
-
-1. Drag-and-drop file upload interface
-2. Image preview/thumbnails before upload
-3. OCR for scanned documents
-4. Attachment versioning
-5. Attachment sharing across multiple accounting lines
-6. Cloud storage integration (S3/Google Drive)
-7. Automatic deletion of old attachments
-8. Scheduled/automated batch compression (cron job)
-9. Compression analytics dashboard
-10. Inline attachment upload for other controllers (beyond `compta`)
-
-## 11. Future Enhancements
-
-The following features could be added in future iterations:
-
-### 11.1 Configurable Image Quality Settings
-
-**Description:** Allow administrators to configure image compression parameters
-
-**Potential Settings:**
-- Maximum image dimensions (default: 1600x1200)
-- JPEG quality (default: 85)
-- Different profiles for receipts vs. photos
-- Option to preserve original resolution for specific file types
-
-**Effort Estimate:** 2-4 hours
-
-**Priority:** LOW - Default settings should work for most use cases
+- S'assurer que `uploads/attachments/temp/` est accessible en écriture (0777 pendant le développement)
+- PHP `upload_max_filesize` configuré de manière appropriée (actuellement 20MB)
+- PHP `post_max_size` suffisant pour plusieurs fichiers
+- `max_file_uploads` défini à 20 ou plus
 
 ---
 
-## 12. Open Questions
+## 10. Hors Périmètre
 
-1. **Q:** Should we provide a "disable compression" option per file type?
-   **A:** TBD - Gather user feedback after initial rollout
+Les éléments suivants sont explicitement hors périmètre pour cette version :
 
-2. **Q:** Should compression be synchronous or asynchronous?
-   **A:** Start with synchronous; move to async if performance issues arise
+1. Interface de téléchargement de fichiers par glisser-déposer
+2. Aperçu/miniatures d'images avant téléchargement
+3. OCR pour documents scannés
+4. Versionnage des pièces jointes
+5. Partage de pièces jointes entre plusieurs lignes comptables
+6. Intégration de stockage cloud (S3/Google Drive)
+7. Suppression automatique des anciennes pièces jointes
+8. Compression par lot planifiée/automatisée (tâche cron)
+9. Tableau de bord d'analytique de compression
+10. Téléchargement de pièce jointe en ligne pour d'autres contrôleurs (au-delà de `compta`)
 
-3. **Q:** Should original file be permanently kept as backup?
-   **A:** No, storage savings are primary goal; rely on database/file backups
+## 11. Améliorations Futures
 
-4. **Q:** How to handle compression for other referenced tables (not just `ecritures`)?
-   **A:** Inline attachment upload can be generalized to other controllers later
+Les fonctionnalités suivantes pourraient être ajoutées dans de futures itérations :
 
-5. **Q:** Should batch compression run automatically on a schedule?
-   **A:** Out of scope for initial release; administrator can run manually or set up cron job
+### 11.1 Paramètres de Qualité d'Image Configurables
 
-6. **Q:** How long should batch compression backup files be retained?
-   **A:** TBD - Recommend 7 days with configurable retention period
+**Description :** Permettre aux administrateurs de configurer les paramètres de compression d'images
+
+**Paramètres Potentiels :**
+- Dimensions maximales d'image (par défaut : 1600x1200)
+- Qualité JPEG (par défaut : 85)
+- Profils différents pour reçus vs photos
+- Option pour préserver la résolution originale pour des types de fichiers spécifiques
+
+**Estimation d'Effort :** 2-4 heures
+
+**Priorité :** FAIBLE - Les paramètres par défaut devraient fonctionner pour la plupart des cas d'usage
 
 ---
 
-## 13. Related Documents
+## 12. Questions Ouvertes
 
-- **Implementation Plan:** `doc/plans/attachments_improvement_plan.md` (design, architecture, implementation details)
-- **Current System Documentation:** `doc/plans/attachments_directory_reorganization.md` (migration 039)
-- **Development Workflow:** `doc/development/workflow.md`
-- **Project Context:** `CLAUDE.md`, `.github/copilot-instructions.md`
+1. **Q :** Devons-nous fournir une option "désactiver la compression" par type de fichier ?
+   **R :** À déterminer - Recueillir les retours utilisateurs après le déploiement initial
+
+2. **Q :** La compression devrait-elle être synchrone ou asynchrone ?
+   **R :** Commencer avec synchrone ; passer à asynchrone si des problèmes de performance surviennent
+
+3. **Q :** Le fichier original doit-il être conservé de manière permanente comme sauvegarde ?
+   **R :** Non, les économies de stockage sont l'objectif principal ; s'appuyer sur les sauvegardes base de données/fichiers
+
+4. **Q :** Comment gérer la compression pour d'autres tables référencées (pas seulement `ecritures`) ?
+   **R :** Le téléchargement de pièce jointe en ligne peut être généralisé à d'autres contrôleurs plus tard
+
+5. **Q :** La compression par lot doit-elle s'exécuter automatiquement selon un planning ?
+   **R :** Hors périmètre pour la version initiale ; l'administrateur peut l'exécuter manuellement ou configurer une tâche cron
+
+6. **Q :** Combien de temps les fichiers de sauvegarde de compression par lot doivent-ils être conservés ?
+   **R :** À déterminer - Recommandation de 7 jours avec période de rétention configurable
 
 ---
 
-## 14. Approval and Sign-off
+## 13. Documents Associés
 
-| Role | Name | Signature | Date |
+- **Plan d'Implémentation :** `doc/plans/attachments_improvement_plan.md` (design, architecture, détails d'implémentation)
+- **Documentation Système Actuel :** `doc/plans/attachments_directory_reorganization.md` (migration 039)
+- **Flux de Développement :** `doc/development/workflow.md`
+- **Contexte Projet :** `CLAUDE.md`, `.github/copilot-instructions.md`
+
+---
+
+## 14. Approbation et Validation
+
+| Rôle | Nom | Signature | Date |
 |------|------|-----------|------|
-| Product Owner | [TBD] | | |
-| Treasurer (User Rep) | [TBD] | | |
-| System Administrator | [TBD] | | |
-| Developer | [TBD] | | |
+| Product Owner | [À déterminer] | | |
+| Trésorier (Représentant Utilisateur) | [À déterminer] | | |
+| Administrateur Système | [À déterminer] | | |
+| Développeur | [À déterminer] | | |
 
 ---
 
-**End of PRD**
+**Fin du PRD**

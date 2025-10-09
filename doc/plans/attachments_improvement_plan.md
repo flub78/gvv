@@ -12,6 +12,15 @@
 
 This plan details the technical implementation of inline attachment upload during accounting line creation and automatic file compression for the GVV application. The implementation is divided into four phases with clear deliverables, testing requirements, and rollback procedures.
 
+**Key Implementation Approach (Updated per latest PRD):**
+- **Two-track pure PHP compression** - no external dependencies
+  - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD library + convert to JPEG quality 85 + gzip compression
+  - All other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
+- **Required PHP extensions only**: `gd` and `zlib` (both already available on production)
+- **No external tools needed**: No Ghostscript, ImageMagick CLI, or LibreOffice required
+- **Smartphone photo optimization**: 3-8MB photos automatically resized to 500KB-1MB
+- **Transparent decompression**: Treasurers can seamlessly access both old (uncompressed) and new (compressed) attachments
+
 ---
 
 ## Table of Contents
@@ -41,8 +50,12 @@ This plan details the technical implementation of inline attachment upload durin
   - Session cleanup can handle abandoned uploads
 
 **File Compression:**
-- **Approach:** Synchronous compression during upload
+- **Approach:** Two-track compression strategy using pure PHP
+  - **Images (JPEG, PNG, GIF, BMP, WebP):** Resize with GD + convert to JPEG + gzip
+  - **All other files (PDF, DOCX, CSV, TXT, etc.):** Standard gzip compression only
 - **Rationale:**
+  - Pure PHP implementation (no external dependencies like Ghostscript)
+  - Uses only built-in extensions: `gd` and `zlib` (already available)
   - Simpler error handling
   - Immediate feedback to user
   - No background job infrastructure needed
@@ -694,11 +707,13 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 /**
  * File Compressor Library
  *
- * Two-track compression strategy:
- * - Images: Resize with GD + convert to JPEG + gzip compression
- * - Other files: Standard gzip compression only
+ * PRD Section 5.2 AC2.2: Two-track compression strategy:
+ * - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG + gzip compression
+ * - Other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
  *
- * Requires: PHP gd and zlib extensions
+ * PRD Section 9.1: Requires only PHP gd and zlib extensions (no external tools)
+ * - gd: Image manipulation (resize, convert to JPEG)
+ * - zlib: Gzip compression/decompression
  */
 class File_compressor {
 
@@ -763,6 +778,10 @@ class File_compressor {
             $result = $this->compress_gzip($file_path, $options);
         }
 
+        if (!$result['success']) {
+            return $result;
+        }
+
         // Check compression ratio
         if ($result['success']) {
             $compressed_size = filesize($result['compressed_path']);
@@ -797,6 +816,7 @@ class File_compressor {
      * @return array ['success' => bool, 'compressed_path' => string, 'error' => string]
      */
     private function compress_image($file_path, $options = []) {
+        // PRD AC2.2: Images are resized to max 1600x1200, converted to JPEG quality 85, then gzipped
         $max_width = $options['max_width'] ?? $this->get_config('image_max_width', 1600);
         $max_height = $options['max_height'] ?? $this->get_config('image_max_height', 1200);
         $quality = $options['quality'] ?? $this->get_config('image_quality', 85);
@@ -894,6 +914,7 @@ class File_compressor {
 
     /**
      * Compress file using gzip only
+     * PRD AC2.2: All non-image files compressed with gzip level 9
      *
      * @param string $file_path Path to file to compress
      * @param array $options Compression options
@@ -902,7 +923,7 @@ class File_compressor {
     private function compress_gzip($file_path, $options = []) {
         $output_path = $file_path . '.gz';
 
-        // Get compression level (default 9 = maximum)
+        // PRD AC2.2: Use gzip compression level 9 (maximum)
         $level = $options['level'] ?? $this->get_config('gzip_level', 9);
 
         try {
@@ -1057,19 +1078,19 @@ if ($this->upload->do_upload("userfile")) {
 **Add to:** `application/config/attachments.php`
 
 ```php
-// Compression settings
+// Compression settings (PRD Section 5.2 AC2.2)
 $config['compression'] = [
     'enabled' => TRUE,
-    'min_size' => 102400, // 100KB - don't compress smaller files
-    'min_ratio' => 0.10, // Only keep compressed if >10% savings
+    'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
+    'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
-    // Image compression
-    'image_max_width' => 1600,
+    // Image compression (PRD AC2.2: Resize + JPEG + gzip)
+    'image_max_width' => 1600,  // PRD AC2.6: suitable for printing (300 DPI at A4)
     'image_max_height' => 1200,
     'image_quality' => 85, // JPEG quality (0-100)
 
-    // PDF compression
-    'pdf_preset' => '/ebook', // Options: /screen, /ebook, /printer, /prepress
+    // Gzip compression level for all files
+    'gzip_level' => 9, // Maximum compression (PRD AC2.2)
 
     // Safety
     'preserve_original_until_verified' => TRUE,
@@ -1078,18 +1099,21 @@ $config['compression'] = [
 
 ### 3.4 Testing Checklist
 
-- [ ] Test image compression (JPEG, PNG, GIF)
-- [ ] Test PDF compression
-- [ ] Test CSV compression
-- [ ] Test DOC/DOCX compression (if beneficial)
-- [ ] Verify compression ratios logged correctly
-- [ ] Test files below minimum size (not compressed)
-- [ ] Test files with low compression ratio (original kept)
-- [ ] Test compression failure handling
+- [ ] Test image compression (JPEG, PNG, GIF, BMP, WebP) - resize + JPEG + gzip
+- [ ] Test smartphone photo optimization (PRD AC2.7: 3-8MB → 500KB-1MB)
+- [ ] Test PDF compression - gzip only
+- [ ] Test CSV/TXT compression - gzip only
+- [ ] Test DOC/DOCX compression - gzip only
+- [ ] Verify compression ratios logged correctly (PRD AC2.4)
+- [ ] Verify log format includes dimensions for images
+- [ ] Test files below minimum size 100KB (not compressed per PRD AC2.3)
+- [ ] Test files with low compression ratio <10% (original kept per PRD AC2.3)
+- [ ] Test compression failure handling (fallback to original)
 - [ ] Verify original file deleted after successful compression
-- [ ] Test with various image sizes
-- [ ] Test PDF with forms/signatures (should skip compression)
-- [ ] Verify treasurers can view previously uploaded (uncompressed) attachments
+- [ ] Test with various image sizes and resolutions
+- [ ] Verify image quality suitable for printing (PRD AC2.6)
+- [ ] Test already compressed formats (ZIP, RAR) - should skip
+- [ ] **Critical:** Verify treasurers can view previously uploaded (uncompressed) attachments
 
 ---
 
@@ -1864,18 +1888,21 @@ $config['upload_max_size'] = 20480; // 20MB in KB
 $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt';
 
 // === Compression Settings ===
+// PRD Section 5.2 AC2.2: Two-track compression strategy
+// - Images: Resize + convert to JPEG + gzip
+// - Other files: gzip only (no external tools required)
 $config['compression'] = [
     'enabled' => TRUE,
-    'min_size' => 102400, // 100KB - don't compress smaller files
-    'min_ratio' => 0.10, // Only keep compressed if >10% savings
+    'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
+    'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
-    // Image compression
-    'image_max_width' => 1600,
+    // Image compression (PRD AC2.2: Resize + JPEG + gzip)
+    'image_max_width' => 1600,  // PRD AC2.6 & AC2.7: 300 DPI at A4, optimize smartphone photos
     'image_max_height' => 1200,
     'image_quality' => 85, // JPEG quality (0-100)
 
-    // PDF compression
-    'pdf_preset' => '/ebook', // Options: /screen, /ebook, /printer, /prepress
+    // Gzip compression level for all files (PRD AC2.2)
+    'gzip_level' => 9, // Maximum compression
 
     // Safety
     'preserve_original_until_verified' => TRUE,

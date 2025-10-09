@@ -9,7 +9,14 @@ Check comment documentation for the files specified in $ARGUMENTS
    1. Check if there is a comment header and create it if missing
    2. Check that all parameters are described as well as the return
    3. Check that the purpose of the function is correctly described.
-4. Add comments for all non trivial section of the code. Explain the why, not the how that should be obvious from the code.
-5. When parts of the code are difficult to understand, suggest refactoring, create a markdown document into doc/reviews with the suggestion and where they should be applied. Keep a todo list in this suggestions document to track refactoring.
+4. Do not paraphrase the code. Do not add comments to explain variables when their name is self explanatory.
+5. update the documentation_assessment_2025.md to track progress
+6. Follow these principles:
+   - File headers: 1-2 line purpose, no extended explanations
+   - Functions: Brief description + @param/@return tags only
+   - Inline comments: Only where code isn't self-explanatory
+   - No examples: Code should be clear enough without them
+   - No "why" explanations: Trust developers to understand context
+
 
  

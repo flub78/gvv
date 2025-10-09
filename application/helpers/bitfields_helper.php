@@ -16,16 +16,19 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Bitfield utilities for encoding/decoding boolean flags into integers.
+ * Used for storing multiple checkboxes/permissions in a single database field.
  */
 if (!defined('BASEPATH'))
     exit ('No direct script access allowed');
 
 if (!function_exists('array2int')) {
     /**
-     * Encode an array used as selectbox array into an integer
+     * Combines checkbox values into a bitmask integer
      *
-    
-     * @return int
+     * @param array|null $boxes Array of powers of 2 (e.g., [1, 4, 16])
+     * @return int Bitmask (e.g., 21 from [1, 4, 16])
      */
     function array2int($boxes) {
         $result = 0;
@@ -40,9 +43,10 @@ if (!function_exists('array2int')) {
 
 if (!function_exists('int2array')) {
     /**
-     * Translate an int into an array usable at setboxes array
+     * Extracts checkbox values from a bitmask integer
      *
-     * @return array
+     * @param int $i Bitmask integer
+     * @return array Powers of 2 as [value => value] (e.g., [1 => 1, 4 => 4])
      */
     function int2array($i) {
         $result = array ();
