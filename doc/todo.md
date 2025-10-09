@@ -12,15 +12,15 @@
 ## Reste à faire
 
 * [] Images de configuration
-* [] gestion des droits multi sections
+* [] gestion des droits multi sections (plan OK)
 
-* [] Attachements lors de la création d'écriture
+* [] Attachements lors de la création d'écriture (plan OK)
   * [] tester les téléchargements avec espace (upload->do_upload)
   * [] compression des attachements
 
 * [] Support du markdown
   
-* [ ] Import des informations planeur dans les vols de découverte
+* [] Import des informations planeur dans les vols de découverte
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
@@ -29,9 +29,8 @@
 * [] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
-* [] Reservation des avions                                   10j
+* [] Reservation des avions                                   10j (plan OK)
 * [] Paiements en ligne                                       10j
-* [] Attachements sur les achatss
 
 * [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
   * [x] MVP
