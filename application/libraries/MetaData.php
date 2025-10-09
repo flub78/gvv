@@ -2,89 +2,38 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 /**
- * Metadata
+ * GVV Gestion vol à voile
+ * Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
  *
- * This class manages a centralized point of view about the data model.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Some information are directly extracted from the database model.
- * Database metadata are completed by application metadata that describe what we intend to do with the data.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * The goal is to get a uniform behavior by a using data types and sybtypes, regarding
- * display, formatting, input method, etc.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The semantic usage of a type is handled in a subtype attribute
+ * @package    GVV
+ * @subpackage Libraries
+ * @category   Metadata
+ * @author     Philippe Boissel, Frédéric Peignot
+ * @license    GPL-3.0
+ * @link       https://github.com/flub78/gvv
  *
+ * Metadata management for database-driven form rendering and validation.
  *
- * <h1>Types and subtypes</h1>
+ * Extracts field types, sizes, constraints from MySQL schema and augments with application
+ * metadata (subtypes, selectors, enumerations) for uniform display, validation, and formatting.
+ * Drives table views, form generation, CSV/PDF export, and input validation rules.
  *
- * <ul>
- * <li>varchar subtypes</li>
- * <li><ul>
- * <li> email; implies dot seperated string with an @, min and max size</li>
- * <li> password, implies min and max size and hidden input mode, stored encrypted</li>
- * <li> ipaddress, dot separated values, implies min and max size.</li>
- * <li> url</li>
- * <li> key to another table</li>
- * </ul></li>
- *
- * <li>int subtypes</li>
- * <li><ul>
- * <li> enumerate</li>
- * <li> key to another table</li>
- * </ul></li>
- * <li>tinyint</li>
- * <li><ul>
- * <li>boolean</li>
- * </ul></li>
- * <li>decimal</li>
- * <li><ul>
- * <li>currency</li>
- * </ul></li>
- * </ul>
- *
- * <h2>Subtypes</h2>
- *
- * <h3>Enumerate</h3>
- * These fields contain an integer code. A string value is associated to each integer value.
- *
- *
- * <h2>Defaults values</h2>
- * The system uses the defaults defined in the MySQL database. In somes cases it may
- * convenient to set the default valus with the result of a php function.
- *
- * <ul>
- * <li>today: set the field to the current date</li>
- * <li>current_year: set the field to the current year</li>
- * <li>current_user: current DX_Auth user</li>
- * </ul>
- *
- * <h2>attributes</h2>
- *
- * varchar
- * minsize
- *
- * Read only fields
- * $this->field['volsa']['vaduree']['Attrs'] = array('readonly' => "readonly");
- *
- * Hidden fields
- *
- *
- * Table display
- *
- * A table is a subset of a database table which is displayed in a MVC view. The table is made
- * of fields from the database, meta data are used to determine field formatting and alignement.
- * The table view can also display action fields which are used
- * to trigger an action. An action is the name of a method for a controller. Usually the action takes
- * the element id as parameter.
- *
- * When the table function is used to display the result of a select the system must be able to find out abstract
- * from what table are extracted each column of the select.
- *
- * for example: "select machine.id, cost1.value, cost2.value from machine, costs as cost11, costs as cost2
- * where machine.cost1 = costs1.id and machine.cost2 = costs2.id
- *
- * @author idefix
- * @package librairies
+ * Types: varchar, int, tinyint, decimal, date, datetime, time
+ * Subtypes: email, password, boolean, currency, enumerate, selector, key, image, minute, etc.
+ * Defaults: today, current_year, current_user (dynamic PHP-generated values)
  */
 abstract class Metadata {
     protected $db = array();
@@ -95,7 +44,10 @@ abstract class Metadata {
     protected $selectors = array();
 
     /**
-     * Constructor
+     * Loads database schema metadata for all tables
+     *
+     * Queries MySQL SHOW TABLES and SHOW FIELDS to extract type, size, keys.
+     * Stores in $this->tables, $this->fields, $this->field, $this->keys arrays.
      */
     function __construct() {
         $this->CI = &get_instance();
@@ -136,21 +88,22 @@ abstract class Metadata {
      */
 
     /**
-     * Return the list of table in the database
+     * Returns list of all database tables
+     *
+     * @return string[] Table names
      */
     function tables_list() {
         return $this->tables;
     }
 
     /**
-     * Return the list of table in the database
+     * Returns list of fields for a table
      *
-     * @param string $table name
-     * @param boolean $no_autogen_key when true does not return auto-generated keys
-     * @return mixed[]
-     * 
-     * BUG: There is no occurences in the code of call with $no_autogen_key
-     * However their are existing cases. If they are managed another way this code is useless. 
+     * @param string $table Table name
+     * @param bool $no_autogen_key When true, excludes auto-generated key
+     * @return string[] Field names
+     *
+     * @todo BUG: No occurrences of calls with $no_autogen_key - verify if needed
      */
     function fields_list($table, $no_autogen_key = FALSE) {
         $tmp = $this->fields[$table];
@@ -163,20 +116,20 @@ abstract class Metadata {
     }
 
     /**
-     * return the name of the column containing the primary key
+     * Returns primary key column name for table
      *
-     * @param string $table name
-     * @return string
+     * @param string $table Table name
+     * @return string Primary key field name (defaults to 'id')
      */
     function table_key($table) {
         return isset($this->keys[$table]) ? $this->keys[$table] : 'id';
     }
 
     /**
-     * Returns the key when autogenerated, FALSE if not
+     * Returns key field name if auto-incremented, FALSE otherwise
      *
-     * @param string $table name
-     * @return boolean
+     * @param string $table Table name
+     * @return string|bool Key field name or FALSE
      */
     function autogen_key($table) {
         $key = $this->table_key($table);
@@ -187,22 +140,22 @@ abstract class Metadata {
     }
 
     /**
-     * return the name of the column containing the image element
+     * Returns image element field (currently returns primary key)
      *
-     * @param string $table name
-     * @return string
+     * @param string $table Table name
+     * @return string Field name for image representation
      */
     function table_image_elt($table) {
         return $this->table_key($table);
     }
 
     /**
-     * Return the list of field attributes
+     * Returns field attribute(s) from metadata
      *
-     * @param string $table name
-     * @param string $field name
-     * @param string $attr attribut name
-     * @return string
+     * @param string $table Table name
+     * @param string $field Field name
+     * @param string $attr Specific attribute name (empty = all attributes)
+     * @return mixed Attribute value, all attributes array, or empty string
      */
     function field_attr($table, $field, $attr = '') {
         $this->resolve($table, $field);
@@ -219,11 +172,13 @@ abstract class Metadata {
     }
 
     /**
-     * Fetch a field name
+     * Returns translated field name for display
      *
-     * @param string $table name
-     * @param string $field name
-     * @return string
+     * Priority: language file > metadata Name > field name
+     *
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return string Display name for field
      */
     function field_name($table, $field) {
         $this->resolve($table, $field);
@@ -259,11 +214,11 @@ abstract class Metadata {
     }
 
     /**
-     * Descripteur de champ (commentaire du champ MySQL)
+     * Returns field descriptor/long name from MySQL Comment or language file
      *
-     * @param string $table name
-     * @param string $field name
-     * @return string
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return string Field description or ucwords(field)
      */
     function field_long_name($table, $field) {
         $this->resolve($table, $field);
@@ -283,11 +238,11 @@ abstract class Metadata {
     }
 
     /**
-     * subtype
+     * Returns field subtype (semantic type: email, currency, selector, etc.)
      *
-     * @param string $table name
-     * @param string $field name
-     * @return string
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return string Subtype or empty string
      */
     function field_subtype($table, $field) {
         $this->resolve($table, $field);
@@ -307,11 +262,13 @@ abstract class Metadata {
     }
 
     /**
-     * default in form format (not database)
+     * Returns field default value in form format
      *
-     * @param string $table name
-     * @param string $field name
-     * @return string
+     * Resolves dynamic defaults: today, current_year, current_user
+     *
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return mixed Default value (form-formatted, not database format)
      */
     function field_default($table, $field) {
         $this->resolve($table, $field);
@@ -335,10 +292,10 @@ abstract class Metadata {
     }
 
     /**
-     * Return a hash of the default values for a table
+     * Returns array of default values for all fields in table
      *
-     * @param string $table name
-     * @return mixed[]
+     * @param string $table Table name
+     * @return array Field => default value hash
      */
     function defaults_list($table) {
         $fields = $this->fields_list($table);

@@ -1,35 +1,25 @@
 <?php
+/**
+ * GVV metadata definitions - field types, subtypes, selectors, and display properties.
+ * Centralized metadata system for form rendering, validation, and table display.
+ */
 if (! defined('BASEPATH'))
         exit('No direct script access allowed');
 
 include_once("MetaData.php");
 
-/**
- *
- * Metadata for GVV
- *
- * @author idefix
- * @package librairies
- */
 class GVVMetadata extends Metadata {
         /**
-         * Constructor
+         * Initializes all field metadata for GVV tables and views
+         *
+         * Defines field properties for every table: types, subtypes, selectors, defaults, constraints.
+         * All metadata loaded at once (no lazy loading). Types must match actual table fields.
          */
         function __construct() {
                 parent::__construct();
 
                 $CI = &get_instance();
                 $CI->lang->load('gvv');
-
-                // @todo Ces déclaration devrait être déplacées vers les modèles
-                // Elles décrivent les données et il serait plus efficace de n'en charger que les
-                // tables utiles en fonction du contexte.
-
-                // Cela a été commencé avec MailMetadata qui hérite de cette classe et ne contient que
-                // les informations relatives à la gestion des mails.
-
-                // Les types sont forcément ceux des tables (pas des vues). Les noms peuvent être
-                // surchargés dans les vues.
 
                 /**
                  * Vue achats
