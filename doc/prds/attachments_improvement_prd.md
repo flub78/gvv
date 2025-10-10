@@ -40,7 +40,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
   1. Créer une ligne comptable (écritures) dans le contrôleur `compta`
   2. Sauvegarder la ligne comptable pour obtenir un ID
   3. Éditer la ligne comptable sauvegardée
-  4. Cliquer sur "Ajouter Pièce Jointe" dans la section des pièces jointes
+  4. Cliquer sur "Ajouter Pièce Jointe" dans la section des pièces jointes 
   5. Télécharger les fichiers via le formulaire séparé `attachments/create`
 
 - **Fichiers Clés :**
@@ -85,6 +85,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 
 **Trésorier :**
 - Attacher les scans de factures lors de la saisie des lignes comptables (flux de travail unique)
+- Photographier les documents avec leur smartphone pour créer des pièces jointes directement (déjà supporté)
 - Récupérer rapidement les documents attachés lors de la révision des entrées passées
 - Confiance que les documents sont préservés et accessibles
 
@@ -113,6 +114,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 
 **Résultat Souhaité :**
 - Télécharger les PDFs/images de factures directement lors de la création de la ligne comptable
+- Photographier les factures et reçus avec son smartphone pour les joindre directement (déjà supporté)
 - Voir une confirmation immédiate que les fichiers sont attachés
 - Accès rapide aux documents attachés précédemment
 
@@ -340,7 +342,7 @@ zlib
 Les éléments suivants sont explicitement hors périmètre pour cette version :
 
 1. Interface de téléchargement de fichiers par glisser-déposer
-2. Aperçu/miniatures d'images avant téléchargement
+2. Aperçu/miniatures d'images avant téléchargement (existe déjà pour les images et photos)
 3. OCR pour documents scannés
 4. Versionnage des pièces jointes
 5. Partage de pièces jointes entre plusieurs lignes comptables

@@ -28,8 +28,8 @@ This plan details the technical implementation of inline attachment upload durin
 1. [Technical Approach Overview](#1-technical-approach-overview)
 2. [Phase 1: Inline Attachment Upload](#2-phase-1-inline-attachment-upload)
 3. [Phase 2: Automatic File Compression](#3-phase-2-automatic-file-compression)
-4. [Phase 3: Batch Compression Script](#4-phase-3-batch-compression-script)
-5. [Phase 4: Transparent Decompression](#5-phase-4-transparent-decompression)
+4. [Phase 3: Transparent Decompression](#4-phase-3-transparent-decompression)
+5. [Phase 4: Batch Compression Script](#5-phase-4-batch-compression-script)
 6. [Testing Strategy](#6-testing-strategy)
 7. [Migration and Deployment](#7-migration-and-deployment)
 8. [Configuration Reference](#8-configuration-reference)
@@ -1117,13 +1117,181 @@ $config['compression'] = [
 
 ---
 
-## 4. Phase 3: Batch Compression Script
+## 4. Phase 3: Transparent Decompression
+
+**Priority:** HIGH (same as Phase 2 - file compression)
+**Estimated Effort:** 6-8 hours
+**Dependencies:** Phase 2
+
+**Note:** This phase has been elevated to HIGH priority because compressed files are unusable without decompression. Treasurers must be able to view/download attachments seamlessly.
+
+### 4.1 Download Handler
+
+**Modify:** `application/controllers/attachments.php`
+
+**Add new method:**
+
+```php
+/**
+ * Download attachment with automatic decompression
+ *
+ * @param int $id Attachment ID
+ */
+public function download($id) {
+    // Get attachment record
+    $attachment = $this->gvv_model->get_by_id('id', $id);
+
+    if (empty($attachment)) {
+        show_404();
+        return;
+    }
+
+    $file_path = $attachment['file'];
+    $original_name = $attachment['filename'];
+
+    if (!file_exists($file_path)) {
+        show_error('File not found');
+        return;
+    }
+
+    // PRD AC3.10: Treasurers can still view or download previous attachments
+    // This includes both compressed and uncompressed files
+
+    // Check if file is compressed
+    if (preg_match('/\.gz$/', $file_path)) {
+        // Decompress to temp file
+        $temp_file = $this->decompress_to_temp($file_path);
+
+        if ($temp_file === false) {
+            show_error('Failed to decompress file');
+            return;
+        }
+
+        // Serve temp file (use original filename without .gz extension)
+        $original_name_no_gz = preg_replace('/\.gz$/', '', $original_name);
+        $this->serve_file($temp_file, $original_name_no_gz, true);
+    } else {
+        // Serve directly (original uncompressed file or compressed image/PDF)
+        $this->serve_file($file_path, $original_name, false);
+    }
+}
+
+/**
+ * Decompress gzipped file to temporary location
+ *
+ * @param string $gz_file_path Path to .gz file
+ * @return string|false Path to temp file or false on failure
+ */
+private function decompress_to_temp($gz_file_path) {
+    $temp_file = tempnam(sys_get_temp_dir(), 'gvv_attachment_');
+
+    $gz_handle = gzopen($gz_file_path, 'rb');
+    if ($gz_handle === false) {
+        return false;
+    }
+
+    $out_handle = fopen($temp_file, 'wb');
+    if ($out_handle === false) {
+        gzclose($gz_handle);
+        return false;
+    }
+
+    while (!gzeof($gz_handle)) {
+        $chunk = gzread($gz_handle, 4096);
+        if ($chunk === false) {
+            gzclose($gz_handle);
+            fclose($out_handle);
+            unlink($temp_file);
+            return false;
+        }
+        fwrite($out_handle, $chunk);
+    }
+
+    gzclose($gz_handle);
+    fclose($out_handle);
+
+    return $temp_file;
+}
+
+/**
+ * Serve file to browser
+ *
+ * @param string $file_path Path to file
+ * @param string $download_name Name for download
+ * @param bool $is_temp Whether file is temporary (delete after serving)
+ */
+private function serve_file($file_path, $download_name, $is_temp = false) {
+    // Determine MIME type
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = finfo_file($finfo, $file_path);
+    finfo_close($finfo);
+
+    if ($mime_type === false) {
+        $mime_type = 'application/octet-stream';
+    }
+
+    // Set headers
+    header('Content-Type: ' . $mime_type);
+    header('Content-Disposition: attachment; filename="' . $download_name . '"');
+    header('Content-Length: ' . filesize($file_path));
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: public');
+
+    // Output file
+    readfile($file_path);
+
+    // Delete temp file if needed
+    if ($is_temp && file_exists($file_path)) {
+        unlink($file_path);
+    }
+
+    exit;
+}
+```
+
+### 4.2 Update Attachment Links
+
+**Modify:** `application/helpers/MY_html_helper.php`
+
+**Update `attachment()` function:**
+
+```php
+function attachment($id, $filename, $url = "") {
+    // ... existing code ...
+
+    // Change direct file link to download handler
+    $download_url = base_url() . 'index.php/attachments/download/' . $id;
+
+    // Rest of function using $download_url instead of direct file path
+    // ... existing code ...
+}
+```
+
+### 4.3 Testing Checklist
+
+- [ ] Download uncompressed file (legacy/old attachments)
+- [ ] Download gzip compressed file (.csv.gz, .txt.gz)
+- [ ] Download compressed PDF
+- [ ] Download compressed image (converted to .jpg)
+- [ ] Verify correct MIME types
+- [ ] Verify correct filenames (use original name, not storage name)
+- [ ] Test temp file cleanup
+- [ ] Test with missing files
+- [ ] Test with corrupted compressed files
+- [ ] Performance test (large files)
+- [ ] **Critical:** Test treasurer workflow - ensure seamless access to both old (uncompressed) and new (compressed) attachments
+
+---
+
+## 5. Phase 4: Batch Compression Script
 
 **Priority:** MEDIUM
 **Estimated Effort:** 10-12 hours
-**Dependencies:** Phase 2 (File_compressor library)
+**Dependencies:** Phase 3 (Transparent Decompression)
 
-### 3.1 Script Implementation
+**Note:** This phase comes after transparent decompression to ensure that treasurers can access both old (uncompressed) and newly compressed attachments before running batch compression on historical files.
+
+### 5.1 Script Implementation
 
 **File:** `scripts/batch_compress_attachments.php`
 
@@ -1506,7 +1674,7 @@ class Batch_Attachment_Compressor {
 }
 ```
 
-### 3.2 Testing Checklist
+### 5.2 Testing Checklist
 
 - [ ] Run dry-run on production data
 - [ ] Test with various filters (year, section, type)
@@ -1519,172 +1687,6 @@ class Batch_Attachment_Compressor {
 - [ ] Check compression statistics accuracy
 - [ ] Test error handling (missing files, corrupted files)
 - [ ] **Critical:** Verify treasurers can still view/download previously uploaded (uncompressed) attachments after batch compression
-
----
-
-## 5. Phase 4: Transparent Decompression
-
-**Priority:** HIGH (same as Phase 2 - file compression)
-**Estimated Effort:** 6-8 hours
-**Dependencies:** Phase 2
-
-**Note:** This phase has been elevated to HIGH priority because compressed files are unusable without decompression. Treasurers must be able to view/download attachments seamlessly.
-
-### 5.1 Download Handler
-
-**Modify:** `application/controllers/attachments.php`
-
-**Add new method:**
-
-```php
-/**
- * Download attachment with automatic decompression
- *
- * @param int $id Attachment ID
- */
-public function download($id) {
-    // Get attachment record
-    $attachment = $this->gvv_model->get_by_id('id', $id);
-
-    if (empty($attachment)) {
-        show_404();
-        return;
-    }
-
-    $file_path = $attachment['file'];
-    $original_name = $attachment['filename'];
-
-    if (!file_exists($file_path)) {
-        show_error('File not found');
-        return;
-    }
-
-    // PRD AC3.10: Treasurers can still view or download previous attachments
-    // This includes both compressed and uncompressed files
-
-    // Check if file is compressed
-    if (preg_match('/\.gz$/', $file_path)) {
-        // Decompress to temp file
-        $temp_file = $this->decompress_to_temp($file_path);
-
-        if ($temp_file === false) {
-            show_error('Failed to decompress file');
-            return;
-        }
-
-        // Serve temp file (use original filename without .gz extension)
-        $original_name_no_gz = preg_replace('/\.gz$/', '', $original_name);
-        $this->serve_file($temp_file, $original_name_no_gz, true);
-    } else {
-        // Serve directly (original uncompressed file or compressed image/PDF)
-        $this->serve_file($file_path, $original_name, false);
-    }
-}
-
-/**
- * Decompress gzipped file to temporary location
- *
- * @param string $gz_file_path Path to .gz file
- * @return string|false Path to temp file or false on failure
- */
-private function decompress_to_temp($gz_file_path) {
-    $temp_file = tempnam(sys_get_temp_dir(), 'gvv_attachment_');
-
-    $gz_handle = gzopen($gz_file_path, 'rb');
-    if ($gz_handle === false) {
-        return false;
-    }
-
-    $out_handle = fopen($temp_file, 'wb');
-    if ($out_handle === false) {
-        gzclose($gz_handle);
-        return false;
-    }
-
-    while (!gzeof($gz_handle)) {
-        $chunk = gzread($gz_handle, 4096);
-        if ($chunk === false) {
-            gzclose($gz_handle);
-            fclose($out_handle);
-            unlink($temp_file);
-            return false;
-        }
-        fwrite($out_handle, $chunk);
-    }
-
-    gzclose($gz_handle);
-    fclose($out_handle);
-
-    return $temp_file;
-}
-
-/**
- * Serve file to browser
- *
- * @param string $file_path Path to file
- * @param string $download_name Name for download
- * @param bool $is_temp Whether file is temporary (delete after serving)
- */
-private function serve_file($file_path, $download_name, $is_temp = false) {
-    // Determine MIME type
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime_type = finfo_file($finfo, $file_path);
-    finfo_close($finfo);
-
-    if ($mime_type === false) {
-        $mime_type = 'application/octet-stream';
-    }
-
-    // Set headers
-    header('Content-Type: ' . $mime_type);
-    header('Content-Disposition: attachment; filename="' . $download_name . '"');
-    header('Content-Length: ' . filesize($file_path));
-    header('Cache-Control: no-cache, must-revalidate');
-    header('Pragma: public');
-
-    // Output file
-    readfile($file_path);
-
-    // Delete temp file if needed
-    if ($is_temp && file_exists($file_path)) {
-        unlink($file_path);
-    }
-
-    exit;
-}
-```
-
-### 5.2 Update Attachment Links
-
-**Modify:** `application/helpers/MY_html_helper.php`
-
-**Update `attachment()` function:**
-
-```php
-function attachment($id, $filename, $url = "") {
-    // ... existing code ...
-
-    // Change direct file link to download handler
-    $download_url = base_url() . 'index.php/attachments/download/' . $id;
-
-    // Rest of function using $download_url instead of direct file path
-    // ... existing code ...
-}
-```
-
-### 5.3 Testing Checklist
-
-- [ ] Download uncompressed file (legacy/old attachments)
-- [ ] Download gzip compressed file (.csv.gz, .txt.gz)
-- [ ] Download compressed PDF
-- [ ] Download compressed image (converted to .jpg)
-- [ ] Verify correct MIME types
-- [ ] Verify correct filenames (use original name, not storage name)
-- [ ] Test temp file cleanup
-- [ ] Test with missing files
-- [ ] Test with corrupted compressed files
-- [ ] Performance test (large files)
-- [ ] **Critical:** Test treasurer workflow - ensure seamless access to both old (uncompressed) and new (compressed) attachments
 
 ---
 
@@ -2066,9 +2068,62 @@ if ($this->get_config('debug', FALSE)) {
 **Estimated Timeline:**
 - Phase 1: 2-3 days (Inline attachment upload)
 - Phase 2: 2-3 days (Automatic compression)
-- Phase 3: 2 days (Batch compression script)
-- Phase 4: 1-2 days (Transparent decompression - **HIGH PRIORITY**, must complete with Phase 2)
+- Phase 3: 1-2 days (Transparent decompression - **HIGH PRIORITY**, must complete with Phase 2)
+- Phase 4: 2 days (Batch compression script - after Phase 3)
 - Testing & Integration: 2-3 days
 - **Total: 9-13 days**
 
-**Critical Path Note:** Phases 2 and 4 should be developed and tested together since compression without decompression renders files unusable. Consider Phase 2 incomplete until Phase 4 is functional.
+**Critical Path Note:** Phases 2 and 3 should be developed and tested together since compression without decompression renders files unusable. Consider Phase 2 incomplete until Phase 3 is functional. Phase 4 (batch compression) should only be run after Phase 3 is complete to ensure treasurers can access both compressed and uncompressed files.
+
+---
+
+## Implementation Task Checklist
+
+### Phase 1: Inline Attachment Upload (10 tasks)
+- [ ] Modify compta.php controller for inline attachments
+- [ ] Create upload_temp_attachment() AJAX handler
+- [ ] Create remove_temp_attachment() handler
+- [ ] Update formValidation() to process pending attachments
+- [ ] Modify bs_formView.php for attachment widget
+- [ ] Add JavaScript for file upload handling
+- [ ] Create cleanup script for temp files
+- [ ] Add language file translations (French, English, Dutch)
+- [ ] Create attachments.php config file
+- [ ] Complete Phase 1 testing checklist
+
+### Phase 2: Automatic File Compression (6 tasks)
+- [ ] Create File_compressor.php library
+- [ ] Implement compress_image() method (GD + JPEG + gzip)
+- [ ] Implement compress_gzip() method
+- [ ] Integrate compression into attachments.php upload
+- [ ] Add compression configuration to config file
+- [ ] Complete Phase 2 testing checklist
+
+### Phase 3: Transparent Decompression (5 tasks)
+- [ ] Add download() method to attachments.php
+- [ ] Implement decompress_to_temp() method
+- [ ] Implement serve_file() method
+- [ ] Update attachment() helper in MY_html_helper.php
+- [ ] Complete Phase 3 testing checklist
+
+### Phase 4: Batch Compression Script (5 tasks)
+- [ ] Create batch_compress_attachments.php script
+- [ ] Implement command-line argument parsing
+- [ ] Implement Batch_Attachment_Compressor class
+- [ ] Implement progress tracking and resume functionality
+- [ ] Complete Phase 4 testing checklist
+
+### Testing (3 tasks)
+- [ ] Create FileCompressorTest.php unit tests
+- [ ] Create AttachmentWorkflowTest.php integration tests
+- [ ] Complete all manual testing checklists
+
+### Deployment (6 tasks)
+- [ ] Complete pre-deployment checklist
+- [ ] Deploy to staging environment
+- [ ] User acceptance testing
+- [ ] Deploy to production
+- [ ] Setup cron job for temp file cleanup
+- [ ] Monitor logs and storage usage for first week
+
+**Total: 35 implementation tasks**
