@@ -46,6 +46,20 @@ if (!class_exists('CI_Controller')) {
     }
 }
 
+// Mock CI_Model base class for models
+if (!class_exists('CI_Model')) {
+    class CI_Model {
+        public function __construct() {
+            // Mock constructor
+        }
+
+        public function __get($key) {
+            $CI = get_instance();
+            return $CI->$key;
+        }
+    }
+}
+
 // Mock get_instance function
 if (!function_exists('get_instance')) {
     function &get_instance() {

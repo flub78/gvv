@@ -14,6 +14,24 @@ Assets Helper Integration
  [x] Controller url different paths
  [x] Jqueryui theme
 
+Attachments Controller
+ [x] Upload pdf file creates attachment
+ [x] Upload jpeg image creates attachment
+ [x] Upload docx file creates attachment
+ [x] Upload csv file creates attachment
+ [x] Upload file exceeding size limit
+ [x] File stored in correct year directory
+ [x] File stored in correct section directory
+ [x] Directory structure is correct
+ [x] Filename has random prefix
+ [x] Spaces in filename replaced with underscores
+ [x] Directory created with correct permissions
+ [x] Attachment helper generates image tag for jpeg
+ [x] Attachment helper generates link for pdf
+ [x] Edit attachment replaces old file
+ [x] Edit attachment handles missing old file
+ [x] Replace image with pdf
+
 Categorie Model Integration
  [x] Basic crud operations
  [x] Image method

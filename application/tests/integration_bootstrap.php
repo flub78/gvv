@@ -310,7 +310,12 @@ class MockLoader {
         // Mock library loading
         return true;
     }
-    
+
+    public function language($file, $idiom = '', $return = FALSE, $add_suffix = TRUE, $alt_path = '') {
+        // Mock language file loading
+        return true;
+    }
+
     public function helper($helpers = array()) {
         // Actually load real helper files for integration tests
         if (!is_array($helpers)) {
@@ -458,8 +463,8 @@ if (!class_exists('CI_Model')) {
     }
 }
 
-// Note: gvv_error and other gvv logging functions are loaded from log_helper.php
-// We removed the mock here to allow the real log_helper functions to be used
+// Load log_helper for gvv_debug, gvv_info, gvv_error functions
+require_once APPPATH . 'helpers/log_helper.php';
 
 // Add log_message function for log_helper
 if (!function_exists('log_message')) {
