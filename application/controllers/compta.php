@@ -233,10 +233,13 @@ class Compta extends Gvv_Controller {
             $this->data['annee_exercise'] = date("Y");
         }
 
-        $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
+        // Add the compte1/compte2 same account check to the extra rules before setting metadata rules
+        $extra_rules = $this->rules;
+        $extra_rules['compte1'] = isset($extra_rules['compte1'])
+            ? $extra_rules['compte1'] . '|callback_check_compte1_compte2'
+            : 'callback_check_compte1_compte2';
 
-        // Add to the form validation rules a rule to prevent the values of compte1 and compte2 to be the same.
-        $this->form_validation->set_rules('compte1', 'Compte 1', 'callback_check_compte1_compte2');
+        $this->gvvmetadata->set_rules($table, $fields_list, $extra_rules, $action);
 
         if ($this->form_validation->run()) {
             // get the processed data. It must not be done before because all the
@@ -246,6 +249,12 @@ class Compta extends Gvv_Controller {
             if ($action == CREATION) {
                 unset($processed_data['id']);
                 $id = $this->gvv_model->create_ecriture($processed_data);
+
+                // Process pending attachments only if record was successfully created
+                if ($id) {
+                    $session_id = $this->session->userdata('session_id');
+                    $this->process_pending_attachments('ecritures', $id, $session_id);
+                }
 
                 if ($button != "Créer") {
                     // Créer et continuer, on reste sur la page de création
@@ -313,6 +322,190 @@ class Compta extends Gvv_Controller {
      */
     function create() {
         $this->ecriture("gvv_compta_title_line", [], []);
+    }
+
+    /**
+     * Handle attachment upload during creation (AJAX)
+     * Returns JSON response with temp file info
+     */
+    public function upload_temp_attachment() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $session_id = $this->session->userdata('session_id');
+        $year = date('Y');
+        $club_id = $this->session->userdata('section');
+        $this->load->model('sections_model');
+        $section_name = $this->sections_model->image($club_id);
+
+        if (empty($section_name)) {
+            $section_name = 'Unknown';
+        }
+        $section_name = str_replace(' ', '_', $section_name);
+
+        // Create temp directory
+        $temp_dir = './uploads/attachments/temp/' . $session_id . '/';
+        if (!file_exists($temp_dir)) {
+            mkdir($temp_dir, 0777, true);
+            chmod($temp_dir, 0777);
+        }
+
+        // Generate unique filename
+        $storage_file = rand(100000, 999999) . '_' . str_replace(' ', '_', $_FILES['file']['name']);
+
+        // Upload file
+        $config['upload_path'] = $temp_dir;
+        $config['allowed_types'] = '*';
+        $config['max_size'] = '20000';
+        $config['file_name'] = $storage_file;
+
+        $this->load->library('upload', $config);
+
+        if (!$this->upload->do_upload('file')) {
+            // Error
+            $response = [
+                'success' => false,
+                'error' => $this->upload->display_errors('', '')
+            ];
+        } else {
+            // Success - store in session
+            $upload_data = $this->upload->data();
+
+            $file_info = [
+                'temp_id' => uniqid(),
+                'temp_path' => $temp_dir . $storage_file,
+                'original_name' => $_FILES['file']['name'],
+                'storage_name' => $storage_file,
+                'size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
+                'club' => $club_id,
+                'section_name' => $section_name
+            ];
+
+            // Add to session
+            $pending_key = 'pending_attachments_' . $session_id;
+            $pending = $this->session->userdata($pending_key) ?: [];
+            $pending[$file_info['temp_id']] = $file_info;
+            $this->session->set_userdata($pending_key, $pending);
+
+            $response = [
+                'success' => true,
+                'file' => $file_info
+            ];
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Remove temp attachment (AJAX)
+     */
+    public function remove_temp_attachment() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $temp_id = $this->input->post('temp_id');
+        $session_id = $this->session->userdata('session_id');
+        $pending_key = 'pending_attachments_' . $session_id;
+        $pending = $this->session->userdata($pending_key) ?: [];
+
+        if (isset($pending[$temp_id])) {
+            // Delete file
+            $file_path = $pending[$temp_id]['temp_path'];
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+
+            // Remove from session
+            unset($pending[$temp_id]);
+            $this->session->set_userdata($pending_key, $pending);
+
+            $response = ['success' => true];
+        } else {
+            $response = ['success' => false, 'error' => 'File not found'];
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Process pending attachments after successful record creation
+     *
+     * @param string $referenced_table Table name (e.g., 'ecritures')
+     * @param int $referenced_id ID of the created record
+     * @param string $session_id Current session ID
+     * @return int Number of attachments processed
+     */
+    private function process_pending_attachments($referenced_table, $referenced_id, $session_id) {
+        $pending_key = 'pending_attachments_' . $session_id;
+        $pending = $this->session->userdata($pending_key);
+
+        if (empty($pending)) {
+            return 0;
+        }
+
+        $processed = 0;
+        $year = date('Y');
+
+        foreach ($pending as $temp_id => $file_info) {
+            $temp_path = $file_info['temp_path'];
+
+            if (!file_exists($temp_path)) {
+                log_message('error', "GVV: Pending attachment file not found: $temp_path");
+                continue;
+            }
+
+            // Build permanent path
+            $section_name = $file_info['section_name'];
+            $permanent_dir = './uploads/attachments/' . $year . '/' . $section_name . '/';
+
+            if (!file_exists($permanent_dir)) {
+                mkdir($permanent_dir, 0777, true);
+                chmod($permanent_dir, 0777);
+            }
+
+            $storage_name = $file_info['storage_name'];
+            $permanent_path = $permanent_dir . $storage_name;
+
+            // Move file from temp to permanent
+            if (rename($temp_path, $permanent_path)) {
+                // Create attachment database record
+                $attachment_data = [
+                    'referenced_table' => $referenced_table,
+                    'referenced_id' => $referenced_id,
+                    'user_id' => $this->dx_auth->get_username(),
+                    'filename' => $file_info['original_name'],
+                    'description' => '', // User can edit later
+                    'file' => $permanent_path,
+                    'club' => $file_info['club']
+                ];
+
+                $this->db->insert('attachments', $attachment_data);
+                $processed++;
+
+                log_message('info', "GVV: Processed pending attachment: $storage_name → $permanent_path");
+            } else {
+                log_message('error', "GVV: Failed to move pending attachment: $temp_path → $permanent_path");
+            }
+        }
+
+        // Clear session data
+        $this->session->unset_userdata($pending_key);
+
+        // Clean up temp directory
+        $temp_dir = './uploads/attachments/temp/' . $session_id . '/';
+        if (is_dir($temp_dir)) {
+            @rmdir($temp_dir);
+        }
+
+        return $processed;
     }
 
     /**

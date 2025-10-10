@@ -117,4 +117,10 @@ $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence',
 
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
 
+// Attachment upload (Phase 1)
+$lang['gvv_choose_files'] = "Choisir des fichiers";
+$lang['gvv_optional'] = "facultatif";
+$lang['gvv_supported_formats'] = "Formats supportés";
+$lang['gvv_confirm_remove_file'] = "Êtes-vous sûr de vouloir supprimer ce fichier ?";
+
 $lang['valid_numeric'] = "Valeur non décimale";

@@ -115,6 +115,12 @@ $lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie'
 
 $lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";
 
+// Attachment upload (Phase 1)
+$lang['gvv_choose_files'] = "Bestanden kiezen";
+$lang['gvv_optional'] = "optioneel";
+$lang['gvv_supported_formats'] = "Ondersteunde formaten";
+$lang['gvv_confirm_remove_file'] = "Weet u zeker dat u dit bestand wilt verwijderen?";
+
 $lang['valid_numeric'] = "Niet-decimale waarde";
 
 $lang['gvv_compta_title_remb_capital'] = "Terugbetaling leningkapitaal";
