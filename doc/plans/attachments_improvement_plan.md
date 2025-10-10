@@ -3,8 +3,9 @@
 **Related PRD:** `doc/prds/attachments_improvement_prd.md`
 **Status:** Planning
 **Created:** 2025-10-09
+**Last Updated:** 2025-10-10 (updated per PRD changes - simplified image compression)
 **Complexity:** High
-**Estimated Total Effort:** 44-52 hours
+**Estimated Total Effort:** 40-48 hours (reduced - simpler image handling)
 
 ---
 
@@ -14,11 +15,12 @@ This plan details the technical implementation of inline attachment upload durin
 
 **Key Implementation Approach (Updated per latest PRD):**
 - **Two-track pure PHP compression** - no external dependencies
-  - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD library + convert to JPEG quality 85 + gzip compression
+  - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD library + convert to JPEG quality 85 (no additional gzip)
   - All other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
-- **Required PHP extensions only**: `gd` and `zlib` (both already available on production)
+- **Required PHP extensions only**: `gd` (for images) and `zlib` (for gzip - both already available on production)
 - **No external tools needed**: No Ghostscript, ImageMagick CLI, or LibreOffice required
 - **Smartphone photo optimization**: 3-8MB photos automatically resized to 500KB-1MB
+- **Browser-friendly viewing**: Images and PDFs viewable directly in browser (PRD CA1.7)
 - **Transparent decompression**: Treasurers can seamlessly access both old (uncompressed) and new (compressed) attachments
 
 ---
@@ -51,12 +53,13 @@ This plan details the technical implementation of inline attachment upload durin
 
 **File Compression:**
 - **Approach:** Two-track compression strategy using pure PHP
-  - **Images (JPEG, PNG, GIF, BMP, WebP):** Resize with GD + convert to JPEG + gzip
+  - **Images (JPEG, PNG, GIF, BMP, WebP):** Resize with GD + convert to JPEG quality 85 (no additional gzip - JPEG is already compressed)
   - **All other files (PDF, DOCX, CSV, TXT, etc.):** Standard gzip compression only
 - **Rationale:**
   - Pure PHP implementation (no external dependencies like Ghostscript)
-  - Uses only built-in extensions: `gd` and `zlib` (already available)
-  - Simpler error handling
+  - Uses only built-in extensions: `gd` (for images) and `zlib` (for gzip - both already available)
+  - JPEG is already a lossy compressed format - additional gzip provides minimal benefit
+  - Simpler serving - images can be viewed directly in browser without decompression
   - Immediate feedback to user
   - No background job infrastructure needed
   - Can move to async later if performance issues arise
@@ -690,12 +693,12 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 **Dependencies:** None (can run parallel to Phase 1)
 
 **Approach:** Two-track compression strategy:
-- **Images** (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG + gzip compression
+- **Images** (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG quality 85 (no additional gzip)
 - **Other files** (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
 
 **Required PHP Extensions:**
-- `gd` - Image manipulation (already available on production)
-- `zlib` - Gzip compression/decompression (already available on production)
+- `gd` - Image manipulation and JPEG conversion (already available on production)
+- `zlib` - Gzip compression/decompression for non-image files (already available on production)
 
 ### 3.1 Compression Library
 
@@ -708,12 +711,12 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
  * File Compressor Library
  *
  * PRD Section 5.2 AC2.2: Two-track compression strategy:
- * - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG + gzip compression
+ * - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG quality 85 (no gzip)
  * - Other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
  *
  * PRD Section 9.1: Requires only PHP gd and zlib extensions (no external tools)
  * - gd: Image manipulation (resize, convert to JPEG)
- * - zlib: Gzip compression/decompression
+ * - zlib: Gzip compression/decompression (for non-image files only)
  */
 class File_compressor {
 
@@ -809,14 +812,14 @@ class File_compressor {
      * Compress image file using GD
      * - Resize to max dimensions (1600x1200)
      * - Convert to JPEG quality 85
-     * - Apply gzip compression
+     * - NO additional gzip compression (JPEG is already compressed)
      *
      * @param string $file_path Path to image file
      * @param array $options Compression options
      * @return array ['success' => bool, 'compressed_path' => string, 'error' => string]
      */
     private function compress_image($file_path, $options = []) {
-        // PRD AC2.2: Images are resized to max 1600x1200, converted to JPEG quality 85, then gzipped
+        // PRD AC2.2: Images are resized to max 1600x1200, converted to JPEG quality 85 (no gzip)
         $max_width = $options['max_width'] ?? $this->get_config('image_max_width', 1600);
         $max_height = $options['max_height'] ?? $this->get_config('image_max_height', 1200);
         $quality = $options['quality'] ?? $this->get_config('image_quality', 85);
@@ -876,8 +879,9 @@ class File_compressor {
                           $new_width, $new_height, $width, $height);
 
         // Save as JPEG (convert to JPEG for better compression)
-        $temp_jpg_path = preg_replace('/\.[^.]+$/', '.jpg', $file_path);
-        $success = imagejpeg($destination, $temp_jpg_path, $quality);
+        // PRD Update: No additional gzip - JPEG is already compressed, store as .jpg
+        $output_path = preg_replace('/\.[^.]+$/', '.jpg', $file_path);
+        $success = imagejpeg($destination, $output_path, $quality);
 
         imagedestroy($source);
         imagedestroy($destination);
@@ -886,29 +890,7 @@ class File_compressor {
             return ['success' => false, 'error' => 'Failed to save compressed image'];
         }
 
-        // Apply gzip compression to JPEG
-        $jpeg_content = file_get_contents($temp_jpg_path);
-        if ($jpeg_content === false) {
-            unlink($temp_jpg_path);
-            return ['success' => false, 'error' => 'Failed to read JPEG file'];
-        }
-
-        $compressed = gzencode($jpeg_content, 9);
-        if ($compressed === false) {
-            unlink($temp_jpg_path);
-            return ['success' => false, 'error' => 'gzip compression failed'];
-        }
-
-        $output_path = $temp_jpg_path . '.gz';
-        if (file_put_contents($output_path, $compressed) === false) {
-            unlink($temp_jpg_path);
-            return ['success' => false, 'error' => 'Failed to write compressed file'];
-        }
-
-        // Clean up temp JPEG
-        unlink($temp_jpg_path);
-
-        $this->stats['method'] = 'gd+gzip';
+        $this->stats['method'] = 'gd+jpeg';
         return ['success' => true, 'compressed_path' => $output_path];
     }
 
@@ -985,7 +967,7 @@ class File_compressor {
         $compressed_size_mb = round($this->stats['compressed_size'] / (1024 * 1024), 2);
         $ratio_percent = round($this->stats['compression_ratio'] * 100, 1);
 
-        if ($this->stats['method'] === 'gd+gzip') {
+        if ($this->stats['method'] === 'gd+jpeg') {
             // Image compression log with dimensions
             $message = sprintf(
                 "Attachment compression: file=%s, original=%.2fMB (%s), compressed=%.2fMB (%s), ratio=%d%%, method=%s",
@@ -1099,13 +1081,15 @@ $config['compression'] = [
 
 ### 3.4 Testing Checklist
 
-- [ ] Test image compression (JPEG, PNG, GIF, BMP, WebP) - resize + JPEG + gzip
+- [ ] Test image compression (JPEG, PNG, GIF, BMP, WebP) - resize + convert to JPEG quality 85
 - [ ] Test smartphone photo optimization (PRD AC2.7: 3-8MB → 500KB-1MB)
-- [ ] Test PDF compression - gzip only
+- [ ] Verify images are stored as .jpg files (not .jpg.gz)
+- [ ] Verify images can be viewed directly in browser (PRD CA1.7)
+- [ ] Test PDF compression - gzip only (stored as .pdf.gz)
 - [ ] Test CSV/TXT compression - gzip only
 - [ ] Test DOC/DOCX compression - gzip only
 - [ ] Verify compression ratios logged correctly (PRD AC2.4)
-- [ ] Verify log format includes dimensions for images
+- [ ] Verify log format includes dimensions for images (method=gd+jpeg)
 - [ ] Test files below minimum size 100KB (not compressed per PRD AC2.3)
 - [ ] Test files with low compression ratio <10% (original kept per PRD AC2.3)
 - [ ] Test compression failure handling (fallback to original)
@@ -1120,10 +1104,10 @@ $config['compression'] = [
 ## 4. Phase 3: Transparent Decompression
 
 **Priority:** HIGH (same as Phase 2 - file compression)
-**Estimated Effort:** 6-8 hours
+**Estimated Effort:** 4-6 hours (reduced - images don't need decompression)
 **Dependencies:** Phase 2
 
-**Note:** This phase has been elevated to HIGH priority because compressed files are unusable without decompression. Treasurers must be able to view/download attachments seamlessly.
+**Note:** This phase handles decompression of gzipped files (PDFs, documents, text files). Images are stored as plain JPEG files and can be viewed directly in the browser without decompression (PRD CA1.7), simplifying this phase.
 
 ### 4.1 Download Handler
 
@@ -1154,12 +1138,14 @@ public function download($id) {
         return;
     }
 
-    // PRD AC3.10: Treasurers can still view or download previous attachments
-    // This includes both compressed and uncompressed files
+    // PRD AC3.10 & CA1.7: Treasurers can view/download attachments seamlessly
+    // - Images are stored as .jpg and can be viewed directly in browser
+    // - PDFs and documents stored as .gz need decompression
+    // - Old uncompressed files still work
 
-    // Check if file is compressed
+    // Check if file is gzip compressed
     if (preg_match('/\.gz$/', $file_path)) {
-        // Decompress to temp file
+        // Decompress to temp file (for PDFs, documents, etc.)
         $temp_file = $this->decompress_to_temp($file_path);
 
         if ($temp_file === false) {
@@ -1167,11 +1153,11 @@ public function download($id) {
             return;
         }
 
-        // Serve temp file (use original filename without .gz extension)
+        // Serve temp file (restore original filename without .gz extension)
         $original_name_no_gz = preg_replace('/\.gz$/', '', $original_name);
         $this->serve_file($temp_file, $original_name_no_gz, true);
     } else {
-        // Serve directly (original uncompressed file or compressed image/PDF)
+        // Serve directly - images (.jpg), old uncompressed files
         $this->serve_file($file_path, $original_name, false);
     }
 }
@@ -1270,16 +1256,17 @@ function attachment($id, $filename, $url = "") {
 ### 4.3 Testing Checklist
 
 - [ ] Download uncompressed file (legacy/old attachments)
-- [ ] Download gzip compressed file (.csv.gz, .txt.gz)
-- [ ] Download compressed PDF
-- [ ] Download compressed image (converted to .jpg)
-- [ ] Verify correct MIME types
-- [ ] Verify correct filenames (use original name, not storage name)
-- [ ] Test temp file cleanup
+- [ ] Download gzip compressed file (.csv.gz, .txt.gz, .pdf.gz)
+- [ ] Download compressed PDF (.pdf.gz) - verify decompression works
+- [ ] View/download JPEG images directly in browser (.jpg) - no decompression needed (PRD CA1.7)
+- [ ] Verify images display correctly in browser without download
+- [ ] Verify correct MIME types for all file types
+- [ ] Verify correct filenames (original name, .gz extension removed for compressed files)
+- [ ] Test temp file cleanup after serving decompressed files
 - [ ] Test with missing files
 - [ ] Test with corrupted compressed files
-- [ ] Performance test (large files)
-- [ ] **Critical:** Test treasurer workflow - ensure seamless access to both old (uncompressed) and new (compressed) attachments
+- [ ] Performance test (large files, especially decompression)
+- [ ] **Critical:** Test treasurer workflow - ensure seamless access to both old (uncompressed) and new (compressed/optimized) attachments
 
 ---
 
@@ -1891,19 +1878,19 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 
 // === Compression Settings ===
 // PRD Section 5.2 AC2.2: Two-track compression strategy
-// - Images: Resize + convert to JPEG + gzip
+// - Images: Resize + convert to JPEG quality 85 (no gzip - JPEG already compressed)
 // - Other files: gzip only (no external tools required)
 $config['compression'] = [
     'enabled' => TRUE,
     'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
     'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
-    // Image compression (PRD AC2.2: Resize + JPEG + gzip)
+    // Image compression (PRD AC2.2 & CA1.7: Resize + JPEG, no gzip)
     'image_max_width' => 1600,  // PRD AC2.6 & AC2.7: 300 DPI at A4, optimize smartphone photos
     'image_max_height' => 1200,
-    'image_quality' => 85, // JPEG quality (0-100)
+    'image_quality' => 85, // JPEG quality (0-100), stored as .jpg
 
-    // Gzip compression level for all files (PRD AC2.2)
+    // Gzip compression level for non-image files (PRD AC2.2)
     'gzip_level' => 9, // Maximum compression
 
     // Safety
@@ -1956,14 +1943,17 @@ $config['compression']['image_max_width'] = 1200; // Smaller dimensions
 
 **Key log messages to monitor:**
 ```
-// Successful compression
-INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%
+// Successful image compression (method=gd+jpeg)
+INFO - Attachment compression: file=photo.png, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd+jpeg
+
+// Successful document compression (method=gzip)
+INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=gzip
 
 // Compression skipped
 INFO - Compression skipped: File too small
 
 // Compression failed
-ERROR - Compression failed: Ghostscript not available
+ERROR - Compression failed: Invalid image file
 
 // Temp file cleanup
 INFO - Temp file cleanup: deleted 5 files, freed 12.3MB
@@ -2016,9 +2006,9 @@ du -sh uploads/attachments/*/*/
 
 **Issue:** Compression not working
 - **Check:** `$config['compression']['enabled']` is TRUE
-- **Check:** PHP extensions installed: `php -m | grep -E 'gd|imagick|zlib'`
-- **Check:** Ghostscript installed: `gs --version`
-- **Check:** File size above minimum threshold
+- **Check:** PHP extensions installed: `php -m | grep -E 'gd|zlib'`
+- **Check:** File size above minimum threshold (100KB default)
+- **Check:** Compression ratio meets minimum (10% default)
 - **Solution:** Enable verbose logging, check application logs
 
 **Issue:** Temp files accumulating
@@ -2067,13 +2057,16 @@ if ($this->get_config('debug', FALSE)) {
 
 **Estimated Timeline:**
 - Phase 1: 2-3 days (Inline attachment upload)
-- Phase 2: 2-3 days (Automatic compression)
-- Phase 3: 1-2 days (Transparent decompression - **HIGH PRIORITY**, must complete with Phase 2)
+- Phase 2: 2-3 days (Automatic compression - simplified for images)
+- Phase 3: 1 day (Transparent decompression - simpler since images don't need decompression)
 - Phase 4: 2 days (Batch compression script - after Phase 3)
 - Testing & Integration: 2-3 days
-- **Total: 9-13 days**
+- **Total: 9-12 days**
 
-**Critical Path Note:** Phases 2 and 3 should be developed and tested together since compression without decompression renders files unusable. Consider Phase 2 incomplete until Phase 3 is functional. Phase 4 (batch compression) should only be run after Phase 3 is complete to ensure treasurers can access both compressed and uncompressed files.
+**Critical Path Note:**
+- Phases 2 and 3 should be developed and tested together since gzip-compressed files (PDFs, documents) need decompression
+- Images (.jpg) can be served directly without decompression (PRD CA1.7), simplifying Phase 3
+- Phase 4 (batch compression) should only be run after Phase 3 is complete to ensure treasurers can access all file types
 
 ---
 
@@ -2093,8 +2086,8 @@ if ($this->get_config('debug', FALSE)) {
 
 ### Phase 2: Automatic File Compression (6 tasks)
 - [ ] Create File_compressor.php library
-- [ ] Implement compress_image() method (GD + JPEG + gzip)
-- [ ] Implement compress_gzip() method
+- [ ] Implement compress_image() method (GD + JPEG conversion, no gzip)
+- [ ] Implement compress_gzip() method (for non-image files)
 - [ ] Integrate compression into attachments.php upload
 - [ ] Add compression configuration to config file
 - [ ] Complete Phase 2 testing checklist

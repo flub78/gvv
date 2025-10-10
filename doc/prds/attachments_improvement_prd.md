@@ -157,6 +157,8 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
   - Si la sauvegarde échoue : conserver les fichiers temporaires pour re-soumission du formulaire
 - CA1.5 : L'utilisateur peut retirer les fichiers téléchargés avant la soumission finale
 - CA1.6 : Le flux de travail d'édition existant continue de fonctionner sans changement
+- CA1.7 : L'utilisateur peux visualiser les images et les fichiers pdf directement dans son navigateur
+- CA1.8 : L'utilisateur peux télécharger tous les autres type de fichier zip, docx, xlxs, etc.
 
 ---
 
@@ -175,8 +177,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
   - **Images (JPEG, PNG, GIF, BMP, WebP) :**
     - Redimensionner aux dimensions maximales (1600x1200 pixels) tout en maintenant le ratio d'aspect
     - Convertir au format JPEG avec qualité 85
-    - Appliquer la compression gzip au fichier résultant
-    - Stocker comme `filename.jpg.gz`
+    - Stocker comme `filename.jpg`
   - **Tous les autres fichiers (PDF, DOCX, CSV, TXT, etc.) :**
     - Compresser en utilisant la fonction PHP `gzencode()` (niveau 9)
     - Pas de conversion de format
