@@ -31,6 +31,10 @@ class Compta extends Gvv_Controller {
     protected $modification_level = 'tresorier';
     protected $rules = ['club' => "callback_section_selected"];
 
+    // Account selector filters to preserve during validation errors
+    protected $emploi_selection = [];
+    protected $resource_selection = [];
+
     /**
      * Constructor
      */
@@ -52,8 +56,6 @@ class Compta extends Gvv_Controller {
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::edit()
-     * 
-     * TODO: limiter les comptes possibles, au rechargement on perd le context de guidage
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
 
@@ -126,9 +128,42 @@ class Compta extends Gvv_Controller {
     protected function form_static_element($action) {
         parent::form_static_element($action);
 
-        $this->data['title_key'] = "gvv_compta_title_line";
-        $this->gvvmetadata->set_selector('compte1_selector', $this->comptes_model->selector_with_null([], TRUE));
-        $this->gvvmetadata->set_selector('compte2_selector', $this->comptes_model->selector_with_null([], TRUE));
+        // Restore account selection filters from POST data (during validation errors)
+        $emploi_selection_json = $this->input->post('emploi_selection');
+        $resource_selection_json = $this->input->post('resource_selection');
+
+        if ($emploi_selection_json) {
+            $this->emploi_selection = json_decode($emploi_selection_json, true);
+        }
+        if ($resource_selection_json) {
+            $this->resource_selection = json_decode($resource_selection_json, true);
+        }
+
+        // Restore title from POST data and rebuild with section
+        $title_key = $this->input->post('title_key');
+        if ($title_key) {
+            $this->data['title_key'] = $title_key;
+            // Rebuild title with section name
+            $title = $this->lang->line($title_key);
+            $section = $this->gvv_model->section();
+            if ($section) {
+                $title .= " section " . $section['nom'];
+            }
+            $this->data['title'] = $title;
+        } else {
+            $this->data['title_key'] = "gvv_compta_title_line";
+        }
+
+        // Pass selection filters to view for hidden fields
+        $this->data['emploi_selection'] = $this->emploi_selection;
+        $this->data['resource_selection'] = $this->resource_selection;
+
+        // Use stored account filters to preserve selection restrictions during validation errors
+        $this->gvvmetadata->set_selector('compte1_selector',
+            $this->comptes_model->selector_with_null($this->emploi_selection, TRUE));
+        $this->gvvmetadata->set_selector('compte2_selector',
+            $this->comptes_model->selector_with_null($this->resource_selection, TRUE));
+
         $this->data['date_creation'] = date("d/m/Y");
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
@@ -288,13 +323,22 @@ class Compta extends Gvv_Controller {
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
+        // Store account selection filters to preserve them during validation errors
+        $this->emploi_selection = $emploi_selection;
+        $this->resource_selection = $resource_selection;
+
         $title = $this->lang->line($title_key);
         $section = $this->gvv_model->section();
         if ($section) {
             $title .= " section " . $section['nom'];
         }
         $this->data['title'] = $title;
+        $this->data['title_key'] = $title_key;
         if ($message) $this->data['message'] = $message;
+
+        // Pass selection filters to view for hidden fields
+        $this->data['emploi_selection'] = $emploi_selection;
+        $this->data['resource_selection'] = $resource_selection;
 
         $compte1_selector = $this->comptes_model->selector_with_null($emploi_selection, TRUE);
         $this->gvvmetadata->set_selector('compte1_selector', $compte1_selector);

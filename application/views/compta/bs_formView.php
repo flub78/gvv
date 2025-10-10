@@ -57,8 +57,16 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 
         echo form_hidden('id', $id);
         echo form_hidden('date_creation', $date_creation);
-        echo form_hidden('title', $this->lang->line($title_key));
+        echo form_hidden('title_key', $title_key);
         echo form_hidden('categorie', 0);
+
+        // Store account selection filters to preserve them during validation errors
+        if (isset($emploi_selection)) {
+            echo form_hidden('emploi_selection', json_encode($emploi_selection));
+        }
+        if (isset($resource_selection)) {
+            echo form_hidden('resource_selection', json_encode($resource_selection));
+        }
 
         echo validation_errors();
         echo ($this->gvvmetadata->form('ecritures', array(
