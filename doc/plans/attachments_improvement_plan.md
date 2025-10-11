@@ -1370,6 +1370,10 @@ function attachment($id, $filename, $url = "") {
 
 **Note:** This phase comes after transparent decompression to ensure that treasurers can access both old (uncompressed) and newly compressed attachments before running batch compression on historical files.
 
+**PRD Updates (CA3.11-CA3.12):**
+- **PDFs and compressible images**: Compressed in-place (file path remains the same, content is optimized)
+- **Other files**: Add .gz extension, originals are deleted (e.g., `document.docx` becomes `document.docx.gz`)
+
 ### 5.1 Script Implementation
 
 **File:** `scripts/batch_compress_attachments.php`
@@ -1631,6 +1635,9 @@ class Batch_Attachment_Compressor {
         }
 
         // Attempt compression
+        // PRD CA3.11-CA3.12:
+        // - Images/PDFs: Compressed in-place (same path, optimized content)
+        // - Other files: New .gz file created (path will have .gz extension)
         $result = $this->CI->file_compressor->compress($file_path);
 
         if ($result['success']) {
@@ -1638,12 +1645,16 @@ class Batch_Attachment_Compressor {
             $compressed_size = filesize($compressed_path);
             $this->stats['compressed_size'] += $compressed_size;
 
-            // Update database
+            // Update database with new file path
+            // For images/PDFs: path unchanged (in-place compression)
+            // For other files: path now ends with .gz
             $this->CI->db->where('id', $id);
             $update_success = $this->CI->db->update('attachments', ['file' => $compressed_path]);
 
             if ($update_success) {
-                // Delete original file
+                // Delete original file (only for .gz files where path changed)
+                // For images/PDFs: file_path === compressed_path, so skip deletion
+                // For other files: original file is deleted after successful .gz creation
                 if ($file_path !== $compressed_path && file_exists($file_path)) {
                     unlink($file_path);
                 }
@@ -1762,10 +1773,12 @@ class Batch_Attachment_Compressor {
 - [ ] Verify progress tracking
 - [ ] Test with --verbose flag
 - [ ] Verify database updates
-- [ ] Verify original files deleted
+- [ ] Verify original files deleted for non-image/PDF files (CA3.12)
+- [ ] **CA3.11:** Verify images and PDFs compressed in-place (same file path, optimized content)
+- [ ] **CA3.12:** Verify other files get .gz extension added (e.g., doc.docx → doc.docx.gz), originals deleted
 - [ ] Check compression statistics accuracy
 - [ ] Test error handling (missing files, corrupted files)
-- [ ] **Critical:** Verify treasurers can still view/download previously uploaded (uncompressed) attachments after batch compression
+- [ ] **Critical:** Verify treasurers can still view/download previously uploaded (uncompressed) attachments after batch compression (CA3.10)
 
 ---
 
@@ -2185,12 +2198,12 @@ if ($this->get_config('debug', FALSE)) {
 - [x] Complete Phase 1 testing checklist
 
 ### Phase 2: Automatic File Compression (7 tasks)
-- [ ] Create File_compressor.php library
-- [ ] Implement compress_image() method (GD resize + recompress in original format)
-- [ ] Implement compress_pdf() method (Ghostscript /ebook, keep as PDF)
+- [x] Create File_compressor.php library
+- [x] Implement compress_image() method (GD resize + recompress in original format)
+- [x] Implement compress_pdf() method (Ghostscript /ebook, keep as PDF)
 - [ ] Implement compress_gzip() method (for non-image, non-PDF files)
-- [ ] Integrate compression into attachments.php upload
-- [ ] Add compression configuration to config file (including Ghostscript settings)
+- [x] Integrate compression into attachments.php upload
+- [x] Add compression configuration to config file (including Ghostscript settings)
 - [ ] Complete Phase 2 testing checklist
 
 ### Phase 3: Transparent Decompression (5 tasks)

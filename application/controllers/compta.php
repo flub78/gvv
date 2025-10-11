@@ -520,6 +520,30 @@ class Compta extends Gvv_Controller {
 
             // Move file from temp to permanent
             if (rename($temp_path, $permanent_path)) {
+                gvv_debug("Moved pending attachment: $storage_name → $permanent_path");
+
+                // Attempt compression
+                $this->load->library('file_compressor');
+                gvv_debug("Attempting compression for: $permanent_path");
+
+                $compression_result = $this->file_compressor->compress($permanent_path);
+
+                if ($compression_result['success']) {
+                    $compressed_path = $compression_result['compressed_path'];
+                    $final_path = $compressed_path;
+
+                    // Delete original if path changed (for .gz files)
+                    if ($permanent_path !== $compressed_path && file_exists($permanent_path)) {
+                        unlink($permanent_path);
+                    }
+
+                    gvv_debug("File compressed successfully: $final_path");
+                } else {
+                    // Use original file
+                    $final_path = $permanent_path;
+                    gvv_debug("Compression skipped: " . $compression_result['error']);
+                }
+
                 // Create attachment database record
                 $attachment_data = [
                     'referenced_table' => $referenced_table,
@@ -527,16 +551,16 @@ class Compta extends Gvv_Controller {
                     'user_id' => $this->dx_auth->get_username(),
                     'filename' => $file_info['original_name'],
                     'description' => '', // User can edit later
-                    'file' => $permanent_path,
+                    'file' => $final_path,
                     'club' => $file_info['club']
                 ];
 
                 $this->db->insert('attachments', $attachment_data);
                 $processed++;
 
-                log_message('info', "GVV: Processed pending attachment: $storage_name → $permanent_path");
+                gvv_info("Created attachment record with file: $final_path");
             } else {
-                log_message('error', "GVV: Failed to move pending attachment: $temp_path → $permanent_path");
+                gvv_error("Failed to move pending attachment: $temp_path → $permanent_path");
             }
         }
 

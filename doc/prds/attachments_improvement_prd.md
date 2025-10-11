@@ -219,6 +219,8 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 - CA3.8 : Annule en cas d'échec de compression
 - CA3.9 : Journalise toutes les opérations avec statistiques de compression
 - CA3.10 : Les trésoriers peuvent toujours voir ou télécharger les pièces jointes précédentes
+- CA3.11 : Les fichiers pdf et images compressibles sont compressés en place
+- CA3.12 : On ajoute aux autres une extension (.zip, .tz). Les originaux sont supprimés
 
 ---
 
