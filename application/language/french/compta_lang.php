@@ -41,7 +41,7 @@ $lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Re
 $lang['gvv_compta_comptes'] = "Comptes";
 $lang['gvv_compta_compte'] = "Compte";
 $lang['gvv_compta_date'] = "Date";
-$lang['gvv_compta_jusqua'] = "Jusqu'a";
+$lang['gvv_compta_jusqua'] = "Jusqu'à";
 $lang['gvv_compta_type_ecriture'] = array(0 => 'Tout', 1 => 'Vérifiés', 2 => 'Non vérifiés');
 $lang['gvv_compta_emploi'] = "Emploi";
 $lang['gvv_compta_resource'] = "Ressource";

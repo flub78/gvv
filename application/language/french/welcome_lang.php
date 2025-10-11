@@ -67,12 +67,12 @@ $lang['welcome_ticket_types_title'] = "Types de ticket";
 $lang['welcome_special_entries_title'] = "Ecritures spécialisées";
 $lang['welcome_global_entries_title'] = "Ecriture générale";
 $lang['welcome_special_entries_warning'] = "A cause du risque d'erreur, le passage d'ecritures générales est déconseillé. Les ecritures générales sont possibles entre n'importe quel comptes dans n'importe quel sens. Les écrans d'écritures spécialisé, recettes, dépenses, paiement pilotes, etc. "
-	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est controlé, il guident l'utilisateur. Si vous etes ammené à passer régulierement des écritures générales, faites créer un écran de saisie spécialisé.";
+	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est contrôlé, il guident l'utilisateur. Si vous êtes amené à passer régulièrement des écritures générales, faites créer un écran de saisie spécialisé.";
 
 $lang['welcome_global_financial_report'] = "Rapport financier annuel";
 
 $lang['welcome_nyi_title'] = "Information";
 $lang['welcome_nyi_text'] = "Cette page n'est pas encore disponible. Revenez plus tard, ou portez vous volontaire pour la réaliser.";
 
-$lang['welcome_confirm_delete'] = "Etes vous sûr de vouloir supprimer cet élément?";
+$lang['welcome_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cet élément?";
 $lang['welcome_not_a_user_event'] = "Vous n'êtes pas autorisé à modifier cet événement.";

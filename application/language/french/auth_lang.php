@@ -20,10 +20,10 @@ $lang['auth_enter_id'] = 'Entrez votre identifiant ou votre adresse email';
 $lang['auth_enter_code'] = "Entrez le code exactement comme il est affiché. Il n'y a pas de zéro.";
 
 $lang['auth_existing_user'] = 'Cet identifiant existe déjà, choisissez en un autre svp.';
-$lang['auth_existing_email'] = 'Ce courriel déjà été utilisé. Choisissez en un autre.';
+$lang['auth_existing_email'] = 'Ce courriel a déjà été utilisé. Choisissez en un autre.';
 $lang['auth_expired_code'] = 'Votre code de confirmation est expiré. Essayez à nouveau.';
 $lang['auth_incorrect_captcha'] = "Votre code de confirmation ne correspond pas à l'image. Essayez encore.";
-$lang['auth_already_connected'] = 'Vous etes déjà connecté.';
+$lang['auth_already_connected'] = 'Vous êtes déjà connecté.';
 $lang['auth_bye'] = 'Au revoir.';
 $lang['auth_success_registration_email'] = 'Vous avez été enregistré. Consultez vos emails pour activer votre compte.';
 $lang['auth_success_registration'] = 'Vous avez été enregistré.';
@@ -56,7 +56,7 @@ $lang['auth_delete_authorized'] = "Suppression autorisée";
 $lang['auth_delete_forbiden'] = "Suppression interdite";
 
 $lang['gvv_error_weak_password'] = "Changer, votre mot de passe, s'il vous plait.";
-$lang['gvv_error_reset_password_failed'] = "Echec de la réinitialisation du mot de passe.";
+$lang['gvv_error_reset_password_failed'] = "Échec de la réinitialisation du mot de passe.";
 $lang['gvv_reset_password_success'] = "Réinitialisation du mot de passe effectuée";
 $lang['gvv_error_saving_user'] = "Erreur sur l'enregistrement de l'utilisateur.";
 $lang['gvv_error_confirm_password'] = "Confirmation du mot de passe incorrecte";

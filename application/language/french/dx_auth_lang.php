@@ -22,7 +22,7 @@ $lang['auth_forgot_password_subject'] = "Demande de nouveau mot de passe";
 // Email content
 $lang['auth_account_content'] = "Bienvenue à %s,
 
-Merci de vous etes enregistré. Votre compte a été créé.
+Merci de vous être enregistré. Votre compte a été créé.
 
 Vous pouvez vous connecter avec votre identifiant ou votre adresse email:
 

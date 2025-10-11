@@ -22,10 +22,10 @@ $lang['membre_link_tickets'] = "Tickets";
 
 $lang['membre_tooltip_active'] = "Les pilotes actifs apparaissent dans les menus";
 
-$lang['membre_fieldset_perso'] = "Informations personelles";
+$lang['membre_fieldset_perso'] = "Informations personnelles";
 $lang['membre_fieldset_billing'] = "Facturation";
 $lang['membre_fieldset_responsibility'] = "Responsabilités club";
-$lang['membre_fieldset_airplaine'] = "Expérience avion";
+$lang['membre_fieldset_airplane'] = "Expérience avion";
 $lang['membre_fieldset_glider'] = "Expérience vol à voile";
 $lang['membre_fieldset_information'] = "Informations";
 
