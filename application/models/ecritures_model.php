@@ -666,6 +666,9 @@ class Ecritures_model extends Common_Model {
             $this->load->model("comptes_model");
             $this->comptes_model->maj_comptes($compte1, $compte2, -$montant);
 
+            // Delete associated attachments and their files before deleting the ecriture
+            $this->delete_attachments_for_ecriture($id);
+
             $res = $this->db->delete($this->table, array(
                 'id' => $id
             ));
@@ -1691,6 +1694,67 @@ array (size=2)
         gvv_debug("sql: rapprochements ecritures: " . $this->db->last_query());
 
         return $this->get_to_array($db_res);
+    }
+
+    /**
+     * Delete all attachments associated with an ecriture and their files
+     *
+     * This method is called before deleting an ecriture to ensure all associated
+     * attachments and their physical files are properly cleaned up, recovering storage space.
+     *
+     * @param int $ecriture_id The ID of the ecriture being deleted
+     */
+    private function delete_attachments_for_ecriture($ecriture_id) {
+        // Get all attachments for this ecriture
+        $attachments = $this->db
+            ->select('id, file')
+            ->from('attachments')
+            ->where('referenced_table', 'ecritures')
+            ->where('referenced_id', $ecriture_id)
+            ->get()
+            ->result_array();
+
+        if (empty($attachments)) {
+            gvv_debug("No attachments found for ecriture $ecriture_id");
+            return;
+        }
+
+        $deleted_files = 0;
+        $deleted_records = 0;
+        $total_size = 0;
+
+        // Delete each attachment file and database record
+        foreach ($attachments as $attachment) {
+            $file_path = $attachment['file'];
+            $attachment_id = $attachment['id'];
+
+            // Delete physical file if it exists
+            if (!empty($file_path) && file_exists($file_path)) {
+                $file_size = filesize($file_path);
+                if (@unlink($file_path)) {
+                    $deleted_files++;
+                    $total_size += $file_size;
+                    gvv_debug("Deleted attachment file: $file_path (size: " . round($file_size/1024, 2) . " KB)");
+                } else {
+                    gvv_error("Failed to delete attachment file: $file_path");
+                }
+            } else {
+                gvv_debug("Attachment file not found or empty path: $file_path");
+            }
+
+            // Delete database record
+            if ($this->db->delete('attachments', ['id' => $attachment_id])) {
+                $deleted_records++;
+            } else {
+                gvv_error("Failed to delete attachment record: $attachment_id");
+            }
+        }
+
+        // Log summary
+        if ($deleted_files > 0 || $deleted_records > 0) {
+            $total_size_mb = round($total_size / (1024 * 1024), 2);
+            gvv_info("Deleted $deleted_files file(s) and $deleted_records attachment record(s) for ecriture $ecriture_id, recovered {$total_size_mb}MB storage");
+        }
     }
 
     /**

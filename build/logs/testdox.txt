@@ -50,6 +50,18 @@ Configuration Model
  [x] Configuration categories
  [x] Configuration priority
 
+Ecriture Attachment Deletion
+ [x] Delete attachments method exists
+ [x] Delete ecriture calls attachment deletion
+ [x] Delete all uses delete ecriture
+ [x] Attachment deletion implementation
+ [x] Handles empty attachments
+ [x] Handles file deletion errors
+ [x] Handles database deletion errors
+ [x] Provides proper logging
+ [x] Method documentation
+ [x] Attachment deletion order
+
 Bitfield
  [x] Constructor
  [x] To string
