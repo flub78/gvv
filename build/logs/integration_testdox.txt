@@ -14,6 +14,15 @@ Assets Helper Integration
  [x] Controller url different paths
  [x] Jqueryui theme
 
+Attachment Storage Feature
+ [x] New file is stored when attachment uploaded
+ [x] File is deleted when attachment removed
+ [x] File is replaced when attachment edited
+ [x] Big image is significantly compressed
+ [x] Jpeg compressed in place
+ [x] Small image not compressed
+ [x] Attachments deleted when accounting line deleted
+
 Attachments Controller
  [x] Upload pdf file creates attachment
  [x] Upload jpeg image creates attachment

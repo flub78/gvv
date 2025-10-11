@@ -121,19 +121,24 @@ run_suite() {
         # Note: We still generate temp reports via logging config, but merge later
         $PHP_BIN vendor/bin/phpunit --configuration "$config_file" \
             --coverage-php "build/coverage-data/${suite_id}.cov" 2>&1 | \
+            tee /tmp/phpunit_${suite_id}_output.txt | \
             grep -v "Declaration of.*should be compatible" | \
             grep -v "Xdebug.*Step Debug" | \
-            grep -v "Generating code coverage report" || true
+            grep -v "Generating code coverage report"
+        local exit_code=${PIPESTATUS[0]}
     else
         # Run without coverage
         $PHP_BIN vendor/bin/phpunit --configuration "$config_file" --no-coverage 2>&1 | \
-            grep -v "Xdebug.*Step Debug" || true
+            tee /tmp/phpunit_${suite_id}_output.txt | \
+            grep -v "Xdebug.*Step Debug"
+        local exit_code=${PIPESTATUS[0]}
     fi
 
-    local exit_code=${PIPESTATUS[0]}
-
-    if [ $exit_code -ne 0 ] && [ $exit_code -ne 2 ]; then
+    # Check for test failures or errors
+    # PHPUnit returns 0 for success, 1 for test failures, 2 for errors
+    if [ $exit_code -ne 0 ]; then
         FAILED_SUITES=$((FAILED_SUITES + 1))
+        echo -e "${RED}✗ Suite failed with exit code $exit_code${NC}"
     fi
 
     echo ""

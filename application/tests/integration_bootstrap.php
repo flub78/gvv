@@ -295,19 +295,24 @@ if (!function_exists('config_item')) {
 // Create a minimal CI loader
 class MockLoader {
     private $loaded_helpers = array();
-    
+
     public function database($db = '', $return = FALSE, $active_record = NULL) {
         // Mock database loading - return true
         return true;
     }
-    
+
     public function model($model, $name = '', $db_conn = FALSE) {
         // Mock model loading
         return true;
     }
-    
+
     public function library($library, $params = NULL, $object_name = NULL) {
         // Mock library loading
+        return true;
+    }
+
+    public function config($config, $use_sections = FALSE, $fail_gracefully = FALSE) {
+        // Mock config file loading
         return true;
     }
 
@@ -401,6 +406,18 @@ class MockConfig {
                 return 'http://localhost/gvv2/';
             case 'index_page':
                 return 'index.php';
+            case 'compression':
+                // Return compression config for File_compressor
+                return [
+                    'enabled' => true,
+                    'min_size' => 102400, // 100KB
+                    'min_ratio' => 0.10,
+                    'image_max_width' => 1600,
+                    'image_max_height' => 1200,
+                    'image_quality' => 85,
+                    'pdf_quality' => 'ebook',
+                    'ghostscript_path' => 'gs'
+                ];
             default:
                 return '';
         }
