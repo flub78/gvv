@@ -3,13 +3,14 @@
 /**
  * File Compressor Library
  *
- * PRD Section 5.2 AC2.2: Three-track compression strategy (Phase 2 - Images only):
+ * PRD Section 5.2 AC2.2: Three-track compression strategy:
  * - Compressible Images (JPEG, PNG, GIF, WebP): Resize with GD + recompress in original format
- * - PDFs: Not implemented yet (will use Ghostscript /ebook in future phase)
+ * - PDFs: Ghostscript /ebook (150 DPI) + keep as PDF
  * - Other files: Not implemented yet (will use gzip in future phase)
  *
  * Requirements:
  * - gd: Image manipulation (resize, recompress in original format)
+ * - ghostscript: PDF optimization (gs command)
  */
 class File_compressor {
 
@@ -67,11 +68,13 @@ class File_compressor {
         // Initialize stats
         $this->stats['original_size'] = $original_size;
 
-        // Route to appropriate compression method (images only for now)
+        // Route to appropriate compression method
         if ($this->is_image($extension)) {
             $result = $this->compress_image($file_path, $options);
+        } elseif ($this->is_pdf($extension)) {
+            $result = $this->compress_pdf($file_path, $options);
         } else {
-            // PDFs and other files not implemented yet
+            // Other files (gzip) not implemented yet
             return ['success' => false, 'error' => 'Compression not implemented for this file type yet'];
         }
 
@@ -256,6 +259,73 @@ class File_compressor {
     }
 
     /**
+     * Compress PDF file using Ghostscript
+     * - Uses /ebook settings (150 DPI) for good quality with reduced file size
+     * - Keeps file as PDF (no format conversion)
+     *
+     * @param string $file_path Path to PDF file
+     * @param array $options Compression options
+     * @return array ['success' => bool, 'compressed_path' => string, 'error' => string]
+     */
+    private function compress_pdf($file_path, $options = []) {
+        // Get Ghostscript configuration
+        $gs_path = $options['ghostscript_path'] ?? $this->get_config('ghostscript_path', 'gs');
+        $quality = $options['pdf_quality'] ?? $this->get_config('pdf_quality', 'ebook');
+
+        // Check if Ghostscript is available
+        $check_command = sprintf('%s --version 2>&1', escapeshellcmd($gs_path));
+        exec($check_command, $output, $return_code);
+        if ($return_code !== 0) {
+            return ['success' => false, 'error' => 'Ghostscript not available'];
+        }
+
+        // Create temporary output file
+        $temp_output = $file_path . '.tmp.pdf';
+
+        // Build Ghostscript command
+        // -sDEVICE=pdfwrite: Output as PDF
+        // -dCompatibilityLevel=1.4: PDF 1.4 compatibility
+        // -dPDFSETTINGS=/ebook: 150 DPI, good quality with compression
+        // -dNOPAUSE -dQUIET -dBATCH: Non-interactive mode
+        $command = sprintf(
+            '%s -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/%s ' .
+            '-dNOPAUSE -dQUIET -dBATCH -sOutputFile=%s %s 2>&1',
+            escapeshellcmd($gs_path),
+            escapeshellarg($quality),
+            escapeshellarg($temp_output),
+            escapeshellarg($file_path)
+        );
+
+        // Execute Ghostscript
+        exec($command, $output, $return_code);
+
+        if ($return_code !== 0 || !file_exists($temp_output)) {
+            // Compression failed
+            if (file_exists($temp_output)) {
+                unlink($temp_output);
+            }
+            $error_msg = implode(' ', $output);
+            return ['success' => false, 'error' => 'Ghostscript compression failed: ' . $error_msg];
+        }
+
+        // Check if output file is valid
+        $compressed_size = filesize($temp_output);
+        if ($compressed_size === 0) {
+            unlink($temp_output);
+            return ['success' => false, 'error' => 'Ghostscript produced empty file'];
+        }
+
+        // Replace original with compressed
+        if (!rename($temp_output, $file_path)) {
+            unlink($temp_output);
+            return ['success' => false, 'error' => 'Failed to replace original PDF'];
+        }
+
+        $this->stats['method'] = 'ghostscript/' . $quality;
+        return ['success' => true, 'compressed_path' => $file_path];
+    }
+
+    /**
      * Check if file is an image
      *
      * @param string $extension File extension (lowercase)
@@ -264,6 +334,16 @@ class File_compressor {
     private function is_image($extension) {
         $image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         return in_array($extension, $image_extensions);
+    }
+
+    /**
+     * Check if file is a PDF
+     *
+     * @param string $extension File extension (lowercase)
+     * @return bool True if PDF
+     */
+    private function is_pdf($extension) {
+        return $extension === 'pdf';
     }
 
     /**
@@ -288,17 +368,30 @@ class File_compressor {
         $compressed_size_mb = round($this->stats['compressed_size'] / (1024 * 1024), 2);
         $ratio_percent = round($this->stats['compression_ratio'] * 100, 1);
 
-        // Image compression log with dimensions
-        $message = sprintf(
-            "Attachment compression: file=%s, original=%.2fMB (%s), compressed=%.2fMB (%s), ratio=%d%%, method=%s",
-            basename($original_path),
-            $original_size_mb,
-            $this->stats['original_dimensions'],
-            $compressed_size_mb,
-            $this->stats['new_dimensions'],
-            $ratio_percent,
-            $this->stats['method']
-        );
+        // Format log message based on whether dimensions are available (images) or not (PDFs)
+        if (!empty($this->stats['original_dimensions'])) {
+            // Image compression log with dimensions
+            $message = sprintf(
+                "Attachment compression: file=%s, original=%.2fMB (%s), compressed=%.2fMB (%s), ratio=%d%%, method=%s",
+                basename($original_path),
+                $original_size_mb,
+                $this->stats['original_dimensions'],
+                $compressed_size_mb,
+                $this->stats['new_dimensions'],
+                $ratio_percent,
+                $this->stats['method']
+            );
+        } else {
+            // PDF/other compression log without dimensions
+            $message = sprintf(
+                "Attachment compression: file=%s, original=%.2fMB, compressed=%.2fMB, ratio=%d%%, method=%s",
+                basename($original_path),
+                $original_size_mb,
+                $compressed_size_mb,
+                $ratio_percent,
+                $this->stats['method']
+            );
+        }
 
         log_message('info', $message);
     }

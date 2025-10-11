@@ -14,13 +14,13 @@ $config['max_temp_storage_mb'] = 500;
 $config['upload_max_size'] = 20480; // 20MB in KB
 $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt';
 
-// === Compression Settings (Phase 2 - Images only) ===
+// === Compression Settings ===
 // PRD Section 5.2 AC2.2: Three-track compression strategy
 // - Compressible Images (JPEG, PNG, GIF, WebP): Resize + recompress in original format
-// - PDFs: Not implemented yet (will use Ghostscript /ebook in future phase)
+// - PDFs: Ghostscript /ebook (150 DPI) + keep as PDF
 // - Other files: Not implemented yet (will use gzip in future phase)
 $config['compression'] = [
-    'enabled' => TRUE, // Enabled for Phase 2 (images only)
+    'enabled' => TRUE,
     'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
     'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
@@ -29,9 +29,9 @@ $config['compression'] = [
     'image_max_height' => 1200,
     'image_quality' => 85, // Quality (0-100) for JPEG/WebP, converted to 0-9 for PNG
 
-    // PDF compression - NOT IMPLEMENTED YET
-    // 'ghostscript_path' => 'gs',
-    // 'pdf_quality' => 'ebook',
+    // PDF compression (PRD AC2.2: Ghostscript /ebook for 150 DPI)
+    'ghostscript_path' => 'gs',  // Path to Ghostscript binary
+    'pdf_quality' => 'ebook',    // /ebook = 150 DPI (other options: /screen=72dpi, /printer=300dpi, /prepress=300dpi)
 
     // Gzip compression - NOT IMPLEMENTED YET
     // 'gzip_level' => 9,
