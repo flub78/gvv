@@ -26,7 +26,7 @@ $lang['membre_tooltip_active'] = "Enkel actieve piloten zijn zichtbaar";
 $lang['membre_fieldset_perso'] = "Persoonlijke informatie";
 $lang['membre_fieldset_billing'] = "Facturatie";
 $lang['membre_fieldset_responsibility'] = "Verantwoordelijkheden club";
-$lang['membre_fieldset_airplaine'] = "Ervaring motorvliegen";
+$lang['membre_fieldset_airplane'] = "Ervaring motorvliegen";
 $lang['membre_fieldset_glider'] = "Ervaring zweefvliegen";
 $lang['membre_fieldset_information'] = "Informatie";
 

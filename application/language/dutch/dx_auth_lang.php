@@ -10,14 +10,14 @@ $lang['auth_login_username_not_exist'] = "Gebruikersnaam bestaat niet.";
 
 $lang['auth_username_or_email_not_exist'] = "Gebruikersnaam of e-mailadres bestaat niet.";
 $lang['auth_not_activated'] = "Uw account werd nog niet geactiveerd, gelieve uw mailbox te controleren.";
-$lang['auth_request_sent'] = "Uw aanvraag voor wijzigen paswoord werd reeds gestuurd, gelieve uw mailbox te controleren..";
+$lang['auth_request_sent'] = "Uw aanvraag voor wijzigen wachtwoord werd reeds gestuurd, gelieve uw mailbox te controleren..";
 $lang['auth_incorrect_old_password'] = "Het oude wachtwoord is foutief.";
 $lang['auth_incorrect_password'] = "Uw wachtwoord is foutief.";
 
 // Email subject
 $lang['auth_account_subject'] = "%s account details";
 $lang['auth_activate_subject'] = "%s activatie";
-$lang['auth_forgot_password_subject'] = "Aanvraag nieuw paswoord";
+$lang['auth_forgot_password_subject'] = "Aanvraag nieuw wachtwoord";
 
 // Email content
 $lang['auth_account_content'] = "Welkom bij %s,
@@ -28,7 +28,7 @@ U kan inloggen met volgende gegevens:
 
 Login: %s
 E-mail: %s
-Paswoord: %s
+Wachtwoord: %s
 
 U kan aanloggen door volgende link te volgen: %s
 

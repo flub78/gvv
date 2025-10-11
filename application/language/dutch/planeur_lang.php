@@ -22,8 +22,8 @@ $lang['gvv_machinesp_field_mmax_facturation'] = "Forfait minuten";
 $lang['gvv_machinesp_field_actif'] = "Actief";
 $lang['gvv_machinesp_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesp_field_comment'] = "Omschrijving";
-$lang['gvv_machinesp_field_banalise'] = "Machine banalisée";
-$lang['gvv_machinesp_field_proprio'] = "Propriétaire";
+$lang['gvv_machinesp_field_banalise'] = "Clubtoestel";
+$lang['gvv_machinesp_field_proprio'] = "Eigenaar";
 
 $lang['gvv_machinesp_short_field_mpconstruc'] = "Constructeur";
 $lang['gvv_machinesp_short_field_mpmodele'] = "Type";
@@ -36,8 +36,8 @@ $lang['gvv_machinesp_short_field_mpprive'] = "Privétoestel";
 $lang['gvv_machinesp_short_field_actif'] = "Actief";
 $lang['gvv_machinesp_short_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesp_short_field_vols'] = "Vluchten";
-$lang['gvv_machinesp_short_field_banalise'] = "Banalisée";
-$lang['gvv_machinesp_short_field_proprio'] = "Propriétaire";
+$lang['gvv_machinesp_short_field_banalise'] = "Clubtoestel";
+$lang['gvv_machinesp_short_field_proprio'] = "Eigenaar";
 
 $lang['planeur_filter_active'] = "Actief";
 $lang['planeur_filter_owner'] = "Eigenaar";

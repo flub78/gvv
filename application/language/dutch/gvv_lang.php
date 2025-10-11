@@ -10,7 +10,7 @@ $lang['gvv_menu_membres'] = "Leden";
 $lang['gvv_menu_membres_list'] = "Lijst";
 $lang['gvv_menu_membres_licences'] = "Vergunningen";
 $lang['gvv_menu_membres_fiches'] = "Wijzigen";
-$lang['gvv_menu_membres_password'] = "Passwoord";
+$lang['gvv_menu_membres_password'] = "Wachtwoord";
 $lang['gvv_menu_membres_email'] = "E-mail";
 $lang['gvv_menu_membres_calendar'] = "Kalender";
 
@@ -57,7 +57,7 @@ $lang['gvv_menu_accounting_cash'] = "Cash";
 $lang['gvv_menu_entries'] = "Boekingen";
 $lang['gvv_menu_entries_income'] = "Inkomsten";
 $lang['gvv_menu_entries_pilot_payment'] = "Betalingen piloot";
-$lang['gvv_menu_entries_pilot_billing'] = "Afrekening pillot";
+$lang['gvv_menu_entries_pilot_billing'] = "Afrekening piloot";
 $lang['gvv_menu_entries_supplier_credit'] = "Leverancierskrediet";
 $lang['gvv_menu_entries_expense'] = "Uitgaven";
 $lang['gvv_menu_entries_expense_paid'] = "Uitgaven betaald piloot";

@@ -31,7 +31,7 @@ $lang['gvv_admin_menu_permissions'] = "Rechten";
 $lang['gvv_admin_menu_custom_permissions'] = "Aangepaste rechten";
 
 $lang['gvv_admin_menu_ut'] = "Initialisatietesten";
-$lang['gvv_admin_menu_coverage'] = "Mesure de couverture";
+$lang['gvv_admin_menu_coverage'] = "Testdekking";
 
 $lang['gvv_admin_db_warning'] = "Opgelet, terug naar standaardinstellingen zetten wist alle gegevens!";
 $lang['gvv_admin_db_select'] = "Selecteer de backup die u wil inladen.";
