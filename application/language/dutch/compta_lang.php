@@ -120,6 +120,7 @@ $lang['gvv_choose_files'] = "Bestanden kiezen";
 $lang['gvv_optional'] = "optioneel";
 $lang['gvv_supported_formats'] = "Ondersteunde formaten";
 $lang['gvv_confirm_remove_file'] = "Weet u zeker dat u dit bestand wilt verwijderen?";
+$lang['gvv_attachment_description'] = "Beschrijving (optioneel)"; // PRD CA1.9
 
 $lang['valid_numeric'] = "Niet-decimale waarde";
 

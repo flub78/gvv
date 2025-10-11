@@ -169,6 +169,17 @@ class Compta extends Gvv_Controller {
         $this->data['saisie_par'] = $this->dx_auth->get_username();
         $this->data['categorie_selector'] = $this->categorie_model->selector_with_null();
         $this->gvvmetadata->set_selector('categorie_selector', $this->categorie_model->selector_with_null());
+
+        // Restore pending attachments from session (during validation errors - PRD CA1.9)
+        if ($action == CREATION) {
+            $session_id = $this->session->userdata('session_id');
+            $pending_key = 'pending_attachments_' . $session_id;
+            $pending = $this->session->userdata($pending_key);
+
+            if (!empty($pending)) {
+                $this->data['pending_attachments'] = $pending;
+            }
+        }
     }
 
     /**
@@ -424,7 +435,8 @@ class Compta extends Gvv_Controller {
                 'storage_name' => $storage_file,
                 'size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
                 'club' => $club_id,
-                'section_name' => $section_name
+                'section_name' => $section_name,
+                'description' => '' // PRD CA1.9: Empty by default, user can add later
             ];
 
             // Add to session
@@ -467,6 +479,37 @@ class Compta extends Gvv_Controller {
 
             // Remove from session
             unset($pending[$temp_id]);
+            $this->session->set_userdata($pending_key, $pending);
+
+            $response = ['success' => true];
+        } else {
+            $response = ['success' => false, 'error' => 'File not found'];
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Update temp attachment description (AJAX)
+     * PRD CA1.9: Allow user to associate description with attachment
+     */
+    public function update_temp_attachment_description() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $temp_id = $this->input->post('temp_id');
+        $description = $this->input->post('description');
+        $session_id = $this->session->userdata('session_id');
+        $pending_key = 'pending_attachments_' . $session_id;
+        $pending = $this->session->userdata($pending_key) ?: [];
+
+        if (isset($pending[$temp_id])) {
+            // Update description
+            $pending[$temp_id]['description'] = $description;
             $this->session->set_userdata($pending_key, $pending);
 
             $response = ['success' => true];
@@ -544,13 +587,13 @@ class Compta extends Gvv_Controller {
                     gvv_debug("Compression skipped: " . $compression_result['error']);
                 }
 
-                // Create attachment database record
+                // Create attachment database record (PRD CA1.9: use description from file_info)
                 $attachment_data = [
                     'referenced_table' => $referenced_table,
                     'referenced_id' => $referenced_id,
                     'user_id' => $this->dx_auth->get_username(),
                     'filename' => $file_info['original_name'],
-                    'description' => '', // User can edit later
+                    'description' => $file_info['description'] ?? '', // PRD CA1.9: User-provided description
                     'file' => $final_path,
                     'club' => $file_info['club']
                 ];

@@ -136,14 +136,17 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
     padding: 8px 12px;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    margin-bottom: 8px;
+    background-color: #fff;
 }
 .file-item-loading {
     opacity: 0.6;
     background-color: #f8f9fa;
+}
+.file-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 .file-item .filename {
     flex-grow: 1;
@@ -153,11 +156,33 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
     color: #6c757d;
     font-size: 0.875rem;
 }
+/* PRD CA1.9: Style for description input */
+.description-input {
+    width: 100%;
+    font-size: 0.875rem;
+}
 </style>
 
 <script>
 $(document).ready(function() {
     var uploadedFiles = {};
+
+    // PRD CA1.9: Restore pending attachments from session (on validation error)
+    <?php if (isset($pending_attachments) && !empty($pending_attachments)): ?>
+        <?php foreach ($pending_attachments as $temp_id => $file_info): ?>
+            uploadedFiles['<?= $temp_id ?>'] = <?= json_encode($file_info) ?>;
+            addFileToList(
+                '<?= $temp_id ?>',
+                '<?= addslashes($file_info['original_name']) ?>',
+                <?= $file_info['size'] ?>,
+                false
+            );
+            // Set description if it exists
+            <?php if (!empty($file_info['description'])): ?>
+                $('[data-temp-id="<?= $temp_id ?>"]').val('<?= addslashes($file_info['description']) ?>');
+            <?php endif; ?>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
     // Handle file selection
     $('#fileInput').on('change', function(e) {
@@ -203,17 +228,26 @@ $(document).ready(function() {
         });
     }
 
-    // Add file to list UI
+    // Add file to list UI (PRD CA1.9: includes description input)
     function addFileToList(tempId, filename, size, isLoading) {
         var sizeStr = size > 0 ? ' (' + formatBytes(size) + ')' : '';
         var loadingClass = isLoading ? 'file-item-loading' : '';
         var removeBtn = isLoading ? '' :
             '<a href="#" onclick="removeFile(\'' + tempId + '\'); return false;"><img class="icon" src="<?= base_url() ?>themes/binary-news/images/delete.png" title="<?= $this->lang->line("gvv_confirm_remove_file") ?>" alt=""></a>';
 
+        // PRD CA1.9: Add description input field
+        var descriptionField = isLoading ? '' :
+            '<input type="text" class="form-control form-control-sm description-input mt-2" ' +
+            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
+            'data-temp-id="' + tempId + '" />';
+
         var html = '<div class="file-item ' + loadingClass + '" id="file_' + tempId + '">' +
+                   '<div class="file-item-header">' +
                    '<span class="filename">' + filename + '</span>' +
                    '<span class="filesize">' + sizeStr + '</span> ' +
                    removeBtn +
+                   '</div>' +
+                   descriptionField +
                    '</div>';
 
         $('#fileList').append(html);
@@ -225,8 +259,16 @@ $(document).ready(function() {
         $item.attr('id', 'file_' + fileInfo.temp_id);
         $item.removeClass('file-item-loading');
         $item.find('.filesize').text(' (' + formatBytes(fileInfo.size) + ')');
-        $item.append(
+
+        // PRD CA1.9: Add remove button and description field
+        $item.find('.file-item-header').append(
             '<a href="#" onclick="removeFile(\'' + fileInfo.temp_id + '\'); return false;"><img class="icon" src="<?= base_url() ?>themes/binary-news/images/delete.png" title="<?= $this->lang->line("gvv_confirm_remove_file") ?>" alt=""></a>'
+        );
+
+        $item.append(
+            '<input type="text" class="form-control form-control-sm description-input mt-2" ' +
+            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
+            'data-temp-id="' + fileInfo.temp_id + '" />'
         );
     }
 
@@ -241,6 +283,31 @@ $(document).ready(function() {
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
+
+    // PRD CA1.9: Handle description changes
+    $(document).on('blur', '.description-input', function() {
+        var tempId = $(this).data('temp-id');
+        var description = $(this).val();
+
+        $.ajax({
+            url: '<?= base_url() ?>index.php/compta/update_temp_attachment_description',
+            type: 'POST',
+            data: {
+                temp_id: tempId,
+                description: description
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (!response.success) {
+                    alert('Failed to update description: ' + (response.error || 'Unknown error'));
+                }
+            },
+            error: function() {
+                // Silent failure for description updates
+                console.log('Failed to update description for ' + tempId);
+            }
+        });
+    });
 
     // Global function for remove button
     window.removeFile = function(tempId) {

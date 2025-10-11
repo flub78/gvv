@@ -122,5 +122,6 @@ $lang['gvv_choose_files'] = "Choisir des fichiers";
 $lang['gvv_optional'] = "facultatif";
 $lang['gvv_supported_formats'] = "Formats supportés";
 $lang['gvv_confirm_remove_file'] = "Êtes-vous sûr de vouloir supprimer ce fichier ?";
+$lang['gvv_attachment_description'] = "Description (facultatif)"; // PRD CA1.9
 
 $lang['valid_numeric'] = "Valeur non décimale";

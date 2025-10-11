@@ -17,7 +17,7 @@
 
 * [] Attachements lors de la création d'écriture (plan OK)
   * [] tester les téléchargements avec espace (upload->do_upload)
-  * [] compression des attachements
+  * [x] compression des attachements
 
 * [] Support du markdown
   
@@ -32,6 +32,8 @@
   
 * [] Reservation des avions                                   10j (plan OK)
 * [] Paiements en ligne                                       10j
+* [] Support de la gestion de la maintenance, visite périodique, équipements à potentiel, renouvellement d'assurance, etc.
+* [] Gestion des fiches de progressions
 
 * [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
   * [x] MVP

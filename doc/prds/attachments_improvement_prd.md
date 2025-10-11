@@ -159,6 +159,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 - CA1.6 : Le flux de travail d'édition existant continue de fonctionner sans changement
 - CA1.7 : L'utilisateur peux visualiser les images et les fichiers pdf directement dans son navigateur
 - CA1.8 : L'utilisateur peux télécharger tous les autres type de fichier zip, docx, xlxs, etc.
+- CA1.9 : Lorsque l'utilisateur sélectionne un fichier à télécharger, il peut lui associer une description comme lorsqu'il édite une écriture et ajoute un attachement. 
 
 ---
 

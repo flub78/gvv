@@ -122,6 +122,7 @@ $lang['gvv_choose_files'] = "Choose Files";
 $lang['gvv_optional'] = "optional";
 $lang['gvv_supported_formats'] = "Supported formats";
 $lang['gvv_confirm_remove_file'] = "Are you sure you want to remove this file?";
+$lang['gvv_attachment_description'] = "Description (optional)"; // PRD CA1.9
 
 $lang['valid_numeric'] = "Non decimal value";
 $lang['gvv_compta_title_remb_capital'] = "Loan capital repayment";

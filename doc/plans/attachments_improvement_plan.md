@@ -115,7 +115,7 @@ function create() {
     $table = $this->gvv_model->table();
     $this->data = $this->gvvmetadata->defaults_list($table);
 
-    // Handle pending attachment uploads from session
+    // Handle pending attachment uploads from session (PRD CA1.9)
     $session_id = $this->session->userdata('session_id');
     $pending_files = $this->session->userdata('pending_attachments_' . $session_id);
     if ($pending_files) {
@@ -133,6 +133,7 @@ function create() {
 /**
  * Handle attachment upload during creation (AJAX)
  * Returns JSON response with temp file info
+ * PRD CA1.9: Supports description field for attachments
  */
 public function upload_temp_attachment() {
     if (!$this->input->is_ajax_request()) {
@@ -185,7 +186,8 @@ public function upload_temp_attachment() {
             'storage_name' => $storage_file,
             'size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
             'club' => $club_id,
-            'section_name' => $section_name
+            'section_name' => $section_name,
+            'description' => '' // PRD CA1.9: Empty by default, user can add later
         ];
 
         // Add to session
@@ -206,7 +208,42 @@ public function upload_temp_attachment() {
 }
 ```
 
-3. **Add attachment removal handler:**
+3. **Add attachment description update handler (PRD CA1.9):**
+
+```php
+/**
+ * Update temp attachment description (AJAX)
+ * PRD CA1.9: Allow user to associate description with attachment
+ */
+public function update_temp_attachment_description() {
+    if (!$this->input->is_ajax_request()) {
+        show_404();
+        return;
+    }
+
+    $temp_id = $this->input->post('temp_id');
+    $description = $this->input->post('description');
+    $session_id = $this->session->userdata('session_id');
+    $pending_key = 'pending_attachments_' . $session_id;
+    $pending = $this->session->userdata($pending_key) ?: [];
+
+    if (isset($pending[$temp_id])) {
+        // Update description
+        $pending[$temp_id]['description'] = $description;
+        $this->session->set_userdata($pending_key, $pending);
+
+        $response = ['success' => true];
+    } else {
+        $response = ['success' => false, 'error' => 'File not found'];
+    }
+
+    $this->output
+        ->set_content_type('application/json')
+        ->set_output(json_encode($response));
+}
+```
+
+4. **Add attachment removal handler:**
 
 ```php
 /**
@@ -245,7 +282,7 @@ public function remove_temp_attachment() {
 }
 ```
 
-4. **Modify `formValidation()` to process pending attachments:**
+5. **Modify `formValidation()` to process pending attachments:**
 
 ```php
 public function formValidation($action, $return_on_success = false) {
@@ -253,7 +290,7 @@ public function formValidation($action, $return_on_success = false) {
 
     // If validation successful and record created
     if ($validation_passed && $new_id) {
-        // Process pending attachments
+        // Process pending attachments (PRD CA1.9: includes descriptions)
         $session_id = $this->session->userdata('session_id');
         $this->process_pending_attachments('ecritures', $new_id, $session_id);
     }
@@ -262,11 +299,12 @@ public function formValidation($action, $return_on_success = false) {
 }
 ```
 
-5. **Add helper function:**
+6. **Add helper function:**
 
 ```php
 /**
  * Process pending attachments after successful record creation
+ * PRD CA1.9: Includes description from user input
  *
  * @param string $referenced_table Table name (e.g., 'ecritures')
  * @param int $referenced_id ID of the created record
@@ -306,13 +344,13 @@ private function process_pending_attachments($referenced_table, $referenced_id, 
 
         // Move file from temp to permanent
         if (rename($temp_path, $permanent_path)) {
-            // Create attachment database record
+            // Create attachment database record (PRD CA1.9: use description from file_info)
             $attachment_data = [
                 'referenced_table' => $referenced_table,
                 'referenced_id' => $referenced_id,
                 'user_id' => $this->dx_auth->get_username(),
                 'filename' => $file_info['original_name'],
-                'description' => '', // User can edit later
+                'description' => $file_info['description'] ?? '', // PRD CA1.9: User-provided description
                 'file' => $permanent_path,
                 'club' => $file_info['club']
             ];
@@ -345,7 +383,7 @@ private function process_pending_attachments($referenced_table, $referenced_id, 
 
 **Changes:**
 
-1. **Add attachment upload widget in creation mode:**
+1. **Add attachment upload widget in creation mode (PRD CA1.9: includes description field):**
 
 ```php
 <?php if ($action == CREATION): ?>
@@ -364,7 +402,7 @@ private function process_pending_attachments($referenced_table, $referenced_id, 
             </small>
         </div>
         <div id="fileList" class="file-list mt-2">
-            <!-- JavaScript will populate uploaded files here -->
+            <!-- JavaScript will populate uploaded files here with description fields (PRD CA1.9) -->
         </div>
     </div>
 <?php endif; ?>
@@ -383,7 +421,7 @@ private function process_pending_attachments($referenced_table, $referenced_id, 
 <?php endif; ?>
 ```
 
-2. **Add JavaScript for file upload handling:**
+2. **Add JavaScript for file upload handling (PRD CA1.9: includes description field):**
 
 ```javascript
 <script>
@@ -434,7 +472,7 @@ $(document).ready(function() {
         });
     }
 
-    // Add file to list UI
+    // Add file to list UI (PRD CA1.9: includes description input)
     function addFileToList(tempId, filename, size, isLoading) {
         var sizeStr = size > 0 ? ' (' + formatBytes(size) + ')' : '';
         var loadingClass = isLoading ? 'file-item-loading' : '';
@@ -443,11 +481,22 @@ $(document).ready(function() {
                 <i class="bi bi-trash"></i>
             </button>';
 
+        // PRD CA1.9: Add description input field
+        var descriptionField = isLoading ? '' :
+            '<input type="text" class="form-control form-control-sm description-input" ' +
+            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
+            'data-temp-id="' + tempId + '" />';
+
         var html = '<div class="file-item ' + loadingClass + '" id="file_' + tempId + '">' +
+                   '<div class="file-item-header">' +
                    '<i class="bi bi-file-earmark"></i> ' +
                    '<span class="filename">' + filename + '</span>' +
                    '<span class="filesize">' + sizeStr + '</span> ' +
                    removeBtn +
+                   '</div>' +
+                   '<div class="file-item-description">' +
+                   descriptionField +
+                   '</div>' +
                    '</div>';
 
         $('#fileList').append(html);
@@ -459,12 +508,45 @@ $(document).ready(function() {
         $item.attr('id', 'file_' + fileInfo.temp_id);
         $item.removeClass('file-item-loading');
         $item.find('.filesize').text(' (' + formatBytes(fileInfo.size) + ')');
-        $item.append(
+
+        // PRD CA1.9: Add remove button and description field
+        $item.find('.file-item-header').append(
             '<button type="button" class="btn btn-sm btn-danger" onclick="removeFile(\'' + fileInfo.temp_id + '\')">
                 <i class="bi bi-trash"></i>
             </button>'
         );
+
+        $item.find('.file-item-description').html(
+            '<input type="text" class="form-control form-control-sm description-input" ' +
+            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
+            'data-temp-id="' + fileInfo.temp_id + '" />'
+        );
     }
+
+    // PRD CA1.9: Handle description changes
+    $(document).on('blur', '.description-input', function() {
+        var tempId = $(this).data('temp-id');
+        var description = $(this).val();
+
+        $.ajax({
+            url: '<?= base_url() ?>index.php/compta/update_temp_attachment_description',
+            type: 'POST',
+            data: {
+                temp_id: tempId,
+                description: description
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (!response.success) {
+                    alert('Failed to update description: ' + (response.error || 'Unknown error'));
+                }
+            },
+            error: function() {
+                // Silent failure for description updates
+                console.log('Failed to update description for ' + tempId);
+            }
+        });
+    });
 
     // Remove file from list
     function removeFileFromList(tempId) {
@@ -513,14 +595,18 @@ $(document).ready(function() {
     padding: 8px 12px;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    margin-bottom: 8px;
+    background-color: #fff;
 }
 .file-item-loading {
     opacity: 0.6;
     background-color: #f8f9fa;
+}
+.file-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
 }
 .file-item .filename {
     flex-grow: 1;
@@ -528,6 +614,14 @@ $(document).ready(function() {
 }
 .file-item .filesize {
     color: #6c757d;
+    font-size: 0.875rem;
+}
+/* PRD CA1.9: Style for description input */
+.file-item-description {
+    margin-top: 6px;
+}
+.description-input {
+    width: 100%;
     font-size: 0.875rem;
 }
 </style>
@@ -623,7 +717,7 @@ exit($error_count > 0 ? 1 : 0);
 - `application/language/english/compta_lang.php`
 - `application/language/dutch/compta_lang.php`
 
-**Add translations:**
+**Add translations (PRD CA1.9: includes description field label):**
 
 ```php
 // French
@@ -631,18 +725,21 @@ $lang['gvv_choose_files'] = "Choisir des fichiers";
 $lang['gvv_optional'] = "facultatif";
 $lang['gvv_supported_formats'] = "Formats supportés";
 $lang['gvv_confirm_remove_file'] = "Êtes-vous sûr de vouloir supprimer ce fichier ?";
+$lang['gvv_attachment_description'] = "Description (facultatif)"; // PRD CA1.9
 
 // English
 $lang['gvv_choose_files'] = "Choose Files";
 $lang['gvv_optional'] = "optional";
 $lang['gvv_supported_formats'] = "Supported formats";
 $lang['gvv_confirm_remove_file'] = "Are you sure you want to remove this file?";
+$lang['gvv_attachment_description'] = "Description (optional)"; // PRD CA1.9
 
 // Dutch
 $lang['gvv_choose_files'] = "Bestanden kiezen";
 $lang['gvv_optional'] = "optioneel";
 $lang['gvv_supported_formats'] = "Ondersteunde formaten";
 $lang['gvv_confirm_remove_file'] = "Weet u zeker dat u dit bestand wilt verwijderen?";
+$lang['gvv_attachment_description'] = "Beschrijving (optioneel)"; // PRD CA1.9
 ```
 
 ### 2.2 Configuration
@@ -685,6 +782,11 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 - [ ] Test temp file cleanup script
 - [ ] Test session expiry handling
 - [ ] Test concurrent uploads from different users
+- [ ] **PRD CA1.9:** Add description to uploaded file and verify it's saved
+- [ ] **PRD CA1.9:** Upload file without description and verify it works
+- [ ] **PRD CA1.9:** Edit description multiple times and verify updates
+- [ ] **PRD CA1.9:** Verify description persists when form validation fails
+- [ ] **PRD CA1.9:** Verify description appears in attachment table after form submission
 
 ---
 
@@ -2185,15 +2287,20 @@ if ($this->get_config('debug', FALSE)) {
 
 ## Implementation Task Checklist
 
-### Phase 1: Inline Attachment Upload (10 tasks)
+### Phase 1: Inline Attachment Upload (12 tasks - includes PRD CA1.9)
 - [x] Modify compta.php controller for inline attachments
 - [x] Create upload_temp_attachment() AJAX handler
+- [ ] **PRD CA1.9:** Create update_temp_attachment_description() AJAX handler
 - [x] Create remove_temp_attachment() handler
 - [x] Update formValidation() to process pending attachments
+- [ ] **PRD CA1.9:** Update process_pending_attachments() to save descriptions
 - [x] Modify bs_formView.php for attachment widget
+- [ ] **PRD CA1.9:** Add description input fields to JavaScript UI
 - [x] Add JavaScript for file upload handling
+- [ ] **PRD CA1.9:** Add JavaScript handler for description updates
 - [x] Create cleanup script for temp files
 - [x] Add language file translations (French, English, Dutch)
+- [ ] **PRD CA1.9:** Add gvv_attachment_description translation key
 - [x] Create attachments.php config file
 - [x] Complete Phase 1 testing checklist
 
@@ -2233,4 +2340,4 @@ if ($this->get_config('debug', FALSE)) {
 - [ ] Setup cron job for temp file cleanup
 - [ ] Monitor logs and storage usage for first week
 
-**Total: 36 implementation tasks** (Phase 2 now has 7 tasks instead of 6)
+**Total: 38 implementation tasks** (Phase 1 increased from 10 to 12 tasks for PRD CA1.9 support)
