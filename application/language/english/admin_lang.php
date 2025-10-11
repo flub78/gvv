@@ -36,7 +36,7 @@ $lang['gvv_admin_menu_coverage'] = "Coverage";
 $lang['gvv_admin_db_warning'] = "By default, database restore overwrite all pre-existing data.";
 $lang['gvv_admin_db_select'] = "Select the backup file that you want to restore.";
 $lang['gvv_admin_db_overwrite'] = "Overwrite current database";
-$lang['gvv_admin_db_success'] = "Database has been succesfully restored from";
+$lang['gvv_admin_db_success'] = "Database has been successfully restored from";
 
 // Media backup/restore
 $lang['gvv_admin_media_backup_title'] = "Media backup";

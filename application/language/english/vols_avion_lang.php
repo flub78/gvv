@@ -16,7 +16,7 @@ $lang['gvv_vols_avion_title_yearly_flights'] = "Total of flights per year";
 $lang['gvv_vols_avion_title_yearly_solo'] = "Total of solo flights";
 $lang['gvv_vols_avion_title_statistic'] = "Statistic airplane";
 $lang['gvv_vols_avion_title_cumul'] = "Total of flights";
-$lang['gvv_vols_avion_title_histo'] = 'Total oy hours per machine and per year';
+$lang['gvv_vols_avion_title_histo'] = 'Total of hours per machine and per year';
 $lang['gvv_vols_avion_title_age'] = 'Age of the machines';
 
 $lang['gvv_vols_avion_tab_monthly'] = "Per month";

@@ -4,7 +4,7 @@
 */
 
 $lang['membre_error_unknow'] = "pilot not found";
-$lang['membre_error_no_file'] = "You have no personnal file. Perhaps that you are not logged with the correc id. If you think that is an error, contact your admin";
+$lang['membre_error_no_file'] = "You have no personnal file. Perhaps that you are not logged with the correct id. If you think that is an error, contact your admin";
 
 $lang['membre_title'] = "Member sheet";
 $lang['membre_title_list'] = "List of members";
@@ -24,7 +24,7 @@ $lang['membre_tooltip_active'] = "Active pilots are shown in the menus";
 $lang['membre_fieldset_perso'] = "Personal informations";
 $lang['membre_fieldset_billing'] = "Billing";
 $lang['membre_fieldset_responsibility'] = "Club responsibilities";
-$lang['membre_fieldset_airplaine'] = "Airplane experience";
+$lang['membre_fieldset_airplane'] = "Airplane experience";
 $lang['membre_fieldset_glider'] = "Glider experience";
 $lang['membre_fieldset_information'] = "Informations";
 
@@ -112,7 +112,7 @@ $lang['membres_niveaux'] = array(
 	PRESIDENT => "President",
 	VICE_PRESIDENT => "Vice-President",
 	CA => "Club administrator",
-	TRESORIER => "Tresorer",
+	TRESORIER => "Treasurer",
 	SECRETAIRE => "Secretary",
 	SECRETAIRE_ADJ => "Assistant secretary",
 	CHEF_PILOTE => "Chief Pilot",
@@ -170,7 +170,7 @@ otherwise prohibited by law.
 
 Additional limits of liability of \$____ may be made a part of this Agreement for a fee of __% of the total fees included herein
 
-                                   Wtire "Read and approved"   At .................. the ............
+                                   Write "Read and approved"   At .................. the ............
                                          (signature)
 TXT;
 

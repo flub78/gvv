@@ -51,11 +51,11 @@ $lang['gvv_menu_reports_user_reports'] = "User Reports";
 $lang['gvv_menu_reports_federal_report'] = "FFVV";
 $lang['gvv_menu_reports_admin_report'] = "DGAC";
 
-$lang['gvv_menu_accounting'] = "Acounting";
+$lang['gvv_menu_accounting'] = "Accounting";
 $lang['gvv_menu_accounting_journal'] = "Journal entries";
 $lang['gvv_menu_accounting_balance'] = "Balance";
 $lang['gvv_menu_accounting_pilot_balance'] = "Pilot balance";
-$lang['gvv_menu_accounting_results'] = "Résults";
+$lang['gvv_menu_accounting_results'] = "Results";
 $lang['gvv_menu_accounting_bilan'] = "End of year statement";
 $lang['gvv_menu_accounting_sales'] = "Sales";
 $lang['gvv_menu_accounting_cash'] = "Cash";
@@ -160,7 +160,7 @@ $lang['gvv_age_enum'] = array('-25 years' => '1', '+25 years' => 0);
 
 $lang['gvv_age_select'] = array(0 => 'All', 1 => '-25', 2 => '+25');
 $lang['gvv_owner_select'] = array(0 => 'All', 1 => 'Club', 2 => 'Private', 3 => 'Ext');
-$lang['gvv_launch_select'] = array(0 => 'All', 1 => 'Winch', 2 => 'Automomous', 3 => 'Tow', 4 => 'External');
+$lang['gvv_launch_select'] = array(0 => 'All', 1 => 'Winch', 2 => 'Autonomous', 3 => 'Tow', 4 => 'External');
 
 $lang['gvv_copyright'] = "Copyright (&#169;) 2025 Philippe Boissel and Frédéric Peignot, GPL V3.0";
 $lang['gvv_generated'] = "Page generated in {elapsed_time} seconds";
@@ -185,7 +185,7 @@ $lang['gvv_ticket'] = "Ticket";
 $lang['gvv_hdv'] = "Hours";
 $lang['gvv_kms'] = "Kms";
 $lang['gvv_flights'] = "Flights";
-$lang['gvv_succesful_creation'] = "succesfully created.";
+$lang['gvv_succesful_creation'] = "successfully created.";
 $lang['gvv_winch'] = $lang['gvv_launch_type'][1];
 $lang['gvv_self'] = $lang['gvv_launch_type'][2];
 $lang['gvv_towing'] = $lang['gvv_launch_type'][3];

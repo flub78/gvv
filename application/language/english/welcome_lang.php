@@ -8,9 +8,9 @@ $lang['welcome_title'] = "Welcome on the flight management system";
 
 $lang['welcome_intro1'] = "This is the flight management WEB site.
 It is reserved to the club members. It is still an on going work, 
-not yet in its final version. Please be indulgent and send me your suggestions for improvment.";
+not yet in its final version. Please be indulgent and send me your suggestions for improvement.";
 
-$lang['welcome_intro2'] = 'Your rights are differents depending on your abilitation level: member, club admin, accounter, etc.
+$lang['welcome_intro2'] = 'Your rights are different depending on your abilitation level: member, club admin, accounter, etc.
 		please be aware, that changes that you make to the database are logged with your user name.';
 
 $lang['welcome_admin'] = "Your administrator";
@@ -35,8 +35,8 @@ $lang['welcome_options'] =  array(
 	"Ground" => "ground training"
 );
 
-$lang['welcome_forbiden_title'] = "Access forbiden";
-$lang['welcome_forbiden_text'] = "Page access forbiden. The page may be locked for maintainance or you do not have the abilitation to see it.
+$lang['welcome_forbiden_title'] = "Access forbidden";
+$lang['welcome_forbiden_text'] = "Page access forbidden. The page may be locked for maintenance or you do not have the abilitation to see it.
 		If it lasts and you think that it is not normal, contact your administrator.";
 
 $lang['welcome_admin_title'] = "Administration";
@@ -50,7 +50,7 @@ $lang['welcome_airplane_flightlog'] = "Aircraft flight logs";
 $lang['welcome_glider_flightlog'] = "Glider flight logs";
 
 $lang['welcome_dates'] = "Dates management, first solos, licenses, medical";
-$lang['welcome_certificates'] = "Certificats per pilot";
+$lang['welcome_certificates'] = "Certificates per pilot";
 
 $lang['welcome_treasurer_title'] = "Reserved to treasurers";
 $lang['welcome_database_backup_title'] = "Database backup";

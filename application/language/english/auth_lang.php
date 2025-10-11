@@ -10,7 +10,7 @@ $lang['auth_come_back'] = "Please come back later.";
 $lang['auth_password_change'] = "Password change";
 
 $lang['auth_confirmation_code'] = "Confirmation code";
-$lang['auth_forgoten_password'] = "Forgoten password";
+$lang['auth_forgoten_password'] = "Forgotten password";
 $lang['auth_save_id'] = "Store my ID on this computer";
 
 $lang['auth_identification'] = "Identification";
@@ -27,7 +27,7 @@ $lang['auth_already_connected'] = 'You are already logged in.';
 $lang['auth_bye'] = 'Au revoir.';
 $lang['auth_success_registration_email'] = 'You have successfully registered. Check your email address to activate your account.';
 $lang['auth_success_registration'] = 'You have successfully registered.';
-$lang['auth_registration_disabled'] = "Registratin is disabled.";
+$lang['auth_registration_disabled'] = "Registration is disabled.";
 $lang['auth_disconnect_before'] = 'Log out before to register.';
 $lang['auth_account_enabled'] = "Your account have been successfully activated.";
 $lang['auth_incorrect_activation'] = 'The activation code you entered was incorrect. Please check your email again.';

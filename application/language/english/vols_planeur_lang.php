@@ -15,8 +15,8 @@ $lang['gvv_vols_planeur_title_yearly_flights'] = "Total flights per year";
 $lang['gvv_vols_planeur_title_yearly_solo'] = "Total solo flights per year";
 $lang['gvv_vols_planeur_title_statistic'] = "Glider flights statistic";
 $lang['gvv_vols_planeur_title_cumul'] = "Glider flights total";
-$lang['gvv_vols_planeur_title_histo'] = 'Sum of yearly hours per glider';;
-$lang['gvv_vols_planeur_title_age'] = 'Age of the gliders';;
+$lang['gvv_vols_planeur_title_histo'] = 'Sum of yearly hours per glider';
+$lang['gvv_vols_planeur_title_age'] = 'Age of the gliders';
 
 $lang['gvv_vols_planeur_tab_monthly'] = "By month";
 $lang['gvv_vols_planeur_tab_launch'] = "Launches";
