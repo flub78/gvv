@@ -14,14 +14,15 @@
 This plan details the technical implementation of inline attachment upload during accounting line creation and automatic file compression for the GVV application. The implementation is divided into four phases with clear deliverables, testing requirements, and rollback procedures.
 
 **Key Implementation Approach (Updated per latest PRD):**
-- **Two-track pure PHP compression** - no external dependencies
-  - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD library + convert to JPEG quality 85 (no additional gzip)
-  - All other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
-- **Required PHP extensions only**: `gd` (for images) and `zlib` (for gzip - both already available on production)
-- **No external tools needed**: No Ghostscript, ImageMagick CLI, or LibreOffice required
+- **Three-track pure PHP compression** - keeping files in original formats
+  - **Compressible Images (JPEG, PNG, GIF, WebP)**: Resize with GD library + recompress in original format (JPEG stays JPEG, PNG stays PNG)
+  - **PDFs**: Use Ghostscript to reduce resolution to /ebook (150 DPI) + keep as PDF
+  - **Other files (DOCX, CSV, TXT, etc.)**: Standard gzip compression only (stored as .gz)
+- **Required PHP extensions**: `gd` (for images) and `zlib` (for gzip - both already available on production)
+- **External tool needed**: Ghostscript for PDF optimization (commonly available on Linux servers)
 - **Smartphone photo optimization**: 3-8MB photos automatically resized to 500KB-1MB
-- **Browser-friendly viewing**: Images and PDFs viewable directly in browser (PRD CA1.7)
-- **Transparent decompression**: Treasurers can seamlessly access both old (uncompressed) and new (compressed) attachments
+- **Browser-friendly viewing**: Images and PDFs viewable directly in browser (PRD CA1.7) - no decompression needed
+- **Transparent decompression**: Only applies to gzipped files (.gz); images and PDFs served directly
 
 ---
 
@@ -52,16 +53,17 @@ This plan details the technical implementation of inline attachment upload durin
   - Session cleanup can handle abandoned uploads
 
 **File Compression:**
-- **Approach:** Two-track compression strategy using pure PHP
-  - **Images (JPEG, PNG, GIF, BMP, WebP):** Resize with GD + convert to JPEG quality 85 (no additional gzip - JPEG is already compressed)
-  - **All other files (PDF, DOCX, CSV, TXT, etc.):** Standard gzip compression only
+- **Approach:** Three-track compression strategy keeping files in original formats
+  - **Compressible Images (JPEG, PNG, GIF, WebP):** Resize with GD + recompress in original format (no format conversion)
+  - **PDFs:** Use Ghostscript with /ebook settings (150 DPI) + keep as PDF
+  - **Other files (DOCX, CSV, TXT, etc.):** Standard gzip compression only (stored as .ext.gz)
 - **Rationale:**
-  - Pure PHP implementation (no external dependencies like Ghostscript)
-  - Uses only built-in extensions: `gd` (for images) and `zlib` (for gzip - both already available)
-  - JPEG is already a lossy compressed format - additional gzip provides minimal benefit
-  - Simpler serving - images can be viewed directly in browser without decompression
-  - Immediate feedback to user
-  - No background job infrastructure needed
+  - Keep files in browser-viewable formats (images stay as images, PDFs stay as PDFs)
+  - No decompression needed for images and PDFs - direct viewing in browser (PRD CA1.7)
+  - Original formats maintain compatibility with all viewing tools
+  - Ghostscript /ebook provides good compression while maintaining readability
+  - Synchronous compression for immediate feedback
+  - Simpler decompression logic (only for .gz files)
   - Can move to async later if performance issues arise
 
 **Batch Compression:**
@@ -689,16 +691,20 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 ## 3. Phase 2: Automatic File Compression
 
 **Priority:** HIGH
-**Estimated Effort:** 12-14 hours
+**Estimated Effort:** 14-16 hours
 **Dependencies:** None (can run parallel to Phase 1)
 
-**Approach:** Two-track compression strategy:
-- **Images** (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG quality 85 (no additional gzip)
-- **Other files** (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
+**Approach:** Three-track compression strategy keeping original formats:
+- **Compressible Images** (JPEG, PNG, GIF, WebP): Resize with GD + recompress in original format
+- **PDFs**: Ghostscript /ebook (150 DPI) + keep as PDF
+- **Other files** (DOCX, CSV, TXT, etc.): Standard gzip compression only (stored as .gz)
 
 **Required PHP Extensions:**
-- `gd` - Image manipulation and JPEG conversion (already available on production)
-- `zlib` - Gzip compression/decompression for non-image files (already available on production)
+- `gd` - Image manipulation (already available on production)
+- `zlib` - Gzip compression/decompression for non-image, non-PDF files (already available on production)
+
+**Required External Tools:**
+- `ghostscript` (gs command) - PDF optimization (commonly available on Linux servers)
 
 ### 3.1 Compression Library
 
@@ -710,13 +716,15 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 /**
  * File Compressor Library
  *
- * PRD Section 5.2 AC2.2: Two-track compression strategy:
- * - Images (JPEG, PNG, GIF, BMP, WebP): Resize with GD + convert to JPEG quality 85 (no gzip)
- * - Other files (PDF, DOCX, CSV, TXT, etc.): Standard gzip compression only
+ * PRD Section 5.2 AC2.2: Three-track compression strategy:
+ * - Compressible Images (JPEG, PNG, GIF, WebP): Resize with GD + recompress in original format
+ * - PDFs: Ghostscript /ebook (150 DPI) + keep as PDF
+ * - Other files (DOCX, CSV, TXT, etc.): Standard gzip compression only
  *
- * PRD Section 9.1: Requires only PHP gd and zlib extensions (no external tools)
- * - gd: Image manipulation (resize, convert to JPEG)
- * - zlib: Gzip compression/decompression (for non-image files only)
+ * PRD Section 9.1: Requires PHP gd and zlib extensions + Ghostscript
+ * - gd: Image manipulation (resize, recompress in original format)
+ * - zlib: Gzip compression/decompression (for non-image, non-PDF files only)
+ * - ghostscript (gs): PDF optimization
  */
 class File_compressor {
 
@@ -777,6 +785,8 @@ class File_compressor {
         // Route to appropriate compression method
         if ($this->is_image($extension)) {
             $result = $this->compress_image($file_path, $options);
+        } elseif ($extension === 'pdf') {
+            $result = $this->compress_pdf($file_path, $options);
         } else {
             $result = $this->compress_gzip($file_path, $options);
         }
@@ -811,18 +821,20 @@ class File_compressor {
     /**
      * Compress image file using GD
      * - Resize to max dimensions (1600x1200)
-     * - Convert to JPEG quality 85
-     * - NO additional gzip compression (JPEG is already compressed)
+     * - Recompress in ORIGINAL format (JPEG stays JPEG, PNG stays PNG)
+     * - NO additional gzip compression (images are already compressed)
      *
      * @param string $file_path Path to image file
      * @param array $options Compression options
      * @return array ['success' => bool, 'compressed_path' => string, 'error' => string]
      */
     private function compress_image($file_path, $options = []) {
-        // PRD AC2.2: Images are resized to max 1600x1200, converted to JPEG quality 85 (no gzip)
+        // PRD AC2.2: Images are resized to max 1600x1200, recompressed in original format
         $max_width = $options['max_width'] ?? $this->get_config('image_max_width', 1600);
         $max_height = $options['max_height'] ?? $this->get_config('image_max_height', 1200);
         $quality = $options['quality'] ?? $this->get_config('image_quality', 85);
+
+        $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
 
         // Get image dimensions
         $info = getimagesize($file_path);
@@ -869,19 +881,45 @@ class File_compressor {
         // Create resized image
         $destination = imagecreatetruecolor($new_width, $new_height);
 
-        // Preserve transparency for PNG (fill with white background before JPEG conversion)
+        // Preserve transparency for PNG (though we'll save it back as PNG)
         if ($type == IMAGETYPE_PNG) {
-            $white = imagecolorallocate($destination, 255, 255, 255);
-            imagefill($destination, 0, 0, $white);
+            imagealphablending($destination, false);
+            imagesavealpha($destination, true);
+            $transparent = imagecolorallocatealpha($destination, 0, 0, 0, 127);
+            imagefill($destination, 0, 0, $transparent);
         }
 
         imagecopyresampled($destination, $source, 0, 0, 0, 0,
                           $new_width, $new_height, $width, $height);
 
-        // Save as JPEG (convert to JPEG for better compression)
-        // PRD Update: No additional gzip - JPEG is already compressed, store as .jpg
-        $output_path = preg_replace('/\.[^.]+$/', '.jpg', $file_path);
-        $success = imagejpeg($destination, $output_path, $quality);
+        // Save in ORIGINAL format (PRD: keep images in original format)
+        $output_path = $file_path; // Overwrite original
+
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
+                $success = imagejpeg($destination, $output_path, $quality);
+                $this->stats['method'] = 'gd/resize+jpeg';
+                break;
+            case 'png':
+                // PNG quality is 0-9 (compression level), convert from 0-100 scale
+                $png_quality = 9 - round(($quality / 100) * 9);
+                $success = imagepng($destination, $output_path, $png_quality);
+                $this->stats['method'] = 'gd/resize+png';
+                break;
+            case 'gif':
+                $success = imagegif($destination, $output_path);
+                $this->stats['method'] = 'gd/resize+gif';
+                break;
+            case 'webp':
+                $success = imagewebp($destination, $output_path, $quality);
+                $this->stats['method'] = 'gd/resize+webp';
+                break;
+            default:
+                imagedestroy($source);
+                imagedestroy($destination);
+                return ['success' => false, 'error' => 'Unsupported image format for saving'];
+        }
 
         imagedestroy($source);
         imagedestroy($destination);
@@ -890,13 +928,66 @@ class File_compressor {
             return ['success' => false, 'error' => 'Failed to save compressed image'];
         }
 
-        $this->stats['method'] = 'gd+jpeg';
         return ['success' => true, 'compressed_path' => $output_path];
     }
 
     /**
+     * Compress PDF file using Ghostscript
+     * - Reduce resolution to /ebook (150 DPI)
+     * - Keep as PDF format
+     *
+     * @param string $file_path Path to PDF file
+     * @param array $options Compression options
+     * @return array ['success' => bool, 'compressed_path' => string, 'error' => string]
+     */
+    private function compress_pdf($file_path, $options = []) {
+        // Check if Ghostscript is available
+        $gs_path = $this->get_config('ghostscript_path', 'gs');
+        exec("which $gs_path 2>&1", $output, $return_var);
+        if ($return_var !== 0) {
+            return ['success' => false, 'error' => 'Ghostscript not available'];
+        }
+
+        // Create temporary output file
+        $temp_output = $file_path . '.tmp.pdf';
+
+        // PRD AC2.2: Use Ghostscript /ebook settings (150 DPI)
+        $quality = $options['pdf_quality'] ?? $this->get_config('pdf_quality', 'ebook');
+
+        // Build Ghostscript command
+        $command = sprintf(
+            '%s -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/%s ' .
+            '-dNOPAUSE -dQUIET -dBATCH -sOutputFile=%s %s 2>&1',
+            escapeshellcmd($gs_path),
+            escapeshellarg($quality),
+            escapeshellarg($temp_output),
+            escapeshellarg($file_path)
+        );
+
+        // Execute Ghostscript
+        exec($command, $exec_output, $return_var);
+
+        if ($return_var !== 0 || !file_exists($temp_output)) {
+            // Cleanup
+            if (file_exists($temp_output)) {
+                unlink($temp_output);
+            }
+            return ['success' => false, 'error' => 'Ghostscript compression failed: ' . implode("\n", $exec_output)];
+        }
+
+        // Replace original with compressed
+        if (!rename($temp_output, $file_path)) {
+            unlink($temp_output);
+            return ['success' => false, 'error' => 'Failed to replace original PDF'];
+        }
+
+        $this->stats['method'] = 'ghostscript/ebook';
+        return ['success' => true, 'compressed_path' => $file_path];
+    }
+
+    /**
      * Compress file using gzip only
-     * PRD AC2.2: All non-image files compressed with gzip level 9
+     * PRD AC2.2: All non-image, non-PDF files compressed with gzip level 9
      *
      * @param string $file_path Path to file to compress
      * @param array $options Compression options
@@ -1081,15 +1172,15 @@ $config['compression'] = [
 
 ### 3.4 Testing Checklist
 
-- [ ] Test image compression (JPEG, PNG, GIF, BMP, WebP) - resize + convert to JPEG quality 85
+- [ ] Test image compression (JPEG, PNG, GIF, WebP) - resize + recompress in original format
 - [ ] Test smartphone photo optimization (PRD AC2.7: 3-8MB → 500KB-1MB)
-- [ ] Verify images are stored as .jpg files (not .jpg.gz)
+- [ ] Verify images are stored in original formats (.jpg, .png, .gif, .webp - not .gz)
 - [ ] Verify images can be viewed directly in browser (PRD CA1.7)
-- [ ] Test PDF compression - gzip only (stored as .pdf.gz)
+- [ ] Test PDF compression - Ghostscript /ebook (stored as .pdf, not .pdf.gz)
 - [ ] Test CSV/TXT compression - gzip only
 - [ ] Test DOC/DOCX compression - gzip only
 - [ ] Verify compression ratios logged correctly (PRD AC2.4)
-- [ ] Verify log format includes dimensions for images (method=gd+jpeg)
+- [ ] Verify log format includes dimensions for images (method=gd/resize+jpeg or gd/resize+png, etc.)
 - [ ] Test files below minimum size 100KB (not compressed per PRD AC2.3)
 - [ ] Test files with low compression ratio <10% (original kept per PRD AC2.3)
 - [ ] Test compression failure handling (fallback to original)
@@ -1103,11 +1194,11 @@ $config['compression'] = [
 
 ## 4. Phase 3: Transparent Decompression
 
-**Priority:** HIGH (same as Phase 2 - file compression)
-**Estimated Effort:** 4-6 hours (reduced - images don't need decompression)
+**Priority:** MEDIUM (lower priority since images and PDFs don't need decompression)
+**Estimated Effort:** 3-4 hours (significantly reduced - only gzipped files need decompression)
 **Dependencies:** Phase 2
 
-**Note:** This phase handles decompression of gzipped files (PDFs, documents, text files). Images are stored as plain JPEG files and can be viewed directly in the browser without decompression (PRD CA1.7), simplifying this phase.
+**Note:** This phase handles decompression of gzipped files (.gz extensions - documents, text files, etc.). Images are stored in their original compressed formats (JPEG, PNG, GIF, WebP) and PDFs remain as PDF files, both viewable directly in the browser without decompression (PRD CA1.7), significantly simplifying this phase.
 
 ### 4.1 Download Handler
 
@@ -1139,13 +1230,14 @@ public function download($id) {
     }
 
     // PRD AC3.10 & CA1.7: Treasurers can view/download attachments seamlessly
-    // - Images are stored as .jpg and can be viewed directly in browser
-    // - PDFs and documents stored as .gz need decompression
+    // - Images are stored in original formats (JPEG, PNG, GIF, WebP) and viewed directly in browser
+    // - PDFs are stored as .pdf and viewed directly in browser
+    // - Only documents/text files stored as .gz need decompression
     // - Old uncompressed files still work
 
     // Check if file is gzip compressed
     if (preg_match('/\.gz$/', $file_path)) {
-        // Decompress to temp file (for PDFs, documents, etc.)
+        // Decompress to temp file (for documents, text files, etc.)
         $temp_file = $this->decompress_to_temp($file_path);
 
         if ($temp_file === false) {
@@ -1157,7 +1249,7 @@ public function download($id) {
         $original_name_no_gz = preg_replace('/\.gz$/', '', $original_name);
         $this->serve_file($temp_file, $original_name_no_gz, true);
     } else {
-        // Serve directly - images (.jpg), old uncompressed files
+        // Serve directly - images (JPEG, PNG, GIF, WebP), PDFs, old uncompressed files
         $this->serve_file($file_path, $original_name, false);
     }
 }
@@ -1256,9 +1348,9 @@ function attachment($id, $filename, $url = "") {
 ### 4.3 Testing Checklist
 
 - [ ] Download uncompressed file (legacy/old attachments)
-- [ ] Download gzip compressed file (.csv.gz, .txt.gz, .pdf.gz)
-- [ ] Download compressed PDF (.pdf.gz) - verify decompression works
-- [ ] View/download JPEG images directly in browser (.jpg) - no decompression needed (PRD CA1.7)
+- [ ] Download gzip compressed file (.csv.gz, .txt.gz, .docx.gz)
+- [ ] View/download optimized PDFs directly in browser (.pdf) - no decompression needed (PRD CA1.7)
+- [ ] View/download images directly in browser (.jpg, .png, .gif, .webp) - no decompression needed (PRD CA1.7)
 - [ ] Verify images display correctly in browser without download
 - [ ] Verify correct MIME types for all file types
 - [ ] Verify correct filenames (original name, .gz extension removed for compressed files)
@@ -1877,20 +1969,25 @@ $config['upload_max_size'] = 20480; // 20MB in KB
 $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt';
 
 // === Compression Settings ===
-// PRD Section 5.2 AC2.2: Two-track compression strategy
-// - Images: Resize + convert to JPEG quality 85 (no gzip - JPEG already compressed)
-// - Other files: gzip only (no external tools required)
+// PRD Section 5.2 AC2.2: Three-track compression strategy
+// - Compressible Images (JPEG, PNG, GIF, WebP): Resize + recompress in original format
+// - PDFs: Ghostscript /ebook (150 DPI) + keep as PDF
+// - Other files: gzip only (stored as .gz)
 $config['compression'] = [
     'enabled' => TRUE,
     'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
     'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
-    // Image compression (PRD AC2.2 & CA1.7: Resize + JPEG, no gzip)
+    // Image compression (PRD AC2.2 & CA1.7: Resize + recompress in original format)
     'image_max_width' => 1600,  // PRD AC2.6 & AC2.7: 300 DPI at A4, optimize smartphone photos
     'image_max_height' => 1200,
-    'image_quality' => 85, // JPEG quality (0-100), stored as .jpg
+    'image_quality' => 85, // Quality (0-100) for JPEG/WebP, converted to 0-9 for PNG
 
-    // Gzip compression level for non-image files (PRD AC2.2)
+    // PDF compression (PRD AC2.2: Ghostscript /ebook)
+    'ghostscript_path' => 'gs', // Path to Ghostscript binary
+    'pdf_quality' => 'ebook', // /screen (72 DPI), /ebook (150 DPI), /printer (300 DPI), /prepress (300 DPI)
+
+    // Gzip compression level for non-image, non-PDF files (PRD AC2.2)
     'gzip_level' => 9, // Maximum compression
 
     // Safety
@@ -1943,11 +2040,14 @@ $config['compression']['image_max_width'] = 1200; // Smaller dimensions
 
 **Key log messages to monitor:**
 ```
-// Successful image compression (method=gd+jpeg)
-INFO - Attachment compression: file=photo.png, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd+jpeg
+// Successful image compression (method=gd/resize+png, gd/resize+jpeg, etc.)
+INFO - Attachment compression: file=photo.png, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd/resize+png
+
+// Successful PDF compression (method=ghostscript/ebook)
+INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=ghostscript/ebook
 
 // Successful document compression (method=gzip)
-INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=gzip
+INFO - Attachment compression: file=document.docx, original=1.2MB, compressed=380KB, ratio=68%, method=gzip
 
 // Compression skipped
 INFO - Compression skipped: File too small
@@ -2073,23 +2173,24 @@ if ($this->get_config('debug', FALSE)) {
 ## Implementation Task Checklist
 
 ### Phase 1: Inline Attachment Upload (10 tasks)
-- [ ] Modify compta.php controller for inline attachments
-- [ ] Create upload_temp_attachment() AJAX handler
-- [ ] Create remove_temp_attachment() handler
-- [ ] Update formValidation() to process pending attachments
-- [ ] Modify bs_formView.php for attachment widget
-- [ ] Add JavaScript for file upload handling
-- [ ] Create cleanup script for temp files
-- [ ] Add language file translations (French, English, Dutch)
-- [ ] Create attachments.php config file
-- [ ] Complete Phase 1 testing checklist
+- [x] Modify compta.php controller for inline attachments
+- [x] Create upload_temp_attachment() AJAX handler
+- [x] Create remove_temp_attachment() handler
+- [x] Update formValidation() to process pending attachments
+- [x] Modify bs_formView.php for attachment widget
+- [x] Add JavaScript for file upload handling
+- [x] Create cleanup script for temp files
+- [x] Add language file translations (French, English, Dutch)
+- [x] Create attachments.php config file
+- [x] Complete Phase 1 testing checklist
 
-### Phase 2: Automatic File Compression (6 tasks)
+### Phase 2: Automatic File Compression (7 tasks)
 - [ ] Create File_compressor.php library
-- [ ] Implement compress_image() method (GD + JPEG conversion, no gzip)
-- [ ] Implement compress_gzip() method (for non-image files)
+- [ ] Implement compress_image() method (GD resize + recompress in original format)
+- [ ] Implement compress_pdf() method (Ghostscript /ebook, keep as PDF)
+- [ ] Implement compress_gzip() method (for non-image, non-PDF files)
 - [ ] Integrate compression into attachments.php upload
-- [ ] Add compression configuration to config file
+- [ ] Add compression configuration to config file (including Ghostscript settings)
 - [ ] Complete Phase 2 testing checklist
 
 ### Phase 3: Transparent Decompression (5 tasks)
@@ -2119,4 +2220,4 @@ if ($this->get_config('debug', FALSE)) {
 - [ ] Setup cron job for temp file cleanup
 - [ ] Monitor logs and storage usage for first week
 
-**Total: 35 implementation tasks**
+**Total: 36 implementation tasks** (Phase 2 now has 7 tasks instead of 6)

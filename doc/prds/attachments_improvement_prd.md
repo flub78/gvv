@@ -174,21 +174,28 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 **Critères d'Acceptation :**
 - CA2.1 : Le système analyse le type et la taille du fichier lors du téléchargement
 - CA2.2 : Stratégie de compression basée sur le type de fichier :
-  - **Images (JPEG, PNG, GIF, BMP, WebP) :**
+  - **Les formats d'images compressible (JPEG, PNG, GIF, WebP) :**
     - Redimensionner aux dimensions maximales (1600x1200 pixels) tout en maintenant le ratio d'aspect
-    - Convertir au format JPEG avec qualité 85
-    - Stocker comme `filename.jpg`
-  - **Tous les autres fichiers (PDF, DOCX, CSV, TXT, etc.) :**
+    - Compresser
+    - Stocker dans le format d'origine
+  - **PDF :**
+    - Réduction de la résolution à /ebook
+    - Garder en pdf 
+  - **Tous les autres fichiers (BMP, DOCX, CSV, TXT, etc.) :**
     - Compresser en utilisant la fonction PHP `gzencode()` (niveau 9)
     - Pas de conversion de format
     - Stocker comme `filename.ext.gz` (ex. `invoice.pdf.gz`)
+    - Cette option sera supportée dans un second temps si elle s'avère utile
+  - **Les archives compressées (.zip, .gz) :**
+    - Pas de compression supplémentaire 
 - CA2.3 : Fichier original préservé si le ratio de compression < 10% ou la taille du fichier < 100KB
 - CA2.4 : Ratio de compression journalisé dans `application/logs/` avec le format :
   ```
-  INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=gzip
-  INFO - Attachment compression: file=scan.jpg, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd+gzip
+  INFO - Attachment compression: file=invoice.pdf, original=2.5MB, compressed=450KB, ratio=82%, method=ghostscript/ebook
+  INFO - Attachment compression: file=scan.jpg, original=5.2MB (3000x2000), compressed=850KB (1600x1067), ratio=84%, method=gd/resize+jpeg
+  INFO - Attachment compression: file=document.docx, original=1.2MB, compressed=380KB, ratio=68%, method=gzip
   ```
-- CA2.5 : Fichiers décompressés et servis de manière transparente lors du téléchargement
+- CA2.5 : Fichiers gzippés (`.gz`) décompressés et servis de manière transparente lors du téléchargement (images et PDFs servis directement dans leur format optimisé)
 - CA2.6 : Résolution d'image adaptée à l'impression (300 DPI en A4 = ~1600x1200 pixels)
 - CA2.7 : Photos de smartphone automatiquement optimisées (typiquement 3-8MB → 500KB-1MB)
 
@@ -215,9 +222,11 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 
 ---
 
-### 5.4 EF4 : Décompression Transparente (Priorité : aussi HAUTE que la compression de fichiers)
+### 5.4 EF4 : Décompression Transparente (Priorité : MOYENNE)
 
 **Description :** Décompresser automatiquement les fichiers lorsqu'ils sont affichés ou téléchargés.
+
+**Note :** Cette option est maintenant moins prioritaire depuis la décision de garder les formats image compressible et pdf dans le format original.
 
 **User Story :**
 > En tant que trésorier, je veux voir ou télécharger les pièces jointes dans leur format original utilisable, sans avoir besoin de savoir qu'elles ont été compressées pour le stockage.
@@ -225,9 +234,9 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 **Critères d'Acceptation :**
 - CA4.1 : Quand l'utilisateur clique sur le lien de pièce jointe, le système détecte si le fichier est compressé (extension `.gz`)
 - CA4.2 : Si compressé, décompresser à la volée en utilisant PHP `gzdecode()` avant de servir
-- CA4.3 : Nom de fichier original restauré (retirer l'extension `.gz`)
-  - Images : Servir comme `filename.jpg` (format converti)
-  - Autres fichiers : Servir avec l'extension originale (ex. `invoice.pdf`)
+- CA4.3 : Nom de fichier original restauré (retirer l'extension `.gz` pour les fichiers gzippés)
+  - Images et PDFs : Servir dans leur format original optimisé (JPEG reste JPEG, PNG reste PNG, PDF reste PDF)
+  - Autres fichiers gzippés : Servir avec l'extension originale (ex. `document.docx` décompressé de `document.docx.gz`)
 - CA4.4 : En-tête Content-Type correspond au format de fichier servi
 - CA4.5 : Pas d'indication dans l'interface que le fichier a été compressé ou redimensionné
 - CA4.6 : Performance de téléchargement/visualisation acceptable (<2 secondes de délai pour les fichiers jusqu'à 20MB)
@@ -239,7 +248,8 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 
 ### 6.1 Performance
 - Le téléchargement de fichier avec compression se termine en 3 secondes pour les fichiers <10MB
-  - Compression d'image (redimensionnement + gzip) : 1-2 secondes
+  - Compression d'image (redimensionnement + recompression JPEG/PNG) : 1-2 secondes
+  - Compression PDF (Ghostscript /ebook) : 1-3 secondes
   - Compression de document (gzip seulement) : 0.5-1 seconde
 - Les opérations de compression utilisent du PHP pur (pas de processus externes)
 - Le nettoyage des fichiers temporaires s'exécute quotidiennement sans impacter les performances système
@@ -298,7 +308,7 @@ L'application GVV inclut un système de pièces jointes qui permet aux utilisate
 | Le stockage de fichiers temp remplit le disque | MOYEN | MOYEN | Limites de taille strictes et nettoyage 24h |
 | L'approche basée session échoue au redémarrage | MOYEN | FAIBLE | Stocker les métadonnées de fichier temp dans la base de données |
 | La compression d'image dégrade la qualité | MOYEN | MOYEN | Paramètres de qualité configurables ; test A/B avec utilisateurs |
-| La compression PDF casse les fonctionnalités | ÉLEVÉ | MOYEN | Détecter les fonctionnalités PDF avant compression ; passer si risqué |
+| La réduction de résolution PDF dégrade la lisibilité | MOYEN | FAIBLE | Utiliser Ghostscript /ebook (150 DPI) ; tester la lisibilité à l'écran et à l'impression |
 | Impact performance lors du téléchargement | FAIBLE | MOYEN | Rendre la compression asynchrone ; indicateur de progression |
 | L'utilisateur retire accidentellement des fichiers | FAIBLE | ÉLEVÉ | Ajouter dialogue de confirmation ; permettre annulation |
 
