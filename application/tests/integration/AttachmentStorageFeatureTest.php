@@ -31,6 +31,9 @@ class AttachmentStorageFeatureTest extends TestCase
     {
         $this->CI = &get_instance();
 
+        // Start database transaction to rollback all changes
+        $this->CI->db->trans_start();
+
         // Load required models
         if (!class_exists('Common_Model')) {
             require_once APPPATH . 'models/common_model.php';
@@ -70,22 +73,18 @@ class AttachmentStorageFeatureTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Delete created attachment files
+        // Clean up created files (files are NOT rolled back by database transaction)
         foreach ($this->created_files as $file) {
             if (file_exists($file)) {
                 @unlink($file);
             }
         }
 
-        // Delete created attachment database records
-        foreach ($this->created_db_ids as $id) {
-            $this->CI->db->delete('attachments', ['id' => $id]);
-        }
+        // Rollback database transaction to restore original state
+        // This will undo all INSERT/UPDATE/DELETE operations from the test
+        $this->CI->db->trans_rollback();
 
-        // Delete created accounting lines
-        foreach ($this->created_ecritures as $id) {
-            $this->CI->db->delete('ecritures', ['id' => $id]);
-        }
+        // Note: No need to manually delete DB records - transaction rollback handles it
     }
 
     // ========== TEST 1: File Storage When Uploaded ==========

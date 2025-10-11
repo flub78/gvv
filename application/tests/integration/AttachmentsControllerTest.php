@@ -41,6 +41,9 @@ class AttachmentsControllerTest extends TestCase
         // Get CodeIgniter instance
         $this->CI = &get_instance();
 
+        // Start database transaction to rollback all changes
+        $this->CI->db->trans_start();
+
         // Add language() method to load if it doesn't exist
         if (!method_exists($this->CI->load, 'language')) {
             $this->CI->load->language = function($file) { return true; };
@@ -99,19 +102,18 @@ class AttachmentsControllerTest extends TestCase
      */
     protected function tearDown(): void
     {
-        // Delete created files
+        // Delete created files (files are NOT rolled back by database transaction)
         foreach ($this->created_files as $file) {
             if (file_exists($file)) {
                 @unlink($file);
             }
         }
 
-        // Delete created database records
-        if (!empty($this->created_db_ids)) {
-            foreach ($this->created_db_ids as $id) {
-                $this->CI->db->delete('attachments', ['id' => $id]);
-            }
-        }
+        // Rollback database transaction to restore original state
+        // This will undo all INSERT/UPDATE/DELETE operations from the test
+        $this->CI->db->trans_rollback();
+
+        // Note: No need to manually delete DB records - transaction rollback handles it
 
         // Clean up empty directories
         $this->cleanupTestDirectories();
