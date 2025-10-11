@@ -14,22 +14,27 @@ $config['max_temp_storage_mb'] = 500;
 $config['upload_max_size'] = 20480; // 20MB in KB
 $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt';
 
-// === Compression Settings ===
-// PRD Section 5.2 AC2.2: Two-track compression strategy
-// - Images: Resize + convert to JPEG + gzip
-// - Other files: gzip only (no external tools required)
+// === Compression Settings (Phase 2 - Images only) ===
+// PRD Section 5.2 AC2.2: Three-track compression strategy
+// - Compressible Images (JPEG, PNG, GIF, WebP): Resize + recompress in original format
+// - PDFs: Not implemented yet (will use Ghostscript /ebook in future phase)
+// - Other files: Not implemented yet (will use gzip in future phase)
 $config['compression'] = [
-    'enabled' => FALSE, // Disabled for Phase 1, will be enabled in Phase 2
+    'enabled' => TRUE, // Enabled for Phase 2 (images only)
     'min_size' => 102400, // 100KB - don't compress smaller files (PRD AC2.3)
     'min_ratio' => 0.10, // Only keep compressed if >10% savings (PRD AC2.3)
 
-    // Image compression (PRD AC2.2: Resize + JPEG + gzip)
+    // Image compression (PRD AC2.2 & CA1.7: Resize + recompress in original format)
     'image_max_width' => 1600,  // PRD AC2.6 & AC2.7: 300 DPI at A4, optimize smartphone photos
     'image_max_height' => 1200,
-    'image_quality' => 85, // JPEG quality (0-100)
+    'image_quality' => 85, // Quality (0-100) for JPEG/WebP, converted to 0-9 for PNG
 
-    // Gzip compression level for all files (PRD AC2.2)
-    'gzip_level' => 9, // Maximum compression
+    // PDF compression - NOT IMPLEMENTED YET
+    // 'ghostscript_path' => 'gs',
+    // 'pdf_quality' => 'ebook',
+
+    // Gzip compression - NOT IMPLEMENTED YET
+    // 'gzip_level' => 9,
 
     // Safety
     'preserve_original_until_verified' => TRUE,

@@ -672,10 +672,10 @@ $config['allowed_file_types'] = 'pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx|csv|txt'
 
 ### 2.3 Testing Checklist
 
-- [ ] Upload single file during accounting line creation
+- [x] Upload single file during accounting line creation
 - [ ] Upload multiple files during accounting line creation
 - [ ] Remove file before submission
-- [ ] Submit form with attachments successfully
+- [x] Submit form with attachments successfully
 - [ ] Submit form with validation error (files retained)
 - [ ] Submit form without attachments (no errors)
 - [ ] Verify files moved from temp to permanent storage
