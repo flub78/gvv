@@ -12,15 +12,15 @@
 Use this checklist to track progress through the migration. Check off items as they are completed.
 
 ### Phase 0: Preparation (Week 1)
-- [ ] Full database backup created
+- [x] Full database backup created
 - [ ] Current permissions exported to CSV
 - [ ] Test environment set up and validated
 - [ ] Code audit completed
 - [ ] Preparation documentation reviewed by team
 
 ### Phase 1: Database Schema Migration (Week 2)
-- [ ] Migration file 043 created
-- [ ] `types_roles` table enhanced with `scope`, `is_system_role`, `display_order`
+- [ ] Migration file 040 created
+- [ ] `types_roles` table enhanced with `scope`, `is_system_role`, `display_order`, `translation_key`
 - [ ] `role_permissions` table created
 - [ ] `data_access_rules` table created
 - [ ] `user_roles_per_section` table enhanced
@@ -35,6 +35,7 @@ Use this checklist to track progress through the migration. Check off items as t
 - [ ] Admin roles migrated to user_roles_per_section
 - [ ] URI permissions converted to role_permissions
 - [ ] Default data access rules populated
+- [ ] **Role translation files created (French, English, Dutch)**
 - [ ] Migration scripts tested
 - [ ] Data validation queries passed
 - [ ] Rollback script tested
@@ -127,6 +128,7 @@ Use this checklist to track progress through the migration. Check off items as t
 - [ ] Old roles/permissions tables renamed (not dropped)
 - [ ] Documentation updated
 - [ ] Admin user guide created
+- [ ] **Developer documentation created (authorization implementation guide)**
 - [ ] Administrator training completed
 - [ ] Admin dashboard widget deployed
 - [ ] Performance optimization completed
@@ -175,17 +177,18 @@ The remainder of this document focuses on the technical implementation plan.
 ALTER TABLE `types_roles`
 ADD COLUMN `scope` ENUM('global', 'section') NOT NULL DEFAULT 'section' AFTER `description`,
 ADD COLUMN `is_system_role` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Cannot be deleted' AFTER `scope`,
-ADD COLUMN `display_order` INT NOT NULL DEFAULT 100 AFTER `is_system_role`;
+ADD COLUMN `display_order` INT NOT NULL DEFAULT 100 AFTER `is_system_role`,
+ADD COLUMN `translation_key` VARCHAR(64) NULL COMMENT 'Language file key for role name' AFTER `display_order`;
 
 -- Update existing roles
-UPDATE types_roles SET scope='global', is_system_role=1, display_order=10 WHERE id=10; -- club-admin
-UPDATE types_roles SET scope='global', is_system_role=1, display_order=20 WHERE id=9;  -- super-tresorier
-UPDATE types_roles SET scope='global', is_system_role=1, display_order=30 WHERE id=7;  -- bureau
-UPDATE types_roles SET scope='section', is_system_role=1, display_order=40 WHERE id=8; -- tresorier
-UPDATE types_roles SET scope='section', is_system_role=1, display_order=50 WHERE id=6; -- ca
-UPDATE types_roles SET scope='section', is_system_role=1, display_order=60 WHERE id=5; -- planchiste
-UPDATE types_roles SET scope='section', is_system_role=1, display_order=70 WHERE id=2; -- auto_planchiste
-UPDATE types_roles SET scope='section', is_system_role=1, display_order=80 WHERE id=1; -- user
+UPDATE types_roles SET scope='global', is_system_role=1, display_order=10, translation_key='role_admin' WHERE id=10; -- club-admin
+UPDATE types_roles SET scope='global', is_system_role=1, display_order=20, translation_key='role_super_tresorier' WHERE id=9;  -- super-tresorier
+UPDATE types_roles SET scope='global', is_system_role=1, display_order=30, translation_key='role_bureau' WHERE id=7;  -- bureau
+UPDATE types_roles SET scope='section', is_system_role=1, display_order=40, translation_key='role_tresorier' WHERE id=8; -- tresorier
+UPDATE types_roles SET scope='section', is_system_role=1, display_order=50, translation_key='role_ca' WHERE id=6; -- ca
+UPDATE types_roles SET scope='section', is_system_role=1, display_order=60, translation_key='role_planchiste' WHERE id=5; -- planchiste
+UPDATE types_roles SET scope='section', is_system_role=1, display_order=70, translation_key='role_auto_planchiste' WHERE id=2; -- auto_planchiste
+UPDATE types_roles SET scope='section', is_system_role=1, display_order=80, translation_key='role_user' WHERE id=1; -- user
 ```
 
 #### 2. New role_permissions Table (URI Permissions)
@@ -537,7 +540,7 @@ LEFT JOIN permissions p ON r.id = p.role_id;
 
 **Tasks:**
 
-1. **Create Migration File: 043_authorization_refactoring.php**
+1. **Create Migration File: 040_authorization_refactoring.php**
 
 ```php
 <?php
@@ -551,18 +554,19 @@ class Migration_Authorization_Refactoring extends CI_Migration {
             ALTER TABLE `types_roles`
             ADD COLUMN `scope` ENUM('global', 'section') NOT NULL DEFAULT 'section' AFTER `description`,
             ADD COLUMN `is_system_role` TINYINT(1) NOT NULL DEFAULT 0 AFTER `scope`,
-            ADD COLUMN `display_order` INT NOT NULL DEFAULT 100 AFTER `is_system_role`
+            ADD COLUMN `display_order` INT NOT NULL DEFAULT 100 AFTER `is_system_role`,
+            ADD COLUMN `translation_key` VARCHAR(64) NULL COMMENT 'Language file key for role name' AFTER `display_order`
         ");
 
         // 2. Update existing role types
-        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=10 WHERE id=10");
-        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=20 WHERE id=9");
-        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=30 WHERE id=7");
-        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=40 WHERE id=8");
-        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=50 WHERE id=6");
-        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=60 WHERE id=5");
-        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=70 WHERE id=2");
-        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=80 WHERE id=1");
+        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=10, translation_key='role_admin' WHERE id=10");
+        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=20, translation_key='role_super_tresorier' WHERE id=9");
+        $this->db->query("UPDATE types_roles SET scope='global', is_system_role=1, display_order=30, translation_key='role_bureau' WHERE id=7");
+        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=40, translation_key='role_tresorier' WHERE id=8");
+        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=50, translation_key='role_ca' WHERE id=6");
+        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=60, translation_key='role_planchiste' WHERE id=5");
+        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=70, translation_key='role_auto_planchiste' WHERE id=2");
+        $this->db->query("UPDATE types_roles SET scope='section', is_system_role=1, display_order=80, translation_key='role_user' WHERE id=1");
 
         // 3. Create role_permissions table
         $this->dbforge->add_field([
@@ -629,14 +633,14 @@ class Migration_Authorization_Refactoring extends CI_Migration {
         $this->db->query("ALTER TABLE user_roles_per_section DROP COLUMN notes, DROP COLUMN revoked_at, DROP COLUMN granted_at, DROP COLUMN granted_by");
         $this->dbforge->drop_table('data_access_rules');
         $this->dbforge->drop_table('role_permissions');
-        $this->db->query("ALTER TABLE types_roles DROP COLUMN display_order, DROP COLUMN is_system_role, DROP COLUMN scope");
+        $this->db->query("ALTER TABLE types_roles DROP COLUMN display_order, DROP COLUMN is_system_role, DROP COLUMN scope, DROP COLUMN translation_key");
     }
 }
 ```
 
 2. **Update config/migration.php**
 ```php
-$config['migration_version'] = 43;
+$config['migration_version'] = 40;
 ```
 
 3. **Run Migration**
@@ -816,6 +820,49 @@ foreach ($default_rules as $rule) {
 }
 ```
 
+4. **Create Role Translation Files**
+
+Create language files for role names:
+
+**application/language/french/roles_lang.php:**
+```php
+<?php
+$lang['role_admin'] = 'Administrateur';
+$lang['role_super_tresorier'] = 'Super-Trésorier';
+$lang['role_bureau'] = 'Bureau';
+$lang['role_tresorier'] = 'Trésorier';
+$lang['role_ca'] = 'Conseil d\'Administration';
+$lang['role_planchiste'] = 'Planchiste';
+$lang['role_auto_planchiste'] = 'Auto-Planchiste';
+$lang['role_user'] = 'Utilisateur';
+```
+
+**application/language/english/roles_lang.php:**
+```php
+<?php
+$lang['role_admin'] = 'Administrator';
+$lang['role_super_tresorier'] = 'Super-Treasurer';
+$lang['role_bureau'] = 'Board';
+$lang['role_tresorier'] = 'Treasurer';
+$lang['role_ca'] = 'Administrative Council';
+$lang['role_planchiste'] = 'Flight Manager';
+$lang['role_auto_planchiste'] = 'Self Flight Manager';
+$lang['role_user'] = 'User';
+```
+
+**application/language/dutch/roles_lang.php:**
+```php
+<?php
+$lang['role_admin'] = 'Beheerder';
+$lang['role_super_tresorier'] = 'Super-Penningmeester';
+$lang['role_bureau'] = 'Bestuur';
+$lang['role_tresorier'] = 'Penningmeester';
+$lang['role_ca'] = 'Raad van Bestuur';
+$lang['role_planchiste'] = 'Vluchtmanager';
+$lang['role_auto_planchiste'] = 'Zelf-Vluchtmanager';
+$lang['role_user'] = 'Gebruiker';
+```
+
 4. **Verification Queries**
 
 ```sql
@@ -881,6 +928,9 @@ class Gvv_Authorization {
         $this->ci =& get_instance();
         $this->ci->load->database();
         $this->ci->load->model('authorization/authorization_model', 'auth_model');
+        
+        // Load role translation language file
+        $this->ci->lang->load('roles', $this->ci->config->item('language'));
     }
 
     /**
@@ -980,6 +1030,24 @@ class Gvv_Authorization {
         $this->ci->session->set_userdata($cache_key, $is_admin);
 
         return $is_admin;
+    }
+
+    /**
+     * Get localized role name
+     *
+     * @param object $role Role object with translation_key and nom fields
+     * @return string Localized role name
+     */
+    public function get_role_display_name($role) {
+        if (!empty($role->translation_key)) {
+            $translated = $this->ci->lang->line($role->translation_key);
+            if ($translated && $translated !== $role->translation_key) {
+                return $translated;
+            }
+        }
+        
+        // Fallback to database nom field
+        return $role->nom ?? $role->name ?? 'Unknown Role';
     }
 
     /**
@@ -1327,10 +1395,19 @@ class Authorization extends GVV_Controller {
         $section_id = $this->input->get('section_id');
         $active_only = $this->input->get('active_only') !== '0';
 
+        // Load role translation language file
+        $this->lang->load('roles');
+
         // Get users with roles
         $data['users'] = $this->auth_model->get_users_with_roles($section_id, $active_only);
         $data['sections'] = $this->db->get('sections')->result();
         $data['role_types'] = $this->db->order_by('display_order')->get('types_roles')->result();
+        
+        // Add localized role names
+        foreach ($data['role_types'] as &$role) {
+            $role->display_name = $this->gvv_auth->get_role_display_name($role);
+        }
+        
         $data['current_section'] = $section_id;
         $data['active_only'] = $active_only;
 
@@ -2843,6 +2920,7 @@ RENAME TABLE permissions TO permissions_old;
 
 - Update `doc/design_notes/2024_authorization_system.md`
 - Create admin user guide: `doc/admin_guides/authorization_management.md`
+- **Create developer documentation: `doc/development/authorization_implementation_guide.md`**
 - Update CLAUDE.md with new authorization patterns
 
 3. **Administrator Training**
@@ -2856,7 +2934,66 @@ Topics:
 - Troubleshooting access issues
 - Reading audit logs
 
-4. **Create Admin Dashboard Widget**
+4. **Developer Documentation**
+
+Create developer guide: `doc/development/authorization_implementation_guide.md`
+
+Topics:
+- How to apply authorization controls in controller code
+- Using the new Gvv_Authorization library
+- Implementing row-level data access checks
+- Authorization patterns and best practices
+- Examples of common authorization scenarios
+- Testing authorization in controllers
+- Debugging permission issues
+
+**Document Structure:**
+
+```markdown
+# GVV Authorization Implementation Guide for Developers
+
+## Quick Start
+- Basic controller setup with authorization
+- Common patterns and examples
+
+## Authorization Library Reference
+- Gvv_Authorization API documentation
+- Method signatures and parameters
+- Return values and error handling
+- **Role localization and display names**
+
+## Controller Implementation Patterns
+- Automatic authorization via Gvv_Controller
+- Manual permission checks for special cases
+- Row-level data access implementation
+- Multi-section permission handling
+- **Using localized role names in UI**
+
+## Code Examples
+- Standard CRUD controller with authorization
+- Data filtering based on user permissions
+- Section-specific data access
+- Admin override scenarios
+
+## Testing Authorization
+- Unit testing authorization logic
+- Integration testing with test users
+- Mocking authorization for development
+
+## Best Practices
+- When to use controller-level vs. data-level checks
+- Performance considerations
+- Security patterns to avoid
+- Error handling and user feedback
+
+## Troubleshooting
+- Common permission issues and solutions
+- Debugging authorization failures
+- Audit log analysis
+- Performance optimization tips
+```
+
+5. **Create Admin Dashboard Widget**
 
 Show on admin home:
 ```php
@@ -2876,7 +3013,7 @@ ORDER BY al.created_at DESC
 LIMIT 10;
 ```
 
-5. **Performance Optimization**
+6. **Performance Optimization**
 
 ```sql
 -- Add missing indexes after observing queries
@@ -2891,6 +3028,7 @@ CREATE INDEX idx_full_lookup ON role_permissions(types_roles_id, section_id, con
 **Deliverables:**
 - Updated documentation
 - Admin training completed
+- **Developer documentation completed**
 - Old system deprecated
 - Performance optimized
 
@@ -2940,6 +3078,7 @@ CREATE INDEX idx_full_lookup ON role_permissions(types_roles_id, section_id, con
 - ✅ Flat role model implemented (no hierarchy)
 - ✅ Section-aware roles functional
 - ✅ Row-level data access working
+- ✅ **Role names properly localized in French, English, and Dutch**
 - ✅ New UI pages operational
 - ✅ Audit logging complete
 
@@ -2949,6 +3088,7 @@ CREATE INDEX idx_full_lookup ON role_permissions(types_roles_id, section_id, con
 - ✅ Admin time to manage roles reduced by 50%
 - ✅ Zero security incidents
 - ✅ Documentation complete and clear
+- ✅ **Developer implementation guide available**
 
 ## Post-Migration Tasks
 
@@ -3075,6 +3215,25 @@ $can_manage_flights =
 if ($can_manage_flights) {
     // Show management buttons
 }
+```
+
+### Example: Using Localized Role Names in Views
+
+```php
+// In controller
+$roles = $this->db->order_by('display_order')->get('types_roles')->result();
+foreach ($roles as &$role) {
+    $role->display_name = $this->gvv_auth->get_role_display_name($role);
+}
+$data['roles'] = $roles;
+
+// In view
+foreach ($roles as $role) {
+    echo '<option value="' . $role->id . '">' . $role->display_name . '</option>';
+}
+// Outputs: <option value="5">Planchiste</option> (in French)
+//          <option value="5">Flight Manager</option> (in English)
+//          <option value="5">Vluchtmanager</option> (in Dutch)
 ```
 
 ## Appendix C: SQL Queries for Admin

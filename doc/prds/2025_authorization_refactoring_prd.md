@@ -94,6 +94,9 @@ Ce document décrit les exigences pour refondre le système d'autorisation de GV
     -   Le nouveau code doit être bien documenté et auto-explicatif.
     -   L'architecture doit faciliter l'ajout de nouveaux rôles et permissions à l'avenir.
 
+5. **ENF5 : Documentation**
+    -   Fournir un document pour les développeurs pour expliquer comment appliquer les contrôles de droit dans le code 
+
 ---
 
 ## 4. Nouveaux Composants d'Interface (Maquettes)

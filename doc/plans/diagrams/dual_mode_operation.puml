@@ -3,18 +3,18 @@
 
 title Dual-Mode Authorization Operation During Migration
 
-actor "Admin" as admin
-actor "Migrated User" as migrated
-actor "Non-Migrated User" as nonmigrated
+actor "Admin" as admin_user
+actor "Migrated User" as migrated_user
+actor "Non-Migrated User" as nonmigrated_user
 
 rectangle "Configuration" as config #LightYellow {
-  [Feature Flags]
-  [Migrated Users List]
+  [Feature_Flags]
+  [Migrated_Users_List]
 }
 
 rectangle "migration_status" as mig_db #LightGray {
   [userID]
-  [migrated]
+  [is_migrated]
   [migrationDate]
 }
 
@@ -25,7 +25,7 @@ rectangle "Decision Logic" as decision #E6F7FF {
 rectangle "OLD System" as old_system #FFCCCC {
   [DX_Auth Library]
   rectangle "Legacy DB" {
-    [users roleID]
+    [users_roleID]
     [roles]
     [permissions]
   }
@@ -34,21 +34,21 @@ rectangle "OLD System" as old_system #FFCCCC {
 rectangle "NEW System" as new_system #CCFFCC {
   [Gvv_Authorization Library]
   rectangle "New DB" {
-    [user roles per section]
-    [types roles]
-    [role permissions]
+    [user_roles_per_section]
+    [types_roles]
+    [role_permissions]
   }
 }
 
 rectangle "Management UI" as mgmt #FFF7E6 {
-  [Migration Dashboard]
-  [Early Permission Setup]
+  [Migration_Dashboard]
+  [Early_Permission_Setup]
 }
 
 ' User flows
-migrated --> decision
-admin --> decision
-nonmigrated --> decision
+migrated_user --> decision
+admin_user --> decision
+nonmigrated_user --> decision
 
 decision --> new_system : Use new
 decision --> old_system : Use old
@@ -56,7 +56,7 @@ decision --> old_system : Use old
 config --> decision
 mig_db --> decision
 
-admin --> mgmt
+admin_user --> mgmt
 
 note right of decision
   Checks:

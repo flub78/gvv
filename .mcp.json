@@ -13,6 +13,27 @@
                 "--project",
                 "."
             ]
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "/home/frederic/git/gvv"
+            ]
+        },
+        "mysql": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-mysql-server"
+            ],
+            "env": {
+                "MYSQL_HOST": "localhost",
+                "MYSQL_USER": "gvv_user",
+                "MYSQL_PASSWORD": "lfoyfgbj",
+                "MYSQL_DATABASE": "gvv2"
+            }
         }
     }
 }
