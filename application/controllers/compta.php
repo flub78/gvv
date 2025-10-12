@@ -398,7 +398,7 @@ class Compta extends Gvv_Controller {
         if (empty($section_name)) {
             $section_name = 'Unknown';
         }
-        $section_name = str_replace(' ', '_', $section_name);
+        $section_name = $this->sanitize_filename($section_name);
 
         // Create temp directory
         $temp_dir = './uploads/attachments/temp/' . $session_id . '/';
@@ -408,7 +408,7 @@ class Compta extends Gvv_Controller {
         }
 
         // Generate unique filename
-        $storage_file = rand(100000, 999999) . '_' . str_replace(' ', '_', $_FILES['file']['name']);
+        $storage_file = rand(100000, 999999) . '_' . $this->sanitize_filename($_FILES['file']['name']);
 
         // Upload file
         $config['upload_path'] = $temp_dir;

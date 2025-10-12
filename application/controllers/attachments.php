@@ -116,7 +116,7 @@ class Attachments extends Gvv_Controller {
         }
 
         // Sanitize section name for use as directory name (remove spaces and special chars)
-        $section_name = str_replace(' ', '_', $section_name);
+        $section_name = $this->sanitize_filename($section_name);
 
         $dirname = './uploads/attachments/' . $year . '/' . $section_name . '/';
         if (!file_exists($dirname)) {
@@ -127,7 +127,7 @@ class Attachments extends Gvv_Controller {
         // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
 
-        $storage_file = rand(100000, 999999) . '_' . str_replace(' ', '_', $_FILES['userfile']['name']);
+        $storage_file = rand(100000, 999999) . '_' . $this->sanitize_filename($_FILES['userfile']['name']);
 
         $config['upload_path'] = $dirname;
         $config['allowed_types'] = '*';

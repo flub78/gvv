@@ -934,4 +934,74 @@ class Gvv_Controller extends CI_Controller {
 
         $this->unit->save_coverage();
     }
+
+    /**
+     * Sanitize filename for safe filesystem use
+     * Removes/replaces problematic characters that can cause upload failures
+     * 
+     * @param string $filename The filename to sanitize
+     * @return string The sanitized filename
+     */
+    protected function sanitize_filename($filename) {
+        if (empty($filename)) {
+            return 'unknown_file';
+        }
+
+        // Remove or replace problematic characters
+        $filename = trim($filename);
+        
+        // Replace common problematic characters
+        $replacements = array(
+            ' ' => '_',           // spaces
+            '&' => '_and_',       // ampersand
+            '+' => '_plus_',      // plus
+            '#' => '_hash_',      // hash
+            '%' => '_percent_',   // percent
+            '?' => '_',           // question mark
+            '!' => '_',           // exclamation
+            '@' => '_at_',        // at symbol
+            '*' => '_star_',      // asterisk
+            '|' => '_',           // pipe
+            '\\' => '_',          // backslash
+            '/' => '_',           // forward slash (shouldn't be in filename anyway)
+            ':' => '_',           // colon
+            ';' => '_',           // semicolon
+            '"' => '_',           // quotes
+            "'" => '_',           // single quote
+            '`' => '_',           // backtick
+            '<' => '_',           // less than
+            '>' => '_',           // greater than
+            '[' => '_',           // square brackets
+            ']' => '_',
+            '{' => '_',           // curly brackets
+            '}' => '_',
+            '(' => '_',           // parentheses  
+            ')' => '_',
+            ',' => '_',           // comma
+            '=' => '_',           // equals
+        );
+
+        $filename = str_replace(array_keys($replacements), array_values($replacements), $filename);
+        
+        // Remove any remaining special characters except dots, hyphens, and underscores
+        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+        
+        // Remove multiple consecutive underscores
+        $filename = preg_replace('/_+/', '_', $filename);
+        
+        // Remove leading/trailing underscores
+        $filename = trim($filename, '_');
+        
+        // Ensure we still have a filename
+        if (empty($filename)) {
+            $filename = 'sanitized_file';
+        }
+        
+        // Limit length to prevent filesystem issues
+        if (strlen($filename) > 200) {
+            $filename = substr($filename, 0, 200);
+        }
+        
+        return $filename;
+    }
 }

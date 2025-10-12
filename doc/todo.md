@@ -15,9 +15,10 @@
 * [] Images de configuration
 * [] gestion des droits multi sections (plan draft)
 
-* [] Attachements lors de la création d'écriture (plan draft)
-  * [] tester les téléchargements avec espace (upload->do_upload)
+* [x] Attachements lors de la création d'écriture (plan OK)
+  * [x] tester les téléchargements avec espace (upload->do_upload)
   * [x] compression des attachements
+  * [ ] tester upload photo
 
 * [] Support du markdown
   
@@ -137,6 +138,6 @@
 
 * [x] Les attachements devraient-être listé par section et par années
 * [x] Gérer la configuration dans la base.
-* [x] Sauvegarde/restauration des medias et attachements
+* [x] Sauvegarde/restauration des medias et attachements (optimisé mémoire)
 
 * [x] Quand un trésorier saisie une écriture à partir du menu Ecritures, il a le choix entre Recette, Réglement par pilote, Dépenses, etc. Dans chaque cas, il y a présélection des comptes possibles. Mais quand la saisie est rejetée suite à une erreur de validation, il n'y a plus de présélection et l'utilisateur peut choisir n'importe quel compte en emploi et resource. Cela va à l'encontre de la volonté de guider l'utilisateur.
