@@ -100,8 +100,8 @@ class Admin extends CI_Controller {
         }
         $filepath = $backupdir . '/' . $filename;
         
-        // Create tar.gz archive excluding the restore subdirectory
-        $command = "cd " . escapeshellarg($uploads_path) . " && tar --exclude='restore' -czf " . escapeshellarg($filepath) . " .";
+        // Create tar.gz archive excluding restore subdirectory and backup copies
+        $command = "cd " . escapeshellarg($uploads_path) . " && tar --exclude='restore' --exclude='attachments_backup' --exclude='*.tmp' --exclude='*.bak' -czf " . escapeshellarg($filepath) . " .";
 
         gvv_info("Backup media command: " . $command);
         exec($command, $output, $return_code);
@@ -109,10 +109,8 @@ class Admin extends CI_Controller {
 
         // if ($return_code == 0 && file_exists($full_backup_path)) {
         if ($return_code == 0) {
-            // Load the download helper and send the file to browser
-            $this->load->helper('download');
-            $data = file_get_contents($filepath);
-            force_download($filename, $data);
+            // Memory-efficient streaming download instead of loading entire file into memory
+            $this->stream_file_download($filepath, $filename);
             
             // Clean up the temporary backup file after download
             unlink($filepath);
@@ -121,6 +119,56 @@ class Admin extends CI_Controller {
                       '<br>Commande: ' . htmlspecialchars($command) . 
                       '<br>Sortie: ' . implode('<br>', $output));
         }
+    }
+
+    /**
+     * Memory-efficient file streaming for large downloads
+     * Streams file in chunks instead of loading entire file into memory
+     */
+    private function stream_file_download($filepath, $filename) {
+        if (!file_exists($filepath)) {
+            show_error('Le fichier de sauvegarde n\'existe pas');
+            return;
+        }
+
+        $filesize = filesize($filepath);
+        
+        // Set headers for download
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . $filesize);
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        
+        // Disable output buffering and clean any existing buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Open file for reading
+        $file = fopen($filepath, 'rb');
+        if ($file === false) {
+            show_error('Impossible d\'ouvrir le fichier de sauvegarde');
+            return;
+        }
+        
+        // Stream file in 8MB chunks to avoid memory issues
+        $chunk_size = 8 * 1024 * 1024; // 8MB chunks
+        while (!feof($file)) {
+            $chunk = fread($file, $chunk_size);
+            if ($chunk === false) {
+                break;
+            }
+            echo $chunk;
+            
+            // Flush output to ensure chunks are sent immediately
+            if (ob_get_level()) {
+                ob_flush();
+            }
+            flush();
+        }
+        
+        fclose($file);
     }
 
     /**

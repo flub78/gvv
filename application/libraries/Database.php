@@ -275,8 +275,10 @@ class Database {
 		unlink($filename);
 
 		$this->CI->load->helper('download');
-		$data = file_get_contents($zipname);
-		force_download($zipname, $data);
+		$this->stream_file_download($zipname, $zipname);
+		
+		// Clean up the backup file after download
+		unlink($zipname);
 	}
 
 	/*
@@ -311,5 +313,55 @@ class Database {
 	public function sqlfile($filename, $return_result = false) {
 		$sql = file_get_contents($filename);
 		return $this->sql($sql, $return_result);
+	}
+
+	/**
+	 * Memory-efficient file streaming for large downloads
+	 * Streams file in chunks instead of loading entire file into memory
+	 */
+	private function stream_file_download($filepath, $filename) {
+		if (!file_exists($filepath)) {
+			show_error('Le fichier de sauvegarde n\'existe pas');
+			return;
+		}
+
+		$filesize = filesize($filepath);
+		
+		// Set headers for download
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+		header('Content-Length: ' . $filesize);
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		
+		// Disable output buffering and clean any existing buffers
+		while (ob_get_level()) {
+			ob_end_clean();
+		}
+		
+		// Open file for reading
+		$file = fopen($filepath, 'rb');
+		if ($file === false) {
+			show_error('Impossible d\'ouvrir le fichier de sauvegarde');
+			return;
+		}
+		
+		// Stream file in 8MB chunks to avoid memory issues
+		$chunk_size = 8 * 1024 * 1024; // 8MB chunks
+		while (!feof($file)) {
+			$chunk = fread($file, $chunk_size);
+			if ($chunk === false) {
+				break;
+			}
+			echo $chunk;
+			
+			// Flush output to ensure chunks are sent immediately
+			if (ob_get_level()) {
+				ob_flush();
+			}
+			flush();
+		}
+		
+		fclose($file);
 	}
 }
