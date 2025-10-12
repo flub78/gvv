@@ -67,12 +67,13 @@ This plan details the technical implementation of inline attachment upload durin
   - Can move to async later if performance issues arise
 
 **Batch Compression:**
-- **Approach:** CLI script with resume capability
+- **Approach:** CLI script with resume capability, **processes ONLY PDFs and compressible images**
 - **Rationale:**
   - Administrator control over timing
   - Can monitor progress in real-time
   - Easy to test with dry-run mode
   - No complex job queue needed
+  - Aligns with File_compressor library capabilities (PDF and image only)
 
 ### 1.2 File Flow Diagrams
 
@@ -1272,7 +1273,7 @@ $config['compression'] = [
 ];
 ```
 
-### 3.4 Testing Checklist
+### 3.4 Phase 2 Testing Checklist
 
 - [ ] Test image compression (JPEG, PNG, GIF, WebP) - resize + recompress in original format
 - [ ] Test smartphone photo optimization (PRD AC2.7: 3-8MB → 500KB-1MB)
@@ -1447,7 +1448,7 @@ function attachment($id, $filename, $url = "") {
 }
 ```
 
-### 4.3 Testing Checklist
+### 4.3 Phase 3 Testing Checklist
 
 - [ ] Download uncompressed file (legacy/old attachments)
 - [ ] Download gzip compressed file (.csv.gz, .txt.gz, .docx.gz)
@@ -1468,13 +1469,15 @@ function attachment($id, $filename, $url = "") {
 
 **Priority:** MEDIUM
 **Estimated Effort:** 10-12 hours
-**Dependencies:** Phase 3 (Transparent Decompression)
 
-**Note:** This phase comes after transparent decompression to ensure that treasurers can access both old (uncompressed) and newly compressed attachments before running batch compression on historical files.
+**IMPORTANT UPDATE:**
+- **Batch compression processes ONLY PDFs and compressible images (JPEG, PNG, GIF, WebP)**
+- **Other file types (DOCX, CSV, TXT, etc.) are NOT processed by batch compression**
+- This aligns with the File_compressor library which only supports PDF and image compression
 
 **PRD Updates (CA3.11-CA3.12):**
 - **PDFs and compressible images**: Compressed in-place (file path remains the same, content is optimized)
-- **Other files**: Add .gz extension, originals are deleted (e.g., `document.docx` becomes `document.docx.gz`)
+- **Other files**: Not processed by batch compression (no gzip compression)
 
 ### 5.1 Script Implementation
 
@@ -1866,18 +1869,17 @@ class Batch_Attachment_Compressor {
 }
 ```
 
-### 5.2 Testing Checklist
+### 5.2 Phase 4 Testing Checklist
 
-- [ ] Run dry-run on production data
-- [ ] Test with various filters (year, section, type)
+- [x] Run dry-run on production data
+- [x] Test with various filters (year, section, type)
+- [x] Test limit option with small number
+- [x] Verify progress tracking
+- [x] Test with --verbose flag
 - [ ] Test resume functionality (interrupt and restart)
-- [ ] Test limit option with small number
-- [ ] Verify progress tracking
-- [ ] Test with --verbose flag
-- [ ] Verify database updates
-- [ ] Verify original files deleted for non-image/PDF files (CA3.12)
+- [ ] Verify database NOT updated (files compressed in-place, no DB changes needed)
 - [ ] **CA3.11:** Verify images and PDFs compressed in-place (same file path, optimized content)
-- [ ] **CA3.12:** Verify other files get .gz extension added (e.g., doc.docx → doc.docx.gz), originals deleted
+- [ ] **IMPORTANT:** Verify script SKIPS non-image/non-PDF files (DOCX, CSV, TXT, etc.)
 - [ ] Check compression statistics accuracy
 - [ ] Test error handling (missing files, corrupted files)
 - [ ] **Critical:** Verify treasurers can still view/download previously uploaded (uncompressed) attachments after batch compression (CA3.10)
@@ -2274,7 +2276,7 @@ if ($this->get_config('debug', FALSE)) {
 - Phase 1: 2-3 days (Inline attachment upload)
 - Phase 2: 2-3 days (Automatic compression - simplified for images)
 - Phase 3: 1 day (Transparent decompression - simpler since images don't need decompression)
-- Phase 4: 2 days (Batch compression script - after Phase 3)
+- Phase 4: 2 days (Batch compression script)
 - Testing & Integration: 2-3 days
 - **Total: 9-12 days**
 
@@ -2290,17 +2292,17 @@ if ($this->get_config('debug', FALSE)) {
 ### Phase 1: Inline Attachment Upload (12 tasks - includes PRD CA1.9)
 - [x] Modify compta.php controller for inline attachments
 - [x] Create upload_temp_attachment() AJAX handler
-- [ ] **PRD CA1.9:** Create update_temp_attachment_description() AJAX handler
+- [x] **PRD CA1.9:** Create update_temp_attachment_description() AJAX handler
 - [x] Create remove_temp_attachment() handler
 - [x] Update formValidation() to process pending attachments
-- [ ] **PRD CA1.9:** Update process_pending_attachments() to save descriptions
+- [x] **PRD CA1.9:** Update process_pending_attachments() to save descriptions
 - [x] Modify bs_formView.php for attachment widget
-- [ ] **PRD CA1.9:** Add description input fields to JavaScript UI
+- [x] **PRD CA1.9:** Add description input fields to JavaScript UI
 - [x] Add JavaScript for file upload handling
-- [ ] **PRD CA1.9:** Add JavaScript handler for description updates
+- [x] **PRD CA1.9:** Add JavaScript handler for description updates
 - [x] Create cleanup script for temp files
 - [x] Add language file translations (French, English, Dutch)
-- [ ] **PRD CA1.9:** Add gvv_attachment_description translation key
+- [x] **PRD CA1.9:** Add gvv_attachment_description translation key
 - [x] Create attachments.php config file
 - [x] Complete Phase 1 testing checklist
 

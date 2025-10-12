@@ -13,9 +13,9 @@
 ## Reste à faire
 
 * [] Images de configuration
-* [] gestion des droits multi sections (plan OK)
+* [] gestion des droits multi sections (plan draft)
 
-* [] Attachements lors de la création d'écriture (plan OK)
+* [] Attachements lors de la création d'écriture (plan draft)
   * [] tester les téléchargements avec espace (upload->do_upload)
   * [x] compression des attachements
 
