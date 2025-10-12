@@ -34,6 +34,13 @@
                 "MYSQL_PASSWORD": "lfoyfgbj",
                 "MYSQL_DATABASE": "gvv2"
             }
+        },
+        "playwright": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@playwright/mcp"
+            ]
         }
     }
 }

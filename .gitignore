@@ -2,7 +2,7 @@
 application/logs/*
 application/cache/*
 # application/config/database.php
-# application/config/config.phps
+# application/config/config.php
 uploads/*
 backups/*
 application/config/club.php
@@ -27,6 +27,7 @@ autobackup.sh
 # Build logs directory
 build/logs/*
 build/coverage/*
+build/playwright-captures/*
 application/config/debug.php
 application/tests/data/parser_result.txt
 application/tests/data/reconciliator.tct
