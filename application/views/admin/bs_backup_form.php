@@ -42,6 +42,7 @@ echo '<div class="d-grid gap-2">';
 echo anchor('admin/backup', 'Sauvegarde complète', array('class' => 'btn btn-primary btn-lg mb-2'));
 
 if (ENVIRONMENT == 'development') {
+    echo '<p>Options avancées (uniquement en mode développement) :</p>';
     echo anchor('admin/backup/structure', 'Structure seulement', array('class' => 'btn btn-secondary mb-2'));
     echo anchor('admin/backup/defaut', 'Tables par défaut', array('class' => 'btn btn-secondary mb-2'));
 }
