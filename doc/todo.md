@@ -8,8 +8,6 @@
   
 * [] **Déconnexion intempestive**
 
-
-  
 ## Reste à faire
 
 * [] Images de configuration
