@@ -4,7 +4,7 @@ title: Documentation et configuration
 status: To Do
 assignee: []
 created_date: '2025-10-13 08:09'
-updated_date: '2025-10-13 08:47'
+updated_date: '2025-10-13 09:51'
 labels:
   - story
   - documentation
@@ -16,6 +16,7 @@ dependencies:
   - task-035
   - task-067
   - task-069
+  - task-083
 priority: low
 ---
 

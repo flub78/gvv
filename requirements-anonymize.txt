@@ -1,0 +1,2 @@
+# Python dependencies for bin/anonymize.py
+chardet>=3.0.0
