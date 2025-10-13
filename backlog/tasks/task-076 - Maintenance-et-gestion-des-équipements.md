@@ -4,7 +4,7 @@ title: Maintenance et gestion des équipements
 status: To Do
 assignee: []
 created_date: '2025-10-13 08:09'
-updated_date: '2025-10-13 08:18'
+updated_date: '2025-10-13 08:47'
 labels:
   - story
   - maintenance
@@ -18,6 +18,11 @@ priority: medium
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 En tant que responsable technique, je veux gérer la maintenance des aéronefs, les visites périodiques, les équipements à potentiel et les renouvellements d'assurance pour assurer la sécurité et la conformité.
+
+## Tâches incluses dans cette story
+
+### 🔧 Fonctionnalités à développer
+- [task-014](task-014) - Développer gestion maintenance et équipements
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

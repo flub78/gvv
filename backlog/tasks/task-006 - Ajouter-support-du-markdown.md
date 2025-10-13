@@ -4,7 +4,7 @@ title: Ajouter support du markdown
 status: To Do
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 07:50'
+updated_date: '2025-10-13 08:48'
 labels:
   - feature
   - markdown
@@ -16,5 +16,7 @@ ordinal: 6000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Implémenter le support du markdown dans l'application pour améliorer la mise en forme du contenu
+Implémenter le support du markdown dans l'application pour améliorer la mise en forme du contenu.
+
+**Parent Story:** [task-077](task-077) - Amélioration de l'interface utilisateur
 <!-- SECTION:DESCRIPTION:END -->

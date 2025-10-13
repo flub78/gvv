@@ -4,6 +4,7 @@ title: Synchronisation avec OpenFlyer
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-13 08:50'
 labels:
   - feature
   - synchro
@@ -26,4 +27,6 @@ Implémentation de la synchronisation avec OpenFlyer:
 - Afficher les vols non existant dans les imports OF
 
 Note: Reste à vérifier les pages de retour des associations
+
+**Parent Story:** [task-078](task-078) - Synchronisation et intégrations externes
 <!-- SECTION:DESCRIPTION:END -->

@@ -4,7 +4,7 @@ title: Dette technique et qualité du code
 status: To Do
 assignee: []
 created_date: '2025-10-13 08:09'
-updated_date: '2025-10-13 08:18'
+updated_date: '2025-10-13 08:47'
 labels:
   - story
   - debt
@@ -24,6 +24,19 @@ priority: low
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 En tant que développeur, je veux maintenir un code de qualité en migrant vers des technologies modernes, supprimant le code obsolète et améliorant les performances.
+
+## Tâches incluses dans cette story
+
+### 🧹 Dette technique à traiter
+- [task-017](task-017) - Supprimer vues non bootstrap (emails)
+- [task-019](task-019) - Corriger warnings mode développement
+- [task-020](task-020) - Supprimer anciens modes validation formulaires
+- [task-021](task-021) - IA revues et refactoring
+- [task-022](task-022) - Traduire vue dashboard
+
+### ✅ Nettoyage code complété
+- [task-051](task-051) - Supprimer watir
+- [task-062](task-062) - Supprimer textes orientés planeur
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
