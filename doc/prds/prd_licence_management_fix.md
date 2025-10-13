@@ -571,7 +571,7 @@ if (!$this->authorization->has_current_subscription($member)) {
 ## 11. Questions Ouvertes
 
 1. **Q :** Les certificats médicaux doivent-ils être suivis par année ou juste "actuel/expiré" ?
-   **R :** Proposer par année pour cohérence, mais nécessite avis admin du club
+   **R :** Les certificats médicaux on des durées de validité de 5 ans, 2 ans, 1 an ou 6 mois. Quelque soit la durée ils ont des dates de fin de validité, c'est ce sur quoi il faut se baser.
 
 2. **Q :** Doit-on implémenter basculement AJAX ou rechargement page ?
    **R :** Proposer AJAX pour meilleure UX, avec repli rechargement page
@@ -586,7 +586,7 @@ if (!$this->authorization->has_current_subscription($member)) {
    **R :** Garder données historiques ; filtrer par membres actifs seulement dans vue actuelle
 
 6. **Q :** Doit-il y avoir journalisation audit des changements ?
-   **R :** Pas en Phase 1 ; considérer pour Phase 2 si nécessaire
+   **R :** Les changements doivent être écrit dans les fichiers journaux avec le nom de l'opérateur.
 
 ---
 
