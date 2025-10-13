@@ -1,0 +1,20 @@
+---
+id: task-002
+title: Corriger la page après changement checkbox gel
+status: To Do
+assignee: []
+created_date: '2025-10-13 07:46'
+updated_date: '2025-10-13 07:50'
+labels:
+  - bug
+  - interface
+dependencies: []
+priority: medium
+ordinal: 1000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+La page après changement de la checkbox gel est incorrecte
+<!-- SECTION:DESCRIPTION:END -->
