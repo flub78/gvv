@@ -45,7 +45,8 @@ This sets PHP 7.4 as the active version. The project **requires PHP 7.4 specific
 # View coverage report
 firefox build/coverage/index.html
 
-
+# End to end tests
+cd playwright; npx playwright test --reporter=line   
 ```
 
 ### PHP Validation

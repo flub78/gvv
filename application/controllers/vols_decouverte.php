@@ -691,4 +691,240 @@ EOD;
         ));
         $pdf->Output();
     }
+
+    /**
+     * Anonymise un vol de découverte en remplaçant les données personnelles par des valeurs aléatoires
+     * 
+     * @param int $id ID du vol de découverte à anonymiser
+     */
+    public function anonymize($id) {
+        // SÉCURITÉ CRITIQUE: Fonction uniquement disponible en mode développement
+        if (ENVIRONMENT !== 'development') {
+            $data['msg'] = "Les fonctions d'anonymisation ne sont disponibles qu'en mode développement.";
+            load_last_view('error', $data);
+            return;
+        }
+
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Vérifier que l'enregistrement existe
+        $record = $this->gvv_model->get_by_id('id', $id);
+        if (!$record) {
+            $data['msg'] = "Le vol de découverte $id n'existe pas";
+            load_last_view('error', $data);
+            return;
+        }
+
+        // Listes de données aléatoires - ÉTENDUES pour éviter les doublons
+        $prenoms = [
+            // Prénoms masculins
+            'Jean', 'Pierre', 'Michel', 'Philippe', 'François', 'Alain', 'Patrick', 'Bernard', 'André', 'Daniel',
+            'Claude', 'Gérard', 'Christian', 'Christophe', 'Nicolas', 'Stéphane', 'Laurent', 'Thierry', 'David', 'Pascal',
+            'Olivier', 'Bruno', 'Éric', 'Didier', 'Frédéric', 'Sébastien', 'Antoine', 'Julien', 'Emmanuel', 'Fabrice',
+            'Vincent', 'Yves', 'Henri', 'Marc', 'Serge', 'Paul', 'Louis', 'Guy', 'René', 'Roger',
+            'Georges', 'Marcel', 'Raymond', 'Robert', 'Maurice', 'Lucien', 'Gabriel', 'Étienne', 'Hervé', 'Matthieu',
+            'Alexandre', 'Maxime', 'Jérôme', 'Benoit', 'Cédric', 'Romain', 'Arnaud', 'Damien', 'Xavier', 'Franck',
+            'Lionel', 'Cyril', 'Anthony', 'Michaël', 'Jonathan', 'Benjamin', 'Kevin', 'Thomas', 'Jordan', 'Simon',
+            
+            // Prénoms féminins
+            'Marie', 'Sophie', 'Catherine', 'Isabelle', 'Nathalie', 'Sylvie', 'Martine', 'Monique', 'Françoise', 'Christine',
+            'Brigitte', 'Nicole', 'Véronique', 'Chantal', 'Dominique', 'Sandrine', 'Valérie', 'Corinne', 'Anne', 'Pascale',
+            'Céline', 'Stéphanie', 'Karine', 'Patricia', 'Laurence', 'Béatrice', 'Caroline', 'Virginie', 'Sabine', 'Danielle',
+            'Jacqueline', 'Michèle', 'Élisabeth', 'Fabienne', 'Agnès', 'Maryse', 'Nadine', 'Muriel', 'Carole', 'Hélène',
+            'Josette', 'Denise', 'Colette', 'Yvette', 'Ginette', 'Odette', 'Pierrette', 'Bernadette', 'Simone', 'Paulette',
+            'Émilie', 'Laure', 'Julie', 'Amélie', 'Claire', 'Florence', 'Audrey', 'Elodie', 'Mélanie', 'Delphine',
+            'Magali', 'Aurélie', 'Anaïs', 'Lucie', 'Camille', 'Manon', 'Laura', 'Alexandra', 'Marion', 'Jessica'
+        ];
+        $noms = [
+            'Martin', 'Bernard', 'Durand', 'Moreau', 'Laurent', 'Simon', 'Michel', 'Lefebvre', 'Leroy', 'Roux',
+            'David', 'Bertrand', 'Morel', 'Fournier', 'Girard', 'Bonnet', 'Dupont', 'Lambert', 'Fontaine', 'Rousseau',
+            'Vincent', 'Muller', 'Lefevre', 'Faure', 'Andre', 'Mercier', 'Blanc', 'Guerin', 'Boyer', 'Garnier',
+            'Chevalier', 'Francois', 'Legrand', 'Gauthier', 'Garcia', 'Perrin', 'Robin', 'Clement', 'Morin', 'Nicolas',
+            'Henry', 'Roussel', 'Mathieu', 'Gautier', 'Masson', 'Marchand', 'Duval', 'Denis', 'Dumont', 'Marie',
+            'Lemaire', 'Noel', 'Meyer', 'Dufour', 'Meunier', 'Brun', 'Blanchard', 'Giraud', 'Joly', 'Riviere',
+            'Lucas', 'Brunet', 'Gaillard', 'Barbier', 'Arnaud', 'Martinez', 'Gerard', 'Roche', 'Fernandez', 'Lopez',
+            'Gonzalez', 'Rodriguez', 'Perez', 'Sanchez', 'Lecomte', 'Benoit', 'Rey', 'Leclerc', 'Payet', 'Rolland',
+            'Leclercq', 'Guillaume', 'Leveque', 'Klein', 'Remy', 'Schneider', 'Mallet', 'Rousseau', 'Guillot', 'Leblanc',
+            'Weber', 'Leroux', 'Colin', 'Vidal', 'Picard', 'Charpentier', 'Dumas', 'Martel', 'Leconte', 'Herve',
+            'Renard', 'Dupuis', 'Grasset', 'Carlier', 'Monnier', 'Launay', 'Gros', 'Prevost', 'Berger', 'Schmitt',
+            'Perrot', 'Lebrun', 'Torres', 'Boucher', 'Moulin', 'Pecquet', 'Hubert', 'Bertin', 'Poirier', 'Marquet',
+            'Leger', 'Bouquet', 'Menard', 'Dupuy', 'Tessier', 'Jacquet', 'Chevallier', 'Lemoine', 'Lacroix', 'Olivier',
+            'Philippe', 'Bourgeois', 'Pierre', 'Benard', 'Maury', 'Reynaud', 'Martins', 'Vasseur', 'Potier', 'Lejeune',
+            'Bernier', 'Tran', 'Nguyen', 'Dubois', 'Comte', 'Baudry', 'Gilbert', 'Collet', 'Barre', 'Weiss'
+        ];
+        
+        $de_la_part_options = ['', 'Ses enfants', 'Son épouse', 'Son assureur', 'Ses parents'];
+        $occasion_options = ['', 'Son anniversaire', 'Son mariage', 'Sa retraite'];
+        
+        $domaines = ['gmail.com', 'yahoo.fr', 'orange.fr', 'free.fr', 'hotmail.com', 'outlook.fr', 'laposte.net'];
+        
+        // Générer les nouvelles valeurs
+        $nouveau_prenom = $prenoms[array_rand($prenoms)];
+        $nouveau_nom = $noms[array_rand($noms)];
+        $nouveau_beneficiaire = $nouveau_prenom . ' ' . $nouveau_nom;
+        
+        $nouvelle_de_la_part = $de_la_part_options[array_rand($de_la_part_options)];
+        $nouvelle_occasion = $occasion_options[array_rand($occasion_options)];
+        
+        // Générer un email dérivé du nom
+        $domaine = $domaines[array_rand($domaines)];
+        $email_base = strtolower($nouveau_prenom . '.' . $nouveau_nom);
+        // Ajouter parfois un chiffre aléatoire
+        if (rand(0, 1)) {
+            $email_base .= rand(1, 99);
+        }
+        $nouvel_email = $email_base . '@' . $domaine;
+        
+        // Générer un numéro de téléphone français aléatoire
+        $prefixes = ['01', '02', '03', '04', '05', '06', '07', '09'];
+        $prefix = $prefixes[array_rand($prefixes)];
+        $nouveau_tel = $prefix . sprintf('%02d%02d%02d%02d', rand(10, 99), rand(10, 99), rand(10, 99), rand(10, 99));
+        
+        // Générer un contact d'urgence aléatoire
+        $prenom_urgence = $prenoms[array_rand($prenoms)];
+        $nom_urgence = $noms[array_rand($noms)];
+        $tel_urgence_prefix = $prefixes[array_rand($prefixes)];
+        $tel_urgence = $tel_urgence_prefix . sprintf('%02d%02d%02d%02d', rand(10, 99), rand(10, 99), rand(10, 99), rand(10, 99));
+        $nouvelle_urgence = $prenom_urgence . ' ' . $nom_urgence . ' - ' . $tel_urgence;
+        
+        // Mettre à jour l'enregistrement
+        $data_update = array(
+            'id' => $id,
+            'beneficiaire' => $nouveau_beneficiaire,
+            'de_la_part' => $nouvelle_de_la_part,
+            'occasion' => $nouvelle_occasion,
+            'beneficiaire_email' => $nouvel_email,
+            'beneficiaire_tel' => $nouveau_tel,
+            'urgence' => $nouvelle_urgence
+        );
+        
+        $this->gvv_model->update('id', $data_update);
+        
+        // Message de succès
+        $data['title'] = "Anonymisation réussie";
+        $data['text'] = "Le vol de découverte $id a été anonymisé avec succès.";
+        load_last_view('message', $data);
+    }
+
+    /**
+     * Anonymise tous les vols de découverte
+     */
+    public function anonymize_all() {
+        // SÉCURITÉ CRITIQUE: Fonction uniquement disponible en mode développement
+        if (ENVIRONMENT !== 'development') {
+            $data['msg'] = "Les fonctions d'anonymisation ne sont disponibles qu'en mode développement.";
+            load_last_view('error', $data);
+            return;
+        }
+
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Récupérer tous les vols de découverte
+        $this->db->select('id');
+        $this->db->from('vols_decouverte');
+        $query = $this->db->get();
+        $results = $query->result_array();
+        
+        $count = 0;
+        foreach ($results as $row) {
+            $id = $row['id'];
+            
+            // Listes de données aléatoires - ÉTENDUES pour éviter les doublons
+            $prenoms = [
+                // Prénoms masculins
+                'Jean', 'Pierre', 'Michel', 'Philippe', 'François', 'Alain', 'Patrick', 'Bernard', 'André', 'Daniel',
+                'Claude', 'Gérard', 'Christian', 'Christophe', 'Nicolas', 'Stéphane', 'Laurent', 'Thierry', 'David', 'Pascal',
+                'Olivier', 'Bruno', 'Éric', 'Didier', 'Frédéric', 'Sébastien', 'Antoine', 'Julien', 'Emmanuel', 'Fabrice',
+                'Vincent', 'Yves', 'Henri', 'Marc', 'Serge', 'Paul', 'Louis', 'Guy', 'René', 'Roger',
+                'Georges', 'Marcel', 'Raymond', 'Robert', 'Maurice', 'Lucien', 'Gabriel', 'Étienne', 'Hervé', 'Matthieu',
+                'Alexandre', 'Maxime', 'Jérôme', 'Benoit', 'Cédric', 'Romain', 'Arnaud', 'Damien', 'Xavier', 'Franck',
+                'Lionel', 'Cyril', 'Anthony', 'Michaël', 'Jonathan', 'Benjamin', 'Kevin', 'Thomas', 'Jordan', 'Simon',
+                
+                // Prénoms féminins
+                'Marie', 'Sophie', 'Catherine', 'Isabelle', 'Nathalie', 'Sylvie', 'Martine', 'Monique', 'Françoise', 'Christine',
+                'Brigitte', 'Nicole', 'Véronique', 'Chantal', 'Dominique', 'Sandrine', 'Valérie', 'Corinne', 'Anne', 'Pascale',
+                'Céline', 'Stéphanie', 'Karine', 'Patricia', 'Laurence', 'Béatrice', 'Caroline', 'Virginie', 'Sabine', 'Danielle',
+                'Jacqueline', 'Michèle', 'Élisabeth', 'Fabienne', 'Agnès', 'Maryse', 'Nadine', 'Muriel', 'Carole', 'Hélène',
+                'Josette', 'Denise', 'Colette', 'Yvette', 'Ginette', 'Odette', 'Pierrette', 'Bernadette', 'Simone', 'Paulette',
+                'Émilie', 'Laure', 'Julie', 'Amélie', 'Claire', 'Florence', 'Audrey', 'Elodie', 'Mélanie', 'Delphine',
+                'Magali', 'Aurélie', 'Anaïs', 'Lucie', 'Camille', 'Manon', 'Laura', 'Alexandra', 'Marion', 'Jessica'
+            ];
+            $noms = [
+                'Martin', 'Bernard', 'Durand', 'Moreau', 'Laurent', 'Simon', 'Michel', 'Lefebvre', 'Leroy', 'Roux',
+                'David', 'Bertrand', 'Morel', 'Fournier', 'Girard', 'Bonnet', 'Dupont', 'Lambert', 'Fontaine', 'Rousseau',
+                'Vincent', 'Muller', 'Lefevre', 'Faure', 'Andre', 'Mercier', 'Blanc', 'Guerin', 'Boyer', 'Garnier',
+                'Chevalier', 'Francois', 'Legrand', 'Gauthier', 'Garcia', 'Perrin', 'Robin', 'Clement', 'Morin', 'Nicolas',
+                'Henry', 'Roussel', 'Mathieu', 'Gautier', 'Masson', 'Marchand', 'Duval', 'Denis', 'Dumont', 'Marie',
+                'Lemaire', 'Noel', 'Meyer', 'Dufour', 'Meunier', 'Brun', 'Blanchard', 'Giraud', 'Joly', 'Riviere',
+                'Lucas', 'Brunet', 'Gaillard', 'Barbier', 'Arnaud', 'Martinez', 'Gerard', 'Roche', 'Fernandez', 'Lopez',
+                'Gonzalez', 'Rodriguez', 'Perez', 'Sanchez', 'Lecomte', 'Benoit', 'Rey', 'Leclerc', 'Payet', 'Rolland',
+                'Leclercq', 'Guillaume', 'Leveque', 'Klein', 'Remy', 'Schneider', 'Mallet', 'Rousseau', 'Guillot', 'Leblanc',
+                'Weber', 'Leroux', 'Colin', 'Vidal', 'Picard', 'Charpentier', 'Dumas', 'Martel', 'Leconte', 'Herve',
+                'Renard', 'Dupuis', 'Grasset', 'Carlier', 'Monnier', 'Launay', 'Gros', 'Prevost', 'Berger', 'Schmitt',
+                'Perrot', 'Lebrun', 'Torres', 'Boucher', 'Moulin', 'Pecquet', 'Hubert', 'Bertin', 'Poirier', 'Marquet',
+                'Leger', 'Bouquet', 'Menard', 'Dupuy', 'Tessier', 'Jacquet', 'Chevallier', 'Lemoine', 'Lacroix', 'Olivier',
+                'Philippe', 'Bourgeois', 'Pierre', 'Benard', 'Maury', 'Reynaud', 'Martins', 'Vasseur', 'Potier', 'Lejeune',
+                'Bernier', 'Tran', 'Nguyen', 'Dubois', 'Comte', 'Baudry', 'Gilbert', 'Collet', 'Barre', 'Weiss'
+            ];
+            
+            $de_la_part_options = ['', 'Ses enfants', 'Son épouse', 'Son assureur', 'Ses parents'];
+            $occasion_options = ['', 'Son anniversaire', 'Son mariage', 'Sa retraite'];
+            
+            $domaines = ['gmail.com', 'yahoo.fr', 'orange.fr', 'free.fr', 'hotmail.com', 'outlook.fr', 'laposte.net'];
+            
+            // Générer les nouvelles valeurs
+            $nouveau_prenom = $prenoms[array_rand($prenoms)];
+            $nouveau_nom = $noms[array_rand($noms)];
+            $nouveau_beneficiaire = $nouveau_prenom . ' ' . $nouveau_nom;
+            
+            $nouvelle_de_la_part = $de_la_part_options[array_rand($de_la_part_options)];
+            $nouvelle_occasion = $occasion_options[array_rand($occasion_options)];
+            
+            // Générer un email dérivé du nom
+            $domaine = $domaines[array_rand($domaines)];
+            $email_base = strtolower($nouveau_prenom . '.' . $nouveau_nom);
+            // Ajouter parfois un chiffre aléatoire
+            if (rand(0, 1)) {
+                $email_base .= rand(1, 99);
+            }
+            $nouvel_email = $email_base . '@' . $domaine;
+            
+            // Générer un numéro de téléphone français aléatoire
+            $prefixes = ['01', '02', '03', '04', '05', '06', '07', '09'];
+            $prefix = $prefixes[array_rand($prefixes)];
+            $nouveau_tel = $prefix . sprintf('%02d%02d%02d%02d', rand(10, 99), rand(10, 99), rand(10, 99), rand(10, 99));
+            
+            // Générer un contact d'urgence aléatoire
+            $prenom_urgence = $prenoms[array_rand($prenoms)];
+            $nom_urgence = $noms[array_rand($noms)];
+            $tel_urgence_prefix = $prefixes[array_rand($prefixes)];
+            $tel_urgence = $tel_urgence_prefix . sprintf('%02d%02d%02d%02d', rand(10, 99), rand(10, 99), rand(10, 99), rand(10, 99));
+            $nouvelle_urgence = $prenom_urgence . ' ' . $nom_urgence . ' - ' . $tel_urgence;
+            
+            // Mettre à jour l'enregistrement
+            $data_update = array(
+                'id' => $id,
+                'beneficiaire' => $nouveau_beneficiaire,
+                'de_la_part' => $nouvelle_de_la_part,
+                'occasion' => $nouvelle_occasion,
+                'beneficiaire_email' => $nouvel_email,
+                'beneficiaire_tel' => $nouveau_tel,
+                'urgence' => $nouvelle_urgence
+            );
+            
+            $this->gvv_model->update('id', $data_update);
+            $count++;
+        }
+        
+        // Message de succès
+        $data['title'] = "Anonymisation réussie";
+        $data['text'] = "$count vols de découverte ont été anonymisés avec succès.";
+        load_last_view('message', $data);
+    }
 }
