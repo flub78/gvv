@@ -42,6 +42,12 @@
 * [] IA revues et refactoring
 * [] Traduire la vue dashboard (basse priorité)
 
+## Idées et suggestions
+
+* restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
+* Accés à un carnet de vol ULM pour les membres
+* Seconde adresse email
+* Photos Gestionnaire de liste d'adresse email.
 
 ## Fait récemment
 
