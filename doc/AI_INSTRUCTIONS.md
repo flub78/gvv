@@ -285,6 +285,7 @@ Key documentation files:
 - `README.md` - Project overview, installation, updates
 - `TESTING.md` - Quick testing reference
 - `doc/AI_INSTRUCTIONS.md` - This file - comprehensive AI assistant guidance
+- `doc/gemini-cli.md` - Gemini CLI usage guide for large codebase analysis
 - `doc/development/workflow.md` - Feature development workflow
 - `doc/development/phpunit.md` - Testing details
 - `PHPUNIT_MIGRATION_SUMMARY.md` - Migration status from CI Unit_test to PHPUnit
@@ -297,103 +298,17 @@ Key documentation files:
 
 When working with Claude Code (claude.ai/code):
 
-### Using Gemini CLI for Large Codebase Analysis
+### Large Codebase Analysis
 
-When analyzing large codebases or multiple files that might exceed context limits, use the Gemini CLI with its massive context window. Use `gemini -p` to leverage Google Gemini's large context capacity.
+When analyzing large codebases or multiple files that might exceed context limits, refer to **`doc/gemini-cli.md`** for comprehensive guidance on using the Gemini CLI with its massive context window for:
 
-#### File and Directory Inclusion Syntax
+- Analyzing entire codebases or large directories
+- Comparing multiple large files  
+- Understanding project-wide patterns or architecture
+- Checking if specific features, patterns, or security measures are implemented
+- Verifying the presence of certain coding patterns throughout the codebase
 
-Use the `@` syntax to include files and directories in your Gemini prompts. Paths should be relative to the LOCATION where you run the gemini command:
-
-**Examples:**
-
-**Single file analysis:**
-```bash
-gemini -p "@src/main.py Explain the purpose and structure of this file"
-```
-
-**Multiple files:**
-```bash
-gemini -p "@package.json @src/index.js Analyze the dependencies used in the code"
-```
-
-**Entire directory:**
-```bash
-gemini -p "@src/ Summarize the architecture of this codebase"
-```
-
-**Multiple directories:**
-```bash
-gemini -p "@src/ @tests/ Analyze test coverage for the source code"
-```
-
-**Current directory and subdirectories:**
-```bash
-gemini -p "@./ Give me an overview of this entire project"
-
-# Or use the --all_files flag:
-gemini --all_files -p "Analyze the project structure and dependencies"
-```
-
-#### Implementation Verification Examples
-
-**Check if a feature is implemented:**
-```bash
-gemini -p "@src/ @lib/ Has dark mode been implemented in this codebase? Show me the relevant files and functions"
-```
-
-**Check authentication implementation:**
-```bash
-gemini -p "@src/ @middleware/ Is JWT authentication implemented? List all authentication-related endpoints and middleware"
-```
-
-**Search for specific patterns:**
-```bash
-gemini -p "@src/ Are there any React hooks that handle WebSocket connections? List them with file paths"
-```
-
-**Check error handling:**
-```bash
-gemini -p "@src/ @api/ Is error handling properly implemented for all API endpoints? Show examples of try-catch blocks"
-```
-
-**Check rate limiting:**
-```bash
-gemini -p "@backend/ @middleware/ Is rate limiting implemented for the API? Show implementation details"
-```
-
-**Check caching strategy:**
-```bash
-gemini -p "@src/ @lib/ @services/ Is Redis caching implemented? List all cache-related functions and their usage"
-```
-
-**Check specific security measures:**
-```bash
-gemini -p "@src/ @api/ Are SQL injection protections implemented? Show how user inputs are sanitized"
-```
-
-**Check test coverage for features:**
-```bash
-gemini -p "@src/payment/ @tests/ Is the payment processing module fully tested? List all test cases"
-```
-
-#### When to Use Gemini CLI
-
-Use `gemini -p` when:
-- You're analyzing entire codebases or large directories
-- You're comparing multiple large files
-- You need to understand project-wide patterns or architecture
-- The current context window is insufficient for the task
-- You're working with files totaling more than 100KB
-- You're checking if specific features, patterns, or security measures are implemented
-- You're verifying the presence of certain coding patterns throughout the codebase
-
-Use Serena MCP when:
-
-- Debugging specific issues
-- Exploring particular modules/features
-- Iterative code review within Claude
-- Following code flow step-by-step
+The Gemini CLI document provides detailed syntax, examples, and GVV-specific use cases for effective large-scale code analysis.
 
 ---
 
@@ -407,9 +322,14 @@ Follow the general guidelines and project conventions outlined in this document.
 
 ## Gemini CLI Specific Instructions
 
-**No specific instructions for Gemini CLI at this time.**
+For comprehensive Gemini CLI usage instructions, refer to **`doc/gemini-cli.md`**.
 
-Follow the general guidelines and project conventions outlined in this document.
+This includes:
+- File and directory inclusion syntax using `@` notation
+- Implementation verification examples
+- GVV-specific use cases and patterns
+- When to use Gemini CLI vs other tools
+- Best practices for large codebase analysis
 
 ---
 
