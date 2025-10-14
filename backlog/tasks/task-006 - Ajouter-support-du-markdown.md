@@ -4,12 +4,12 @@ title: Ajouter support du markdown
 status: To Do
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:48'
+updated_date: '2025-10-14 07:02'
 labels:
   - feature
   - markdown
 dependencies: []
-priority: medium
+priority: low
 ordinal: 6000
 ---
 

@@ -52,6 +52,7 @@ class Vols_planeur extends Gvv_Controller {
 
         // remplit les selecteurs depuis la base
         $this->load->model('membres_model');
+        $this->load->model('comptes_model');
         $this->load->model('planeurs_model');
         $this->load->model('avions_model');
         $this->load->model('terrains_model');
@@ -89,7 +90,8 @@ class Vols_planeur extends Gvv_Controller {
                 'actif' => 1
         ));
         $this->config->load('facturation');
-        $this->data ['payeur_selector'] = $pilote_selector;
+        $payeur_selector = $this->comptes_model->payeur_selector_with_null();
+        $this->data ['payeur_selector'] = $payeur_selector;
         $this->data ['payeur_non_pilote'] = $this->config->item('payeur_non_pilote');
         $this->data ['partage'] = $this->config->item('partage');
         $this->data ['remorque_100eme'] = $this->config->item('remorque_100eme');
@@ -157,7 +159,7 @@ class Vols_planeur extends Gvv_Controller {
         $this->gvvmetadata->set_selector('rem_selector', $rem_selector);
         $this->gvvmetadata->set_selector('pilrem_selector', $this->membres_model->qualif_selector('mlogin', REMORQUEUR));
         $this->gvvmetadata->set_selector('treuillard_selector', $this->membres_model->qualif_selector('mlogin', TREUILLARD));
-        $this->gvvmetadata->set_selector('payeur_selector', $pilote_selector);
+        $this->gvvmetadata->set_selector('payeur_selector', $payeur_selector);
         $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
 
         // Checkboxes formation et FAI
@@ -291,6 +293,14 @@ class Vols_planeur extends Gvv_Controller {
         $this->load->model('ecritures_model');
         $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_planeur"))) ? VISUALISATION : MODIFICATION;
         parent::edit($id, FALSE, $action);
+        
+        // Convert member ID to account ID for payeur field (for form display)
+        if (!empty($this->data['payeur'])) {
+            $account = $this->comptes_model->pilot_account($this->data['payeur']);
+            if ($account && !empty($account['id'])) {
+                $this->data['payeur'] = $account['id'];
+            }
+        }
 
         // Recharge les evénements de formation
         $events = $this->event_model->flight_events(array (
@@ -1664,6 +1674,15 @@ class Vols_planeur extends Gvv_Controller {
         foreach ( $fields_list as $field ) {
             $processed_data [$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
         }
+        
+        // Convert account ID to member ID for payeur field
+        if (!empty($processed_data['payeur']) && is_numeric($processed_data['payeur'])) {
+            $account = $this->comptes_model->get_by_id('id', $processed_data['payeur']);
+            if ($account && !empty($account['pilote'])) {
+                $processed_data['payeur'] = $account['pilote'];
+            }
+        }
+        
         if (! $processed_data ['vpdc']) {
             $processed_data ['vpinst'] = $this->input->post('vppassager');
         }

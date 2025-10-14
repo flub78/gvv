@@ -4,7 +4,7 @@ title: Dette technique et qualité du code
 status: To Do
 assignee: []
 created_date: '2025-10-13 08:09'
-updated_date: '2025-10-13 08:47'
+updated_date: '2025-10-14 07:06'
 labels:
   - story
   - debt
@@ -32,7 +32,6 @@ En tant que développeur, je veux maintenir un code de qualité en migrant vers 
 - [task-019](task-019) - Corriger warnings mode développement
 - [task-020](task-020) - Supprimer anciens modes validation formulaires
 - [task-021](task-021) - IA revues et refactoring
-- [task-022](task-022) - Traduire vue dashboard
 
 ### ✅ Nettoyage code complété
 - [task-051](task-051) - Supprimer watir

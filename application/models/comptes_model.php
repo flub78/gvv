@@ -129,8 +129,12 @@ class Comptes_model extends Common_Model {
 
         $this->db->select('*')
             ->from($this->table)
-            ->where($where)
-            ->order_by($order);
+            ->where($where);
+            
+        // Only add ORDER BY if $order is not empty
+        if (!empty($order)) {
+            $this->db->order_by($order);
+        }
 
         $section = $this->sections_model->section();
         if ($section) {
@@ -949,6 +953,30 @@ class Comptes_model extends Common_Model {
         $tables['immos'] = $dispo['immos'];
 
         return $tables;
+    }
+
+    /**
+     * Retourne un sélecteur basé sur les comptes 411 de la section active
+     * Utilisé pour la sélection du payeur dans les formulaires de vol
+     * 
+     * @return array Selector avec les comptes 411 de la section active
+     */
+    public function payeur_selector_with_null() {
+        $selector = ['' => '-- Sélectionner --'];
+        
+        // Obtenir les comptes 411 de la section active, triés par codec puis par nom
+        $pilot_accounts = $this->list_of_account([
+            'codec LIKE' => '411%'
+        ], 'codec, nom');
+        
+        foreach ($pilot_accounts as $account) {
+            if (!empty($account['pilote'])) {
+                // Clé = ID du compte, Valeur = (code) Nom du compte
+                $selector[$account['id']] = "({$account['codec']}) {$account['nom']}";
+            }
+        }
+        
+        return $selector;
     }
 }
 
