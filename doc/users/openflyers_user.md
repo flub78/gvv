@@ -1,5 +1,14 @@
 # Intégration avec OpenFlyers
 
+> **Guide d'intégration** pour la synchronisation entre GVV et OpenFlyers  
+> Gestion externe de la facturation avec synchronisation automatique
+
+## Vue d'ensemble
+
+Ce guide explique l'intégration entre **GVV** et **OpenFlyers** pour externaliser la gestion de la facturation tout en conservant une synchronisation parfaite des comptes clients.
+
+### Principe de fonctionnement
+
 Il est possible d'utiliser OpenFLyers pour gérer les comptes clients et la facturation. Dans ce cas les opérations qui affectent les comptes clients, approvisionnements, facturation, remboursements sont effectuées dans OpenFlyers puis les comptes sont synchronisés avec GVV. Si vous voulez inclure des numéros de cheque, référence de virement, etc., c'est dans OpenFLyers qu'il faut saisir l'information.
 
 Le résultat final est identique à ce qu'il aurait été si la facturation et les opérations sur les comptes clients avaient été saisies dans GVV.
@@ -78,3 +87,11 @@ Le plus pratique est probablement de réaliser l'opération une fois par mois ou
 Une fois les opérations chargées, vous pouvez sélectionner celles que vous voulez synchroniser ou resynchroniser (normalement toutes). La resynchronisation multiple d'une même opération n'a pas d'effet.
 
 Les comptes non associés montrent un menu de selection pour les associer. La synchronisation ne concerne que les comptes 411. Si votre configuration OpenFlyers possède des comptes 411 qui n'en sont pas vraiment (Baptêmes, vols mécanique) il suffit de les associer à des comptes GVV non 411 pour qu'ils disparaissent de l'affichage (comme ils ne sont pas considérés comme 411, aucune écriture de synchronisation ne sera jamais générée)
+
+---
+
+**Guide GVV** - Gestion Vol à Voile  
+*Intégration OpenFlyers - Version française*  
+*Mis à jour en décembre 2024*
+
+[◀ Retour à l'index](fr/README.md) | [🔗 Guides d'intégration](README.md#-guides-dintégration)

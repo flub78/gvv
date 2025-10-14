@@ -1,349 +1,320 @@
 # Gestion des Membres
 
-Ce guide détaille la gestion complète des membres dans GVV, avec des exemples de toutes les opérations CRUD (Créer, Lire, Mettre à jour, Supprimer).
+Ce guide détaille la gestion complète des membres dans GVV : consultation, création, modification et suppression. Il s'agit du guide CRUD (Create, Read, Update, Delete) de référence pour comprendre les opérations de base dans GVV.
 
-## Vue d'ensemble
+## Table des matières
 
-La gestion des membres vous permet de :
-- Consulter la liste de tous les membres
-- Ajouter de nouveaux membres
-- Modifier les informations des membres existants
-- Gérer les licences et certificats
-- Attribuer des rôles et responsabilités
-- Activer ou désactiver des membres
+1. [Vue d'ensemble](#vue-ensemble)
+2. [Consulter la liste des membres](#consultation)
+3. [Créer un nouveau membre](#creation)
+4. [Consulter les détails d'un membre](#details)
+5. [Modifier un membre](#modification)
+6. [Recherche et filtres](#recherche)
+7. [Gestion des rôles et permissions](#roles)
+8. [Désactiver/Supprimer un membre](#suppression)
 
-## Accès à la gestion des membres
+## Vue d'ensemble {#vue-ensemble}
+
+La gestion des membres est au cœur de GVV. Chaque membre peut :
+- Avoir un profil complet (coordonnées, qualifications, licences)
+- Être affecté à une ou plusieurs sections
+- Avoir des rôles spécifiques (pilote, instructeur, administrateur)
+- Posséder un compte client pour la facturation
+
+### Accès
 
 Pour accéder à la gestion des membres :
-1. Cliquez sur le menu **Membres** dans la barre de navigation
-2. Sélectionnez **Membres** dans le sous-menu
+1. Connectez-vous à GVV
+2. Cliquez sur **"Membres"** dans le menu principal
+3. Ou naviguez directement vers `/membre`
 
-## Consulter la liste des membres (READ)
+## Consulter la liste des membres {#consultation}
 
-La liste des membres affiche tous les membres de la section active avec leurs informations principales.
+### Vue principale
+
+La liste des membres présente un tableau avec les informations essentielles.
 
 ![Liste des membres](../screenshots/02_member_management/01_member_list.png)
 
-### Fonctionnalités de la liste
+### Informations affichées
 
-#### Filtres
+Le tableau des membres affiche généralement :
+- **Nom et prénom** (cliquables pour voir les détails)
+- **Login** (identifiant unique)
+- **Email** de contact
+- **Téléphone**
+- **Section(s)** d'appartenance
+- **Statut** (actif/inactif)
+- **Rôles** (pilote, instructeur, admin)
 
-Les filtres vous permettent de limiter l'affichage selon plusieurs critères :
+### Navigation
 
-- **Actifs** : Tous / Inactifs / Actifs seulement
-- **Age** : Tous / -25 ans / +25 ans
-- **Catégorie** : Tous / Membre / Extérieur / Etranger / Convention lycée
-- **Membre du club** : Tous / En attente de validation / Validés
+- **Pagination** : Utilisez les contrôles en bas pour naviguer entre les pages
+- **Tri** : Cliquez sur les en-têtes de colonnes pour trier
+- **Nombre d'éléments** : Choisissez le nombre de membres par page
+- **Actions** : Boutons pour voir, modifier, ou supprimer
 
-Utilisez les boutons **Filtrer** ou **Ne pas filtrer** pour appliquer ou réinitialiser les filtres.
+## Créer un nouveau membre {#creation}
 
-#### Recherche
+### Accès au formulaire
 
-La zone de recherche en haut à droite permet de rechercher rapidement un membre par nom, prénom, email, etc.
+1. Dans la liste des membres, cliquez sur **"Ajouter un membre"** ou le bouton **"+"**
+2. Le formulaire de création s'ouvre
 
-#### Pagination
+![Formulaire de création](../screenshots/02_member_management/02_create_member_form.png)
 
-- Choisissez le nombre d'éléments à afficher par page (10, 25, 50, 100)
-- Naviguez entre les pages avec les boutons de pagination
+### Informations obligatoires
 
-#### Colonnes affichées
-
-- **Photo** : Photo du membre (si disponible)
+Les champs requis incluent typiquement :
 - **Nom** et **Prénom**
-- **Ville** : Ville de résidence
-- **Téléphone** et **Mobile**
-- **Courriel** : Adresse email
-- **Naissance** : Date de naissance
-- **-25 ans** : Indicateur si le membre a moins de 25 ans
-- **Genre** : M (Masculin) ou F (Féminin)
-- **Actif** : Indicateur si le membre est actif
+- **Login** (identifiant unique)
+- **Email** (pour les communications)
+- **Section** d'appartenance
 
-#### Actions sur chaque membre
+### Informations optionnelles
 
-Pour chaque membre, deux actions sont disponibles :
-- **Changer** (icône crayon) : Modifier les informations du membre
-- **Supprimer** (icône poubelle) : Supprimer le membre
+Vous pouvez également renseigner :
+- **Coordonnées complètes** (adresse, téléphone)
+- **Date de naissance**
+- **Licences et qualifications**
+- **Photo** du membre
+- **Commentaires** administratifs
 
-#### Export
+### Validation et sauvegarde
 
-Au bas de la liste, vous pouvez exporter la liste des membres :
-- **Excel** : Export au format CSV
-- **Pdf** : Export au format PDF
+1. Remplissez les champs obligatoires
+2. Cliquez sur **"Enregistrer"** ou **"Créer"**
+3. Le système valide les données et crée le membre
+4. Vous êtes redirigé vers la fiche du nouveau membre
 
-## Créer un nouveau membre (CREATE)
+> **💡 Conseil** : Le login doit être unique dans la base. GVV vous préviendra en cas de doublon.
 
-Pour ajouter un nouveau membre, cliquez sur l'icône **Ajouter** (➕) en haut à gauche de la liste.
+## Consulter les détails d'un membre {#details}
 
-![Formulaire de création d'un membre](../screenshots/02_member_management/02_create_member_form.png)
+### Accès aux détails
 
-### Informations personnelles
+Pour voir la fiche complète d'un membre :
+1. Dans la liste, cliquez sur le **nom du membre**
+2. Ou utilisez l'icône "Voir" dans la colonne Actions
 
-#### Champs obligatoires
+![Détails du membre](../screenshots/02_member_management/03_member_details.png)
 
-- **Identifiant** : Identifiant de connexion (généralement initiales + nom en minuscules)
-- **Prénom** : Prénom du membre
-- **Nom** : Nom de famille du membre
+### Sections de la fiche
 
-#### Catégorie du membre
-
-- **Membre** : Membre régulier du club
-- **Extérieur** : Pilote extérieur au club
-- **Etranger** : Membre étranger
-- **Convention lycée** : Membre dans le cadre d'une convention avec un lycée
-
-#### Coordonnées
-
-- **Courriel** : Adresse email principale (un lien mailto permet de vérifier)
-- **Courriel des parents** : Pour les membres mineurs
-- **Adresse** : Adresse postale
-- **Code postal** et **Ville**
-- **Pays** : Pays de résidence
-- **Téléphone** : Téléphone fixe
-- **Mobile** : Téléphone portable
+La fiche membre comprend plusieurs sections :
 
 #### Informations personnelles
+- Identité complète
+- Coordonnées
+- Photo (si disponible)
 
-- **Profession** : Profession du membre
-- **Date de naissance** : Format JJ/MM/AAAA
-- **Genre** : Masculin ou Féminin
-- **Catégorie d'âge** : -25 ans ou +25 ans (calculé automatiquement selon la date de naissance)
-- **Lieu de naissance** : Lieu de naissance
+#### Qualifications
+- Licences de pilote
+- Qualifications instructeur
+- Dates de validité
 
-#### Statut
+#### Activité
+- Historique des vols
+- Dernières connexions
+- Statistiques personnelles
 
-- **Actif** : Cochez cette case pour que le membre apparaisse dans les menus de sélection
-- **N° licence/assurance** : Numéro de licence ou d'assurance
-- **Date d'inscription** : Date d'inscription au club
-- **Date de validation par le CA** : Date de validation par le Conseil d'Administration
+#### Facturation
+- Compte client associé
+- Solde actuel
+- Historique des factures
 
-### Facturation
+## Modifier un membre {#modification}
 
-- **Compte pilote** : Si différent, indiquer le compte sur lequel seront débités les vols
+### Accès à la modification
 
-### Responsabilités club
+1. Dans la fiche du membre, cliquez sur **"Modifier"**
+2. Ou utilisez l'icône crayon dans la liste
 
-Cochez les responsabilités du membre dans le club :
+### Champs modifiables
 
-**Direction**
-- Président
-- Vice-Président
-- Membre du CA
-- Trésorier
-- Secrétaire
-- Secrétaire-Adjoint
+Selon vos droits, vous pouvez modifier :
+- **Coordonnées** (adresse, téléphone, email)
+- **Informations administratives**
+- **Qualifications et licences**
+- **Statut** (actif/inactif)
 
-**Technique**
-- Chef-Pilote
-- Responsable Atelier
-- Plieur Parachute
-- Administrateur Internet
-- Treuillard
-- Chef de piste
+### Restrictions
 
-### Expérience aviation
+Certains champs peuvent être protégés :
+- **Login** (généralement non modifiable)
+- **Nom/Prénom** (selon la configuration)
+- **Rôles** (réservés aux administrateurs)
 
-#### Avion
-- **Pilote avion** : Pilote avion titulaire
-- **Aut. Vi Avion** : Autorisation de vol à vue avion
-- **Pilote Remorqueur** : Pilote remorqueur qualifié
-- **FI avion** : Instructeur avion
-- **FE avion** : Examinateur avion
+### Sauvegarde
 
-**Formation avion** : Sélectionnez l'instructeur responsable de la formation
+1. Modifiez les informations souhaitées
+2. Cliquez sur **"Enregistrer"** ou **"Mettre à jour"**
+3. Les modifications sont immédiatement prises en compte
 
-#### Planeur
-- **Pilote Planeur** : Pilote planeur titulaire
-- **Aut. Vi Planeur** : Autorisation de vol à vue planeur
-- **FI planeur** : Instructeur planeur
-- **FE planeur** : Examinateur planeur
+## Recherche et filtres {#recherche}
 
-**Formation planeur** : Sélectionnez l'instructeur responsable de la formation
+### Outils de recherche
 
-### Informations complémentaires
+GVV propose plusieurs moyens de trouver rapidement un membre.
 
-Zone de texte libre pour toute information supplémentaire concernant le membre.
+![Recherche et filtres](../screenshots/02_member_management/05_search_filters.png)
 
-### Valider la création
+### Types de recherche
 
-Cliquez sur le bouton **Valider** pour enregistrer le nouveau membre.
+#### Recherche textuelle
+- Tapez dans la barre de recherche
+- Recherche dans nom, prénom, email, login
+- Résultats en temps réel
 
-## Modifier un membre (UPDATE)
+#### Filtres par statut
+- **Actifs** : Membres en activité
+- **Inactifs** : Membres suspendus ou partis
+- **Tous** : Affichage complet
 
-Pour modifier un membre existant, cliquez sur l'icône **Changer** (crayon) dans la liste des membres.
+#### Filtres par section
+- Sélectionnez une section spécifique
+- Utile pour les clubs multi-activités
 
-![Formulaire de modification d'un membre](../screenshots/02_member_management/03_edit_member_form.png)
+#### Filtres par rôle
+- **Pilotes** uniquement
+- **Instructeurs**
+- **Administrateurs**
 
-### Différences avec la création
+### Conseils de recherche
 
-Le formulaire de modification est identique au formulaire de création, avec quelques ajouts :
+- Utilisez des **mots partiels** (3 lettres minimum)
+- **Combinez les filtres** pour affiner
+- **Exportez** les résultats si nécessaire
 
-#### En haut de la fiche
+## Gestion des rôles et permissions {#roles}
 
-Des liens rapides vers :
-- **Facture** : Consulter le compte du membre
-- **Certificats** : Gérer les certificats et événements
-- **Vols avion** : Consulter les vols avion du pilote
-- **Vols planeur** : Consulter les vols planeur du pilote
-- **Tickets** : Consulter la consommation de tickets
+### Système de rôles
 
-#### Photo du membre
+GVV utilise un système de rôles pour contrôler l'accès aux fonctionnalités.
 
-Un bouton **Choisir un fichier** permet d'uploader une photo du membre.
+### Rôles principaux
 
-#### Identifiant
+- **Visiteur** : Consultation limitée
+- **Membre** : Saisie de ses propres vols
+- **Responsable** : Gestion de sa section
+- **CA** : Administration complète
 
-Possibilité de rechercher et sélectionner un identifiant existant (pour fusionner des comptes par exemple).
+### Attribution des rôles
 
-#### Dates visite médicale et autres
+1. Dans la fiche du membre, section **"Rôles"**
+2. Cochez les rôles appropriés par section
+3. Sauvegardez les modifications
 
-Une table permet de gérer les visites médicales et autres événements :
-- Cliquez sur **Ajouter** pour ajouter un nouvel événement
-- Utilisez **Changer** ou **Supprimer** pour gérer les événements existants
+> **⚠️ Important** : Seuls les administrateurs peuvent modifier les rôles.
 
-Colonnes affichées :
-- **Type** : Type d'événement (Visite médicale, etc.)
-- **Date** : Date de l'événement
-- **N°/Commentaire** : Numéro ou commentaire
+### Permissions par rôle
 
-#### Formation avion/planeur
+| Rôle | Consultation | Saisie vols | Gestion membres | Administration |
+|------|-------------|-------------|-----------------|----------------|
+| Visiteur | ✓ | ❌ | ❌ | ❌ |
+| Membre | ✓ | ✓ (soi) | ❌ | ❌ |
+| Responsable | ✓ | ✓ | ✓ (section) | ❌ |
+| CA | ✓ | ✓ | ✓ | ✓ |
 
-Des tables permettent de gérer les événements de formation (contrôles de compétence, examens, etc.).
+## Désactiver/Supprimer un membre {#suppression}
 
-#### Certificats FAI
+### Différence entre désactivation et suppression
 
-Une table permet de gérer les certificats FAI (Fédération Aéronautique Internationale).
+#### Désactivation (recommandée)
+- Le membre reste dans la base
+- L'historique est préservé
+- La connexion est bloquée
+- Réversible facilement
 
-### Enregistrer les modifications
+#### Suppression définitive
+- Effacement complet
+- Perte de l'historique
+- **Irréversible**
+- À éviter sauf cas exceptionnel
 
-Cliquez sur le bouton **Valider** pour enregistrer les modifications.
+### Procédure de désactivation
 
-### Actions additionnelles
+1. Ouvrez la fiche du membre
+2. Cliquez sur **"Désactiver"**
+3. Confirmez l'action
+4. Le membre passe en statut "Inactif"
 
-- **Imprimer** : Imprimer la fiche d'adhésion du membre
-- **Adhésion** : Générer le document d'adhésion
+### Réactivation
 
-## Supprimer un membre (DELETE)
-
-Pour supprimer un membre, cliquez sur l'icône **Supprimer** (poubelle) dans la liste des membres.
-
-⚠️ **Attention** : La suppression d'un membre peut être définitive ou désactiver le membre selon la configuration.
-
-### Alternative : Désactivation
-
-Plutôt que de supprimer un membre, il est recommandé de le **désactiver** :
-1. Ouvrez la fiche du membre (Changer)
-2. Décochez la case **Actif**
-3. Cliquez sur **Valider**
-
-Le membre n'apparaîtra plus dans les menus de sélection, mais ses données seront conservées.
+Pour réactiver un membre :
+1. Affichez les membres inactifs
+2. Sélectionnez le membre
+3. Cliquez sur **"Réactiver"**
 
 ## Bonnes pratiques
 
-### Identifiants
+### Création de membres
 
-- Utilisez un format cohérent pour les identifiants (ex: initiales + nom)
-- Les identifiants doivent être uniques
-- Pas d'espaces ni de caractères spéciaux
+- **Vérifiez l'unicité** avant création
+- **Renseignez l'email** pour les communications
+- **Assignez la section** appropriée
+- **Définissez les rôles** selon les besoins
 
-### Catégories
+### Maintenance
 
-- **Membre** : Pour les membres réguliers cotisants
-- **Extérieur** : Pour les pilotes visiteurs occasionnels
-- **Etranger** : Pour les membres étrangers avec statut particulier
-- **Convention lycée** : Pour les élèves dans le cadre de conventions
+- **Revoyez régulièrement** les statuts
+- **Mettez à jour** les coordonnées
+- **Vérifiez les qualifications** et dates d'expiration
+- **Archivez** plutôt que supprimer
 
-### Actifs vs Inactifs
+### Sécurité
 
-- **Actifs** : Membres actifs qui apparaissent dans les menus
-- **Inactifs** : Anciens membres ou membres temporairement inactifs
+- **Limitez les droits** d'administration
+- **Désactivez rapidement** les comptes non utilisés
+- **Vérifiez les emails** avant envoi groupé
 
-Utilisez le filtre **Actifs** pour ne voir que les membres actifs.
+## Cas d'usage fréquents
 
-### Gestion des emails
+### Nouveau pilote
 
-- Vérifiez que les emails sont corrects (utilisez le lien mailto pour tester)
-- Pour les mineurs, renseignez l'email des parents
-- Les emails sont utilisés pour les notifications et communications du club
+1. **Créer** le membre avec les informations de base
+2. **Assigner** à la section appropriée
+3. **Définir** le rôle "Membre"
+4. **Renseigner** les qualifications
+5. **Créer** le compte client si nécessaire
 
-### Responsabilités
+### Instructeur
 
-- Attribuez les responsabilités avec précision
-- Un membre peut avoir plusieurs responsabilités
-- Les responsabilités déterminent certains droits d'accès
+1. **Modifier** un membre existant
+2. **Ajouter** le rôle "Instructeur" 
+3. **Renseigner** les qualifications d'enseignement
+4. **Vérifier** les dates de validité
 
-### Licences et certificats
+### Membre partant
 
-- Maintenez à jour les numéros de licence
-- Enregistrez les visites médicales et leurs dates d'expiration
-- Utilisez les liens **Certificats** pour un suivi détaillé
+1. **Désactiver** le compte
+2. **Conserver** l'historique des vols
+3. **Clôturer** le compte client
+4. **Archiver** les documents
 
-## Recherche et filtres
+## Dépannage
 
-### Recherche rapide
+### Problèmes fréquents
 
-La zone de recherche permet de trouver rapidement un membre en tapant :
-- Une partie du nom ou prénom
-- Une ville
-- Un email
-- Un numéro de téléphone
+#### "Login déjà utilisé"
+- Vérifiez l'unicité du login
+- Contrôlez les membres inactifs
+- Utilisez une variante si nécessaire
 
-### Filtres combinés
+#### "Email invalide"
+- Vérifiez le format de l'adresse
+- Supprimez les espaces parasites
+- Testez l'envoi d'un email
 
-Vous pouvez combiner plusieurs filtres :
-- Exemple : Membres actifs de moins de 25 ans
-- Exemple : Membres extérieurs validés
-
-### Tri des colonnes
-
-Cliquez sur les en-têtes de colonnes pour trier la liste :
-- Nom (ordre alphabétique)
-- Date de naissance (du plus jeune au plus âgé)
-- Etc.
-
-## Exports
-
-### Export Excel (CSV)
-
-L'export CSV inclut toutes les colonnes affichées et peut être ouvert dans Excel ou LibreOffice Calc.
-
-**Utilisation** :
-- Statistiques sur les membres
-- Envoi de mailings
-- Archivage
-
-### Export PDF
-
-L'export PDF génère une version imprimable de la liste avec mise en page.
-
-**Utilisation** :
-- Impression pour affichage
-- Archivage papier
-- Distribution lors des assemblées générales
-
-## Erreurs courantes
-
-### "Identifiant déjà utilisé"
-
-L'identifiant doit être unique. Choisissez un identifiant différent ou vérifiez si le membre existe déjà.
-
-### "Email invalide"
-
-Vérifiez le format de l'email (doit contenir @ et un domaine valide).
-
-### "Date invalide"
-
-Les dates doivent être au format JJ/MM/AAAA. Exemple : 15/03/1990
-
-### Le membre n'apparaît pas dans les menus
-
-Vérifiez que la case **Actif** est bien cochée dans la fiche du membre.
-
-## Voir aussi
-
-- [Guide de démarrage](01_demarrage.md) - Connexion et navigation
-- [Gestion des aéronefs](03_gestion_aeronefs.md) - Gestion de la flotte
-- [Saisie des vols](04_saisie_vols.md) - Enregistrement des vols
+#### "Droits insuffisants"
+- Vérifiez vos permissions
+- Contactez un administrateur
+- Changez de section si nécessaire
 
 ---
 
-[◀ Guide de démarrage](01_demarrage.md) | [Retour à l'index](README.md) | [Gestion des aéronefs ▶](03_gestion_aeronefs.md)
+**Guide GVV** - Gestion Vol à Voile  
+*Gestion des Membres - Version française*  
+*Mis à jour en décembre 2024*
+
+[◀ Démarrage](01_demarrage.md) | [Retour à l'index](README.md) | [Gestion des aéronefs ▶](03_gestion_aeronefs.md)
