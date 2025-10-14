@@ -1393,7 +1393,13 @@ class Compta extends Gvv_Controller {
         $pdf = new Pdf();
         $pdf->AddPage();
 
-        $pdf->title($this->lang->line("gvv_compta_title_entries"), 1);
+        // Build title with club name and section name if available
+        $title = $nom_club;
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $pdf->title($title, 1);
 
         // Dates de filtrage
         if ($this->data['filter_date'] != '') {
@@ -1412,14 +1418,6 @@ class Compta extends Gvv_Controller {
                 $nom_club,
                 $this->data['pilote_name']
             );
-            // Add section name to association information if available
-            $section = $this->gvv_model->section();
-            if ($section) {
-                $info[] = array(
-                    $this->lang->line("gvv_compta_label_section") . ': ' . $section['nom'],
-                    ''
-                );
-            }
             $info[] = array(
                 $adresse_club,
                 $this->data['pilote_info']['madresse']
