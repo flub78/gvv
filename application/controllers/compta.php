@@ -1191,6 +1191,9 @@ class Compta extends Gvv_Controller {
     private function journal_data($data, $compte = '', $premier = 0, $message = '') {
         $this->select_data($data, $compte, $premier, $message);
         $this->data['section'] = $this->gvv_model->section();
+        // Add section name for display in the form
+        $section = $this->gvv_model->section();
+        $this->data['section_name'] = $section ? $section['nom'] : '';
         load_last_view('compta/journalCompteView', $this->data);
     }
 
@@ -1409,6 +1412,14 @@ class Compta extends Gvv_Controller {
                 $nom_club,
                 $this->data['pilote_name']
             );
+            // Add section name to association information if available
+            $section = $this->gvv_model->section();
+            if ($section) {
+                $info[] = array(
+                    $this->lang->line("gvv_compta_label_section") . ': ' . $section['nom'],
+                    ''
+                );
+            }
             $info[] = array(
                 $adresse_club,
                 $this->data['pilote_info']['madresse']
@@ -1598,6 +1609,11 @@ class Compta extends Gvv_Controller {
             $ville = $this->data['pilote_info']['ville'];
 
             $str .= "$nom_club;; " . $this->data['pilote_name'] . "\n";
+            // Add section name to CSV export if available
+            $section = $this->gvv_model->section();
+            if ($section) {
+                $str .= $this->lang->line("gvv_compta_label_section") . ":; " . $section['nom'] . ";;\n";
+            }
             $str .= "$adresse_club;; " . $this->data['pilote_info']['madresse'] . "\n";
             $str .= "$cp_club; $ville_club; " . sprintf("%05d", $cp) . "; $ville\n";
             $str .= "$tel_club; $email_club; " . $this->data['pilote_info']['memail'] . "\n";

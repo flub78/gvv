@@ -126,6 +126,9 @@ if ($section) {
                         <div class="me-3 mb-3">
                             <h4 class="fw-bold"><?= $this->lang->line("gvv_compta_fieldset_association") ?></h4>
                             <div class="ms-3"><?= $this->config->item('nom_club') ?></div>
+                            <?php if ($section_name): ?>
+                                <div class="ms-3"><strong><?= $this->lang->line("gvv_compta_label_section") ?>:</strong> <?= $section_name ?></div>
+                            <?php endif; ?>
                             <div class="ms-3"><?= $this->config->item('adresse_club') ?></div>
                             <div class="ms-3"><?= $this->config->item('cp_club') . nbs(2) . $this->config->item('ville_club') ?></div>
                             <div class="ms-3"><?= $this->config->item('tel_club') ?></div>
