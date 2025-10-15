@@ -7,4 +7,7 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 /playwright/build/playwright-captures/*
+/playwright/build/*
+/playwright/build/screenshots/*
+
 

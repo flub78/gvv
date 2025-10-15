@@ -4,12 +4,12 @@ title: Ajouter images de configuration
 status: To Do
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:48'
+updated_date: '2025-10-14 19:42'
 labels:
   - documentation
   - configuration
 dependencies: []
-priority: low
+priority: high
 ordinal: 4000
 ---
 

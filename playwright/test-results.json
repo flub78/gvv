@@ -1,0 +1,2765 @@
+{
+  "config": {
+    "configFile": "/home/frederic/git/gvv/playwright/playwright.config.js",
+    "rootDir": "/home/frederic/git/gvv/playwright/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 6
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/frederic/git/gvv/playwright/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 6
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/frederic/git/gvv/playwright/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.0",
+    "workers": 6,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth-login.spec.js",
+      "file": "auth-login.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Authentication Tests",
+          "file": "auth-login.spec.js",
+          "line": 24,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should successfully login with correct credentials and logout",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5588,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "After login, redirected to: http://gvv.net/\n"
+                        },
+                        {
+                          "text": "Warning: Could not find logout button/link\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.524Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5c1c29ffa6fd15892e7b-f3a115e69c64a5454d37",
+              "file": "auth-login.spec.js",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should deny login with incorrect password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1656,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "After failed login attempt, URL is: http://gvv.net/auth/login\n"
+                        },
+                        {
+                          "text": "Login correctly denied - error message shown\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.464Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5c1c29ffa6fd15892e7b-afdb10d1e4538474bb82",
+              "file": "auth-login.spec.js",
+              "line": 100,
+              "column": 3
+            },
+            {
+              "title": "should show login form elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 4696,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login form elements verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.613Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5c1c29ffa6fd15892e7b-abff1048c5385f0a32fa",
+              "file": "auth-login.spec.js",
+              "line": 149,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "bugfix-payeur-selector.spec.js",
+      "file": "bugfix-payeur-selector.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "BugFix: Payeur Selector Tests",
+          "file": "bugfix-payeur-selector.spec.js",
+          "line": 26,
+          "column": 6,
+          "specs": [
+            {
+              "title": "BugFix: should verify payeur selector in glider flight form only shows 411 accounts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 9559,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Glider flight form page title: Linux Dev Local Testing\n"
+                        },
+                        {
+                          "text": "Found 221 payeur options in glider form\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"274\" text=\"(411) Arnaud Colette\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"249\" text=\"(411) Arnaud Mélanie\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"318\" text=\"(411) Barbier Anne\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"338\" text=\"(411) Barbier Denise\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"205\" text=\"(411) Barre Lionel\"\n"
+                        },
+                        {
+                          "text": "Checked first 5 accounts, found 220 total accounts\n"
+                        },
+                        {
+                          "text": "Verified 220 411 account options in glider form\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.715Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0feb31508eabddf229b3-0a6ef25c30faf3170661",
+              "file": "bugfix-payeur-selector.spec.js",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "BugFix: should verify payeur selector in airplane flight form only shows 411 accounts",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 6476,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Airplane flight form page title: Linux Dev Local Testing\n"
+                        },
+                        {
+                          "text": "Found 221 payeur options in airplane form\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"274\" text=\"(411) Arnaud Colette\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"249\" text=\"(411) Arnaud Mélanie\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"318\" text=\"(411) Barbier Anne\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"338\" text=\"(411) Barbier Denise\"\n"
+                        },
+                        {
+                          "text": "Payeur option: value=\"205\" text=\"(411) Barre Lionel\"\n"
+                        },
+                        {
+                          "text": "Checked first 5 accounts, found 220 total accounts\n"
+                        },
+                        {
+                          "text": "Verified 220 411 account options in airplane form\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.519Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0feb31508eabddf229b3-9cd83f13cde61291bcfb",
+              "file": "bugfix-payeur-selector.spec.js",
+              "line": 99,
+              "column": 3
+            },
+            {
+              "title": "BugFix: should verify payeur selector has empty default option",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 3849,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "First option: value=\"\" text=\"-- Sélectionner --\"\n"
+                        },
+                        {
+                          "text": "Verified that payeur selector has proper empty default option\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:05.524Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0feb31508eabddf229b3-f93c8c7a60e416e800da",
+              "file": "bugfix-payeur-selector.spec.js",
+              "line": 156,
+              "column": 3
+            },
+            {
+              "title": "BugFix: should verify payeur selector only contains 411 accounts from active section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8095,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Valid 411 account: \"(411) Arnaud Colette\"\n"
+                        },
+                        {
+                          "text": "Valid 411 account: \"(411) Arnaud Mélanie\"\n"
+                        },
+                        {
+                          "text": "Valid 411 account: \"(411) Barbier Anne\"\n"
+                        },
+                        {
+                          "text": "Valid 411 account: \"(411) Barbier Denise\"\n"
+                        },
+                        {
+                          "text": "Valid 411 account: \"(411) Barre Lionel\"\n"
+                        },
+                        {
+                          "text": "Checked first 5 accounts in detail\n"
+                        },
+                        {
+                          "text": "Found 220 valid 411 accounts and 0 invalid accounts (total 220 accounts)\n"
+                        },
+                        {
+                          "text": "Verified that payeur selector only contains 411 accounts\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:07.283Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0feb31508eabddf229b3-432f09bd2f1c9ece3b9e",
+              "file": "bugfix-payeur-selector.spec.js",
+              "line": 180,
+              "column": 3
+            },
+            {
+              "title": "BugFix: should verify payeur selector shows account names with proper format",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5967,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Checking option: \"(411) Arnaud Colette\"\n"
+                        },
+                        {
+                          "text": "  Account name: \"Arnaud Colette\"\n"
+                        },
+                        {
+                          "text": "Checking option: \"(411) Arnaud Mélanie\"\n"
+                        },
+                        {
+                          "text": "  Account name: \"Arnaud Mélanie\"\n"
+                        },
+                        {
+                          "text": "Checking option: \"(411) Barbier Anne\"\n"
+                        },
+                        {
+                          "text": "  Account name: \"Barbier Anne\"\n"
+                        },
+                        {
+                          "text": "Checking option: \"(411) Barbier Denise\"\n"
+                        },
+                        {
+                          "text": "  Account name: \"Barbier Denise\"\n"
+                        },
+                        {
+                          "text": "Checked first 220 accounts for proper format. Total options: 221\n"
+                        },
+                        {
+                          "text": "Verified that payeur selector shows properly formatted account names\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:09.566Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0feb31508eabddf229b3-b636e21416d0a811ed09",
+              "file": "bugfix-payeur-selector.spec.js",
+              "line": 234,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "example.spec.js",
+      "file": "example.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "has title",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 377,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-15T08:01:10.511Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd9b2edffe9b7501040c-fe3fbe2603922999b144",
+          "file": "example.spec.js",
+          "line": 4,
+          "column": 5
+        },
+        {
+          "title": "get started link",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 582,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-15T08:01:10.906Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dd9b2edffe9b7501040c-18206e4c4b88f5cba6b3",
+          "file": "example.spec.js",
+          "line": 11,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "login-page-capture.spec.js",
+      "file": "login-page-capture.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Login Page Capture",
+          "file": "login-page-capture.spec.js",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should capture screenshot and HTML of login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 848,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Screenshot saved to: /home/frederic/git/gvv/build/playwright-captures/login-page.png\n"
+                        },
+                        {
+                          "text": "HTML saved to: /home/frederic/git/gvv/build/playwright-captures/login-page.html\n"
+                        },
+                        {
+                          "text": "Page Title: Linux Dev Local Testing\n"
+                        },
+                        {
+                          "text": "Page URL: http://gvv.net/auth/login\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:11.283Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "51cb99c3fafd9673555c-21ce8708664852f6aeba",
+              "file": "login-page-capture.spec.js",
+              "line": 13,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/access-control.spec.js",
+      "file": "migrated/access-control.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Access Control Tests (Migrated from Dusk)",
+          "file": "migrated/access-control.spec.js",
+          "line": 70,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Admin User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 72,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "admin can access all administrative pages",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 35432,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:103:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:103:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Planche\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:11.511Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-e5ccd-ss-all-administrative-pages-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-b99ff70c32e60729776a",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 74,
+                  "column": 5
+                },
+                {
+                  "title": "admin can access financial and accounting features",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 35526,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Comptabilité').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a href=\"#\" class=\"dropdown-item\">Comptabilité »</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Comptabilité').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a href=\"#\" class=\"dropdown-item\">Comptabilité »</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:131:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Comptabilité').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a href=\"#\" class=\"dropdown-item\">Comptabilité »</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:131:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: compta/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Comptabilité\" not found on compta/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:12.161Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-ed60a-ial-and-accounting-features-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-1399f0348573f4a5385a",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 115,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Regular User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 144,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "regular user has limited access to non-admin pages",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "timedOut",
+                          "duration": 60027,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "Error: locator.waitFor: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=testuser').first() to be visible\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:160:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testuser, section 1\n"
+                            },
+                            {
+                              "text": "Section \"Planeur\" not found in main UI, but login succeeded\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"testuser\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:12.168Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-77abd-d-access-to-non-admin-pages-chromium/error-context.md"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-d4a5db9d2b122633a9bf",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 146,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Bureau User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 198,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "bureau user has intermediate access level",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 35304,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:216:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:216:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testbureau, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Planche\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:15.399Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-3ac75-s-intermediate-access-level-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-afc0b734e84c8922a868",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 200,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "CA (Board) User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 229,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "CA user has access to management and reports",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 35571,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:247:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:247:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testca, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Planche\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:15.457Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-01df4-s-to-management-and-reports-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-c3f3e449063d5a36b9a2",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 231,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Planchiste User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 260,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "planchiste user has access to flight operations",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "failed",
+                          "duration": 35540,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:278:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:278:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testplanchiste, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Planche\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:15.556Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-95392-access-to-flight-operations-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-29f7149a7464c259de64",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 262,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Cross-User Navigation Tests",
+              "file": "migrated/access-control.spec.js",
+              "line": 291,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "all user types can access basic flight pages",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 35472,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:304:9",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                              "column": 21,
+                              "line": 101
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                                "column": 21,
+                                "line": 101
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Planche').first() to be visible\u001b[22m\n\u001b[2m    34 × locator resolved to hidden <a class=\"dropdown-item\" href=\"http://gvv.net/vols_planeur/plancheauto_select\">Planche automatique</a>\u001b[22m\n\n\n   at helpers/BasePage.js:101\n\n   99 |       // If exact text match fails, try with first() to handle multiple elements\n  100 |       const element = this.page.locator(`text=${text}`).first();\n> 101 |       await element.waitFor({ state: 'visible' });\n      |                     ^\n  102 |     }\n  103 |   }\n  104 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:101:21)\n    at testPageAccess (/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:50:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:304:9"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Testing basic access for admin user\n"
+                            },
+                            {
+                              "text": "Logging in as testadmin, section 1\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "Expected element \"Planche\" not found on vols_planeur/page\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:47.567Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-f623c-n-access-basic-flight-pages-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 101
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-b60c892dff3d4052f63e",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 293,
+                  "column": 5
+                },
+                {
+                  "title": "navigation elements reflect user permissions",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 5151,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:330:27",
+                            "location": {
+                              "file": "/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js",
+                              "column": 27,
+                              "line": 330
+                            },
+                            "snippet": "  328 |                          await loginPage.hasText('Administration');\n  329 |       \n> 330 |       expect(hasAdminNav).toBeTruthy();\n      |                           ^\n  331 |       console.log('Admin navigation elements verified');\n  332 |       \n  333 |       await loginPage.logout();"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js",
+                                "column": 27,
+                                "line": 330
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  328 |                          await loginPage.hasText('Administration');\n  329 |       \n> 330 |       expect(hasAdminNav).toBeTruthy();\n      |                           ^\n  331 |       console.log('Admin navigation elements verified');\n  332 |       \n  333 |       await loginPage.logout();\n    at /home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js:330:27"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section 1\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-15T08:01:48.372Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/home/frederic/git/gvv/playwright/test-results/migrated-access-control-GV-d5a80-ts-reflect-user-permissions-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/migrated/access-control.spec.js",
+                            "column": 27,
+                            "line": 330
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-7b2458a14781cc7b36c8",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 316,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/glider-flights.spec.js",
+      "file": "migrated/glider-flights.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Glider Flight Tests (Migrated from Dusk)",
+          "file": "migrated/glider-flights.spec.js",
+          "line": 25,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should create multiple glider flights successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 22519,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  instructor: \u001b[32m'Barbier Anne'\u001b[39m,\n  DC: \u001b[33mtrue\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Gerard Fabrice'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m,\n  airfield: \u001b[32m'LFOI'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpinst with text: Barbier Anne\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for pilote_remorqueur with text: Gerard Fabrice\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vplieudeco with text: LFOI\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Created flight 9119\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:51.411Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-9e1b0edbc6ef8865e68c",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "should show correct fields based on aircraft selection",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 8552,
+                      "error": {
+                        "message": "ReferenceError: expect is not defined",
+                        "stack": "ReferenceError: expect is not defined\n    at GliderFlightPage.verifyFieldVisibility (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:320:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:79:22",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                          "column": 7,
+                          "line": 320
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/GliderFlightPage.js:320\n\n  318 |     } else {\n  319 |       // Two seater should show DC and passenger\n> 320 |       await expect(dcField).toBeVisible();\n      |       ^\n  321 |       await expect(passengerField).toBeVisible();\n  322 |       \n  323 |       if (dcEnabled) {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                            "column": 7,
+                            "line": 320
+                          },
+                          "message": "ReferenceError: expect is not defined\n\n   at helpers/GliderFlightPage.js:320\n\n  318 |     } else {\n  319 |       // Two seater should show DC and passenger\n> 320 |       await expect(dcField).toBeVisible();\n      |       ^\n  321 |       await expect(passengerField).toBeVisible();\n  322 |       \n  323 |       if (dcEnabled) {\n    at GliderFlightPage.verifyFieldVisibility (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:320:7)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:79:22"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:51.758Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-9bf24-based-on-aircraft-selection-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                        "column": 7,
+                        "line": 320
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-b1b426f618fe895bdbe9",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 72,
+              "column": 3
+            },
+            {
+              "title": "should reject conflicting flights",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 5,
+                      "status": "timedOut",
+                      "duration": 60935,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 21,
+                            "line": 27
+                          },
+                          "message": "Error: page.screenshot: Target page, context or browser has been closed\n\n   at helpers/BasePage.js:27\n\n  25 |    */\n  26 |   async screenshot(name) {\n> 27 |     await this.page.screenshot({ \n     |                     ^\n  28 |       path: `build/screenshots/${name}.png`, \n  29 |       fullPage: true \n  30 |     });\n    at GliderFlightPage.screenshot (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:27:21)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:198:18)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:171:22"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CJRG'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'12:15'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CJRG\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Baudry Béatrice'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'12:15'\u001b[39m,\n  account: \u001b[32m'(411) Arnaud Colette'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Baudry Béatrice\n"
+                        },
+                        {
+                          "text": "Select2 handling failed, falling back to regular select: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.select2-search__field').last()\u001b[22m\n\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Arnaud Colette\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m,\n  error: \u001b[32m'machine ou pilote en vol'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:51.789Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-5e862--reject-conflicting-flights-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-0443cdf84fcf318a8797",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "should update flight information",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 31373,
+                      "error": {
+                        "message": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"vphfin\"], textarea[name=\"vphfin\"], select[name=\"vphfin\"], vphfin')\u001b[22m\n",
+                        "stack": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"vphfin\"], textarea[name=\"vphfin\"], select[name=\"vphfin\"], vphfin')\u001b[22m\n\n    at GliderFlightPage.fillField (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:50:17)\n    at GliderFlightPage.updateFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:223:22)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:227:5",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                          "column": 17,
+                          "line": 50
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:50\n\n  48 |     // Try by name first, then by selector\n  49 |     const field = this.page.locator(`input[name=\"${selector}\"], textarea[name=\"${selector}\"], select[name=\"${selector}\"], ${selector}`);\n> 50 |     await field.fill(value);\n     |                 ^\n  51 |   }\n  52 |\n  53 |   /**"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 17,
+                            "line": 50
+                          },
+                          "message": "TimeoutError: locator.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"vphfin\"], textarea[name=\"vphfin\"], select[name=\"vphfin\"], vphfin')\u001b[22m\n\n\n   at helpers/BasePage.js:50\n\n  48 |     // Try by name first, then by selector\n  49 |     const field = this.page.locator(`input[name=\"${selector}\"], textarea[name=\"${selector}\"], select[name=\"${selector}\"], ${selector}`);\n> 50 |     await field.fill(value);\n     |                 ^\n  51 |   }\n  52 |\n  53 |   /**\n    at GliderFlightPage.fillField (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:50:17)\n    at GliderFlightPage.updateFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:223:22)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:227:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m,\n  comment: \u001b[32m'Original comment'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Updating flight: { vpid: \u001b[33m9119\u001b[39m, comment: \u001b[32m'Modified comment'\u001b[39m, end_time: \u001b[32m'11:00'\u001b[39m }\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:01:54.273Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-eacd9-d-update-flight-information-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                        "column": 17,
+                        "line": 50
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-f301f5fa7913100bf729",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 203,
+              "column": 3
+            },
+            {
+              "title": "should delete flight",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 18434,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m25\u001b[39m\nReceived: \u001b[31m26\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m25\u001b[39m\nReceived: \u001b[31m26\u001b[39m\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:268:24",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js",
+                          "column": 24,
+                          "line": 268
+                        },
+                        "snippet": "  266 |     const countAfter = await flightPage.countFlights();\n  267 |     \n> 268 |     expect(countAfter).toBe(countBefore - 1);\n      |                        ^\n  269 |     console.log('✓ Flight deleted successfully');\n  270 |   });\n  271 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js",
+                            "column": 24,
+                            "line": 268
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m25\u001b[39m\nReceived: \u001b[31m26\u001b[39m\n\n  266 |     const countAfter = await flightPage.countFlights();\n  267 |     \n> 268 |     expect(countAfter).toBe(countBefore - 1);\n      |                        ^\n  269 |     console.log('✓ Flight deleted successfully');\n  270 |   });\n  271 |\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:268:24"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Deleting flight: 9119\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:01.044Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-9cd29-m-Dusk-should-delete-flight-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js",
+                        "column": 24,
+                        "line": 268
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-c9be1fe4e61a3df4912f",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 243,
+              "column": 3
+            },
+            {
+              "title": "should handle different launch methods",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 39862,
+                      "error": {
+                        "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vptreuillard\"], vptreuillard') to be visible\u001b[22m\n\u001b[2m    35 × locator resolved to hidden <select id=\"vptreuillard\" name=\"vptreuillard\">…</select>\u001b[22m\n",
+                        "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vptreuillard\"], vptreuillard') to be visible\u001b[22m\n\u001b[2m    35 × locator resolved to hidden <select id=\"vptreuillard\" name=\"vptreuillard\">…</select>\u001b[22m\n\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:341:25)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:143:20)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:305:27",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                          "column": 25,
+                          "line": 341
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/GliderFlightPage.js:341\n\n  339 |     \n  340 |     // Wait for the select element to be visible and stable\n> 341 |     await selectElement.waitFor({ state: 'visible', timeout: 15000 });\n      |                         ^\n  342 |     await this.page.waitForTimeout(500); // Small delay for any dynamic content loading\n  343 |     \n  344 |     // Check if this is a Select2 enhanced select"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                            "column": 25,
+                            "line": 341
+                          },
+                          "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vptreuillard\"], vptreuillard') to be visible\u001b[22m\n\u001b[2m    35 × locator resolved to hidden <select id=\"vptreuillard\" name=\"vptreuillard\">…</select>\u001b[22m\n\n\n   at helpers/GliderFlightPage.js:341\n\n  339 |     \n  340 |     // Wait for the select element to be visible and stable\n> 341 |     await selectElement.waitFor({ state: 'visible', timeout: 15000 });\n      |                         ^\n  342 |     await this.page.waitForTimeout(500); // Small delay for any dynamic content loading\n  343 |     \n  344 |     // Check if this is a Select2 enhanced select\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:341:25)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:143:20)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:305:27"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Gerard Fabrice'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  altitude: \u001b[32m'700'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for pilote_remorqueur with text: Gerard Fabrice\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Tow flight created\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Baudry Béatrice'\u001b[39m,\n  glider: \u001b[32m'F-CJRG'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'11:30'\u001b[39m,\n  launch: \u001b[32m'T'\u001b[39m,\n  winch_man: \u001b[32m'Arnaud Julien'\u001b[39m,\n  account: \u001b[32m'(411) Arnaud Colette'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Baudry Béatrice\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CJRG\n"
+                        },
+                        {
+                          "text": "Error creating flight: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vptreuillard\"], vptreuillard') to be visible\u001b[22m\n\u001b[2m    35 × locator resolved to hidden <select id=\"vptreuillard\" name=\"vptreuillard\">…</select>\u001b[22m\n\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:12.867Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-30a3a-le-different-launch-methods-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                        "column": 25,
+                        "line": 341
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-9709d25135770a4cb86c",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 272,
+              "column": 3
+            },
+            {
+              "title": "should handle flight sharing and billing",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 36354,
+                      "error": {
+                        "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vppayeur\"], vppayeur') to be visible\u001b[22m\n",
+                        "stack": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vppayeur\"], vppayeur') to be visible\u001b[22m\n\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:341:25)\n    at GliderFlightPage.updateFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:236:22)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:364:7",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                          "column": 25,
+                          "line": 341
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/GliderFlightPage.js:341\n\n  339 |     \n  340 |     // Wait for the select element to be visible and stable\n> 341 |     await selectElement.waitFor({ state: 'visible', timeout: 15000 });\n      |                         ^\n  342 |     await this.page.waitForTimeout(500); // Small delay for any dynamic content loading\n  343 |     \n  344 |     // Check if this is a Select2 enhanced select"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                            "column": 25,
+                            "line": 341
+                          },
+                          "message": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select[name=\"vppayeur\"], vppayeur') to be visible\u001b[22m\n\n\n   at helpers/GliderFlightPage.js:341\n\n  339 |     \n  340 |     // Wait for the select element to be visible and stable\n> 341 |     await selectElement.waitFor({ state: 'visible', timeout: 15000 });\n      |                         ^\n  342 |     await this.page.waitForTimeout(500); // Small delay for any dynamic content loading\n  343 |     \n  344 |     // Check if this is a Select2 enhanced select\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:341:25)\n    at GliderFlightPage.updateFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:236:22)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:364:7"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'16/10/2025'\u001b[39m,\n  pilot: \u001b[32m'Arnaud Julien'\u001b[39m,\n  glider: \u001b[32m'F-CDYO'\u001b[39m,\n  instructor: \u001b[32m'Barbier Anne'\u001b[39m,\n  DC: \u001b[33mtrue\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Gerard Fabrice'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  account: \u001b[32m'(411) Barbier Anne'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Arnaud Julien\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDYO\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpinst with text: Barbier Anne\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for pilote_remorqueur with text: Gerard Fabrice\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Barbier Anne\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Testing: No sharing (0%)\n"
+                        },
+                        {
+                          "text": "Updating flight: { vpid: \u001b[33m9120\u001b[39m, payeur: \u001b[32m'Baudry Béatrice'\u001b[39m, pourcentage: \u001b[33m0\u001b[39m }\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:14.040Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-f513c--flight-sharing-and-billing-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                        "column": 25,
+                        "line": 341
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-ed1171f4842c4660dc33",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 310,
+              "column": 3
+            },
+            {
+              "title": "should validate required fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7700,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "✓ Form validation working - empty form rejected\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:20.232Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-a767aa5ade604c362986",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 369,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/login.spec.js",
+      "file": "migrated/login.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Login Tests (Migrated from Dusk)",
+          "file": "migrated/login.spec.js",
+          "line": 24,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should access home page and see basic elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 960,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Home page access verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:23.751Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-dc463d78133d92743c81",
+              "file": "migrated/login.spec.js",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should perform complete login and logout workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5033,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "Login/logout workflow completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:24.824Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-e9b4a4f7018c0b990949",
+              "file": "migrated/login.spec.js",
+              "line": 40,
+              "column": 3
+            },
+            {
+              "title": "should verify basic access for connected users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5964,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Access verification: Compta=false, Planche=false, Vols=false, Membres=true, Table=true\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:26.434Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-3f981922bca849ee3858",
+              "file": "migrated/login.spec.js",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "should deny access with wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1535,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login correctly denied - error message shown\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:28.054Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-3d259d430de988777323",
+              "file": "migrated/login.spec.js",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should show all required login form elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 809,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Section selector is available\n"
+                        },
+                        {
+                          "text": "All login form elements verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:29.601Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-02ef996fb2a0e48b9851",
+              "file": "migrated/login.spec.js",
+              "line": 123,
+              "column": 3
+            },
+            {
+              "title": "should handle different section selections",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 60079,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Section Planeur (1) login verified\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 5\n"
+                        },
+                        {
+                          "text": "Section \"Toutes\" not found in main UI, but login succeeded\n"
+                        },
+                        {
+                          "text": "Section Toutes (5) login successful but section name not visible in UI\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "Page already closed, skipping logout\n"
+                        },
+                        {
+                          "text": "Error testing section Toutes: page.waitForTimeout: Target page, context or browser has been closed\n"
+                        },
+                        {
+                          "text": "Could not recover to login page: page.goto: Target page, context or browser has been closed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:29.872Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-login-GVV-Login-T-9f68d-ifferent-section-selections-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-2babe04859e4f39aed20",
+              "file": "migrated/login.spec.js",
+              "line": 144,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/smoke.spec.js",
+      "file": "migrated/smoke.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Smoke Tests (Migrated from Dusk)",
+          "file": "migrated/smoke.spec.js",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load application without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3339,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Application loads without critical errors\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:30.425Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-86fb7d64f99465696663",
+              "file": "migrated/smoke.spec.js",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "should navigate to core pages without errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6451,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeFalsy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mtrue\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeFalsy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mtrue\u001b[39m\n    at /home/frederic/git/gvv/playwright/tests/migrated/smoke.spec.js:86:24",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/migrated/smoke.spec.js",
+                          "column": 24,
+                          "line": 86
+                        },
+                        "snippet": "  84 |                       await loginPage.hasText('404');\n  85 |                       \n> 86 |       expect(hasError).toBeFalsy();\n     |                        ^\n  87 |       \n  88 |       // Verify common elements are present\n  89 |       await loginPage.assertText('GVV');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/migrated/smoke.spec.js",
+                            "column": 24,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeFalsy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mtrue\u001b[39m\n\n  84 |                       await loginPage.hasText('404');\n  85 |                       \n> 86 |       expect(hasError).toBeFalsy();\n     |                        ^\n  87 |       \n  88 |       // Verify common elements are present\n  89 |       await loginPage.assertText('GVV');\n    at /home/frederic/git/gvv/playwright/tests/migrated/smoke.spec.js:86:24"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Testing Home page...\n"
+                        },
+                        {
+                          "text": "✓ Home page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Glider Flights page...\n"
+                        },
+                        {
+                          "text": "✓ Glider Flights page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Members page...\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:32.521Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-smoke-GVV-Smoke-T-7dbe9-o-core-pages-without-errors-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/migrated/smoke.spec.js",
+                        "column": 24,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-9340302e7f41fb9d08d8",
+              "file": "migrated/smoke.spec.js",
+              "line": 56,
+              "column": 3
+            },
+            {
+              "title": "should handle login/logout cycle multiple times",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 14351,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login/logout cycle 1\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 1 completed successfully\n"
+                        },
+                        {
+                          "text": "Login/logout cycle 2\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 2 completed successfully\n"
+                        },
+                        {
+                          "text": "Login/logout cycle 3\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 3 completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:33.776Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-d7bce09299828a6db7d1",
+              "file": "migrated/smoke.spec.js",
+              "line": 97,
+              "column": 3
+            },
+            {
+              "title": "should handle form interactions without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7434,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Testing flight creation form...\n"
+                        },
+                        {
+                          "text": "✓ Glider selection works\n"
+                        },
+                        {
+                          "text": "✓ Form interactions work without errors\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:39.625Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-d389ffb8722d46446f13",
+              "file": "migrated/smoke.spec.js",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "should display proper navigation for logged-in users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5000,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "✓ Navigation element \"Membres\" found\n"
+                        },
+                        {
+                          "text": "✓ Navigation element \"Planeurs\" found\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:47.175Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-8b0ed4b40c0a73db5820",
+              "file": "migrated/smoke.spec.js",
+              "line": 154,
+              "column": 3
+            },
+            {
+              "title": "should handle AJAX requests without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 12268,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Failed requests detected: [\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/footer.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_75_e6e6e6_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_55_fbf9ee_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/membres/page'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  }\n]\n"
+                        },
+                        {
+                          "text": "✓ No critical AJAX errors detected\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:48.141Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-7f2ccc65d9a75e56ab3f",
+              "file": "migrated/smoke.spec.js",
+              "line": 185,
+              "column": 3
+            },
+            {
+              "title": "should handle different screen sizes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 12442,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Testing Desktop viewport (1920x1080)\n"
+                        },
+                        {
+                          "text": "✓ Desktop viewport works\n"
+                        },
+                        {
+                          "text": "Testing Laptop viewport (1366x768)\n"
+                        },
+                        {
+                          "text": "✓ Laptop viewport works\n"
+                        },
+                        {
+                          "text": "Testing Tablet viewport (768x1024)\n"
+                        },
+                        {
+                          "text": "✓ Tablet viewport works\n"
+                        },
+                        {
+                          "text": "Testing Mobile viewport (375x667)\n"
+                        },
+                        {
+                          "text": "✓ Mobile viewport works\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:51.007Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-371ff0380408d4be3766",
+              "file": "migrated/smoke.spec.js",
+              "line": 224,
+              "column": 3
+            },
+            {
+              "title": "should load all critical resources",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6657,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Resource loading failures: [\n  { url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m, status: \u001b[33m404\u001b[39m },\n  { url: \u001b[32m'http://gvv.net/assets/images/footer.png'\u001b[39m, status: \u001b[33m404\u001b[39m },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_75_e6e6e6_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_55_fbf9ee_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m\n  },\n  { url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m, status: \u001b[33m404\u001b[39m }\n]\n"
+                        },
+                        {
+                          "text": "✓ Critical resources load successfully\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-15T08:02:52.187Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-9afce75f89dbfb5c6382",
+              "file": "migrated/smoke.spec.js",
+              "line": 258,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-15T08:01:04.759Z",
+    "duration": 145250.008,
+    "expected": 25,
+    "skipped": 0,
+    "unexpected": 16,
+    "flaky": 0
+  }
+}
