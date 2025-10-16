@@ -57,3 +57,33 @@
   table.rapprochement th:nth-child(5) { width: 5%; }
   table.rapprochement th:nth-child(6) { width: 5%; }
   table.rapprochement th:nth-child(7) { width: 15%; }
+
+/* Configuration image preview in forms */
+.configuration-image-preview {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    text-align: center;
+}
+
+.configuration-image-preview a {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.configuration-image-preview img {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.configuration-image-preview img:hover {
+    opacity: 0.8;
+}
+
+.configuration-image-preview .preview-help {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 8px;
+    font-style: italic;
+}
