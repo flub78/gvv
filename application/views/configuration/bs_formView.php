@@ -40,6 +40,11 @@ echo form_open_multipart(controller_url($controller) . "/formValidation/" . $act
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+// Add hidden field for original ID (required for MODIFICATION to work)
+if (isset($id) && $id) {
+    echo form_hidden('original_id', $id);
+}
+
 // echo validation_errors();
 echo ($this->gvvmetadata->form('configuration', array(
 	'cle' => $cle,
