@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit colors="true" verbose="true">
+    <testsuites>
+        <testsuite name="ExportTests">
+            <directory>application/tests/integration/exports</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+        <log type="junit" target="build/logs/junit_exports.xml"/>
+        <log type="testdox-text" target="build/logs/testdox_exports.txt"/>
+    </logging>
+    <php>
+        <const name="PHPUNIT_TEST" value="1" />
+        <const name="PHPUNIT_CHARSET" value="UTF-8" />
+        <server name="REMOTE_ADDR" value="0.0.0.0" />
+    </php>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">application/controllers</directory>
+            <directory suffix=".php">application/models</directory>
+            <directory suffix=".php">application/libraries</directory>
+            <directory suffix=".php">application/helpers</directory>
+            <exclude>
+                <directory suffix=".php">application/tests</directory>
+                <directory suffix=".php">system</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>

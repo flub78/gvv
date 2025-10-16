@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpunit colors="true"
-         verbose="true">
+         verbose="true"
+         bootstrap="application/tests/minimal_bootstrap.php">
     <testsuites>
 		<testsuite name="ControllerTests">
 			<file>application/tests/controllers/ConfigurationControllerTest.php</file>
+			<file>application/tests/controllers/ComptesControllerTest.php</file>
 		</testsuite>
 	</testsuites>
 	<logging>

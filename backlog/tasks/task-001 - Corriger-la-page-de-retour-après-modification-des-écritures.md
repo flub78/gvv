@@ -1,6 +1,6 @@
 ---
 id: task-001
-title: Corriger la page de retour après modification des écritures
+title: Corriger retour après modification écritures
 status: To Do
 assignee: []
 created_date: '2025-10-13 07:46'

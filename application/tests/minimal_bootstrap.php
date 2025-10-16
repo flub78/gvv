@@ -11,6 +11,7 @@ require_once APPPATH . 'helpers/validation_helper.php';
 require_once APPPATH . 'helpers/bitfields_helper.php';
 require_once APPPATH . 'helpers/assets_helper.php';
 require_once APPPATH . 'helpers/crypto_helper.php';
+require_once APPPATH . 'helpers/csv_helper.php';
 
 // Load library files for testing
 function load_library($library_name) {
@@ -68,7 +69,7 @@ if (!function_exists('get_instance')) {
             $CI = new stdClass();
             $CI->load = new stdClass();
             $CI->load->helper = function($helper) {
-                // Mock helper loading
+                // Mock helper loading - helpers are already loaded in bootstrap
             };
             $CI->load->database = function() {
                 // Mock database loading

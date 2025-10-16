@@ -14,9 +14,6 @@ class ComptesControllerTest extends TestCase
      */
     public function testCsvResultatExportIsTruncated()
     {
-        // Load required helpers directly without CI framework
-        require_once APPPATH . 'helpers/csv_helper.php';
-        
         // Test what csv_resultat() currently does (the bug)
         $title = "Résultat d'exploitation de l'exercice";
         $csv_data = array();
@@ -56,9 +53,6 @@ class ComptesControllerTest extends TestCase
      */
     public function testFixedCsvResultatExportContainsCompleteData()
     {
-        // Load required helpers
-        require_once APPPATH . 'helpers/csv_helper.php';
-        
         // Simulate what the FIXED csv_resultat() method should do
         $title = "Résultat d'exploitation de l'exercice";
         $resultat = array(

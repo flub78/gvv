@@ -49,6 +49,12 @@ Categorie Model Integration
  [x] Multiple categories and search
  [x] Transaction rollback
 
+Comptes Resultat Pdf Export
+ [x] Pdf export redirection pattern
+ [x] Pdf content structure and validation
+ [x] Pdf csv data consistency
+ [x] Pdf generation patterns match document library
+
 Form Elements Integration
  [x] Add first row integration
  [x] Add first col integration
@@ -190,4 +196,26 @@ Smart Adjustor Correlation Integration
  [x] Correlation for prelevement against all images
  [x] Correlation for frais bancaire against all images
  [x] Correlation for virement emis against all images
+
+Financial Exports
+ [x] Income statement csv export
+ [x] Income statement pdf export
+ [x] Financial dashboard csv export
+ [x] Financial dashboard pdf export
+ [x] Balance sheet csv export
+ [x] Account balance csv export
+ [x] Financial export consistency
+ [x] Financial export access control
+
+Flight Data Exports
+ [x] Glider flights csv export
+ [x] Glider flights pdf export
+ [x] Airplane flights csv export
+ [x] Airplane flights pdf export
+ [x] Glider machine statistics pdf export
+ [x] Glider monthly statistics pdf export
+ [x] Discovery flights csv export
+ [x] Flight data export consistency
+ [x] Flight data export access control
+ [x] Flight data integrity
 
