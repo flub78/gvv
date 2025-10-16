@@ -81,6 +81,10 @@ Language Completeness
  [x] Dutch has all translation keys
  [x] Reference language has translation files
 
+Comptes Controller
+ [x] Csv resultat export is truncated
+ [x] Fixed csv resultat export contains complete data
+
 Configuration Controller
  [x] Json output parsing
  [x] Html output parsing

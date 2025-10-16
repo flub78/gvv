@@ -445,15 +445,32 @@ class Comptes extends Gvv_Controller {
     function csv_resultat() {
         $title = $this->lang->line("gvv_comptes_title_resultat");
         $resultat = $this->ecritures_model->select_resultat();
+        
+        // Generate the same table data as shown in HTML and PDF
+        $resultat_table = $this->ecritures_model->resultat_table($resultat, false, '', ',', 'csv');
+        
         $csv_data = array();
+        
+        // Add header with date
         $csv_data[] = array(
             $this->lang->line("comptes_label_date"),
             $resultat['balance_date'],
             '',
             '',
             '',
+            '',
+            '',
+            '',
             ''
         );
+        
+        // Add empty line
+        $csv_data[] = array('', '', '', '', '', '', '', '', '');
+        
+        // Add the actual table data
+        foreach ($resultat_table as $row) {
+            $csv_data[] = $row;
+        }
 
         csv_file($title, $csv_data);
     }
