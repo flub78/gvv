@@ -1185,10 +1185,25 @@ abstract class Metadata {
                 return attachment($id, $value, $url);
             }
 
-            $value = "uploads/" . $value;
+            // Member photos are stored in uploads/photos/
+            if ($table == 'membres' && $field == 'photo') {
+                $value = "uploads/photos/" . $value;
+            } else {
+                $value = "uploads/" . $value;
+            }
+
             if (file_exists($value)) {
                 $url .= $value;
                 return attachment($id, $value, $url);
+            }
+
+            // Try legacy location for backward compatibility
+            if ($table == 'membres' && $field == 'photo') {
+                $legacy_value = "uploads/" . basename($value);
+                if (file_exists($legacy_value)) {
+                    $url .= $legacy_value;
+                    return attachment($id, $legacy_value, $url);
+                }
             }
 
             // $img = (file_exists($filename)) ? img($filename) : '';

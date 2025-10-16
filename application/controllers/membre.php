@@ -417,35 +417,91 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Validation du formulaire avec gestion améliorée de l'upload de photo
+     *
+     * Amélioration par rapport à l'ancienne version:
+     * - Upload dans uploads/photos/ au lieu de uploads/
+     * - Nom de fichier: random_mlogin.png
+     * - Compression automatique avec File_compressor
+     * - Suppression de l'ancienne photo si elle existe
      */
     public function formValidation($action, $return_on_success = false) {
-        // echo "formValidation($action)" . br(); exit;
         $mlogin = $this->input->post('mlogin');
-        $upload = $this->gvvmetadata->upload("membres");
-        if ($upload[1]) {
-            // erreur
-            $this->data['message'] = '<div class="text-danger">' . $upload[1] . '</div>';
 
-            $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
-            // show_error($upload[1]);
+        // Vérifier si un fichier a été uploadé
+        if (isset($_FILES['userfile']) && $_FILES['userfile']['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Configuration de l'upload
+            $dirname = './uploads/photos/';
+            if (!file_exists($dirname)) {
+                mkdir($dirname, 0777, true);
+                chmod($dirname, 0777);
+            }
+
+            // Générer un nom de fichier: random_mlogin.png
+            $random = rand(100000, 999999);
+            $storage_file = $random . '_' . $mlogin . '.png';
+
+            $config['upload_path'] = $dirname;
+            $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
+            $config['max_size'] = '10000'; // 10MB
+            $config['file_name'] = $storage_file;
+            $config['overwrite'] = true;
+
+            $this->load->library('upload', $config);
+
+            if (!$this->upload->do_upload('userfile')) {
+                // Erreur d'upload
+                $this->data['message'] = '<div class="text-danger">' . $this->upload->display_errors() . '</div>';
+                $this->form_static_element($action);
+                load_last_view($this->form_view, $this->data);
+                return;
+            } else {
+                // Upload réussi
+                $upload_data = $this->upload->data();
+                $file_path = $dirname . $storage_file;
+
+                // Supprimer l'ancienne photo si elle existe
+                $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
+                if ($membre && !empty($membre['photo'])) {
+                    $old_photo_path = './uploads/photos/' . $membre['photo'];
+                    if (file_exists($old_photo_path)) {
+                        unlink($old_photo_path);
+                    }
+                    // Vérifier aussi dans l'ancien emplacement (uploads/ racine)
+                    $old_photo_path_legacy = './uploads/' . $membre['photo'];
+                    if (file_exists($old_photo_path_legacy)) {
+                        unlink($old_photo_path_legacy);
+                    }
+                }
+
+                // Compression automatique (Phase 2)
+                $this->load->library('file_compressor');
+                $compression_result = $this->file_compressor->compress($file_path, array(
+                    'max_width' => 1600,
+                    'max_height' => 1200,
+                    'quality' => 85
+                ));
+
+                if ($compression_result['success']) {
+                    log_message('info', "Member photo compressed: " . basename($file_path) .
+                               " - Ratio: " . round($compression_result['stats']['compression_ratio'] * 100) . "%");
+                } else {
+                    log_message('info', "Member photo compression skipped: " . $compression_result['error']);
+                }
+
+                // Mettre à jour la base de données avec le nom de fichier
+                $data = array(
+                    'photo' => $storage_file
+                );
+                $this->gvv_model->update(array(
+                    'mlogin' => $mlogin
+                ), $data);
+
+                redirect("membre/edit/$mlogin");
+            }
         }
 
-        // pas d'erreur
-        if ($newfile = $upload[0]) {
-            // Un fichier a été chargé
-            $photo = $this->input->post('photo');
-            if (file_exists("uploads/$photo"))
-                unlink("uploads/$photo");
-            // update the file name
-            $data = array(
-                'photo' => $newfile
-            );
-            $this->gvv_model->update(array(
-                'mlogin' => $mlogin
-            ), $data);
-            redirect("membre/edit/$mlogin");
-        }
+        // Continuer avec la validation normale
         $this->load_certificats($mlogin);
         parent::formValidation($action);
     }
@@ -521,7 +577,12 @@ class Membre extends Gvv_Controller {
 
         // photo
         if ($this->data['photo']) {
-            $photofile = "./assets/uploads/" . $this->data['photo'];
+            // Essayer le nouveau chemin d'abord
+            $photofile = "./uploads/photos/" . $this->data['photo'];
+            if (!file_exists($photofile)) {
+                // Essayer l'ancien emplacement pour compatibilité
+                $photofile = "./uploads/" . $this->data['photo'];
+            }
             if (file_exists($photofile)) {
                 $pdf->Image($photofile, 10, 40, 50);
             }
@@ -752,10 +813,17 @@ class Membre extends Gvv_Controller {
 
         $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
         $photo = $membre['photo'];
-        $filename = 'uploads/' . $photo;
 
+        // Essayer de supprimer dans le nouveau dossier d'abord
+        $filename = './uploads/photos/' . $photo;
         if (file_exists($filename)) {
             unlink($filename);
+        } else {
+            // Essayer l'ancien emplacement pour compatibilité
+            $filename_legacy = './uploads/' . $photo;
+            if (file_exists($filename_legacy)) {
+                unlink($filename_legacy);
+            }
         }
 
         // Met à jour la base de données pour supprimer la référence à la photo

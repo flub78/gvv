@@ -69,7 +69,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
         <?php echo $this->gvvmetadata->input_field("membres", 'photo', $photo); ?>
 
         <?php if (isset($photo) && $photo != ''): ?>
-            <img src="<?php echo base_url('uploads/' . $photo); ?>" id="photo" alt="Photo" class="img-responsive" style="max-width: 200px;">
+            <img src="<?php echo base_url('uploads/photos/' . $photo); ?>" id="photo" alt="Photo" class="img-responsive" style="max-width: 200px;">
 
             <button type="button" class="btn btn-danger btn-sm" id="delete_photo" onclick="window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'">
                 <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
