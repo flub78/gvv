@@ -820,6 +820,14 @@ class GVVMetadata extends Metadata {
                  * Paramètres de configuration
                  */
 
+                $this->field['configuration']['cle']['Name'] = 'Clé';
+                $this->field['configuration']['valeur']['Name'] = 'Valeur';
+                $this->field['configuration']['file']['Name'] = 'Fichier';
+                $this->field['configuration']['lang']['Name'] = 'Langue';
+                $this->field['configuration']['categorie']['Name'] = 'Catégorie';
+                $this->field['configuration']['club']['Name'] = 'Section';
+                $this->field['configuration']['description']['Name'] = 'Description';
+
                 $this->field['configuration']['cle']['Subtype'] = 'enumerate';
                 $this->field['configuration']['cle']['Enumerate'] =  [
                         "vd.email.sender_email" => "Email sender email",
@@ -847,8 +855,18 @@ class GVVMetadata extends Metadata {
                 $this->field['configuration']['lang']['Subtype'] = 'enumerate';
                 $this->field['configuration']['lang']['Enumerate'] = ["french" => "Français", "english" => "English", "deutch" => "Deutsch"];
 
-                $this->field['configuration']['file']['Subtype'] = 'loader';
                 $this->field['configuration']['file']['Subtype'] = 'upload_image';
+
+                // Vue configuration metadata
+                $this->field['vue_configuration']['cle']['Name'] = 'Clé';
+                $this->field['vue_configuration']['valeur']['Name'] = 'Valeur';
+                $this->field['vue_configuration']['file']['Name'] = 'Fichier';
+                $this->field['vue_configuration']['file']['Type'] = 'varchar';
+                $this->field['vue_configuration']['file']['Subtype'] = 'upload_image';
+                $this->field['vue_configuration']['lang']['Name'] = 'Langue';
+                $this->field['vue_configuration']['categorie']['Name'] = 'Catégorie';
+                $this->field['vue_configuration']['club']['Name'] = 'Section';
+                $this->field['vue_configuration']['description']['Name'] = 'Description';
 
                 // $this->dump();
         }

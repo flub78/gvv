@@ -1180,20 +1180,34 @@ abstract class Metadata {
             if (!$value) return "";
             $url = site_url();
             $url = rtrim($url, '/index.php') . '/';
+            
+            // Check if file exists with the stored path (should be full path for configuration files)
             if (file_exists($value)) {
                 $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
+            }
+
+            // For configuration files, if the path doesn't start with "./" it might be a relative path
+            if ($table == 'vue_configuration' && $field == 'file' && !str_starts_with($value, './')) {
+                $config_value = "./uploads/configuration/" . $value;
+                if (file_exists($config_value)) {
+                    $url .= ltrim($config_value, './');
+                    return attachment($id, $config_value, $url);
+                }
             }
 
             // Member photos are stored in uploads/photos/
             if ($table == 'membres' && $field == 'photo') {
                 $value = "uploads/photos/" . $value;
             } else {
-                $value = "uploads/" . $value;
+                // Only add uploads/ prefix if not already a full path
+                if (!str_starts_with($value, './uploads/') && !str_starts_with($value, 'uploads/')) {
+                    $value = "uploads/" . $value;
+                }
             }
 
             if (file_exists($value)) {
-                $url .= $value;
+                $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
             }
 
@@ -1719,7 +1733,17 @@ abstract class Metadata {
             }
 
         } elseif ($subtype == 'upload_image') {
-            $filename = "assets/uploads/$value";
+            // Determine the correct path for different file types
+            $filename = "";
+            if ($table == 'membres' && $field == 'photo') {
+                $filename = $value ? "uploads/photos/$value" : "";
+            } elseif ($table == 'configuration' && $field == 'file') {
+                // Configuration files store full path, use as-is if it exists
+                $filename = $value && file_exists($value) ? $value : "";
+            } else {
+                $filename = $value ? "assets/uploads/$value" : "";
+            }
+            
             $img = (file_exists($filename)) ? img(array(
                 'src' => $filename,
                 'alt' => 'Photo'
@@ -1744,9 +1768,9 @@ abstract class Metadata {
                     <input type="text" name="display_userfile" class="form-control" value="' . $this->CI->lang->line('gvv_no_upload_file') . '">
                     ' . $js;
 
-            $upload     = '<input type="submit" name="button_photo" id="button_photo" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
+            $upload = '<input type="submit" name="button_' . $field . '" id="button_' . $field . '" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
-            return $img . $input; // . $upload;
+            return $img . $input; // Upload happens on form submit, not separate button
 
         } elseif ($subtype == 'minute') {
             // echo "value=$value" . br();

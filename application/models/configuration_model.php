@@ -20,7 +20,7 @@ class Configuration_model extends Common_Model {
      * @return object Database result
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, cle, valeur, lang, categorie, club, description');
+        $select = $this->select_columns('id, cle, valeur, file, lang, categorie, club, description');
         $this->gvvmetadata->store_table("vue_configuration", $select);
         return $select;
     }

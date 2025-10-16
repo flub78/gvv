@@ -35,7 +35,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 
 echo heading("gvv_configuration_title", 3);
 
-echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
+echo form_open_multipart(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
