@@ -1744,10 +1744,35 @@ abstract class Metadata {
                 $filename = $value ? "assets/uploads/$value" : "";
             }
             
-            $img = (file_exists($filename)) ? img(array(
-                'src' => $filename,
-                'alt' => 'Photo'
-            )) . br() : '';
+            // Special handling for configuration file display in forms (limit size, make clickable)
+            if ($table == 'configuration' && $field == 'file' && $filename && file_exists($filename)) {
+                $mime_type = mime_content_type($filename);
+                if (str_starts_with($mime_type, 'image')) {
+                    // For images in configuration forms, show resized version with click to full size
+                    $url = site_url() . ltrim($filename, './');
+                    $img = '<div class="configuration-image-preview">';
+                    $img .= '<a href="' . $url . '" target="_blank" title="Cliquer pour voir en taille réelle">';
+                    $img .= '<img src="' . $url . '" alt="Configuration image" ';
+                    $img .= 'style="max-width: 640px; max-height: 480px; width: auto; height: auto; ';
+                    $img .= 'border: 1px solid #ccc; padding: 3px; cursor: pointer;" />';
+                    $img .= '</a>';
+                    $img .= '<div class="preview-help">';
+                    $img .= '<i class="fa fa-external-link"></i> Cliquer sur l\'image pour la voir en taille réelle';
+                    $img .= '</div>';
+                    $img .= '</div>' . br();
+                } else {
+                    // For non-image files, show icon/link
+                    $url = site_url() . ltrim($filename, './');
+                    $img = attachment('', $filename, $url) . br();
+                }
+            } else {
+                // Default image display for other contexts
+                $img = (file_exists($filename)) ? img(array(
+                    'src' => $filename,
+                    'alt' => 'Photo'
+                )) . br() : '';
+            }
+            
             $img .= form_hidden($field, $value);
             $attrs = array_merge($attrs, array(
                 'type' => 'file',
@@ -1755,7 +1780,7 @@ abstract class Metadata {
                 'size' => 32,
                 'capture' => 'camera'
             ));
-            // $input = form_input($attrs, null);
+            
             $js = '<script>
                 document.getElementById("fileInput").onchange = function() {
                     document.getElementsByName("display_userfile")[0].value = this.value.split("\\\\").pop();
@@ -1767,8 +1792,6 @@ abstract class Metadata {
                     <input type="file" id="fileInput" class="form-control" name="userfile" style="display:none" capture="camera">
                     <input type="text" name="display_userfile" class="form-control" value="' . $this->CI->lang->line('gvv_no_upload_file') . '">
                     ' . $js;
-
-            $upload = '<input type="submit" name="button_' . $field . '" id="button_' . $field . '" class="btn btn-success" value="' . $this->CI->lang->line('gvv_button_upload') . '">';
 
             return $img . $input; // Upload happens on form submit, not separate button
 
