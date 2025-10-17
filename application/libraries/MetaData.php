@@ -1759,10 +1759,22 @@ abstract class Metadata {
                 }
             } else {
                 // Default image display for other contexts
-                $img = (file_exists($filename)) ? img(array(
-                    'src' => $filename,
-                    'alt' => 'Photo'
-                )) . br() : '';
+                if ($table == 'membres' && $field == 'photo') {
+                    // Special styling for member photos in forms - constrain to container
+                    if (file_exists($filename)) {
+                        $photo_url = base_url($filename);
+                        $img = '<a href="' . $photo_url . '" target="_blank" title="Cliquer pour voir en taille réelle">' .
+                               '<img src="' . $photo_url . '" alt="Photo" style="max-width: 100%; max-height: 300px; width: auto; height: auto; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.25rem; background-color: #f8fafc;" />' .
+                               '</a>' . br();
+                    } else {
+                        $img = '';
+                    }
+                } else {
+                    $img = (file_exists($filename)) ? img(array(
+                        'src' => $filename,
+                        'alt' => 'Photo'
+                    )) . br() : '';
+                }
             }
             
             $img .= form_hidden($field, $value);
