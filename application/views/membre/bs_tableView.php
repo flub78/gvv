@@ -96,7 +96,7 @@ $this->lang->load('membre');
     $attrs = array(
         'controller' => $controller,
         'actions' => array('edit', 'delete'),
-        'fields' => array('photo', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif'),
+        'fields' => array('photo_with_badges', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif'),
         'mode' => ($has_modification_rights) ? "rw" : "ro",
         'class' => "datatable_style $table_style table table-striped"
     );

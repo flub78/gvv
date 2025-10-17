@@ -26,9 +26,11 @@
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
 * [] Reservation des avions                                   10j (plan OK)
-* [] Paiements en ligne                                       10j
-* [] Support de la gestion de la maintenance, visite périodique, équipements à potentiel, renouvellement d'assurance, etc.
-* [] Gestion des fiches de progressions
+* [] Paiements en ligne                                       10j (PRD OK)
+* [] Support de la gestion de la maintenance,                 (PRD à rédiger)
+  visite périodique, équipements à potentiel, 
+  renouvellement d'assurance, etc.
+* [] Gestion des fiches de progressions                       (PRD à rédiger)
 
 * [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
   * [x] MVP
@@ -41,14 +43,13 @@
 * [] Warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
-* [] Traduire la vue dashboard (basse priorité)
 
 ## Idées et suggestions
 
 * restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
 * Accés à un carnet de vol ULM pour les membres
 * Seconde adresse email
-* Photos Gestionnaire de liste d'adresse email.
+* Gestionnaire de liste d'adresse email.
 
 ## Fait récemment
 

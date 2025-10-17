@@ -68,8 +68,9 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
     <div class="col-md-3 mb-3">
         <div class="card">
             <div class="card-body text-center">
-                <h6 class="card-title mb-3"><?php echo $this->lang->line("gvv_membres_field_photo"); ?></h6>
-                <?php if (isset($photo) && $photo != ''): ?>
+                                <h6 class="card-title mb-3"><?php echo $this->lang->line("gvv_membres_field_photo"); ?></h6>
+                
+                                <?php if (isset($photo) && $photo != ''): ?>
                     <img src="<?php echo base_url('uploads/photos/' . $photo); ?>" id="photo" alt="Photo" class="img-fluid rounded mb-3" style="max-width: 100%;">
                     <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'">
                         <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
@@ -101,7 +102,20 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <?php if (isset($pilote_selector)): ?>
                 <div class="col-md-6">
                     <label for="selector" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mlogin"); ?></label>
-                    <?php echo dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' class='form-select big_select' onchange='new_selection();'"); ?>
+                    <div class="d-flex align-items-center">
+                        <?php echo dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' class='form-select big_select' onchange='new_selection();'"); ?>
+                        <div class="d-flex justify-content-start ms-2">
+                            <?php if (isset($member_sections['Avion']) && $member_sections['Avion']): ?>
+                                <span class="badge bg-primary rounded-pill me-1" title="Vol Moteur">VM</span>
+                            <?php endif; ?>
+                            <?php if (isset($member_sections['Planeur']) && $member_sections['Planeur']): ?>
+                                <span class="badge bg-secondary rounded-pill me-1" title="Vol à Voile">VP</span>
+                            <?php endif; ?>
+                            <?php if (isset($member_sections['ULM']) && $member_sections['ULM']): ?>
+                                <span class="badge bg-info rounded-pill" title="ULM">ULM</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
                 <?php else: ?>
                     <?php echo form_hidden('mlogin', $mlogin); ?>

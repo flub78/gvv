@@ -320,6 +320,8 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['memail']['Subtype'] = 'email';
                 $this->field['membres']['memailparent']['Subtype'] = 'email';
                 $this->field['membres']['photo']['Subtype'] = 'upload_image';
+                $this->field['membres']['photo_with_badges']['Type'] = 'varchar';
+
 
                 $this->field['membres']['inscription_date']['Type'] = 'date';
                 $this->field['membres']['validation_date']['Type'] = 'date';

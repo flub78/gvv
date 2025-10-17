@@ -226,6 +226,20 @@ class Membre extends Gvv_Controller {
         $this->data['macce'] = int2array($this->data['macces']);
 
         $this->load->model('comptes_model');
+        $this->load->model('sections_model');
+        $sections = $this->sections_model->section_list();
+        $member_sections = array();
+        foreach ($sections as $section) {
+            $account = $this->comptes_model->get_by_pilote_codec($this->data['mlogin'], '411', $section['id']);
+            if ($account) {
+                $member_sections[$section['nom']] = true;
+            } else {
+                $member_sections[$section['nom']] = false;
+            }
+        }
+        $this->data['member_sections'] = $member_sections;
+
+
         $this->load_certificats($id);
 
         // affiche le formulaire

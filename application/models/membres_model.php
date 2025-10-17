@@ -118,10 +118,44 @@ class Membres_model extends Common_Model {
         // ->limit($nb, $debut)
         get()->result_array();
 
+        $this->load->model('sections_model');
+        $this->load->model('comptes_model');
+        $sections = $this->sections_model->section_list();
+
         foreach ( $select as $key => $row ) {
             $select [$key] ['image'] = "le pilote " . $row ['mprenom'] . ' ' . $row ['mnom'];
 
             $pilote = $row ['mlogin'];
+
+            $member_sections = array();
+            foreach ($sections as $section) {
+                $account = $this->comptes_model->get_by_pilote_codec($pilote, '411', $section['id']);
+                if ($account) {
+                    $member_sections[$section['nom']] = true;
+                } else {
+                    $member_sections[$section['nom']] = false;
+                }
+            }
+            $select[$key]['member_sections'] = $member_sections;
+
+            $photo_path = 'uploads/photos/' . $row['photo'];
+            $photo_html = '';
+            if ($row['photo'] && file_exists($photo_path)) {
+                $photo_html .= '<img src="' . base_url($photo_path) . '" style="width: 100px;" />';
+            }
+            $badges = '<div class="d-flex justify-content-start mt-2">';
+            if (isset($member_sections['Avion']) && $member_sections['Avion']) {
+                $badges .= '<span class="badge bg-primary rounded-pill me-1" title="Vol Moteur">VM</span>';
+            }
+            if (isset($member_sections['Planeur']) && $member_sections['Planeur']) {
+                $badges .= '<span class="badge bg-secondary rounded-pill me-1" title="Vol à Voile">VP</span>';
+            }
+            if (isset($member_sections['ULM']) && $member_sections['ULM']) {
+                $badges .= '<span class="badge bg-info rounded-pill" title="ULM">ULM</span>';
+            }
+            $badges .= '</div>';
+            $select[$key]['photo_with_badges'] = $photo_html . $badges;
+
             $select [$key] ['vols_avion'] = anchor(controller_url("vols_avion/vols_du_pilote/$pilote"), "avion");
             $select [$key] ['vols_planeur'] = anchor(controller_url("vols_planeur/vols_du_pilote/$pilote"), "planeur");
 

@@ -1179,9 +1179,6 @@ abstract class Metadata {
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
             if (!$value) return "";
             $url = site_url();
-            $url = rtrim($url, '/index.php') . '/';
-            
-            // Check if file exists with the stored path (should be full path for configuration files)
             if (file_exists($value)) {
                 $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
@@ -1193,16 +1190,6 @@ abstract class Metadata {
                 if (file_exists($config_value)) {
                     $url .= ltrim($config_value, './');
                     return attachment($id, $config_value, $url);
-                }
-            }
-
-            // Member photos are stored in uploads/photos/
-            if ($table == 'membres' && $field == 'photo') {
-                $value = "uploads/photos/" . $value;
-            } else {
-                // Only add uploads/ prefix if not already a full path
-                if (!str_starts_with($value, './uploads/') && !str_starts_with($value, 'uploads/')) {
-                    $value = "uploads/" . $value;
                 }
             }
 
