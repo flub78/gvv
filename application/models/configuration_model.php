@@ -83,6 +83,50 @@ class Configuration_model extends Common_Model {
             return null;
         }
     }
+
+    /**
+     * Retrieves configuration file path with priority: club+lang > lang > global
+     *
+     * Performs up to 3 queries to find most specific match.
+     *
+     * @param string $key Configuration key
+     * @param string|null $lang Language code (null = current language)
+     * @return mixed Configuration file path or null
+     */
+    public function get_file($key, $lang = null) {
+
+        if ($lang === null) {
+            $lang = $this->config->item('language');
+        }
+
+        // Try global match first
+        $this->db->where('cle', $key);
+        $query = $this->db->get($this->table);
+
+        // Narrow by language if multiple results
+        if ($query->num_rows() > 1) {
+            $this->db->where('cle', $key);
+            $this->db->where('lang', $lang);
+            $query = $this->db->get($this->table);
+        }
+
+        // Narrow by section/club if still multiple
+        if ($query->num_rows() > 1) {
+            $this->db->where('cle', $key);
+            $section = $this->gvv_model->section();
+            $this->db->where('club', $section['id']);
+            $query = $this->db->get($this->table);
+        }
+
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            if (!empty($row->file)) {
+                return $row->file;
+            }
+        }
+        
+        return null;
+    }
 }
 
 /* End of file */

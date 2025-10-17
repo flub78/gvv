@@ -10,7 +10,8 @@
 
 ## Reste à faire
 
-* [] Images de configuration
+* [x] Images de configuration
+* [ ] Utiliser la nouvelle configuration en base
 * [] gestion des droits multi sections (plan draft)
 
 * [] Support du markdown
@@ -21,7 +22,7 @@
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
   
-* [] Vérifier les photos des membres sur le site déployé
+* [x] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales
   
 * [] Reservation des avions                                   10j (plan OK)

@@ -459,7 +459,13 @@ class Vols_decouverte extends Gvv_Controller {
         // disable auto-page-break
         $pdf->SetAutoPageBreak(false, 0);
         // set background image
-        $img_file = image_dir() . "Bon-Bapteme.png";
+        $background_image = $this->configuration_model->get_file('vd.background_image');
+        if (!empty($background_image) && file_exists($background_image)) {
+            $img_file = $background_image;
+        } else {
+            // Fallback to default image if configuration is not set or file doesn't exist
+            $img_file = image_dir() . "Bon-Bapteme.png";
+        }
         $pdf->Image($img_file, 0, 0, 210, 150, '', '', '', false, 300, '', false, false, 0);
         // restore auto-page-break status
         $pdf->SetAutoPageBreak($auto_page_break, $bMargin);

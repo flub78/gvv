@@ -847,7 +847,33 @@ class GVVMetadata extends Metadata {
                         "vd.ulm.contact_name" => "Nom du contact ULM",
                         "vd.ulm.contact_tel" => "Téléphone du contact ULM",
                         "vd.background_image" => "Image de fond des bons vols de découverte",
+
+                        // Configuration club fields from config controller
+                        "sigle_club" => "Logo du club",
+                        "nom_club" => "Nom du club",
+                        "code_club" => "Code d'identification fédéral du club",
+                        "adresse_club" => "Rue",
+                        "cp_club" => "Code postal",
+                        "ville_club" => "Ville",
+                        "tel_club" => "Téléphone",
+                        "email_club" => "E-mail",
+                        "url_club" => "Site WEB",
+                        "calendar_id" => "Utilisateur du calendrier Google",
+                        "theme" => "Thème graphique",
+                        "palette" => "Palette de couleurs",
+                        "club" => "Type de facturation",
+                        "url_gcalendar" => "URL Google calendar",
+                        "url_planche_auto" => "URL Planche Automatique",
+                        "logo_club" => "Logo",
+                        "mod" => "Message du jour",
+                        "ffvv_id" => "Identifiant de connexion FFVP",
+                        "ffvv_pwd" => "Mot de passe FFVP",
+                        "ffvv_product" => "Produit pour la facturation des licences",
+                        "gesasso" => "Export vers Gesasso",
                 ];
+                $this->field['configuration']['cle']['Attrs'] = array(
+                        'class' => "big_select big_select_large"
+                );
 
                 $this->field['configuration']['club']['Subtype'] = 'selector';
                 $this->field['configuration']['club']['Selector'] = 'section_selector';

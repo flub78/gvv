@@ -1690,7 +1690,7 @@ abstract class Metadata {
             if (isset($this->field[$table][$field]['Enumerate'])) {
                 $values = $this->field[$table][$field]['Enumerate'];
                 if (count($values) > $radio_limit) {
-                    $js = "id=\"$field\"";
+                    $js = "id=\"$field\" class=\"big_select\"";
                     return form_dropdown($field, $values, $value, $js);
                 } else {
                     return enumerate_radio_fields($values, $field, $value, $mode, $attrs);

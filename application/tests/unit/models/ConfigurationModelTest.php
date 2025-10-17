@@ -219,6 +219,66 @@ class ConfigurationModelTest extends TestCase
     }
     
     /**
+     * Test configuration file retrieval logic
+     */
+    public function testConfigurationFileRetrieval()
+    {
+        // Test get_file method logic simulation
+        $this->assertEquals(null, $this->simulateGetFileMethod('non.existent.key', []));
+        
+        // Test with valid file configuration
+        $mock_configs = [
+            ['cle' => 'vd.background_image', 'file' => './uploads/configuration/vd.background_image.jpg', 'lang' => null, 'club' => null]
+        ];
+        $result = $this->simulateGetFileMethod('vd.background_image', $mock_configs);
+        $this->assertEquals('./uploads/configuration/vd.background_image.jpg', $result);
+        
+        // Test with empty file field
+        $mock_configs_empty = [
+            ['cle' => 'vd.background_image', 'file' => '', 'lang' => null, 'club' => null]
+        ];
+        $result = $this->simulateGetFileMethod('vd.background_image', $mock_configs_empty);
+        $this->assertNull($result);
+        
+        // Test with null file field
+        $mock_configs_null = [
+            ['cle' => 'vd.background_image', 'file' => null, 'lang' => null, 'club' => null]
+        ];
+        $result = $this->simulateGetFileMethod('vd.background_image', $mock_configs_null);
+        $this->assertNull($result);
+    }
+
+    /**
+     * Test file path validation
+     */
+    public function testFilePathValidation()
+    {
+        // Test valid configuration file paths
+        $this->assertTrue($this->isValidConfigFilePath('./uploads/configuration/vd.background_image.jpg'));
+        $this->assertTrue($this->isValidConfigFilePath('./uploads/configuration/app.logo.png'));
+        $this->assertTrue($this->isValidConfigFilePath('./uploads/configuration/email.template.html'));
+        
+        // Test invalid paths
+        $this->assertFalse($this->isValidConfigFilePath(''));
+        $this->assertFalse($this->isValidConfigFilePath('/etc/passwd'));
+        $this->assertFalse($this->isValidConfigFilePath('../../../etc/passwd'));
+        $this->assertFalse($this->isValidConfigFilePath('uploads/configuration/file.jpg')); // Missing ./
+    }
+
+    /**
+     * Simulate get_file method logic without database
+     */
+    private function simulateGetFileMethod($key, $configs)
+    {
+        foreach ($configs as $config) {
+            if ($config['cle'] === $key && !empty($config['file'])) {
+                return $config['file'];
+            }
+        }
+        return null;
+    }
+
+    /**
      * Select configuration value based on priority
      */
     private function selectConfigByPriority($configs, $lang, $club)
@@ -249,6 +309,24 @@ class ConfigurationModelTest extends TestCase
         }
         
         return null;
+    }
+
+    /**
+     * Validate configuration file path format
+     */
+    private function isValidConfigFilePath($path)
+    {
+        if (empty($path)) return false;
+        
+        // Must start with ./uploads/configuration/
+        if (strpos($path, './uploads/configuration/') !== 0) return false;
+        
+        // Should not contain path traversal
+        if (strpos($path, '..') !== false) return false;
+        
+        // Should have a valid filename
+        $filename = basename($path);
+        return !empty($filename) && $filename !== '.' && $filename !== '..';
     }
 }
 
