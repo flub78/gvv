@@ -751,6 +751,16 @@ class GVVMetadata extends Metadata {
                 $this->field['user_roles_per_section']['user_id']['Subtype'] = 'selector';
                 $this->field['user_roles_per_section']['user_id']['Selector'] = 'user_selector';
 
+
+                /**
+                 * Table sections
+                 */
+                $this->field['sections']['id']['Type'] = 'int';
+                $this->field['sections']['id']['Subtype'] = 'key';
+                $this->field['sections']['name']['Name'] = 'Nom';
+                $this->field['sections']['description']['Name'] = 'Description';
+                $this->field['sections']['acronyme']['Name'] = 'Acronyme';
+
                 /**
                  * Vols de découverte
                  */

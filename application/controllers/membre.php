@@ -232,9 +232,7 @@ class Membre extends Gvv_Controller {
         foreach ($sections as $section) {
             $account = $this->comptes_model->get_by_pilote_codec($this->data['mlogin'], '411', $section['id']);
             if ($account) {
-                $member_sections[$section['nom']] = true;
-            } else {
-                $member_sections[$section['nom']] = false;
+                $member_sections[] = $section;
             }
         }
         $this->data['member_sections'] = $member_sections;

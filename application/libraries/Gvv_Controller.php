@@ -175,6 +175,7 @@ class Gvv_Controller extends CI_Controller {
         // Store the original ID for the form (for updates)
         $this->data['original_' . $this->kid] = $id;
         $this->data[$this->kid] = $id;
+        $this->data['kid'] = $this->kid;
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
         }

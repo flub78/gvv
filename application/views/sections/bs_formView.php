@@ -44,9 +44,12 @@ $this->lang->load('sections');
 			<p><?= $image ?></p>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
+				<input type="hidden" name="original_<?= $kid ?>" value="<?= $id ?>">
+
 				<?= ($this->gvvmetadata->form('sections', array(
 					'nom' => $nom,
-					'description' => $description
+					'description' => $description,
+					'acronyme' => $acronyme
 				))); ?>
 
 				<?= validation_button($action); ?>

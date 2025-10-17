@@ -131,9 +131,7 @@ class Membres_model extends Common_Model {
             foreach ($sections as $section) {
                 $account = $this->comptes_model->get_by_pilote_codec($pilote, '411', $section['id']);
                 if ($account) {
-                    $member_sections[$section['nom']] = true;
-                } else {
-                    $member_sections[$section['nom']] = false;
+                    $member_sections[] = $section;
                 }
             }
             $select[$key]['member_sections'] = $member_sections;
@@ -144,14 +142,8 @@ class Membres_model extends Common_Model {
                 $photo_html .= '<img src="' . base_url($photo_path) . '" style="width: 100px;" />';
             }
             $badges = '<div class="d-flex justify-content-start mt-2">';
-            if (isset($member_sections['Avion']) && $member_sections['Avion']) {
-                $badges .= '<span class="badge bg-primary rounded-pill me-1" title="Vol Moteur">VM</span>';
-            }
-            if (isset($member_sections['Planeur']) && $member_sections['Planeur']) {
-                $badges .= '<span class="badge bg-secondary rounded-pill me-1" title="Vol à Voile">VP</span>';
-            }
-            if (isset($member_sections['ULM']) && $member_sections['ULM']) {
-                $badges .= '<span class="badge bg-info rounded-pill" title="ULM">ULM</span>';
+            foreach ($member_sections as $section) {
+                $badges .= '<span class="badge bg-primary rounded-pill me-1" title="' . $section['name'] . '">' . $section['acronyme'] . '</span>';
             }
             $badges .= '</div>';
             $select[$key]['photo_with_badges'] = $photo_html . $badges;

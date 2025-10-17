@@ -105,15 +105,9 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                     <div class="d-flex align-items-center">
                         <?php echo dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' class='form-select big_select' onchange='new_selection();'"); ?>
                         <div class="d-flex justify-content-start ms-2">
-                            <?php if (isset($member_sections['Avion']) && $member_sections['Avion']): ?>
-                                <span class="badge bg-primary rounded-pill me-1" title="Vol Moteur">VM</span>
-                            <?php endif; ?>
-                            <?php if (isset($member_sections['Planeur']) && $member_sections['Planeur']): ?>
-                                <span class="badge bg-secondary rounded-pill me-1" title="Vol à Voile">VP</span>
-                            <?php endif; ?>
-                            <?php if (isset($member_sections['ULM']) && $member_sections['ULM']): ?>
-                                <span class="badge bg-info rounded-pill" title="ULM">ULM</span>
-                            <?php endif; ?>
+                            <?php foreach ($member_sections as $section): ?>
+                                <span class="badge bg-primary rounded-pill me-1" title="<?= $section['name'] ?>"><?= $section['acronyme'] ?></span>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
