@@ -1210,6 +1210,11 @@ abstract class Metadata {
             // $img = (file_exists($filename)) ? img($filename) : '';
             // return $img;
             return "Error array_field($table, $field): type=$type, subtype=$subtype, value=" . $value;
+        } elseif ($subtype == 'color') {
+            if ($value) {
+                return '<div style="width: 20px; height: 20px; background-color: ' . $value . '; border-radius: 50%; border: 1px solid black;"></div>';
+            }
+            return '';
         }
 
         if ($type == 'date') {
@@ -1841,6 +1846,15 @@ abstract class Metadata {
             ));
             $upload = '<button type="submit" class="btn btn-primary">Submit</button>';
             return $input; // . $upload;
+        } elseif ($subtype == 'color') {
+            $attrs = array_merge($attrs, array(
+                'type' => 'color',
+                'name' => $field,
+                'id' => $field,
+                'value' => set_value($field, $value),
+                'class' => 'form-control form-control-color',
+            ));
+            return form_input($attrs);
         }
 
         if ($type == 'date') {

@@ -104,11 +104,22 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                     <label for="selector" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mlogin"); ?></label>
                     <div class="d-flex align-items-center">
                         <?php echo dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' class='form-select big_select' onchange='new_selection();'"); ?>
+                        <?php if (isset($has_sections) && $has_sections): ?>
                         <div class="d-flex justify-content-start ms-2">
                             <?php foreach ($member_sections as $section): ?>
-                                <span class="badge bg-primary rounded-pill me-1" title="<?= $section['name'] ?>"><?= $section['acronyme'] ?></span>
+                                <?php 
+                                $badge_class = 'badge rounded-pill me-1';
+                                $badge_style = '';
+                                if (!empty($section['couleur'])) {
+                                    $badge_style = ' style="background-color: ' . $section['couleur'] . '; color: black; border: 1px solid black;"';
+                                } else {
+                                    $badge_class .= ' bg-primary';
+                                }
+                                ?>
+                                <span class="<?= $badge_class ?>" title="<?= $section['nom'] ?>"<?= $badge_style ?>><?= $section['acronyme'] ?></span>
                             <?php endforeach; ?>
                         </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php else: ?>

@@ -21,7 +21,7 @@ class Sections_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, nom, description, acronyme');
+        $select = $this->select_columns('id, nom, description, acronyme, couleur');
         $this->gvvmetadata->store_table("vue_sections", $select);
         return $select;
     }
@@ -30,6 +30,7 @@ class Sections_model extends Common_Model {
      * Returns a list of sections ordered by nom
      */
     public function section_list() {
+        $this->db->select('id, nom, description, acronyme, couleur');
         $this->db->order_by('nom', 'asc');
         $query = $this->db->get($this->table);
         return $query->result_array();

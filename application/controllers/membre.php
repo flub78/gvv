@@ -236,6 +236,7 @@ class Membre extends Gvv_Controller {
             }
         }
         $this->data['member_sections'] = $member_sections;
+        $this->data['has_sections'] = count($sections) > 0;
 
 
         $this->load_certificats($id);

@@ -49,7 +49,8 @@ $this->lang->load('sections');
 				<?= ($this->gvvmetadata->form('sections', array(
 					'nom' => $nom,
 					'description' => $description,
-					'acronyme' => $acronyme
+					'acronyme' => $acronyme,
+					'couleur' => $couleur
 				))); ?>
 
 				<?= validation_button($action); ?>

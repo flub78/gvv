@@ -139,13 +139,29 @@ class Membres_model extends Common_Model {
             $photo_path = 'uploads/photos/' . $row['photo'];
             $photo_html = '';
             if ($row['photo'] && file_exists($photo_path)) {
-                $photo_html .= '<img src="' . base_url($photo_path) . '" style="width: 100px;" />';
+                $photo_url = base_url($photo_path);
+                // Create custom attachment HTML for member photos with specific sizing
+                $photo_html .= '<a href="' . $photo_url . '" target="_blank" title="Cliquer pour voir en taille réelle">';
+                $photo_html .= '<img src="' . $photo_url . '" style="width: 100px; max-width: 100px; height: auto; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.25rem; background-color: #f8fafc;" />';
+                $photo_html .= '</a>';
             }
-            $badges = '<div class="d-flex justify-content-start mt-2">';
-            foreach ($member_sections as $section) {
-                $badges .= '<span class="badge bg-primary rounded-pill me-1" title="' . $section['name'] . '">' . $section['acronyme'] . '</span>';
+            
+            // Only show badges if there are sections in the database
+            $badges = '';
+            if (count($sections) > 0) {
+                $badges = '<div class="d-flex justify-content-start mt-2">';
+                foreach ($member_sections as $section) {
+                    $badge_class = 'badge rounded-pill me-1';
+                    $badge_style = '';
+                    if (!empty($section['couleur'])) {
+                        $badge_style = ' style="background-color: ' . $section['couleur'] . '; color: black; border: 1px solid black;"';
+                    } else {
+                        $badge_class .= ' bg-primary';
+                    }
+                    $badges .= '<span class="' . $badge_class . '" title="' . $section['nom'] . '"' . $badge_style . '>' . $section['acronyme'] . '</span>';
+                }
+                $badges .= '</div>';
             }
-            $badges .= '</div>';
             $select[$key]['photo_with_badges'] = $photo_html . $badges;
 
             $select [$key] ['vols_avion'] = anchor(controller_url("vols_avion/vols_du_pilote/$pilote"), "avion");

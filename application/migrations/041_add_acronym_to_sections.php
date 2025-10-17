@@ -11,11 +11,17 @@ class Migration_add_acronym_to_sections extends CI_Migration {
                 'constraint' => 10,
                 'null' => TRUE,
             ),
+            'couleur' => array(
+                'type' => 'VARCHAR',
+                'constraint' => 7,
+                'null' => TRUE,
+            ),
         ));
     }
 
     public function down()
     {
         $this->dbforge->drop_column('sections', 'acronyme');
+        $this->dbforge->drop_column('sections', 'couleur');
     }
 }

@@ -757,9 +757,22 @@ class GVVMetadata extends Metadata {
                  */
                 $this->field['sections']['id']['Type'] = 'int';
                 $this->field['sections']['id']['Subtype'] = 'key';
-                $this->field['sections']['name']['Name'] = 'Nom';
+                $this->field['sections']['nom']['Name'] = 'Nom';
                 $this->field['sections']['description']['Name'] = 'Description';
                 $this->field['sections']['acronyme']['Name'] = 'Acronyme';
+                $this->field['sections']['couleur']['Name'] = 'Couleur';
+                $this->field['sections']['couleur']['Subtype'] = 'color';
+
+                /**
+                 * Vue sections
+                 */
+                $this->field['vue_sections']['id']['Type'] = 'int';
+                $this->field['vue_sections']['id']['Subtype'] = 'key';
+                $this->field['vue_sections']['nom']['Name'] = 'Nom';
+                $this->field['vue_sections']['description']['Name'] = 'Description';
+                $this->field['vue_sections']['acronyme']['Name'] = 'Acronyme';
+                $this->field['vue_sections']['couleur']['Name'] = 'Couleur';
+                $this->field['vue_sections']['couleur']['Subtype'] = 'color';
 
                 /**
                  * Vols de découverte
