@@ -117,6 +117,40 @@ $lang['gvv_button_show_list'] = "Voir la liste";
 $lang['gvv_button_file'] = "Choisir un fichier";
 $lang['gvv_no_upload_file'] = "Pas de fichier choisi";
 
+# Authorization - Roles
+$lang['role_user'] = "Utilisateur";
+$lang['role_auto_planchiste'] = "Auto-planchiste";
+$lang['role_planchiste'] = "Planchiste";
+$lang['role_ca'] = "Conseil d'Administration";
+$lang['role_bureau'] = "Bureau";
+$lang['role_tresorier'] = "Trésorier";
+$lang['role_super_tresorier'] = "Super-trésorier";
+$lang['role_club_admin'] = "Administrateur club";
+
+$lang['role_user_desc'] = "Peut se connecter et consulter ses propres données";
+$lang['role_auto_planchiste_desc'] = "Peut créer, modifier et supprimer ses propres vols";
+$lang['role_planchiste_desc'] = "Autorisé à créer, modifier et supprimer les données de vol de sa section";
+$lang['role_ca_desc'] = "Peut consulter toutes les données de sa section, y compris les données financières globales";
+$lang['role_bureau_desc'] = "Peut consulter toutes les données de sa section, y compris les données financières personnelles";
+$lang['role_tresorier_desc'] = "Peut modifier les données financières de sa section";
+$lang['role_super_tresorier_desc'] = "Peut consulter et modifier les données financières de toutes les sections";
+$lang['role_club_admin_desc'] = "Peut accéder à toutes les données et tout modifier";
+
+# Authorization - General
+$lang['authorization_title'] = "Gestion des autorisations";
+$lang['authorization_roles'] = "Rôles";
+$lang['authorization_permissions'] = "Permissions";
+$lang['authorization_users'] = "Utilisateurs";
+$lang['authorization_audit_log'] = "Journal d'audit";
+$lang['authorization_scope_global'] = "Global";
+$lang['authorization_scope_section'] = "Section";
+$lang['authorization_permission_view'] = "Voir";
+$lang['authorization_permission_create'] = "Créer";
+$lang['authorization_permission_edit'] = "Modifier";
+$lang['authorization_permission_delete'] = "Supprimer";
+$lang['authorization_permission_admin'] = "Administrer";
+$lang['authorization_access_denied'] = "Accès refusé";
+$lang['authorization_insufficient_permissions'] = "Permissions insuffisantes pour cette action";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

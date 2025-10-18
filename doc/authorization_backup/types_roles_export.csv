@@ -1,0 +1,9 @@
+id,nom,description
+1,user,"Capacity to login and see user data"
+2,auto_planchiste,"Capacity to create, modify and delete the user own data"
+5,planchiste,"Authorization to create, modify and delete flight data"
+6,ca,"capacity to see all data for a section including global financial data"
+7,bureau,"capacity to see all data for a section including personnal financial data"
+8,tresorier,"Capacity to edit financial data for one section"
+9,super-tresorier,"Capacity to see an edit financial data for all sections"
+10,club-admin,"capacity to access all data and change everything"

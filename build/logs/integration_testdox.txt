@@ -41,6 +41,20 @@ Attachments Controller
  [x] Edit attachment handles missing old file
  [x] Replace image with pdf
 
+Authorization Integration
+ [x] Grant and revoke role
+ [x] Get user roles with scope
+ [x] Has role methods
+ [x] Add and remove permissions
+ [x] Wildcard permissions
+ [x] Data access rules with scopes
+ [x] Can access data with row level security
+ [x] Audit log records role grants
+ [x] Audit log filtering
+ [x] Permission caching
+ [x] Migration status
+ [x] Complete authorization workflow
+
 Categorie Model Integration
  [x] Basic crud operations
  [x] Image method

@@ -120,68 +120,156 @@ class RealDatabase {
     private $where_conditions = [];
     private $select_fields = '*';
     private $limit_clause = '';
+    private $order_by_clause = '';
+    private $join_clauses = [];
+    private $from_table = '';
     private $last_executed_query;
-    
+
     public function select($fields) {
         $this->select_fields = $fields;
         return $this;
     }
-    
+
+    public function from($table) {
+        $this->from_table = $table;
+        return $this;
+    }
+
+    public function join($table, $cond, $type = 'INNER') {
+        $this->join_clauses[] = strtoupper($type) . " JOIN " . $table . " ON " . $cond;
+        return $this;
+    }
+
     public function where($key, $value = null) {
+        // Add AND before this condition if we already have conditions
+        // But NOT if the last element is '(' (we're starting a group) or 'OR'
+        $last_condition = end($this->where_conditions);
+        if (!empty($this->where_conditions) &&
+            $last_condition !== '(' &&
+            $last_condition !== 'OR') {
+            $this->where_conditions[] = 'AND';
+        }
+
         if (is_array($key)) {
+            $is_first = true;
             foreach ($key as $k => $v) {
-                $this->where_conditions[] = $k . " = '" . $this->escape_str($v) . "'";
+                // Add AND between array elements (but not for first element after group start)
+                if (!$is_first) {
+                    $this->where_conditions[] = 'AND';
+                }
+
+                if ($v === NULL) {
+                    $this->where_conditions[] = $k . " IS NULL";
+                } else {
+                    $this->where_conditions[] = $k . " = '" . $this->escape_str($v) . "'";
+                }
+                $is_first = false;
             }
+        } else {
+            // Check if key already contains IS NULL, IS NOT NULL, or other operators
+            if (stripos($key, ' IS NULL') !== FALSE || stripos($key, ' IS NOT NULL') !== FALSE ||
+                stripos($key, '>=') !== FALSE || stripos($key, '<=') !== FALSE ||
+                stripos($key, '!=') !== FALSE || stripos($key, '>') !== FALSE ||
+                stripos($key, '<') !== FALSE) {
+                // Key already has the full condition
+                $this->where_conditions[] = $key;
+            } elseif ($value === NULL) {
+                $this->where_conditions[] = $key . " IS NULL";
+            } else {
+                $this->where_conditions[] = $key . " = '" . $this->escape_str($value) . "'";
+            }
+        }
+        return $this;
+    }
+
+    public function group_start() {
+        // Add AND before group start if we already have conditions
+        if (!empty($this->where_conditions)) {
+            $this->where_conditions[] = 'AND';
+        }
+        $this->where_conditions[] = '(';
+        return $this;
+    }
+
+    public function group_end() {
+        $this->where_conditions[] = ')';
+        return $this;
+    }
+
+    public function or_where($key, $value = null) {
+        if (!empty($this->where_conditions)) {
+            $this->where_conditions[] = 'OR';
+        }
+        if ($value === NULL) {
+            $this->where_conditions[] = $key . " IS NULL";
         } else {
             $this->where_conditions[] = $key . " = '" . $this->escape_str($value) . "'";
         }
         return $this;
     }
-    
+
+    public function order_by($field, $direction = 'ASC') {
+        $this->order_by_clause = " ORDER BY " . $field . " " . strtoupper($direction);
+        return $this;
+    }
+
     public function limit($limit, $offset = 0) {
         $this->limit_clause = " LIMIT " . intval($offset) . ", " . intval($limit);
         return $this;
     }
-    
+
     public function get($table = '', $limit = null) {
         if ($limit) {
             $this->limit_clause = " LIMIT " . intval($limit);
         }
-        
-        $sql = "SELECT " . $this->select_fields . " FROM " . $table;
-        
-        if (!empty($this->where_conditions)) {
-            $sql .= " WHERE " . implode(' AND ', $this->where_conditions);
+
+        $table_name = $table ? $table : $this->from_table;
+
+        $sql = "SELECT " . $this->select_fields . " FROM " . $table_name;
+
+        foreach ($this->join_clauses as $join) {
+            $sql .= " " . $join;
         }
-        
+
+        if (!empty($this->where_conditions)) {
+            $sql .= " WHERE " . implode(' ', $this->where_conditions);
+        }
+
+        $sql .= $this->order_by_clause;
         $sql .= $this->limit_clause;
-        
+
         $this->last_executed_query = $sql;
-        
+
         // Reset query builder state
         $this->where_conditions = [];
         $this->select_fields = '*';
         $this->limit_clause = '';
-        
+        $this->order_by_clause = '';
+        $this->join_clauses = [];
+        $this->from_table = '';
+
         return $this->query($sql);
     }
     
     public function insert($table, $data) {
         $fields = array_keys($data);
         $values = array_values($data);
-        
+
         $escaped_values = array_map(function($value) {
+            if ($value === NULL || $value === '') {
+                return "NULL";
+            }
             return "'" . $this->escape_str($value) . "'";
         }, $values);
-        
+
         $sql = "INSERT INTO " . $table . " (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $escaped_values) . ")";
         $this->last_executed_query = $sql;
-        
+
         $result = $this->connection->query($sql);
         if ($result === false) {
             throw new Exception("Insert failed: " . $this->connection->error . " SQL: " . $sql);
         }
-        
+
         return $this->insert_id();
     }
     
@@ -302,12 +390,36 @@ class MockLoader {
     }
 
     public function model($model, $name = '', $db_conn = FALSE) {
-        // Mock model loading
+        $CI =& get_instance();
+
+        // Convert model name to lowercase for property assignment
+        $model_name = $name ? $name : str_replace('_model', '', strtolower($model));
+
+        // Load the actual model file
+        $model_file = APPPATH . 'models/' . ucfirst($model) . '.php';
+        if (file_exists($model_file)) {
+            require_once $model_file;
+            $model_class = ucfirst($model);
+            $CI->$model_class = new $model_class();
+        }
+
         return true;
     }
 
     public function library($library, $params = NULL, $object_name = NULL) {
-        // Mock library loading
+        $CI =& get_instance();
+
+        // Convert library name to lowercase for property assignment
+        $library_name = $object_name ? $object_name : strtolower($library);
+
+        // Load the actual library file
+        $library_file = APPPATH . 'libraries/' . ucfirst($library) . '.php';
+        if (file_exists($library_file)) {
+            require_once $library_file;
+            $library_class = ucfirst($library);
+            $CI->$library_name = new $library_class($params);
+        }
+
         return true;
     }
 
@@ -398,7 +510,37 @@ class MockGvvMetadata {
 
 // Mock config for CodeIgniter
 class MockConfig {
-    public function item($item) {
+    private $config = array();
+
+    public function load($file, $use_sections = FALSE, $fail_gracefully = FALSE) {
+        // Load the actual config file
+        $config_file = APPPATH . 'config/' . $file . '.php';
+        if (file_exists($config_file)) {
+            include($config_file);
+            if (isset($config) && is_array($config)) {
+                if ($use_sections) {
+                    $this->config[$file] = $config;
+                } else {
+                    $this->config = array_merge($this->config, $config);
+                }
+            }
+            return TRUE;
+        }
+        return $fail_gracefully ? FALSE : TRUE;
+    }
+
+    public function item($item, $index = '') {
+        if ($index == '') {
+            if (isset($this->config[$item])) {
+                return $this->config[$item];
+            }
+        } else {
+            if (isset($this->config[$index][$item])) {
+                return $this->config[$index][$item];
+            }
+        }
+
+        // Fallback defaults
         switch($item) {
             case 'theme':
                 return 'binary-news';
@@ -437,6 +579,26 @@ class MockLang {
     }
 }
 
+// Mock Input class
+class MockInput {
+    public function ip_address() {
+        return '127.0.0.1';
+    }
+
+    public function post($key = NULL, $xss_clean = FALSE) {
+        return isset($_POST[$key]) ? $_POST[$key] : NULL;
+    }
+
+    public function get($key = NULL, $xss_clean = FALSE) {
+        return isset($_GET[$key]) ? $_GET[$key] : NULL;
+    }
+
+    public function is_ajax_request() {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    }
+}
+
 // Create a mock CI instance
 class MockCI {
     public $load;
@@ -444,6 +606,7 @@ class MockCI {
     public $session;
     public $config;
     public $lang;
+    public $input;
 
     public function __construct() {
         $this->load = new MockLoader();
@@ -451,6 +614,7 @@ class MockCI {
         $this->session = new MockSession();
         $this->config = new MockConfig();
         $this->lang = new MockLang();
+        $this->input = new MockInput();
     }
 }
 

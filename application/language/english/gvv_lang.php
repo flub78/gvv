@@ -100,6 +100,41 @@ $lang['gvv_button_show_list'] = "Show list";
 $lang['gvv_button_file'] = "Choose a file";
 $lang['gvv_no_upload_file'] = "No file selected";
 
+# Authorization - Roles
+$lang['role_user'] = "User";
+$lang['role_auto_planchiste'] = "Auto-logger";
+$lang['role_planchiste'] = "Logger";
+$lang['role_ca'] = "Board Member";
+$lang['role_bureau'] = "Committee";
+$lang['role_tresorier'] = "Treasurer";
+$lang['role_super_tresorier'] = "Super Treasurer";
+$lang['role_club_admin'] = "Club Administrator";
+
+$lang['role_user_desc'] = "Can login and view own data";
+$lang['role_auto_planchiste_desc'] = "Can create, modify and delete own flights";
+$lang['role_planchiste_desc'] = "Authorized to create, modify and delete flight data in their section";
+$lang['role_ca_desc'] = "Can view all section data including global financial data";
+$lang['role_bureau_desc'] = "Can view all section data including personal financial data";
+$lang['role_tresorier_desc'] = "Can edit financial data for their section";
+$lang['role_super_tresorier_desc'] = "Can view and edit financial data for all sections";
+$lang['role_club_admin_desc'] = "Can access all data and change everything";
+
+# Authorization - General
+$lang['authorization_title'] = "Authorization Management";
+$lang['authorization_roles'] = "Roles";
+$lang['authorization_permissions'] = "Permissions";
+$lang['authorization_users'] = "Users";
+$lang['authorization_audit_log'] = "Audit Log";
+$lang['authorization_scope_global'] = "Global";
+$lang['authorization_scope_section'] = "Section";
+$lang['authorization_permission_view'] = "View";
+$lang['authorization_permission_create'] = "Create";
+$lang['authorization_permission_edit'] = "Edit";
+$lang['authorization_permission_delete'] = "Delete";
+$lang['authorization_permission_admin'] = "Administer";
+$lang['authorization_access_denied'] = "Access Denied";
+$lang['authorization_insufficient_permissions'] = "Insufficient permissions for this action";
+
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
 

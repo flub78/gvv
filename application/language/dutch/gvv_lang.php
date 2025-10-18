@@ -94,8 +94,42 @@ $lang['gvv_button_show_list'] = "Toon lijst";
 $lang['gvv_button_file'] = "Kies een bestand";
 $lang['gvv_no_upload_file'] = "Geen bestand geselecteerd";
 
+# Authorization - Roles
+$lang['role_user'] = "Gebruiker";
+$lang['role_auto_planchiste'] = "Auto-startlijst beheerder";
+$lang['role_planchiste'] = "Startlijst beheerder";
+$lang['role_ca'] = "Raad van Bestuur";
+$lang['role_bureau'] = "Bureau";
+$lang['role_tresorier'] = "Penningmeester";
+$lang['role_super_tresorier'] = "Super-penningmeester";
+$lang['role_club_admin'] = "Club beheerder";
+
+$lang['role_user_desc'] = "Kan inloggen en eigen gegevens bekijken";
+$lang['role_auto_planchiste_desc'] = "Kan eigen vluchten aanmaken, wijzigen en verwijderen";
+$lang['role_planchiste_desc'] = "Mag vluchtgegevens van zijn sectie aanmaken, wijzigen en verwijderen";
+$lang['role_ca_desc'] = "Kan alle gegevens van zijn sectie bekijken, inclusief algemene financiële gegevens";
+$lang['role_bureau_desc'] = "Kan alle gegevens van zijn sectie bekijken, inclusief persoonlijke financiële gegevens";
+$lang['role_tresorier_desc'] = "Kan financiële gegevens van zijn sectie wijzigen";
+$lang['role_super_tresorier_desc'] = "Kan financiële gegevens van alle secties bekijken en wijzigen";
+$lang['role_club_admin_desc'] = "Heeft toegang tot alle gegevens en kan alles wijzigen";
+
+# Authorization - General
+$lang['authorization_title'] = "Autorisatiebeheer";
+$lang['authorization_roles'] = "Rollen";
+$lang['authorization_permissions'] = "Rechten";
+$lang['authorization_users'] = "Gebruikers";
+$lang['authorization_audit_log'] = "Auditlogboek";
+$lang['authorization_scope_global'] = "Globaal";
+$lang['authorization_scope_section'] = "Sectie";
+$lang['authorization_permission_view'] = "Bekijken";
+$lang['authorization_permission_create'] = "Aanmaken";
+$lang['authorization_permission_edit'] = "Wijzigen";
+$lang['authorization_permission_delete'] = "Verwijderen";
+$lang['authorization_permission_admin'] = "Beheren";
+$lang['authorization_access_denied'] = "Toegang geweigerd";
+$lang['authorization_insufficient_permissions'] = "Onvoldoende rechten voor deze actie";
+
 $lang['gvv_label_mode'] = "Mode";
-$lang['gvv_label_menu'] = "Menu";
 $lang['gvv_label_menu'] = "Menu";
 
 # Hints, tooltips

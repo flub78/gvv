@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         bootstrap="application/tests/authorization_bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         failOnWarning="false"
+         failOnRisky="false"
+         testdox="true">
+
+    <testsuites>
+        <testsuite name="Authorization Unit Tests">
+            <directory>application/tests/unit/libraries/Gvv_AuthorizationTest.php</directory>
+            <directory>application/tests/unit/models/Authorization_modelTest.php</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">application/libraries/Gvv_Authorization.php</directory>
+            <directory suffix=".php">application/models/Authorization_model.php</directory>
+        </include>
+        <report>
+            <html outputDirectory="build/coverage/authorization"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+        </report>
+    </coverage>
+
+    <php>
+        <const name="PHPUNIT_RUNNING" value="1"/>
+    </php>
+
+    <logging>
+        <testdoxHtml outputFile="build/testdox/authorization.html"/>
+    </logging>
+</phpunit>

@@ -6,6 +6,26 @@
 define('BASEPATH', dirname(__FILE__) . '/../../system/');
 define('APPPATH', dirname(__FILE__) . '/../');
 
+// Define CodeIgniter file operation constants (from config/constants.php)
+if (!defined('FOPEN_READ')) {
+    define('FOPEN_READ', 'rb');
+    define('FOPEN_READ_WRITE', 'r+b');
+    define('FOPEN_WRITE_CREATE_DESTRUCTIVE', 'wb');
+    define('FOPEN_READ_WRITE_CREATE_DESTRUCTIVE', 'w+b');
+    define('FOPEN_WRITE_CREATE', 'ab');
+    define('FOPEN_READ_WRITE_CREATE', 'a+b');
+    define('FOPEN_WRITE_CREATE_STRICT', 'xb');
+    define('FOPEN_READ_WRITE_CREATE_STRICT', 'x+b');
+}
+
+// Define file permission constants (from config/constants.php)
+if (!defined('FILE_READ_MODE')) {
+    define('FILE_READ_MODE', 0644);
+    define('FILE_WRITE_MODE', 0666);
+    define('DIR_READ_MODE', 0755);
+    define('DIR_WRITE_MODE', 0755);
+}
+
 // Load the helper functions
 require_once APPPATH . 'helpers/validation_helper.php';
 require_once APPPATH . 'helpers/bitfields_helper.php';
@@ -61,19 +81,167 @@ if (!class_exists('CI_Model')) {
     }
 }
 
+// Enhanced mock loader class for CI
+class MinimalMockLoader {
+    private $CI;
+
+    public function __construct(&$CI) {
+        $this->CI =& $CI;
+    }
+
+    public function helper($helper) {
+        // Mock helper loading - helpers are already loaded in bootstrap
+        return TRUE;
+    }
+
+    public function database() {
+        // Mock database loading
+        return TRUE;
+    }
+
+    public function library($library) {
+        // Handle library names with underscores (e.g., Gvv_Authorization)
+        $library_file = APPPATH . 'libraries/' . $library . '.php';
+        if (!file_exists($library_file)) {
+            $library_file = APPPATH . 'libraries/' . ucfirst($library) . '.php';
+        }
+
+        if (file_exists($library_file)) {
+            require_once $library_file;
+
+            // Determine class name (preserve case and underscores)
+            $library_name = $library;
+            if (strpos($library, '_') === false) {
+                $library_name = ucfirst($library);
+            }
+
+            // Property name is lowercase
+            $library_var = strtolower($library);
+
+            $this->CI->$library_var = new $library_name();
+        }
+        return TRUE;
+    }
+
+    public function model($model) {
+        // Handle model names with underscores
+        $model_file = APPPATH . 'models/' . $model . '.php';
+        if (!file_exists($model_file)) {
+            $model_file = APPPATH . 'models/' . ucfirst($model) . '.php';
+        }
+
+        if (file_exists($model_file)) {
+            require_once $model_file;
+
+            // Use the model name as-is for the class
+            $model_name = $model;
+            if (strpos($model, '_') === false) {
+                $model_name = ucfirst($model);
+            }
+
+            $this->CI->$model_name = new $model_name();
+        }
+        return TRUE;
+    }
+}
+
+// Mock config class for CI
+class MinimalMockConfig {
+    private $config = array();
+
+    public function item($item) {
+        return isset($this->config[$item]) ? $this->config[$item] : NULL;
+    }
+
+    public function set_item($item, $value) {
+        $this->config[$item] = $value;
+    }
+
+    public function load($file, $use_sections = FALSE, $fail_gracefully = FALSE) {
+        // For authorization tests, set the gvv_config
+        if ($file === 'gvv_config') {
+            $this->config['gvv_config'] = array(
+                'use_new_authorization' => TRUE,
+                'authorization_debug' => FALSE,
+                'authorization_progressive_migration' => FALSE
+            );
+        }
+        return TRUE;
+    }
+}
+
+// Mock input class for CI
+class MinimalMockInput {
+    public function ip_address() {
+        return '127.0.0.1';
+    }
+
+    public function get($index = NULL, $xss_clean = FALSE) {
+        return NULL;
+    }
+
+    public function post($index = NULL, $xss_clean = FALSE) {
+        return NULL;
+    }
+}
+
+// Mock database class for CI
+class MinimalMockDatabase {
+    public function select($select) {
+        return $this;
+    }
+
+    public function from($table) {
+        return $this;
+    }
+
+    public function join($table, $cond, $type = '') {
+        return $this;
+    }
+
+    public function where($key, $value = NULL) {
+        return $this;
+    }
+
+    public function or_where($key, $value = NULL) {
+        return $this;
+    }
+
+    public function get($table = '', $limit = NULL, $offset = NULL) {
+        $result = new stdClass();
+        $result->result_array = function() { return array(); };
+        $result->row_array = function() { return NULL; };
+        $result->num_rows = function() { return 0; };
+        return $result;
+    }
+
+    public function insert($table, $data = NULL) {
+        return TRUE;
+    }
+
+    public function update($table, $data = NULL, $where = NULL) {
+        return TRUE;
+    }
+}
+
+// Mock log_message function
+if (!function_exists('log_message')) {
+    function log_message($level, $message) {
+        // Mock log function for tests
+        return TRUE;
+    }
+}
+
 // Mock get_instance function
 if (!function_exists('get_instance')) {
     function &get_instance() {
         static $CI;
         if (!$CI) {
             $CI = new stdClass();
-            $CI->load = new stdClass();
-            $CI->load->helper = function($helper) {
-                // Mock helper loading - helpers are already loaded in bootstrap
-            };
-            $CI->load->database = function() {
-                // Mock database loading
-            };
+            $CI->load = new MinimalMockLoader($CI);
+            $CI->config = new MinimalMockConfig();
+            $CI->input = new MinimalMockInput();
+            $CI->db = new MinimalMockDatabase();
         }
         return $CI;
     }
