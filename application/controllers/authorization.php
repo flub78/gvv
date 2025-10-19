@@ -43,6 +43,8 @@ class Authorization extends CI_Controller {
         date_default_timezone_set("Europe/Paris");
         $this->load->library('session');
         $this->load->helper('url');
+        $this->load->helper('form');
+        $this->load->helper('form_elements');
         $this->session->set_userdata('requested_url', current_url());
 
         $this->load->library('DX_Auth');
@@ -149,22 +151,54 @@ class Authorization extends CI_Controller {
         $section_id = $this->input->post('section_id');
         $action = $this->input->post('action'); // 'grant' or 'revoke'
 
-        if (!$user_id || !$types_roles_id || !$section_id) {
-            echo json_encode(array('success' => FALSE, 'message' => 'Missing required parameters'));
+        // Log the received parameters for debugging
+        log_message('debug', 'edit_user_roles called with: user_id=' . var_export($user_id, true) . ', types_roles_id=' . var_export($types_roles_id, true) . ', section_id=' . var_export($section_id, true) . ', action=' . var_export($action, true));
+
+        if (!$user_id || !$types_roles_id) {
+            echo json_encode(array('success' => FALSE, 'message' => 'Missing required parameters: user_id or types_roles_id'));
             return;
+        }
+
+        if (!$action || !in_array($action, array('grant', 'revoke'))) {
+            echo json_encode(array('success' => FALSE, 'message' => 'Invalid or missing action'));
+            return;
+        }
+
+        // Convert empty string or "null" to actual NULL
+        if ($section_id === '' || $section_id === 'null') {
+            $section_id = NULL;
         }
 
         $current_user_id = $this->dx_auth->get_user_id();
 
-        if ($action === 'grant') {
-            $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
-            $message = $result ? 'Role granted successfully' : 'Role already exists or error occurred';
-        } else if ($action === 'revoke') {
-            $result = $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section_id, $current_user_id);
-            $message = $result ? 'Role revoked successfully' : 'Error revoking role';
-        } else {
+        try {
+            // Check if the library is loaded
+            if (!isset($this->gvv_authorization)) {
+                log_message('error', 'Gvv_Authorization library not loaded');
+                echo json_encode(array('success' => FALSE, 'message' => 'Authorization library not loaded'));
+                return;
+            }
+
+            if ($action === 'grant') {
+                log_message('debug', 'Calling grant_role with parameters: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . var_export($section_id, true) . ', current_user_id=' . $current_user_id);
+                $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
+                $message = $result ? 'Role granted successfully' : 'Role already exists or error occurred';
+            } else if ($action === 'revoke') {
+                log_message('debug', 'Calling revoke_role with parameters: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . var_export($section_id, true) . ', current_user_id=' . $current_user_id);
+                $result = $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section_id, $current_user_id);
+                $message = $result ? 'Role revoked successfully' : 'Error revoking role';
+            } else {
+                $result = FALSE;
+                $message = 'Invalid action';
+            }
+
+            log_message('debug', 'edit_user_roles result: ' . ($result ? 'success' : 'failure') . ', message: ' . $message);
+
+        } catch (Exception $e) {
+            log_message('error', 'edit_user_roles exception: ' . $e->getMessage());
+            log_message('error', 'Exception trace: ' . $e->getTraceAsString());
             $result = FALSE;
-            $message = 'Invalid action';
+            $message = 'System error: ' . $e->getMessage();
         }
 
         echo json_encode(array('success' => $result, 'message' => $message));

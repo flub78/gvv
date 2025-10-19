@@ -27,6 +27,13 @@ $this->load->view('bs_banner');
 ?>
 
 <div id="body" class="body container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="<?= site_url('authorization') ?>"><?= $this->lang->line('authorization_title') ?></a></li>
+            <li class="breadcrumb-item active" aria-current="page"><?= $this->lang->line('authorization_users') ?></li>
+        </ol>
+    </nav>
+
     <h3><?= $title ?></h3>
 
     <?php if (!empty($message)): ?>
@@ -191,34 +198,80 @@ $this->load->view('bs_banner');
 </div>
 
 <script>
-$(document).ready(function() {
+// Ensure we wait for both DOM and jQuery to be ready
+function initializeUserRoles() {
+    console.log('Initializing user roles functionality...');
+    console.log('jQuery available:', typeof $ !== 'undefined');
+    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+    console.log('Grant role buttons found:', $('.btn-grant-role').length);
+    console.log('Revoke role buttons found:', $('.btn-revoke-role').length);
+    
     // Initialize DataTable
-    $('#userRolesTable').DataTable({
-        "pageLength": 25,
-        "order": [[0, "asc"]],
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
+    try {
+        if ($.fn.DataTable) {
+            $('#userRolesTable').DataTable({
+                "pageLength": 25,
+                "order": [[0, "asc"]],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
+                }
+            });
+            console.log('DataTable initialized successfully');
+        } else {
+            console.warn('DataTable not available');
         }
-    });
+    } catch (error) {
+        console.error('DataTable initialization error:', error);
+    }
 
-    // Grant Role Button
-    $('.btn-grant-role').on('click', function() {
-        const userId = $(this).data('user-id');
-        const sectionId = $(this).data('section-id');
-        const username = $(this).data('username');
+    // Grant Role Button - using event delegation for reliability
+    $(document).off('click', '.btn-grant-role').on('click', '.btn-grant-role', function(e) {
+        e.preventDefault();
+        console.log('Grant role button clicked (event delegation)');
+        
+        const $btn = $(this);
+        const userId = $btn.data('user-id');
+        const sectionId = $btn.data('section-id');
+        const username = $btn.data('username');
 
+        console.log('Grant role button data:', {userId, sectionId, username});
+
+        // Set modal form values
         $('#grantUserId').val(userId);
         $('#grantUsername').text(username);
         $('#grantSection').val(sectionId);
         $('#grantRoleSelect').val('');
         $('#grantNotes').val('');
 
-        $('#grantRoleModal').modal('show');
+        // Verify values were set
+        console.log('Modal form values set:');
+        console.log('- grantUserId set to:', $('#grantUserId').val());
+        console.log('- grantUsername set to:', $('#grantUsername').text());
+        console.log('- grantSection set to:', $('#grantSection').val());
+
+        // Try both Bootstrap methods
+        try {
+            if (typeof bootstrap !== 'undefined') {
+                const grantModal = new bootstrap.Modal(document.getElementById('grantRoleModal'));
+                grantModal.show();
+                console.log('Modal opened with Bootstrap 5');
+            } else if ($.fn.modal) {
+                $('#grantRoleModal').modal('show');
+                console.log('Modal opened with jQuery/Bootstrap 4');
+            } else {
+                console.error('No modal method available');
+                alert('Modal functionality not available. Please refresh the page.');
+            }
+        } catch (error) {
+            console.error('Modal error:', error);
+            alert('Error opening modal: ' + error.message);
+        }
     });
 
     // Handle role scope change
-    $('#grantRoleSelect').on('change', function() {
+    $('#grantRoleSelect').off('change').on('change', function() {
         const scope = $(this).find(':selected').data('scope');
+        console.log('Role scope changed:', scope);
         if (scope === 'global') {
             $('#grantSectionSelect').hide();
         } else {
@@ -227,99 +280,391 @@ $(document).ready(function() {
     });
 
     // Confirm Grant Role
-    $('#confirmGrantRole').on('click', function() {
+    $('#confirmGrantRole').off('click').on('click', function() {
+        console.log('Confirm grant role clicked');
+        
+        // Get values and log each one
         const userId = $('#grantUserId').val();
         const roleId = $('#grantRoleSelect').val();
         const sectionId = $('#grantSection').val();
         const notes = $('#grantNotes').val();
 
-        if (!roleId) {
-            alert('<?= $this->lang->line('authorization_please_select_role') ?>');
+        console.log('Individual values:');
+        console.log('- userId element exists:', $('#grantUserId').length > 0);
+        console.log('- userId value:', userId);
+        console.log('- roleId element exists:', $('#grantRoleSelect').length > 0);
+        console.log('- roleId value:', roleId);
+        console.log('- sectionId element exists:', $('#grantSection').length > 0);
+        console.log('- sectionId value:', sectionId);
+        console.log('- notes value:', notes);
+
+        console.log('Grant role request data:', {userId, roleId, sectionId, notes});
+
+        // Validate required fields
+        if (!userId) {
+            alert('Erreur: ID utilisateur manquant');
+            console.error('Missing user_id');
             return;
+        }
+
+        if (!roleId) {
+            alert(<?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
+            console.error('Missing types_roles_id');
+            return;
+        }
+
+        // Disable button during request
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('En cours...');
+
+        const requestData = {
+            user_id: String(userId || ''),
+            types_roles_id: String(roleId || ''),
+            section_id: sectionId === '' ? '' : String(sectionId || ''),
+            action: 'grant',
+            notes: String(notes || '')
+        };
+
+        console.log('Sending AJAX request with data:', requestData);
+
+        // Alternative approach - try serializing the data manually
+        const formData = new FormData();
+        formData.append('user_id', userId || '');
+        formData.append('types_roles_id', roleId || '');
+        formData.append('section_id', sectionId || '');
+        formData.append('action', 'grant');
+        formData.append('notes', notes || '');
+
+        console.log('FormData entries:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
         }
 
         $.ajax({
             url: '<?= site_url('authorization/edit_user_roles') ?>',
-            method: 'POST',
-            data: {
-                user_id: userId,
-                types_roles_id: roleId,
-                section_id: sectionId || null,
-                action: 'grant',
-                notes: notes
-            },
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
+            beforeSend: function(xhr) {
+                console.log('AJAX beforeSend with FormData');
+            },
             success: function(response) {
-                if (response.success) {
+                console.log('Grant role response:', response);
+                console.log('Response type:', typeof response);
+                
+                // Handle both string and object responses
+                let parsedResponse = response;
+                if (typeof response === 'string') {
+                    try {
+                        parsedResponse = JSON.parse(response);
+                        console.log('Parsed response:', parsedResponse);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        alert('Erreur: Réponse serveur invalide');
+                        return;
+                    }
+                }
+                
+                if (parsedResponse.success) {
+                    alert('Rôle attribué avec succès');
                     location.reload();
                 } else {
-                    alert(response.message);
+                    alert('Erreur: ' + (parsedResponse.message || 'Erreur inconnue'));
                 }
             },
-            error: function() {
-                alert('<?= $this->lang->line('authorization_error_occurred') ?>');
+            error: function(xhr, status, error) {
+                console.error('Grant role AJAX error:', {xhr, status, error});
+                console.error('Response text:', xhr.responseText);
+                alert(<?= json_encode($this->lang->line('authorization_error_occurred')) ?> + ': ' + error);
+            },
+            complete: function() {
+                // Re-enable button
+                $btn.prop('disabled', false).text(<?= json_encode($this->lang->line('authorization_grant')) ?>);
             }
         });
     });
 
-    // Revoke Role Button
-    $('.btn-revoke-role').on('click', function() {
-        const userId = $(this).data('user-id');
-        const sectionId = $(this).data('section-id');
-        const username = $(this).data('username');
+    // Revoke Role Button - using event delegation
+    $(document).off('click', '.btn-revoke-role').on('click', '.btn-revoke-role', function(e) {
+        e.preventDefault();
+        console.log('Revoke role button clicked (event delegation)');
+        
+        const $btn = $(this);
+        const userId = $btn.data('user-id');
+        const sectionId = $btn.data('section-id');
+        const username = $btn.data('username');
+
+        console.log('Revoke role data:', {userId, sectionId, username});
 
         $('#revokeUserId').val(userId);
         $('#revokeSectionId').val(sectionId);
         $('#revokeUsername').text(username);
 
         // Populate role dropdown with user's current roles
-        const roles = $(this).closest('tr').find('.badge');
+        const roles = $btn.closest('tr').find('.badge[data-role-id]');
         const revokeSelect = $('#revokeRoleSelect');
         revokeSelect.empty();
-        revokeSelect.append('<option value="">-- <?= $this->lang->line('authorization_select_role') ?> --</option>');
+        revokeSelect.append(<?= json_encode('<option value="">-- ' . $this->lang->line('authorization_select_role') . ' --</option>') ?>);
 
         roles.each(function() {
             const roleId = $(this).data('role-id');
             const roleName = $(this).text().trim();
-            revokeSelect.append(`<option value="${roleId}">${roleName}</option>`);
+            if (roleId) {
+                revokeSelect.append(`<option value="${roleId}">${roleName}</option>`);
+            }
         });
 
-        $('#revokeRoleModal').modal('show');
+        console.log('Available roles for revoke:', revokeSelect.find('option').length);
+
+        // Try both Bootstrap methods
+        try {
+            if (typeof bootstrap !== 'undefined') {
+                const revokeModal = new bootstrap.Modal(document.getElementById('revokeRoleModal'));
+                revokeModal.show();
+                console.log('Revoke modal opened with Bootstrap 5');
+            } else if ($.fn.modal) {
+                $('#revokeRoleModal').modal('show');
+                console.log('Revoke modal opened with jQuery/Bootstrap 4');
+            } else {
+                console.error('No modal method available');
+                alert('Modal functionality not available. Please refresh the page.');
+            }
+        } catch (error) {
+            console.error('Revoke modal error:', error);
+            alert('Error opening modal: ' + error.message);
+        }
     });
 
     // Confirm Revoke Role
-    $('#confirmRevokeRole').on('click', function() {
+    $('#confirmRevokeRole').off('click').on('click', function() {
+        console.log('Confirm revoke role clicked');
+        
+        // Get values and log each one
         const userId = $('#revokeUserId').val();
         const roleId = $('#revokeRoleSelect').val();
         const sectionId = $('#revokeSectionId').val();
 
-        if (!roleId) {
-            alert('<?= $this->lang->line('authorization_please_select_role') ?>');
+        console.log('Individual revoke values:');
+        console.log('- userId element exists:', $('#revokeUserId').length > 0);
+        console.log('- userId value:', userId);
+        console.log('- roleId element exists:', $('#revokeRoleSelect').length > 0);
+        console.log('- roleId value:', roleId);
+        console.log('- sectionId element exists:', $('#revokeSectionId').length > 0);
+        console.log('- sectionId value:', sectionId);
+
+        console.log('Revoke role request data:', {userId, roleId, sectionId});
+
+        // Validate required fields
+        if (!userId) {
+            alert('Erreur: ID utilisateur manquant');
+            console.error('Missing user_id for revoke');
             return;
+        }
+
+        if (!roleId) {
+            alert(<?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
+            console.error('Missing types_roles_id for revoke');
+            return;
+        }
+
+        // Disable button during request
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('En cours...');
+
+        const requestData = {
+            user_id: String(userId || ''),
+            types_roles_id: String(roleId || ''),
+            section_id: sectionId === '' ? '' : String(sectionId || ''),
+            action: 'revoke'
+        };
+
+        console.log('Sending revoke AJAX request with data:', requestData);
+
+        // Alternative approach - try serializing the data manually
+        const formData = new FormData();
+        formData.append('user_id', userId || '');
+        formData.append('types_roles_id', roleId || '');
+        formData.append('section_id', sectionId || '');
+        formData.append('action', 'revoke');
+
+        console.log('Revoke FormData entries:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
         }
 
         $.ajax({
             url: '<?= site_url('authorization/edit_user_roles') ?>',
-            method: 'POST',
-            data: {
-                user_id: userId,
-                types_roles_id: roleId,
-                section_id: sectionId || null,
-                action: 'revoke'
-            },
+            type: 'POST', 
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
+            beforeSend: function(xhr) {
+                console.log('Revoke AJAX beforeSend with FormData');
+            },
             success: function(response) {
-                if (response.success) {
+                console.log('Revoke role response:', response);
+                console.log('Response type:', typeof response);
+                
+                // Handle both string and object responses
+                let parsedResponse = response;
+                if (typeof response === 'string') {
+                    try {
+                        parsedResponse = JSON.parse(response);
+                        console.log('Parsed response:', parsedResponse);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        alert('Erreur: Réponse serveur invalide');
+                        return;
+                    }
+                }
+                
+                if (parsedResponse.success) {
+                    alert('Rôle révoqué avec succès');
                     location.reload();
                 } else {
-                    alert(response.message);
+                    alert('Erreur: ' + (parsedResponse.message || 'Erreur inconnue'));
                 }
             },
-            error: function() {
-                alert('<?= $this->lang->line('authorization_error_occurred') ?>');
+            error: function(xhr, status, error) {
+                console.error('Revoke role AJAX error:', {xhr, status, error});
+                console.error('Response text:', xhr.responseText);
+                alert(<?= json_encode($this->lang->line('authorization_error_occurred')) ?> + ': ' + error);
+            },
+            complete: function() {
+                // Re-enable button
+                $btn.prop('disabled', false).text(<?= json_encode($this->lang->line('authorization_revoke')) ?>);
             }
         });
     });
+
+    console.log('User roles functionality initialized');
+}
+
+// Multiple initialization approaches for maximum compatibility
+if (typeof $ !== 'undefined') {
+    $(document).ready(function() {
+        console.log('Document ready - initializing user roles');
+        initializeUserRoles();
+    });
+} else {
+    console.log('jQuery not available, trying window.onload');
+    window.onload = function() {
+        // Wait a bit for potential jQuery to load
+        setTimeout(function() {
+            if (typeof $ !== 'undefined') {
+                console.log('jQuery loaded after delay - initializing user roles');
+                initializeUserRoles();
+            } else {
+                console.error('jQuery still not available');
+                alert('JavaScript functionality not available. Please refresh the page.');
+            }
+        }, 1000);
+    };
+}
+
+// Add a manual trigger for debugging
+window.debugUserRoles = function() {
+    console.log('=== DEBUG USER ROLES ===');
+    console.log('jQuery:', typeof $);
+    console.log('Bootstrap:', typeof bootstrap);
+    console.log('Grant buttons:', $('.btn-grant-role').length);
+    console.log('Revoke buttons:', $('.btn-revoke-role').length);
+    console.log('Modals:', $('#grantRoleModal').length, $('#revokeRoleModal').length);
+    
+    // Test click handlers
+    $('.btn-grant-role').first().trigger('click');
+};
+
+// Multiple initialization approaches for maximum compatibility
+if (typeof $ !== 'undefined') {
+    $(document).ready(function() {
+        console.log('Document ready - initializing user roles');
+        initializeUserRoles();
+    });
+} else {
+    console.log('jQuery not available, trying window.onload');
+    window.onload = function() {
+        // Wait a bit for potential jQuery to load
+        setTimeout(function() {
+            if (typeof $ !== 'undefined') {
+                console.log('jQuery loaded after delay - initializing user roles');
+                initializeUserRoles();
+            } else {
+                console.error('jQuery still not available');
+                alert('JavaScript functionality not available. Please refresh the page.');
+            }
+        }, 1000);
+    };
+}
+
+// Add a manual trigger for debugging
+window.debugUserRoles = function() {
+    console.log('=== DEBUG USER ROLES ===');
+    console.log('jQuery:', typeof $);
+    console.log('Bootstrap:', typeof bootstrap);
+    console.log('Grant buttons:', $('.btn-grant-role').length);
+    console.log('Revoke buttons:', $('.btn-revoke-role').length);
+    console.log('Modals:', $('#grantRoleModal').length, $('#revokeRoleModal').length);
+    
+    // Test click handlers
+    $('.btn-grant-role').first().trigger('click');
+};
+</script>
+
+<!-- Simple inline test for debugging -->
+<script>
+console.log('=== AUTHORIZATION USER ROLES DEBUG ===');
+console.log('Simple test script loaded');
+
+// Test translation strings
+console.log('Testing PHP translation output:');
+console.log('please_select_role:', <?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
+console.log('error_occurred:', <?= json_encode($this->lang->line('authorization_error_occurred')) ?>);
+console.log('grant:', <?= json_encode($this->lang->line('authorization_grant')) ?>);
+console.log('revoke:', <?= json_encode($this->lang->line('authorization_revoke')) ?>);
+console.log('select_role:', <?= json_encode($this->lang->line('authorization_select_role')) ?>);
+
+// Simple fallback handlers in case jQuery/Bootstrap doesn't work
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - checking if advanced handlers are working...');
+    
+    // Wait a moment for jQuery handlers to attach
+    setTimeout(function() {
+        const testButtons = document.querySelectorAll('.btn-grant-role');
+        console.log('Found grant buttons for fallback:', testButtons.length);
+        
+        // Only add fallback if no jQuery handlers are working
+        if (typeof $ === 'undefined' || $('.btn-grant-role').length === 0) {
+            console.log('Adding fallback handlers...');
+            
+            testButtons.forEach(function(button, index) {
+                // Check if button already has handlers
+                if (!button.hasAttribute('data-fallback-added')) {
+                    button.setAttribute('data-fallback-added', 'true');
+                    button.addEventListener('click', function(e) {
+                        console.log('Fallback click handler triggered for button', index);
+                        e.preventDefault();
+                        
+                        const userId = this.getAttribute('data-user-id');
+                        const username = this.getAttribute('data-username');
+                        console.log('Button data:', {userId, username});
+                        
+                        // Simple modal simulation
+                        const roleId = prompt('Enter role ID to grant to user ' + username + ':');
+                        if (roleId) {
+                            console.log('Would grant role', roleId, 'to user', userId);
+                            alert('Fallback mode: Would grant role ' + roleId + ' to user ' + username);
+                        }
+                    });
+                }
+            });
+        } else {
+            console.log('jQuery handlers found, fallback not needed');
+        }
+    }, 500);
 });
 </script>
 

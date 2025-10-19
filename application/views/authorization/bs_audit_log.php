@@ -95,136 +95,140 @@ $this->load->view('bs_banner');
             </h5>
         </div>
         <div class="card-body">
-            <?php if (empty($audit_log)): ?>
-                <p class="text-muted"><em><?= $this->lang->line('authorization_no_audit_entries') ?></em></p>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table id="auditTable" class="table table-striped table-bordered datatable">
-                        <thead>
+            <div class="table-responsive">
+                <table id="auditTable" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th><?= $this->lang->line('authorization_timestamp') ?></th>
+                            <th><?= $this->lang->line('authorization_action_type') ?></th>
+                            <th><?= $this->lang->line('authorization_actor') ?></th>
+                            <th><?= $this->lang->line('authorization_target_user') ?></th>
+                            <th><?= $this->lang->line('authorization_role') ?></th>
+                            <th><?= $this->lang->line('authorization_section') ?></th>
+                            <th><?= $this->lang->line('authorization_ip_address') ?></th>
+                            <th><?= $this->lang->line('authorization_details') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($audit_log)): ?>
+                        <?php foreach ($audit_log as $entry): ?>
                             <tr>
-                                <th><?= $this->lang->line('authorization_timestamp') ?></th>
-                                <th><?= $this->lang->line('authorization_action_type') ?></th>
-                                <th><?= $this->lang->line('authorization_actor') ?></th>
-                                <th><?= $this->lang->line('authorization_target_user') ?></th>
-                                <th><?= $this->lang->line('authorization_role') ?></th>
-                                <th><?= $this->lang->line('authorization_section') ?></th>
-                                <th><?= $this->lang->line('authorization_ip_address') ?></th>
-                                <th><?= $this->lang->line('authorization_details') ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($audit_log as $entry): ?>
-                                <tr>
-                                    <td><?= date('Y-m-d H:i:s', strtotime($entry['created_at'])) ?></td>
-                                    <td>
-                                        <?php
-                                        $action_badges = array(
-                                            'grant_role' => array('class' => 'bg-success', 'icon' => 'fa-plus-circle'),
-                                            'revoke_role' => array('class' => 'bg-danger', 'icon' => 'fa-minus-circle'),
-                                            'access_denied' => array('class' => 'bg-warning text-dark', 'icon' => 'fa-ban')
-                                        );
-                                        $badge_info = $action_badges[$entry['action_type']] ?? array('class' => 'bg-secondary', 'icon' => 'fa-info-circle');
-                                        ?>
-                                        <span class="badge <?= $badge_info['class'] ?>">
-                                            <i class="fas <?= $badge_info['icon'] ?>"></i>
-                                            <?= htmlspecialchars($entry['action_type']) ?>
+                                <td><?= date('Y-m-d H:i:s', strtotime($entry['created_at'])) ?></td>
+                                <td>
+                                    <?php
+                                    $action_badges = array(
+                                        'grant_role' => array('class' => 'bg-success', 'icon' => 'fa-plus-circle'),
+                                        'revoke_role' => array('class' => 'bg-danger', 'icon' => 'fa-minus-circle'),
+                                        'access_denied' => array('class' => 'bg-warning text-dark', 'icon' => 'fa-ban')
+                                    );
+                                    $badge_info = $action_badges[$entry['action_type']] ?? array('class' => 'bg-secondary', 'icon' => 'fa-info-circle');
+                                    ?>
+                                    <span class="badge <?= $badge_info['class'] ?>">
+                                        <i class="fas <?= $badge_info['icon'] ?>"></i>
+                                        <?= htmlspecialchars($entry['action_type']) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if (!empty($entry['actor_username'])): ?>
+                                        <?= htmlspecialchars($entry['actor_username']) ?>
+                                    <?php else: ?>
+                                        <em class="text-muted"><?= $this->lang->line('authorization_system') ?></em>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($entry['target_username'])): ?>
+                                        <?= htmlspecialchars($entry['target_username']) ?>
+                                    <?php else: ?>
+                                        <em class="text-muted">-</em>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($entry['role_name'])): ?>
+                                        <span class="badge bg-primary"><?= htmlspecialchars($entry['role_name']) ?></span>
+                                    <?php else: ?>
+                                        <em class="text-muted">-</em>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (isset($entry['section_id']) && $entry['section_id'] == 0): ?>
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-globe"></i> <?= $this->lang->line('authorization_global') ?>
                                         </span>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($entry['actor_username'])): ?>
-                                            <?= htmlspecialchars($entry['actor_username']) ?>
+                                    <?php elseif (!empty($entry['section_id'])): ?>
+                                        <?php
+                                        $section = $this->db->where('id', $entry['section_id'])->get('sections')->row_array();
+                                        if ($section):
+                                        ?>
+                                            <?= htmlspecialchars($section['nom']) ?>
                                         <?php else: ?>
-                                            <em class="text-muted"><?= $this->lang->line('authorization_system') ?></em>
+                                            Section #<?= $entry['section_id'] ?>
                                         <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($entry['target_username'])): ?>
-                                            <?= htmlspecialchars($entry['target_username']) ?>
+                                    <?php else: ?>
+                                        <em class="text-muted">-</em>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($entry['ip_address'])): ?>
+                                        <small><code><?= htmlspecialchars($entry['ip_address']) ?></code></small>
+                                    <?php else: ?>
+                                        <em class="text-muted">-</em>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($entry['details'])): ?>
+                                        <?php
+                                        // Try to decode JSON details
+                                        $details = json_decode($entry['details'], true);
+                                        if (json_last_error() === JSON_ERROR_NONE && is_array($details)):
+                                        ?>
+                                            <small>
+                                                <?php foreach ($details as $key => $value): ?>
+                                                    <strong><?= htmlspecialchars($key) ?>:</strong> <?= htmlspecialchars($value) ?><br>
+                                                <?php endforeach; ?>
+                                            </small>
                                         <?php else: ?>
-                                            <em class="text-muted">-</em>
+                                            <small><?= htmlspecialchars($entry['details']) ?></small>
                                         <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($entry['role_name'])): ?>
-                                            <span class="badge bg-primary"><?= htmlspecialchars($entry['role_name']) ?></span>
-                                        <?php else: ?>
-                                            <em class="text-muted">-</em>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (isset($entry['section_id']) && $entry['section_id'] == 0): ?>
-                                            <span class="badge bg-light text-dark">
-                                                <i class="fas fa-globe"></i> <?= $this->lang->line('authorization_global') ?>
-                                            </span>
-                                        <?php elseif (!empty($entry['section_id'])): ?>
-                                            <?php
-                                            $section = $this->db->where('id', $entry['section_id'])->get('sections')->row_array();
-                                            if ($section):
-                                            ?>
-                                                <?= htmlspecialchars($section['nom']) ?>
-                                            <?php else: ?>
-                                                Section #<?= $entry['section_id'] ?>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <em class="text-muted">-</em>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($entry['ip_address'])): ?>
-                                            <small><code><?= htmlspecialchars($entry['ip_address']) ?></code></small>
-                                        <?php else: ?>
-                                            <em class="text-muted">-</em>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($entry['details'])): ?>
-                                            <?php
-                                            // Try to decode JSON details
-                                            $details = json_decode($entry['details'], true);
-                                            if (json_last_error() === JSON_ERROR_NONE && is_array($details)):
-                                            ?>
-                                                <small>
-                                                    <?php foreach ($details as $key => $value): ?>
-                                                        <strong><?= htmlspecialchars($key) ?>:</strong> <?= htmlspecialchars($value) ?><br>
-                                                    <?php endforeach; ?>
-                                                </small>
-                                            <?php else: ?>
-                                                <small><?= htmlspecialchars($entry['details']) ?></small>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <em class="text-muted">-</em>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                    <?php else: ?>
+                                        <em class="text-muted">-</em>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">
+                                    <em><?= $this->lang->line('authorization_no_audit_entries') ?></em>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
 
-                <!-- Pagination -->
-                <?php if (count($audit_log) >= $per_page): ?>
-                    <nav aria-label="Audit log pagination" class="mt-3">
-                        <ul class="pagination">
-                            <?php if ($page > 0): ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="<?= site_url('authorization/audit_log/' . ($page - 1)) ?>">
-                                        <?= $this->lang->line('authorization_previous') ?>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                            <li class="page-item active">
-                                <span class="page-link">
-                                    <?= $this->lang->line('authorization_page') ?> <?= $page + 1 ?>
-                                </span>
-                            </li>
+            <!-- Pagination -->
+            <?php if (!empty($audit_log) && count($audit_log) >= $per_page): ?>
+                <nav aria-label="Audit log pagination" class="mt-3">
+                    <ul class="pagination">
+                        <?php if ($page > 0): ?>
                             <li class="page-item">
-                                <a class="page-link" href="<?= site_url('authorization/audit_log/' . ($page + 1)) ?>">
-                                    <?= $this->lang->line('authorization_next') ?>
+                                <a class="page-link" href="<?= site_url('authorization/audit_log/' . ($page - 1)) ?>">
+                                    <?= $this->lang->line('authorization_previous') ?>
                                 </a>
                             </li>
-                        </ul>
-                    </nav>
-                <?php endif; ?>
+                        <?php endif; ?>
+                        <li class="page-item active">
+                            <span class="page-link">
+                                <?= $this->lang->line('authorization_page') ?> <?= $page + 1 ?>
+                            </span>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="<?= site_url('authorization/audit_log/' . ($page + 1)) ?>">
+                                <?= $this->lang->line('authorization_next') ?>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             <?php endif; ?>
         </div>
     </div>
@@ -238,21 +242,58 @@ $this->load->view('bs_banner');
 
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
+    console.log('Initializing audit log table...');
+    
+    // Count table elements
+    var headerCount = $('#auditTable thead th').length;
+    var rowCount = $('#auditTable tbody tr').length;
+    
+    console.log('Headers:', headerCount);
+    console.log('Rows:', rowCount);
+    
     <?php if (!empty($audit_log)): ?>
-    $('#auditTable').DataTable({
-        "pageLength": 50,
-        "order": [[0, "desc"]],
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
-        },
-        "columnDefs": [
-            {
-                "targets": 7, // Details column
-                "orderable": false
+    // Only initialize DataTable if we have actual audit data (not just the "no entries" row)
+    if (rowCount > 0) {
+        var firstRowColumns = $('#auditTable tbody tr:first td').length;
+        console.log('First row columns:', firstRowColumns);
+        
+        // Check if first row is the "no entries" message (colspan=8)
+        if ($('#auditTable tbody tr:first td[colspan]').length === 0 && firstRowColumns === headerCount) {
+            // We have real data and column count matches
+            try {
+                $('#auditTable').DataTable({
+                    "paging": false,
+                    "info": false,
+                    "searching": true,
+                    "ordering": true,
+                    "order": [[0, "desc"]],
+                    "autoWidth": false,
+                    "language": {
+                        "search": "Rechercher:",
+                        "searchPlaceholder": "Filtrer les entrées...",
+                        "zeroRecords": "Aucune entrée trouvée",
+                        "emptyTable": "Aucune donnée disponible"
+                    },
+                    "columnDefs": [
+                        {
+                            "targets": [7], // Details column
+                            "orderable": false
+                        }
+                    ]
+                });
+                console.log('DataTable initialized successfully');
+            } catch (error) {
+                console.error('DataTable error:', error);
+                console.log('Continuing without DataTable functionality');
             }
-        ]
-    });
+        } else {
+            console.log('Column mismatch or no real data - headers:', headerCount, 'data:', firstRowColumns);
+        }
+    } else {
+        console.log('No rows to process');
+    }
+    <?php else: ?>
+    console.log('No audit log data available');
     <?php endif; ?>
 });
 </script>
