@@ -919,6 +919,78 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_configuration']['club']['Name'] = 'Section';
                 $this->field['vue_configuration']['description']['Name'] = 'Description';
 
+                /**
+                 * Table procedures - Gestion des procédures
+                 */
+                $this->field['procedures']['id']['Name'] = 'ID';
+                $this->field['procedures']['id']['Type'] = 'bigint';
+                $this->field['procedures']['name']['Name'] = 'Nom';
+                $this->field['procedures']['name']['Type'] = 'varchar';
+                $this->field['procedures']['name']['Required'] = true;
+                $this->field['procedures']['name']['Attrs'] = array('maxlength' => '128', 'pattern' => '[a-zA-Z0-9_]+');
+                $this->field['procedures']['title']['Name'] = 'Titre';
+                $this->field['procedures']['title']['Type'] = 'varchar';
+                $this->field['procedures']['title']['Required'] = true;
+                $this->field['procedures']['title']['Attrs'] = array('maxlength' => '255');
+                $this->field['procedures']['description']['Name'] = 'Description';
+                $this->field['procedures']['description']['Type'] = 'text';
+                $this->field['procedures']['description']['Subtype'] = 'textarea';
+                $this->field['procedures']['description']['Attrs'] = array('rows' => '3');
+                $this->field['procedures']['markdown_file']['Name'] = 'Fichier markdown';
+                $this->field['procedures']['markdown_file']['Type'] = 'varchar';
+                $this->field['procedures']['section_id']['Name'] = 'Section';
+                $this->field['procedures']['section_id']['Type'] = 'int';
+                $this->field['procedures']['section_id']['Subtype'] = 'selector';
+                $this->field['procedures']['section_id']['Selector'] = 'section_selector_with_null';
+                $this->field['procedures']['status']['Name'] = 'Statut';
+                $this->field['procedures']['status']['Type'] = 'enum';
+                $this->field['procedures']['status']['Subtype'] = 'enumerate';
+                $this->field['procedures']['status']['Enumerate'] = [
+                        'draft' => 'Brouillon',
+                        'published' => 'Publiée',
+                        'archived' => 'Archivée'
+                ];
+                $this->field['procedures']['status']['Default'] = 'draft';
+                $this->field['procedures']['version']['Name'] = 'Version';
+                $this->field['procedures']['version']['Type'] = 'varchar';
+                $this->field['procedures']['version']['Default'] = '1.0';
+                $this->field['procedures']['version']['Attrs'] = array('maxlength' => '20');
+                $this->field['procedures']['created_by']['Name'] = 'Créé par';
+                $this->field['procedures']['created_by']['Type'] = 'varchar';
+                $this->field['procedures']['created_at']['Name'] = 'Créé le';
+                $this->field['procedures']['created_at']['Type'] = 'timestamp';
+                $this->field['procedures']['created_at']['Subtype'] = 'date_time';
+                $this->field['procedures']['updated_by']['Name'] = 'Modifié par';
+                $this->field['procedures']['updated_by']['Type'] = 'varchar';
+                $this->field['procedures']['updated_at']['Name'] = 'Modifié le';
+                $this->field['procedures']['updated_at']['Type'] = 'timestamp';
+                $this->field['procedures']['updated_at']['Subtype'] = 'date_time';
+
+                // Vue procedures avec sections
+                $this->field['vue_procedures']['id']['Name'] = 'ID';
+                $this->field['vue_procedures']['name']['Name'] = 'Nom';
+                $this->field['vue_procedures']['title']['Name'] = 'Titre';
+                $this->field['vue_procedures']['description']['Name'] = 'Description';
+                $this->field['vue_procedures']['section_name']['Name'] = 'Section';
+                $this->field['vue_procedures']['section_acronym']['Name'] = 'Section';
+                $this->field['vue_procedures']['status']['Name'] = 'Statut';
+                $this->field['vue_procedures']['status']['Subtype'] = 'enumerate';
+                $this->field['vue_procedures']['status']['Enumerate'] = [
+                        'draft' => 'Brouillon',
+                        'published' => 'Publiée', 
+                        'archived' => 'Archivée'
+                ];
+                $this->field['vue_procedures']['version']['Name'] = 'Version';
+                $this->field['vue_procedures']['created_at']['Name'] = 'Créé le';
+                $this->field['vue_procedures']['created_at']['Subtype'] = 'date_time';
+                $this->field['vue_procedures']['updated_at']['Name'] = 'Modifié le';
+                $this->field['vue_procedures']['updated_at']['Subtype'] = 'date_time';
+                $this->field['vue_procedures']['created_by']['Name'] = 'Auteur';
+                $this->field['vue_procedures']['has_markdown']['Name'] = 'Fichier MD';
+                $this->field['vue_procedures']['has_markdown']['Type'] = 'boolean';
+                $this->field['vue_procedures']['attachments_count']['Name'] = 'Fichiers';
+                $this->field['vue_procedures']['attachments_count']['Type'] = 'int';
+
                 // $this->dump();
         }
 }
