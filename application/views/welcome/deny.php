@@ -30,5 +30,7 @@ echo '<div id="body" class="body ui-widget-content">';
 echo heading("welcome_forbiden_title", 3);
 
 echo "<p>" . $this->lang->line("welcome_forbiden_text") . "</p>";
+$this->load->library('session');
+echo "<p>Your current role is: " . $this->session->userdata('DX_role_name') . "</p>";
 ?>
 </div>

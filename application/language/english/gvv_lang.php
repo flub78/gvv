@@ -135,6 +135,76 @@ $lang['authorization_permission_admin'] = "Administer";
 $lang['authorization_access_denied'] = "Access Denied";
 $lang['authorization_insufficient_permissions'] = "Insufficient permissions for this action";
 
+# Authorization - Common Actions
+$lang['authorization_add'] = "Add";
+$lang['authorization_remove'] = "Remove";
+$lang['authorization_select'] = "Select";
+$lang['authorization_filter'] = "Filter";
+$lang['authorization_filters'] = "Filters";
+$lang['authorization_reset'] = "Reset";
+$lang['authorization_actions'] = "Actions";
+$lang['authorization_back_to_dashboard'] = "Back to Dashboard";
+$lang['authorization_back_to_roles'] = "Back to Roles";
+$lang['authorization_confirm_delete'] = "Are you sure you want to delete this item?";
+$lang['authorization_error_occurred'] = "An error occurred";
+$lang['authorization_optional'] = "optional";
+$lang['authorization_all'] = "All";
+$lang['authorization_global'] = "Global";
+$lang['authorization_system'] = "System";
+
+# Authorization - Role Permissions
+$lang['authorization_add_permission'] = "Add Permission";
+$lang['authorization_current_permissions'] = "Current Permissions";
+$lang['authorization_no_permissions'] = "No permissions defined for this role";
+$lang['authorization_controller'] = "Controller";
+$lang['authorization_action'] = "Action";
+$lang['authorization_permission_type'] = "Permission Type";
+$lang['authorization_section'] = "Section";
+$lang['authorization_created'] = "Created";
+$lang['authorization_all_actions'] = "All actions";
+$lang['authorization_wildcard_all_actions'] = "* (all)";
+
+# Authorization - Data Access Rules
+$lang['authorization_data_rules'] = "Data Access Rules";
+$lang['authorization_add_data_rule'] = "Add Data Access Rule";
+$lang['authorization_current_rules'] = "Current Rules";
+$lang['authorization_no_rules'] = "No data access rules defined for this role";
+$lang['authorization_table_name'] = "Table Name";
+$lang['authorization_access_scope'] = "Access Scope";
+$lang['authorization_field_name'] = "Field Name";
+$lang['authorization_section_field'] = "Section Field";
+$lang['authorization_description'] = "Description";
+$lang['authorization_rule_description_placeholder'] = "Rule description";
+$lang['authorization_field_name_help'] = "Field name containing user ID";
+$lang['authorization_section_field_help'] = "Field name containing section ID";
+
+# Authorization - Access Scopes
+$lang['authorization_scope_own'] = "Own data";
+$lang['authorization_scope_all'] = "All data";
+$lang['authorization_scope_help_title'] = "Access Scope Help";
+$lang['authorization_scope_own_desc'] = "User can only access their own records";
+$lang['authorization_scope_section_desc'] = "User can access records from their section";
+$lang['authorization_scope_all_desc'] = "User can access all records";
+
+# Authorization - Audit Log
+$lang['authorization_audit_entries'] = "Audit Entries";
+$lang['authorization_no_audit_entries'] = "No audit entries found";
+$lang['authorization_timestamp'] = "Timestamp";
+$lang['authorization_action_type'] = "Action Type";
+$lang['authorization_actor'] = "Actor";
+$lang['authorization_target_user'] = "Target User";
+$lang['authorization_role'] = "Role";
+$lang['authorization_ip_address'] = "IP Address";
+$lang['authorization_details'] = "Details";
+$lang['authorization_entries'] = "entries";
+$lang['authorization_user_filter'] = "User";
+$lang['authorization_all_users'] = "All Users";
+$lang['authorization_grant_role'] = "Grant Role";
+$lang['authorization_revoke_role'] = "Revoke Role";
+$lang['authorization_page'] = "Page";
+$lang['authorization_previous'] = "Previous";
+$lang['authorization_next'] = "Next";
+
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
 

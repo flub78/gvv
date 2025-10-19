@@ -29,5 +29,9 @@ echo '<div id="body" class="body container-fluid">';
 echo heading("welcome_forbiden_title", 3);
 
 echo "<p>" . $this->lang->line("welcome_forbiden_text") . "</p>";
+$this->load->library('session');
+echo "<pre>";
+print_r($this->session->all_userdata());
+echo "</pre>";
 ?>
 </div>

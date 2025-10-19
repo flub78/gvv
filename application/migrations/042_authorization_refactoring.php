@@ -21,8 +21,7 @@ class Migration_authorization_refactoring extends CI_Migration {
         // 1. Enhance types_roles table
         $this->dbforge->add_column('types_roles', array(
             'scope' => array(
-                'type' => 'ENUM',
-                'constraint' => array('global', 'section'),
+                'type' => 'ENUM("global","section")',
                 'default' => 'section',
                 'null' => FALSE,
                 'after' => 'description'
@@ -141,8 +140,7 @@ class Migration_authorization_refactoring extends CI_Migration {
                 'comment' => 'Action name, NULL means all actions'
             ),
             'permission_type' => array(
-                'type' => 'ENUM',
-                'constraint' => array('view', 'create', 'edit', 'delete', 'admin'),
+                'type' => 'ENUM("view","create","edit","delete","admin")',
                 'default' => 'view',
                 'null' => FALSE
             ),
@@ -156,17 +154,17 @@ class Migration_authorization_refactoring extends CI_Migration {
             )
         ));
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->add_key(array('types_roles_id', 'section_id'), FALSE, 'idx_role_section');
-        $this->dbforge->add_key(array('controller', 'action'), FALSE, 'idx_controller_action');
-        $this->dbforge->add_key(array('types_roles_id', 'controller', 'action'), FALSE, 'idx_permission_lookup');
         $this->dbforge->create_table('role_permissions', TRUE, array(
             'ENGINE' => 'InnoDB',
             'DEFAULT CHARSET' => 'utf8mb4',
             'COMMENT' => 'URI and action permissions per role'
         ));
 
-        // Add foreign keys for role_permissions
+        // Add indexes and foreign keys for role_permissions
         $this->db->query('ALTER TABLE `role_permissions`
+            ADD INDEX `idx_role_section` (`types_roles_id`, `section_id`),
+            ADD INDEX `idx_controller_action` (`controller`, `action`),
+            ADD INDEX `idx_permission_lookup` (`types_roles_id`, `controller`, `action`),
             ADD CONSTRAINT `fk_role_permissions_role` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`) ON DELETE CASCADE,
             ADD CONSTRAINT `fk_role_permissions_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE');
 
@@ -190,8 +188,7 @@ class Migration_authorization_refactoring extends CI_Migration {
                 'comment' => 'Table being accessed'
             ),
             'access_scope' => array(
-                'type' => 'ENUM',
-                'constraint' => array('own', 'section', 'all'),
+                'type' => 'ENUM("own","section","all")',
                 'default' => 'own',
                 'null' => FALSE
             ),
@@ -252,8 +249,15 @@ class Migration_authorization_refactoring extends CI_Migration {
 
         // Add foreign key for granted_by
         $this->db->query('ALTER TABLE `user_roles_per_section`
-            ADD CONSTRAINT `fk_user_roles_granted_by` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-            ADD INDEX `idx_user_section_active` (`user_id`, `section_id`, `revoked_at`)');
+            ADD CONSTRAINT `fk_user_roles_granted_by` FOREIGN KEY (`granted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL');
+
+        // Check if index exists before adding (may already exist from add_column)
+        $index_exists = $this->db->query("SHOW INDEX FROM `user_roles_per_section` WHERE Key_name = 'idx_user_section_active'")->num_rows() > 0;
+
+        if (!$index_exists) {
+            $this->db->query('ALTER TABLE `user_roles_per_section`
+                ADD INDEX `idx_user_section_active` (`user_id`, `section_id`, `revoked_at`)');
+        }
 
         // Set granted_at for existing records
         $this->db->query("UPDATE `user_roles_per_section` SET `granted_at` = NOW() WHERE `granted_at` IS NULL OR `granted_at` = '0000-00-00 00:00:00'");
@@ -267,8 +271,7 @@ class Migration_authorization_refactoring extends CI_Migration {
                 'auto_increment' => TRUE
             ),
             'action_type' => array(
-                'type' => 'ENUM',
-                'constraint' => array('grant_role', 'revoke_role', 'modify_permission', 'access_denied', 'access_granted'),
+                'type' => 'ENUM("grant_role","revoke_role","modify_permission","access_denied","access_granted")',
                 'null' => FALSE
             ),
             'actor_user_id' => array(
@@ -319,14 +322,17 @@ class Migration_authorization_refactoring extends CI_Migration {
             )
         ));
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->add_key('actor_user_id', FALSE, 'idx_actor');
-        $this->dbforge->add_key('target_user_id', FALSE, 'idx_target');
-        $this->dbforge->add_key('created_at', FALSE, 'idx_timestamp');
         $this->dbforge->create_table('authorization_audit_log', TRUE, array(
             'ENGINE' => 'InnoDB',
             'DEFAULT CHARSET' => 'utf8mb4',
             'COMMENT' => 'Audit log for authorization changes'
         ));
+
+        // Add indexes after table creation
+        $this->db->query('ALTER TABLE `authorization_audit_log`
+            ADD INDEX `idx_actor` (`actor_user_id`),
+            ADD INDEX `idx_target` (`target_user_id`),
+            ADD INDEX `idx_timestamp` (`created_at`)');
 
         // 6. Create authorization_migration_status table
         $this->dbforge->add_field(array(
@@ -343,8 +349,7 @@ class Migration_authorization_refactoring extends CI_Migration {
                 'comment' => 'User being migrated'
             ),
             'migration_status' => array(
-                'type' => 'ENUM',
-                'constraint' => array('pending', 'in_progress', 'completed', 'failed', 'rolled_back'),
+                'type' => 'ENUM("pending","in_progress","completed","failed","rolled_back")',
                 'default' => 'pending',
                 'null' => FALSE
             ),

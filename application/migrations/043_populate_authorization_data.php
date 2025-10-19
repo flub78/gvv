@@ -47,6 +47,12 @@ class Migration_populate_authorization_data extends CI_Migration {
         $errors = array();
 
         foreach ($query->result() as $perm) {
+            // Skip permissions for non-existent roles (orphaned data)
+            if (is_null($perm->role_name)) {
+                $errors[] = "Skipping permissions for non-existent role_id {$perm->role_id}";
+                continue;
+            }
+
             // Unserialize the PHP data
             $data = @unserialize($perm->data);
 

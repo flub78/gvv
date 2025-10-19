@@ -16,68 +16,53 @@ $CI =& get_instance();
 $CI->load->library('migration');
 
 // Get command (up or down)
-$command = isset($argv[1]) ? $argv[1] : 'up';
-
-echo "=== Migration 039 Test ===\n";
-echo "Command: $command\n\n";
+echo "=== Migration 042/043 Authorization Refactoring ===\n\n";
 
 // Get current version
 $current_version = $CI->migration->get_version();
 echo "Current database version: $current_version\n";
+echo "Target version: 43\n\n";
 
-if ($command === 'up') {
-    echo "\nRunning migration UP to version 39...\n\n";
-    if ($CI->migration->version(39)) {
-        echo "✅ Migration UP successful!\n\n";
+echo "Running migrations to version 43...\n\n";
+if ($CI->migration->current()) {
+    echo "✅ Migrations successful!\n\n";
 
-        // Verify the column was created
-        echo "Verifying file_backup column...\n";
-        $result = $CI->db->query("SHOW COLUMNS FROM attachments LIKE 'file_backup'");
+    // Verify tables were created
+    echo "Verifying authorization tables...\n";
+    $tables = array(
+        'role_permissions',
+        'data_access_rules',
+        'authorization_audit_log',
+        'authorization_migration_status'
+    );
+
+    foreach ($tables as $table) {
+        $result = $CI->db->query("SHOW TABLES LIKE '$table'");
         if ($result->num_rows() > 0) {
-            echo "✅ file_backup column exists\n";
+            echo "✅ $table exists\n";
         } else {
-            echo "❌ file_backup column NOT found\n";
+            echo "❌ $table NOT found\n";
         }
-
-        // Check how many backups were created
-        $count_result = $CI->db->query("SELECT COUNT(*) as count FROM attachments WHERE file_backup IS NOT NULL");
-        if ($count_result) {
-            $count = $count_result->row()->count;
-            echo "✅ Backed up $count file paths\n";
-        }
-
-        // Show new version
-        $new_version = $CI->migration->get_version();
-        echo "\nNew database version: $new_version\n";
-    } else {
-        echo "❌ Migration UP failed!\n";
-        echo "Error: " . $CI->migration->error_string() . "\n";
-        exit(1);
     }
-} elseif ($command === 'down') {
-    echo "\nRunning migration DOWN to version 38...\n\n";
-    if ($CI->migration->version(38)) {
-        echo "✅ Migration DOWN successful!\n\n";
 
-        // Verify the column was removed
-        echo "Verifying file_backup column was removed...\n";
-        $result = $CI->db->query("SHOW COLUMNS FROM attachments LIKE 'file_backup'");
-        if ($result->num_rows() === 0) {
-            echo "✅ file_backup column removed\n";
+    // Verify columns were added to types_roles
+    echo "\nVerifying types_roles columns...\n";
+    $columns = array('scope', 'is_system_role', 'display_order', 'translation_key');
+    foreach ($columns as $column) {
+        $result = $CI->db->query("SHOW COLUMNS FROM types_roles LIKE '$column'");
+        if ($result->num_rows() > 0) {
+            echo "✅ types_roles.$column exists\n";
         } else {
-            echo "❌ file_backup column still exists\n";
+            echo "❌ types_roles.$column NOT found\n";
         }
-
-        // Show new version
-        $new_version = $CI->migration->get_version();
-        echo "\nNew database version: $new_version\n";
-    } else {
-        echo "❌ Migration DOWN failed!\n";
-        echo "Error: " . $CI->migration->error_string() . "\n";
-        exit(1);
     }
+
+    // Show new version
+    $new_version = $CI->migration->get_version();
+    echo "\nNew database version: $new_version\n";
 } else {
-    echo "Invalid command. Use: up or down\n";
+    echo "❌ Migration failed!\n";
+    echo "Error: " . $CI->migration->error_string() . "\n";
     exit(1);
 }
 

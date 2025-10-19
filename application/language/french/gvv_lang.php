@@ -152,6 +152,76 @@ $lang['authorization_permission_admin'] = "Administrer";
 $lang['authorization_access_denied'] = "Accès refusé";
 $lang['authorization_insufficient_permissions'] = "Permissions insuffisantes pour cette action";
 
+# Authorization - Common Actions
+$lang['authorization_add'] = "Ajouter";
+$lang['authorization_remove'] = "Retirer";
+$lang['authorization_select'] = "Sélectionner";
+$lang['authorization_filter'] = "Filtrer";
+$lang['authorization_filters'] = "Filtres";
+$lang['authorization_reset'] = "Réinitialiser";
+$lang['authorization_actions'] = "Actions";
+$lang['authorization_back_to_dashboard'] = "Retour au tableau de bord";
+$lang['authorization_back_to_roles'] = "Retour aux rôles";
+$lang['authorization_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cet élément ?";
+$lang['authorization_error_occurred'] = "Une erreur s'est produite";
+$lang['authorization_optional'] = "optionnel";
+$lang['authorization_all'] = "Tous";
+$lang['authorization_global'] = "Global";
+$lang['authorization_system'] = "Système";
+
+# Authorization - Role Permissions
+$lang['authorization_add_permission'] = "Ajouter une permission";
+$lang['authorization_current_permissions'] = "Permissions actuelles";
+$lang['authorization_no_permissions'] = "Aucune permission définie pour ce rôle";
+$lang['authorization_controller'] = "Contrôleur";
+$lang['authorization_action'] = "Action";
+$lang['authorization_permission_type'] = "Type de permission";
+$lang['authorization_section'] = "Section";
+$lang['authorization_created'] = "Créé le";
+$lang['authorization_all_actions'] = "Toutes les actions";
+$lang['authorization_wildcard_all_actions'] = "* (toutes)";
+
+# Authorization - Data Access Rules
+$lang['authorization_data_rules'] = "Règles d'accès aux données";
+$lang['authorization_add_data_rule'] = "Ajouter une règle d'accès";
+$lang['authorization_current_rules'] = "Règles actuelles";
+$lang['authorization_no_rules'] = "Aucune règle d'accès définie pour ce rôle";
+$lang['authorization_table_name'] = "Nom de la table";
+$lang['authorization_access_scope'] = "Portée d'accès";
+$lang['authorization_field_name'] = "Nom du champ";
+$lang['authorization_section_field'] = "Champ section";
+$lang['authorization_description'] = "Description";
+$lang['authorization_rule_description_placeholder'] = "Description de la règle";
+$lang['authorization_field_name_help'] = "Nom du champ contenant l'ID utilisateur";
+$lang['authorization_section_field_help'] = "Nom du champ contenant l'ID de section";
+
+# Authorization - Access Scopes
+$lang['authorization_scope_own'] = "Propres données";
+$lang['authorization_scope_all'] = "Toutes les données";
+$lang['authorization_scope_help_title'] = "Aide sur les portées d'accès";
+$lang['authorization_scope_own_desc'] = "L'utilisateur ne peut accéder qu'à ses propres enregistrements";
+$lang['authorization_scope_section_desc'] = "L'utilisateur peut accéder aux enregistrements de sa section";
+$lang['authorization_scope_all_desc'] = "L'utilisateur peut accéder à tous les enregistrements";
+
+# Authorization - Audit Log
+$lang['authorization_audit_entries'] = "Entrées d'audit";
+$lang['authorization_no_audit_entries'] = "Aucune entrée d'audit trouvée";
+$lang['authorization_timestamp'] = "Horodatage";
+$lang['authorization_action_type'] = "Type d'action";
+$lang['authorization_actor'] = "Acteur";
+$lang['authorization_target_user'] = "Utilisateur cible";
+$lang['authorization_role'] = "Rôle";
+$lang['authorization_ip_address'] = "Adresse IP";
+$lang['authorization_details'] = "Détails";
+$lang['authorization_entries'] = "entrées";
+$lang['authorization_user_filter'] = "Utilisateur";
+$lang['authorization_all_users'] = "Tous les utilisateurs";
+$lang['authorization_grant_role'] = "Attribuer un rôle";
+$lang['authorization_revoke_role'] = "Révoquer un rôle";
+$lang['authorization_page'] = "Page";
+$lang['authorization_previous'] = "Précédent";
+$lang['authorization_next'] = "Suivant";
+
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
 

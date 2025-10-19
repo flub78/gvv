@@ -129,6 +129,76 @@ $lang['authorization_permission_admin'] = "Beheren";
 $lang['authorization_access_denied'] = "Toegang geweigerd";
 $lang['authorization_insufficient_permissions'] = "Onvoldoende rechten voor deze actie";
 
+# Authorization - Common Actions
+$lang['authorization_add'] = "Toevoegen";
+$lang['authorization_remove'] = "Verwijderen";
+$lang['authorization_select'] = "Selecteren";
+$lang['authorization_filter'] = "Filteren";
+$lang['authorization_filters'] = "Filters";
+$lang['authorization_reset'] = "Resetten";
+$lang['authorization_actions'] = "Acties";
+$lang['authorization_back_to_dashboard'] = "Terug naar Dashboard";
+$lang['authorization_back_to_roles'] = "Terug naar Rollen";
+$lang['authorization_confirm_delete'] = "Weet u zeker dat u dit item wilt verwijderen?";
+$lang['authorization_error_occurred'] = "Er is een fout opgetreden";
+$lang['authorization_optional'] = "optioneel";
+$lang['authorization_all'] = "Alle";
+$lang['authorization_global'] = "Globaal";
+$lang['authorization_system'] = "Systeem";
+
+# Authorization - Role Permissions
+$lang['authorization_add_permission'] = "Recht toevoegen";
+$lang['authorization_current_permissions'] = "Huidige rechten";
+$lang['authorization_no_permissions'] = "Geen rechten gedefinieerd voor deze rol";
+$lang['authorization_controller'] = "Controller";
+$lang['authorization_action'] = "Actie";
+$lang['authorization_permission_type'] = "Rechttype";
+$lang['authorization_section'] = "Sectie";
+$lang['authorization_created'] = "Aangemaakt";
+$lang['authorization_all_actions'] = "Alle acties";
+$lang['authorization_wildcard_all_actions'] = "* (alle)";
+
+# Authorization - Data Access Rules
+$lang['authorization_data_rules'] = "Gegevenstoegangsregels";
+$lang['authorization_add_data_rule'] = "Toegangsregel toevoegen";
+$lang['authorization_current_rules'] = "Huidige regels";
+$lang['authorization_no_rules'] = "Geen gegevenstoegangsregels gedefinieerd voor deze rol";
+$lang['authorization_table_name'] = "Tabelnaam";
+$lang['authorization_access_scope'] = "Toegangsbereik";
+$lang['authorization_field_name'] = "Veldnaam";
+$lang['authorization_section_field'] = "Sectieveld";
+$lang['authorization_description'] = "Beschrijving";
+$lang['authorization_rule_description_placeholder'] = "Regelbeschrijving";
+$lang['authorization_field_name_help'] = "Veldnaam met gebruikers-ID";
+$lang['authorization_section_field_help'] = "Veldnaam met sectie-ID";
+
+# Authorization - Access Scopes
+$lang['authorization_scope_own'] = "Eigen gegevens";
+$lang['authorization_scope_all'] = "Alle gegevens";
+$lang['authorization_scope_help_title'] = "Hulp bij toegangsbereik";
+$lang['authorization_scope_own_desc'] = "Gebruiker kan alleen eigen records benaderen";
+$lang['authorization_scope_section_desc'] = "Gebruiker kan records van eigen sectie benaderen";
+$lang['authorization_scope_all_desc'] = "Gebruiker kan alle records benaderen";
+
+# Authorization - Audit Log
+$lang['authorization_audit_entries'] = "Auditgegevens";
+$lang['authorization_no_audit_entries'] = "Geen auditgegevens gevonden";
+$lang['authorization_timestamp'] = "Tijdstempel";
+$lang['authorization_action_type'] = "Actietype";
+$lang['authorization_actor'] = "Actor";
+$lang['authorization_target_user'] = "Doelgebruiker";
+$lang['authorization_role'] = "Rol";
+$lang['authorization_ip_address'] = "IP-adres";
+$lang['authorization_details'] = "Details";
+$lang['authorization_entries'] = "items";
+$lang['authorization_user_filter'] = "Gebruiker";
+$lang['authorization_all_users'] = "Alle gebruikers";
+$lang['authorization_grant_role'] = "Rol toekennen";
+$lang['authorization_revoke_role'] = "Rol intrekken";
+$lang['authorization_page'] = "Pagina";
+$lang['authorization_previous'] = "Vorige";
+$lang['authorization_next'] = "Volgende";
+
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
 

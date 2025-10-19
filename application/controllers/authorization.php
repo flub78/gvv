@@ -19,8 +19,6 @@
  * @filesource authorization.php
  * @package controllers
  */
-include('./application/libraries/Gvv_Controller.php');
-
 /**
  * Authorization Management Controller
  *
@@ -32,7 +30,7 @@ include('./application/libraries/Gvv_Controller.php');
  *
  * @see /doc/plans/2025_authorization_refactoring_plan.md
  */
-class Authorization extends Gvv_Controller {
+class Authorization extends CI_Controller {
     protected $controller = 'authorization';
 
     /**
@@ -41,15 +39,28 @@ class Authorization extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Only club-admin can access authorization management
-        if (!$this->dx_auth->is_role('club-admin')) {
+        // Setup from Gvv_Controller
+        date_default_timezone_set("Europe/Paris");
+        $this->load->library('session');
+        $this->load->helper('url');
+        $this->session->set_userdata('requested_url', current_url());
+
+        $this->load->library('DX_Auth');
+        $this->lang->load('gvv');
+
+        log_message('error', '[DEBUG] User role from session: ' . $this->session->userdata('DX_role_name'));
+
+        if (getenv('TEST') != '1') {
+            $this->dx_auth->check_login();
+        }
+
+        // Authorization-specific setup
+        if (!$this->dx_auth->is_role(array('admin', 'club-admin'))) {
             $this->dx_auth->deny_access();
         }
 
-        $this->load->model('Authorization_model');
+        $this->load->model('authorization_model');
         $this->load->library('Gvv_Authorization');
-        $this->load->helper('url');
-        $this->lang->load('gvv');
     }
 
     /**
