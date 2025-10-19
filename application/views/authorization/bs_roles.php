@@ -103,16 +103,5 @@ $this->load->view('bs_banner');
     </div>
 </div>
 
-<script>
-$(document).ready(function() {
-    $('.datatable').DataTable({
-        "pageLength": 25,
-        "order": [[0, "asc"]],
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
-        }
-    });
-});
-</script>
 
 
