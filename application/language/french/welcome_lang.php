@@ -4,7 +4,7 @@
 */
 
 # $this->lang->line("")
-$lang['welcome_title'] = "Bienvenue sur la gestion des vols";
+$lang['welcome_title'] = "Bienvenue sur la gestion du club";
 
 $lang['welcome_intro1'] = "";
 

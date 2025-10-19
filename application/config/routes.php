@@ -43,7 +43,7 @@ $route['hello/(:any)'] = 'tools/index/$1';  // works
 
 $route['attachments/message'] = 'attachments/message/$1';
 
-$route['default_controller'] = "calendar";
+$route['default_controller'] = "welcome";
 $route['404_override'] = '';
 
 // $route['tools'] = 'Tools';

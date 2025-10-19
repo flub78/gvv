@@ -39,7 +39,7 @@ $section_count = $CI->sections_model->safe_count_all();
   <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 fixed-top" style="position: sticky;">
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="<?= controller_url("calendar") ?>">GVV</a>
+      <a class="navbar-brand" href="<?= controller_url("welcome") ?>">GVV</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
         <span class="" role="button"><i class="fa fa-bars" aria-hidden="true" style="color:#e6e6ff"></i></span>
       </button>
@@ -164,7 +164,6 @@ $section_count = $CI->sections_model->safe_count_all();
             <li><a class="dropdown-item" href="<?= controller_url("membre/page") ?>"><i class="fas fa-users text-primary"></i> <?= translation("gvv_menu_membres") ?></a></li>
             <?php if (has_role('ca')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("licences/per_year") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_menu_membres_licences") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("mails/page") ?>"><i class="fas fa-envelope text-info"></i> <?= translation("gvv_menu_membres_email") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("mails/addresses") ?>"><i class="fas fa-address-book text-warning"></i> <?= translation("gvv_menu_membres_email_addresses") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>

@@ -48,6 +48,29 @@ class Welcome extends CI_Controller {
         $this->load->model('clotures_model');
     }
 
+    /**
+     * Page d'accueil - Dashboard principal
+     */
+    public function index() {
+        $data = array();
+
+        // Get current username
+        $data['username'] = $this->dx_auth->get_username();
+        $data['user_name'] = $data['username']; // Can be enhanced with full name from membres table
+
+        // Check user roles (following bs_menu.php role checks)
+        $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
+        $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
+        $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
+        $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
+
+        // Configuration options
+        $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');
+        $data['ticket_management_active'] = $this->config->item('ticket_management') == true;
+
+        load_last_view('dashboard', $data);
+    }
+
     function nyi() {
         $data = array();
         $data['title'] = $this->lang->line("welcome_nyi_title");
