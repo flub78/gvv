@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GVV - Vols Planeurs - Prototype</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Charte graphique GVV -->
+    <link rel="stylesheet" href="gvv_charter.css">
+
+    <style>
+        /* Styles spécifiques */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Filtres */
+        .gvv-filters {
+            background-color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: var(--gvv-shadow-sm);
+        }
+
+        .gvv-filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .gvv-filter-label {
+            font-size: var(--gvv-text-xs);
+            font-weight: var(--gvv-font-semibold);
+            color: var(--gvv-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gvv-filter-input {
+            padding: 0.5rem;
+            border: 1px solid var(--gvv-border);
+            border-radius: 4px;
+            font-size: var(--gvv-text-sm);
+        }
+
+        /* Pagination */
+        .gvv-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+        }
+
+        .gvv-pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gvv-border);
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--gvv-transition-base);
+        }
+
+        .gvv-pagination button:hover:not(:disabled) {
+            background-color: var(--gvv-primary);
+            color: white;
+            border-color: var(--gvv-primary);
+        }
+
+        .gvv-pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .gvv-page-info {
+            color: var(--gvv-text-secondary);
+            font-size: var(--gvv-text-sm);
+        }
+
+        /* Table responsive */
+        @media (max-width: 768px) {
+            .table-gvv {
+                font-size: var(--gvv-text-sm);
+            }
+
+            .table-gvv th,
+            .table-gvv td {
+                padding: 0.375rem;
+            }
+
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <nav class="gvv-topbar">
+        <a href="prototype_dashboard.html" class="gvv-topbar-brand">
+            <i class="fas fa-plane"></i>
+            <span>GVV</span>
+        </a>
+
+        <div class="gvv-search-global">
+            <input type="search"
+                   placeholder="Rechercher membre, vol, facture..."
+                   class="gvv-search-input"
+                   id="globalSearch">
+            <kbd class="gvv-kbd">Ctrl+K</kbd>
+        </div>
+
+        <div class="gvv-user-menu">
+            <div class="gvv-user-info">
+                <span class="gvv-username">Jean Dupont</span>
+                <span class="gvv-role">Pilote</span>
+            </div>
+            <button class="btn-gvv btn-gvv-sm btn-gvv-secondary" onclick="toggleUserMenu()">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Navigation primaire -->
+    <nav class="gvv-primary-nav">
+        <ul class="gvv-nav-tabs">
+            <li>
+                <a href="prototype_dashboard.html" class="gvv-nav-tab">
+                    <i class="fas fa-home"></i>
+                    <span>Tableau de bord</span>
+                </a>
+            </li>
+            <li>
+                <a href="prototype_vols.html" class="gvv-nav-tab active">
+                    <i class="fas fa-plane"></i>
+                    <span>Vols</span>
+                    <span class="badge-gvv badge-gvv-info">5</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-users"></i>
+                    <span>Membres</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-calculator"></i>
+                    <span>Comptabilité</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-cog"></i>
+                    <span>Administration</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Navigation secondaire -->
+    <nav class="gvv-secondary-nav">
+        <!-- Fil d'Ariane -->
+        <ol class="gvv-breadcrumb">
+            <li><a href="#">Vols</a></li>
+            <li><a href="#">Planeurs</a></li>
+            <li aria-current="page">Liste</li>
+        </ol>
+
+        <!-- Actions rapides contextuelles -->
+        <div class="gvv-context-actions">
+            <button class="btn-gvv btn-gvv-primary" onclick="nouveauVol()">
+                <i class="fas fa-plus"></i>
+                Nouveau vol planeur
+            </button>
+            <button class="btn-gvv btn-gvv-secondary" onclick="alert('Saisie automatique...')">
+                <i class="fas fa-magic"></i>
+                Saisie automatique
+            </button>
+            <button class="btn-gvv btn-gvv-secondary" onclick="alert('Synchronisation GESASSO...')">
+                <i class="fas fa-sync"></i>
+                GESASSO
+            </button>
+            <button class="btn-gvv btn-gvv-info" onclick="alert('Statistiques...')">
+                <i class="fas fa-chart-bar"></i>
+                Statistiques
+            </button>
+        </div>
+
+        <!-- Sous-navigation -->
+        <ul class="gvv-subnav-tabs">
+            <li><a href="#" class="active">Liste</a></li>
+            <li><a href="#">Statistiques</a></li>
+            <li><a href="#">Machines</a></li>
+            <li><a href="#">Formation</a></li>
+        </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="gvv-container">
+        <main class="gvv-main">
+
+            <!-- Filtres -->
+            <div class="gvv-filters">
+                <div class="gvv-filter-group">
+                    <label class="gvv-filter-label" for="filterDate">Date</label>
+                    <select id="filterDate" class="gvv-filter-input">
+                        <option selected>Aujourd'hui</option>
+                        <option>Cette semaine</option>
+                        <option>Ce mois</option>
+                        <option>Cette année</option>
+                        <option>Personnalisé...</option>
+                    </select>
+                </div>
+
+                <div class="gvv-filter-group">
+                    <label class="gvv-filter-label" for="filterMachine">Machine</label>
+                    <select id="filterMachine" class="gvv-filter-input">
+                        <option selected>Toutes</option>
+                        <option>F-CXXX</option>
+                        <option>F-CYYY</option>
+                        <option>F-CZZZ</option>
+                    </select>
+                </div>
+
+                <div class="gvv-filter-group">
+                    <label class="gvv-filter-label" for="filterPilote">Pilote</label>
+                    <select id="filterPilote" class="gvv-filter-input">
+                        <option selected>Tous</option>
+                        <option>Dupont Jean</option>
+                        <option>Martin Marie</option>
+                        <option>Durand Paul</option>
+                    </select>
+                </div>
+
+                <div class="gvv-filter-group">
+                    <label class="gvv-filter-label" for="filterType">Type</label>
+                    <select id="filterType" class="gvv-filter-input">
+                        <option selected>Tous</option>
+                        <option>Local</option>
+                        <option>Cross</option>
+                        <option>Instruction</option>
+                    </select>
+                </div>
+
+                <div class="gvv-filter-group" style="margin-left: auto;">
+                    <label class="gvv-filter-label">&nbsp;</label>
+                    <button class="btn-gvv btn-gvv-secondary btn-gvv-sm" onclick="resetFilters()">
+                        <i class="fas fa-redo"></i>
+                        Réinitialiser
+                    </button>
+                </div>
+            </div>
+
+            <!-- Résumé -->
+            <div class="alert-gvv alert-gvv-info" style="margin-bottom: 1.5rem;">
+                <strong>
+                    <i class="fas fa-info-circle"></i>
+                    5 vols aujourd'hui
+                </strong>
+                - Total: 12h45 - Moyenne: 2h33
+            </div>
+
+            <!-- Tableau des vols -->
+            <table class="table-gvv">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Date</th>
+                        <th style="width: 10%;">Machine</th>
+                        <th style="width: 15%;">Pilote</th>
+                        <th style="width: 15%;" class="hide-mobile">Instructeur</th>
+                        <th style="width: 8%;">Durée</th>
+                        <th style="width: 12%;">Type</th>
+                        <th style="width: 12%;" class="hide-mobile">Terrain</th>
+                        <th style="width: 20%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>15/10</td>
+                        <td><strong>F-CXXX</strong></td>
+                        <td>Dupont J.</td>
+                        <td class="hide-mobile">-</td>
+                        <td><strong>2h30</strong></td>
+                        <td><span class="badge-gvv badge-gvv-info">Local</span></td>
+                        <td class="hide-mobile">LFHX</td>
+                        <td class="table-gvv-actions">
+                            <button title="Voir" onclick="voirVol(1)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button title="Modifier" onclick="modifierVol(1)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button title="Dupliquer" onclick="dupliquerVol(1)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button title="Supprimer" onclick="supprimerVol(1)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>15/10</td>
+                        <td><strong>F-CYYY</strong></td>
+                        <td>Martin M.</td>
+                        <td class="hide-mobile">Durand P.</td>
+                        <td><strong>1h15</strong></td>
+                        <td><span class="badge-gvv badge-gvv-warning">Instruction</span></td>
+                        <td class="hide-mobile">LFHX</td>
+                        <td class="table-gvv-actions">
+                            <button title="Voir" onclick="voirVol(2)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button title="Modifier" onclick="modifierVol(2)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button title="Dupliquer" onclick="dupliquerVol(2)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button title="Supprimer" onclick="supprimerVol(2)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>15/10</td>
+                        <td><strong>F-CZZZ</strong></td>
+                        <td>Durand P.</td>
+                        <td class="hide-mobile">-</td>
+                        <td><strong>3h45</strong></td>
+                        <td><span class="badge-gvv badge-gvv-success">Cross</span></td>
+                        <td class="hide-mobile">LFHX</td>
+                        <td class="table-gvv-actions">
+                            <button title="Voir" onclick="voirVol(3)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button title="Modifier" onclick="modifierVol(3)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button title="Dupliquer" onclick="dupliquerVol(3)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button title="Supprimer" onclick="supprimerVol(3)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>15/10</td>
+                        <td><strong>F-CXXX</strong></td>
+                        <td>Leblanc S.</td>
+                        <td class="hide-mobile">-</td>
+                        <td><strong>2h15</strong></td>
+                        <td><span class="badge-gvv badge-gvv-info">Local</span></td>
+                        <td class="hide-mobile">LFHX</td>
+                        <td class="table-gvv-actions">
+                            <button title="Voir" onclick="voirVol(4)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button title="Modifier" onclick="modifierVol(4)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button title="Dupliquer" onclick="dupliquerVol(4)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button title="Supprimer" onclick="supprimerVol(4)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>15/10</td>
+                        <td><strong>F-CYYY</strong></td>
+                        <td>Bernard A.</td>
+                        <td class="hide-mobile">Martin M.</td>
+                        <td><strong>3h00</strong></td>
+                        <td><span class="badge-gvv badge-gvv-warning">Instruction</span></td>
+                        <td class="hide-mobile">LFHX</td>
+                        <td class="table-gvv-actions">
+                            <button title="Voir" onclick="voirVol(5)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button title="Modifier" onclick="modifierVol(5)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button title="Dupliquer" onclick="dupliquerVol(5)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button title="Supprimer" onclick="supprimerVol(5)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="row_title">
+                        <td colspan="4" style="text-align: right;"><strong>TOTAUX:</strong></td>
+                        <td><strong>12h45</strong></td>
+                        <td colspan="3">5 vols</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Pagination -->
+            <div class="gvv-pagination">
+                <button disabled>
+                    <i class="fas fa-chevron-left"></i>
+                    Précédent
+                </button>
+
+                <span class="gvv-page-info">Page <strong>1</strong> sur <strong>5</strong></span>
+
+                <button>
+                    Suivant
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Actions supplémentaires -->
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn-gvv btn-gvv-secondary" onclick="exporterCSV()">
+                    <i class="fas fa-file-csv"></i>
+                    Exporter CSV
+                </button>
+                <button class="btn-gvv btn-gvv-secondary" onclick="exporterPDF()">
+                    <i class="fas fa-file-pdf"></i>
+                    Exporter PDF
+                </button>
+                <button class="btn-gvv btn-gvv-secondary" onclick="imprimerListe()">
+                    <i class="fas fa-print"></i>
+                    Imprimer
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal de recherche -->
+    <div class="gvv-search-modal" id="searchModal" hidden>
+        <div class="gvv-search-dialog">
+            <input type="search"
+                   placeholder="Rechercher dans GVV..."
+                   class="gvv-search-modal-input"
+                   id="searchModalInput">
+
+            <div class="gvv-search-results">
+                <section class="gvv-search-group">
+                    <h3>Actions rapides</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-plus"></i> Nouveau vol planeur</a></li>
+                        <li><a href="#"><i class="fas fa-file-invoice"></i> Nouvelle facture</a></li>
+                        <li><a href="#"><i class="fas fa-user-plus"></i> Nouveau membre</a></li>
+                    </ul>
+                </section>
+
+                <section class="gvv-search-group">
+                    <h3>Pages</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-chart-bar"></i> Statistiques mensuelles</a></li>
+                        <li><a href="#"><i class="fas fa-book"></i> Journal comptable</a></li>
+                        <li><a href="#"><i class="fas fa-users"></i> Liste des membres</a></li>
+                    </ul>
+                </section>
+            </div>
+
+            <footer class="gvv-search-footer">
+                <span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span>
+                <span><kbd>↵</kbd> sélectionner</span>
+                <span><kbd>Esc</kbd> fermer</span>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Gestion de la recherche globale
+        const searchModal = document.getElementById('searchModal');
+        const globalSearch = document.getElementById('globalSearch');
+        const searchModalInput = document.getElementById('searchModalInput');
+
+        // Ctrl+K pour ouvrir la recherche
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                openSearchModal();
+            }
+
+            if (e.key === 'Escape' && !searchModal.hidden) {
+                closeSearchModal();
+            }
+
+            // Ctrl+N pour nouveau vol
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                nouveauVol();
+            }
+        });
+
+        globalSearch.addEventListener('click', (e) => {
+            e.preventDefault();
+            openSearchModal();
+        });
+
+        searchModal.addEventListener('click', (e) => {
+            if (e.target === searchModal) {
+                closeSearchModal();
+            }
+        });
+
+        function openSearchModal() {
+            searchModal.hidden = false;
+            searchModalInput.focus();
+        }
+
+        function closeSearchModal() {
+            searchModal.hidden = true;
+            searchModalInput.value = '';
+        }
+
+        function toggleUserMenu() {
+            alert('Menu utilisateur:\n\n• Mon compte\n• Ma fiche membre\n• Mes validités (2)\n• Changer mot de passe\n• Déconnexion');
+        }
+
+        // Actions vols
+        function nouveauVol() {
+            alert('Redirection vers formulaire de saisie de vol...\n\nDans l\'application réelle:\n• Formulaire avec champs: date, machine, pilote, durée, type, etc.\n• Validation des données\n• Enregistrement en base');
+        }
+
+        function voirVol(id) {
+            alert(`Affichage des détails du vol #${id}\n\nDans l\'application réelle:\n• Toutes les informations du vol\n• Historique des modifications\n• Documents liés`);
+        }
+
+        function modifierVol(id) {
+            alert(`Modification du vol #${id}\n\nDans l\'application réelle:\n• Formulaire pré-rempli\n• Modification possible des champs\n• Enregistrement des changements`);
+        }
+
+        function dupliquerVol(id) {
+            if (confirm(`Dupliquer le vol #${id} ?`)) {
+                alert(`Vol #${id} dupliqué avec succès !\n\nDans l\'application réelle:\n• Création d\'un nouveau vol\n• Avec les mêmes données\n• Sauf la date/heure`);
+            }
+        }
+
+        function supprimerVol(id) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le vol #${id} ?\n\nCette action est irréversible.`)) {
+                alert(`Vol #${id} supprimé.\n\nDans l\'application réelle:\n• Suppression de la base de données\n• Mise à jour des statistiques\n• Log de l\'action`);
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('filterDate').selectedIndex = 0;
+            document.getElementById('filterMachine').selectedIndex = 0;
+            document.getElementById('filterPilote').selectedIndex = 0;
+            document.getElementById('filterType').selectedIndex = 0;
+            alert('Filtres réinitialisés !');
+        }
+
+        function exporterCSV() {
+            alert('Export CSV en cours...\n\nDans l\'application réelle:\n• Génération fichier CSV\n• Téléchargement automatique\n• Avec tous les vols filtrés');
+        }
+
+        function exporterPDF() {
+            alert('Export PDF en cours...\n\nDans l\'application réelle:\n• Génération PDF avec TCPDF\n• Mise en page professionnelle\n• Téléchargement automatique');
+        }
+
+        function imprimerListe() {
+            alert('Impression en cours...\n\nDans l\'application réelle:\n• Ouverture dialogue d\'impression\n• Version optimisée pour impression\n• Format A4 paysage');
+        }
+
+        // Animation des lignes au survol
+        const tableRows = document.querySelectorAll('.table-gvv tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', (e) => {
+                // Éviter le clic sur les boutons d'action
+                if (!e.target.closest('.table-gvv-actions')) {
+                    const volId = Array.from(tableRows).indexOf(row) + 1;
+                    voirVol(volId);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

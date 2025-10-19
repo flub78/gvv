@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GVV - Tableau de bord - Prototype</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Charte graphique GVV -->
+    <link rel="stylesheet" href="gvv_charter.css">
+
+    <style>
+        /* Styles spécifiques au prototype */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Quick list pour widgets */
+        .gvv-quick-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .gvv-quick-list li {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--gvv-border);
+        }
+
+        .gvv-quick-list li:last-child {
+            border-bottom: none;
+        }
+
+        .gvv-quick-list a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--gvv-text-primary);
+            text-decoration: none;
+        }
+
+        .gvv-quick-list a:hover {
+            color: var(--gvv-primary);
+        }
+
+        .gvv-quick-list .amount {
+            font-weight: var(--gvv-font-semibold);
+        }
+
+        /* Welcome section */
+        .gvv-welcome {
+            background: linear-gradient(135deg, var(--gvv-primary) 0%, var(--gvv-primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .gvv-welcome h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: var(--gvv-text-2xl);
+        }
+
+        .gvv-welcome p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* Stats row */
+        .gvv-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .gvv-stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--gvv-shadow);
+            text-align: center;
+        }
+
+        .gvv-stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .gvv-stat-value {
+            font-size: var(--gvv-text-2xl);
+            font-weight: var(--gvv-font-bold);
+            margin-bottom: 0.25rem;
+        }
+
+        .gvv-stat-label {
+            font-size: var(--gvv-text-sm);
+            color: var(--gvv-text-secondary);
+        }
+
+        /* Widget grid */
+        .gvv-widgets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Empty state */
+        .gvv-empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gvv-text-secondary);
+        }
+
+        .gvv-empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <nav class="gvv-topbar">
+        <a href="#" class="gvv-topbar-brand">
+            <i class="fas fa-plane"></i>
+            <span>GVV</span>
+        </a>
+
+        <div class="gvv-search-global">
+            <input type="search"
+                   placeholder="Rechercher membre, vol, facture..."
+                   class="gvv-search-input"
+                   id="globalSearch">
+            <kbd class="gvv-kbd">Ctrl+K</kbd>
+        </div>
+
+        <div class="gvv-user-menu">
+            <div class="gvv-user-info">
+                <span class="gvv-username">Jean Dupont</span>
+                <span class="gvv-role">Pilote</span>
+            </div>
+            <button class="btn-gvv btn-gvv-sm btn-gvv-secondary" onclick="toggleUserMenu()">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Navigation primaire -->
+    <nav class="gvv-primary-nav">
+        <ul class="gvv-nav-tabs">
+            <li>
+                <a href="#" class="gvv-nav-tab active">
+                    <i class="fas fa-home"></i>
+                    <span>Tableau de bord</span>
+                </a>
+            </li>
+            <li>
+                <a href="prototype_vols.html" class="gvv-nav-tab">
+                    <i class="fas fa-plane"></i>
+                    <span>Vols</span>
+                    <span class="badge-gvv badge-gvv-info">5</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-users"></i>
+                    <span>Membres</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-calculator"></i>
+                    <span>Comptabilité</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="gvv-nav-tab">
+                    <i class="fas fa-cog"></i>
+                    <span>Administration</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="gvv-container">
+        <main class="gvv-main">
+
+            <!-- Bienvenue -->
+            <div class="gvv-welcome">
+                <h1><i class="fas fa-sun"></i> Bonjour Jean,</h1>
+                <p>Nous sommes le <strong>19 octobre 2025</strong> - Belle journée pour voler !</p>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="gvv-stats-row">
+                <div class="gvv-stat-card">
+                    <div class="gvv-stat-icon" style="color: var(--gvv-primary);">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <div class="gvv-stat-value" style="color: var(--gvv-primary);">8h30</div>
+                    <div class="gvv-stat-label">Heures ce mois</div>
+                </div>
+                <div class="gvv-stat-card">
+                    <div class="gvv-stat-icon" style="color: var(--gvv-secondary);">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="gvv-stat-value" style="color: var(--gvv-secondary);">45h15</div>
+                    <div class="gvv-stat-label">Heures cette année</div>
+                </div>
+                <div class="gvv-stat-card">
+                    <div class="gvv-stat-icon" style="color: var(--gvv-success);">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <div class="gvv-stat-value text-credit">142,50 €</div>
+                    <div class="gvv-stat-label">Solde compte</div>
+                </div>
+                <div class="gvv-stat-card">
+                    <div class="gvv-stat-icon" style="color: var(--gvv-warning);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="gvv-stat-value" style="color: var(--gvv-warning);">2</div>
+                    <div class="gvv-stat-label">Alertes validités</div>
+                </div>
+            </div>
+
+            <!-- Widgets -->
+            <div class="gvv-widgets">
+
+                <!-- Widget: Mes vols récents -->
+                <div class="card-gvv">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-plane"></i>
+                            Mes vols récents
+                        </h3>
+                        <a href="#" class="btn-gvv-sm btn-gvv-secondary">Voir tout</a>
+                    </div>
+                    <div class="card-gvv-body">
+                        <ul class="gvv-quick-list">
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <strong>15/10</strong> F-CXXX
+                                    </span>
+                                    <span class="text-primary">2h30</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <strong>12/10</strong> F-CYYY
+                                    </span>
+                                    <span class="text-primary">1h45</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <strong>08/10</strong> F-CXXX
+                                    </span>
+                                    <span class="text-primary">3h15</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <strong>05/10</strong> F-CZZZ
+                                    </span>
+                                    <span class="text-primary">2h00</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Widget: Mon compte -->
+                <div class="card-gvv">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-wallet"></i>
+                            Mon compte
+                        </h3>
+                        <a href="#" class="btn-gvv-sm btn-gvv-secondary">Détails</a>
+                    </div>
+                    <div class="card-gvv-body">
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="font-size: 3rem; font-weight: 700; color: var(--gvv-credit); margin-bottom: 0.5rem;">
+                                142,50 €
+                            </div>
+                            <div class="badge-gvv badge-gvv-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                                <i class="fas fa-check-circle"></i>
+                                Compte à jour
+                            </div>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid var(--gvv-border); margin: 1rem 0;">
+                        <ul class="gvv-quick-list">
+                            <li>
+                                <a href="#">
+                                    <span>Dernière opération</span>
+                                    <span class="text-credit">+50,00 €</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>Opérations en attente</span>
+                                    <span class="badge-gvv badge-gvv-neutral">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Widget: Mes validités -->
+                <div class="card-gvv alert-gvv-warning">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Mes validités
+                        </h3>
+                        <a href="#" class="btn-gvv-sm btn-gvv-secondary">Voir toutes</a>
+                    </div>
+                    <div class="card-gvv-body">
+                        <ul class="gvv-quick-list">
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-heartbeat"></i>
+                                        Visite médicale
+                                    </span>
+                                    <span class="badge-gvv badge-gvv-warning">
+                                        Expire: 30/11
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-id-card"></i>
+                                        Licence FFVV
+                                    </span>
+                                    <span class="badge-gvv badge-gvv-warning">
+                                        Expire: 15/12
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span>
+                                        <i class="fas fa-certificate"></i>
+                                        Assurance
+                                    </span>
+                                    <span class="badge-gvv badge-gvv-success">
+                                        Valide
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Widget: Mes statistiques -->
+                <div class="card-gvv">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-chart-line"></i>
+                            Mes statistiques
+                        </h3>
+                        <a href="#" class="btn-gvv-sm btn-gvv-secondary">Détails</a>
+                    </div>
+                    <div class="card-gvv-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gvv-primary);">8h30</div>
+                                <div style="font-size: 0.875rem; color: var(--gvv-text-secondary);">Ce mois</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gvv-secondary);">45h15</div>
+                                <div style="font-size: 0.875rem; color: var(--gvv-text-secondary);">Cette année</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gvv-info);">12</div>
+                                <div style="font-size: 0.875rem; color: var(--gvv-text-secondary);">Vols ce mois</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--gvv-accent);">85</div>
+                                <div style="font-size: 0.875rem; color: var(--gvv-text-secondary);">Total vols</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Actions rapides -->
+                <div class="card-gvv" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-bolt"></i>
+                            Actions rapides
+                        </h3>
+                    </div>
+                    <div class="card-gvv-body">
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn-gvv btn-gvv-primary" onclick="alert('Redirection vers saisie vol...')">
+                                <i class="fas fa-plus"></i>
+                                Nouveau vol planeur
+                            </button>
+                            <button class="btn-gvv btn-gvv-secondary" onclick="alert('Redirection vers calendrier...')">
+                                <i class="fas fa-calendar-alt"></i>
+                                Voir le calendrier
+                            </button>
+                            <button class="btn-gvv btn-gvv-secondary" onclick="alert('Redirection vers machines...')">
+                                <i class="fas fa-plane"></i>
+                                État des machines
+                            </button>
+                            <button class="btn-gvv btn-gvv-info" onclick="alert('Redirection vers mon compte...')">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                Mon compte détaillé
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Météo (exemple) -->
+                <div class="card-gvv">
+                    <div class="card-gvv-header">
+                        <h3 class="card-gvv-title">
+                            <i class="fas fa-cloud-sun"></i>
+                            Météo terrain
+                        </h3>
+                    </div>
+                    <div class="card-gvv-body">
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-sun" style="color: #FFB300;"></i>
+                            </div>
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">24°C</div>
+                            <div style="color: var(--gvv-text-secondary); margin-bottom: 1rem;">Ensoleillé</div>
+                            <div style="display: flex; justify-content: space-around; font-size: 0.875rem;">
+                                <div>
+                                    <i class="fas fa-wind"></i>
+                                    10 km/h
+                                </div>
+                                <div>
+                                    <i class="fas fa-tint"></i>
+                                    45%
+                                </div>
+                                <div>
+                                    <i class="fas fa-compress-arrows-alt"></i>
+                                    1013 hPa
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal de recherche -->
+    <div class="gvv-search-modal" id="searchModal" hidden>
+        <div class="gvv-search-dialog">
+            <input type="search"
+                   placeholder="Rechercher dans GVV..."
+                   class="gvv-search-modal-input"
+                   id="searchModalInput">
+
+            <div class="gvv-search-results" id="searchResults">
+                <section class="gvv-search-group">
+                    <h3>Actions rapides</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-plus"></i> Nouveau vol planeur</a></li>
+                        <li><a href="#"><i class="fas fa-file-invoice"></i> Nouvelle facture</a></li>
+                        <li><a href="#"><i class="fas fa-user-plus"></i> Nouveau membre</a></li>
+                    </ul>
+                </section>
+
+                <section class="gvv-search-group">
+                    <h3>Pages</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-chart-bar"></i> Statistiques mensuelles</a></li>
+                        <li><a href="#"><i class="fas fa-book"></i> Journal comptable</a></li>
+                        <li><a href="#"><i class="fas fa-users"></i> Liste des membres</a></li>
+                    </ul>
+                </section>
+            </div>
+
+            <footer class="gvv-search-footer">
+                <span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span>
+                <span><kbd>↵</kbd> sélectionner</span>
+                <span><kbd>Esc</kbd> fermer</span>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Gestion de la recherche globale
+        const searchModal = document.getElementById('searchModal');
+        const globalSearch = document.getElementById('globalSearch');
+        const searchModalInput = document.getElementById('searchModalInput');
+
+        // Ctrl+K pour ouvrir la recherche
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                openSearchModal();
+            }
+
+            if (e.key === 'Escape' && !searchModal.hidden) {
+                closeSearchModal();
+            }
+        });
+
+        // Clic sur input global ouvre modal
+        globalSearch.addEventListener('click', (e) => {
+            e.preventDefault();
+            openSearchModal();
+        });
+
+        // Clic sur fond ferme modal
+        searchModal.addEventListener('click', (e) => {
+            if (e.target === searchModal) {
+                closeSearchModal();
+            }
+        });
+
+        function openSearchModal() {
+            searchModal.hidden = false;
+            searchModalInput.focus();
+        }
+
+        function closeSearchModal() {
+            searchModal.hidden = true;
+            searchModalInput.value = '';
+        }
+
+        function toggleUserMenu() {
+            alert('Menu utilisateur:\n\n• Mon compte\n• Ma fiche membre\n• Mes validités (2)\n• Changer mot de passe\n• Déconnexion');
+        }
+
+        // Simulation recherche en temps réel
+        searchModalInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (query.length < 2) {
+                // Afficher résultats par défaut
+                return;
+            }
+
+            // Simulation de recherche
+            resultsDiv.innerHTML = `
+                <section class="gvv-search-group">
+                    <h3>Résultats pour "${query}"</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-user"></i> Résultat exemple 1</a></li>
+                        <li><a href="#"><i class="fas fa-plane"></i> Résultat exemple 2</a></li>
+                        <li><a href="#"><i class="fas fa-file"></i> Résultat exemple 3</a></li>
+                    </ul>
+                </section>
+            `;
+        });
+
+        // Animation au chargement
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.card-gvv');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.3s ease';
+
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        });
+    </script>
+</body>
+</html>

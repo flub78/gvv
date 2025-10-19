@@ -1,0 +1,919 @@
+/**
+ * GVV - Charte Graphique CSS
+ * Version 1.0 - Octobre 2025
+ *
+ * Système de design moderne pour GVV
+ * Compatible avec Bootstrap 5
+ */
+
+/* ============================================
+   VARIABLES CSS
+   ============================================ */
+
+:root {
+  /* Couleurs primaires */
+  --gvv-primary: #2E7D32;
+  --gvv-primary-light: #4CAF50;
+  --gvv-primary-dark: #1B5E20;
+
+  --gvv-secondary: #1976D2;
+  --gvv-secondary-light: #42A5F5;
+  --gvv-secondary-dark: #0D47A1;
+
+  --gvv-accent: #FF6F00;
+  --gvv-accent-light: #FF8F00;
+  --gvv-accent-dark: #E65100;
+
+  /* Couleurs sémantiques */
+  --gvv-success: #4CAF50;
+  --gvv-warning: #FF9800;
+  --gvv-error: #F44336;
+  --gvv-info: #2196F3;
+
+  /* Couleurs comptabilité */
+  --gvv-debit: #F44336;
+  --gvv-credit: #4CAF50;
+  --gvv-compte: #e9a45a;
+
+  /* Couleurs neutres */
+  --gvv-text-primary: #212121;
+  --gvv-text-secondary: #666666;
+  --gvv-text-disabled: #9E9E9E;
+
+  --gvv-bg-primary: #FFFFFF;
+  --gvv-bg-secondary: #F5F5F5;
+  --gvv-bg-tertiary: #e1e4e7;
+
+  --gvv-border: #E0E0E0;
+  --gvv-border-dark: #7e9bae;
+  --gvv-divider: #BDBDBD;
+
+  /* Navigation */
+  --gvv-nav-bg: #343A40;
+  --gvv-nav-text: #FFFFFF;
+  --gvv-nav-hover: #495057;
+  --gvv-nav-active: #1976D2;
+
+  /* Typographie */
+  --gvv-font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --gvv-font-monospace: "Courier New", Courier, monospace;
+
+  --gvv-text-xs: 0.75rem;
+  --gvv-text-sm: 0.85rem;
+  --gvv-text-base: 1rem;
+  --gvv-text-lg: 1.125rem;
+  --gvv-text-xl: 1.25rem;
+  --gvv-text-2xl: 1.5rem;
+  --gvv-text-3xl: 2rem;
+
+  --gvv-font-normal: 400;
+  --gvv-font-medium: 500;
+  --gvv-font-semibold: 600;
+  --gvv-font-bold: 700;
+
+  --gvv-leading-tight: 1.25;
+  --gvv-leading-normal: 1.5;
+  --gvv-leading-relaxed: 1.75;
+
+  /* Espacements */
+  --gvv-space-1: 0.25rem;
+  --gvv-space-2: 0.5rem;
+  --gvv-space-3: 0.75rem;
+  --gvv-space-4: 1rem;
+  --gvv-space-5: 1.25rem;
+  --gvv-space-6: 1.5rem;
+  --gvv-space-8: 2rem;
+  --gvv-space-10: 2.5rem;
+  --gvv-space-12: 3rem;
+  --gvv-space-16: 4rem;
+
+  /* Ombres */
+  --gvv-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --gvv-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  --gvv-shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+  --gvv-shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
+
+  /* Transitions */
+  --gvv-transition-fast: 0.15s ease;
+  --gvv-transition-base: 0.2s ease;
+  --gvv-transition-slow: 0.3s ease;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+body {
+  font-family: var(--gvv-font-primary);
+  color: var(--gvv-text-primary);
+  background-color: var(--gvv-bg-secondary);
+  line-height: var(--gvv-leading-normal);
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+
+/* Top Bar */
+.gvv-topbar {
+  background-color: var(--gvv-nav-bg);
+  color: var(--gvv-nav-text);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: var(--gvv-shadow);
+}
+
+.gvv-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gvv-nav-text);
+  text-decoration: none;
+  font-size: var(--gvv-text-xl);
+  font-weight: var(--gvv-font-bold);
+}
+
+.gvv-topbar-brand:hover {
+  color: var(--gvv-primary-light);
+}
+
+/* Recherche globale */
+.gvv-search-global {
+  flex: 1;
+  max-width: 500px;
+  position: relative;
+}
+
+.gvv-search-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  padding-right: 4rem;
+  border: 1px solid var(--gvv-border);
+  border-radius: 6px;
+  font-size: var(--gvv-text-sm);
+  background-color: rgba(255, 255, 255, 0.9);
+  transition: all var(--gvv-transition-base);
+}
+
+.gvv-search-input:focus {
+  outline: none;
+  border-color: var(--gvv-primary);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+  background-color: white;
+}
+
+.gvv-kbd {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.125rem 0.375rem;
+  background-color: var(--gvv-bg-secondary);
+  border: 1px solid var(--gvv-border);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-family: var(--gvv-font-monospace);
+  color: var(--gvv-text-secondary);
+}
+
+/* User menu */
+.gvv-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gvv-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: var(--gvv-text-sm);
+}
+
+.gvv-username {
+  font-weight: var(--gvv-font-semibold);
+}
+
+.gvv-role {
+  font-size: var(--gvv-text-xs);
+  color: var(--gvv-text-disabled);
+}
+
+/* Navigation primaire */
+.gvv-primary-nav {
+  background-color: white;
+  border-bottom: 2px solid var(--gvv-border);
+  box-shadow: var(--gvv-shadow-sm);
+}
+
+.gvv-nav-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+}
+
+.gvv-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  color: var(--gvv-text-secondary);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  transition: all var(--gvv-transition-base);
+  font-weight: var(--gvv-font-medium);
+}
+
+.gvv-nav-tab:hover {
+  color: var(--gvv-primary);
+  background-color: var(--gvv-bg-secondary);
+}
+
+.gvv-nav-tab.active {
+  color: var(--gvv-primary);
+  border-bottom-color: var(--gvv-primary);
+}
+
+.gvv-nav-tab i {
+  font-size: 1.2rem;
+}
+
+/* Navigation secondaire */
+.gvv-secondary-nav {
+  background-color: white;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gvv-border);
+}
+
+.gvv-breadcrumb {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  font-size: var(--gvv-text-sm);
+  color: var(--gvv-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.gvv-breadcrumb li:not(:last-child)::after {
+  content: ">";
+  margin-left: 0.5rem;
+  color: var(--gvv-text-disabled);
+}
+
+.gvv-breadcrumb a {
+  color: var(--gvv-secondary);
+  text-decoration: none;
+}
+
+.gvv-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.gvv-context-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.gvv-subnav-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gvv-border);
+}
+
+.gvv-subnav-tabs a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--gvv-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all var(--gvv-transition-base);
+}
+
+.gvv-subnav-tabs a:hover {
+  color: var(--gvv-primary);
+}
+
+.gvv-subnav-tabs a.active {
+  color: var(--gvv-primary);
+  border-bottom-color: var(--gvv-primary);
+  font-weight: var(--gvv-font-semibold);
+}
+
+/* ============================================
+   BOUTONS
+   ============================================ */
+
+.btn-gvv {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: var(--gvv-font-medium);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--gvv-transition-base);
+  font-size: var(--gvv-text-base);
+  line-height: 1.5;
+}
+
+.btn-gvv:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--gvv-shadow);
+}
+
+.btn-gvv:active {
+  transform: translateY(0);
+  box-shadow: var(--gvv-shadow-sm);
+}
+
+.btn-gvv:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Bouton primaire */
+.btn-gvv-primary {
+  background-color: var(--gvv-primary);
+  color: white;
+}
+
+.btn-gvv-primary:hover {
+  background-color: var(--gvv-primary-dark);
+  color: white;
+}
+
+.btn-gvv-primary:disabled {
+  background-color: var(--gvv-text-disabled);
+}
+
+/* Bouton secondaire */
+.btn-gvv-secondary {
+  background-color: transparent;
+  border: 2px solid var(--gvv-primary);
+  color: var(--gvv-primary);
+}
+
+.btn-gvv-secondary:hover {
+  background-color: var(--gvv-primary);
+  color: white;
+}
+
+/* Bouton danger */
+.btn-gvv-danger {
+  background-color: var(--gvv-error);
+  color: white;
+}
+
+.btn-gvv-danger:hover {
+  background-color: #D32F2F;
+}
+
+/* Bouton info */
+.btn-gvv-info {
+  background-color: var(--gvv-info);
+  color: white;
+}
+
+.btn-gvv-info:hover {
+  background-color: var(--gvv-secondary-dark);
+}
+
+/* Tailles de boutons */
+.btn-gvv-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: var(--gvv-text-sm);
+}
+
+.btn-gvv-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: var(--gvv-text-lg);
+}
+
+/* ============================================
+   FORMULAIRES
+   ============================================ */
+
+.form-gvv-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-gvv-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: var(--gvv-font-medium);
+  color: var(--gvv-text-primary);
+}
+
+.form-gvv-input,
+.form-gvv-select,
+.form-gvv-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gvv-border);
+  border-radius: 4px;
+  font-size: var(--gvv-text-base);
+  background-color: white;
+  transition: all var(--gvv-transition-base);
+  font-family: var(--gvv-font-primary);
+}
+
+.form-gvv-input:focus,
+.form-gvv-select:focus,
+.form-gvv-textarea:focus {
+  outline: none;
+  border-color: var(--gvv-primary);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.form-gvv-input:disabled,
+.form-gvv-select:disabled,
+.form-gvv-textarea:disabled {
+  background-color: var(--gvv-bg-secondary);
+  color: var(--gvv-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-gvv-input.is-invalid,
+.form-gvv-select.is-invalid,
+.form-gvv-textarea.is-invalid {
+  border-color: var(--gvv-error);
+}
+
+.form-gvv-input.is-invalid:focus,
+.form-gvv-select.is-invalid:focus,
+.form-gvv-textarea.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.form-gvv-container {
+  background-color: var(--gvv-bg-tertiary);
+  border: 1px solid var(--gvv-border-dark);
+  border-radius: 4px;
+  padding: 1.5rem;
+}
+
+.form-gvv-help {
+  font-size: var(--gvv-text-sm);
+  color: var(--gvv-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.form-gvv-error {
+  font-size: var(--gvv-text-sm);
+  color: var(--gvv-error);
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   TABLEAUX
+   ============================================ */
+
+.table-gvv {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: var(--gvv-shadow-sm);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-gvv thead {
+  background-color: var(--gvv-primary);
+  color: white;
+}
+
+.table-gvv thead th {
+  padding: 0.75rem;
+  font-weight: var(--gvv-font-semibold);
+  font-size: 1.1em;
+  text-align: left;
+  border: 1px solid var(--gvv-primary-dark);
+}
+
+.table-gvv tbody tr:nth-child(odd) {
+  background-color: #E2E4FF;
+}
+
+.table-gvv tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+.table-gvv tbody tr:hover {
+  background-color: #D3D6FF;
+  cursor: pointer;
+  transition: background-color var(--gvv-transition-fast);
+}
+
+.table-gvv tbody td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--gvv-border);
+}
+
+.table-gvv .row_title td {
+  font-weight: var(--gvv-font-bold);
+  background-color: var(--gvv-bg-secondary);
+}
+
+.table-gvv td.debit {
+  color: var(--gvv-debit);
+  font-weight: var(--gvv-font-semibold);
+}
+
+.table-gvv td.credit {
+  color: var(--gvv-credit);
+  font-weight: var(--gvv-font-semibold);
+}
+
+.table-gvv tr.compte {
+  background-color: var(--gvv-compte) !important;
+}
+
+/* Actions dans tableau */
+.table-gvv-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.table-gvv-actions a,
+.table-gvv-actions button {
+  padding: 0.25rem 0.5rem;
+  color: var(--gvv-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--gvv-transition-fast);
+}
+
+.table-gvv-actions a:hover,
+.table-gvv-actions button:hover {
+  color: var(--gvv-primary);
+}
+
+/* ============================================
+   CARTES
+   ============================================ */
+
+.card-gvv {
+  background-color: white;
+  border: 1px solid var(--gvv-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--gvv-shadow);
+  transition: box-shadow var(--gvv-transition-base);
+}
+
+.card-gvv:hover {
+  box-shadow: var(--gvv-shadow-md);
+}
+
+.card-gvv-header {
+  border-bottom: 2px solid var(--gvv-border);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-gvv-title {
+  font-size: var(--gvv-text-xl);
+  font-weight: var(--gvv-font-semibold);
+  color: var(--gvv-text-primary);
+  margin: 0;
+}
+
+.card-gvv-body {
+  color: var(--gvv-text-secondary);
+}
+
+/* Carte statistique */
+.card-gvv-stat {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.card-gvv-stat-value {
+  font-size: var(--gvv-text-3xl);
+  font-weight: var(--gvv-font-bold);
+  color: var(--gvv-primary);
+  margin-bottom: 0.5rem;
+}
+
+.card-gvv-stat-label {
+  font-size: var(--gvv-text-sm);
+  color: var(--gvv-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+
+.badge-gvv {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  font-size: var(--gvv-text-xs);
+  font-weight: var(--gvv-font-semibold);
+  line-height: 1;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.badge-gvv-success {
+  background-color: var(--gvv-success);
+  color: white;
+}
+
+.badge-gvv-warning {
+  background-color: var(--gvv-warning);
+  color: white;
+}
+
+.badge-gvv-error {
+  background-color: var(--gvv-error);
+  color: white;
+}
+
+.badge-gvv-info {
+  background-color: var(--gvv-info);
+  color: white;
+}
+
+.badge-gvv-neutral {
+  background-color: var(--gvv-bg-secondary);
+  color: var(--gvv-text-primary);
+  border: 1px solid var(--gvv-border);
+}
+
+/* ============================================
+   ALERTES
+   ============================================ */
+
+.alert-gvv {
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
+  border-left: 4px solid;
+  margin-bottom: 1rem;
+}
+
+.alert-gvv h2,
+.alert-gvv h3 {
+  margin-top: 0;
+  font-weight: var(--gvv-font-semibold);
+}
+
+.alert-gvv-success {
+  background-color: #E8F5E9;
+  border-color: var(--gvv-success);
+  color: #1B5E20;
+}
+
+.alert-gvv-warning {
+  background-color: #FFF3E0;
+  border-color: var(--gvv-warning);
+  color: #E65100;
+}
+
+.alert-gvv-error {
+  background-color: #FFEBEE;
+  border-color: var(--gvv-error);
+  color: #B71C1C;
+}
+
+.alert-gvv-info {
+  background-color: #E3F2FD;
+  border-color: var(--gvv-info);
+  color: #0D47A1;
+}
+
+/* ============================================
+   MODAL RECHERCHE
+   ============================================ */
+
+.gvv-search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+  z-index: 2000;
+}
+
+.gvv-search-modal[hidden] {
+  display: none;
+}
+
+.gvv-search-dialog {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--gvv-shadow-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gvv-search-modal-input {
+  padding: 1rem 1.5rem;
+  border: none;
+  border-bottom: 1px solid var(--gvv-border);
+  font-size: var(--gvv-text-lg);
+  outline: none;
+}
+
+.gvv-search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.gvv-search-group {
+  margin-bottom: 1.5rem;
+}
+
+.gvv-search-group h3 {
+  font-size: var(--gvv-text-sm);
+  font-weight: var(--gvv-font-semibold);
+  color: var(--gvv-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.gvv-search-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gvv-search-group li {
+  margin-bottom: 0.25rem;
+}
+
+.gvv-search-group a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--gvv-text-primary);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color var(--gvv-transition-fast);
+}
+
+.gvv-search-group a:hover {
+  background-color: var(--gvv-bg-secondary);
+}
+
+.gvv-search-footer {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--gvv-border);
+  background-color: var(--gvv-bg-secondary);
+  font-size: var(--gvv-text-xs);
+  color: var(--gvv-text-secondary);
+  display: flex;
+  gap: 1rem;
+}
+
+.gvv-search-footer kbd {
+  padding: 0.125rem 0.375rem;
+  background-color: white;
+  border: 1px solid var(--gvv-border);
+  border-radius: 3px;
+  font-family: var(--gvv-font-monospace);
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.gvv-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.gvv-main {
+  padding: 2rem 0;
+}
+
+.gvv-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.gvv-grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.gvv-grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.gvv-grid-4 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* ============================================
+   UTILITAIRES
+   ============================================ */
+
+/* Texte */
+.text-primary { color: var(--gvv-text-primary); }
+.text-secondary { color: var(--gvv-text-secondary); }
+.text-success { color: var(--gvv-success); }
+.text-warning { color: var(--gvv-warning); }
+.text-error { color: var(--gvv-error); }
+.text-info { color: var(--gvv-info); }
+.text-debit { color: var(--gvv-debit); }
+.text-credit { color: var(--gvv-credit); }
+
+/* Marges */
+.gvv-m-0 { margin: 0; }
+.gvv-m-1 { margin: var(--gvv-space-1); }
+.gvv-m-2 { margin: var(--gvv-space-2); }
+.gvv-m-4 { margin: var(--gvv-space-4); }
+.gvv-mt-4 { margin-top: var(--gvv-space-4); }
+.gvv-mb-4 { margin-bottom: var(--gvv-space-4); }
+
+/* Padding */
+.gvv-p-0 { padding: 0; }
+.gvv-p-1 { padding: var(--gvv-space-1); }
+.gvv-p-2 { padding: var(--gvv-space-2); }
+.gvv-p-4 { padding: var(--gvv-space-4); }
+
+/* Flexbox */
+.gvv-flex { display: flex; }
+.gvv-flex-col { flex-direction: column; }
+.gvv-items-center { align-items: center; }
+.gvv-justify-between { justify-content: space-between; }
+.gvv-gap-2 { gap: var(--gvv-space-2); }
+.gvv-gap-4 { gap: var(--gvv-space-4); }
+
+/* Spinner de chargement */
+.gvv-spinner {
+  border: 3px solid var(--gvv-bg-secondary);
+  border-top: 3px solid var(--gvv-primary);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: gvv-spin 0.8s linear infinite;
+}
+
+@keyframes gvv-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gvv-topbar {
+    flex-wrap: wrap;
+  }
+
+  .gvv-search-global {
+    order: 3;
+    width: 100%;
+    max-width: none;
+    margin-top: 0.5rem;
+  }
+
+  .gvv-nav-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .gvv-context-actions {
+    flex-direction: column;
+  }
+}
