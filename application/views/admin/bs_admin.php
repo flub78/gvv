@@ -82,6 +82,13 @@ if (ENVIRONMENT == 'development') {
 		anchor("http://localhost/gvv2/phpdoc/", "phpdoc", array("class" => "jbutton")),
 	);
 	echo ul($list, $attributes);
+
+	echo heading("Outils de développement", 4);
+	$list = array(
+		anchor(controller_url('admin/anonymize_all_data'), "Anonymiser toutes les données", array("class" => "jbutton btn-warning")),
+		anchor(controller_url('backend/anonymize_all'), "Anonymiser les emails utilisateurs (JSON)", array("class" => "jbutton")),
+	);
+	echo ul($list, $attributes);
 }
 
 echo heading("Cohérence de la base de données", 4);

@@ -690,8 +690,82 @@ class Admin extends CI_Controller {
         $result = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]+/', '_', $result);
         $result = preg_replace('/_+/', '_', $result);
         $result = trim($result, '_');
-        
+
         return $result;
+    }
+
+    /**
+     * Anonymize all data - calls all anonymization routines
+     * Only callable in development mode
+     *
+     * @return void
+     */
+    public function anonymize_all_data() {
+        // Check if we are in development mode
+        if (ENVIRONMENT !== 'development') {
+            show_error('Cette fonction est uniquement disponible en mode développement', 403, 'Accès refusé');
+            return;
+        }
+
+        $results = array();
+        $total_updated = 0;
+        $all_errors = array();
+
+        // Call backend/users anonymization
+        log_message('info', 'Starting global anonymization process');
+
+        // Anonymize users emails
+        $users = $this->db->get('users')->result_array();
+        $users_updated = 0;
+
+        foreach ($users as $user) {
+            // Find corresponding membre by username (users.username = membres.mlogin)
+            $membre = $this->db->where('mlogin', $user['username'])->get('membres')->row_array();
+
+            $new_email = '';
+            if ($membre && !empty($membre['memail'])) {
+                // Use membre email if available
+                $new_email = $membre['memail'];
+            } else {
+                // Generate random email if no membre or no email
+                $random_string = substr(md5(uniqid($user['username'], true)), 0, 10);
+                $new_email = $user['username'] . '_' . $random_string . '@example.com';
+                $all_errors[] = "Generated random email for user: {$user['username']} -> {$new_email}";
+                log_message('info', "Anonymization: Generated random email for user {$user['username']}: {$new_email}");
+            }
+
+            // Update user email
+            $this->db->where('id', $user['id']);
+            $this->db->update('users', array('email' => $new_email));
+            $users_updated++;
+            log_message('debug', "Anonymization: Updated user {$user['username']} email to {$new_email}");
+        }
+
+        $results['users'] = array(
+            'routine' => 'Users email anonymization',
+            'updated' => $users_updated,
+            'total' => count($users)
+        );
+        $total_updated += $users_updated;
+
+        // Add more anonymization routines here in the future
+        // Example:
+        // $results['membres'] = $this->anonymize_membres();
+        // $total_updated += $results['membres']['updated'];
+
+        log_message('info', "Global anonymization completed: $total_updated records updated");
+
+        // Prepare view data
+        $data = array(
+            'title' => 'Anonymisation globale des données',
+            'results' => $results,
+            'total_updated' => $total_updated,
+            'errors' => $all_errors,
+            'message' => "Anonymisation globale terminée: $total_updated enregistrements mis à jour"
+        );
+
+        // Load view to display results
+        load_last_view('admin/anonymization_results', $data);
     }
 
 

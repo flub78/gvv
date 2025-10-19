@@ -31,10 +31,8 @@ class Authorization_model extends CI_Model {
             // Get roles for specific section
             if ($include_global) {
                 // Include both section-specific roles and global roles (section_id = 0)
-                $this->db->group_start()
-                    ->where('urps.section_id', $section_id)
-                    ->or_where('urps.section_id', 0)
-                    ->group_end();
+                // Use where_in for CodeIgniter 2.x compatibility
+                $this->db->where_in('urps.section_id', array($section_id, 0));
             } else {
                 $this->db->where('urps.section_id', $section_id);
             }
@@ -127,10 +125,7 @@ class Authorization_model extends CI_Model {
         $this->db->select('*')
             ->from('data_access_rules')
             ->where('types_roles_id', $types_roles_id)
-            ->group_start()
-                ->where('table_name', $table_name)
-                ->or_where('table_name', '*')
-            ->group_end();
+            ->where_in('table_name', array($table_name, '*'));
 
         $query = $this->db->get();
         return $query->result_array();

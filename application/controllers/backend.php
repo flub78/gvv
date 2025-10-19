@@ -403,5 +403,61 @@ class Backend extends GVV_Controller {
         $this->form_validation->set_message('equal_password', $this->lang->line("gvv_error_confirm_password"));
         return ($this->input->post('password') == $this->input->post('passconf'));
     }
+
+    /**
+     * Anonymize all user emails by replacing them with emails from membres table
+     * Only callable in development mode
+     *
+     * @return void
+     */
+    public function anonymize_all() {
+        // Check if we are in development mode
+        if (ENVIRONMENT !== 'development') {
+            show_error('Cette fonction est uniquement disponible en mode développement', 403, 'Accès refusé');
+            return;
+        }
+
+        // Get all users
+        $users = $this->db->get('users')->result_array();
+        $updated_count = 0;
+        $errors = array();
+
+        foreach ($users as $user) {
+            // Find corresponding membre by username (users.username = membres.mlogin)
+            $membre = $this->db->where('mlogin', $user['username'])->get('membres')->row_array();
+
+            $new_email = '';
+            if ($membre && !empty($membre['memail'])) {
+                // Use membre email if available
+                $new_email = $membre['memail'];
+            } else {
+                // Generate random email if no membre or no email
+                $random_string = substr(md5(uniqid($user['username'], true)), 0, 10);
+                $new_email = $user['username'] . '_' . $random_string . '@example.com';
+                $errors[] = "Generated random email for user: {$user['username']} -> {$new_email}";
+                log_message('info', "Anonymization: Generated random email for user {$user['username']}: {$new_email}");
+            }
+
+            // Update user email
+            $this->db->where('id', $user['id']);
+            $this->db->update('users', array('email' => $new_email));
+            $updated_count++;
+            log_message('debug', "Anonymization: Updated user {$user['username']} email to {$new_email}");
+        }
+
+        // Prepare response
+        $data = array(
+            'title' => 'Anonymisation des emails utilisateurs',
+            'updated_count' => $updated_count,
+            'total_users' => count($users),
+            'errors' => $errors,
+            'message' => "Anonymisation terminée: $updated_count emails mis à jour sur " . count($users) . " utilisateurs"
+        );
+
+        // Return JSON response
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
+    }
 }
 ?>
