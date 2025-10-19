@@ -181,6 +181,4 @@ $this->load->view('bs_banner');
     </div>
 </div>
 
-<?php
-$this->load->view('bs_footer');
-?>
+

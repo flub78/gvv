@@ -70,6 +70,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php
-$this->load->view('bs_footer');
-?>
+

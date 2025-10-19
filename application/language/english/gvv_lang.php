@@ -125,6 +125,7 @@ $lang['authorization_roles'] = "Roles";
 $lang['authorization_permissions'] = "Permissions";
 $lang['authorization_users'] = "Users";
 $lang['authorization_audit_log'] = "Audit Log";
+$lang['authorization_data_access_rules'] = "Data Access Rules";
 $lang['authorization_scope_global'] = "Global";
 $lang['authorization_scope_section'] = "Section";
 $lang['authorization_permission_view'] = "View";
@@ -134,6 +135,33 @@ $lang['authorization_permission_delete'] = "Delete";
 $lang['authorization_permission_admin'] = "Administer";
 $lang['authorization_access_denied'] = "Access Denied";
 $lang['authorization_insufficient_permissions'] = "Insufficient permissions for this action";
+
+# Authorization - Dashboard
+$lang['authorization_system_status'] = "System Status";
+$lang['authorization_current_system'] = "Current System";
+$lang['authorization_new_system'] = "New System";
+$lang['authorization_legacy_system'] = "Legacy System";
+$lang['authorization_total_roles'] = "Total Roles";
+$lang['authorization_total_users'] = "Total Users";
+$lang['authorization_manage_users'] = "Manage Users";
+$lang['authorization_manage_users_desc'] = "Assign roles to users";
+$lang['authorization_manage'] = "Manage";
+$lang['authorization_manage_roles'] = "Manage Roles";
+$lang['authorization_manage_roles_desc'] = "Define roles and permissions";
+$lang['authorization_view'] = "View";
+$lang['authorization_manage_permissions'] = "Manage Permissions";
+$lang['authorization_manage_permissions_desc'] = "Fine-grained access control per role";
+$lang['authorization_view_audit'] = "View Audit";
+$lang['authorization_view_audit_desc'] = "Track authorization-related changes";
+$lang['authorization_recent_changes'] = "Recent Changes";
+$lang['authorization_audit_date'] = "Date";
+$lang['authorization_audit_action'] = "Action";
+$lang['authorization_audit_user'] = "User";
+$lang['authorization_audit_details'] = "Details";
+$lang['authorization_view_all'] = "View All";
+$lang['authorization_no_recent_activity'] = "No recent activity";
+
+
 
 # Authorization - Common Actions
 $lang['authorization_add'] = "Add";

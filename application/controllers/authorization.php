@@ -55,7 +55,27 @@ class Authorization extends CI_Controller {
         }
 
         // Authorization-specific setup
-        if (!$this->dx_auth->is_role(array('admin', 'club-admin'))) {
+        $user_roles = array_merge(
+            (array)$this->session->userdata('DX_parent_roles_name'),
+            (array)$this->session->userdata('DX_role_name')
+        );
+        $required_roles = array('admin', 'club-admin');
+        $has_role = FALSE;
+        foreach ($required_roles as $required_role) {
+            foreach ($user_roles as $user_role) {
+                if (strtolower($required_role) == strtolower($user_role)) {
+                    $has_role = TRUE;
+                    break 2;
+                }
+            }
+        }
+
+        log_message('error', 'ROLES_DEBUG: User roles: ' . print_r($user_roles, TRUE));
+        log_message('error', 'ROLES_DEBUG: Required roles: ' . print_r($required_roles, TRUE));
+        log_message('error', 'ROLES_DEBUG: Has role: ' . ($has_role ? 'yes' : 'no'));
+        log_message('error', 'ROLES_DEBUG: is_role check: ' . ($this->dx_auth->is_role(array('admin', 'club-admin')) ? 'yes' : 'no'));
+
+        if (!$has_role) {
             $this->dx_auth->deny_access();
         }
 
@@ -258,7 +278,7 @@ class Authorization extends CI_Controller {
     function data_access_rules($types_roles_id = NULL, $message = '') {
         $data = array();
         $data['controller'] = $this->controller;
-        $data['title'] = 'Data Access Rules';
+        $data['title'] = $this->lang->line('authorization_data_access_rules');
         $data['message'] = $message;
 
         if ($types_roles_id === NULL) {

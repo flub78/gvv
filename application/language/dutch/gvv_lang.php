@@ -119,6 +119,7 @@ $lang['authorization_roles'] = "Rollen";
 $lang['authorization_permissions'] = "Rechten";
 $lang['authorization_users'] = "Gebruikers";
 $lang['authorization_audit_log'] = "Auditlogboek";
+$lang['authorization_data_access_rules'] = "Gegevenstoegangsregels";
 $lang['authorization_scope_global'] = "Globaal";
 $lang['authorization_scope_section'] = "Sectie";
 $lang['authorization_permission_view'] = "Bekijken";
@@ -128,6 +129,33 @@ $lang['authorization_permission_delete'] = "Verwijderen";
 $lang['authorization_permission_admin'] = "Beheren";
 $lang['authorization_access_denied'] = "Toegang geweigerd";
 $lang['authorization_insufficient_permissions'] = "Onvoldoende rechten voor deze actie";
+
+# Authorization - Dashboard
+$lang['authorization_system_status'] = "Systeemstatus";
+$lang['authorization_current_system'] = "Huidig systeem";
+$lang['authorization_new_system'] = "Nieuw systeem";
+$lang['authorization_legacy_system'] = "Oud systeem";
+$lang['authorization_total_roles'] = "Totaal rollen";
+$lang['authorization_total_users'] = "Totaal gebruikers";
+$lang['authorization_manage_users'] = "Gebruikers beheren";
+$lang['authorization_manage_users_desc'] = "Rollen toewijzen aan gebruikers";
+$lang['authorization_manage'] = "Beheren";
+$lang['authorization_manage_roles'] = "Rollen beheren";
+$lang['authorization_manage_roles_desc'] = "Rollen en rechten definiëren";
+$lang['authorization_view'] = "Bekijken";
+$lang['authorization_manage_permissions'] = "Rechten beheren";
+$lang['authorization_manage_permissions_desc'] = "Fijnmazige toegangscontrole per rol";
+$lang['authorization_view_audit'] = "Audit bekijken";
+$lang['authorization_view_audit_desc'] = "Autorisatiegerelateerde wijzigingen bijhouden";
+$lang['authorization_recent_changes'] = "Recente wijzigingen";
+$lang['authorization_audit_date'] = "Datum";
+$lang['authorization_audit_action'] = "Actie";
+$lang['authorization_audit_user'] = "Gebruiker";
+$lang['authorization_audit_details'] = "Details";
+$lang['authorization_view_all'] = "Alles bekijken";
+$lang['authorization_no_recent_activity'] = "Geen recente activiteit";
+
+
 
 # Authorization - Common Actions
 $lang['authorization_add'] = "Toevoegen";
