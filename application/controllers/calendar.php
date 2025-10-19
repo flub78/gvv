@@ -38,28 +38,8 @@ class Calendar extends CI_Controller {
      * Set a cookie with the date of the MOD
      */
     function set_cookie() {
-        $this->load->helper('file');
-        // Date du dernier MOD
-        $config_file = "./application/config/club.php";
-        if (! $info = get_file_info($config_file)) {
-            echo "$filename non trouvé" . br();
-        }
-        $mod_date = $info['date'];
-        $this->load->helper('cookie');
-
-        $this->input->set_cookie(array(
-            'name' => 'mod_date',
-            'value' => $mod_date,
-            'expire' => 86500 * 7,
-            'prefix' => 'gvv_'
-        ));
-
-        $json = json_encode(array(
-            'status' => "OK",
-            'action' => 'set_cookie'
-        ));
-        gvv_debug("json = $json");
-        echo $json;
+        // Redirect to welcome controller
+        redirect("welcome/set_cookie");
     }
 
     /**
@@ -77,27 +57,6 @@ class Calendar extends CI_Controller {
         $data['is_ca'] = $this->dx_auth->is_role('ca', true, true);
         $data['mlogin'] = $this->membres_model->default_id();
         $data['event_id'] = "";
-
-        // MOD
-        $this->load->helper('file');
-        // Date du dernier MOD
-        $config_file = "./application/config/club.php";
-        if (! $info = get_file_info($config_file)) {
-            echo "$filename non trouvé" . br();
-        }
-        $mod_date = $info['date'];
-        $this->load->helper('cookie');
-
-        $cookie = get_cookie('gvv_mod_date');
-
-        if ($cookie && ($mod_date <= $cookie)) {
-            // Cookie set et mod est plus vieux
-            // on affiche rien
-            $data['mod'] = '';
-        } else {
-            // pas de cookie ou MOD est plus récent
-            $data['mod'] = $this->config->item('mod');
-        }
 
         $data['cal_id'] = $this->config->item('calendar_id');
         load_last_view('calendar', $data);

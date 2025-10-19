@@ -13,6 +13,8 @@
 * [x] Images de configuration
 * [ ] Utiliser la nouvelle configuration en base
 * [] gestion des droits multi sections (plan draft)
+* [] Gestionnaire de liste d'adresse email.
+
 
 * [] Support du markdown
   
@@ -49,7 +51,6 @@
 * restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
 * Accés à un carnet de vol ULM pour les membres
 * Seconde adresse email
-* Gestionnaire de liste d'adresse email.
 
 ## Fait récemment
 

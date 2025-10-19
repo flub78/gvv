@@ -88,6 +88,23 @@ $this->lang->load('welcome');
         </div>
     </div>
 
+    <!-- Message du jour -->
+    <?php if ($mod): ?>
+    <!-- MOD Modal Dialog (hidden by default) -->
+    <div id="mod_dialog" style="display:none" title="<?= $this->lang->line("gvv_config_mod") ?>">
+        <div class="markdown-content">
+            <?= markdown($mod) ?>
+        </div>
+        <div class="mt-3">
+            <label>
+                <input type="checkbox" name="no_mod" value="0" id="no_mod" class="form-check-input" />
+                <small class="text-muted ms-1"><?= $this->lang->line("gvv_no_more_mod") ?></small>
+            </label>
+            <input type="hidden" name="mod_title" value="<?= $this->lang->line("gvv_config_mod") ?>" />
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Section Utilisateur (tous les utilisateurs) -->
     <div class="card section-card user">
         <div class="card-header bg-primary bg-opacity-10">
@@ -742,3 +759,48 @@ $this->lang->load('welcome');
     <?php endif; ?>
 
 </div>
+
+<!-- JavaScript for MOD dialog handling -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize MOD dialog if it exists
+    const modDialog = document.getElementById('mod_dialog');
+    if (modDialog) {
+        // Initialize jQuery UI dialog
+        $('#mod_dialog').dialog({
+            modal: true,
+            width: 600,
+            height: 'auto',
+            resizable: true,
+            draggable: true,
+            closeOnEscape: true,
+            buttons: {
+                "OK": function() {
+                    // Check if "don't show again" is checked
+                    const noModCheckbox = document.getElementById('no_mod');
+                    if (noModCheckbox && noModCheckbox.checked) {
+                        // Set cookie to hide MOD
+                        fetch('<?= controller_url("welcome/set_cookie") ?>')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'OK') {
+                                    console.log('MOD cookie set successfully');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error setting MOD cookie:', error);
+                            });
+                    }
+                    $(this).dialog('close');
+                }
+            },
+            close: function() {
+                // Optional: Handle dialog close event
+            }
+        });
+        
+        // Show dialog on page load
+        $('#mod_dialog').dialog('open');
+    }
+});
+</script>

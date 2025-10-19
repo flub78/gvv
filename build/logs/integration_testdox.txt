@@ -42,18 +42,18 @@ Attachments Controller
  [x] Replace image with pdf
 
 Authorization Integration
- [x] Grant and revoke role
- [x] Get user roles with scope
- [x] Has role methods
- [x] Add and remove permissions
- [x] Wildcard permissions
- [x] Data access rules with scopes
- [x] Can access data with row level security
- [x] Audit log records role grants
- [x] Audit log filtering
- [x] Permission caching
- [x] Migration status
- [x] Complete authorization workflow
+ [ ] Grant and revoke role
+ [ ] Get user roles with scope
+ [ ] Has role methods
+ [ ] Add and remove permissions
+ [ ] Wildcard permissions
+ [ ] Data access rules with scopes
+ [ ] Can access data with row level security
+ [ ] Audit log records role grants
+ [ ] Audit log filtering
+ [ ] Permission caching
+ [ ] Migration status
+ [ ] Complete authorization workflow
 
 Categorie Model Integration
  [x] Basic crud operations

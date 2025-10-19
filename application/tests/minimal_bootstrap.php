@@ -32,6 +32,7 @@ require_once APPPATH . 'helpers/bitfields_helper.php';
 require_once APPPATH . 'helpers/assets_helper.php';
 require_once APPPATH . 'helpers/crypto_helper.php';
 require_once APPPATH . 'helpers/csv_helper.php';
+require_once APPPATH . 'helpers/markdown_helper.php';
 
 // Load library files for testing
 function load_library($library_name) {
@@ -43,6 +44,9 @@ function load_library($library_name) {
 
 // Auto-load the Bitfield library for testing
 load_library('Bitfield');
+
+// Auto-load libraries needed for markdown
+load_library('MY_Parsedown');
 
 // Simple email validation function for testing
 if (!function_exists('valid_email')) {

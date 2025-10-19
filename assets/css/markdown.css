@@ -1,0 +1,204 @@
+/**
+ * GVV Markdown Styles
+ * 
+ * CSS rules for markdown content rendering
+ * For dashboard message of the day and other markdown content
+ */
+
+/* General markdown content styling */
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content img {
+    max-width: 300px;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 5px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+/* Responsive adjustments for markdown images */
+@media (max-width: 768px) {
+    .markdown-content img {
+        max-width: 250px;
+        max-height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .markdown-content img {
+        max-width: 200px;
+        max-height: 120px;
+    }
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child {
+    margin-top: 0;
+}
+
+.markdown-content p {
+    margin-bottom: 1em;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+.markdown-content li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-content a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.markdown-content a:hover {
+    text-decoration: underline;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid #ddd;
+    padding-left: 1em;
+    margin: 1em 0;
+    color: #666;
+    font-style: italic;
+}
+
+.markdown-content code {
+    background-color: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.markdown-content pre {
+    background-color: #f5f5f5;
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.markdown-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Dashboard specific markdown styling for message of the day */
+.card .markdown-content {
+    margin-bottom: 0;
+}
+
+.card .markdown-content h1 {
+    color: #0056b3;
+    font-size: 1.5em;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5em;
+}
+
+.card .markdown-content h2 {
+    color: #495057;
+    font-size: 1.3em;
+}
+
+.card .markdown-content h3 {
+    color: #6c757d;
+    font-size: 1.1em;
+}
+
+/* Enhanced link styling for dashboard cards */
+.card .markdown-content a {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.card .markdown-content a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* MOD dialog specific styling */
+#mod_dialog .markdown-content {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+#mod_dialog .markdown-content h1 {
+    color: #0056b3;
+    font-size: 1.4em;
+    margin-top: 0;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5em;
+}
+
+#mod_dialog .markdown-content h2 {
+    color: #495057;
+    font-size: 1.2em;
+    margin-top: 1.2em;
+}
+
+#mod_dialog .markdown-content h3 {
+    color: #6c757d;
+    font-size: 1.1em;
+    margin-top: 1em;
+}
+
+#mod_dialog .markdown-content p {
+    margin-bottom: 0.8em;
+}
+
+#mod_dialog .markdown-content ul,
+#mod_dialog .markdown-content ol {
+    margin-bottom: 0.8em;
+    padding-left: 1.5em;
+}
+
+#mod_dialog label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+#mod_dialog .form-check-input {
+    margin-right: 5px;
+}
+
+/* Image hover effects */
+.markdown-content img:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Print styles */
+@media print {
+    .markdown-content img {
+        max-width: 200px;
+        max-height: 150px;
+        box-shadow: none;
+    }
+    
+    .markdown-content a {
+        color: #000;
+        text-decoration: underline;
+    }
+}

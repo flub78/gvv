@@ -52,16 +52,6 @@ $this->lang->load('config');
 		# Formulaire sur selection d'événement
 		e_div($this->lang->line("welcome_confirm_delete"), array('id' => 'calendar_dialog', 'style' => "display:none"));
 
-		if ($mod) {
-			echo form_hidden('mod_title', $this->lang->line("gvv_config_mod"));
-
-			e_div(
-				$this->config->item("mod")
-					. '</br></br>' . $this->lang->line("gvv_no_more_mod") . ": " . nbs() . '<input type="checkbox" name="no_mod" value="0" id="no_mod"   />',
-				array('id' => 'mod', 'style' => "display:none")
-			);
-		}
-
 		e_div_open(array('id' => "body3", 'class' => "ui-widget-content container-fluid"));
 
 		# titre

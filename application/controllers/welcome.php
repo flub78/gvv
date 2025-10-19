@@ -37,10 +37,12 @@ class Welcome extends CI_Controller {
         }
 
         $this->load->helper('validation');
+        $this->load->helper('markdown');
         // Store current URL to reload it after the certificate is granted
         $this->session->set_userdata('return_url', current_url());
 
         $this->lang->load('welcome');
+        $this->lang->load('config');
 
         $this->load->library('migration');
         $this->config->load('migration');
@@ -68,7 +70,56 @@ class Welcome extends CI_Controller {
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');
         $data['ticket_management_active'] = $this->config->item('ticket_management') == true;
 
+        // MOD (Message of the Day) handling
+        $this->load->helper('file');
+        // Date du dernier MOD
+        $config_file = "./application/config/club.php";
+        if (!$info = get_file_info($config_file)) {
+            gvv_debug("$config_file non trouvé");
+        }
+        $mod_date = $info ? $info['date'] : 0;
+        $this->load->helper('cookie');
+
+        $cookie = get_cookie('gvv_mod_date');
+
+        if ($cookie && ($mod_date <= $cookie)) {
+            // Cookie set et mod est plus vieux
+            // on affiche rien
+            $data['mod'] = '';
+        } else {
+            // pas de cookie ou MOD est plus récent
+            $data['mod'] = $this->config->item('mod');
+        }
+
         load_last_view('dashboard', $data);
+    }
+
+    /*
+     * Set a cookie with the date of the MOD
+     */
+    function set_cookie() {
+        $this->load->helper('file');
+        // Date du dernier MOD
+        $config_file = "./application/config/club.php";
+        if (! $info = get_file_info($config_file)) {
+            echo "$config_file non trouvé" . br();
+        }
+        $mod_date = $info['date'];
+        $this->load->helper('cookie');
+
+        $this->input->set_cookie(array(
+            'name' => 'mod_date',
+            'value' => $mod_date,
+            'expire' => 86500 * 7,
+            'prefix' => 'gvv_'
+        ));
+
+        $json = json_encode(array(
+            'status' => "OK",
+            'action' => 'set_cookie'
+        ));
+        gvv_debug("json = $json");
+        echo $json;
     }
 
     function nyi() {
