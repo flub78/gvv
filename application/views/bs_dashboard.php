@@ -523,7 +523,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-th-list text-info"></i>
                         <div class="card-title">Plan comptable</div>
                         <div class="card-text text-muted">Comptes</div>
-                        <a href="<?= controller_url('plan_comptable') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <a href="<?= controller_url('plan_comptable/page') ?>" class="btn btn-info btn-sm">Gérer</a>
                     </div>
                 </div>
             </div>
