@@ -68,7 +68,14 @@ class Event extends Gvv_Controller {
      *
      * @see Gvv_Controller::page()
      */
-    public function page($mlogin = "") {
+    public function page($premier = 0, $message = '', $selection = array()) {
+        // Support legacy $mlogin parameter
+        if (!is_numeric($premier) && $premier != '') {
+            $mlogin = $premier;
+            $premier = 0;
+        } else {
+            $mlogin = "";
+        }
         $this->push_return_url("Events");
 
         if ($mlogin == "") {

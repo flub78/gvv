@@ -38,9 +38,9 @@
 
 ## Dette technique
 
-* [] Supprimer les vues non bootstrap (emails)
+* [x] Supprimer les vues non bootstrap (emails)
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
-* [] Warnings en mode développement
+* [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
 

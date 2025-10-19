@@ -7,6 +7,7 @@
 
 $lang['gvv_events_title'] = "Certificaat";
 $lang['gvv_events_title_list'] = "Certificaten";
+$lang['gvv_events_title_training'] = "Opleiding";
 $lang['gvv_events_title_training_vv'] = "Opleiding zweefvliegen";
 $lang['gvv_events_title_training_avion'] = "Opleiding motortoestel";
 $lang['gvv_events_title_training_ulm'] = "Opleiding ULM";

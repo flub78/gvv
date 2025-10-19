@@ -282,12 +282,28 @@ class Event_model extends Common_Model {
      */
     public function getYearSelector($date_field) {
         $query = $this->db->select('YEAR(edate) as year')->from("events")->order_by("edate ASC")->limit(1)->get()->result_array();
-        if ($query != null)
-            $minDate = $query[0]['year'];
-        else
-            $minDate = date('Y');
+
+        $currentYear = (int)date('Y');
+
+        // Get minimum year with safety checks
+        if (!empty($query) && isset($query[0]['year']) && $query[0]['year'] !== null) {
+            $minDate = (int)$query[0]['year'];
+        } else {
+            $minDate = $currentYear;
+        }
+
+        // Safety check: don't go back more than 50 years
+        if ($minDate < ($currentYear - 50)) {
+            $minDate = $currentYear - 50;
+        }
+
+        // Safety check: minDate should not be in the future
+        if ($minDate > $currentYear) {
+            $minDate = $currentYear;
+        }
+
         $year_selector = array ();
-        for ($i = date('Y'); $i >= $minDate; $i--) {
+        for ($i = $currentYear; $i >= $minDate; $i--) {
             $year_selector[$i] = $i;
         }
         return $year_selector;

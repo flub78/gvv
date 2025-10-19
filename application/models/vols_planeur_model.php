@@ -632,10 +632,10 @@ if ($where) {
      * Retourne un hash qui peut-être utilisé dans un menu drow-down
      *
      * @param $where selection
-     * @param $order ordre
-     *            de tri
+     * @param $order ordre de tri
+     * @param $filter_section filter by section (inherited from Common_Model)
      */
-    public function selector($where = array (), $order = "asc") {
+    public function selector($where = array (), $order = "asc", $filter_section = false) {
         $key = $this->primary_key;
 
         $db_res = $this->db->select($key)
