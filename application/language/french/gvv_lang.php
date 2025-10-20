@@ -275,6 +275,10 @@ $lang['authorization_yes'] = "Oui";
 $lang['authorization_page'] = "Page";
 $lang['authorization_previous'] = "Précédent";
 $lang['authorization_next'] = "Suivant";
+$lang['authorization_create_role'] = "Créer un nouveau rôle";
+$lang['authorization_edit_role'] = "Modifier le rôle";
+$lang['authorization_confirm_delete_role'] = "Êtes-vous sûr de vouloir supprimer ce rôle ?";
+$lang['authorization_translation_key'] = "Clé de traduction";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

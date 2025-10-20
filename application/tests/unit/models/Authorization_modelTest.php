@@ -168,4 +168,53 @@ class Authorization_modelTest extends TestCase
         $this->assertEquals('section_field', $parameters[4]->getName());
         $this->assertEquals('description', $parameters[5]->getName());
     }
+
+    public function test_create_role_method_exists()
+    {
+        $this->assertTrue(method_exists($this->model, 'create_role'));
+    }
+
+    public function test_update_role_method_exists()
+    {
+        $this->assertTrue(method_exists($this->model, 'update_role'));
+    }
+
+    public function test_delete_role_method_exists()
+    {
+        $this->assertTrue(method_exists($this->model, 'delete_role'));
+    }
+
+    public function test_create_role_accepts_correct_parameters()
+    {
+        $reflection = new ReflectionMethod($this->model, 'create_role');
+        $parameters = $reflection->getParameters();
+
+        $this->assertCount(4, $parameters);
+        $this->assertEquals('nom', $parameters[0]->getName());
+        $this->assertEquals('description', $parameters[1]->getName());
+        $this->assertEquals('scope', $parameters[2]->getName());
+        $this->assertEquals('translation_key', $parameters[3]->getName());
+    }
+
+    public function test_update_role_accepts_correct_parameters()
+    {
+        $reflection = new ReflectionMethod($this->model, 'update_role');
+        $parameters = $reflection->getParameters();
+
+        $this->assertCount(5, $parameters);
+        $this->assertEquals('types_roles_id', $parameters[0]->getName());
+        $this->assertEquals('nom', $parameters[1]->getName());
+        $this->assertEquals('description', $parameters[2]->getName());
+        $this->assertEquals('scope', $parameters[3]->getName());
+        $this->assertEquals('translation_key', $parameters[4]->getName());
+    }
+
+    public function test_delete_role_accepts_correct_parameters()
+    {
+        $reflection = new ReflectionMethod($this->model, 'delete_role');
+        $parameters = $reflection->getParameters();
+
+        $this->assertCount(1, $parameters);
+        $this->assertEquals('types_roles_id', $parameters[0]->getName());
+    }
 }

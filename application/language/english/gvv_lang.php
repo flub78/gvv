@@ -232,6 +232,10 @@ $lang['authorization_revoke_role'] = "Revoke Role";
 $lang['authorization_page'] = "Page";
 $lang['authorization_previous'] = "Previous";
 $lang['authorization_next'] = "Next";
+$lang['authorization_create_role'] = "Create New Role";
+$lang['authorization_edit_role'] = "Edit Role";
+$lang['authorization_confirm_delete_role'] = "Are you sure you want to delete this role?";
+$lang['authorization_translation_key'] = "Translation Key";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

@@ -226,6 +226,10 @@ $lang['authorization_revoke_role'] = "Rol intrekken";
 $lang['authorization_page'] = "Pagina";
 $lang['authorization_previous'] = "Vorige";
 $lang['authorization_next'] = "Volgende";
+$lang['authorization_create_role'] = "Nieuwe Rol Aanmaken";
+$lang['authorization_edit_role'] = "Rol Bewerken";
+$lang['authorization_confirm_delete_role'] = "Weet u zeker dat u deze rol wilt verwijderen?";
+$lang['authorization_translation_key'] = "Vertaalsleutel";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

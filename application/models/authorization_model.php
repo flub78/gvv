@@ -250,10 +250,10 @@ class Authorization_model extends CI_Model {
      */
     public function get_users_with_role($types_roles_id, $section_id = NULL, $active_only = TRUE)
     {
-        $this->db->select('urps.*, u.username, u.email, m.nom, m.prenom')
+        $this->db->select('urps.*, u.username, u.email, m.mnom as nom, m.mprenom as prenom')
             ->from('user_roles_per_section urps')
             ->join('users u', 'urps.user_id = u.id', 'inner')
-            ->join('membres m', 'u.id = m.user_id', 'left')
+            ->join('membres m', 'u.username = m.mlogin', 'left')
             ->where('urps.types_roles_id', $types_roles_id);
 
         if ($section_id !== NULL) {
@@ -309,6 +309,82 @@ class Authorization_model extends CI_Model {
 
         $query = $this->db->get();
         return $query->result_array();
+    }
+
+    /**
+     * Create a new role
+     *
+     * @param string $nom Role name
+     * @param string $description Role description
+     * @param string $scope Role scope ('global' or 'section')
+     * @param string $translation_key Translation key (optional)
+     * @return int|bool Role ID on success, FALSE on failure
+     */
+    public function create_role($nom, $description, $scope, $translation_key = NULL)
+    {
+        $data = array(
+            'nom' => $nom,
+            'description' => $description,
+            'scope' => $scope,
+            'translation_key' => $translation_key,
+            'is_system_role' => 0
+        );
+        
+        $result = $this->db->insert('types_roles', $data);
+        return $result ? $this->db->insert_id() : FALSE;
+    }
+    
+    /**
+     * Update an existing role
+     *
+     * @param int $types_roles_id Role ID
+     * @param string $nom Role name
+     * @param string $description Role description
+     * @param string $scope Role scope ('global' or 'section')
+     * @param string $translation_key Translation key (optional)
+     * @return bool TRUE on success, FALSE on failure
+     */
+    public function update_role($types_roles_id, $nom, $description, $scope, $translation_key = NULL)
+    {
+        $data = array(
+            'nom' => $nom,
+            'description' => $description,
+            'scope' => $scope,
+            'translation_key' => $translation_key
+        );
+        
+        $this->db->where('id', $types_roles_id);
+        $this->db->where('is_system_role', 0);
+        $result = $this->db->update('types_roles', $data);
+        return $result ? TRUE : FALSE;
+    }
+    
+    /**
+     * Delete a role
+     *
+     * @param int $types_roles_id Role ID
+     * @return bool TRUE on success, FALSE on failure
+     */
+    public function delete_role($types_roles_id)
+    {
+        // First delete associated permissions
+        $this->db->where('types_roles_id', $types_roles_id);
+        $this->db->delete('role_permissions');
+        
+        // Delete associated data access rules
+        $this->db->where('types_roles_id', $types_roles_id);
+        $this->db->delete('data_access_rules');
+        
+        // Delete role assignments
+        $this->db->where('types_roles_id', $types_roles_id);
+        $this->db->delete('user_roles_per_section');
+        
+        // Delete the role (only if not a system role)
+        $this->db->where('id', $types_roles_id);
+        $this->db->where('is_system_role', 0);
+        $result = $this->db->delete('types_roles');
+        
+        return $result ? TRUE : FALSE;
     }
 
     /**

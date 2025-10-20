@@ -445,6 +445,158 @@ class Authorization extends CI_Controller {
     }
 
     /**
+     * Create a new role
+     */
+    function create_role() {
+        if ($this->input->post()) {
+            $nom = $this->input->post('nom');
+            $description = $this->input->post('description');
+            $scope = $this->input->post('scope');
+            $translation_key = $this->input->post('translation_key');
+            
+            if (!$nom || !$description || !$scope) {
+                $data = array();
+                $data['controller'] = $this->controller;
+                $data['title'] = $this->lang->line('authorization_create_role');
+                $data['message'] = 'Missing required fields';
+                $data['role'] = array(
+                    'nom' => $nom,
+                    'description' => $description,
+                    'scope' => $scope,
+                    'translation_key' => $translation_key,
+                );
+                load_last_view('authorization/role_form', $data);
+                return;
+            }
+            
+            $result = $this->Authorization_model->create_role($nom, $description, $scope, $translation_key);
+            
+            if ($result) {
+                redirect('authorization/roles/Role created successfully');
+            } else {
+                $data = array();
+                $data['controller'] = $this->controller;
+                $data['title'] = $this->lang->line('authorization_create_role');
+                $data['message'] = 'Error creating role';
+                $data['role'] = array(
+                    'nom' => $nom,
+                    'description' => $description,
+                    'scope' => $scope,
+                    'translation_key' => $translation_key,
+                );
+                load_last_view('authorization/role_form', $data);
+            }
+        } else {
+            $data = array();
+            $data['controller'] = $this->controller;
+            $data['title'] = $this->lang->line('authorization_create_role');
+            $data['role'] = array(
+                'nom' => '',
+                'description' => '',
+                'scope' => 'section',
+                'translation_key' => '',
+            );
+            $data['mode'] = 'create';
+            load_last_view('authorization/role_form', $data);
+        }
+    }
+    
+    /**
+     * Edit an existing role
+     */
+    function edit_role($types_roles_id) {
+        $role = $this->Authorization_model->get_role($types_roles_id);
+        
+        if (!$role) {
+            show_404();
+        }
+        
+        if ($role['is_system_role']) {
+            redirect('authorization/roles/Cannot edit system roles');
+        }
+        
+        if ($this->input->post()) {
+            $nom = $this->input->post('nom');
+            $description = $this->input->post('description');
+            $scope = $this->input->post('scope');
+            $translation_key = $this->input->post('translation_key');
+            
+            if (!$nom || !$description || !$scope) {
+                $data = array();
+                $data['controller'] = $this->controller;
+                $data['title'] = $this->lang->line('authorization_edit_role');
+                $data['message'] = 'Missing required fields';
+                $data['role'] = array(
+                    'id' => $types_roles_id,
+                    'nom' => $nom,
+                    'description' => $description,
+                    'scope' => $scope,
+                    'translation_key' => $translation_key,
+                );
+                $data['mode'] = 'edit';
+                load_last_view('authorization/role_form', $data);
+                return;
+            }
+            
+            $result = $this->Authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
+            
+            if ($result) {
+                redirect('authorization/roles/Role updated successfully');
+            } else {
+                $data = array();
+                $data['controller'] = $this->controller;
+                $data['title'] = $this->lang->line('authorization_edit_role');
+                $data['message'] = 'Error updating role';
+                $data['role'] = array(
+                    'id' => $types_roles_id,
+                    'nom' => $nom,
+                    'description' => $description,
+                    'scope' => $scope,
+                    'translation_key' => $translation_key,
+                );
+                $data['mode'] = 'edit';
+                load_last_view('authorization/role_form', $data);
+            }
+        } else {
+            $data = array();
+            $data['controller'] = $this->controller;
+            $data['title'] = $this->lang->line('authorization_edit_role');
+            $data['role'] = $role;
+            $data['mode'] = 'edit';
+            load_last_view('authorization/role_form', $data);
+        }
+    }
+    
+    /**
+     * Delete a role
+     */
+    function delete_role($types_roles_id) {
+        $role = $this->Authorization_model->get_role($types_roles_id);
+        
+        if (!$role) {
+            redirect('authorization/roles/Role not found');
+        }
+        
+        if ($role['is_system_role']) {
+            redirect('authorization/roles/Cannot delete system roles');
+        }
+        
+        // Check if role is in use
+        $users_with_role = $this->Authorization_model->get_users_with_role($types_roles_id, NULL, FALSE);
+        if (!empty($users_with_role)) {
+            redirect('authorization/roles/Cannot delete role: it is assigned to ' . count($users_with_role) . ' user(s)');
+        }
+        
+        $result = $this->Authorization_model->delete_role($types_roles_id);
+        
+        if ($result) {
+            redirect('authorization/roles/Role deleted successfully');
+        } else {
+            redirect('authorization/roles/Error deleting role');
+        }
+    }
+
+    /**
      * View audit log
      */
     function audit_log($page = 0) {
