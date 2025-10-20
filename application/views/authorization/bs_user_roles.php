@@ -193,13 +193,14 @@ $(document).ready(function() {
     var allSections = <?= json_encode(array_map(function($s) { return $s['id']; }, array_filter($sections, function($s) { return $s['id'] != 0; }))) ?>;
 
     try {
-        if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#userRolesTable')) {
+        if ($.fn.DataTable && !$.fn.dataTable.fnIsDataTable(document.getElementById('userRolesTable'))) {
             $('#userRolesTable').DataTable({
                 "pageLength": 25,
                 "order": [[0, "asc"]],
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
-                }
+                },
+                "searching": true
             });
         }
     } catch (error) {
