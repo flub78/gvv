@@ -295,10 +295,10 @@ $(document).ready(function() {
                         $row.removeClass('table-success');
                     }, 1000);
 
-                    // Update the main table's role badges and modal checkboxes
-                    updateUserRoleBadges(userId);
+                    // Update the main table's role badges (but skip modal update)
+                    updateUserRoleBadges(userId, true); // Pass true to skip modal update
 
-                    // Also immediately update "Toutes sections" checkbox state
+                    // Immediately update "Toutes sections" checkbox state
                     // Check if all sections are now checked for this role
                     if (!$checkbox.hasClass('role-checkbox-all')) {
                         updateToutesSectionsCheckbox(roleId);
@@ -412,7 +412,7 @@ $(document).ready(function() {
     }
 
     // Update the role badges for a user in the main table and modal
-    function updateUserRoleBadges(userId) {
+    function updateUserRoleBadges(userId, skipModalUpdate) {
         const $row = $('#userRolesTable').find('button[data-user-id="' + userId + '"]').closest('tr');
         const $badgeCell = $row.find('td').eq(4); // 5th column (roles)
 
@@ -443,8 +443,8 @@ $(document).ready(function() {
                     // Update button data
                     $row.find('.btn-manage-roles').data('user-roles', response.roles);
 
-                    // If modal is open for this user, update checkboxes in modal
-                    if ($('#manageUserId').val() == userId) {
+                    // If modal is open for this user, update checkboxes in modal (unless skipped)
+                    if (!skipModalUpdate && $('#manageUserId').val() == userId) {
                         updateModalCheckboxes(response.roles);
                     }
                 }
