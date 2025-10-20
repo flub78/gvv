@@ -236,6 +236,17 @@ $lang['authorization_create_role'] = "Create New Role";
 $lang['authorization_edit_role'] = "Edit Role";
 $lang['authorization_confirm_delete_role'] = "Are you sure you want to delete this role?";
 $lang['authorization_translation_key'] = "Translation Key";
+$lang['authorization_role_created'] = "Role created successfully";
+$lang['authorization_role_updated'] = "Role updated successfully";
+$lang['authorization_role_deleted'] = "Role deleted successfully";
+$lang['authorization_role_not_found'] = "Role not found";
+$lang['authorization_cannot_edit_system_role'] = "Cannot edit system roles";
+$lang['authorization_cannot_delete_system_role'] = "Cannot delete system roles";
+$lang['authorization_cannot_delete_role_in_use'] = "Cannot delete role: it is assigned to %d user(s)";
+$lang['authorization_error_deleting_role'] = "Error deleting role";
+$lang['authorization_error_creating_role'] = "Error creating role";
+$lang['authorization_error_updating_role'] = "Error updating role";
+$lang['authorization_missing_required_fields'] = "Missing required fields";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

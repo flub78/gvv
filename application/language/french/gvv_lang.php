@@ -279,6 +279,17 @@ $lang['authorization_create_role'] = "Créer un nouveau rôle";
 $lang['authorization_edit_role'] = "Modifier le rôle";
 $lang['authorization_confirm_delete_role'] = "Êtes-vous sûr de vouloir supprimer ce rôle ?";
 $lang['authorization_translation_key'] = "Clé de traduction";
+$lang['authorization_role_created'] = "Rôle créé avec succès";
+$lang['authorization_role_updated'] = "Rôle mis à jour avec succès";
+$lang['authorization_role_deleted'] = "Rôle supprimé avec succès";
+$lang['authorization_role_not_found'] = "Rôle introuvable";
+$lang['authorization_cannot_edit_system_role'] = "Les rôles système ne peuvent pas être modifiés";
+$lang['authorization_cannot_delete_system_role'] = "Les rôles système ne peuvent pas être supprimés";
+$lang['authorization_cannot_delete_role_in_use'] = "Impossible de supprimer le rôle : il est attribué à %d utilisateur(s)";
+$lang['authorization_error_deleting_role'] = "Erreur lors de la suppression du rôle";
+$lang['authorization_error_creating_role'] = "Erreur lors de la création du rôle";
+$lang['authorization_error_updating_role'] = "Erreur lors de la mise à jour du rôle";
+$lang['authorization_missing_required_fields'] = "Champs obligatoires manquants";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

@@ -263,7 +263,7 @@ class Authorization extends CI_Controller {
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_roles');
-        $data['message'] = $message;
+        $data['message'] = $message ? urldecode($message) : '';
 
         // Get all roles
         $data['roles'] = $this->Authorization_model->get_all_roles();
@@ -458,7 +458,7 @@ class Authorization extends CI_Controller {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_create_role');
-                $data['message'] = 'Missing required fields';
+                $data['message'] = $this->lang->line('authorization_missing_required_fields');
                 $data['role'] = array(
                     'nom' => $nom,
                     'description' => $description,
@@ -472,12 +472,12 @@ class Authorization extends CI_Controller {
             $result = $this->Authorization_model->create_role($nom, $description, $scope, $translation_key);
             
             if ($result) {
-                redirect('authorization/roles/Role created successfully');
+                redirect('authorization/roles/' . $this->lang->line('authorization_role_created'));
             } else {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_create_role');
-                $data['message'] = 'Error creating role';
+                $data['message'] = $this->lang->line('authorization_error_creating_role');
                 $data['role'] = array(
                     'nom' => $nom,
                     'description' => $description,
@@ -512,7 +512,7 @@ class Authorization extends CI_Controller {
         }
         
         if ($role['is_system_role']) {
-            redirect('authorization/roles/Cannot edit system roles');
+            redirect('authorization/roles/' . $this->lang->line('authorization_cannot_edit_system_role'));
         }
         
         if ($this->input->post()) {
@@ -525,7 +525,7 @@ class Authorization extends CI_Controller {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_edit_role');
-                $data['message'] = 'Missing required fields';
+                $data['message'] = $this->lang->line('authorization_missing_required_fields');
                 $data['role'] = array(
                     'id' => $types_roles_id,
                     'nom' => $nom,
@@ -541,12 +541,12 @@ class Authorization extends CI_Controller {
             $result = $this->Authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
             
             if ($result) {
-                redirect('authorization/roles/Role updated successfully');
+                redirect('authorization/roles/' . $this->lang->line('authorization_role_updated'));
             } else {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_edit_role');
-                $data['message'] = 'Error updating role';
+                $data['message'] = $this->lang->line('authorization_error_updating_role');
                 $data['role'] = array(
                     'id' => $types_roles_id,
                     'nom' => $nom,
@@ -574,25 +574,26 @@ class Authorization extends CI_Controller {
         $role = $this->Authorization_model->get_role($types_roles_id);
         
         if (!$role) {
-            redirect('authorization/roles/Role not found');
+            redirect('authorization/roles/' . $this->lang->line('authorization_role_not_found'));
         }
         
         if ($role['is_system_role']) {
-            redirect('authorization/roles/Cannot delete system roles');
+            redirect('authorization/roles/' . $this->lang->line('authorization_cannot_delete_system_role'));
         }
         
         // Check if role is in use
         $users_with_role = $this->Authorization_model->get_users_with_role($types_roles_id, NULL, FALSE);
         if (!empty($users_with_role)) {
-            redirect('authorization/roles/Cannot delete role: it is assigned to ' . count($users_with_role) . ' user(s)');
+            $message = sprintf($this->lang->line('authorization_cannot_delete_role_in_use'), count($users_with_role));
+            redirect('authorization/roles/' . $message);
         }
         
         $result = $this->Authorization_model->delete_role($types_roles_id);
         
         if ($result) {
-            redirect('authorization/roles/Role deleted successfully');
+            redirect('authorization/roles/' . $this->lang->line('authorization_role_deleted'));
         } else {
-            redirect('authorization/roles/Error deleting role');
+            redirect('authorization/roles/' . $this->lang->line('authorization_error_deleting_role'));
         }
     }
 

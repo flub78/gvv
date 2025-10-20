@@ -230,6 +230,17 @@ $lang['authorization_create_role'] = "Nieuwe Rol Aanmaken";
 $lang['authorization_edit_role'] = "Rol Bewerken";
 $lang['authorization_confirm_delete_role'] = "Weet u zeker dat u deze rol wilt verwijderen?";
 $lang['authorization_translation_key'] = "Vertaalsleutel";
+$lang['authorization_role_created'] = "Rol succesvol aangemaakt";
+$lang['authorization_role_updated'] = "Rol succesvol bijgewerkt";
+$lang['authorization_role_deleted'] = "Rol succesvol verwijderd";
+$lang['authorization_role_not_found'] = "Rol niet gevonden";
+$lang['authorization_cannot_edit_system_role'] = "Systeemrollen kunnen niet worden bewerkt";
+$lang['authorization_cannot_delete_system_role'] = "Systeemrollen kunnen niet worden verwijderd";
+$lang['authorization_cannot_delete_role_in_use'] = "Kan rol niet verwijderen: deze is toegewezen aan %d gebruiker(s)";
+$lang['authorization_error_deleting_role'] = "Fout bij het verwijderen van de rol";
+$lang['authorization_error_creating_role'] = "Fout bij het aanmaken van de rol";
+$lang['authorization_error_updating_role'] = "Fout bij het bijwerken van de rol";
+$lang['authorization_missing_required_fields'] = "Verplichte velden ontbreken";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
