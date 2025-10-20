@@ -105,6 +105,7 @@ $section_count = $CI->sections_model->safe_count_all();
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><i class="fas fa-chart-bar text-primary"></i> <?= translation("welcome_reports_title") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url('procedures') ?>"><i class="fas fa-book text-primary"></i> Procédures</a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("event/page") ?>"><i class="fas fa-certificate text-warning"></i> <?= translation("welcome_certificates") ?></a></li>
                   </ul>
                 </li>
@@ -249,7 +250,6 @@ $section_count = $CI->sections_model->safe_count_all();
                 <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><i class="fas fa-shopping-bag text-success"></i> <?= translation("gvv_menu_accounting_sales") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><i class="fas fa-money-bill-wave text-success"></i> <?= translation("gvv_menu_accounting_cash") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><i class="fas fa-paperclip text-info"></i> <?= translation("gvv_attachments_title") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url('procedures') ?>"><i class="fas fa-book text-primary"></i> Procédures</a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><i class="fas fa-tachometer-alt text-primary"></i> <?= translation("gvv_menu_accounting_dashboard") ?></a></li>
 
                 <?php if (has_role('tresorier')) : ?>
