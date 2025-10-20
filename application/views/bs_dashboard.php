@@ -657,6 +657,26 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('historique') ?>" class="btn btn-info btn-sm">Consulter</a>
                     </div>
                 </div>
+
+                <!-- Vols découverte management -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-gift text-success"></i>
+                        <div class="card-title">Vols découverte</div>
+                        <div class="card-text text-muted">Baptêmes</div>
+                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <!-- Procedures management -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-book text-secondary"></i>
+                        <div class="card-title">Procédures</div>
+                        <div class="card-text text-muted">Documentation</div>
+                        <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm">Gérer</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
