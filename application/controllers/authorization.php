@@ -139,6 +139,37 @@ class Authorization extends CI_Controller {
     }
 
     /**
+     * Get user roles - AJAX endpoint for updating UI
+     */
+    function get_user_roles() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $user_id = $this->input->get('user_id');
+
+        if (!$user_id) {
+            echo json_encode(array('success' => FALSE, 'message' => 'Missing user_id'));
+            return;
+        }
+
+        // Get user's section_id (may be NULL)
+        $this->db->select('m.club as section_id');
+        $this->db->from('users u');
+        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
+        $this->db->where('u.id', $user_id);
+        $query = $this->db->get();
+        $user = $query->row_array();
+
+        $section_id = isset($user['section_id']) ? $user['section_id'] : NULL;
+
+        // Get roles
+        $roles = $this->Authorization_model->get_user_roles($user_id, $section_id);
+
+        echo json_encode(array('success' => TRUE, 'roles' => $roles));
+    }
+
+    /**
      * Edit user roles - AJAX endpoint
      */
     function edit_user_roles() {
@@ -180,13 +211,21 @@ class Authorization extends CI_Controller {
             }
 
             if ($action === 'grant') {
-                log_message('debug', 'Calling grant_role with parameters: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . var_export($section_id, true) . ', current_user_id=' . $current_user_id);
+                log_message('info', 'edit_user_roles: Attempting grant - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
                 $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
-                $message = $result ? 'Role granted successfully' : 'Role already exists or error occurred';
+
+                if ($result === 'EXISTS') {
+                    $message = 'Role already assigned';
+                    $result = TRUE; // Not an error, just already exists
+                } else if ($result === TRUE) {
+                    $message = 'Role granted successfully';
+                } else {
+                    $message = 'Error granting role';
+                }
             } else if ($action === 'revoke') {
-                log_message('debug', 'Calling revoke_role with parameters: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . var_export($section_id, true) . ', current_user_id=' . $current_user_id);
+                log_message('info', 'edit_user_roles: Attempting revoke - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
                 $result = $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section_id, $current_user_id);
-                $message = $result ? 'Role revoked successfully' : 'Error revoking role';
+                $message = $result ? 'Role revoked successfully' : 'Role not found or already revoked';
             } else {
                 $result = FALSE;
                 $message = 'Invalid action';

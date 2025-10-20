@@ -48,7 +48,7 @@ $this->load->view('bs_banner');
             <h5 class="mb-0"><?= $this->lang->line('authorization_user_roles_list') ?></h5>
         </div>
         <div class="card-body">
-            <table id="userRolesTable" class="table table-striped table-bordered datatable">
+            <table id="userRolesTable" class="table table-striped table-bordered">
                 <thead>
                     <tr>
                         <th><?= $this->lang->line('authorization_username') ?></th>
@@ -93,21 +93,12 @@ $this->load->view('bs_banner');
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-success btn-grant-role"
+                                <button class="btn btn-sm btn-primary btn-manage-roles"
                                         data-user-id="<?= $user['id'] ?>"
-                                        data-section-id="<?= $user['section_id'] ?>"
-                                        data-username="<?= htmlspecialchars($user['username']) ?>">
-                                    <i class="fas fa-plus"></i> <?= $this->lang->line('authorization_grant_role') ?>
+                                        data-username="<?= htmlspecialchars($user['username']) ?>"
+                                        data-user-roles='<?= json_encode($user['roles']) ?>'>
+                                    <i class="fas fa-cog"></i> Gérer les rôles
                                 </button>
-
-                                <?php if (!empty($user['roles'])): ?>
-                                    <button class="btn btn-sm btn-danger btn-revoke-role"
-                                            data-user-id="<?= $user['id'] ?>"
-                                            data-section-id="<?= $user['section_id'] ?>"
-                                            data-username="<?= htmlspecialchars($user['username']) ?>">
-                                        <i class="fas fa-minus"></i> <?= $this->lang->line('authorization_revoke_role') ?>
-                                    </button>
-                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -117,98 +108,86 @@ $this->load->view('bs_banner');
     </div>
 </div>
 
-<!-- Grant Role Modal -->
-<div class="modal fade" id="grantRoleModal" tabindex="-1" aria-labelledby="grantRoleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Manage Roles Modal -->
+<div class="modal fade" id="manageRolesModal" tabindex="-1" aria-labelledby="manageRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="grantRoleModalLabel"><?= $this->lang->line('authorization_grant_role') ?></h5>
+                <h5 class="modal-title" id="manageRolesModalLabel">Gérer les rôles</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p><?= $this->lang->line('authorization_grant_role_for') ?>: <strong id="grantUsername"></strong></p>
+                <p>Utilisateur: <strong id="manageUsername"></strong></p>
+                <input type="hidden" id="manageUserId">
 
-                <div class="mb-3">
-                    <label for="grantRoleSelect" class="form-label"><?= $this->lang->line('authorization_select_role') ?></label>
-                    <select class="form-select" id="grantRoleSelect">
-                        <option value="">-- <?= $this->lang->line('authorization_select_role') ?> --</option>
-                        <?php foreach ($all_roles as $role): ?>
-                            <option value="<?= $role['id'] ?>" data-scope="<?= $role['scope'] ?>">
-                                <?= htmlspecialchars($role['nom']) ?>
-                                <?php if ($role['scope'] === 'global'): ?>
-                                    (<?= $this->lang->line('authorization_global') ?>)
-                                <?php endif; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Rôle</th>
+                                <th>Toutes sections</th>
+                                <?php foreach ($sections as $section): ?>
+                                    <th><?= htmlspecialchars($section['nom']) ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Group roles: show global roles first, then section roles
+                            $global_roles = array_filter($all_roles, function($r) { return $r['scope'] === 'global'; });
+                            $section_roles = array_filter($all_roles, function($r) { return $r['scope'] === 'section'; });
+                            $ordered_roles = array_merge($global_roles, $section_roles);
+                            ?>
+
+                            <?php foreach ($ordered_roles as $role): ?>
+                            <tr data-role-id="<?= $role['id'] ?>" data-role-scope="<?= $role['scope'] ?>">
+                                <td><?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?><?= htmlspecialchars($role['nom']) ?><?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?></td>
+                                <td class="text-center">
+                                    <!-- "Toutes sections" checkbox for all roles -->
+                                    <input type="checkbox" class="form-check-input role-checkbox role-checkbox-all"
+                                           data-role-id="<?= $role['id'] ?>"
+                                           data-role-scope="<?= $role['scope'] ?>">
+                                </td>
+                                <?php foreach ($sections as $section): ?>
+                                    <td class="text-center">
+                                        <?php if ($role['scope'] === 'section'): ?>
+                                            <!-- Individual section checkboxes for section roles only -->
+                                            <input type="checkbox" class="form-check-input role-checkbox role-checkbox-section"
+                                                   data-role-id="<?= $role['id'] ?>"
+                                                   data-section-id="<?= $section['id'] ?>"
+                                                   data-role-scope="section">
+                                        <?php else: ?>
+                                            <!-- No section checkboxes for global roles -->
+                                            <span class="text-muted small">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="mb-3" id="grantSectionSelect">
-                    <label for="grantSection" class="form-label"><?= $this->lang->line('authorization_select_section') ?></label>
-                    <select class="form-select" id="grantSection">
-                        <option value="">-- <?= $this->lang->line('authorization_select_section') ?> --</option>
-                        <?php foreach ($sections as $section): ?>
-                            <option value="<?= $section['id'] ?>"><?= htmlspecialchars($section['nom']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label for="grantNotes" class="form-label"><?= $this->lang->line('authorization_notes') ?></label>
-                    <textarea class="form-control" id="grantNotes" rows="3"></textarea>
-                </div>
-
-                <input type="hidden" id="grantUserId">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('authorization_cancel') ?></button>
-                <button type="button" class="btn btn-primary" id="confirmGrantRole"><?= $this->lang->line('authorization_grant') ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Revoke Role Modal -->
-<div class="modal fade" id="revokeRoleModal" tabindex="-1" aria-labelledby="revokeRoleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="revokeRoleModalLabel"><?= $this->lang->line('authorization_revoke_role') ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p><?= $this->lang->line('authorization_revoke_role_for') ?>: <strong id="revokeUsername"></strong></p>
-
-                <div class="mb-3">
-                    <label for="revokeRoleSelect" class="form-label"><?= $this->lang->line('authorization_select_role_to_revoke') ?></label>
-                    <select class="form-select" id="revokeRoleSelect">
-                        <option value="">-- <?= $this->lang->line('authorization_select_role') ?> --</option>
-                    </select>
-                </div>
-
-                <input type="hidden" id="revokeUserId">
-                <input type="hidden" id="revokeSectionId">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('authorization_cancel') ?></button>
-                <button type="button" class="btn btn-danger" id="confirmRevokeRole"><?= $this->lang->line('authorization_revoke') ?></button>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+/* Visual styling for auto-checked boxes (when cross-section is selected) */
+.auto-checked {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+</style>
 
 <script>
-// Ensure we wait for both DOM and jQuery to be ready
-function initializeUserRoles() {
-    console.log('Initializing user roles functionality...');
-    console.log('jQuery available:', typeof $ !== 'undefined');
-    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
-    console.log('Grant role buttons found:', $('.btn-grant-role').length);
-    console.log('Revoke role buttons found:', $('.btn-revoke-role').length);
-    
-    // Initialize DataTable
+$(document).ready(function() {
+    // Initialize DataTable with error handling
     try {
-        if ($.fn.DataTable) {
+        if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#userRolesTable')) {
             $('#userRolesTable').DataTable({
                 "pageLength": 25,
                 "order": [[0, "asc"]],
@@ -216,455 +195,142 @@ function initializeUserRoles() {
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
                 }
             });
-            console.log('DataTable initialized successfully');
-        } else {
-            console.warn('DataTable not available');
         }
     } catch (error) {
         console.error('DataTable initialization error:', error);
     }
 
-    // Grant Role Button - using event delegation for reliability
-    $(document).off('click', '.btn-grant-role').on('click', '.btn-grant-role', function(e) {
+    // Manage Roles Button
+    $(document).on('click', '.btn-manage-roles', function(e) {
         e.preventDefault();
-        console.log('Grant role button clicked (event delegation)');
-        
-        const $btn = $(this);
-        const userId = $btn.data('user-id');
-        const sectionId = $btn.data('section-id');
-        const username = $btn.data('username');
+        const userId = $(this).data('user-id');
+        const username = $(this).data('username');
+        const userRoles = $(this).data('user-roles') || [];
 
-        console.log('Grant role button data:', {userId, sectionId, username});
+        $('#manageUserId').val(userId);
+        $('#manageUsername').text(username);
 
-        // Set modal form values
-        $('#grantUserId').val(userId);
-        $('#grantUsername').text(username);
-        $('#grantSection').val(sectionId);
-        $('#grantRoleSelect').val('');
-        $('#grantNotes').val('');
+        // Reset all checkboxes
+        $('.role-checkbox').prop('checked', false).removeClass('auto-checked');
 
-        // Verify values were set
-        console.log('Modal form values set:');
-        console.log('- grantUserId set to:', $('#grantUserId').val());
-        console.log('- grantUsername set to:', $('#grantUsername').text());
-        console.log('- grantSection set to:', $('#grantSection').val());
-
-        // Try both Bootstrap methods
-        try {
-            if (typeof bootstrap !== 'undefined') {
-                const grantModal = new bootstrap.Modal(document.getElementById('grantRoleModal'));
-                grantModal.show();
-                console.log('Modal opened with Bootstrap 5');
-            } else if ($.fn.modal) {
-                $('#grantRoleModal').modal('show');
-                console.log('Modal opened with jQuery/Bootstrap 4');
+        // Check boxes for user's current roles
+        userRoles.forEach(function(role) {
+            if (role.section_id == 0 || role.section_id === '0') {
+                // Cross-section role: check the "Toutes sections" checkbox
+                $('.role-checkbox-all[data-role-id="' + role.types_roles_id + '"]').prop('checked', true);
             } else {
-                console.error('No modal method available');
-                alert('Modal functionality not available. Please refresh the page.');
+                // Section-specific role: check the individual section checkbox
+                $('.role-checkbox-section[data-role-id="' + role.types_roles_id + '"][data-section-id="' + role.section_id + '"]')
+                    .prop('checked', true);
             }
-        } catch (error) {
-            console.error('Modal error:', error);
-            alert('Error opening modal: ' + error.message);
-        }
+        });
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('manageRolesModal')).show();
     });
 
-    // Handle role scope change
-    $('#grantRoleSelect').off('change').on('change', function() {
-        const scope = $(this).find(':selected').data('scope');
-        console.log('Role scope changed:', scope);
-        if (scope === 'global') {
-            $('#grantSectionSelect').hide();
-        } else {
-            $('#grantSectionSelect').show();
-        }
-    });
+    // Handle checkbox toggle
+    $(document).on('change', '.role-checkbox', function() {
+        const $checkbox = $(this);
+        const userId = $('#manageUserId').val();
+        const roleId = $checkbox.data('role-id');
+        const isAllSections = $checkbox.hasClass('role-checkbox-all');
+        const isChecked = $checkbox.is(':checked');
 
-    // Confirm Grant Role
-    $('#confirmGrantRole').off('click').on('click', function() {
-        console.log('Confirm grant role clicked');
-        
-        // Get values and log each one
-        const userId = $('#grantUserId').val();
-        const roleId = $('#grantRoleSelect').val();
-        const sectionId = $('#grantSection').val();
-        const notes = $('#grantNotes').val();
-
-        console.log('Individual values:');
-        console.log('- userId element exists:', $('#grantUserId').length > 0);
-        console.log('- userId value:', userId);
-        console.log('- roleId element exists:', $('#grantRoleSelect').length > 0);
-        console.log('- roleId value:', roleId);
-        console.log('- sectionId element exists:', $('#grantSection').length > 0);
-        console.log('- sectionId value:', sectionId);
-        console.log('- notes value:', notes);
-
-        console.log('Grant role request data:', {userId, roleId, sectionId, notes});
-
-        // Validate required fields
-        if (!userId) {
-            alert('Erreur: ID utilisateur manquant');
-            console.error('Missing user_id');
-            return;
+        // Visual effect: when checking "Toutes sections" checkbox, check/uncheck all section boxes in same row
+        if (isAllSections) {
+            const $row = $checkbox.closest('tr');
+            const $sectionBoxes = $row.find('.role-checkbox-section');
+            if (isChecked) {
+                $sectionBoxes.prop('checked', true).addClass('auto-checked');
+            } else {
+                $sectionBoxes.prop('checked', false).removeClass('auto-checked');
+            }
         }
 
-        if (!roleId) {
-            alert(<?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
-            console.error('Missing types_roles_id');
-            return;
-        }
+        // Determine section_id for AJAX call
+        // - For "Toutes sections" checkbox: use section_id=0
+        // - For individual section checkbox: use the specific section_id
+        const sectionId = isAllSections ? 0 : $checkbox.data('section-id');
+        const action = isChecked ? 'grant' : 'revoke';
 
-        // Disable button during request
-        const $btn = $(this);
-        $btn.prop('disabled', true).text('En cours...');
+        console.log('Role change:', {userId, roleId, sectionId, isAllSections, action});
 
-        const requestData = {
-            user_id: String(userId || ''),
-            types_roles_id: String(roleId || ''),
-            section_id: sectionId === '' ? '' : String(sectionId || ''),
-            action: 'grant',
-            notes: String(notes || '')
-        };
-
-        console.log('Sending AJAX request with data:', requestData);
-
-        // Alternative approach - try serializing the data manually
-        const formData = new FormData();
-        formData.append('user_id', userId || '');
-        formData.append('types_roles_id', roleId || '');
-        formData.append('section_id', sectionId || '');
-        formData.append('action', 'grant');
-        formData.append('notes', notes || '');
-
-        console.log('FormData entries:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
+        $checkbox.prop('disabled', true);
 
         $.ajax({
             url: '<?= site_url('authorization/edit_user_roles') ?>',
             type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            beforeSend: function(xhr) {
-                console.log('AJAX beforeSend with FormData');
+            data: {
+                user_id: userId,
+                types_roles_id: roleId,
+                section_id: sectionId,
+                action: action
             },
+            dataType: 'json',
             success: function(response) {
-                console.log('Grant role response:', response);
-                console.log('Response type:', typeof response);
-                
-                // Handle both string and object responses
-                let parsedResponse = response;
-                if (typeof response === 'string') {
-                    try {
-                        parsedResponse = JSON.parse(response);
-                        console.log('Parsed response:', parsedResponse);
-                    } catch (e) {
-                        console.error('JSON parse error:', e);
-                        alert('Erreur: Réponse serveur invalide');
-                        return;
-                    }
-                }
-                
-                if (parsedResponse.success) {
-                    alert('Rôle attribué avec succès');
-                    location.reload();
+                console.log('Server response:', response);
+                if (response.success) {
+                    // Show success feedback without closing modal
+                    const $row = $checkbox.closest('tr');
+                    $row.addClass('table-success');
+                    setTimeout(function() {
+                        $row.removeClass('table-success');
+                    }, 1000);
+
+                    // Update the main table's role badges in the background
+                    updateUserRoleBadges(userId);
                 } else {
-                    alert('Erreur: ' + (parsedResponse.message || 'Erreur inconnue'));
+                    alert('Erreur: ' + response.message);
+                    $checkbox.prop('checked', !isChecked);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Grant role AJAX error:', {xhr, status, error});
-                console.error('Response text:', xhr.responseText);
-                alert(<?= json_encode($this->lang->line('authorization_error_occurred')) ?> + ': ' + error);
+                console.error('AJAX error:', {xhr, status, error, responseText: xhr.responseText});
+                alert('Erreur lors de la modification du rôle');
+                $checkbox.prop('checked', !isChecked);
             },
             complete: function() {
-                // Re-enable button
-                $btn.prop('disabled', false).text(<?= json_encode($this->lang->line('authorization_grant')) ?>);
+                $checkbox.prop('disabled', false);
             }
         });
     });
 
-    // Revoke Role Button - using event delegation
-    $(document).off('click', '.btn-revoke-role').on('click', '.btn-revoke-role', function(e) {
-        e.preventDefault();
-        console.log('Revoke role button clicked (event delegation)');
-        
-        const $btn = $(this);
-        const userId = $btn.data('user-id');
-        const sectionId = $btn.data('section-id');
-        const username = $btn.data('username');
+    // Update the role badges for a user in the main table
+    function updateUserRoleBadges(userId) {
+        const $row = $('#userRolesTable').find('button[data-user-id="' + userId + '"]').closest('tr');
+        const $badgeCell = $row.find('td').eq(4); // 5th column (roles)
 
-        console.log('Revoke role data:', {userId, sectionId, username});
-
-        $('#revokeUserId').val(userId);
-        $('#revokeSectionId').val(sectionId);
-        $('#revokeUsername').text(username);
-
-        // Populate role dropdown with user's current roles
-        const roles = $btn.closest('tr').find('.badge[data-role-id]');
-        const revokeSelect = $('#revokeRoleSelect');
-        revokeSelect.empty();
-        revokeSelect.append(<?= json_encode('<option value="">-- ' . $this->lang->line('authorization_select_role') . ' --</option>') ?>);
-
-        roles.each(function() {
-            const roleId = $(this).data('role-id');
-            const roleName = $(this).text().trim();
-            if (roleId) {
-                revokeSelect.append(`<option value="${roleId}">${roleName}</option>`);
-            }
-        });
-
-        console.log('Available roles for revoke:', revokeSelect.find('option').length);
-
-        // Try both Bootstrap methods
-        try {
-            if (typeof bootstrap !== 'undefined') {
-                const revokeModal = new bootstrap.Modal(document.getElementById('revokeRoleModal'));
-                revokeModal.show();
-                console.log('Revoke modal opened with Bootstrap 5');
-            } else if ($.fn.modal) {
-                $('#revokeRoleModal').modal('show');
-                console.log('Revoke modal opened with jQuery/Bootstrap 4');
-            } else {
-                console.error('No modal method available');
-                alert('Modal functionality not available. Please refresh the page.');
-            }
-        } catch (error) {
-            console.error('Revoke modal error:', error);
-            alert('Error opening modal: ' + error.message);
-        }
-    });
-
-    // Confirm Revoke Role
-    $('#confirmRevokeRole').off('click').on('click', function() {
-        console.log('Confirm revoke role clicked');
-        
-        // Get values and log each one
-        const userId = $('#revokeUserId').val();
-        const roleId = $('#revokeRoleSelect').val();
-        const sectionId = $('#revokeSectionId').val();
-
-        console.log('Individual revoke values:');
-        console.log('- userId element exists:', $('#revokeUserId').length > 0);
-        console.log('- userId value:', userId);
-        console.log('- roleId element exists:', $('#revokeRoleSelect').length > 0);
-        console.log('- roleId value:', roleId);
-        console.log('- sectionId element exists:', $('#revokeSectionId').length > 0);
-        console.log('- sectionId value:', sectionId);
-
-        console.log('Revoke role request data:', {userId, roleId, sectionId});
-
-        // Validate required fields
-        if (!userId) {
-            alert('Erreur: ID utilisateur manquant');
-            console.error('Missing user_id for revoke');
-            return;
-        }
-
-        if (!roleId) {
-            alert(<?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
-            console.error('Missing types_roles_id for revoke');
-            return;
-        }
-
-        // Disable button during request
-        const $btn = $(this);
-        $btn.prop('disabled', true).text('En cours...');
-
-        const requestData = {
-            user_id: String(userId || ''),
-            types_roles_id: String(roleId || ''),
-            section_id: sectionId === '' ? '' : String(sectionId || ''),
-            action: 'revoke'
-        };
-
-        console.log('Sending revoke AJAX request with data:', requestData);
-
-        // Alternative approach - try serializing the data manually
-        const formData = new FormData();
-        formData.append('user_id', userId || '');
-        formData.append('types_roles_id', roleId || '');
-        formData.append('section_id', sectionId || '');
-        formData.append('action', 'revoke');
-
-        console.log('Revoke FormData entries:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
+        // Fetch updated roles
         $.ajax({
-            url: '<?= site_url('authorization/edit_user_roles') ?>',
-            type: 'POST', 
-            data: formData,
-            processData: false,
-            contentType: false,
+            url: '<?= site_url('authorization/get_user_roles') ?>',
+            type: 'GET',
+            data: { user_id: userId },
             dataType: 'json',
-            beforeSend: function(xhr) {
-                console.log('Revoke AJAX beforeSend with FormData');
-            },
             success: function(response) {
-                console.log('Revoke role response:', response);
-                console.log('Response type:', typeof response);
-                
-                // Handle both string and object responses
-                let parsedResponse = response;
-                if (typeof response === 'string') {
-                    try {
-                        parsedResponse = JSON.parse(response);
-                        console.log('Parsed response:', parsedResponse);
-                    } catch (e) {
-                        console.error('JSON parse error:', e);
-                        alert('Erreur: Réponse serveur invalide');
-                        return;
+                if (response.success && response.roles) {
+                    // Update badges
+                    let badgesHtml = '';
+                    if (response.roles.length > 0) {
+                        response.roles.forEach(function(role) {
+                            badgesHtml += '<span class="badge bg-primary me-1" data-role-id="' + role.types_roles_id + '">';
+                            badgesHtml += role.role_name;
+                            if (role.scope === 'global') {
+                                badgesHtml += ' <i class="fas fa-globe" title="Global"></i>';
+                            }
+                            badgesHtml += '</span>';
+                        });
+                    } else {
+                        badgesHtml = '<em><?= $this->lang->line('authorization_no_roles') ?></em>';
                     }
+                    $badgeCell.html(badgesHtml);
+
+                    // Update button data
+                    $row.find('.btn-manage-roles').data('user-roles', response.roles);
                 }
-                
-                if (parsedResponse.success) {
-                    alert('Rôle révoqué avec succès');
-                    location.reload();
-                } else {
-                    alert('Erreur: ' + (parsedResponse.message || 'Erreur inconnue'));
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Revoke role AJAX error:', {xhr, status, error});
-                console.error('Response text:', xhr.responseText);
-                alert(<?= json_encode($this->lang->line('authorization_error_occurred')) ?> + ': ' + error);
-            },
-            complete: function() {
-                // Re-enable button
-                $btn.prop('disabled', false).text(<?= json_encode($this->lang->line('authorization_revoke')) ?>);
             }
         });
-    });
-
-    console.log('User roles functionality initialized');
-}
-
-// Multiple initialization approaches for maximum compatibility
-if (typeof $ !== 'undefined') {
-    $(document).ready(function() {
-        console.log('Document ready - initializing user roles');
-        initializeUserRoles();
-    });
-} else {
-    console.log('jQuery not available, trying window.onload');
-    window.onload = function() {
-        // Wait a bit for potential jQuery to load
-        setTimeout(function() {
-            if (typeof $ !== 'undefined') {
-                console.log('jQuery loaded after delay - initializing user roles');
-                initializeUserRoles();
-            } else {
-                console.error('jQuery still not available');
-                alert('JavaScript functionality not available. Please refresh the page.');
-            }
-        }, 1000);
-    };
-}
-
-// Add a manual trigger for debugging
-window.debugUserRoles = function() {
-    console.log('=== DEBUG USER ROLES ===');
-    console.log('jQuery:', typeof $);
-    console.log('Bootstrap:', typeof bootstrap);
-    console.log('Grant buttons:', $('.btn-grant-role').length);
-    console.log('Revoke buttons:', $('.btn-revoke-role').length);
-    console.log('Modals:', $('#grantRoleModal').length, $('#revokeRoleModal').length);
-    
-    // Test click handlers
-    $('.btn-grant-role').first().trigger('click');
-};
-
-// Multiple initialization approaches for maximum compatibility
-if (typeof $ !== 'undefined') {
-    $(document).ready(function() {
-        console.log('Document ready - initializing user roles');
-        initializeUserRoles();
-    });
-} else {
-    console.log('jQuery not available, trying window.onload');
-    window.onload = function() {
-        // Wait a bit for potential jQuery to load
-        setTimeout(function() {
-            if (typeof $ !== 'undefined') {
-                console.log('jQuery loaded after delay - initializing user roles');
-                initializeUserRoles();
-            } else {
-                console.error('jQuery still not available');
-                alert('JavaScript functionality not available. Please refresh the page.');
-            }
-        }, 1000);
-    };
-}
-
-// Add a manual trigger for debugging
-window.debugUserRoles = function() {
-    console.log('=== DEBUG USER ROLES ===');
-    console.log('jQuery:', typeof $);
-    console.log('Bootstrap:', typeof bootstrap);
-    console.log('Grant buttons:', $('.btn-grant-role').length);
-    console.log('Revoke buttons:', $('.btn-revoke-role').length);
-    console.log('Modals:', $('#grantRoleModal').length, $('#revokeRoleModal').length);
-    
-    // Test click handlers
-    $('.btn-grant-role').first().trigger('click');
-};
-</script>
-
-<!-- Simple inline test for debugging -->
-<script>
-console.log('=== AUTHORIZATION USER ROLES DEBUG ===');
-console.log('Simple test script loaded');
-
-// Test translation strings
-console.log('Testing PHP translation output:');
-console.log('please_select_role:', <?= json_encode($this->lang->line('authorization_please_select_role')) ?>);
-console.log('error_occurred:', <?= json_encode($this->lang->line('authorization_error_occurred')) ?>);
-console.log('grant:', <?= json_encode($this->lang->line('authorization_grant')) ?>);
-console.log('revoke:', <?= json_encode($this->lang->line('authorization_revoke')) ?>);
-console.log('select_role:', <?= json_encode($this->lang->line('authorization_select_role')) ?>);
-
-// Simple fallback handlers in case jQuery/Bootstrap doesn't work
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - checking if advanced handlers are working...');
-    
-    // Wait a moment for jQuery handlers to attach
-    setTimeout(function() {
-        const testButtons = document.querySelectorAll('.btn-grant-role');
-        console.log('Found grant buttons for fallback:', testButtons.length);
-        
-        // Only add fallback if no jQuery handlers are working
-        if (typeof $ === 'undefined' || $('.btn-grant-role').length === 0) {
-            console.log('Adding fallback handlers...');
-            
-            testButtons.forEach(function(button, index) {
-                // Check if button already has handlers
-                if (!button.hasAttribute('data-fallback-added')) {
-                    button.setAttribute('data-fallback-added', 'true');
-                    button.addEventListener('click', function(e) {
-                        console.log('Fallback click handler triggered for button', index);
-                        e.preventDefault();
-                        
-                        const userId = this.getAttribute('data-user-id');
-                        const username = this.getAttribute('data-username');
-                        console.log('Button data:', {userId, username});
-                        
-                        // Simple modal simulation
-                        const roleId = prompt('Enter role ID to grant to user ' + username + ':');
-                        if (roleId) {
-                            console.log('Would grant role', roleId, 'to user', userId);
-                            alert('Fallback mode: Would grant role ' + roleId + ' to user ' + username);
-                        }
-                    });
-                }
-            });
-        } else {
-            console.log('jQuery handlers found, fallback not needed');
-        }
-    }, 500);
+    }
 });
 </script>
 

@@ -12,11 +12,11 @@
 
 * [x] Images de configuration
 * [ ] Utiliser la nouvelle configuration en base
-* [] gestion des droits multi sections (plan draft)
+* [] gestion des droits multi sections (wip)
 * [] Gestionnaire de liste d'adresse email.
 
 
-* [] Support du markdown
+* [x] Support du markdown
   
 * [] Import des informations planeur dans les vols de découverte
   
@@ -25,7 +25,7 @@
   - à vérifier aussi sur les vols avions
   
 * [x] Vérifier les photos des membres sur le site déployé
-* [] Gestion de l'inscription, y compris les autorisations parentales
+* [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   
 * [] Reservation des avions                                   10j (plan OK)
 * [] Paiements en ligne                                       10j (PRD OK)
@@ -34,13 +34,13 @@
   renouvellement d'assurance, etc.
 * [] Gestion des fiches de progressions                       (PRD à rédiger)
 
-* [] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
+* [~] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
   * [x] MVP
   il faut pouvoir sélectionner par section. Ca ne pourra être vraiment opérationnel que quand les rôles par section seront en place. Pour l'instant on a pas vraiment l'information si un membre est instructeur ULM ou qu'il est encore actif dans une section.
 
 ## Dette technique
 
-* [x] Supprimer les vues non bootstrap (emails)
+* [x] Supprimer les vues non bootstrap
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 * [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires

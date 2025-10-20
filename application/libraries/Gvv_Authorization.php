@@ -187,13 +187,14 @@ class Gvv_Authorization {
      */
     public function grant_role($user_id, $types_roles_id, $section_id, $granted_by, $notes = NULL)
     {
-        // Store original section_id for cache clearing
-        $original_section_id = $section_id;
+        // Ensure all IDs are integers
+        $user_id = (int)$user_id;
+        $types_roles_id = (int)$types_roles_id;
+        $section_id = (int)$section_id;
+        $granted_by = (int)$granted_by;
 
-        // Use 0 for global roles (NULL section_id)
-        if ($section_id === NULL) {
-            $section_id = 0;
-        }
+        // Log parameters for debugging
+        log_message('info', 'grant_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ' (0=cross-section), granted_by=' . $granted_by);
 
         // Check if role is already granted and active
         $existing = $this->CI->db
@@ -205,7 +206,8 @@ class Gvv_Authorization {
             ->row_array();
 
         if ($existing) {
-            return FALSE; // Already has this role
+            log_message('info', 'grant_role: Role already exists for user=' . $user_id . ', role=' . $types_roles_id . ', section=' . $section_id);
+            return 'EXISTS'; // Already has this role - not an error
         }
 
         // Insert new role assignment
@@ -218,19 +220,22 @@ class Gvv_Authorization {
             'notes' => $notes
         );
 
+        log_message('info', 'grant_role: Inserting role assignment: ' . json_encode($data));
+
         $result = $this->CI->db->insert('user_roles_per_section', $data);
 
-        if ($result) {
-            // Clear cache for this user (all section variations)
-            $this->clear_cache($user_id);
-
-            // Audit log
-            $this->_audit_log('grant_role', $granted_by, $user_id, $types_roles_id, $section_id, $notes);
-
-            return TRUE;
+        if (!$result) {
+            $error = $this->CI->db->error();
+            log_message('error', 'grant_role: Database insert FAILED. Error code=' . $error['code'] . ', message=' . $error['message']);
+            return FALSE;
         }
 
-        return FALSE;
+        // Success - clear cache and audit
+        log_message('info', 'grant_role: SUCCESS - Role granted to user=' . $user_id);
+        $this->clear_cache($user_id);
+        $this->_audit_log('grant_role', $granted_by, $user_id, $types_roles_id, $section_id, $notes);
+
+        return TRUE;
     }
 
     /**
@@ -244,10 +249,13 @@ class Gvv_Authorization {
      */
     public function revoke_role($user_id, $types_roles_id, $section_id, $revoked_by)
     {
-        // Use 0 for global roles (NULL section_id)
-        if ($section_id === NULL) {
-            $section_id = 0;
-        }
+        // Ensure all IDs are integers
+        $user_id = (int)$user_id;
+        $types_roles_id = (int)$types_roles_id;
+        $section_id = (int)$section_id;
+        $revoked_by = (int)$revoked_by;
+
+        log_message('info', 'revoke_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ' (0=cross-section), revoked_by=' . $revoked_by);
 
         $result = $this->CI->db
             ->where('user_id', $user_id)
@@ -259,15 +267,13 @@ class Gvv_Authorization {
             ));
 
         if ($result) {
-            // Clear cache for this user (all section variations)
+            log_message('info', 'revoke_role: SUCCESS - Role revoked from user=' . $user_id);
             $this->clear_cache($user_id);
-
-            // Audit log
             $this->_audit_log('revoke_role', $revoked_by, $user_id, $types_roles_id, $section_id, NULL);
-
             return TRUE;
         }
 
+        log_message('error', 'revoke_role: FAILED - Role not found or already revoked for user=' . $user_id);
         return FALSE;
     }
 

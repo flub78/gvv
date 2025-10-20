@@ -1,9 +1,6 @@
-Markdown Helper
- [x] Markdown helper loads successfully
- [ ] Markdown converts headers
- [ ] Markdown converts bold and italic
- [ ] Markdown converts lists
- [x] Markdown handles empty string
- [ ] Markdown handles plain text
- [ ] Markdown processes mod config format
+Authorization Controller
+ [ ] User roles view data structure
+ [ ] Roles categorization
+ [ ] Sections available
+ [ ] User roles encoding
 
