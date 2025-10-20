@@ -774,28 +774,22 @@ document.addEventListener('DOMContentLoaded', function() {
             resizable: true,
             draggable: true,
             closeOnEscape: true,
-            buttons: {
-                "OK": function() {
-                    // Check if "don't show again" is checked
-                    const noModCheckbox = document.getElementById('no_mod');
-                    if (noModCheckbox && noModCheckbox.checked) {
-                        // Set cookie to hide MOD
-                        fetch('<?= controller_url("welcome/set_cookie") ?>')
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status === 'OK') {
-                                    console.log('MOD cookie set successfully');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error setting MOD cookie:', error);
-                            });
-                    }
-                    $(this).dialog('close');
-                }
-            },
             close: function() {
-                // Optional: Handle dialog close event
+                // Check if "don't show again" is checked when modal is closed
+                const noModCheckbox = document.getElementById('no_mod');
+                if (noModCheckbox && noModCheckbox.checked) {
+                    // Set cookie to hide MOD
+                    fetch('<?= controller_url("welcome/set_cookie") ?>')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'OK') {
+                                console.log('MOD cookie set successfully');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error setting MOD cookie:', error);
+                        });
+                }
             }
         });
         
