@@ -71,6 +71,11 @@ $this->lang->load('welcome');
     font-size: 0.75rem;
     padding: 0.25rem 0.75rem;
 }
+    /* Slightly larger accordion titles */
+    .accordion-button {
+        font-size: 1.05rem; /* default ~1rem; bump slightly */
+        font-weight: 700; /* bold */
+    }
 </style>
 
 <div id="body" class="body container-fluid py-3">
@@ -105,15 +110,18 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
+    <div class="accordion" id="dashboardAccordion">
+
     <!-- Section Utilisateur (tous les utilisateurs) -->
-    <div class="card section-card user">
-        <div class="card-header bg-primary bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-user text-primary"></i>
+    <div class="accordion-item section-card user">
+        <h2 class="accordion-header" id="headingUser">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="true" aria-controls="collapseUser">
+                <i class="fas fa-user text-primary me-2"></i>
                 Mon espace personnel
-            </h5>
-        </div>
-        <div class="card-body">
+            </button>
+        </h2>
+        <div id="collapseUser" class="accordion-collapse collapse show" aria-labelledby="headingUser" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
             <div class="row g-2">
                 <?php if ($show_calendar): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -183,18 +191,20 @@ $this->lang->load('welcome');
                 <?php endif; ?>
             </div>
         </div>
+        </div>
     </div>
 
     <?php if ($is_planchiste): ?>
     <!-- Section Planchiste -->
-    <div class="card section-card flights">
-        <div class="card-header bg-success bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-clipboard-list text-success"></i>
+    <div class="accordion-item section-card flights">
+        <h2 class="accordion-header" id="headingFlights">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFlights" aria-expanded="false" aria-controls="collapseFlights">
+                <i class="fas fa-clipboard-list text-success me-2"></i>
                 Gestion des vols
-            </h5>
-        </div>
-        <div class="card-body">
+            </button>
+        </h2>
+        <div id="collapseFlights" class="accordion-collapse collapse" aria-labelledby="headingFlights" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
             <div class="row g-2">
                 <!-- Planeur section -->
                 <div class="col-12">
@@ -252,19 +262,21 @@ $this->lang->load('welcome');
                 </div>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($is_treasurer): ?>
     <!-- Section Trésorier -->
-    <div class="card section-card treasurer">
-        <div class="card-header bg-warning bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-euro-sign text-warning"></i>
+    <div class="accordion-item section-card treasurer">
+        <h2 class="accordion-header" id="headingTreasurer">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTreasurer" aria-expanded="false" aria-controls="collapseTreasurer">
+                <i class="fas fa-euro-sign text-warning me-2"></i>
                 Trésorerie
-            </h5>
-        </div>
-        <div class="card-body">
+            </button>
+        </h2>
+        <div id="collapseTreasurer" class="accordion-collapse collapse" aria-labelledby="headingTreasurer" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
             <div class="row g-2">
                 <!-- Compta Menu -->
                 <div class="col-12">
@@ -545,19 +557,21 @@ $this->lang->load('welcome');
                 </div>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($is_ca): ?>
     <!-- Section Administration Club -->
-    <div class="card section-card admin">
-        <div class="card-header bg-danger bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-cogs text-danger"></i>
+    <div class="accordion-item section-card admin">
+        <h2 class="accordion-header" id="headingAdminClub">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdminClub" aria-expanded="false" aria-controls="collapseAdminClub">
+                <i class="fas fa-cogs text-danger me-2"></i>
                 Administration du club
-            </h5>
-        </div>
-        <div class="card-body">
+            </button>
+        </h2>
+        <div id="collapseAdminClub" class="accordion-collapse collapse" aria-labelledby="headingAdminClub" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
             <div class="row g-2">
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
@@ -679,19 +693,21 @@ $this->lang->load('welcome');
                 </div>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($is_admin): ?>
     <!-- Section Administration Système -->
-    <div class="card section-card admin">
-        <div class="card-header" style="background-color: rgba(220, 53, 69, 0.15);">
-            <h5 class="mb-0">
-                <i class="fas fa-server text-danger"></i>
+    <div class="accordion-item section-card admin">
+        <h2 class="accordion-header" id="headingAdminSys">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdminSys" aria-expanded="false" aria-controls="collapseAdminSys">
+                <i class="fas fa-server text-danger me-2"></i>
                 Administration système
-            </h5>
-        </div>
-        <div class="card-body">
+            </button>
+        </h2>
+        <div id="collapseAdminSys" class="accordion-collapse collapse" aria-labelledby="headingAdminSys" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
             <div class="row g-2">
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
@@ -773,10 +789,13 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('admin/page') ?>" class="btn btn-danger btn-sm">Accéder</a>
                     </div>
                 </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
+
+    </div> <!-- end accordion -->
 
 </div>
 
