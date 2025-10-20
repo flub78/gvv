@@ -81,7 +81,15 @@ $this->load->view('bs_banner');
                             <td>
                                 <?php if (!empty($user['roles'])): ?>
                                     <?php foreach ($user['roles'] as $role): ?>
-                                        <span class="badge bg-primary me-1" data-role-id="<?= $role['types_roles_id'] ?>">
+                                    <?php
+                                        $color = '#0d6efd'; // default blue
+                                        if ($role['scope'] === 'global') {
+                                            $color = '#a5d8ff'; // lighter blue
+                                        } else if ($role['section_color']) {
+                                            $color = $role['section_color'];
+                                        }
+                                    ?>
+                                    <span class="badge me-1" style="background-color: <?= htmlspecialchars($color) ?>; color: black;" data-role-id="<?= $role['types_roles_id'] ?>">
                                             <?= htmlspecialchars($role['role_name']) ?>
                                             <?php if ($role['scope'] === 'global'): ?>
                                                 <i class="fas fa-globe" title="Global"></i>
@@ -277,7 +285,13 @@ $(document).ready(function() {
         let badgesHtml = '';
         if (roles.length > 0) {
             roles.forEach(function(role) {
-                badgesHtml += '<span class="badge bg-primary me-1" data-role-id="' + role.types_roles_id + '">';
+                let color = '#0d6efd'; // default blue
+                if (role.scope === 'global') {
+                    color = '#a5d8ff'; // lighter blue
+                } else if (role.section_color) {
+                    color = role.section_color;
+                }
+                badgesHtml += '<span class="badge me-1" style="background-color: ' + color + '; color: black;" data-role-id="' + role.types_roles_id + '">';
                 badgesHtml += role.role_name;
                 if (role.scope === 'global') {
                     badgesHtml += ' <i class="fas fa-globe" title="Global"></i>';
