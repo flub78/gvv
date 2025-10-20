@@ -522,19 +522,26 @@ abstract class Metadata {
             $res .= "<th $align>N°</th>";
         }
 
+        // Optional global Create button (Bootstrap) in header when provided
+        $header_create_html = '';
+        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
+            $create_url = $attrs['create']['url'];
+            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
+            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
+            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
+                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
+                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
+                                . '</a>';
+        }
 
         // Actions title
         $action_cnt = count($actions);
         foreach ($actions as $action) {
             $action_cnt--;
-            if ($action_cnt != 0) {
-                $name = '';
-            } else {
-                $create = new ButtonNew(array(
-                    'controller' => $base_controller,
-                    'param' => $param
-                ));
-                $name = $create->image();
+            $name = '';
+            if ($action_cnt == 0) {
+                // Put Create button in the last actions header cell if available
+                $name = $header_create_html;
             }
             if ($mode == "rw")
                 $res .= "<th class=\"ui-state-default\" >$name</th>";
@@ -749,18 +756,25 @@ abstract class Metadata {
         $res .= "\t<thead>";
         $res .= "<tr>";
 
+        // Optional global Create button (Bootstrap) in header when provided
+        $header_create_html = '';
+        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
+            $create_url = $attrs['create']['url'];
+            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
+            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
+            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
+                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
+                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
+                                . '</a>';
+        }
+
         // Actions title
         $action_cnt = count($actions);
         foreach ($actions as $action) {
             $action_cnt--;
-            if ($action_cnt != 0) {
-                $name = '';
-            } else {
-                $create = new ButtonNew(array(
-                    'controller' => $base_controller,
-                    'param' => $param
-                ));
-                $name = $create->image();
+            $name = '';
+            if ($action_cnt == 0) {
+                $name = $header_create_html;
             }
             if ($mode == "rw")
                 $res .= "<th>$name</th>";
@@ -1241,85 +1255,81 @@ abstract class Metadata {
      */
     function action($action = '', $url = '', $elt_id = '', $elt_image = '', $confirm = 0) {
         $label = $this->action_name($action);
-        $attrs = array();
+        $attrs = '';
 
         if ($confirm) {
             $txt = $this->CI->lang->line("gvv_button_delete_confirm") . " $elt_image?";
-            $attrs = "onclick=\"return confirm('$txt')\" ";
+            $attrs = "onclick=\"return confirm('" . addslashes($txt) . "')\" ";
         }
 
+        // Build Bootstrap-styled buttons with Font Awesome icons for common actions
         if ($action == 'edit') {
-            $image = theme() . "/images/pencil.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-primary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-edit" aria-hidden="true"></i>'
+                 . '</a>';            // Append confirm attribute if any (usually not for edit)
+            if ($attrs) {
+                // inject attribute into anchor
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'delete') {
-            $image = theme() . "/images/delete.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            $delete_label = $this->CI->lang->line('gvv_button_delete');
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-danger" title="' . htmlspecialchars($delete_label, ENT_QUOTES, 'UTF-8') . '" ' . $attrs . '>'
+                 . '<i class="fas fa-trash" aria-hidden="true"></i>'
+                 . '</a>';
+            return $btn;
         } elseif ($action == 'pdf') {
-            $image = theme() . "/images/page_white_acrobat.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-file-pdf" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'action') {
-            $image = theme() . "/images/information.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            // Keep obfuscation for custom action
             $obfuscated = transformInteger($elt_id);
-            return anchor($url . "/$obfuscated", $label, $attrs);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-info" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" ' . $attrs . '>'
+                 . '<i class="fas fa-info-circle" aria-hidden="true"></i>'
+                 . '</a>';
+            return $btn;
         } elseif ($action == 'print_vd') {
-            $image = theme() . "/images/page_white_acrobat.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
-            return anchor($url . "/$obfuscated", $label, $attrs);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-file-pdf" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'email_vd') {
-            $image = theme() . "/images/email.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
             $obfuscated = transformInteger($elt_id);
-            return anchor($url . "/$obfuscated", $label, $attrs);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-envelope" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'csv') {
-            $image = theme() . "/images/page-excel-icon.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-file-excel" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'clone_elt') {
-            $image = theme() . "/images/copy.png";
-            $image_properties = array(
-                'src' => $image,
-                'class' => 'icon',
-                'title' => $label
-            );
-            $label = img($image_properties);
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-copy" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         }
 
+        // Default fallback: simple anchor to preserve legacy behavior
         return anchor($url . "/$elt_id", $label, $attrs);
     }
 

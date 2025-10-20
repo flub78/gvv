@@ -37,6 +37,14 @@ $attrs = array(
     'width' => array(50, 400),
     'class' => "datatable_style datatable_server table table-striped");
 
+    // Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('plan_comptable/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 echo $this->gvvmetadata->empty_table("planc", $attrs);
 
 $bar = array(

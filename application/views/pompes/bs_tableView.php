@@ -86,6 +86,13 @@ $this->load->view('bs_menu');
         'footer' => $footer,
         'class' => 'table'
     );
+    // Create button above the table
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('pompes/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
 
     echo $this->gvvmetadata->table("vue_pompes", $attrs, "");
 

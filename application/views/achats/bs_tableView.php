@@ -36,6 +36,14 @@ $attrs = array(
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable table");
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('achats/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 echo $this->gvvmetadata->table("vue_achats", $attrs, "");
 
 echo '</div>';

@@ -183,6 +183,14 @@ $attrs = array(
     'datatable' => 'server_side'
 );
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('vols_planeur/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 if ($ajax) {
     echo $this->gvvmetadata->empty_table("vue_vols_planeur", $attrs);
 } else {

@@ -196,6 +196,13 @@ if ($auto_planchiste) {
     $attrs['autoplanchiste_id'] = 'vapilid';
 }
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('vols_avion/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
 echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
 
 

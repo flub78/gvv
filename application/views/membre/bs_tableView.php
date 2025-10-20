@@ -101,6 +101,14 @@ $this->lang->load('membre');
         'class' => "datatable_style $table_style table table-striped"
     );
 
+    // Create button above the table
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('membre/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
+
     echo $this->gvvmetadata->table("membres", $attrs, "");
 
     $bar = array(

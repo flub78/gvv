@@ -37,6 +37,14 @@ $attrs = array(
 // 	'first' => $premier,
     'mode' => ($has_modification_rights) ? "rw" : "ro");
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('licences/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 echo $this->gvvmetadata->table("vue_licences", $attrs, "");
 
 echo '</div>';

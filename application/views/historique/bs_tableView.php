@@ -44,6 +44,14 @@ $attrs = array(
     'class' => "datatable table table-striped"
 );
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('historique/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 echo $this->gvvmetadata->table("vue_historique", $attrs, "");
 br();
 echo p($this->lang->line("gvv_historique_txt"));

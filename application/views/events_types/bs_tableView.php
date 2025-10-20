@@ -41,6 +41,14 @@ $attrs = array(
     'class' => "datatable table table-striped"
 );
 
+// Create button above the table
+echo '<div class="mb-3">'
+    . '<a href="' . site_url('events_types/create') . '" class="btn btn-sm btn-success">'
+    . '<i class="fas fa-plus" aria-hidden="true"></i> '
+    . $this->lang->line('gvv_button_create')
+    . '</a>'
+    . '</div>';
+
 echo $this->eventstypesmetadata->table("vue_events_types", $attrs);
 
 /*
