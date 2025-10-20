@@ -33,6 +33,27 @@
 - Features: Bootstrap 5, DataTables, AJAX, breadcrumbs, badges
 - **Testing Pending**: End-to-end workflow, mobile responsive validation
 
+### User Roles Modal - Improved Architecture
+
+The current implementation of the user roles modal is sensitive to timing issues, especially when dealing with the "Toutes sections" (All sections) checkbox. To address this, the architecture will be updated to a more robust, backend-driven model.
+
+**New Architecture:**
+
+1.  **Client-Side Action:** When a user clicks a checkbox (e.g., to grant or revoke a role, or select "All sections"), an AJAX request is sent to the backend. The request includes the user ID, the role ID, the section ID (if applicable), and the action (grant/revoke).
+
+2.  **Backend Processing:** The `Authorization` controller receives the request. It calls the `Authorization_model` to update the `user_roles_per_section` table in the database.
+
+3.  **Backend Response:** After successfully updating the database, the backend will fetch the user's complete and updated list of roles and their corresponding sections. This list will be returned to the client as a JSON response.
+
+4.  **Client-Side Update:** The frontend JavaScript code receives the JSON response. It then re-renders the checkboxes in the modal to accurately reflect the new state of the user's authorizations.
+
+**Benefits of this approach:**
+
+*   **Eliminates Timing Issues:** The state of the checkboxes is always driven by the authoritative data from the backend, eliminating any client-side race conditions or synchronization problems.
+*   **Single Source of Truth:** The database remains the single source of truth for user authorizations. The UI is simply a reflection of this data.
+*   **Improved Reliability:** The new architecture is more resilient and less prone to errors, providing a more stable user experience.
+*   **Simplified Frontend Logic:** The client-side code becomes simpler, as it no longer needs to manually track the state of checkboxes. It only needs to update the UI based on the backend's response.
+
 **Reference Documents**:
 - `/doc/phase4_progress.md` - Detailed UI implementation status
 - `/doc/authorization_implementation_summary.md` - Architecture overview

@@ -205,6 +205,22 @@ class Authorization extends CI_Controller {
                 return;
             }
 
+        if ($section_id == -1) {
+            $this->db->select('id');
+            $this->db->from('sections');
+            $query = $this->db->get();
+            $sections = $query->result_array();
+
+            foreach ($sections as $section) {
+                if ($action === 'grant') {
+                    $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section['id'], $current_user_id, NULL);
+                } else {
+                    $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section['id'], $current_user_id);
+                }
+            }
+            $result = TRUE;
+            $message = $action === 'grant' ? 'Roles granted successfully for all sections' : 'Roles revoked successfully for all sections';
+        } else {
             if ($action === 'grant') {
                 log_message('info', 'edit_user_roles: Attempting grant - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
                 $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
@@ -225,8 +241,9 @@ class Authorization extends CI_Controller {
                 $result = FALSE;
                 $message = 'Invalid action';
             }
+        }
 
-            log_message('debug', 'edit_user_roles result: ' . ($result ? 'success' : 'failure') . ', message: ' . $message);
+        log_message('debug', 'edit_user_roles result: ' . ($result ? 'success' : 'failure') . ', message: ' . $message);
 
         } catch (Exception $e) {
             log_message('error', 'edit_user_roles exception: ' . $e->getMessage());
@@ -235,7 +252,8 @@ class Authorization extends CI_Controller {
             $message = 'System error: ' . $e->getMessage();
         }
 
-        echo json_encode(array('success' => $result, 'message' => $message));
+        $roles = $this->Authorization_model->get_user_roles($user_id, NULL);
+        echo json_encode(array('success' => $result, 'message' => $message, 'roles' => $roles));
     }
 
     /**

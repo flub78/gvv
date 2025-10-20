@@ -182,14 +182,8 @@ $this->load->view('bs_banner');
 
 <script>
 $(document).ready(function() {
-    // Store sections list globally for JavaScript access
     var allSections = <?= json_encode(array_map(function($s) { return $s['id']; }, array_filter($sections, function($s) { return $s['id'] != 0; }))) ?>;
-    console.log('Available sections:', allSections);
 
-    // Flag to prevent recursive checkbox updates
-    var updatingToutesSections = false;
-
-    // Initialize DataTable with error handling
     try {
         if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#userRolesTable')) {
             $('#userRolesTable').DataTable({
@@ -204,7 +198,6 @@ $(document).ready(function() {
         console.error('DataTable initialization error:', error);
     }
 
-    // Manage Roles Button
     $(document).on('click', '.btn-manage-roles', function(e) {
         e.preventDefault();
         const userId = $(this).data('user-id');
@@ -214,65 +207,31 @@ $(document).ready(function() {
         $('#manageUserId').val(userId);
         $('#manageUsername').text(username);
 
-        // Update checkboxes based on user's current roles
         updateModalCheckboxes(userRoles);
 
-        // Show modal
         new bootstrap.Modal(document.getElementById('manageRolesModal')).show();
     });
 
-    // Handle checkbox toggle
     $(document).on('change', '.role-checkbox', function() {
-        // Skip if we're programmatically updating checkboxes
-        if (updatingToutesSections) {
-            console.log('Skipping change event (updatingToutesSections=true)');
-            return;
-        }
-
         const $checkbox = $(this);
         const userId = $('#manageUserId').val();
         const roleId = $checkbox.data('role-id');
-        const roleScope = $checkbox.data('role-scope');
-        const isAllSections = $checkbox.hasClass('role-checkbox-all');
-        const isSection = $checkbox.hasClass('role-checkbox-section');
         const isChecked = $checkbox.is(':checked');
+        const action = isChecked ? 'grant' : 'revoke';
 
-        console.log('Role change - userId:', userId, 'roleId:', roleId, 'roleScope:', roleScope, 'isAllSections:', isAllSections, 'isSection:', isSection, 'action:', isChecked ? 'grant' : 'revoke');
-        console.log('Checkbox classes:', $checkbox.attr('class'));
-        console.log('Checkbox HTML:', $checkbox[0].outerHTML);
-
-        // Validate required parameters
-        if (!userId || !roleId) {
-            console.error('Missing required parameters:', {userId, roleId});
-            alert('Erreur: Paramètres manquants');
-            $checkbox.prop('checked', !isChecked);
-            return;
-        }
-
-        if (isAllSections) {
-            // "Toutes sections" checkbox clicked
-            if (roleScope === 'global') {
-                // Global role: grant/revoke with section_id=0
-                handleRoleChange(userId, roleId, 0, isChecked ? 'grant' : 'revoke', $checkbox);
-            } else {
-                // Section role: grant/revoke for ALL sections
-                handleAllSectionsToggle(userId, roleId, isChecked, $checkbox);
-            }
+        let sectionId;
+        if ($checkbox.hasClass('role-checkbox-all')) {
+            sectionId = -1; // All sections
         } else {
-            // Individual section checkbox clicked
-            const sectionId = $checkbox.data('section-id');
-            if (sectionId === undefined) {
-                console.error('Missing section-id');
-                alert('Erreur: section-id manquant');
-                $checkbox.prop('checked', !isChecked);
-                return;
-            }
-            handleRoleChange(userId, roleId, sectionId, isChecked ? 'grant' : 'revoke', $checkbox);
+            sectionId = $checkbox.data('section-id');
         }
+
+        handleRoleChange(userId, roleId, sectionId, action, $checkbox);
     });
 
-    // Handle role change for a single section
     function handleRoleChange(userId, roleId, sectionId, action, $checkbox) {
+        console.log("--- handleRoleChange ---");
+        console.log("userId:", userId, "roleId:", roleId, "sectionId:", sectionId, "action:", action);
         $checkbox.prop('disabled', true);
 
         $.ajax({
@@ -282,217 +241,109 @@ $(document).ready(function() {
                 user_id: userId,
                 types_roles_id: roleId,
                 section_id: sectionId,
-                action: action
+                action: action,
+                '<?= $this->security->get_csrf_token_name() ?>': '<?= $this->security->get_csrf_hash() ?>'
             },
             dataType: 'json',
             success: function(response) {
-                console.log('Server response:', response);
+                console.log("AJAX success. Response:", response);
                 if (response.success) {
-                    // Show success feedback
-                    const $row = $checkbox.closest('tr');
-                    $row.addClass('table-success');
-                    setTimeout(function() {
-                        $row.removeClass('table-success');
-                    }, 1000);
-
-                    // Update the main table's role badges (but skip modal update)
-                    updateUserRoleBadges(userId, true); // Pass true to skip modal update
-
-                    // Immediately update "Toutes sections" checkbox state
-                    // Check if all sections are now checked for this role
-                    if (!$checkbox.hasClass('role-checkbox-all')) {
-                        updateToutesSectionsCheckbox(roleId);
-                    }
+                    console.log("Response success is true. Calling updateUserRoleBadges and updateModalCheckboxes.");
+                    updateUserRoleBadges(userId, response.roles);
+                    updateModalCheckboxes(response.roles);
                 } else {
+                    console.log("Response success is false. Message:", response.message);
                     alert('Erreur: ' + response.message);
                     $checkbox.prop('checked', !$checkbox.is(':checked'));
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error:', {xhr, status, error, responseText: xhr.responseText});
+                console.log("AJAX error. Status:", status, "Error:", error);
+                console.log("Response text:", xhr.responseText);
                 alert('Erreur lors de la modification du rôle');
                 $checkbox.prop('checked', !$checkbox.is(':checked'));
             },
             complete: function() {
+                console.log("AJAX complete.");
                 $checkbox.prop('disabled', false);
             }
         });
     }
 
-    // Update "Toutes sections" checkbox based on individual section checkboxes
-    function updateToutesSectionsCheckbox(roleId) {
-        const $allSectionsCheckbox = $('.role-checkbox-all[data-role-id="' + roleId + '"][data-role-scope="section"]');
-
-        if ($allSectionsCheckbox.length === 0) {
-            // This is a global role, no need to update
-            console.log('updateToutesSectionsCheckbox: No checkbox found for role', roleId, '(might be global role)');
-            return;
-        }
-
-        const $sectionCheckboxes = $('.role-checkbox-section[data-role-id="' + roleId + '"]');
-        const totalSections = $sectionCheckboxes.length;
-        const checkedSections = $sectionCheckboxes.filter(':checked').length;
-
-        console.log('updateToutesSectionsCheckbox: role', roleId, 'has', checkedSections, 'of', totalSections, 'sections checked');
-
-        const shouldBeChecked = (checkedSections === totalSections && totalSections > 0);
-        const currentlyChecked = $allSectionsCheckbox.is(':checked');
-
-        // Only update if state needs to change (to avoid triggering unnecessary change events)
-        if (shouldBeChecked !== currentlyChecked) {
-            console.log('updateToutesSectionsCheckbox: Updating checkbox from', currentlyChecked, 'to', shouldBeChecked);
-            // Set flag to prevent change handler from firing
-            updatingToutesSections = true;
-            $allSectionsCheckbox.prop('checked', shouldBeChecked);
-            // Clear flag after a short delay
-            setTimeout(function() {
-                updatingToutesSections = false;
-            }, 100);
-        }
-    }
-
-    // Handle "Toutes sections" toggle for section-specific roles
-    function handleAllSectionsToggle(userId, roleId, grant, $checkbox) {
-        console.log('handleAllSectionsToggle START: grant=' + grant + ', role=' + roleId + ', user=' + userId + ', sections=' + JSON.stringify(allSections));
-
-        $checkbox.prop('disabled', true);
-        const action = grant ? 'grant' : 'revoke';
-        let completedCount = 0;
-        let errorCount = 0;
-
-        // Process each section sequentially
-        function processNextSection(index) {
-            if (index >= allSections.length) {
-                // All sections processed
-                console.log('handleAllSectionsToggle COMPLETE: completed=' + completedCount + ', errors=' + errorCount);
-                $checkbox.prop('disabled', false);
-                if (errorCount > 0) {
-                    alert('Erreur: ' + errorCount + ' sections ont échoué');
-                }
-                // Update badges and checkboxes
-                updateUserRoleBadges(userId);
-                return;
-            }
-
-            const sectionId = allSections[index];
-            console.log('Processing section ' + (index + 1) + '/' + allSections.length + ': sectionId=' + sectionId);
-
-            $.ajax({
-                url: '<?= site_url('authorization/edit_user_roles') ?>',
-                type: 'POST',
-                data: {
-                    user_id: userId,
-                    types_roles_id: roleId,
-                    section_id: sectionId,
-                    action: action
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log('Section ' + sectionId + ' response:', response);
-                    if (response.success) {
-                        completedCount++;
-                    } else {
-                        errorCount++;
-                        console.error('Failed for section', sectionId, ':', response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    errorCount++;
-                    console.error('AJAX error for section', sectionId, ':', error);
-                },
-                complete: function() {
-                    // Process next section
-                    processNextSection(index + 1);
-                }
-            });
-        }
-
-        // Start processing
-        processNextSection(0);
-    }
-
-    // Update the role badges for a user in the main table and modal
-    function updateUserRoleBadges(userId, skipModalUpdate) {
+    function updateUserRoleBadges(userId, roles) {
         const $row = $('#userRolesTable').find('button[data-user-id="' + userId + '"]').closest('tr');
-        const $badgeCell = $row.find('td').eq(4); // 5th column (roles)
+        const $badgeCell = $row.find('td').eq(4);
 
-        // Fetch updated roles
-        $.ajax({
-            url: '<?= site_url('authorization/get_user_roles') ?>',
-            type: 'GET',
-            data: { user_id: userId },
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.roles) {
-                    // Update badges in main table
-                    let badgesHtml = '';
-                    if (response.roles.length > 0) {
-                        response.roles.forEach(function(role) {
-                            badgesHtml += '<span class="badge bg-primary me-1" data-role-id="' + role.types_roles_id + '">';
-                            badgesHtml += role.role_name;
-                            if (role.scope === 'global') {
-                                badgesHtml += ' <i class="fas fa-globe" title="Global"></i>';
-                            }
-                            badgesHtml += '</span>';
-                        });
-                    } else {
-                        badgesHtml = '<em><?= $this->lang->line('authorization_no_roles') ?></em>';
-                    }
-                    $badgeCell.html(badgesHtml);
-
-                    // Update button data
-                    $row.find('.btn-manage-roles').data('user-roles', response.roles);
-
-                    // If modal is open for this user, update checkboxes in modal (unless skipped)
-                    if (!skipModalUpdate && $('#manageUserId').val() == userId) {
-                        updateModalCheckboxes(response.roles);
-                    }
+        let badgesHtml = '';
+        if (roles.length > 0) {
+            roles.forEach(function(role) {
+                badgesHtml += '<span class="badge bg-primary me-1" data-role-id="' + role.types_roles_id + '">';
+                badgesHtml += role.role_name;
+                if (role.scope === 'global') {
+                    badgesHtml += ' <i class="fas fa-globe" title="Global"></i>';
                 }
-            }
-        });
+                badgesHtml += '</span>';
+            });
+        } else {
+            badgesHtml = '<em><?= $this->lang->line('authorization_no_roles') ?></em>';
+        }
+        $badgeCell.html(badgesHtml);
+
+        $row.find('.btn-manage-roles').data('user-roles', roles);
     }
 
-    // Update checkboxes in the modal based on user's current roles
     function updateModalCheckboxes(userRoles) {
-        console.log('updateModalCheckboxes called with roles:', userRoles);
+        console.log("--- updateModalCheckboxes ---");
+        console.log("Received userRoles:", userRoles);
 
-        // Reset all checkboxes
+        // First, reset all checkboxes
         $('.role-checkbox').prop('checked', false);
+        console.log("All checkboxes reset.");
 
-        // Group roles by role_id to check if ALL sections are assigned
-        const rolesBySectionCount = {};
-
+        // Create a map of user's roles for easier lookup
+        const userRolesMap = {};
         userRoles.forEach(function(role) {
-            const roleId = role.types_roles_id;
+            if (!userRolesMap[role.types_roles_id]) {
+                userRolesMap[role.types_roles_id] = new Set();
+            }
+            userRolesMap[role.types_roles_id].add(role.section_id.toString());
+        });
+        console.log("userRolesMap created:", userRolesMap);
 
-            if (role.section_id == 0 || role.section_id === '0') {
-                // Global role (section_id=0)
-                $('.role-checkbox-all[data-role-id="' + roleId + '"]').prop('checked', true);
-            } else {
-                // Section-specific role
-                // Check the individual section checkbox
-                $('.role-checkbox-section[data-role-id="' + roleId + '"][data-section-id="' + role.section_id + '"]')
-                    .prop('checked', true);
+        // Iterate over each role in the modal
+        $('.role-checkbox-all').each(function() {
+            const $allCheckbox = $(this);
+            const roleId = $allCheckbox.data('role-id').toString();
+            const roleScope = $allCheckbox.data('role-scope');
+            console.log("Processing roleId:", roleId, "with scope:", roleScope);
 
-                // Count how many sections this role has
-                if (!rolesBySectionCount[roleId]) {
-                    rolesBySectionCount[roleId] = 0;
+            if (roleScope === 'global') {
+                if (userRolesMap[roleId] && userRolesMap[roleId].has('0')) {
+                    $allCheckbox.prop('checked', true);
+                    console.log("Checked global role", roleId);
                 }
-                rolesBySectionCount[roleId]++;
+            } else {
+                const $sectionCheckboxes = $('.role-checkbox-section[data-role-id="' + roleId + '"]');
+                let checkedCount = 0;
+
+                $sectionCheckboxes.each(function() {
+                    const $sectionCheckbox = $(this);
+                    const sectionId = $sectionCheckbox.data('section-id').toString();
+                    if (userRolesMap[roleId] && userRolesMap[roleId].has(sectionId)) {
+                        $sectionCheckbox.prop('checked', true);
+                        checkedCount++;
+                        console.log("Checked section", sectionId, "for role", roleId);
+                    }
+                });
+
+                console.log("Role", roleId, "has", checkedCount, "of", $sectionCheckboxes.length, "sections checked.");
+                if (checkedCount === $sectionCheckboxes.length && $sectionCheckboxes.length > 0) {
+                    $allCheckbox.prop('checked', true);
+                    console.log("Checked 'Toutes sections' for role", roleId);
+                }
             }
         });
-
-        // For section-specific roles, check "Toutes sections" if ALL sections are assigned
-        Object.keys(rolesBySectionCount).forEach(function(roleId) {
-            const count = rolesBySectionCount[roleId];
-            console.log('Role', roleId, 'has', count, 'sections, total sections:', allSections.length);
-
-            if (count === allSections.length) {
-                // All sections have this role, check "Toutes sections"
-                $('.role-checkbox-all[data-role-id="' + roleId + '"][data-role-scope="section"]').prop('checked', true);
-                console.log('Checking "Toutes sections" for role', roleId);
-            }
-        });
+        console.log("--- updateModalCheckboxes finished ---");
     }
 });
 </script>
