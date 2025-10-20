@@ -126,9 +126,9 @@ class Authorization extends CI_Controller {
         $query = $this->db->get();
         $users = $query->result_array();
 
-        // Get roles for each user
+        // Get roles for each user (across ALL sections)
         foreach ($users as &$user) {
-            $user['roles'] = $this->Authorization_model->get_user_roles($user['id'], $user['section_id']);
+            $user['roles'] = $this->Authorization_model->get_user_roles($user['id'], NULL);
         }
 
         $data['users'] = $users;
@@ -153,18 +153,9 @@ class Authorization extends CI_Controller {
             return;
         }
 
-        // Get user's section_id (may be NULL)
-        $this->db->select('m.club as section_id');
-        $this->db->from('users u');
-        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
-        $this->db->where('u.id', $user_id);
-        $query = $this->db->get();
-        $user = $query->row_array();
-
-        $section_id = isset($user['section_id']) ? $user['section_id'] : NULL;
-
-        // Get roles
-        $roles = $this->Authorization_model->get_user_roles($user_id, $section_id);
+        // Get ALL roles for this user across ALL sections
+        // Pass NULL as section_id to get all roles
+        $roles = $this->Authorization_model->get_user_roles($user_id, NULL);
 
         echo json_encode(array('success' => TRUE, 'roles' => $roles));
     }
@@ -195,10 +186,14 @@ class Authorization extends CI_Controller {
             return;
         }
 
-        // Convert empty string or "null" to actual NULL
-        if ($section_id === '' || $section_id === 'null') {
-            $section_id = NULL;
+        // Validate section_id - it must be provided (0 for cross-section, or specific section ID)
+        if ($section_id === '' || $section_id === 'null' || $section_id === NULL || $section_id === 'undefined') {
+            echo json_encode(array('success' => FALSE, 'message' => 'Missing required parameter: section_id'));
+            return;
         }
+
+        // Convert section_id to integer
+        $section_id = (int)$section_id;
 
         $current_user_id = $this->dx_auth->get_user_id();
 
