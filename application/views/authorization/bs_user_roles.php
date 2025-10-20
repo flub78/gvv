@@ -62,15 +62,15 @@ $this->load->view('bs_banner');
                 <tbody>
                     <?php foreach ($users as $user): ?>
                         <tr>
-                            <td><?= htmlspecialchars($user['username']) ?></td>
-                            <td><?= htmlspecialchars($user['email']) ?></td>
                             <td>
-                                <?php if (!empty($user['mprenom']) || !empty($user['mnom'])): ?>
-                                    <?= htmlspecialchars($user['mprenom']) ?> <?= htmlspecialchars($user['mnom']) ?>
-                                <?php else: ?>
-                                    <em>-</em>
-                                <?php endif; ?>
+                                <?php if (!empty($user['mnom']) || !empty($user['mprenom'])):
+                                    echo htmlspecialchars($user['mnom']) . ' ' . htmlspecialchars($user['mprenom']);
+                                else:
+                                    echo htmlspecialchars($user['username']);
+                                endif; ?>
                             </td>
+                            <td><?= htmlspecialchars($user['email']) ?></td>
+                            <td><?= htmlspecialchars($user['username']) ?></td>
                             <td>
                                 <?php if (!empty($user['section_name'])): ?>
                                     <?= htmlspecialchars($user['section_name']) ?>
@@ -197,9 +197,9 @@ $(document).ready(function() {
             $('#userRolesTable').DataTable({
                 "pageLength": 25,
                 "order": [[0, "asc"]],
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/fr-FR.json"
-                },
+                "oLanguage": olanguage,
+                "bJQueryUI": true,
+                "sPaginationType": "full_numbers",
                 "searching": true
             });
         }
