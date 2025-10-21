@@ -30,7 +30,7 @@ $this->lang->load('procedures');
                 </h2>
             </div>
             <div class="col-md-4 text-end">
-                <div class="btn-group" role="group">
+                <div class="btn-group mt-4" role="group">
                     <?php if ($can_edit): ?>
                         <a href="<?= site_url("procedures/edit/{$procedure['id']}") ?>" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Modifier

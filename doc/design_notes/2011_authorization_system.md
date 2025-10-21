@@ -4,6 +4,8 @@
 
 GVV implements a comprehensive role-based access control (RBAC) system using the DX_Auth library for CodeIgniter 2.x. The system provides hierarchical role inheritance and URI-based permissions to control user access to different parts of the application.
 
+This is the description of the legacy system. The mechanism is going to be migrated to a system that takes the section into account.
+
 ## Architecture
 
 The authorization system consists of three main components:
