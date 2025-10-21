@@ -81,15 +81,19 @@ class File_manager {
      * @return array Résultat de l'upload avec statut et informations
      */
     public function upload_file($sub_directory, $file_field = 'file', $additional_config = array()) {
+        gvv_debug("procedure: File_manager->upload_file called. Sub-directory: {$sub_directory}, Field: {$file_field}");
         $upload_path = $this->base_upload_path . trim($sub_directory, '/') . '/';
+        gvv_debug("procedure: Full upload path: {$upload_path}");
         
         // Créer le dossier s'il n'existe pas
         if (!$this->ensure_directory_exists($upload_path)) {
+            gvv_debug("procedure: Failed to ensure directory exists: {$upload_path}");
             return array(
                 'success' => false,
                 'error' => 'Impossible de créer le dossier de destination'
             );
         }
+        gvv_debug("procedure: Directory ensured: {$upload_path}");
         
         // Configuration de l'upload
         $upload_config = array(
@@ -103,17 +107,21 @@ class File_manager {
         
         // Fusionner avec la configuration additionnelle
         $upload_config = array_merge($upload_config, $additional_config);
+        gvv_debug("procedure: Final upload config: " . var_export($upload_config, true));
         
         $this->CI->upload->initialize($upload_config);
         
         if (!$this->CI->upload->do_upload($file_field)) {
+            $error = $this->CI->upload->display_errors('', '');
+            gvv_debug("procedure: CodeIgniter upload->do_upload failed. Error: " . $error);
             return array(
                 'success' => false,
-                'error' => $this->CI->upload->display_errors('', '')
+                'error' => $error
             );
         }
         
         $upload_data = $this->CI->upload->data();
+        gvv_debug("procedure: Upload successful. Data: " . var_export($upload_data, true));
         
         // Créer une miniature si demandé et si c'est une image
         if ($this->create_thumbs && $this->is_image($upload_data['file_ext'])) {

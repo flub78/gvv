@@ -186,21 +186,28 @@ class Procedures extends Gvv_Controller {
             'version' => $this->input->post('version') ?: '1.0'
         );
         
-        $procedure_id = $this->procedures_model->create_procedure($data);
+        $is_uploading_md = !empty($_FILES['markdown_file']['name']);
+        
+        $procedure_id = $this->procedures_model->create_procedure($data, $is_uploading_md);
         
         if ($procedure_id) {
-            // Traiter l'upload du fichier markdown si fourni
-            if (!empty($_FILES['markdown_file']['name'])) {
-                $this->handle_markdown_upload($data['name']);
+            if ($is_uploading_md) {
+                if (!$this->handle_markdown_upload($data['name'])) {
+                    // L'upload a échoué, on annule tout
+                    $this->procedures_model->delete_procedure($procedure_id);
+                    // handle_markdown_upload a déjà mis un message flash d'erreur
+                    $this->data = $this->input->post();
+                    $this->create();
+                    return;
+                }
             }
             
-            $this->session->set_flashdata('success', 'Procédure créée avec succès');
-            redirect("procedures");
+            $this->session->set_flashdata('success', 'Procédure créée avec succès.');
+            redirect('procedures');
         } else {
             $error_message = $this->procedures_model->error ?: 'Erreur lors de la création de la procédure';
             $this->session->set_flashdata('error', $error_message);
             
-            // Repopulate form with submitted data
             $this->data = $this->input->post();
             $this->create();
             return;
@@ -449,17 +456,23 @@ class Procedures extends Gvv_Controller {
      * Gérer l'upload d'un fichier markdown
      */
     private function handle_markdown_upload($procedure_name) {
+        gvv_debug("procedure: handle_markdown_upload started for procedure '{$procedure_name}'.");
         $config = array(
             'allowed_types' => 'md|txt',
             'max_file_size' => 5120, // 5MB
             'overwrite' => true,
             'file_name' => "procedure_{$procedure_name}.md"
         );
+        gvv_debug("procedure: upload config: " . var_export($config, true));
         
         $result = $this->file_manager->upload_file("procedures/{$procedure_name}", 'markdown_file', $config);
         
         if (!$result['success']) {
-            $this->session->set_flashdata('warning', 'Erreur upload markdown: ' . $result['error']);
+            $error_msg = isset($result['error']) ? $result['error'] : 'Unknown upload error.';
+            gvv_debug("procedure: markdown upload failed for procedure '{$procedure_name}'. Error: " . $error_msg);
+            $this->session->set_flashdata('warning', 'Erreur upload markdown: ' . $error_msg);
+        } else {
+            gvv_debug("procedure: markdown upload successful for procedure '{$procedure_name}'.");
         }
         
         return $result['success'];

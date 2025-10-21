@@ -82,6 +82,7 @@ $mimes = array(
 	'htm'	=>	'text/html',
 	'shtml'	=>	'text/html',
 	'txt'	=>	'text/plain',
+	'md'	=>	array('text/markdown', 'text/plain'),
 	'text'	=>	'text/plain',
 	'log'	=>	array('text/plain', 'text/x-log'),
 	'rtx'	=>	'text/richtext',

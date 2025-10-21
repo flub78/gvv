@@ -72,7 +72,7 @@ class Procedures_model extends Common_Model {
      * @param array $data Données de la procédure
      * @return int|false ID de la procédure créée ou false si erreur
      */
-    public function create_procedure($data) {
+    public function create_procedure($data, $is_uploading_md = false) {
         // Valider le nom (unique, alphanumerique + underscore)
         if (!$this->validate_procedure_name($data['name'])) {
             $this->error = 'Le nom de la procédure est invalide ou déjà utilisé.';
@@ -95,12 +95,14 @@ class Procedures_model extends Common_Model {
                 return false;
             }
             
-            // Créer un fichier markdown vide initial
-            if (!$this->create_initial_markdown_file($data)) {
-                $this->delete_procedure_directory($data['name']);
-                $this->delete(array('id' => $procedure_id));
-                $this->error = 'Impossible de créer le fichier markdown initial.';
-                return false;
+            // Créer un fichier markdown initial uniquement si aucun fichier n'est uploadé
+            if (!$is_uploading_md) {
+                if (!$this->create_initial_markdown_file($data)) {
+                    $this->delete_procedure_directory($data['name']);
+                    $this->delete(array('id' => $procedure_id));
+                    $this->error = 'Impossible de créer le fichier markdown initial.';
+                    return false;
+                }
             }
         } else {
             $this->error = 'Erreur de base de données lors de la création de la procédure.';
@@ -383,7 +385,8 @@ class Procedures_model extends Common_Model {
         $data['updated_by'] = $this->dx_auth->get_username();
         $data['updated_at'] = date('Y-m-d H:i:s');
         
-        return $this->update($data, array('name' => $name));
+        $this->db->where('name', $name);
+        return $this->db->update($this->table, $data);
     }
     
     /**
