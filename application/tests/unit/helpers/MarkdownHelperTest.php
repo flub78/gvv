@@ -25,23 +25,23 @@ class MarkdownHelperTest extends PHPUnit\Framework\TestCase {
     public function test_markdown_converts_headers() {
         $input = "# Heading 1\n## Heading 2";
         $output = markdown($input);
-        $this->assertContains('<h1>Heading 1</h1>', $output);
-        $this->assertContains('<h2>Heading 2</h2>', $output);
+        $this->assertStringContainsString('<h1>Heading 1</h1>', $output);
+        $this->assertStringContainsString('<h2>Heading 2</h2>', $output);
     }
 
     public function test_markdown_converts_bold_and_italic() {
         $input = "This is **bold** and *italic* text.";
         $output = markdown($input);
-        $this->assertContains('<strong>bold</strong>', $output);
-        $this->assertContains('<em>italic</em>', $output);
+        $this->assertStringContainsString('<strong>bold</strong>', $output);
+        $this->assertStringContainsString('<em>italic</em>', $output);
     }
 
     public function test_markdown_converts_lists() {
         $input = "- Item 1\n- Item 2";
         $output = markdown($input);
-        $this->assertContains('<ul>', $output);
-        $this->assertContains('<li>Item 1</li>', $output);
-        $this->assertContains('<li>Item 2</li>', $output);
+        $this->assertStringContainsString('<ul>', $output);
+        $this->assertStringContainsString('<li>Item 1</li>', $output);
+        $this->assertStringContainsString('<li>Item 2</li>', $output);
     }
 
     public function test_markdown_handles_empty_string() {
@@ -52,20 +52,20 @@ class MarkdownHelperTest extends PHPUnit\Framework\TestCase {
     public function test_markdown_handles_plain_text() {
         $input = "Just plain text";
         $output = markdown($input);
-        $this->assertContains('<p>Just plain text</p>', $output);
+        $this->assertStringContainsString('<p>Just plain text</p>', $output);
     }
 
     public function test_markdown_processes_mod_config_format() {
         // Test with the format used in the mod configuration
         $input = "# Messages du jour\n\n## coucou\nCeci est une liste\n* Elément 1\n* Elément 2";
         $output = markdown($input);
-        
-        $this->assertContains('<h1>Messages du jour</h1>', $output);
-        $this->assertContains('<h2>coucou</h2>', $output);
-        $this->assertContains('<p>Ceci est une liste</p>', $output);
-        $this->assertContains('<ul>', $output);
-        $this->assertContains('<li>Elément 1</li>', $output);
-        $this->assertContains('<li>Elément 2</li>', $output);
+
+        $this->assertStringContainsString('<h1>Messages du jour</h1>', $output);
+        $this->assertStringContainsString('<h2>coucou</h2>', $output);
+        $this->assertStringContainsString('<p>Ceci est une liste</p>', $output);
+        $this->assertStringContainsString('<ul>', $output);
+        $this->assertStringContainsString('<li>Elément 1</li>', $output);
+        $this->assertStringContainsString('<li>Elément 2</li>', $output);
     }
 }
 

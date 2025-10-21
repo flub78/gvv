@@ -35,12 +35,12 @@ Debug Example
 
 Markdown Helper
  [x] Markdown helper loads successfully
- [ ] Markdown converts headers
- [ ] Markdown converts bold and italic
- [ ] Markdown converts lists
+ [x] Markdown converts headers
+ [x] Markdown converts bold and italic
+ [x] Markdown converts lists
  [x] Markdown handles empty string
- [ ] Markdown handles plain text
- [ ] Markdown processes mod config format
+ [x] Markdown handles plain text
+ [x] Markdown processes mod config format
 
 Validation Helper
  [x] Date db 2 ht
