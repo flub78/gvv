@@ -1,97 +1,90 @@
-# Create a markdown file with the procedure content
-content = """# Procédure d'inscription à une association (intégrable dans une application Web)
+# Gestion des procédures (entre autre de la procédure d'inscription)
 
-## ✅ Vue d’ensemble rapide (étapes principales)
+Ce fichier est une description fonctionnelle de la gestion des procédures.
 
-1. **Création du compte / saisie des informations personnelles**
-2. **Confirmation de l’e-mail**
-3. **Validation des documents obligatoires**
-4. **Génération automatique de l’autorisation parentale en PDF**
-5. **Téléchargement de l’autorisation parentale signée**
-6. **Validation finale par l’administration**
-7. **Confirmation d’inscription**
+## Cas d'utilisation
 
----
+* En tant qu'admin je peux définir une procédure
+  * définir le texte et l’enchaînement des pages
+  * charger les fichiers images a valider.
+  * Définir les informations à collecter
 
-## 🔍 Détail étape par étape (logique WEB)
+* En tant qu'admin je peux consulter le suivi des procédures
+  * Connaître les procédures en cours
+  * Consulter les procédures validées/terminées.
+  * Supprimer des suivis de procédure
 
-### **Étape 1 – Page d'accueil / Choix du formulaire**
-- Bouton `S'inscrire`
-- Sélection du type d’adhésion : *Mineur / Majeur / Responsable légal*
-- Si **mineur**, prévoir un flag `besoin d'autorisation parentale`.
+* En tant qu'admin je peux valider des documents soumis par un utilisateur
+  * les visualiser
+  * les valider
+  * les rejeter en expliquant pourquoi.
+   
+* En tant qu'utilisateur je peux commencer une procédure
+  * Je reçoit un identifiant aléatoire qui me permettra de continuer la procédure
+  * Je peux saisir les informations demandées
+  * Je peux accepter et valider des documents
+  * je peux télécharger des documents.
+  * J'ai accès à l'état d'avancement de ma procédure et je peux revenir en arrière
+  * Une fois ma procédure soumise, je peux consulter l'état de validation des documents fournis.
 
-### **Étape 2 – Formulaire de création de compte**
-Champs à saisir :
-- Nom
-- Prénom
-- Date de naissance
-- Adresse postale complète
-- E-mail
-- Téléphone
-- Mot de passe (avec vérification)
-- Acceptation des conditions générales (checkbox obligatoire)
+## Implémentation
 
-> **Backend** : sauvegarde du compte en **état = "en attente de validation e-mail"**
+Une procédure est constituée de plusieurs éléments.
 
-### **Étape 3 – Confirmation de l'adresse e-mail**
-- L'utilisateur reçoit un e-mail avec un **lien de validation**
-- En cliquant, le compte passe à **état = "en cours d’inscription"**
+* Des pages d'informations qui s’enchaînent
+* Des fichiers pdf a visualiser et accepter.
+* Des fichiers pdf générés pendant la procédure
+* Des sous-procédures
+* Un mécanisme de navigation 
 
-### **Étape 4 – Lecture et validation des documents obligatoires**
-Afficher une liste avec cases à cocher :
-- ✅ Règlement intérieur (PDF à lire)
-- ✅ Statuts de l’association
-- ✅ Charte de bonne conduite
-- Bouton `Je déclare avoir lu et accepté`
+## Utilisation de markdown pour la définition des procédures
 
-> **Option UX** : ouverture du PDF dans un viewer intégré + case activée seulement après lecture.
+Les admins doivent pouvoir définir des procédures sans connaissance de programmation.
 
-### **Étape 5 – Génération du PDF d’autorisation parentale (si mineur)**
-- Formulaire supplémentaire : nom du responsable légal, lien de parenté
-- Bouton `Générer l’autorisation parentale`
-- **Backend** : génération automatique du PDF (pré-rempli avec les données + signature à apposer manuellement)
+L'idée est leur laisser définir la procédure en markdown avec des meta balises pour controller la logique de la procédure.
 
-> **Le PDF est proposé en téléchargement immédiatement** ou envoyé par e-mail.
+Une procédure de base sans intervention de l'utilisateur n'est qu'un fichier markdown visualisé en HTML.
 
-### **Étape 6 – Téléversement du PDF signé**
-- Interface d’upload (`drag & drop` ou bouton `Choisir un fichier`)
-- Vérification du type (PDF/JPG)
-- **Backend** : fichier stocké et état = *"Document en attente de validation admin"*
+### Metabalises
 
-### **Étape 7 – Validation par un administrateur**
-- Interface côté admin : liste des dossiers avec statut
-- Bouton `Valider / Refuser` après vérification du document
-- En cas de refus → notification à l’utilisateur avec possibilité de renvoyer
+* {page} définit un saut de page. L'utilisateur peut avancer ou reculer d'une page lors qu'il execute la procédure
 
-### **Étape 8 – Confirmation d’inscription**
-- Une fois validé, l’utilisateur reçoit un e-mail de confirmation
-- Son espace membre s’active avec accès à :
-  - Reçu / facture d'inscription
-  - Documents téléchargés
-  - Carte digitale d’adhérent (option)
+* {pdf:filename] un fichier pdf à visualiser dans un ascenseur. 
 
----
+* {acceptation:text} Un bouton pour demander à l'utilisateur d'accepter valider quelque 
 
-## 🎯 Bonus (améliorations possibles)
-- **Suivi d'avancement visuel** → barre de progression (Étape 3/8)
-- **Auto-sauvegarde du formulaire**
-- **Signature électronique intégrée** (évite l'impression du PDF)
-- **Webhook / Notification Discord ou Slack** pour prévenir les admins
+* {date} {varchar(20)} {text(250)}
 
----
+* {upload:"Téléchargez une photo de vous"},{upload:"Votre certificat médical"}
+ 
+* {upload_to_validate:"Télécharger l'autorisation parentale"}
 
-## 📌 Note
-Si besoin :
-- Je peux générer un **schéma de workflow** ou **diagramme UML**
-- Créer un **modèle de PDF** prêt à être généré
-- Proposer une **structure de base de données**
-- Ou **maquetter les écrans web**
 
-👉 **Dites-moi ce que vous souhaitez en premier !**
-"""
-file_path = "/mnt/data/procedure_inscription.md"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(content)
+### Persistence
 
-file_path
+On aura en base de données
+* une table de procédure
+* une table d'execution de procédure
 
+Et sur le serveur
+procedures/
+├── example_procedure
+│   └── procedure_example_procedure.md
+├── inscription
+│   └── procedure_inscription.md
+├── inscription_avion
+│   └── procedure_inscription_avion.md
+└── maintenance_planeur
+    └── procedure_maintenance_planeur.md
+suivi_procedure/
+└── inscription_avion
+    └── suivi1
+        ├── certificat_medical.png
+        ├── jean_dupont_data.json
+        └── photo.png
+
+
+### Questions
+
+* Sachant que les procédures vont être définies par les admins, comment faire pour qu'il soit possible de créer automatiquement une fiche de membre à partir des informations saisies dans la procédure.
+ 
