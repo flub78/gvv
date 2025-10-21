@@ -61,6 +61,8 @@ class Sections_model extends Common_Model {
      * @param $where selection
      */
     public function selector_with_all($where = array(), $filter_section = false) {
+        // Exclude section_id = 0 (cross-section) from UI selector - it's used internally by authorization system only
+        $where['id !='] = 0;
         $result = $this->selector($where, $filter_section);
         $result[] = $this->lang->line("all_sections");
         return $result;
