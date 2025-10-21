@@ -52,27 +52,27 @@ Validation Helper
  [x] Email validation
 
 Authorization_model
- [ ] Model loads successfully
- [ ] Get user roles queries correct tables
- [ ] Add permission method exists
- [ ] Remove permission method exists
- [ ] Get role permissions method exists
- [ ] Get data access rules method exists
- [ ] Add data access rule method exists
- [ ] Remove data access rule method exists
- [ ] Get users with role method exists
- [ ] Get audit log method exists
- [ ] Get migration status method exists
- [ ] Set migration status method exists
- [ ] Get user roles accepts correct parameters
- [ ] Add permission accepts correct parameters
- [ ] Add data access rule accepts correct parameters
- [ ] Create role method exists
- [ ] Update role method exists
- [ ] Delete role method exists
- [ ] Create role accepts correct parameters
- [ ] Update role accepts correct parameters
- [ ] Delete role accepts correct parameters
+ [x] Model loads successfully
+ [x] Get user roles queries correct tables
+ [x] Add permission method exists
+ [x] Remove permission method exists
+ [x] Get role permissions method exists
+ [x] Get data access rules method exists
+ [x] Add data access rule method exists
+ [x] Remove data access rule method exists
+ [x] Get users with role method exists
+ [x] Get audit log method exists
+ [x] Get migration status method exists
+ [x] Set migration status method exists
+ [x] Get user roles accepts correct parameters
+ [x] Add permission accepts correct parameters
+ [x] Add data access rule accepts correct parameters
+ [x] Create role method exists
+ [x] Update role method exists
+ [x] Delete role method exists
+ [x] Create role accepts correct parameters
+ [x] Update role accepts correct parameters
+ [x] Delete role accepts correct parameters
 
 Configuration Model
  [x] Image method logic
@@ -108,3 +108,49 @@ Bitfield
  [x] Complex scenarios
 
 Gvv_Authorization
+ [x] Library loads successfully
+ [x] Use new system returns config value
+ [x] Get user roles returns roles for user
+ [x] Get user roles caches results
+ [x] Get user roles returns empty array for user with no roles
+ [x] Has role returns true when user has role
+ [x] Has role returns false when user does not have role
+ [x] Has any role returns true when user has one of roles
+ [x] Has any role returns false when user has none of roles
+ [x] Clear cache clears all cached data
+ [x] Clear cache for specific user
+
+Language Completeness
+ [x] Reference language directory exists
+ [x] English has all language files
+ [x] Dutch has all language files
+ [x] English has all translation keys
+ [x] Dutch has all translation keys
+ [x] Reference language has translation files
+
+Backend Anonymization
+ [x] Anonymize all method exists
+ [x] Anonymize all data method exists
+ [x] Environment check
+
+Comptes Controller
+ [x] Csv resultat export is truncated
+ [x] Fixed csv resultat export contains complete data
+
+Configuration Controller
+ [x] Json output parsing
+ [x] Html output parsing
+ [x] Csv output parsing
+ [x] Http status codes
+ [x] Response headers
+ [x] Form validation logic
+
+Controller
+ [x] Load controller from subfolder
+ [x] Load inexistent controller from subfolder
+
+Vols Decouverte Background Image
+ [x] Background image path validation
+ [ ] Background image selection logic
+ [ ] Discovery flight background image file
+

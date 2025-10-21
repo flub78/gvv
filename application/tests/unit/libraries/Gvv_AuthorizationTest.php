@@ -25,6 +25,12 @@ class Gvv_AuthorizationTest extends TestCase
 
         $this->CI =& get_instance();
 
+        // Load the real Authorization_model class file BEFORE mocking
+        // This prevents "Cannot redeclare class" errors
+        if (!class_exists('Authorization_model')) {
+            require_once APPPATH . 'models/authorization_model.php';
+        }
+
         // Mock Authorization_model
         $this->model_mock = $this->getMockBuilder('Authorization_model')
             ->disableOriginalConstructor()
@@ -34,8 +40,8 @@ class Gvv_AuthorizationTest extends TestCase
         $this->CI->load->library('Gvv_Authorization');
         $this->auth = $this->CI->gvv_authorization;
 
-        // Inject mocked model
-        $this->CI->Authorization_model = $this->model_mock;
+        // Inject mocked model (lowercase property name)
+        $this->CI->authorization_model = $this->model_mock;
 
         // Ensure we're using the new system for tests
         $this->CI->config->set_item('gvv_config', array(

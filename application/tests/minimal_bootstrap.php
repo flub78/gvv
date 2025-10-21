@@ -137,13 +137,12 @@ class MinimalMockLoader {
         if (file_exists($model_file)) {
             require_once $model_file;
 
-            // Use the model name as-is for the class
-            $model_name = $model;
-            if (strpos($model, '_') === false) {
-                $model_name = ucfirst($model);
-            }
+            // Class name should be ucfirst (e.g., Authorization_model)
+            // Property name should be lowercase (e.g., authorization_model)
+            $class_name = ucfirst($model);
+            $property_name = $model;
 
-            $this->CI->$model_name = new $model_name();
+            $this->CI->$property_name = new $class_name();
         }
         return TRUE;
     }
@@ -208,6 +207,10 @@ class MinimalMockDatabase {
     }
 
     public function or_where($key, $value = NULL) {
+        return $this;
+    }
+
+    public function where_in($key, $values = array()) {
         return $this;
     }
 

@@ -20,8 +20,8 @@ class Authorization_modelTest extends TestCase
         parent::setUp();
 
         $this->CI =& get_instance();
-        $this->CI->load->model('Authorization_model');
-        $this->model = $this->CI->Authorization_model;
+        $this->CI->load->model('authorization_model');
+        $this->model = $this->CI->authorization_model;
 
         // Mock database
         $this->db_mock = $this->getMockBuilder('CI_DB_mysqli_driver')

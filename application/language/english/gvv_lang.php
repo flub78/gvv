@@ -399,3 +399,186 @@ $lang['datatable_no_data'] = "No data available in table";
 $lang['gvv_error_duplicate_entry'] = "Duplicate entry";
 $lang['gvv_error_foreign_key_constraint'] = "Foreign key constraint violation";
 $lang['gvv_error_create_record'] = "Error creating record";
+
+// Authorization System - Additional keys (Phase 3-4)
+$lang['authorization_cancel'] = "Cancel";
+$lang['authorization_grant'] = "Grant";
+$lang['authorization_revoke'] = "Revoke";
+$lang['authorization_grant_role_for'] = "Grant role to";
+$lang['authorization_revoke_role_for'] = "Revoke role from";
+$lang['authorization_available_roles'] = "Available roles";
+$lang['authorization_continue'] = "Continue";
+$lang['authorization_current_roles'] = "Current roles";
+$lang['authorization_email'] = "Email";
+$lang['authorization_name'] = "Name";
+$lang['authorization_no'] = "No";
+$lang['authorization_no_roles'] = "No roles defined";
+$lang['authorization_no_section'] = "No section";
+$lang['authorization_notes'] = "Notes";
+$lang['authorization_please_select_role'] = "Please select a role";
+$lang['authorization_role_description'] = "Role description";
+$lang['authorization_role_name'] = "Role name";
+$lang['authorization_role_scope'] = "Role scope";
+$lang['authorization_role_system'] = "Role system";
+$lang['authorization_select_role'] = "Select a role";
+$lang['authorization_select_role_desc'] = "Choose a role to manage its permissions";
+$lang['authorization_select_role_to_revoke'] = "Select a role to revoke";
+$lang['authorization_select_section'] = "Select a section";
+$lang['authorization_username'] = "Username";
+$lang['authorization_user_roles_list'] = "User roles list";
+$lang['authorization_yes'] = "Yes";
+
+// Migration Dashboard (Phase 6)
+$lang['migration_dashboard_title'] = 'Authorization System Migration';
+$lang['migration_dashboard_subtitle'] = 'Progressive migration from DX_Auth to Gvv_Authorization';
+$lang['migration_overview'] = 'Overview';
+$lang['migration_pilot_users'] = 'Pilot Users';
+$lang['migration_comparison_log'] = 'Comparison Log';
+$lang['migration_statistics'] = 'Statistics';
+
+// Overview Tab
+$lang['migration_total_users'] = 'Total Users';
+$lang['migration_in_progress'] = 'In Migration';
+$lang['migration_migrated'] = 'Migrated';
+$lang['migration_global_progress'] = 'Global Progress';
+$lang['migration_pilot_users_summary'] = 'Pilot Users (Test)';
+$lang['migration_alerts_warnings'] = 'Warnings and Errors';
+$lang['migration_no_issues'] = 'No issues detected';
+$lang['migration_start_pilot'] = 'Start pilot migration';
+$lang['migration_users_of'] = 'users of';
+
+// Status
+$lang['migration_status_pending'] = 'Pending';
+$lang['migration_status_in_progress'] = 'In Progress';
+$lang['migration_status_completed'] = 'Completed';
+$lang['migration_status_failed'] = 'Failed';
+
+// Pilot Users Tab
+$lang['migration_pilot_management'] = 'Pilot User Management';
+$lang['migration_pilot_subtitle'] = 'Progressive migration - Testing and validation';
+$lang['migration_filter_all_status'] = 'All statuses';
+$lang['migration_search_user'] = 'Search user...';
+$lang['migration_no_pilot_users'] = 'No pilot users found';
+$lang['migration_legacy_roles'] = 'Legacy roles';
+$lang['migration_since'] = 'Since';
+$lang['migration_migrate_btn'] = 'Migrate';
+$lang['migration_complete_btn'] = 'Complete';
+$lang['migration_rollback_btn'] = 'Rollback';
+$lang['migration_retry_btn'] = 'Retry';
+$lang['migration_completed_label'] = 'Migration completed';
+$lang['migration_displaying'] = 'Displaying';
+$lang['migration_pilot_users_label'] = 'pilot user(s)';
+
+// Migration Wizard
+$lang['migration_wizard_title'] = 'Migration Wizard';
+$lang['migration_wizard_step1'] = 'Step 1/4: Validation';
+$lang['migration_wizard_step2'] = 'Step 2/4: Permission Mapping';
+$lang['migration_wizard_step3'] = 'Step 3/4: Confirmation';
+$lang['migration_wizard_step4'] = 'Step 4/4: Migration Complete';
+$lang['migration_wizard_user'] = 'User';
+$lang['migration_wizard_auto_checks'] = 'Automatic checks';
+$lang['migration_wizard_user_exists'] = 'User exists in database';
+$lang['migration_wizard_no_migration'] = 'No migration in progress';
+$lang['migration_wizard_perms_available'] = 'Legacy permissions available for backup';
+$lang['migration_wizard_important'] = 'Important';
+$lang['migration_wizard_activate_new'] = 'Migration will activate the new authorization system';
+$lang['migration_wizard_logging_enabled'] = 'Comparison logging will be enabled';
+$lang['migration_wizard_monitoring_required'] = 'Monitoring required for 7 days';
+$lang['migration_wizard_rollback_possible'] = 'Rollback possible at any time';
+$lang['migration_wizard_perms_mapping'] = 'The following permissions will be used with the new system';
+$lang['migration_wizard_new_roles'] = 'Roles in the new system';
+$lang['migration_wizard_legacy_mapped'] = 'Legacy role will be mapped to equivalent roles';
+$lang['migration_wizard_perms_inherited'] = 'Permissions will be inherited according to scope (global/section)';
+$lang['migration_wizard_data_rules'] = 'Data access rules will be applied';
+$lang['migration_wizard_auto_compare'] = 'The system will automatically compare authorizations between old and new systems';
+$lang['migration_wizard_warning'] = 'WARNING: This action will';
+$lang['migration_wizard_switch_user'] = 'Switch {username} to the new system';
+$lang['migration_wizard_enable_logging'] = 'Enable comparison logging';
+$lang['migration_wizard_require_monitoring'] = 'Require monitoring for 7 days';
+$lang['migration_wizard_security'] = 'Security';
+$lang['migration_wizard_backup_done'] = 'Current permissions backed up';
+$lang['migration_wizard_rollback_anytime'] = 'Rollback possible at any time';
+$lang['migration_wizard_notes'] = 'Notes (optional)';
+$lang['migration_wizard_notes_placeholder'] = 'E.g., Wave 1 migration - basic user';
+$lang['migration_wizard_success'] = 'Migration successful for {username}!';
+$lang['migration_wizard_next_actions'] = 'Next Actions';
+$lang['migration_wizard_monitor_days'] = 'Monitor for 7 days (until {date})';
+$lang['migration_wizard_check_log'] = 'Check comparison log daily';
+$lang['migration_wizard_mark_complete'] = 'Mark as complete if no issues';
+$lang['migration_wizard_user_can_login'] = 'User can now login and use the new authorization system';
+$lang['migration_wizard_back'] = 'Back';
+$lang['migration_wizard_cancel'] = 'Cancel';
+$lang['migration_wizard_continue'] = 'Continue';
+$lang['migration_wizard_migrate'] = 'MIGRATE';
+$lang['migration_wizard_close'] = 'Close';
+
+// Rollback Modal
+$lang['migration_rollback_title'] = 'Migration Rollback';
+$lang['migration_rollback_warning'] = 'WARNING: You are about to revert user {username} to the legacy authorization system (DX_Auth)';
+$lang['migration_rollback_reason'] = 'Rollback reason (required)';
+$lang['migration_rollback_reason_placeholder'] = 'E.g., Significant discrepancies detected in page access...';
+$lang['migration_rollback_actions'] = 'This action will';
+$lang['migration_rollback_disable'] = 'Disable use_new_system (0)';
+$lang['migration_rollback_restore'] = 'Restore permissions from old_permissions';
+$lang['migration_rollback_mark_failed'] = 'Mark status as "failed"';
+$lang['migration_rollback_keep_history'] = 'Preserve history in audit log';
+$lang['migration_rollback_no_delete'] = 'New system data will NOT be deleted (to allow future retry)';
+$lang['migration_rollback_confirm'] = 'CONFIRM ROLLBACK';
+
+// Comparison Log Tab
+$lang['migration_comparison_title'] = 'Authorization Comparison Log';
+$lang['migration_comparison_subtitle'] = 'Comparison between old and new systems';
+$lang['migration_comparison_divergences'] = 'divergence(s) detected in last 24h';
+$lang['migration_comparison_search_advanced'] = 'Advanced Search';
+$lang['migration_comparison_user'] = 'User';
+$lang['migration_comparison_all'] = 'All';
+$lang['migration_comparison_controller'] = 'Controller';
+$lang['migration_comparison_action'] = 'Action';
+$lang['migration_comparison_date_from'] = 'From';
+$lang['migration_comparison_date_to'] = 'To';
+$lang['migration_comparison_mismatches_only'] = 'Divergences only';
+$lang['migration_comparison_search'] = 'Search';
+$lang['migration_comparison_reset'] = 'Reset';
+$lang['migration_comparison_log_title'] = 'Comparison Log';
+$lang['migration_comparison_entries'] = 'entry(ies)';
+$lang['migration_comparison_no_data'] = 'No entries found';
+$lang['migration_comparison_datetime'] = 'Date/Time';
+$lang['migration_comparison_old_system'] = 'Old System';
+$lang['migration_comparison_new_system'] = 'New System';
+$lang['migration_comparison_actions'] = 'Actions';
+$lang['migration_comparison_granted'] = 'Granted';
+$lang['migration_comparison_denied'] = 'Denied';
+$lang['migration_comparison_details'] = 'Details';
+$lang['migration_comparison_export_csv'] = 'Export CSV';
+$lang['migration_comparison_purge'] = 'Purge old logs';
+$lang['migration_comparison_details_title'] = 'Comparison Details';
+$lang['migration_comparison_date'] = 'Date';
+$lang['migration_comparison_old_dx_auth'] = 'Old System (DX_Auth)';
+$lang['migration_comparison_new_gvv'] = 'New System (Gvv_Authorization)';
+$lang['migration_comparison_result'] = 'Result';
+$lang['migration_comparison_access_granted'] = 'ACCESS GRANTED';
+$lang['migration_comparison_access_denied'] = 'ACCESS DENIED';
+$lang['migration_comparison_analysis'] = 'ANALYSIS';
+$lang['migration_comparison_divergence'] = 'Divergence detected: result differs between the two systems';
+
+// Statistics Tab
+$lang['migration_stats_title'] = 'Migration Statistics';
+$lang['migration_stats_subtitle'] = 'Progressive migration metrics and trends';
+$lang['migration_stats_wave_progress'] = 'Wave Progress';
+$lang['migration_stats_wave1'] = 'Wave 1 (testuser)';
+$lang['migration_stats_wave2'] = 'Wave 2 (testplanchiste)';
+$lang['migration_stats_wave3'] = 'Wave 3 (testadmin)';
+$lang['migration_stats_total_comparisons'] = 'Total Comparisons';
+$lang['migration_stats_divergences_detected'] = 'Divergences Detected';
+$lang['migration_stats_concordance_rate'] = 'Concordance Rate';
+$lang['migration_stats_last_7_days'] = 'Last 7 days';
+$lang['migration_stats_comparison_trend'] = 'Authorization Comparisons (Last 7 days)';
+$lang['migration_stats_top_controllers'] = 'Top 5 Controllers with Divergences';
+$lang['migration_stats_no_divergences'] = 'No divergences detected';
+$lang['migration_stats_export_pdf'] = 'Export Full Report (PDF)';
+$lang['migration_stats_export_csv'] = 'Export CSV';
+
+// Common
+$lang['migration_back_dashboard'] = 'Back to dashboard';
+$lang['migration_confirm'] = 'Confirm';
+$lang['migration_none'] = 'None';

@@ -399,3 +399,186 @@ $lang['datatable_no_data'] = "Geen gegevens beschikbaar in tabel";
 $lang['gvv_error_duplicate_entry'] = "Dubbele invoer";
 $lang['gvv_error_foreign_key_constraint'] = "Buitenlandse sleutel beperking overtreding";
 $lang['gvv_error_create_record'] = "Fout bij aanmaken record";
+
+// Autorisatiesysteem - Aanvullende sleutels (Fase 3-4)
+$lang['authorization_cancel'] = "Annuleren";
+$lang['authorization_grant'] = "Toekennen";
+$lang['authorization_revoke'] = "Intrekken";
+$lang['authorization_grant_role_for'] = "Rol toekennen aan";
+$lang['authorization_revoke_role_for'] = "Rol intrekken van";
+$lang['authorization_available_roles'] = "Beschikbare rollen";
+$lang['authorization_continue'] = "Doorgaan";
+$lang['authorization_current_roles'] = "Huidige rollen";
+$lang['authorization_email'] = "E-mail";
+$lang['authorization_name'] = "Naam";
+$lang['authorization_no'] = "Nee";
+$lang['authorization_no_roles'] = "Geen rollen gedefinieerd";
+$lang['authorization_no_section'] = "Geen sectie";
+$lang['authorization_notes'] = "Notities";
+$lang['authorization_please_select_role'] = "Selecteer een rol";
+$lang['authorization_role_description'] = "Rolbeschrijving";
+$lang['authorization_role_name'] = "Rolnaam";
+$lang['authorization_role_scope'] = "Rolbereik";
+$lang['authorization_role_system'] = "Rolsysteem";
+$lang['authorization_select_role'] = "Selecteer een rol";
+$lang['authorization_select_role_desc'] = "Kies een rol om de rechten te beheren";
+$lang['authorization_select_role_to_revoke'] = "Selecteer een rol om in te trekken";
+$lang['authorization_select_section'] = "Selecteer een sectie";
+$lang['authorization_username'] = "Gebruikersnaam";
+$lang['authorization_user_roles_list'] = "Lijst met gebruikersrollen";
+$lang['authorization_yes'] = "Ja";
+
+// Migratiedashboard (Fase 6)
+$lang['migration_dashboard_title'] = 'Migratie van autorisatiesysteem';
+$lang['migration_dashboard_subtitle'] = 'Geleidelijke migratie van DX_Auth naar Gvv_Authorization';
+$lang['migration_overview'] = 'Overzicht';
+$lang['migration_pilot_users'] = 'Pilot gebruikers';
+$lang['migration_comparison_log'] = 'Vergelijkingslogboek';
+$lang['migration_statistics'] = 'Statistieken';
+
+// Overzichtstabblad
+$lang['migration_total_users'] = 'Totaal gebruikers';
+$lang['migration_in_progress'] = 'In migratie';
+$lang['migration_migrated'] = 'Gemigreerd';
+$lang['migration_global_progress'] = 'Globale voortgang';
+$lang['migration_pilot_users_summary'] = 'Pilot gebruikers (Test)';
+$lang['migration_alerts_warnings'] = 'Waarschuwingen en fouten';
+$lang['migration_no_issues'] = 'Geen problemen gedetecteerd';
+$lang['migration_start_pilot'] = 'Start pilot migratie';
+$lang['migration_users_of'] = 'gebruikers van';
+
+// Status
+$lang['migration_status_pending'] = 'In afwachting';
+$lang['migration_status_in_progress'] = 'In uitvoering';
+$lang['migration_status_completed'] = 'Voltooid';
+$lang['migration_status_failed'] = 'Mislukt';
+
+// Pilot gebruikerstabblad
+$lang['migration_pilot_management'] = 'Beheer pilot gebruikers';
+$lang['migration_pilot_subtitle'] = 'Geleidelijke migratie - Testen en validatie';
+$lang['migration_filter_all_status'] = 'Alle statussen';
+$lang['migration_search_user'] = 'Zoek gebruiker...';
+$lang['migration_no_pilot_users'] = 'Geen pilot gebruikers gevonden';
+$lang['migration_legacy_roles'] = 'Legacy rollen';
+$lang['migration_since'] = 'Sinds';
+$lang['migration_migrate_btn'] = 'Migreren';
+$lang['migration_complete_btn'] = 'Voltooien';
+$lang['migration_rollback_btn'] = 'Terugdraaien';
+$lang['migration_retry_btn'] = 'Opnieuw proberen';
+$lang['migration_completed_label'] = 'Migratie voltooid';
+$lang['migration_displaying'] = 'Weergeven van';
+$lang['migration_pilot_users_label'] = 'pilot gebruiker(s)';
+
+// Migratiewizard
+$lang['migration_wizard_title'] = 'Migratiewizard';
+$lang['migration_wizard_step1'] = 'Stap 1/4: Validatie';
+$lang['migration_wizard_step2'] = 'Stap 2/4: Rechtenmapping';
+$lang['migration_wizard_step3'] = 'Stap 3/4: Bevestiging';
+$lang['migration_wizard_step4'] = 'Stap 4/4: Migratie voltooid';
+$lang['migration_wizard_user'] = 'Gebruiker';
+$lang['migration_wizard_auto_checks'] = 'Automatische controles';
+$lang['migration_wizard_user_exists'] = 'Gebruiker bestaat in database';
+$lang['migration_wizard_no_migration'] = 'Geen migratie in uitvoering';
+$lang['migration_wizard_perms_available'] = 'Legacy rechten beschikbaar voor backup';
+$lang['migration_wizard_important'] = 'Belangrijk';
+$lang['migration_wizard_activate_new'] = 'Migratie activeert het nieuwe autorisatiesysteem';
+$lang['migration_wizard_logging_enabled'] = 'Vergelijkingslogboek wordt geactiveerd';
+$lang['migration_wizard_monitoring_required'] = 'Monitoring vereist voor 7 dagen';
+$lang['migration_wizard_rollback_possible'] = 'Terugdraaien mogelijk op elk moment';
+$lang['migration_wizard_perms_mapping'] = 'De volgende rechten worden gebruikt met het nieuwe systeem';
+$lang['migration_wizard_new_roles'] = 'Rollen in het nieuwe systeem';
+$lang['migration_wizard_legacy_mapped'] = 'Legacy rol wordt gemapped naar equivalente rollen';
+$lang['migration_wizard_perms_inherited'] = 'Rechten worden overgenomen volgens bereik (globaal/sectie)';
+$lang['migration_wizard_data_rules'] = 'Gegevenstoegangsregels worden toegepast';
+$lang['migration_wizard_auto_compare'] = 'Het systeem vergelijkt automatisch autorisaties tussen oud en nieuw systeem';
+$lang['migration_wizard_warning'] = 'WAARSCHUWING: Deze actie zal';
+$lang['migration_wizard_switch_user'] = '{username} overschakelen naar het nieuwe systeem';
+$lang['migration_wizard_enable_logging'] = 'Vergelijkingslogboek activeren';
+$lang['migration_wizard_require_monitoring'] = 'Monitoring vereisen voor 7 dagen';
+$lang['migration_wizard_security'] = 'Beveiliging';
+$lang['migration_wizard_backup_done'] = 'Huidige rechten geback-upt';
+$lang['migration_wizard_rollback_anytime'] = 'Terugdraaien mogelijk op elk moment';
+$lang['migration_wizard_notes'] = 'Notities (optioneel)';
+$lang['migration_wizard_notes_placeholder'] = 'Bijv. Golf 1 migratie - basisgebruiker';
+$lang['migration_wizard_success'] = 'Migratie succesvol voor {username}!';
+$lang['migration_wizard_next_actions'] = 'Volgende acties';
+$lang['migration_wizard_monitor_days'] = 'Monitoren voor 7 dagen (tot {date})';
+$lang['migration_wizard_check_log'] = 'Controleer vergelijkingslogboek dagelijks';
+$lang['migration_wizard_mark_complete'] = 'Markeer als voltooid indien geen problemen';
+$lang['migration_wizard_user_can_login'] = 'Gebruiker kan nu inloggen en het nieuwe autorisatiesysteem gebruiken';
+$lang['migration_wizard_back'] = 'Terug';
+$lang['migration_wizard_cancel'] = 'Annuleren';
+$lang['migration_wizard_continue'] = 'Doorgaan';
+$lang['migration_wizard_migrate'] = 'MIGREREN';
+$lang['migration_wizard_close'] = 'Sluiten';
+
+// Rollback modal
+$lang['migration_rollback_title'] = 'Migratie terugdraaien';
+$lang['migration_rollback_warning'] = 'WAARSCHUWING: U staat op het punt gebruiker {username} terug te zetten naar het legacy autorisatiesysteem (DX_Auth)';
+$lang['migration_rollback_reason'] = 'Reden voor terugdraaien (verplicht)';
+$lang['migration_rollback_reason_placeholder'] = 'Bijv. Significante verschillen gedetecteerd in paginatoegang...';
+$lang['migration_rollback_actions'] = 'Deze actie zal';
+$lang['migration_rollback_disable'] = 'use_new_system uitschakelen (0)';
+$lang['migration_rollback_restore'] = 'Rechten herstellen vanuit old_permissions';
+$lang['migration_rollback_mark_failed'] = 'Status markeren als "mislukt"';
+$lang['migration_rollback_keep_history'] = 'Geschiedenis bewaren in auditlogboek';
+$lang['migration_rollback_no_delete'] = 'Nieuwe systeemgegevens worden NIET verwijderd (om toekomstige poging mogelijk te maken)';
+$lang['migration_rollback_confirm'] = 'TERUGDRAAIEN BEVESTIGEN';
+
+// Vergelijkingslogboek tabblad
+$lang['migration_comparison_title'] = 'Autorisatievergelijkingslogboek';
+$lang['migration_comparison_subtitle'] = 'Vergelijking tussen oud en nieuw systeem';
+$lang['migration_comparison_divergences'] = 'verschil(len) gedetecteerd in laatste 24u';
+$lang['migration_comparison_search_advanced'] = 'Geavanceerd zoeken';
+$lang['migration_comparison_user'] = 'Gebruiker';
+$lang['migration_comparison_all'] = 'Alle';
+$lang['migration_comparison_controller'] = 'Controller';
+$lang['migration_comparison_action'] = 'Actie';
+$lang['migration_comparison_date_from'] = 'Van';
+$lang['migration_comparison_date_to'] = 'Tot';
+$lang['migration_comparison_mismatches_only'] = 'Alleen verschillen';
+$lang['migration_comparison_search'] = 'Zoeken';
+$lang['migration_comparison_reset'] = 'Resetten';
+$lang['migration_comparison_log_title'] = 'Vergelijkingslogboek';
+$lang['migration_comparison_entries'] = 'item(s)';
+$lang['migration_comparison_no_data'] = 'Geen items gevonden';
+$lang['migration_comparison_datetime'] = 'Datum/Tijd';
+$lang['migration_comparison_old_system'] = 'Oud systeem';
+$lang['migration_comparison_new_system'] = 'Nieuw systeem';
+$lang['migration_comparison_actions'] = 'Acties';
+$lang['migration_comparison_granted'] = 'Toegekend';
+$lang['migration_comparison_denied'] = 'Geweigerd';
+$lang['migration_comparison_details'] = 'Details';
+$lang['migration_comparison_export_csv'] = 'Exporteer CSV';
+$lang['migration_comparison_purge'] = 'Oude logboeken opschonen';
+$lang['migration_comparison_details_title'] = 'Vergelijkingsdetails';
+$lang['migration_comparison_date'] = 'Datum';
+$lang['migration_comparison_old_dx_auth'] = 'Oud systeem (DX_Auth)';
+$lang['migration_comparison_new_gvv'] = 'Nieuw systeem (Gvv_Authorization)';
+$lang['migration_comparison_result'] = 'Resultaat';
+$lang['migration_comparison_access_granted'] = 'TOEGANG VERLEEND';
+$lang['migration_comparison_access_denied'] = 'TOEGANG GEWEIGERD';
+$lang['migration_comparison_analysis'] = 'ANALYSE';
+$lang['migration_comparison_divergence'] = 'Verschil gedetecteerd: resultaat verschilt tussen de twee systemen';
+
+// Statistiekentabblad
+$lang['migration_stats_title'] = 'Migratiestatistieken';
+$lang['migration_stats_subtitle'] = 'Geleidelijke migratie statistieken en trends';
+$lang['migration_stats_wave_progress'] = 'Golfvoortgang';
+$lang['migration_stats_wave1'] = 'Golf 1 (testuser)';
+$lang['migration_stats_wave2'] = 'Golf 2 (testplanchiste)';
+$lang['migration_stats_wave3'] = 'Golf 3 (testadmin)';
+$lang['migration_stats_total_comparisons'] = 'Totaal vergelijkingen';
+$lang['migration_stats_divergences_detected'] = 'Verschillen gedetecteerd';
+$lang['migration_stats_concordance_rate'] = 'Concordantiepercentage';
+$lang['migration_stats_last_7_days'] = 'Laatste 7 dagen';
+$lang['migration_stats_comparison_trend'] = 'Autorisatievergelijkingen (Laatste 7 dagen)';
+$lang['migration_stats_top_controllers'] = 'Top 5 controllers met verschillen';
+$lang['migration_stats_no_divergences'] = 'Geen verschillen gedetecteerd';
+$lang['migration_stats_export_pdf'] = 'Exporteer volledig rapport (PDF)';
+$lang['migration_stats_export_csv'] = 'Exporteer CSV';
+
+// Algemeen
+$lang['migration_back_dashboard'] = 'Terug naar dashboard';
+$lang['migration_confirm'] = 'Bevestigen';
+$lang['migration_none'] = 'Geen';
