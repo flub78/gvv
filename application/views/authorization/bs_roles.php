@@ -50,16 +50,37 @@ $this->load->view('bs_banner');
             <table class="table table-striped table-bordered datatable">
                 <thead>
                     <tr>
+                        <th></th>
+                        <th></th>
                         <th><?= $this->lang->line('authorization_role_name') ?></th>
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
                         <th><?= $this->lang->line('authorization_role_system') ?></th>
-                        <th><?= $this->lang->line('authorization_actions') ?></th>
+                        <th><?= $this->lang->line('authorization_permissions') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($roles as $role): ?>
                         <tr>
+                            <td>
+                                <?php if (!$role['is_system_role']): ?>
+                                    <a href="<?= site_url('authorization/edit_role/' . $role['id']) ?>"
+                                       class="btn btn-sm btn-primary"
+                                       title="<?= $this->lang->line('gvv_button_edit') ?>">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!$role['is_system_role']): ?>
+                                    <a href="<?= site_url('authorization/delete_role/' . $role['id']) ?>"
+                                       class="btn btn-sm btn-danger"
+                                       title="<?= $this->lang->line('gvv_button_delete') ?>"
+                                       onclick="return confirm('<?= $this->lang->line('authorization_confirm_delete_role') ?>');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <strong><?= htmlspecialchars($role['nom']) ?></strong>
                                 <?php if (!empty($role['translation_key'])): ?>
@@ -96,19 +117,6 @@ $this->load->view('bs_banner');
                                    title="<?= $this->lang->line('authorization_data_rules') ?>">
                                     <i class="fas fa-database"></i> <?= $this->lang->line('authorization_data_rules') ?>
                                 </a>
-                                <?php if (!$role['is_system_role']): ?>
-                                    <a href="<?= site_url('authorization/edit_role/' . $role['id']) ?>"
-                                       class="btn btn-sm btn-primary"
-                                       title="<?= $this->lang->line('gvv_button_edit') ?>">
-                                        <i class="fas fa-edit"></i> <?= $this->lang->line('gvv_button_edit') ?>
-                                    </a>
-                                    <a href="<?= site_url('authorization/delete_role/' . $role['id']) ?>"
-                                       class="btn btn-sm btn-danger"
-                                       title="<?= $this->lang->line('gvv_button_delete') ?>"
-                                       onclick="return confirm('<?= $this->lang->line('authorization_confirm_delete_role') ?>');">
-                                        <i class="fas fa-trash"></i> <?= $this->lang->line('gvv_button_delete') ?>
-                                    </a>
-                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
