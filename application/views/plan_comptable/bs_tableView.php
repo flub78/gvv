@@ -17,12 +17,40 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Vue planche (table) pour le plan comptable
- * 
+ *
  * @package vues
  */
 $this->load->view('bs_header');
 $this->load->view('bs_menu');
 $this->load->view('bs_banner');
+?>
+<style>
+    /* Action columns (edit and delete icons) - narrow */
+    .datatable_server th:nth-child(1),
+    .datatable_server td:nth-child(1),
+    .datatable_server th:nth-child(2),
+    .datatable_server td:nth-child(2) {
+        width: 40px !important;
+        max-width: 40px !important;
+        text-align: center;
+        padding: 4px !important;
+    }
+
+    /* Code column - narrow for 8 characters */
+    .datatable_server th:nth-child(3),
+    .datatable_server td:nth-child(3) {
+        width: 100px !important;
+        max-width: 100px !important;
+    }
+
+    /* Description column - wide, no wrapping */
+    .datatable_server th:nth-child(4),
+    .datatable_server td:nth-child(4) {
+        width: auto !important;
+        min-width: 400px !important;
+    }
+</style>
+<?php
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -34,7 +62,7 @@ $attrs = array(
     'actions' => array ('edit', 'delete'),
     'fields' => array('pcode', 'pdesc'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'width' => array(50, 400),
+    'width' => array(100, 600),  // pcode (8 chars narrow), pdesc (wide for description)
     'class' => "datatable_style datatable_server table table-striped");
 
     // Create button above the table
