@@ -49,7 +49,7 @@ Phase 6 implements a **dual-mode architecture** allowing progressive migration f
 Already exists from migration 042:
 
 ```sql
-CREATE TABLE IF NOT EXISTS user_authorization_migration (
+CREATE TABLE IF NOT EXISTS authorization_migration_status (
     user_id INT NOT NULL,
     migration_status ENUM('pending', 'in_progress', 'completed', 'failed') DEFAULT 'pending',
     use_new_system TINYINT(1) DEFAULT 0,
@@ -330,7 +330,7 @@ See `phase6_migration_dashboard_mockups.md`
 **1. Enable Pilot User**
 ```sql
 -- Set user to new system
-UPDATE user_authorization_migration
+UPDATE authorization_migration_status
 SET use_new_system = 1,
     migration_status = 'in_progress',
     migrated_at = NOW(),
@@ -350,7 +350,7 @@ ORDER BY created_at DESC;
 **3. Complete Migration**
 ```sql
 -- Mark migration complete after 7 days with no issues
-UPDATE user_authorization_migration
+UPDATE authorization_migration_status
 SET migration_status = 'completed'
 WHERE user_id = <pilot_user_id>
 AND use_new_system = 1;
@@ -359,7 +359,7 @@ AND use_new_system = 1;
 **4. Rollback (if needed)**
 ```sql
 -- Revert to legacy system
-UPDATE user_authorization_migration
+UPDATE authorization_migration_status
 SET use_new_system = 0,
     migration_status = 'failed',
     notes = 'Rolled back due to: <reason>'

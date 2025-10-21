@@ -681,4 +681,470 @@ class Authorization extends CI_Controller {
         sort($tables);
         return $tables;
     }
+
+    /**
+     * ========================================================================
+     * MIGRATION DASHBOARD METHODS (Phase 6)
+     * ========================================================================
+     */
+
+    /**
+     * Migration Dashboard - Main Overview
+     *
+     * Displays migration status summary, pilot users, and alerts.
+     * Tab 1 of the migration dashboard.
+     */
+    public function migration() {
+        $this->load->model('authorization_model');
+
+        // Get migration statistics
+        $data['total_users'] = $this->db->count_all('users');
+
+        // Count users by migration status
+        $data['migrated_count'] = $this->db
+            ->where('use_new_system', 1)
+            ->where('migration_status', 'completed')
+            ->count_all_results('authorization_migration_status');
+
+        $data['in_progress_count'] = $this->db
+            ->where('use_new_system', 1)
+            ->where('migration_status', 'in_progress')
+            ->count_all_results('authorization_migration_status');
+
+        // Get pilot users status
+        $data['pilot_users'] = $this->_get_pilot_users_summary();
+
+        // Get recent alerts (authorization mismatches)
+        $data['recent_alerts'] = $this->_get_recent_alerts();
+
+        // Calculate migration progress
+        $data['progress_percentage'] = $data['total_users'] > 0
+            ? round(($data['migrated_count'] / $data['total_users']) * 100, 1)
+            : 0;
+
+        $this->load->view('authorization/migration/overview', $data);
+    }
+
+    /**
+     * Migration Dashboard - Pilot Users Management
+     *
+     * Displays and manages pilot user migrations.
+     * Tab 2 of the migration dashboard.
+     */
+    public function migration_pilot_users() {
+        $this->load->model('authorization_model');
+
+        // Get pilot users with detailed status
+        $data['pilot_users'] = $this->_get_pilot_users_detailed();
+
+        $this->load->view('authorization/migration/pilot_users', $data);
+    }
+
+    /**
+     * Migration Dashboard - Comparison Log
+     *
+     * Displays authorization comparison log showing discrepancies
+     * between old and new systems.
+     * Tab 3 of the migration dashboard.
+     */
+    public function migration_comparison_log() {
+        // Get filter parameters
+        $user_id = $this->input->get('user_id');
+        $controller = $this->input->get('controller');
+        $action = $this->input->get('action');
+        $date_from = $this->input->get('date_from');
+        $date_to = $this->input->get('date_to');
+        $mismatches_only = $this->input->get('mismatches_only') === '1';
+
+        // Build query
+        $this->db->select('acl.*, u.username, u.email')
+            ->from('authorization_comparison_log acl')
+            ->join('users u', 'acl.user_id = u.id', 'left')
+            ->order_by('acl.created_at', 'DESC');
+
+        // Apply filters
+        if ($user_id) {
+            $this->db->where('acl.user_id', $user_id);
+        }
+        if ($controller) {
+            $this->db->like('acl.controller', $controller);
+        }
+        if ($action) {
+            $this->db->like('acl.action', $action);
+        }
+        if ($date_from) {
+            $this->db->where('acl.created_at >=', $date_from . ' 00:00:00');
+        }
+        if ($date_to) {
+            $this->db->where('acl.created_at <=', $date_to . ' 23:59:59');
+        }
+        if ($mismatches_only) {
+            $this->db->where('acl.new_system_result !=', 'acl.legacy_system_result', FALSE);
+        }
+
+        $data['comparison_logs'] = $this->db->get()->result_array();
+
+        // Get pilot users for filter dropdown
+        $data['pilot_users'] = $this->_get_pilot_users_summary();
+
+        // Count mismatches in last 24 hours
+        $data['recent_mismatches'] = $this->db
+            ->where('new_system_result !=', 'legacy_system_result', FALSE)
+            ->where('created_at >=', date('Y-m-d H:i:s', strtotime('-24 hours')))
+            ->count_all_results('authorization_comparison_log');
+
+        $this->load->view('authorization/migration/comparison_log', $data);
+    }
+
+    /**
+     * Migration Dashboard - Statistics
+     *
+     * Displays migration statistics, charts, and metrics.
+     * Tab 4 of the migration dashboard.
+     */
+    public function migration_statistics() {
+        $this->load->model('authorization_model');
+
+        // Get wave progress
+        $data['wave_progress'] = $this->_get_wave_progress();
+
+        // Get comparison statistics (last 7 days)
+        $data['comparison_stats'] = $this->_get_comparison_statistics(7);
+
+        // Get top controllers with divergences
+        $data['top_divergences'] = $this->_get_top_divergences(5);
+
+        // Calculate concordance rate
+        $total_comparisons = $this->db
+            ->where('created_at >=', date('Y-m-d', strtotime('-7 days')))
+            ->count_all_results('authorization_comparison_log');
+
+        $divergences = $this->db
+            ->where('new_system_result !=', 'legacy_system_result', FALSE)
+            ->where('created_at >=', date('Y-m-d', strtotime('-7 days')))
+            ->count_all_results('authorization_comparison_log');
+
+        $data['total_comparisons'] = $total_comparisons;
+        $data['total_divergences'] = $divergences;
+        $data['concordance_rate'] = $total_comparisons > 0
+            ? round((($total_comparisons - $divergences) / $total_comparisons) * 100, 1)
+            : 100;
+
+        $this->load->view('authorization/migration/statistics', $data);
+    }
+
+    /**
+     * AJAX: Migrate a pilot user to new system
+     *
+     * Handles the migration wizard workflow.
+     */
+    public function ajax_migrate_user() {
+        header('Content-Type: application/json');
+
+        $user_id = $this->input->post('user_id');
+        $notes = $this->input->post('notes');
+        $current_user_id = $this->dx_auth->get_user_id();
+
+        if (!$user_id) {
+            echo json_encode(array('success' => false, 'message' => 'User ID required'));
+            return;
+        }
+
+        $this->load->model('authorization_model');
+
+        try {
+            // Backup old permissions (from DX_Auth)
+            $old_permissions = $this->_backup_user_permissions($user_id);
+
+            // Set migration status to in_progress
+            $result = $this->authorization_model->set_migration_status(
+                $user_id,
+                'in_progress',
+                TRUE, // use_new_system
+                $current_user_id
+            );
+
+            if ($result) {
+                // Update notes if provided
+                if ($notes) {
+                    $this->db->where('user_id', $user_id)
+                        ->update('authorization_migration_status', array('notes' => $notes));
+                }
+
+                echo json_encode(array(
+                    'success' => true,
+                    'message' => 'User migrated successfully',
+                    'user_id' => $user_id,
+                    'migrated_at' => date('Y-m-d H:i:s')
+                ));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Migration failed'));
+            }
+        } catch (Exception $e) {
+            log_message('error', 'Migration error: ' . $e->getMessage());
+            echo json_encode(array('success' => false, 'message' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * AJAX: Rollback a user migration
+     *
+     * Reverts user to legacy authorization system.
+     */
+    public function ajax_rollback_user() {
+        header('Content-Type: application/json');
+
+        $user_id = $this->input->post('user_id');
+        $reason = $this->input->post('reason');
+        $current_user_id = $this->dx_auth->get_user_id();
+
+        if (!$user_id || !$reason) {
+            echo json_encode(array('success' => false, 'message' => 'User ID and reason required'));
+            return;
+        }
+
+        $this->load->model('authorization_model');
+
+        try {
+            // Set migration status to failed and disable new system
+            $result = $this->authorization_model->set_migration_status(
+                $user_id,
+                'failed',
+                FALSE, // use_new_system = 0
+                $current_user_id
+            );
+
+            if ($result) {
+                // Update notes with rollback reason
+                $this->db->where('user_id', $user_id)
+                    ->update('authorization_migration_status', array(
+                        'notes' => 'ROLLBACK: ' . $reason
+                    ));
+
+                echo json_encode(array(
+                    'success' => true,
+                    'message' => 'User rolled back successfully',
+                    'user_id' => $user_id
+                ));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Rollback failed'));
+            }
+        } catch (Exception $e) {
+            log_message('error', 'Rollback error: ' . $e->getMessage());
+            echo json_encode(array('success' => false, 'message' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * AJAX: Complete a user migration
+     *
+     * Marks migration as completed after validation period.
+     */
+    public function ajax_complete_migration() {
+        header('Content-Type: application/json');
+
+        $user_id = $this->input->post('user_id');
+        $current_user_id = $this->dx_auth->get_user_id();
+
+        if (!$user_id) {
+            echo json_encode(array('success' => false, 'message' => 'User ID required'));
+            return;
+        }
+
+        $this->load->model('authorization_model');
+
+        try {
+            // Set migration status to completed
+            $result = $this->authorization_model->set_migration_status(
+                $user_id,
+                'completed',
+                TRUE, // keep use_new_system = 1
+                $current_user_id
+            );
+
+            if ($result) {
+                echo json_encode(array(
+                    'success' => true,
+                    'message' => 'Migration completed successfully',
+                    'user_id' => $user_id,
+                    'completed_at' => date('Y-m-d H:i:s')
+                ));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Completion failed'));
+            }
+        } catch (Exception $e) {
+            log_message('error', 'Migration completion error: ' . $e->getMessage());
+            echo json_encode(array('success' => false, 'message' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Helper: Get pilot users summary
+     * @return array
+     */
+    private function _get_pilot_users_summary() {
+        // Pilot users from bin/create_test_users.sh
+        $pilot_usernames = array('testuser', 'testplanchiste', 'testadmin', 'testca', 'testbureau', 'testtresorier');
+
+        $this->db->select('u.id, u.username, u.email, ams.migration_status, ams.use_new_system, ams.migrated_at')
+            ->from('users u')
+            ->join('authorization_migration_status ams', 'u.id = ams.user_id', 'left')
+            ->where_in('u.username', $pilot_usernames);
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Helper: Get detailed pilot users information
+     * @return array
+     */
+    private function _get_pilot_users_detailed() {
+        $pilot_users = $this->_get_pilot_users_summary();
+
+        // Enrich with role information
+        foreach ($pilot_users as &$user) {
+            // Get user roles from DX_Auth (legacy)
+            $user['legacy_roles'] = $this->_get_user_legacy_roles($user['id']);
+
+            // Get user roles from new system
+            $this->load->model('authorization_model');
+            $user['new_roles'] = $this->authorization_model->get_user_roles($user['id']);
+        }
+
+        return $pilot_users;
+    }
+
+    /**
+     * Helper: Get recent alerts (mismatches)
+     * @return array
+     */
+    private function _get_recent_alerts() {
+        return $this->db
+            ->select('acl.*, u.username')
+            ->from('authorization_comparison_log acl')
+            ->join('users u', 'acl.user_id = u.id', 'left')
+            ->where('acl.new_system_result !=', 'acl.legacy_system_result', FALSE)
+            ->where('acl.created_at >=', date('Y-m-d H:i:s', strtotime('-24 hours')))
+            ->order_by('acl.created_at', 'DESC')
+            ->limit(10)
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * Helper: Get wave progress for pilot users
+     * @return array
+     */
+    private function _get_wave_progress() {
+        $waves = array(
+            'wave1' => array('testuser'),
+            'wave2' => array('testplanchiste'),
+            'wave3' => array('testadmin')
+        );
+
+        $progress = array();
+        foreach ($waves as $wave_name => $usernames) {
+            $progress[$wave_name] = $this->db
+                ->select('u.username, ams.migration_status, ams.migrated_at')
+                ->from('users u')
+                ->join('authorization_migration_status ams', 'u.id = ams.user_id', 'left')
+                ->where_in('u.username', $usernames)
+                ->get()
+                ->row_array();
+        }
+
+        return $progress;
+    }
+
+    /**
+     * Helper: Get comparison statistics for last N days
+     * @param int $days Number of days to analyze
+     * @return array
+     */
+    private function _get_comparison_statistics($days = 7) {
+        $stats = array();
+        $start_date = date('Y-m-d', strtotime("-{$days} days"));
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = date('Y-m-d', strtotime("-{$i} days"));
+
+            $total = $this->db
+                ->where('DATE(created_at)', $date)
+                ->count_all_results('authorization_comparison_log');
+
+            $divergences = $this->db
+                ->where('DATE(created_at)', $date)
+                ->where('new_system_result !=', 'legacy_system_result', FALSE)
+                ->count_all_results('authorization_comparison_log');
+
+            $stats[] = array(
+                'date' => $date,
+                'total' => $total,
+                'divergences' => $divergences
+            );
+        }
+
+        return array_reverse($stats);
+    }
+
+    /**
+     * Helper: Get top N controllers with most divergences
+     * @param int $limit Number of results
+     * @return array
+     */
+    private function _get_top_divergences($limit = 5) {
+        return $this->db
+            ->select('controller, COUNT(*) as divergence_count')
+            ->from('authorization_comparison_log')
+            ->where('new_system_result !=', 'legacy_system_result', FALSE)
+            ->group_by('controller')
+            ->order_by('divergence_count', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * Helper: Backup user permissions from legacy system
+     * @param int $user_id
+     * @return string JSON encoded permissions
+     */
+    private function _backup_user_permissions($user_id) {
+        // Get user's DX_Auth data
+        $user_data = $this->db
+            ->select('role_id, banned')
+            ->from('users')
+            ->where('id', $user_id)
+            ->get()
+            ->row_array();
+
+        $backup = array(
+            'role_id' => $user_data['role_id'],
+            'banned' => $user_data['banned'],
+            'backed_up_at' => date('Y-m-d H:i:s')
+        );
+
+        // Store backup in migration table
+        $this->db->where('user_id', $user_id)
+            ->update('authorization_migration_status', array(
+                'old_permissions' => json_encode($backup)
+            ));
+
+        return json_encode($backup);
+    }
+
+    /**
+     * Helper: Get user's legacy roles from DX_Auth
+     * @param int $user_id
+     * @return array
+     */
+    private function _get_user_legacy_roles($user_id) {
+        return $this->db
+            ->select('r.name, r.id')
+            ->from('roles r')
+            ->join('users u', 'u.role_id = r.id', 'inner')
+            ->where('u.id', $user_id)
+            ->get()
+            ->result_array();
+    }
 }

@@ -85,7 +85,7 @@ The current implementation of the user roles modal is sensitive to timing issues
 
 ## Upcoming Phases
 
-### Phase 6: Progressive Migration - Dual Mode 🔄 IN PLANNING
+### Phase 6: Progressive Migration - Dual Mode 🔄 IN PROGRESS
 
 **Objectives**:
 - Implement dual-mode authorization in Gvv_Controller
@@ -93,8 +93,8 @@ The current implementation of the user roles modal is sensitive to timing issues
 - Migrate users progressively by role groups
 
 **Planning Documents Created**:
-- [x] `doc/plans/phase6_dual_mode_architecture.md` - Technical architecture design
-- [x] `doc/plans/phase6_migration_dashboard_mockups.md` - Dashboard UI mockups
+- [x] `doc/plans_and_progress/phase6_dual_mode_architecture.md` - Technical architecture design
+- [x] `doc/plans_and_progress/phase6_migration_dashboard_mockups.md` - Dashboard UI mockups
 - [x] `doc/diagrams/phase6_dual_mode_architecture.puml` - PlantUML architecture diagram
 - [x] Test user identification (bin/create_test_users.sh - 6 pilot users)
 
@@ -105,13 +105,16 @@ The current implementation of the user roles modal is sensitive to timing issues
 - Backup: `testca`, `testbureau`, `testtresorier`
 
 **Implementation Tasks**:
-- [ ] Create `application/core/Gvv_Controller.php` base class
-- [ ] Create migration 044 for `authorization_comparison_log` table
-- [ ] Implement dual-mode routing logic
-- [ ] Build migration dashboard UI (4 tabs: Overview, Pilot Users, Comparison Log, Statistics)
-- [ ] Create migration wizard workflow (4 steps)
-- [ ] Implement rollback functionality
-- [ ] Convert pilot controllers (Members, Vols_planeur, Authorization)
+- [x] Create `application/core/Gvv_Controller.php` base class (384 lines)
+- [x] Create migration 046 for `authorization_comparison_log` table
+- [x] Implement dual-mode routing logic in Gvv_Controller
+- [x] Verify `get_migration_status()` exists in Authorization_model
+- [x] Build migration dashboard UI (4 tabs: Overview, Pilot Users, Comparison Log, Statistics)
+- [x] Create migration wizard workflow (4-step modal)
+- [x] Implement rollback functionality in dashboard
+- [x] Add AJAX endpoints for migration operations (migrate, rollback, complete)
+- [ ] Add language translations (FR/EN/NL) for migration dashboard
+- [ ] Convert pilot controllers to extend Gvv_Controller (Members, Vols_planeur, Authorization)
 - [ ] Wave 1 migration: testuser (7-day monitoring)
 - [ ] Wave 2 migration: testplanchiste (7-day monitoring)
 - [ ] Wave 3 migration: testadmin (7-day monitoring)
