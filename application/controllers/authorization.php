@@ -94,11 +94,11 @@ class Authorization extends CI_Controller {
         $data['title'] = $this->lang->line('authorization_title');
 
         // Get system statistics
-        $data['total_roles'] = count($this->Authorization_model->get_all_roles());
+        $data['total_roles'] = count($this->authorization_model->get_all_roles());
         $data['total_users'] = $this->db->count_all('users');
 
         // Get recent audit log entries
-        $data['recent_audits'] = $this->Authorization_model->get_audit_log(array(), 10);
+        $data['recent_audits'] = $this->authorization_model->get_audit_log(array(), 10);
 
         // Check if new system is enabled
         $this->config->load('gvv_config', TRUE);
@@ -128,11 +128,11 @@ class Authorization extends CI_Controller {
 
         // Get roles for each user (across ALL sections)
         foreach ($users as &$user) {
-            $user['roles'] = $this->Authorization_model->get_user_roles($user['id'], NULL);
+            $user['roles'] = $this->authorization_model->get_user_roles($user['id'], NULL);
         }
 
         $data['users'] = $users;
-        $data['all_roles'] = $this->Authorization_model->get_all_roles();
+        $data['all_roles'] = $this->authorization_model->get_all_roles();
         $data['sections'] = $this->db->get('sections')->result_array();
 
         load_last_view('authorization/user_roles', $data);
@@ -155,7 +155,7 @@ class Authorization extends CI_Controller {
 
         // Get ALL roles for this user across ALL sections
         // Pass NULL as section_id to get all roles
-        $roles = $this->Authorization_model->get_user_roles($user_id, NULL);
+        $roles = $this->authorization_model->get_user_roles($user_id, NULL);
 
         echo json_encode(array('success' => TRUE, 'roles' => $roles));
     }
@@ -206,7 +206,7 @@ class Authorization extends CI_Controller {
             }
 
         // Check if the role is global or section-scoped
-        $role = $this->Authorization_model->get_role($types_roles_id);
+        $role = $this->authorization_model->get_role($types_roles_id);
         if (!$role) {
             echo json_encode(array('success' => FALSE, 'message' => 'Role not found'));
             return;
@@ -266,7 +266,7 @@ class Authorization extends CI_Controller {
             $message = 'System error: ' . $e->getMessage();
         }
 
-        $roles = $this->Authorization_model->get_user_roles($user_id, NULL);
+        $roles = $this->authorization_model->get_user_roles($user_id, NULL);
         echo json_encode(array('success' => $result, 'message' => $message, 'roles' => $roles));
     }
 
@@ -280,7 +280,7 @@ class Authorization extends CI_Controller {
         $data['message'] = $message ? urldecode($message) : '';
 
         // Get all roles
-        $data['roles'] = $this->Authorization_model->get_all_roles();
+        $data['roles'] = $this->authorization_model->get_all_roles();
 
         load_last_view('authorization/roles', $data);
     }
@@ -296,19 +296,19 @@ class Authorization extends CI_Controller {
 
         if ($types_roles_id === NULL) {
             // Show role selector
-            $data['roles'] = $this->Authorization_model->get_all_roles();
+            $data['roles'] = $this->authorization_model->get_all_roles();
             load_last_view('authorization/select_role', $data);
             return;
         }
 
         // Get role details
-        $data['role'] = $this->Authorization_model->get_role($types_roles_id);
+        $data['role'] = $this->authorization_model->get_role($types_roles_id);
         if (!$data['role']) {
             show_404();
         }
 
         // Get permissions for this role
-        $data['permissions'] = $this->Authorization_model->get_role_permissions($types_roles_id);
+        $data['permissions'] = $this->authorization_model->get_role_permissions($types_roles_id);
 
         // Get all controllers for dropdown
         $data['available_controllers'] = $this->_get_available_controllers();
@@ -345,7 +345,7 @@ class Authorization extends CI_Controller {
             $section_id = NULL;
         }
 
-        $result = $this->Authorization_model->add_permission($types_roles_id, $controller, $action, $section_id, $permission_type);
+        $result = $this->authorization_model->add_permission($types_roles_id, $controller, $action, $section_id, $permission_type);
         $message = $result ? 'Permission added successfully' : 'Permission already exists or error occurred';
 
         echo json_encode(array('success' => $result, 'message' => $message));
@@ -366,7 +366,7 @@ class Authorization extends CI_Controller {
             return;
         }
 
-        $result = $this->Authorization_model->remove_permission($permission_id);
+        $result = $this->authorization_model->remove_permission($permission_id);
         $message = $result ? 'Permission removed successfully' : 'Error removing permission';
 
         echo json_encode(array('success' => $result, 'message' => $message));
@@ -383,19 +383,19 @@ class Authorization extends CI_Controller {
 
         if ($types_roles_id === NULL) {
             // Show role selector
-            $data['roles'] = $this->Authorization_model->get_all_roles();
+            $data['roles'] = $this->authorization_model->get_all_roles();
             load_last_view('authorization/select_role_data', $data);
             return;
         }
 
         // Get role details
-        $data['role'] = $this->Authorization_model->get_role($types_roles_id);
+        $data['role'] = $this->authorization_model->get_role($types_roles_id);
         if (!$data['role']) {
             show_404();
         }
 
         // Get data access rules for this role
-        $data['rules'] = $this->Authorization_model->get_data_access_rules($types_roles_id, '*');
+        $data['rules'] = $this->authorization_model->get_data_access_rules($types_roles_id, '*');
 
         // Get all tables for dropdown
         $data['available_tables'] = $this->_get_available_tables();
@@ -423,7 +423,7 @@ class Authorization extends CI_Controller {
             return;
         }
 
-        $result = $this->Authorization_model->add_data_access_rule(
+        $result = $this->authorization_model->add_data_access_rule(
             $types_roles_id,
             $table_name,
             $access_scope,
@@ -452,7 +452,7 @@ class Authorization extends CI_Controller {
             return;
         }
 
-        $result = $this->Authorization_model->remove_data_access_rule($rule_id);
+        $result = $this->authorization_model->remove_data_access_rule($rule_id);
         $message = $result ? 'Data access rule removed successfully' : 'Error removing rule';
 
         echo json_encode(array('success' => $result, 'message' => $message));
@@ -483,7 +483,7 @@ class Authorization extends CI_Controller {
                 return;
             }
             
-            $result = $this->Authorization_model->create_role($nom, $description, $scope, $translation_key);
+            $result = $this->authorization_model->create_role($nom, $description, $scope, $translation_key);
             
             if ($result) {
                 redirect('authorization/roles/' . $this->lang->line('authorization_role_created'));
@@ -519,7 +519,7 @@ class Authorization extends CI_Controller {
      * Edit an existing role
      */
     function edit_role($types_roles_id) {
-        $role = $this->Authorization_model->get_role($types_roles_id);
+        $role = $this->authorization_model->get_role($types_roles_id);
         
         if (!$role) {
             show_404();
@@ -552,7 +552,7 @@ class Authorization extends CI_Controller {
                 return;
             }
             
-            $result = $this->Authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
+            $result = $this->authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
             
             if ($result) {
                 redirect('authorization/roles/' . $this->lang->line('authorization_role_updated'));
@@ -585,24 +585,24 @@ class Authorization extends CI_Controller {
      * Delete a role
      */
     function delete_role($types_roles_id) {
-        $role = $this->Authorization_model->get_role($types_roles_id);
-        
+        $role = $this->authorization_model->get_role($types_roles_id);
+
         if (!$role) {
             redirect('authorization/roles/' . $this->lang->line('authorization_role_not_found'));
         }
-        
+
         if ($role['is_system_role']) {
             redirect('authorization/roles/' . $this->lang->line('authorization_cannot_delete_system_role'));
         }
-        
+
         // Check if role is in use
-        $users_with_role = $this->Authorization_model->get_users_with_role($types_roles_id, NULL, FALSE);
+        $users_with_role = $this->authorization_model->get_users_with_role($types_roles_id, NULL, FALSE);
         if (!empty($users_with_role)) {
             $message = sprintf($this->lang->line('authorization_cannot_delete_role_in_use'), count($users_with_role));
             redirect('authorization/roles/' . $message);
         }
-        
-        $result = $this->Authorization_model->delete_role($types_roles_id);
+
+        $result = $this->authorization_model->delete_role($types_roles_id);
         
         if ($result) {
             redirect('authorization/roles/' . $this->lang->line('authorization_role_deleted'));
@@ -632,7 +632,7 @@ class Authorization extends CI_Controller {
         }
 
         // Get audit log entries
-        $data['audit_log'] = $this->Authorization_model->get_audit_log($filters, $per_page, $offset);
+        $data['audit_log'] = $this->authorization_model->get_audit_log($filters, $per_page, $offset);
         $data['page'] = $page;
         $data['per_page'] = $per_page;
         $data['filters'] = $filters;

@@ -68,6 +68,25 @@ class Sections_model extends Common_Model {
         return $result;
     }
 
+	/**
+	 * Returns the dropdown array for sections selector with null option but excluding cross-section 
+	 * Used by procedures and other entities that need a null option for global scope
+	 * @return array The dropdown array for the sections
+	 */
+	function section_selector_with_null()
+	{
+		$where = array();
+		$where['id !='] = 0; // Exclude cross-section entry (ID=0) from UI
+		$allkeys = $this->selector($where);
+		
+		$result = array();
+		$result[''] = 'Globale (toutes sections)';
+		foreach ($allkeys as $key => $value) {
+			$result[$key] = $value;
+		}
+		return $result;
+	}
+
     public function safe_count_all($table = 'sections') {
         return parent::safe_count_all($table);;
     }

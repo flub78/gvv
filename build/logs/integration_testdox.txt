@@ -209,6 +209,19 @@ My Html Helper Integration
  [x] Flat array with delete parameter
  [x] Flat array duplicates
 
+Procedures Integration
+ [ ] Create procedure
+ [ ] Create procedure invalid name
+ [ ] Create procedure duplicate name
+ [ ] Update procedure
+ [ ] Delete procedure
+ [ ] Select page with sections
+ [ ] Get procedures by status
+ [ ] Get procedures by section
+ [ ] Markdown content get save
+ [ ] Select page pagination
+ [ ] Select page with filters
+
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
  [x] Correlation for bleuse against all images
