@@ -36,11 +36,7 @@ $this->load->view('bs_banner');
         </div>
     <?php endif; ?>
 
-    <div class="mb-3">
-        <a href="<?= site_url('authorization/create_role') ?>" class="btn btn-success">
-            <i class="fas fa-plus"></i> <?= $this->lang->line('authorization_create_role') ?>
-        </a>
-    </div>
+
 
     <div class="card mt-4">
         <div class="card-header">
@@ -50,8 +46,6 @@ $this->load->view('bs_banner');
             <table class="table table-striped table-bordered datatable">
                 <thead>
                     <tr>
-                        <th></th>
-                        <th></th>
                         <th><?= $this->lang->line('authorization_role_name') ?></th>
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
@@ -62,25 +56,6 @@ $this->load->view('bs_banner');
                 <tbody>
                     <?php foreach ($roles as $role): ?>
                         <tr>
-                            <td>
-                                <?php if (!$role['is_system_role']): ?>
-                                    <a href="<?= site_url('authorization/edit_role/' . $role['id']) ?>"
-                                       class="btn btn-sm btn-primary"
-                                       title="<?= $this->lang->line('gvv_button_edit') ?>">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if (!$role['is_system_role']): ?>
-                                    <a href="<?= site_url('authorization/delete_role/' . $role['id']) ?>"
-                                       class="btn btn-sm btn-danger"
-                                       title="<?= $this->lang->line('gvv_button_delete') ?>"
-                                       onclick="return confirm('<?= $this->lang->line('authorization_confirm_delete_role') ?>');">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                <?php endif; ?>
-                            </td>
                             <td>
                                 <strong><?= htmlspecialchars($role['nom']) ?></strong>
                                 <?php if (!empty($role['translation_key'])): ?>
@@ -131,6 +106,3 @@ $this->load->view('bs_banner');
         </a>
     </div>
 </div>
-
-
-

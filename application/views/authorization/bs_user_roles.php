@@ -133,6 +133,7 @@ $this->load->view('bs_banner');
                         <thead>
                             <tr>
                                 <th>Rôle</th>
+                                <th>Global</th>
                                 <th>Toutes sections</th>
                                 <?php foreach ($sections as $section): ?>
                                     <?php if ($section['id'] != 0): ?>
@@ -153,10 +154,27 @@ $this->load->view('bs_banner');
                             <tr data-role-id="<?= $role['id'] ?>" data-role-scope="<?= $role['scope'] ?>">
                                 <td><?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?><?= htmlspecialchars($role['nom']) ?><?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?></td>
                                 <td class="text-center">
-                                    <!-- "Toutes sections" checkbox for all roles -->
-                                    <input type="checkbox" class="form-check-input role-checkbox role-checkbox-all"
-                                           data-role-id="<?= $role['id'] ?>"
-                                           data-role-scope="<?= $role['scope'] ?>">
+                                    <?php if ($role['scope'] === 'global'): ?>
+                                        <!-- Global checkbox for global roles only -->
+                                        <input type="checkbox" class="form-check-input role-checkbox role-checkbox-global"
+                                               data-role-id="<?= $role['id'] ?>"
+                                               data-section-id="0"
+                                               data-role-scope="global">
+                                    <?php else: ?>
+                                        <!-- No global checkbox for section roles -->
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <?php if ($role['scope'] === 'section'): ?>
+                                        <!-- "Toutes sections" checkbox for section roles only -->
+                                        <input type="checkbox" class="form-check-input role-checkbox role-checkbox-all"
+                                               data-role-id="<?= $role['id'] ?>"
+                                               data-role-scope="section">
+                                    <?php else: ?>
+                                        <!-- No "Toutes sections" for global roles -->
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
                                 </td>
                                 <?php foreach ($sections as $section): ?>
                                     <?php if ($section['id'] != 0): ?>
@@ -325,37 +343,42 @@ $(document).ready(function() {
         });
         console.log("userRolesMap created:", userRolesMap);
 
-        // Iterate over each role in the modal
+        // Process global role checkboxes
+        $('.role-checkbox-global').each(function() {
+            const $globalCheckbox = $(this);
+            const roleId = $globalCheckbox.data('role-id').toString();
+            console.log("Processing global roleId:", roleId);
+
+            if (userRolesMap[roleId] && userRolesMap[roleId].has('0')) {
+                $globalCheckbox.prop('checked', true);
+                console.log("Checked global role", roleId);
+            }
+        });
+
+        // Process section role checkboxes
         $('.role-checkbox-all').each(function() {
             const $allCheckbox = $(this);
             const roleId = $allCheckbox.data('role-id').toString();
             const roleScope = $allCheckbox.data('role-scope');
-            console.log("Processing roleId:", roleId, "with scope:", roleScope);
+            console.log("Processing section roleId:", roleId);
 
-            if (roleScope === 'global') {
-                if (userRolesMap[roleId] && userRolesMap[roleId].has('0')) {
-                    $allCheckbox.prop('checked', true);
-                    console.log("Checked global role", roleId);
+            const $sectionCheckboxes = $('.role-checkbox-section[data-role-id="' + roleId + '"]');
+            let checkedCount = 0;
+
+            $sectionCheckboxes.each(function() {
+                const $sectionCheckbox = $(this);
+                const sectionId = $sectionCheckbox.data('section-id').toString();
+                if (userRolesMap[roleId] && userRolesMap[roleId].has(sectionId)) {
+                    $sectionCheckbox.prop('checked', true);
+                    checkedCount++;
+                    console.log("Checked section", sectionId, "for role", roleId);
                 }
-            } else {
-                const $sectionCheckboxes = $('.role-checkbox-section[data-role-id="' + roleId + '"]');
-                let checkedCount = 0;
+            });
 
-                $sectionCheckboxes.each(function() {
-                    const $sectionCheckbox = $(this);
-                    const sectionId = $sectionCheckbox.data('section-id').toString();
-                    if (userRolesMap[roleId] && userRolesMap[roleId].has(sectionId)) {
-                        $sectionCheckbox.prop('checked', true);
-                        checkedCount++;
-                        console.log("Checked section", sectionId, "for role", roleId);
-                    }
-                });
-
-                console.log("Role", roleId, "has", checkedCount, "of", $sectionCheckboxes.length, "sections checked.");
-                if (checkedCount === $sectionCheckboxes.length && $sectionCheckboxes.length > 0) {
-                    $allCheckbox.prop('checked', true);
-                    console.log("Checked 'Toutes sections' for role", roleId);
-                }
+            console.log("Role", roleId, "has", checkedCount, "of", $sectionCheckboxes.length, "sections checked.");
+            if (checkedCount === $sectionCheckboxes.length && $sectionCheckboxes.length > 0) {
+                $allCheckbox.prop('checked', true);
+                console.log("Checked 'Toutes sections' for role", roleId);
             }
         });
         console.log("--- updateModalCheckboxes finished ---");

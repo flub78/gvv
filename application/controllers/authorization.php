@@ -205,9 +205,23 @@ class Authorization extends CI_Controller {
                 return;
             }
 
+        // Check if the role is global or section-scoped
+        $role = $this->Authorization_model->get_role($types_roles_id);
+        if (!$role) {
+            echo json_encode(array('success' => FALSE, 'message' => 'Role not found'));
+            return;
+        }
+
         if ($section_id == -1) {
+            // "Toutes sections" - only applies to section roles, not global roles
+            if ($role['scope'] === 'global') {
+                echo json_encode(array('success' => FALSE, 'message' => 'Cannot use "Toutes sections" for global roles'));
+                return;
+            }
+
             $this->db->select('id');
             $this->db->from('sections');
+            $this->db->where('id !=', 0); // Exclude the dummy section 0
             $query = $this->db->get();
             $sections = $query->result_array();
 
