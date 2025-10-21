@@ -132,8 +132,10 @@ class Procedures extends Gvv_Controller {
      * Affiche le formulaire de création
      */
     function create() {
-        $table = $this->procedures_model->table();
-        $this->data = $this->gvvmetadata->defaults_list($table);
+        if (empty($this->data)) { // Check if data is already populated from a failed submission
+            $table = $this->procedures_model->table();
+            $this->data = $this->gvvmetadata->defaults_list($table);
+        }
         
         $this->form_static_element(CREATION);
         
@@ -193,10 +195,15 @@ class Procedures extends Gvv_Controller {
             }
             
             $this->session->set_flashdata('success', 'Procédure créée avec succès');
-            redirect("procedures/view/$procedure_id");
+            redirect("procedures");
         } else {
-            $this->session->set_flashdata('error', 'Erreur lors de la création de la procédure');
+            $error_message = $this->procedures_model->error ?: 'Erreur lors de la création de la procédure';
+            $this->session->set_flashdata('error', $error_message);
+            
+            // Repopulate form with submitted data
+            $this->data = $this->input->post();
             $this->create();
+            return;
         }
     }
 
@@ -268,7 +275,8 @@ class Procedures extends Gvv_Controller {
         if ($this->procedures_model->delete_procedure($id)) {
             $this->session->set_flashdata('success', 'Procédure supprimée avec succès');
         } else {
-            $this->session->set_flashdata('error', 'Erreur lors de la suppression');
+            $error_message = $this->procedures_model->error ?: 'Erreur lors de la suppression';
+            $this->session->set_flashdata('error', $error_message);
         }
         
         redirect('procedures');

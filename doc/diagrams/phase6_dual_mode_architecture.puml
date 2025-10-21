@@ -1,0 +1,210 @@
+@startuml Phase 6 Dual-Mode Architecture
+
+!define RECTANGLE class
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+skinparam shadowing false
+
+' Color scheme
+skinparam component {
+    BackgroundColor<<New>> #E8F5E9
+    BorderColor<<New>> #4CAF50
+    BackgroundColor<<Legacy>> #FFF3E0
+    BorderColor<<Legacy>> #FF9800
+    BackgroundColor<<Core>> #E3F2FD
+    BorderColor<<Core>> #2196F3
+}
+
+skinparam database {
+    BackgroundColor #F5F5F5
+    BorderColor #757575
+}
+
+title Phase 6: Dual-Mode Authorization Architecture
+
+' User Request
+actor "User" as user
+rectangle "HTTP Request" as request
+
+' Controllers Layer
+package "Controllers Layer" {
+    component "Membres Controller" as membres_ctrl
+    component "Vols_planeur Controller" as vols_ctrl
+    component "Planning Controller" as planning_ctrl
+    note right of membres_ctrl
+        extends Gvv_Controller
+    end note
+}
+
+' Core Controller
+package "Core Layer" <<Core>> {
+    component "Gvv_Controller\n(Base Class)" as gvv_ctrl {
+        rectangle "_init_auth()" as init_auth
+        rectangle "_check_access()" as check_access
+        rectangle "_check_legacy_access()" as legacy_check
+        rectangle "_deny_access()" as deny_access
+    }
+}
+
+' Authorization Systems
+package "New Authorization System" <<New>> {
+    component "Gvv_Authorization" as new_auth {
+        rectangle "can_access()" as new_can_access
+        rectangle "can_access_data()" as new_can_access_data
+        rectangle "get_user_roles()" as new_get_roles
+    }
+
+    component "Authorization_model" as new_model {
+        rectangle "get_user_roles()" as model_get_roles
+        rectangle "get_role_permissions()" as model_get_perms
+        rectangle "get_data_access_rules()" as model_get_rules
+        rectangle "get_migration_status()" as model_get_migration
+    }
+}
+
+package "Legacy Authorization System" <<Legacy>> {
+    component "DX_Auth" as legacy_auth {
+        rectangle "is_logged_in()" as legacy_logged_in
+        rectangle "get_user_id()" as legacy_user_id
+        rectangle "deny_access()" as legacy_deny
+    }
+
+    note right of legacy_auth
+        Serialized permissions
+        in users.permissions
+    end note
+}
+
+' Database Layer
+database "MySQL Database" {
+    folder "New System Tables" {
+        rectangle "types_roles" as types_roles_table
+        rectangle "user_roles_per_section" as urps_table
+        rectangle "role_permissions" as perms_table
+        rectangle "data_access_rules" as rules_table
+        rectangle "authorization_audit_log" as audit_table
+        rectangle "user_authorization_migration" as migration_table
+        rectangle "authorization_comparison_log" as comparison_table
+    }
+
+    folder "Legacy Tables" {
+        rectangle "users\n(permissions column)" as users_table
+        rectangle "roles" as roles_table
+    }
+}
+
+' Migration Dashboard
+package "Migration Dashboard" {
+    component "Authorization\nController" as migration_ctrl {
+        rectangle "index()\nOverview" as dash_overview
+        rectangle "pilot_users()\nManage Pilots" as dash_pilots
+        rectangle "comparison_log()\nView Divergences" as dash_comparison
+        rectangle "statistics()\nMetrics" as dash_stats
+        rectangle "migrate_user()\nWizard" as dash_migrate
+        rectangle "rollback_user()\nRevert" as dash_rollback
+    }
+}
+
+' Request Flow
+user --> request
+request --> membres_ctrl
+request --> vols_ctrl
+request --> planning_ctrl
+
+' Controller inherits from Gvv_Controller
+membres_ctrl -down-|> gvv_ctrl
+vols_ctrl -down-|> gvv_ctrl
+planning_ctrl -down-|> gvv_ctrl
+
+' Gvv_Controller decision flow
+gvv_ctrl --> init_auth : "1. Initialize"
+init_auth --> model_get_migration : "Check user\nmigration status"
+model_get_migration --> migration_table
+
+init_auth --> check_access : "2. Check access"
+
+' Dual-mode routing
+check_access --> new_can_access : "if use_new_system = 1"
+check_access --> legacy_check : "if use_new_system = 0"
+
+' New system flow
+new_can_access --> new_get_roles
+new_get_roles --> model_get_roles
+model_get_roles --> urps_table
+model_get_roles --> types_roles_table
+
+new_can_access --> model_get_perms
+model_get_perms --> perms_table
+
+new_can_access --> model_get_rules
+model_get_rules --> rules_table
+
+new_can_access --> audit_table : "Log access check"
+
+' Legacy system flow
+legacy_check --> legacy_auth
+legacy_auth --> users_table : "Read serialized\npermissions"
+legacy_auth --> roles_table
+
+' Comparison logging (dual-mode validation)
+check_access --> comparison_table : "Log comparison\n(if in_progress)"
+
+' Deny access
+check_access --> deny_access : "if access denied"
+deny_access --> legacy_deny : "if legacy mode"
+
+' Migration dashboard access
+migration_ctrl --> model_get_migration
+migration_ctrl --> comparison_table
+migration_ctrl --> audit_table
+migration_ctrl --> migration_table : "Update\nmigration status"
+
+' Notes
+note right of check_access
+    **Decision Logic:**
+    1. Get user_id from session
+    2. Query migration table
+    3. Route based on use_new_system flag
+
+    **Comparison Logging:**
+    - If status = 'in_progress'
+    - Run BOTH systems
+    - Compare results
+    - Log divergences
+end note
+
+note left of migration_table
+    **Migration Status:**
+    - pending
+    - in_progress (dual-mode active)
+    - completed
+    - failed
+
+    **Rollback:**
+    use_new_system = 0
+    Restore old_permissions
+end note
+
+note bottom of comparison_table
+    **Tracks divergences between:**
+    - New system result
+    - Legacy system result
+
+    Used for validation during
+    pilot user testing
+end note
+
+legend right
+    |= Color |= Meaning |
+    | <#E8F5E9> | New Authorization System |
+    | <#FFF3E0> | Legacy DX_Auth System |
+    | <#E3F2FD> | Core/Base Classes |
+
+    **Migration Waves:**
+    Wave 1: testuser (basic)
+    Wave 2: testplanchiste (moderate)
+    Wave 3: testadmin (complex)
+endlegend
+
+@enduml

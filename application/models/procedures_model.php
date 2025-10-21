@@ -14,6 +14,7 @@ $CI->load->model('common_model');
 class Procedures_model extends Common_Model {
     public $table = 'procedures';
     protected $primary_key = 'id';
+    public $error = ''; // To store error messages
 
     /**
      * Constructor
@@ -74,6 +75,7 @@ class Procedures_model extends Common_Model {
     public function create_procedure($data) {
         // Valider le nom (unique, alphanumerique + underscore)
         if (!$this->validate_procedure_name($data['name'])) {
+            $this->error = 'Le nom de la procédure est invalide ou déjà utilisé.';
             return false;
         }
         
@@ -87,10 +89,21 @@ class Procedures_model extends Common_Model {
         
         if ($procedure_id) {
             // Créer la structure de dossiers
-            $this->create_procedure_directory($data['name']);
+            if (!$this->create_procedure_directory($data['name'])) {
+                $this->delete(array('id' => $procedure_id));
+                $this->error = 'Impossible de créer le dossier de la procédure. Vérifiez les permissions du dossier uploads/procedures.';
+                return false;
+            }
             
             // Créer un fichier markdown vide initial
-            $this->create_initial_markdown_file($data);
+            if (!$this->create_initial_markdown_file($data)) {
+                $this->delete_procedure_directory($data['name']);
+                $this->delete(array('id' => $procedure_id));
+                $this->error = 'Impossible de créer le fichier markdown initial.';
+                return false;
+            }
+        } else {
+            $this->error = 'Erreur de base de données lors de la création de la procédure.';
         }
         
         return $procedure_id;
@@ -119,14 +132,32 @@ class Procedures_model extends Common_Model {
     public function delete_procedure($id) {
         $procedure = $this->get_by_id('id', $id);
         if (!$procedure) {
+            $this->error = "Procédure non trouvée.";
             return false;
         }
         
         // Supprimer le dossier et tous les fichiers
-        $this->delete_procedure_directory($procedure['name']);
+        if (!$this->delete_procedure_directory($procedure['name'])) {
+            $this->error = "Erreur lors de la suppression du dossier de la procédure. Vérifiez les permissions sur le dossier 'uploads/procedures/".";
+            return false;
+        }
         
         // Supprimer l'enregistrement en base
-        return $this->delete(array('id' => $id));
+        $this->delete(array('id' => $id));
+        
+        if ($this->db->affected_rows() > 0) {
+            return true;
+        } else {
+            // If affected_rows is 0, check if the record is actually gone.
+            // It might have been deleted in a previous failed attempt.
+            $check = $this->get_by_id('id', $id);
+            if (empty($check)) {
+                return true; // Already deleted, so we consider it a success.
+            }
+
+            $this->error = "Erreur de base de données: la procédure n'a pas pu être supprimée.";
+            return false;
+        }
     }
     
     /**
@@ -235,24 +266,14 @@ class Procedures_model extends Common_Model {
      * @return bool Succès de la suppression
      */
     private function delete_procedure_directory($procedure_name) {
-        $directory_path = "./uploads/procedures/{$procedure_name}/";
+        $directory_path = FCPATH . "uploads/procedures/" . $procedure_name;
         
         if (!is_dir($directory_path)) {
-            return true;
+            return true; // Nothing to delete
         }
-        
-        // Supprimer récursivement tous les fichiers et dossiers
-        $files = array_diff(scandir($directory_path), array('.', '..'));
-        foreach ($files as $file) {
-            $file_path = $directory_path . $file;
-            if (is_dir($file_path)) {
-                $this->delete_directory_recursive($file_path);
-            } else {
-                unlink($file_path);
-            }
-        }
-        
-        return rmdir($directory_path);
+
+        // Use a more robust recursive delete
+        return $this->delete_directory_recursive($directory_path);
     }
     
     /**
@@ -262,13 +283,20 @@ class Procedures_model extends Common_Model {
      * @return bool Succès de la suppression
      */
     private function delete_directory_recursive($dir_path) {
+        if (!is_dir($dir_path)) {
+            return false;
+        }
         $files = array_diff(scandir($dir_path), array('.', '..'));
         foreach ($files as $file) {
-            $file_path = $dir_path . '/' . $file;
-            if (is_dir($file_path)) {
-                $this->delete_directory_recursive($file_path);
+            $path = $dir_path . DIRECTORY_SEPARATOR . $file;
+            if (is_dir($path)) {
+                if (!$this->delete_directory_recursive($path)) {
+                    return false;
+                }
             } else {
-                unlink($file_path);
+                if (!unlink($path)) {
+                    return false;
+                }
             }
         }
         return rmdir($dir_path);

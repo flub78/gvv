@@ -31,7 +31,7 @@ class Gvv_Authorization {
     {
         $this->CI =& get_instance();
         $this->CI->load->database();
-        $this->CI->load->model('Authorization_model');
+        $this->CI->load->model('authorization_model');
 
         // Load feature flag from config
         $this->CI->config->load('gvv_config', TRUE);
@@ -102,7 +102,7 @@ class Gvv_Authorization {
 
         // Check data access rules for each role
         foreach ($roles as $role) {
-            $rules = $this->CI->Authorization_model->get_data_access_rules($role['types_roles_id'], $table_name);
+            $rules = $this->CI->authorization_model->get_data_access_rules($role['types_roles_id'], $table_name);
 
             foreach ($rules as $rule) {
                 if ($this->_check_data_access_rule($rule, $row_data, $user_id, $section_id)) {
@@ -129,7 +129,7 @@ class Gvv_Authorization {
             return $this->cache[$cache_key];
         }
 
-        $roles = $this->CI->Authorization_model->get_user_roles($user_id, $section_id);
+        $roles = $this->CI->authorization_model->get_user_roles($user_id, $section_id);
         $this->cache[$cache_key] = $roles;
 
         return $roles;

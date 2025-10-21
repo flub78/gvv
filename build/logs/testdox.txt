@@ -1,3 +1,56 @@
+Bitfields Helper
+ [x] Array 2 int nominal cases
+ [x] Array 2 int with duplicates
+ [x] Array 2 int with incorrect data
+ [x] Array 2 int with mixed keys
+ [x] Int 2 array nominal cases
+ [x] Int 2 array edge cases
+ [x] Int 2 array with incorrect data
+ [x] Roundtrip array to int to array
+ [x] Roundtrip int to array to int
+ [x] Int 2 array keys match values
+ [x] Powers of two
+
+Crypto Helper
+ [x] Transform integer with default keys
+ [x] Transform integer with custom keys
+ [x] Transform integer with string input
+ [x] Transform integer with invalid inputs
+ [x] Transform integer with non numeric string
+ [x] Transform integer with float
+ [x] Reverse transform with default keys
+ [x] Reverse transform with custom keys
+ [x] Reverse transform with wrong keys
+ [x] Mod inverse with valid inputs
+ [x] Mod inverse with zero
+ [x] Mod inverse with non coprime numbers
+ [x] Mod inverse with negative input
+ [x] Complete encode de code cycle
+ [x] Deterministic behavior
+ [x] Output within modulo range
+
+Debug Example
+ [x] Debugging example
+ [x] Debugging with helpers
+
+Markdown Helper
+ [x] Markdown helper loads successfully
+ [ ] Markdown converts headers
+ [ ] Markdown converts bold and italic
+ [ ] Markdown converts lists
+ [x] Markdown handles empty string
+ [ ] Markdown handles plain text
+ [ ] Markdown processes mod config format
+
+Validation Helper
+ [x] Date db 2 ht
+ [x] Date ht 2 db
+ [x] French date compare
+ [x] Minute to time
+ [x] Decimal to time
+ [x] Euro
+ [x] Email validation
+
 Authorization_model
  [ ] Model loads successfully
  [ ] Get user roles queries correct tables
@@ -21,3 +74,37 @@ Authorization_model
  [ ] Update role accepts correct parameters
  [ ] Delete role accepts correct parameters
 
+Configuration Model
+ [x] Image method logic
+ [x] Configuration key validation
+ [x] Configuration value sanitization
+ [x] Language parameter logic
+ [x] Configuration categories
+ [x] Configuration priority
+ [x] Configuration file retrieval
+ [x] File path validation
+
+Ecriture Attachment Deletion
+ [x] Delete attachments method exists
+ [x] Delete ecriture calls attachment deletion
+ [x] Delete all uses delete ecriture
+ [x] Attachment deletion implementation
+ [x] Handles empty attachments
+ [x] Handles file deletion errors
+ [x] Handles database deletion errors
+ [x] Provides proper logging
+ [x] Method documentation
+ [x] Attachment deletion order
+
+Bitfield
+ [x] Constructor
+ [x] To string
+ [x] Bit operations
+ [x] From conversions
+ [x] To conversions
+ [x] Serialization
+ [x] Iterator
+ [x] Edge cases
+ [x] Complex scenarios
+
+Gvv_Authorization

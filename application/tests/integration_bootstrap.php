@@ -123,6 +123,7 @@ class RealDatabase {
     private $order_by_clause = '';
     private $join_clauses = [];
     private $from_table = '';
+    private $from_alias = '';
     private $last_executed_query;
 
     public function select($fields) {
@@ -131,7 +132,15 @@ class RealDatabase {
     }
 
     public function from($table) {
-        $this->from_table = $table;
+        // Handle table aliases like "user_roles_per_section urps"
+        if (strpos($table, ' ') !== false) {
+            $parts = explode(' ', trim($table), 2);
+            $this->from_table = $parts[0];
+            $this->from_alias = $parts[1];
+        } else {
+            $this->from_table = $table;
+            $this->from_alias = '';
+        }
         return $this;
     }
 
@@ -182,6 +191,24 @@ class RealDatabase {
         return $this;
     }
 
+    public function where_in($key, $values = array()) {
+        // Add AND before this condition if we already have conditions
+        $last_condition = end($this->where_conditions);
+        if (!empty($this->where_conditions) &&
+            $last_condition !== '(' &&
+            $last_condition !== 'OR') {
+            $this->where_conditions[] = 'AND';
+        }
+
+        if (!empty($values)) {
+            $escaped_values = array_map(function($v) {
+                return "'" . $this->escape_str($v) . "'";
+            }, $values);
+            $this->where_conditions[] = $key . " IN (" . implode(', ', $escaped_values) . ")";
+        }
+        return $this;
+    }
+
     public function group_start() {
         // Add AND before group start if we already have conditions
         if (!empty($this->where_conditions)) {
@@ -223,9 +250,22 @@ class RealDatabase {
             $this->limit_clause = " LIMIT " . intval($limit);
         }
 
-        $table_name = $table ? $table : $this->from_table;
+        // Handle table parameter with possible alias
+        if ($table) {
+            if (strpos($table, ' ') !== false) {
+                $parts = explode(' ', trim($table), 2);
+                $table_name = $parts[0];
+                $table_alias = ' ' . $parts[1];
+            } else {
+                $table_name = $table;
+                $table_alias = '';
+            }
+        } else {
+            $table_name = $this->from_table;
+            $table_alias = $this->from_alias ? ' ' . $this->from_alias : '';
+        }
 
-        $sql = "SELECT " . $this->select_fields . " FROM " . $table_name;
+        $sql = "SELECT " . $this->select_fields . " FROM " . $table_name . $table_alias;
 
         foreach ($this->join_clauses as $join) {
             $sql .= " " . $join;
@@ -247,6 +287,7 @@ class RealDatabase {
         $this->order_by_clause = '';
         $this->join_clauses = [];
         $this->from_table = '';
+        $this->from_alias = '';
 
         return $this->query($sql);
     }
@@ -392,15 +433,21 @@ class MockLoader {
     public function model($model, $name = '', $db_conn = FALSE) {
         $CI =& get_instance();
 
-        // Convert model name to lowercase for property assignment
-        $model_name = $name ? $name : str_replace('_model', '', strtolower($model));
+        // Convert model name to lowercase for property assignment (CodeIgniter convention)
+        $model_name = $name ? $name : strtolower($model);
 
-        // Load the actual model file
-        $model_file = APPPATH . 'models/' . ucfirst($model) . '.php';
-        if (file_exists($model_file)) {
+        // Determine class name (CodeIgniter uses Ucfirst)
+        $model_class = ucfirst($model);
+
+        // Load the actual model file only if class doesn't exist
+        $model_file = APPPATH . 'models/' . strtolower($model) . '.php';
+        if (file_exists($model_file) && !class_exists($model_class, false)) {
             require_once $model_file;
-            $model_class = ucfirst($model);
-            $CI->$model_class = new $model_class();
+        }
+
+        // Create instance if class exists
+        if (class_exists($model_class, false)) {
+            $CI->$model_name = new $model_class();
         }
 
         return true;
@@ -412,11 +459,17 @@ class MockLoader {
         // Convert library name to lowercase for property assignment
         $library_name = $object_name ? $object_name : strtolower($library);
 
-        // Load the actual library file
+        // Determine class name
+        $library_class = ucfirst($library);
+
+        // Load the actual library file only if class doesn't exist
         $library_file = APPPATH . 'libraries/' . ucfirst($library) . '.php';
-        if (file_exists($library_file)) {
+        if (file_exists($library_file) && !class_exists($library_class, false)) {
             require_once $library_file;
-            $library_class = ucfirst($library);
+        }
+
+        // Create instance if class exists
+        if (class_exists($library_class, false)) {
             $CI->$library_name = new $library_class($params);
         }
 
