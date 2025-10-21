@@ -138,7 +138,7 @@ class Procedures_model extends Common_Model {
         
         // Supprimer le dossier et tous les fichiers
         if (!$this->delete_procedure_directory($procedure['name'])) {
-            $this->error = "Erreur lors de la suppression du dossier de la procédure. Vérifiez les permissions sur le dossier 'uploads/procedures/".";
+            $this->error = "Erreur lors de la suppression du dossier de la procédure. Vérifiez les permissions sur le dossier 'uploads/procedures/'.";
             return false;
         }
         
