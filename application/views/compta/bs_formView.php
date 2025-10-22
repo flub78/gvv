@@ -113,6 +113,14 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             // Existing attachment display for edit mode
             echo heading("gvv_attachments_title", 3);
 
+            // Create button above the table
+            echo '<div class="mb-3">'
+                . '<a href="' . site_url('attachments/create?table=ecritures&id=' . $id) . '" class="btn btn-sm btn-success">'
+                . '<i class="fas fa-plus" aria-hidden="true"></i> '
+                . $this->lang->line('gvv_button_create')
+                . '</a>'
+                . '</div>';
+
             $attrs = array(
                 'controller' => "attachments",
                 'actions' => array('edit', 'delete'),
