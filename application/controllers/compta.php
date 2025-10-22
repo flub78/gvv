@@ -1746,6 +1746,128 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Create attachment via AJAX
+     */
+    public function create_attachment() {
+        header('Content-Type: application/json');
+
+        try {
+            $ecriture_id = isset($_POST['ecriture_id']) ? $_POST['ecriture_id'] : $this->input->post('ecriture_id');
+            $description = isset($_POST['description']) ? $_POST['description'] : $this->input->post('description');
+
+            // Debug logging
+            log_message('debug', 'Create attachment - ecriture_id: ' . var_export($ecriture_id, true));
+            log_message('debug', 'Create attachment - description: ' . var_export($description, true));
+            log_message('debug', 'Create attachment - $_POST: ' . print_r($_POST, true));
+
+            if (!$ecriture_id) {
+                echo json_encode(['success' => false, 'error' => 'ID écriture manquant']);
+                return;
+            }
+
+            if (empty($_FILES['file']['name'])) {
+                echo json_encode(['success' => false, 'error' => 'Fichier requis']);
+                return;
+            }
+
+            // Get section name from ecriture
+            $ecriture = $this->db->where('id', $ecriture_id)->get('ecritures')->row_array();
+            if (!$ecriture) {
+                echo json_encode(['success' => false, 'error' => 'Écriture introuvable']);
+                return;
+            }
+
+            $club_id = $ecriture['club'];
+            $this->load->model('sections_model');
+            $section_name = $this->sections_model->image($club_id);
+
+            if (empty($section_name)) {
+                $section_name = 'Unknown';
+            }
+
+            // Sanitize section name for directory
+            $section_name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $section_name);
+
+            $year = date('Y');
+            $dirname = './uploads/attachments/' . $year . '/' . $section_name . '/';
+
+            if (!file_exists($dirname)) {
+                mkdir($dirname, 0777, true);
+                chmod($dirname, 0777);
+            }
+
+            // Generate unique filename
+            $storage_file = rand(100000, 999999) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $_FILES['file']['name']);
+
+            $config['upload_path'] = $dirname;
+            $config['allowed_types'] = '*';
+            $config['max_size'] = '20000';
+            $config['file_name'] = $storage_file;
+
+            $this->load->library('upload', $config);
+
+            if (!$this->upload->do_upload('file')) {
+                echo json_encode(['success' => false, 'error' => $this->upload->display_errors('', '')]);
+                return;
+            }
+
+            $file_path = $dirname . $storage_file;
+
+            // Attempt compression
+            $this->load->library('file_compressor');
+            $compression_result = $this->file_compressor->compress($file_path);
+
+            if ($compression_result['success']) {
+                $file_path = $compression_result['compressed_path'];
+            }
+
+            // Get current username (not user_id - the field name is misleading)
+            $user_id = $this->dx_auth->get_username();
+
+            // Debug: log user_id
+            log_message('debug', 'Create attachment - user_id (username): ' . var_export($user_id, true));
+
+            // Insert into database
+            $insert_data = [
+                'referenced_table' => 'ecritures',
+                'referenced_id' => $ecriture_id,
+                'user_id' => $user_id,
+                'description' => $description,
+                'file' => $file_path,
+                'club' => $club_id
+            ];
+
+            log_message('debug', 'Create attachment - insert_data: ' . print_r($insert_data, true));
+
+            $this->db->insert('attachments', $insert_data);
+            $attachment_id = $this->db->insert_id();
+
+            if (!$attachment_id) {
+                // Clean up uploaded file
+                if (file_exists($file_path)) {
+                    unlink($file_path);
+                }
+                echo json_encode(['success' => false, 'error' => 'Erreur lors de l\'insertion en base de données']);
+                return;
+            }
+
+            // Return success with attachment data
+            $file_url = base_url() . ltrim($file_path, './');
+            echo json_encode([
+                'success' => true,
+                'attachment_id' => $attachment_id,
+                'description' => $description,
+                'file_name' => basename($file_path),
+                'file_url' => $file_url
+            ]);
+
+        } catch (Exception $e) {
+            log_message('error', 'Create attachment error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Get attachments section HTML for AJAX modal display
      */
     public function get_attachments_section($ecriture_id) {
@@ -1764,42 +1886,87 @@ class Compta extends Gvv_Controller {
             $html = '<div class="ms-4">';
             $html .= '<h3>Justificatifs</h3>';
 
-            // Add "Create" button
-            $html .= '<div class="mb-3">';
-            $html .= '<a href="' . site_url('attachments/create?table=ecritures&id=' . $ecriture_id) . '" class="btn btn-sm btn-success" target="_blank">';
-            $html .= '<i class="fas fa-plus" aria-hidden="true"></i> Créer</a>';
+            // Add inline creation form
+            $html .= '<div class="card mb-3" id="createAttachmentCard" style="display: none;">';
+            $html .= '<div class="card-body">';
+            $html .= '<h5 class="card-title">Nouveau justificatif</h5>';
+            $html .= '<div class="mb-2">';
+            $html .= '<label class="form-label">Description</label>';
+            $html .= '<input type="text" class="form-control form-control-sm" id="newDescription" placeholder="Description du justificatif">';
+            $html .= '</div>';
+            $html .= '<div class="mb-2">';
+            $html .= '<label class="form-label">Fichier</label>';
+            $html .= '<input type="file" class="form-control form-control-sm" id="newFile" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
+            $html .= '</div>';
+            $html .= '<div class="text-danger mb-2" id="createErrorMessage" style="display: none;"></div>';
+            $html .= '<button class="btn btn-sm btn-success" id="saveNewAttachment"><i class="fas fa-save"></i> Enregistrer</button> ';
+            $html .= '<button class="btn btn-sm btn-secondary" id="cancelNewAttachment"><i class="fas fa-times"></i> Annuler</button>';
+            $html .= '</div>';
             $html .= '</div>';
 
-            // Generate attachments table
+            // Add "Create" button
+            $html .= '<div class="mb-3">';
+            $html .= '<button class="btn btn-sm btn-success" id="showCreateForm"><i class="fas fa-plus"></i> Créer</button>';
+            $html .= '</div>';
+
+            // Generate attachments table with inline editing
             if (!empty($attachments)) {
-                $html .= '<table class="table table-striped table-sm">';
+                $html .= '<table class="table table-striped table-sm" id="attachmentsTable">';
                 $html .= '<thead><tr>';
-                $html .= '<th>Description</th>';
-                $html .= '<th>Fichier</th>';
-                $html .= '<th>Actions</th>';
+                $html .= '<th style="width: 40%;">Description</th>';
+                $html .= '<th style="width: 35%;">Fichier</th>';
+                $html .= '<th style="width: 25%;">Actions</th>';
                 $html .= '</tr></thead><tbody>';
 
                 foreach ($attachments as $attachment) {
-                    $html .= '<tr>';
-                    $html .= '<td>' . htmlspecialchars($attachment['description']) . '</td>';
+                    $attach_id = $attachment['id'];
+                    $html .= '<tr id="attachment-row-' . $attach_id . '" data-attachment-id="' . $attach_id . '">';
 
-                    // File link
+                    // Description cell - with view/edit mode
+                    $html .= '<td class="attachment-cell">';
+                    $html .= '<div class="view-mode">';
+                    $html .= '<span class="description-text">' . htmlspecialchars($attachment['description']) . '</span>';
+                    $html .= '</div>';
+                    $html .= '<div class="edit-mode" style="display: none;">';
+                    $html .= '<input type="text" class="form-control form-control-sm description-input" value="' . htmlspecialchars($attachment['description']) . '">';
+                    $html .= '<div class="text-danger mt-1 error-message" style="display: none;"></div>';
+                    $html .= '</div>';
+                    $html .= '</td>';
+
+                    // File cell - with view/edit mode
                     $file_path = $attachment['file'];
                     $file_name = basename($file_path);
+                    $html .= '<td class="attachment-cell">';
+                    $html .= '<div class="view-mode">';
                     if (file_exists($file_path)) {
                         $file_url = base_url() . ltrim($file_path, './');
-                        $html .= '<td><a href="' . $file_url . '" target="_blank">' . htmlspecialchars($file_name) . '</a></td>';
+                        $html .= '<a href="' . $file_url . '" target="_blank">' . htmlspecialchars($file_name) . '</a>';
                     } else {
-                        $html .= '<td>' . htmlspecialchars($file_name) . ' <span class="text-danger">(fichier manquant)</span></td>';
+                        $html .= htmlspecialchars($file_name) . ' <span class="text-danger">(manquant)</span>';
                     }
+                    $html .= '</div>';
+                    $html .= '<div class="edit-mode" style="display: none;">';
+                    $html .= '<input type="file" class="form-control form-control-sm file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
+                    $html .= '<small class="text-muted">Laissez vide pour conserver le fichier actuel</small>';
+                    $html .= '<div class="text-danger mt-1 error-message" style="display: none;"></div>';
+                    $html .= '</div>';
+                    $html .= '</td>';
 
-                    // Actions
+                    // Actions cell
                     $html .= '<td>';
                     if (has_role('tresorier')) {
-                        $html .= '<a href="' . site_url('attachments/edit/' . $attachment['id']) . '" class="btn btn-sm btn-primary" target="_blank" title="Modifier">';
-                        $html .= '<i class="fas fa-edit"></i></a> ';
-                        $html .= '<a href="' . site_url('attachments/delete/' . $attachment['id']) . '" class="btn btn-sm btn-danger" target="_blank" title="Supprimer" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce justificatif ?\');">';
-                        $html .= '<i class="fas fa-trash"></i></a>';
+                        $html .= '<div class="view-mode">';
+                        $html .= '<button class="btn btn-sm btn-primary edit-attachment-btn" title="Modifier">';
+                        $html .= '<i class="fas fa-edit"></i></button> ';
+                        $html .= '<button class="btn btn-sm btn-danger delete-attachment-btn" title="Supprimer">';
+                        $html .= '<i class="fas fa-trash"></i></button>';
+                        $html .= '</div>';
+                        $html .= '<div class="edit-mode" style="display: none;">';
+                        $html .= '<button class="btn btn-sm btn-success save-attachment-btn" title="Enregistrer">';
+                        $html .= '<i class="fas fa-check"></i></button> ';
+                        $html .= '<button class="btn btn-sm btn-secondary cancel-edit-btn" title="Annuler">';
+                        $html .= '<i class="fas fa-times"></i></button>';
+                        $html .= '</div>';
                     } else {
                         $html .= '<span class="text-muted">-</span>';
                     }
@@ -1818,6 +1985,160 @@ class Compta extends Gvv_Controller {
         } catch (Exception $e) {
             log_message('error', 'Error in get_attachments_section: ' . $e->getMessage());
             echo '<div class="alert alert-danger">Erreur: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    }
+
+    /**
+     * Update attachment via AJAX
+     */
+    public function update_attachment() {
+        header('Content-Type: application/json');
+
+        try {
+            // Debug: log everything we receive
+            log_message('debug', 'Update attachment called');
+            log_message('debug', 'Request method: ' . $_SERVER['REQUEST_METHOD']);
+            log_message('debug', 'Content-Type: ' . (isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : 'not set'));
+            log_message('debug', '$_POST: ' . print_r($_POST, true));
+            log_message('debug', '$_FILES: ' . print_r($_FILES, true));
+            log_message('debug', '$_REQUEST: ' . print_r($_REQUEST, true));
+            log_message('debug', 'input->post: ' . print_r($this->input->post(), true));
+            log_message('debug', 'Raw input: ' . file_get_contents('php://input'));
+
+            // Try multiple ways to get the data
+            $attachment_id = null;
+            $description = null;
+
+            // Method 1: $_POST
+            if (isset($_POST['attachment_id'])) {
+                $attachment_id = $_POST['attachment_id'];
+                $description = $_POST['description'];
+                log_message('debug', 'Got data from $_POST');
+            }
+            // Method 2: $_REQUEST
+            else if (isset($_REQUEST['attachment_id'])) {
+                $attachment_id = $_REQUEST['attachment_id'];
+                $description = $_REQUEST['description'];
+                log_message('debug', 'Got data from $_REQUEST');
+            }
+            // Method 3: CodeIgniter input
+            else if ($this->input->post('attachment_id')) {
+                $attachment_id = $this->input->post('attachment_id');
+                $description = $this->input->post('description');
+                log_message('debug', 'Got data from input->post');
+            }
+
+            log_message('debug', 'Final attachment_id: ' . var_export($attachment_id, true));
+            log_message('debug', 'Final description: ' . var_export($description, true));
+
+            if (!$attachment_id) {
+                // Debug: log what we received
+                log_message('error', 'Update attachment - ID manquant. POST data: ' . print_r($_POST, true));
+                echo json_encode(['success' => false, 'error' => 'ID manquant (reçu: ' . var_export($attachment_id, true) . ')']);
+                return;
+            }
+
+            $this->load->model('attachments_model');
+
+            // Get current attachment
+            $attachment = $this->db->where('id', $attachment_id)->get('attachments')->row_array();
+            if (!$attachment) {
+                echo json_encode(['success' => false, 'error' => 'Justificatif introuvable']);
+                return;
+            }
+
+            // Update description
+            $update_data = ['description' => $description];
+
+            // Handle file upload if present
+            if (!empty($_FILES['file']['name'])) {
+                $year = date('Y');
+                $section_name = $this->sections_model->image($attachment['club']) ?: 'Unknown';
+                $section_name = $this->sanitize_filename($section_name);
+                $dirname = './uploads/attachments/' . $year . '/' . $section_name . '/';
+
+                if (!file_exists($dirname)) {
+                    mkdir($dirname, 0777, true);
+                    chmod($dirname, 0777);
+                }
+
+                $storage_file = rand(100000, 999999) . '_' . $this->sanitize_filename($_FILES['file']['name']);
+                $config['upload_path'] = $dirname;
+                $config['allowed_types'] = '*';
+                $config['max_size'] = '20000';
+                $config['file_name'] = $storage_file;
+
+                $this->load->library('upload', $config);
+
+                if (!$this->upload->do_upload('file')) {
+                    echo json_encode(['success' => false, 'error' => $this->upload->display_errors('', '')]);
+                    return;
+                }
+
+                // Delete old file
+                if (!empty($attachment['file']) && file_exists($attachment['file'])) {
+                    unlink($attachment['file']);
+                }
+
+                $update_data['file'] = $dirname . $storage_file;
+            }
+
+            // Update database
+            $this->db->where('id', $attachment_id);
+            $this->db->update('attachments', $update_data);
+
+            // Get updated file info
+            $file_name = !empty($update_data['file']) ? basename($update_data['file']) : basename($attachment['file']);
+            $file_path = !empty($update_data['file']) ? $update_data['file'] : $attachment['file'];
+            $file_url = base_url() . ltrim($file_path, './');
+
+            echo json_encode([
+                'success' => true,
+                'description' => $description,
+                'file_name' => $file_name,
+                'file_url' => $file_url
+            ]);
+        } catch (Exception $e) {
+            log_message('error', 'Error updating attachment: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Delete attachment via AJAX
+     */
+    public function delete_attachment() {
+        header('Content-Type: application/json');
+
+        try {
+            $attachment_id = isset($_POST['attachment_id']) ? $_POST['attachment_id'] : $this->input->post('attachment_id');
+
+            if (!$attachment_id) {
+                log_message('error', 'Delete attachment - ID manquant. POST data: ' . print_r($_POST, true));
+                echo json_encode(['success' => false, 'error' => 'ID manquant']);
+                return;
+            }
+
+            // Get attachment
+            $attachment = $this->db->where('id', $attachment_id)->get('attachments')->row_array();
+            if (!$attachment) {
+                echo json_encode(['success' => false, 'error' => 'Justificatif introuvable']);
+                return;
+            }
+
+            // Delete file
+            if (!empty($attachment['file']) && file_exists($attachment['file'])) {
+                unlink($attachment['file']);
+            }
+
+            // Delete from database
+            $this->db->where('id', $attachment_id);
+            $this->db->delete('attachments');
+
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            log_message('error', 'Error deleting attachment: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 

@@ -522,11 +522,15 @@ $(document).on('click', '.attachment-icon', function() {
 function loadAttachments(ecritureId) {
     $('#attachmentsContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
 
+    // Store ecriture_id in modal for later use
+    $('#attachmentsModal').data('ecriture-id', ecritureId);
+
     $.ajax({
         url: '<?= site_url('compta/get_attachments_section') ?>/' + ecritureId,
         method: 'GET',
         success: function(response) {
             $('#attachmentsContent').html(response);
+            initializeAttachmentHandlers();
         },
         error: function(xhr, status, error) {
             console.error('AJAX Error:', status, error);
@@ -542,4 +546,308 @@ function loadAttachments(ecritureId) {
         }
     });
 }
+
+// Initialize inline editing handlers
+function initializeAttachmentHandlers() {
+    // Edit button click
+    $(document).off('click', '.edit-attachment-btn').on('click', '.edit-attachment-btn', function() {
+        var $row = $(this).closest('tr');
+        $row.find('.view-mode').hide();
+        $row.find('.edit-mode').show();
+    });
+
+    // Cancel button click
+    $(document).off('click', '.cancel-edit-btn').on('click', '.cancel-edit-btn', function() {
+        var $row = $(this).closest('tr');
+        $row.find('.edit-mode').hide();
+        $row.find('.view-mode').show();
+        $row.find('.error-message').hide().text('');
+    });
+
+    // Save button click
+    $(document).off('click', '.save-attachment-btn').on('click', '.save-attachment-btn', function() {
+        var $btn = $(this);
+        var $row = $btn.closest('tr');
+
+        // Try multiple ways to get attachment ID
+        var attachmentId = $row.data('attachment-id');
+        if (!attachmentId) {
+            attachmentId = $row.attr('data-attachment-id');
+        }
+        if (!attachmentId) {
+            attachmentId = $row[0].getAttribute('data-attachment-id');
+        }
+
+        var description = $row.find('.description-input').val();
+        var fileInput = $row.find('.file-input')[0];
+
+        // Debug logging
+        console.log('Save button clicked');
+        console.log('Row element:', $row[0]);
+        console.log('Row HTML:', $row[0].outerHTML.substring(0, 200));
+        console.log('All data attributes:', $row[0].dataset);
+        console.log('data() method:', $row.data('attachment-id'));
+        console.log('attr() method:', $row.attr('data-attachment-id'));
+        console.log('getAttribute():', $row[0].getAttribute('data-attachment-id'));
+        console.log('Final attachmentId:', attachmentId);
+        console.log('Description:', description);
+        console.log('File input:', fileInput);
+        console.log('Files selected:', fileInput ? fileInput.files.length : 0);
+
+        // Validate attachment ID
+        if (!attachmentId) {
+            console.error('ERROR: Could not find attachment ID');
+            $row.find('.error-message').show().text('Erreur: ID de justificatif manquant dans la page');
+            return;
+        }
+
+        // Clear previous errors
+        $row.find('.error-message').hide().text('');
+
+        // Prepare form data
+        var formData = new FormData();
+        formData.append('attachment_id', attachmentId);
+        formData.append('description', description);
+        if (fileInput.files.length > 0) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        // Debug: log FormData contents
+        console.log('FormData contents:');
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        // Disable button and show spinner
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        var ajaxUrl = '<?= base_url() ?>index.php/compta/update_attachment';
+        console.log('AJAX URL:', ajaxUrl);
+        console.log('jQuery version:', $.fn.jquery);
+
+        $.ajax({
+            url: ajaxUrl,
+            type: 'POST',  // Use 'type' instead of 'method' for older jQuery
+            method: 'POST',  // Keep both for compatibility
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function(xhr, settings) {
+                console.log('Before send - Type:', settings.type);
+                console.log('Before send - URL:', settings.url);
+                console.log('Before send - Data:', settings.data);
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update view mode with new values
+                    $row.find('.description-text').text(response.description);
+                    if (response.file_name) {
+                        $row.find('.view-mode a').attr('href', response.file_url).text(response.file_name);
+                    }
+
+                    // Switch back to view mode
+                    $row.find('.edit-mode').hide();
+                    $row.find('.view-mode').show();
+
+                    // Show success message
+                    showSuccessToast('Justificatif mis à jour avec succès');
+                } else {
+                    // Show error
+                    $row.find('.description-input').siblings('.error-message').text(response.error).show();
+                }
+                $btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+            },
+            error: function(xhr) {
+                var errorMsg = 'Erreur lors de la mise à jour';
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    errorMsg = response.error || errorMsg;
+                } catch(e) {}
+                $row.find('.description-input').siblings('.error-message').text(errorMsg).show();
+                $btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
+            }
+        });
+    });
+
+    // Delete button click
+    $(document).off('click', '.delete-attachment-btn').on('click', '.delete-attachment-btn', function() {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce justificatif ?')) {
+            return;
+        }
+
+        var $btn = $(this);
+        var $row = $btn.closest('tr');
+        var attachmentId = $row.data('attachment-id');
+
+        // Disable button and show spinner
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: '<?= base_url() ?>index.php/compta/delete_attachment',
+            type: 'POST',  // Use 'type' instead of 'method' for older jQuery
+            method: 'POST',  // Keep both for compatibility
+            data: { attachment_id: attachmentId },
+            success: function(response) {
+                if (response.success) {
+                    // Remove row with animation
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                        // Check if table is now empty
+                        if ($('#attachmentsTable tbody tr').length === 0) {
+                            $('#attachmentsTable').replaceWith('<div class="alert alert-info">Aucun justificatif</div>');
+                        }
+                    });
+                    showSuccessToast('Justificatif supprimé avec succès');
+                } else {
+                    alert('Erreur: ' + response.error);
+                    $btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = 'Erreur lors de la suppression';
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    errorMsg = response.error || errorMsg;
+                } catch(e) {}
+                alert(errorMsg);
+                $btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+            }
+        });
+    });
+}
+
+// Success toast notification
+function showSuccessToast(message) {
+    var toast = $('<div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">')
+        .html(message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>');
+    $('body').append(toast);
+    setTimeout(function() {
+        toast.fadeOut(300, function() { $(this).remove(); });
+    }, 3000);
+}
+
+// Handle create attachment inline form
+$(document).on('click', '#showCreateForm', function() {
+    $('#createAttachmentCard').slideDown();
+    $(this).hide();
+});
+
+$(document).on('click', '#cancelNewAttachment', function() {
+    $('#createAttachmentCard').slideUp();
+    $('#showCreateForm').show();
+    $('#newDescription').val('');
+    $('#newFile').val('');
+    $('#createErrorMessage').hide().text('');
+});
+
+$(document).on('click', '#saveNewAttachment', function() {
+    var $btn = $(this);
+    var description = $('#newDescription').val();
+    var fileInput = $('#newFile')[0];
+    var ecritureId = $('#attachmentsModal').data('ecriture-id');
+
+    // Debug logging
+    console.log('Creating attachment for ecriture_id:', ecritureId);
+    console.log('Description:', description);
+
+    // Clear previous errors
+    $('#createErrorMessage').hide().text('');
+
+    // Validate
+    if (!description) {
+        $('#createErrorMessage').show().text('La description est requise');
+        return;
+    }
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        $('#createErrorMessage').show().text('Le fichier est requis');
+        return;
+    }
+
+    // Prepare form data
+    var formData = new FormData();
+    formData.append('ecriture_id', ecritureId);
+    formData.append('description', description);
+    formData.append('file', fileInput.files[0]);
+
+    // Disable button and show spinner
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+
+    $.ajax({
+        url: '<?= base_url() ?>index.php/compta/create_attachment',
+        type: 'POST',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                // Add new row to table
+                var newRow = '<tr id="attachment-row-' + response.attachment_id + '" data-attachment-id="' + response.attachment_id + '">';
+                newRow += '<td class="attachment-cell">';
+                newRow += '<div class="view-mode"><span class="description-text">' + response.description + '</span></div>';
+                newRow += '<div class="edit-mode" style="display: none;">';
+                newRow += '<input type="text" class="form-control form-control-sm description-input" value="' + response.description + '">';
+                newRow += '<div class="text-danger mt-1 error-message" style="display: none;"></div>';
+                newRow += '</div></td>';
+                newRow += '<td class="attachment-cell">';
+                newRow += '<div class="view-mode"><a href="' + response.file_url + '" target="_blank">' + response.file_name + '</a></div>';
+                newRow += '<div class="edit-mode" style="display: none;">';
+                newRow += '<input type="file" class="form-control form-control-sm file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
+                newRow += '<small class="text-muted">Laissez vide pour conserver le fichier actuel</small>';
+                newRow += '<div class="text-danger mt-1 error-message" style="display: none;"></div>';
+                newRow += '</div></td>';
+                newRow += '<td class="attachment-cell">';
+                newRow += '<div class="view-mode">';
+                newRow += '<button class="btn btn-sm btn-primary edit-attachment-btn" title="Modifier"><i class="fas fa-edit"></i></button> ';
+                newRow += '<button class="btn btn-sm btn-danger delete-attachment-btn" title="Supprimer"><i class="fas fa-trash"></i></button>';
+                newRow += '</div>';
+                newRow += '<div class="edit-mode" style="display: none;">';
+                newRow += '<button class="btn btn-sm btn-success save-attachment-btn" title="Enregistrer"><i class="fas fa-check"></i></button> ';
+                newRow += '<button class="btn btn-sm btn-secondary cancel-edit-btn" title="Annuler"><i class="fas fa-times"></i></button>';
+                newRow += '</div></td>';
+                newRow += '</tr>';
+
+                // Check if table exists
+                if ($('#attachmentsTable').length === 0) {
+                    // Create table
+                    var tableHtml = '<table class="table table-striped table-sm" id="attachmentsTable">';
+                    tableHtml += '<thead><tr><th style="width: 40%;">Description</th><th style="width: 35%;">Fichier</th><th style="width: 25%;">Actions</th></tr></thead>';
+                    tableHtml += '<tbody>' + newRow + '</tbody></table>';
+                    $('#showCreateForm').before(tableHtml);
+                } else {
+                    $('#attachmentsTable tbody').append(newRow);
+                }
+
+                // Reset form
+                $('#newDescription').val('');
+                $('#newFile').val('');
+                $('#createAttachmentCard').slideUp();
+                $('#showCreateForm').show();
+
+                showSuccessToast('Justificatif créé avec succès');
+
+                // Update paperclip icon count
+                var $icon = $('.attachment-icon[data-ecriture-id="' + ecritureId + '"]');
+                var currentCount = parseInt($icon.data('attachment-count')) || 0;
+                var newCount = currentCount + 1;
+                $icon.data('attachment-count', newCount);
+                $icon.attr('data-attachment-count', newCount);
+                $icon.attr('title', newCount + ' justificatif(s)');
+                $icon.removeClass('text-muted').addClass('text-success fw-bold');
+            } else {
+                $('#createErrorMessage').show().text(response.error || 'Erreur lors de la création');
+            }
+            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Enregistrer');
+        },
+        error: function(xhr) {
+            var errorMsg = 'Erreur lors de la création';
+            try {
+                var response = JSON.parse(xhr.responseText);
+                errorMsg = response.error || errorMsg;
+            } catch(e) {}
+            $('#createErrorMessage').show().text(errorMsg);
+            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Enregistrer');
+        }
+    });
+});
 </script>
