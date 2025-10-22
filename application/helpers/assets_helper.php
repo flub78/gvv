@@ -64,12 +64,13 @@ if (!function_exists('asset_url')) {
 
 if (!function_exists('controller_url')) {
     function controller_url($nom) {
-        $CI = &get_instance();
-        if ($CI->config->item('index_page')) {
-            return site_url() . '/' . $nom;
-        } else {
-            return site_url() . $nom;
+        // If $nom is already a full URL, return it as-is
+        if (preg_match('/^https?:\/\//', $nom)) {
+            return $nom;
         }
+
+        // site_url() already handles the URI parameter correctly
+        return site_url($nom);
     }
 }
 
