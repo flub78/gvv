@@ -13,6 +13,130 @@ document.addEventListener('DOMContentLoaded', function() {
         rapprocherBtn.setAttribute('disabled', 'disabled');
     }
 
+    // Initialize table visibility: hide all rows in "selected" table, show all in "available" table
+    function initializeTableVisibility() {
+        console.log('Initializing table visibility...');
+
+        // Hide ALL rows in the selected entries table on page load
+        const selectedTable = document.querySelector('#selected-entries-container table.table-selected tbody');
+        if (selectedTable) {
+            const selectedRows = selectedTable.querySelectorAll('tr');
+            console.log('Found', selectedRows.length, 'rows in selected table - hiding all');
+            selectedRows.forEach(function(row) {
+                row.style.display = 'none';
+            });
+        } else {
+            console.log('Selected table not found');
+        }
+
+        // Show all rows in the available entries table
+        const availableTable = document.querySelector('#available-entries-container table.table-available tbody');
+        if (availableTable) {
+            const availableRows = availableTable.querySelectorAll('tr');
+            console.log('Found', availableRows.length, 'rows in available table - showing all');
+            availableRows.forEach(function(row) {
+                row.style.display = '';
+            });
+        } else {
+            console.log('Available table not found');
+        }
+    }
+
+    // Function to update row visibility based on checkbox state
+    function updateRowVisibility(checkbox) {
+        console.log('updateRowVisibility called, checkbox checked:', checkbox.checked, 'name:', checkbox.name);
+
+        // Get the ecriture ID from the data attribute
+        const ecritureId = checkbox.getAttribute('data-ecriture-id');
+        console.log('Ecriture ID:', ecritureId);
+
+        if (!ecritureId) {
+            console.log('No ecriture ID found');
+            return;
+        }
+
+        // Find both checkboxes (in available and selected tables)
+        const availableCheckbox = document.querySelector('input[name="cb_' + ecritureId + '"]');
+        const selectedCheckbox = document.querySelector('input[name="sel_cb_' + ecritureId + '"]');
+
+        console.log('Available checkbox found:', !!availableCheckbox);
+        console.log('Selected checkbox found:', !!selectedCheckbox);
+
+        // Find the rows
+        const availableRow = availableCheckbox ? availableCheckbox.closest('tr') : null;
+        const selectedRow = selectedCheckbox ? selectedCheckbox.closest('tr') : null;
+
+        console.log('Available row found:', !!availableRow);
+        console.log('Selected row found:', !!selectedRow);
+
+        // Determine if this is a check or uncheck action
+        const isChecking = checkbox.checked;
+
+        // Synchronize both checkboxes
+        if (availableCheckbox) availableCheckbox.checked = isChecking;
+        if (selectedCheckbox) selectedCheckbox.checked = isChecking;
+
+        if (isChecking) {
+            // Hide in available table, show in selected table
+            console.log('Checkbox checked - hiding available row, showing selected row');
+            if (availableRow) {
+                availableRow.style.display = 'none';
+            }
+            if (selectedRow) {
+                selectedRow.style.display = 'table-row';
+                selectedRow.style.setProperty('display', 'table-row', 'important');
+            }
+        } else {
+            // Show in available table, hide in selected table
+            console.log('Checkbox unchecked - showing available row, hiding selected row');
+            if (availableRow) {
+                availableRow.style.display = 'table-row';
+            }
+            if (selectedRow) {
+                selectedRow.style.display = 'none';
+            }
+        }
+    }
+
+    // Function to hide DataTables info display (incorrect due to hidden rows)
+    function hideDataTablesInfo() {
+        // Hide the "Affichage de l'élément X à Y sur Z éléments" text
+        const selectedTableInfo = document.querySelector('#selected-entries-container .dataTables_info');
+        const availableTableInfo = document.querySelector('#available-entries-container .dataTables_info');
+
+        if (selectedTableInfo) {
+            selectedTableInfo.style.display = 'none';
+            console.log('Hidden selected table info');
+        }
+        if (availableTableInfo) {
+            availableTableInfo.style.display = 'none';
+            console.log('Hidden available table info');
+        }
+    }
+
+    // Initialize visibility on page load
+    initializeTableVisibility();
+    hideDataTablesInfo();
+
+    // Re-initialize after DataTables has loaded (with increasing delays)
+    setTimeout(function() {
+        console.log('Re-initializing table visibility (100ms)...');
+        initializeTableVisibility();
+        hideDataTablesInfo();
+    }, 100);
+
+    setTimeout(function() {
+        console.log('Re-initializing table visibility (500ms)...');
+        initializeTableVisibility();
+        hideDataTablesInfo();
+    }, 500);
+
+    setTimeout(function() {
+        console.log('Re-initializing table visibility (1000ms)...');
+        initializeTableVisibility();
+        hideDataTablesInfo();
+    }, 1000);
+
     // Fonction pour vérifier les sélections et activer/désactiver le bouton
     function updateRapprocherButton() {
         const checkedBoxes = document.querySelectorAll('input[type="checkbox"][name^="cb_"]:checked');
@@ -146,7 +270,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gestion du clic sur les checkboxes
     document.addEventListener('change', function(e) {
-        if (e.target.type === 'checkbox' && e.target.name.startsWith('cb_')) {
+        console.log('Change event detected:', e.target);
+        if (e.target.type === 'checkbox' && (e.target.name.startsWith('cb_') || e.target.name.startsWith('sel_cb_'))) {
+            console.log('Checkbox change detected for:', e.target.name, 'checked:', e.target.checked);
+            updateRowVisibility(e.target);
             updateRapprocherButton();
         }
     });
@@ -156,33 +283,43 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             const filterValue = this.value;
             const operationAmount = window.OPERATION_AMOUNT || 0;
-            
-            document.querySelectorAll('tr').forEach(function(row) {
-                // Chercher une checkbox dans cette ligne pour déterminer si c'est une ligne d'écriture
-                const checkbox = row.querySelector('input[type="checkbox"][name^="cb_"]');
-                if (!checkbox) return; // Skip si pas de checkbox
-                
-                let show = true;
-                
-                if (filterValue === 'non-rapprochees') {
-                    const badge = row.querySelector('.bg-success');
-                    show = !badge; // Montrer uniquement si pas de badge vert
-                } else if (filterValue === 'montant') {
-                    // Chercher le montant dans la ligne
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length >= 3) { // Vérifier qu'il y a au moins 3 colonnes
-                        const montantText = cells[2].textContent.trim(); // 3ème colonne pour le montant
-                        const montant = parseFloat(montantText.replace(/[^\d.,-]/g, '').replace(',', '.'));
-                        if (!isNaN(montant)) {
-                            const tolerance = Math.max(0.01, Math.abs(operationAmount) * 0.01); // 1% de tolerance minimum 0.01
-                            show = Math.abs(montant - Math.abs(operationAmount)) <= tolerance;
+
+            // Apply filter to available entries table only
+            const availableTable = document.querySelector('#available-entries-container table.table-available tbody');
+            if (availableTable) {
+                availableTable.querySelectorAll('tr').forEach(function(row) {
+                    // Chercher une checkbox dans cette ligne pour déterminer si c'est une ligne d'écriture
+                    const checkbox = row.querySelector('input[type="checkbox"][name^="cb_"]');
+                    if (!checkbox) return; // Skip si pas de checkbox
+
+                    // Skip if checkbox is checked (row should be hidden anyway)
+                    if (checkbox.checked) {
+                        row.style.display = 'none';
+                        return;
+                    }
+
+                    let show = true;
+
+                    if (filterValue === 'non-rapprochees') {
+                        const badge = row.querySelector('.bg-success');
+                        show = !badge; // Montrer uniquement si pas de badge vert
+                    } else if (filterValue === 'montant') {
+                        // Chercher le montant dans la ligne
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 3) { // Vérifier qu'il y a au moins 3 colonnes
+                            const montantText = cells[2].textContent.trim(); // 3ème colonne pour le montant
+                            const montant = parseFloat(montantText.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                            if (!isNaN(montant)) {
+                                const tolerance = Math.max(0.01, Math.abs(operationAmount) * 0.01); // 1% de tolerance minimum 0.01
+                                show = Math.abs(montant - Math.abs(operationAmount)) <= tolerance;
+                            }
                         }
                     }
-                }
-                
-                row.style.display = show ? '' : 'none';
-            });
-            
+
+                    row.style.display = show ? '' : 'none';
+                });
+            }
+
             // Mettre à jour le bouton après filtrage
             updateRapprocherButton();
         });

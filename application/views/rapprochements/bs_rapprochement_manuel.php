@@ -146,9 +146,12 @@ echo '</div>';
     </div>
 </div>
 
-<?php
-echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
-?>
+<style>
+    /* Hide all rows in the selected entries table by default */
+    #selected-entries-container table.table-selected tbody tr {
+        display: none;
+    }
+</style>
 
 <script>
     // Configuration variables for the JavaScript module
@@ -168,11 +171,11 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
         </div>
     </div>
 
-    <!-- Sélection de l'écriture GVV -->
+    <!-- Écritures sélectionnées pour le rapprochement -->
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <p class="text-muted mb-0">Sélectionner une ou plusieurs écritures GVV pour le rapprochement</p>
+                <h5>Écritures sélectionnées pour le rapprochement</h5>
                 <div id="amount-indicator" class="alert alert-info d-none" role="alert">
                     <small>
                         <strong>Montant opération:</strong> <span id="operation-amount"><?php echo number_format($amount, 2, ',', ' '); ?> €</span><br>
@@ -182,7 +185,6 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
                 </div>
             </div>
 
-
             <?php
             echo form_open_multipart('rapprochements/rapprochez');
 
@@ -190,36 +192,34 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
             echo '<input type="hidden" name="manual_mode" value="1">';
             echo '<input type="hidden" name="line" value="' . $line . '">';
 
-            echo '<div class="mt-3">';
+            echo '<div class="mt-3" id="selected-entries-container">';
 
-            // Créer une version modifiée du tableau pour le rapprochement manuel
-            $modified_gvv_lines = array();
+            // Créer une version pour le tableau "sélectionnées" (avec checkboxes préfixées "sel_")
+            $selected_display_lines = array();
             foreach ($gvv_lines as $row) {
-                $modified_row = array();
+                $display_row = array();
                 foreach ($row as $index => $cell) {
                     if ($index === 0) {
-                        // Remplacer cbdel_ par cb_ dans la première colonne (checkboxes)
-                        // Extraire l'ID de l'écriture de la checkbox
+                        // Pour le tableau "sélectionnées", créer une checkbox avec prefix "sel_cb_" au lieu de "cb_"
                         if (preg_match('/cbdel_(\d+)/', $cell, $matches)) {
                             $ecriture_id = $matches[1];
-                            $modified_cell = str_replace('cbdel_', 'cb_', $cell);
-                            // Ajouter l'input hidden avec string_releve_{ecriture_id}
-                            $modified_cell .= '<input type="hidden" name="string_releve_' . $ecriture_id . '" value="' . htmlspecialchars($string_releve) . '">';
-                            $modified_row[] = $modified_cell;
+                            // Créer une checkbox pour la table sélectionnées avec un nom différent
+                            $checkbox = '<input type="checkbox" name="sel_cb_' . $ecriture_id . '" id="sel_cb_' . $ecriture_id . '" data-ecriture-id="' . $ecriture_id . '" data-table="selected">';
+                            $display_row[] = $checkbox;
                         } else {
-                            $modified_row[] = $cell;
+                            $display_row[] = '';
                         }
                     } else {
-                        $modified_row[] = $cell;
+                        $display_row[] = $cell;
                     }
                 }
-                $modified_gvv_lines[] = $modified_row;
+                $selected_display_lines[] = $display_row;
             }
 
-            echo table_from_array($modified_gvv_lines, array(
-                'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
+            echo table_from_array($selected_display_lines, array(
+                'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
                 'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
-                'class' => 'datatable_500 table'
+                'class' => 'datatable_500 table table-selected'
             ));
             echo '</div>';
             ?>
@@ -228,8 +228,8 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
     </div>
 
     <!-- Boutons d'action -->
-    <div class="row mt-4">
-        <div class="col-12">
+    <div class="row mt-4 mb-4">
+        <div class="col-12 text-center">
             <?php
             echo form_input(array(
                 'type' => 'submit',
@@ -238,13 +238,57 @@ echo '<h4 class="mt-3">Rapprochement manuel de l\'opération</h4>';
                 'id' => 'rapprocher-btn',
                 'class' => 'btn btn-primary btn-lg'
             ));
-            echo form_close();
             ?>
             <a href="<?php echo site_url('rapprochements/import_releve_from_file'); ?>" class="btn btn-secondary btn-lg ms-3">
                 <i class="fas fa-times"></i> Annuler
             </a>
         </div>
     </div>
+
+    <!-- Écritures rapprochables -->
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mb-3">Écritures rapprochables</h5>
+            <p class="text-muted mb-3">Sélectionner une ou plusieurs écritures GVV pour le rapprochement</p>
+
+            <div class="mt-3" id="available-entries-container">
+                <?php
+                // Créer une version avec les checkboxes pour le tableau "rapprochables"
+                $modified_gvv_lines = array();
+                foreach ($gvv_lines as $row) {
+                    $modified_row = array();
+                    foreach ($row as $index => $cell) {
+                        if ($index === 0) {
+                            // Remplacer cbdel_ par cb_ dans la première colonne (checkboxes)
+                            // Extraire l'ID de l'écriture de la checkbox
+                            if (preg_match('/cbdel_(\d+)/', $cell, $matches)) {
+                                $ecriture_id = $matches[1];
+                                $modified_cell = str_replace('cbdel_', 'cb_', $cell);
+                                // Ajouter l'input hidden avec string_releve_{ecriture_id}
+                                $modified_cell .= '<input type="hidden" name="string_releve_' . $ecriture_id . '" value="' . htmlspecialchars($string_releve) . '">';
+                                // Ajouter un attribut data pour identifier la ligne
+                                $modified_cell = str_replace('<input', '<input data-ecriture-id="' . $ecriture_id . '"', $modified_cell);
+                                $modified_row[] = $modified_cell;
+                            } else {
+                                $modified_row[] = $cell;
+                            }
+                        } else {
+                            $modified_row[] = $cell;
+                        }
+                    }
+                    $modified_gvv_lines[] = $modified_row;
+                }
+
+                echo table_from_array($modified_gvv_lines, array(
+                    'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
+                    'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+                    'class' => 'datatable_500 table table-available'
+                ));
+                ?>
+            </div>
+        </div>
+    </div>
+    <?php echo form_close(); ?>
 </div>
 
 <?php
