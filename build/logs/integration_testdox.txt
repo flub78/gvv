@@ -43,7 +43,7 @@ Attachments Controller
 
 Authorization Controller
  [x] User roles view data structure
- [ ] Roles categorization
+ [x] Roles categorization
  [x] Sections available
  [ ] User roles encoding
 
@@ -51,14 +51,14 @@ Authorization Integration
  [ ] Grant and revoke role
  [ ] Get user roles with scope
  [ ] Has role methods
- [ ] Add and remove permissions
+ [x] Add and remove permissions
  [ ] Wildcard permissions
- [ ] Data access rules with scopes
+ [x] Data access rules with scopes
  [ ] Can access data with row level security
  [ ] Audit log records role grants
  [ ] Audit log filtering
  [ ] Permission caching
- [ ] Migration status
+ [x] Migration status
  [ ] Complete authorization workflow
 
 Categorie Model Integration

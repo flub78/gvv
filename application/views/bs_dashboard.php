@@ -283,6 +283,15 @@ $this->lang->load('welcome');
                     <h6 class="text-muted mb-2"><i class="fas fa-calculator"></i> Comptabilité</h6>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-university text-primary"></i>
+                        <div class="card-title">Comptes bancaires</div>
+                        <div class="card-text text-muted">Soldes</div>
+                        <a href="<?= controller_url('comptes/page/512') ?>" class="btn btn-primary btn-sm">Voir</a>
+                    </div>
+                </div>
+
                 <?php if (has_role('bureau')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
