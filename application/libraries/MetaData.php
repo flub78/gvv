@@ -1192,7 +1192,7 @@ abstract class Metadata {
 
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
             if (!$value) return "";
-            $url = site_url();
+            $url = site_url() . '/';
             if (file_exists($value)) {
                 $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
