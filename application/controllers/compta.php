@@ -1884,7 +1884,6 @@ class Compta extends Gvv_Controller {
 
             // Build attachments section HTML
             $html = '<div class="ms-4">';
-            $html .= '<h3>Justificatifs</h3>';
 
             // Add inline creation form
             $html .= '<div class="card mb-3" id="createAttachmentCard" style="display: none;">';
@@ -1953,7 +1952,7 @@ class Compta extends Gvv_Controller {
                     $html .= '</td>';
 
                     // Actions cell
-                    $html .= '<td>';
+                    $html .= '<td style="white-space: nowrap;">';
                     if (has_role('tresorier')) {
                         $html .= '<div class="view-mode">';
                         $html .= '<button class="btn btn-sm btn-primary edit-attachment-btn" title="Modifier">';
