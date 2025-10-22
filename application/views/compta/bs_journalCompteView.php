@@ -481,3 +481,65 @@ echo '</div>';
     //
     -->
 </script>
+
+<!-- Attachments Modal -->
+<div class="modal fade" id="attachmentsModal" tabindex="-1" aria-labelledby="attachmentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="attachmentsModalLabel">
+                    <i class="fas fa-paperclip"></i> Justificatifs
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="attachmentsContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle click on attachment paperclip icon
+$(document).on('click', '.attachment-icon', function() {
+    var ecritureId = $(this).data('ecriture-id');
+    var attachmentCount = $(this).data('attachment-count');
+
+    // Open modal
+    var modal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
+    modal.show();
+
+    // Load attachments content
+    loadAttachments(ecritureId);
+});
+
+function loadAttachments(ecritureId) {
+    $('#attachmentsContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+
+    $.ajax({
+        url: '<?= site_url('compta/get_attachments_section') ?>/' + ecritureId,
+        method: 'GET',
+        success: function(response) {
+            $('#attachmentsContent').html(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error);
+            console.error('Response:', xhr.responseText);
+            var errorMsg = '<div class="alert alert-danger">';
+            errorMsg += '<strong>Erreur lors du chargement des justificatifs.</strong><br>';
+            errorMsg += 'Status: ' + status + '<br>';
+            if (xhr.responseText) {
+                errorMsg += 'Détails: ' + xhr.responseText;
+            }
+            errorMsg += '</div>';
+            $('#attachmentsContent').html(errorMsg);
+        }
+    });
+}
+</script>

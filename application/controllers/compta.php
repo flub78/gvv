@@ -1746,6 +1746,82 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Get attachments section HTML for AJAX modal display
+     */
+    public function get_attachments_section($ecriture_id) {
+        try {
+            // Load necessary models and language
+            $this->load->model('attachments_model');
+            $this->lang->load('attachments');
+
+            // Get existing attachments directly from database
+            $this->db->where('referenced_table', 'ecritures');
+            $this->db->where('referenced_id', $ecriture_id);
+            $query = $this->db->get('attachments');
+            $attachments = $query->result_array();
+
+            // Build attachments section HTML
+            $html = '<div class="ms-4">';
+            $html .= '<h3>Justificatifs</h3>';
+
+            // Add "Create" button
+            $html .= '<div class="mb-3">';
+            $html .= '<a href="' . site_url('attachments/create?table=ecritures&id=' . $ecriture_id) . '" class="btn btn-sm btn-success" target="_blank">';
+            $html .= '<i class="fas fa-plus" aria-hidden="true"></i> Créer</a>';
+            $html .= '</div>';
+
+            // Generate attachments table
+            if (!empty($attachments)) {
+                $html .= '<table class="table table-striped table-sm">';
+                $html .= '<thead><tr>';
+                $html .= '<th>Description</th>';
+                $html .= '<th>Fichier</th>';
+                $html .= '<th>Actions</th>';
+                $html .= '</tr></thead><tbody>';
+
+                foreach ($attachments as $attachment) {
+                    $html .= '<tr>';
+                    $html .= '<td>' . htmlspecialchars($attachment['description']) . '</td>';
+
+                    // File link
+                    $file_path = $attachment['file'];
+                    $file_name = basename($file_path);
+                    if (file_exists($file_path)) {
+                        $file_url = base_url() . ltrim($file_path, './');
+                        $html .= '<td><a href="' . $file_url . '" target="_blank">' . htmlspecialchars($file_name) . '</a></td>';
+                    } else {
+                        $html .= '<td>' . htmlspecialchars($file_name) . ' <span class="text-danger">(fichier manquant)</span></td>';
+                    }
+
+                    // Actions
+                    $html .= '<td>';
+                    if (has_role('tresorier')) {
+                        $html .= '<a href="' . site_url('attachments/edit/' . $attachment['id']) . '" class="btn btn-sm btn-primary" target="_blank" title="Modifier">';
+                        $html .= '<i class="fas fa-edit"></i></a> ';
+                        $html .= '<a href="' . site_url('attachments/delete/' . $attachment['id']) . '" class="btn btn-sm btn-danger" target="_blank" title="Supprimer" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce justificatif ?\');">';
+                        $html .= '<i class="fas fa-trash"></i></a>';
+                    } else {
+                        $html .= '<span class="text-muted">-</span>';
+                    }
+                    $html .= '</td>';
+                    $html .= '</tr>';
+                }
+
+                $html .= '</tbody></table>';
+            } else {
+                $html .= '<div class="alert alert-info">Aucun justificatif</div>';
+            }
+
+            $html .= '</div>';
+
+            echo $html;
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_attachments_section: ' . $e->getMessage());
+            echo '<div class="alert alert-danger">Erreur: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    }
+
+    /**
      * Test unitaire
      */
     function test($format = "html") {

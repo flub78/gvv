@@ -1133,6 +1133,26 @@ abstract class Metadata {
         $subtype = $this->field_subtype($table, $field);
         // gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
 
+        // Special handling for description field in vue_journal to add attachment paperclip icon
+        if ($table == 'vue_journal' && $field == 'description' && $mode != 'csv') {
+            // Get attachment count for this ecriture
+            $ecriture_id = isset($row['id']) ? $row['id'] : '';
+            if ($ecriture_id) {
+                $CI =& get_instance();
+                $CI->db->where('referenced_table', 'ecritures');
+                $CI->db->where('referenced_id', $ecriture_id);
+                $attachment_count = $CI->db->count_all_results('attachments');
+
+                // Build paperclip icon with appropriate color
+                // Gray (muted) for no attachments, bright green for attachments present
+                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
+                $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
+                $icon_html = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" data-ecriture-id="' . $ecriture_id . '" data-attachment-count="' . $attachment_count . '" style="cursor: pointer; margin-right: 5px; font-size: 1.1em;" title="' . $title . '"></i>';
+
+                return $icon_html . htmlspecialchars($value);
+            }
+        }
+
         if ($subtype == 'boolean') {
             if ($mode == 'csv')
                 return $value;
