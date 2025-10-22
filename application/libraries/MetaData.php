@@ -582,7 +582,7 @@ abstract class Metadata {
             if ($mode == "rw") {
                 foreach ($actions as $action) {
 
-                    $url = "$controller/$action";
+                    $url = "$base_controller/$action";  // Use base_controller (relative path) not $controller (full URL)
                     $elt_image = isset($row['image']) ? $row['image'] : $row[$this->table_key($table)];
                     $confirm = ($action == 'delete');
 
