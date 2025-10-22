@@ -81,7 +81,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             'gel' => $gel
         )));
 
-        if (!$errors) echo validation_button($action);
+        if (!isset($errors) || !$errors) echo validation_button($action);
         echo form_close();
         ?>
     </div>
