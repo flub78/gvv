@@ -153,8 +153,8 @@ $this->lang->load('procedures');
                                             <!-- Prévisualisation -->
                                             <div class="card-img-top position-relative" style="height: 150px; overflow: hidden;">
                                                 <?php if ($file['is_image'] && isset($file['thumbnail'])): ?>
-                                                    <img src="<?= base_url("uploads/{$file['thumbnail']}") ?>" 
-                                                         class="w-100 h-100" 
+                                                    <img src="<?= base_url() ?>uploads/<?= $file['thumbnail'] ?>"
+                                                         class="w-100 h-100"
                                                          style="object-fit: cover;"
                                                          alt="<?= htmlspecialchars($file['name']) ?>">
                                                 <?php else: ?>
@@ -206,8 +206,8 @@ $this->lang->load('procedures');
                                                     </a>
                                                     
                                                     <?php if ($file['is_image']): ?>
-                                                        <button class="btn btn-outline-info" 
-                                                                onclick="previewImage('<?= base_url("uploads/{$file['path']}") ?>', '<?= addslashes($file['name']) ?>')"
+                                                        <button class="btn btn-outline-info"
+                                                                onclick="previewImage('<?= base_url() ?>uploads/<?= $file['path'] ?>', '<?= addslashes($file['name']) ?>')"
                                                                 title="Prévisualiser">
                                                             <i class="fas fa-eye"></i>
                                                         </button>

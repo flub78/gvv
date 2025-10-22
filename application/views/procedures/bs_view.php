@@ -123,8 +123,8 @@ $this->lang->load('procedures');
                                         <div class="col-md-6 col-lg-4 mb-3">
                                             <div class="card h-100">
                                                 <?php if ($file['is_image'] && isset($file['thumbnail'])): ?>
-                                                    <img src="<?= base_url("uploads/{$file['thumbnail']}") ?>" 
-                                                         class="card-img-top" 
+                                                    <img src="<?= base_url() ?>uploads/<?= $file['thumbnail'] ?>"
+                                                         class="card-img-top"
                                                          style="height: 150px; object-fit: cover;"
                                                          alt="<?= htmlspecialchars($file['name']) ?>">
                                                 <?php else: ?>
