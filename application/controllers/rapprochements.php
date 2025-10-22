@@ -962,17 +962,6 @@ class Rapprochements extends CI_Controller {
             ->set_output(json_encode($response));
     }
 
-    /**
-     * Display manual reconciliation page for a specific bank statement operation
-     * 
-     * Loads the manual reconciliation interface for a single bank statement operation
-     * identified by line number. Retrieves the statement operation data, available
-     * GVV accounting entries for matching, and displays the manual reconciliation form.
-     * Applies session filters to limit the displayed GVV entries.
-     * 
-     * @return void Loads the manual reconciliation view or shows error page
-     * @throws Exception If operation is not found or reconciliator encounters errors
-     */
     public function rapprochement_manuel() {
         $line = $this->input->get('line');
         $gvv_bank_account = $this->input->get('gvv_bank_account');
@@ -994,6 +983,30 @@ class Rapprochements extends CI_Controller {
                 return;
             }
 
+            // Récupérer les paramètres de session pour le filtrage (same as import_releve_from_file)
+            $filter_active = $this->session->userdata('filter_active');
+            $startDate = $this->session->userdata('startDate');
+            if (!$startDate) {
+                $startDate = date('Y') . '-01-01';
+            }
+            $endDate = $this->session->userdata('endDate');
+            if (!$endDate) {
+                $endDate = date('Y') . '-12-31';
+            }
+            $filter_type = $this->session->userdata('filter_type');
+            $type_selector = $this->session->userdata('type_selector');
+
+            // Create the type dropdown (similar to import_releve_from_file)
+            $type_hash = ["all" => "Tous les types"];
+            $recognized_types = $reconciliator->recognized_types();
+            $type_hash = array_merge($type_hash, $recognized_types);
+            $type_dropdown = dropdown_field(
+                'type_selector',
+                $type_selector,
+                $type_hash,
+                'class="form-control big_select"'
+            );
+
             // Extraire les informations depuis l'objet StatementOperation
             $string_releve = $statement_operation->str_releve();
             $amount = $statement_operation->amount();
@@ -1010,20 +1023,20 @@ class Rapprochements extends CI_Controller {
             $data['date'] = $date;
             $data['nature'] = $nature;
             $data['gvv_bank_account'] = $gvv_bank_account;
+            $data['type_dropdown'] = $type_dropdown;
+            
+            // Add filter variables needed by the view
+            $data['filter_active'] = $filter_active;
+            $data['startDate'] = $startDate;
+            $data['endDate'] = $endDate;
+            $data['filter_type'] = $filter_type;
+            $data['type_selector'] = $type_selector;
 
             // Récupérer les paramètres de session pour la cohérence
             $data['maxDays'] = $this->session->userdata('rapprochement_delta') ?? 5;
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
             // Récupérer toutes les écritures disponibles pour la sélection manuelle
-            $startDate = $this->session->userdata('startDate');
-            if (!$startDate) {
-                $startDate = date('Y') . '-01-01';
-            }
-            $endDate = $this->session->userdata('endDate');
-            if (!$endDate) {
-                $endDate = date('Y') . '-12-31';
-            }
             $gvv_bank = $reconciliator->gvv_bank_account();
 
             $filtered_lines = $this->get_filtered_gvv_lines($startDate, $endDate, $gvv_bank);
