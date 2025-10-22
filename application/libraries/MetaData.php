@@ -1192,9 +1192,11 @@ abstract class Metadata {
 
         } elseif ($subtype == 'image' || $subtype == 'upload_image') {
             if (!$value) return "";
-            $url = site_url() . '/';
+            // Use base_url() for direct file access (not through CodeIgniter router)
+            // Ensure there's a slash between base_url and path
+            $base = rtrim(base_url(), '/') . '/';
+            $url = $base . ltrim($value, './');
             if (file_exists($value)) {
-                $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
             }
 
@@ -1202,13 +1204,12 @@ abstract class Metadata {
             if ($table == 'vue_configuration' && $field == 'file' && !str_starts_with($value, './')) {
                 $config_value = "./uploads/configuration/" . $value;
                 if (file_exists($config_value)) {
-                    $url .= ltrim($config_value, './');
+                    $url = $base . ltrim($config_value, './');
                     return attachment($id, $config_value, $url);
                 }
             }
 
             if (file_exists($value)) {
-                $url .= ltrim($value, './');
                 return attachment($id, $value, $url);
             }
 
@@ -1216,7 +1217,7 @@ abstract class Metadata {
             if ($table == 'membres' && $field == 'photo') {
                 $legacy_value = "uploads/" . basename($value);
                 if (file_exists($legacy_value)) {
-                    $url .= $legacy_value;
+                    $url = $base . $legacy_value;
                     return attachment($id, $legacy_value, $url);
                 }
             }
