@@ -1742,6 +1742,9 @@ abstract class Metadata {
             } elseif ($table == 'configuration' && $field == 'file') {
                 // Configuration files store full path, use as-is if it exists
                 $filename = $value && file_exists($value) ? $value : "";
+            } elseif ($table == 'attachments' && $field == 'file') {
+                // Attachment files store full path, use as-is if it exists
+                $filename = $value && file_exists($value) ? $value : "";
             } else {
                 $filename = $value ? "assets/uploads/$value" : "";
             }
@@ -1751,7 +1754,7 @@ abstract class Metadata {
                 $mime_type = mime_content_type($filename);
                 if (str_starts_with($mime_type, 'image')) {
                     // For images in configuration forms, show resized version with click to full size
-                    $url = site_url() . ltrim($filename, './');
+                    $url = site_url() . '/' . ltrim($filename, './');
                     $img = '<div class="configuration-image-preview">';
                     $img .= '<a href="' . $url . '" target="_blank" title="Cliquer pour voir en taille réelle">';
                     $img .= '<img src="' . $url . '" alt="Configuration image" ';
@@ -1764,7 +1767,28 @@ abstract class Metadata {
                     $img .= '</div>' . br();
                 } else {
                     // For non-image files, show icon/link
-                    $url = site_url() . ltrim($filename, './');
+                    $url = site_url() . '/' . ltrim($filename, './');
+                    $img = attachment('', $filename, $url) . br();
+                }
+            } elseif ($table == 'attachments' && $field == 'file' && $filename && file_exists($filename)) {
+                // Special handling for attachment file display
+                $mime_type = mime_content_type($filename);
+                $url = site_url() . '/' . ltrim($filename, './');
+                
+                if (str_starts_with($mime_type, 'image')) {
+                    // For images, show preview with click to full size
+                    $img = '<div class="attachment-image-preview">';
+                    $img .= '<a href="' . $url . '" target="_blank" title="Cliquer pour voir en taille réelle">';
+                    $img .= '<img src="' . $url . '" alt="Attachment image" ';
+                    $img .= 'style="max-width: 400px; max-height: 300px; width: auto; height: auto; ';
+                    $img .= 'border: 1px solid #ccc; padding: 3px; cursor: pointer;" />';
+                    $img .= '</a>';
+                    $img .= '<div class="preview-help">';
+                    $img .= '<i class="fa fa-external-link"></i> Cliquer sur l\'image pour la voir en taille réelle';
+                    $img .= '</div>';
+                    $img .= '</div>' . br();
+                } else {
+                    // For non-image files, show icon/link
                     $img = attachment('', $filename, $url) . br();
                 }
             } else {
