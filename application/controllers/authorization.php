@@ -222,6 +222,7 @@ class Authorization extends CI_Controller {
             $this->db->select('id');
             $this->db->from('sections');
             $this->db->where('id !=', 0); // Exclude the dummy section 0
+            $this->db->where('id !=', 89); // Exclude the "Toutes sections" meta-section
             $query = $this->db->get();
             $sections = $query->result_array();
 

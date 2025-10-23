@@ -137,7 +137,9 @@ $this->load->view('bs_banner');
                                 <th>Toutes sections</th>
                                 <?php foreach ($sections as $section): ?>
                                     <?php if ($section['id'] != 0 && $section['id'] != 89): ?>
-                                        <th><?= htmlspecialchars($section['nom']) ?></th>
+                                        <th style="background-color: <?= htmlspecialchars($section['couleur'] ?? '#e9ecef') ?>; color: black;">
+                                            <?= htmlspecialchars($section['nom']) ?>
+                                        </th>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </tr>
