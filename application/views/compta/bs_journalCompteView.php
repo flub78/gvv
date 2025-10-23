@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/compta/bs_journalCompteView.php -->
 <?php
 
 /**

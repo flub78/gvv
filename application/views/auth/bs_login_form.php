@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/auth/bs_login_form.php -->
 <?php
 $username = array(
 	'name'	=> 'username',

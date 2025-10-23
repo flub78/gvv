@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/bs_roles.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

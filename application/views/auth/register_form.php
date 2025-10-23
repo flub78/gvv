@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/auth/register_form.php -->
 <?php
 $username = array(
 	'name'	=> 'username',

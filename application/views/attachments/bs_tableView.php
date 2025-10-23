@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/attachments/bs_tableView.php -->
 <?php
 
 /**

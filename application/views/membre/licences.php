@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/membre/licences.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

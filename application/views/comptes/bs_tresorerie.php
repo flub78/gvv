@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/comptes/bs_tresorerie.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

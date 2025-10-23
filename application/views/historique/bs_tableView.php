@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/historique/bs_tableView.php -->
 <?php
 
 /**

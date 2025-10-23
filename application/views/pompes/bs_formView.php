@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/pompes/bs_formView.php -->
 <?php
 
 /**

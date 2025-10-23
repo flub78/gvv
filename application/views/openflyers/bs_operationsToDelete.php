@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/openflyers/bs_operationsToDelete.php -->
 <?php
 
 /**

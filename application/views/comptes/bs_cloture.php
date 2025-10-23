@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/comptes/bs_cloture.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

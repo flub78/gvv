@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/welcome/bs_deny.php -->
 <?php
 //    GVV Gestion vol à voile
 //    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot

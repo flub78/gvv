@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/auth/cancel_account_form.php -->
 <?php
 $password = array(
 	'name'	=> 'password',

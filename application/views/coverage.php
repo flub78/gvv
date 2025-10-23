@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/coverage.php -->
 <?php
 // ----------------------------------------------------------------------------------------
 //    GVV Gestion vol à voile

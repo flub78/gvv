@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/openflyers/bs_tableCompareSoldes.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/bs_audit_log.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/rapprochements/bs_rapprochement_manuel.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/categorie/bs_tableView.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

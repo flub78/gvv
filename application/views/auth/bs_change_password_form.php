@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/auth/bs_change_password_form.php -->
 <?php
 $this->load->view('bs_header');
 $this->load->view('bs_menu');

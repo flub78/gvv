@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/liens/message.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

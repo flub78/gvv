@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/facturation/bs_formView.php -->
 <?php
 
 /**

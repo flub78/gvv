@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/events_types/bs_formView.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/tarifs/bs_tableView.php -->
 <?php
 
 /**

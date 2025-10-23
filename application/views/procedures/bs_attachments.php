@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/procedures/bs_attachments.php -->
 <?php
 /**
  * Vue gestion des fichiers attachés d'une procédure

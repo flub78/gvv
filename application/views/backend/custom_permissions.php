@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/backend/custom_permissions.php -->
 	<?php
 $this->load->view('header');
 $this->load->view('banner');

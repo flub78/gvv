@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/auth/bs_general_message.php -->
 <?php 
 $this->load->view('bs_header');
 $this->load->view('bs_menu');

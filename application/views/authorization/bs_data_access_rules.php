@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/bs_data_access_rules.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/user_roles_per_section/bs_tableView.php -->
 <?php
 
 /**

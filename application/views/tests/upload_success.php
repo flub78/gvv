@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/tests/upload_success.php -->
 <html>
 <head>
 <title>Upload Form</title>

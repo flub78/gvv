@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/achats/bs_TablePerYear.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/backend/bs_users.php -->
 <html>
 <head>
 <title>Manage users</title>

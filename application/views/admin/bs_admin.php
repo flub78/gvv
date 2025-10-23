@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/admin/bs_admin.php -->
 <?php
 
 /**

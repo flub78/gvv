@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/membre/inscription.php -->
 <?php
 $this->load->view('header');
 $this->load->view('banner');

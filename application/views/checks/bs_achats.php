@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/checks/bs_achats.php -->
 <?php
 // ----------------------------------------------------------------------------------------
 //    GVV Gestion vol à voile

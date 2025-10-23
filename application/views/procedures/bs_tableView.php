@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/procedures/bs_tableView.php -->
 <?php
 /**
  * Vue liste des procédures

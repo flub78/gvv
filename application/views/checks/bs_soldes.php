@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/checks/bs_soldes.php -->
 <?php
 // ----------------------------------------------------------------------------------------
 //    GVV Gestion vol à voile

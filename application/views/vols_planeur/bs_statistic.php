@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/vols_planeur/bs_statistic.php -->
 <?php
 
 /**

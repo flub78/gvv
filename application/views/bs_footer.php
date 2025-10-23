@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/bs_footer.php -->
 <footer class="container-fluid p-3 mt-3 bg-success text-white text-center">
     <p>
         <?= $this->lang->line("gvv_copyright") ?>

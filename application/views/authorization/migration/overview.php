@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/migration/overview.php -->
 <?php
 /**
  * Migration Dashboard - Overview Tab

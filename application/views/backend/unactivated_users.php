@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/backend/unactivated_users.php -->
 <html>
 	<head><title>Manage unactivated users</title></head>
 	<body>

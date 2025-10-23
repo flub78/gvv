@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/event/bs_formationView.php -->
 <?php
 
 /**

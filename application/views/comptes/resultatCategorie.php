@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/comptes/resultatCategorie.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

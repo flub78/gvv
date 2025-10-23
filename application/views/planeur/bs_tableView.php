@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/planeur/bs_tableView.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/terrains/bs_formView.php -->
 <?php
 
 /**

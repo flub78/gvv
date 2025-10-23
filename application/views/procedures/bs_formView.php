@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/procedures/bs_formView.php -->
 <?php
 /**
  * Vue formulaire création/modification de procédure

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/checks/bs_dbchecks.php -->
 <?php
 // ----------------------------------------------------------------------------------------
 //    GVV Gestion vol à voile

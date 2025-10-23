@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/associations_ecriture/bs_formView.php -->
 <?php
 
 $this->load->view('bs_header');

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/associations_ecriture/bs_tableView.php -->
 <?php
 
 $this->load->view('bs_header');

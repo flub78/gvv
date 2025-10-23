@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/migration/statistics.php -->
 <?php
 /**
  * Migration Dashboard - Statistics Tab

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/backend/bs_roles.php -->
 	<?php
 $this->load->view('bs_header');
 $this->load->view('bs_banner');

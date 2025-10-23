@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/bs_alarmes.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

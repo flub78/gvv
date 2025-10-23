@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/associations_of/bs_tableView.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/welcome/bs_ca.php -->
 <?php
 
 /**

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/authorization/migration/comparison_log.php -->
 <?php
 /**
  * Migration Dashboard - Comparison Log Tab

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/plan_comptable/bs_tableView.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

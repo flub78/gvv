@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/bs_menu_cpta.php -->
 <?php
 
 /**

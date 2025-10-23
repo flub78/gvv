@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/vols_decouverte/bs_tableView.php -->
 <?php
 
 /**

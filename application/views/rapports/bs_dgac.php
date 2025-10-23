@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/rapports/bs_dgac.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

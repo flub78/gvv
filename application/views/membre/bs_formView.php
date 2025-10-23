@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/membre/bs_formView.php -->
 <?php
 
 /**

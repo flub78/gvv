@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/tests/upload_form.php -->
 <?php
 
 # https://github.com/blueimp/jQuery-File-Upload

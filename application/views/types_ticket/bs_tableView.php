@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/types_ticket/bs_tableView.php -->
 <?php
 /**
  *    GVV Gestion vol à voile

@@ -1,3 +1,4 @@
+<!-- VIEW: application/views/membre/assurance.php -->
 <div id="body" class="body ui-widget-content">
 <TABLE class="table" border="1">
 	<TR>
