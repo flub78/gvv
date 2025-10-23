@@ -136,7 +136,7 @@ $this->load->view('bs_banner');
                                 <th>Global</th>
                                 <th>Toutes sections</th>
                                 <?php foreach ($sections as $section): ?>
-                                    <?php if ($section['id'] != 0): ?>
+                                    <?php if ($section['id'] != 0 && $section['id'] != 89): ?>
                                         <th><?= htmlspecialchars($section['nom']) ?></th>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
@@ -177,7 +177,7 @@ $this->load->view('bs_banner');
                                     <?php endif; ?>
                                 </td>
                                 <?php foreach ($sections as $section): ?>
-                                    <?php if ($section['id'] != 0): ?>
+                                    <?php if ($section['id'] != 0 && $section['id'] != 89): ?>
                                         <td class="text-center">
                                             <?php if ($role['scope'] === 'section'): ?>
                                                 <!-- Individual section checkboxes for section roles only -->
@@ -208,7 +208,7 @@ $this->load->view('bs_banner');
 
 <script>
 $(document).ready(function() {
-    var allSections = <?= json_encode(array_map(function($s) { return $s['id']; }, array_filter($sections, function($s) { return $s['id'] != 0; }))) ?>;
+    var allSections = <?= json_encode(array_map(function($s) { return $s['id']; }, array_filter($sections, function($s) { return $s['id'] != 0 && $s['id'] != 89; }))) ?>;
 
     try {
         if ($.fn.DataTable && !$.fn.dataTable.fnIsDataTable(document.getElementById('userRolesTable'))) {
