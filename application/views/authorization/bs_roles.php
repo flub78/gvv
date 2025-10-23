@@ -42,6 +42,7 @@ $this->load->view('bs_banner');
     <div class="card mt-4">
         <div class="card-header">
             <h5 class="mb-0"><?= $this->lang->line('authorization_available_roles') ?></h5>
+            <p>L'application dépends des rôles qui sont définis par migration.</p>
         </div>
         <div class="card-body">
             <table class="table table-striped table-bordered datatable">
