@@ -1139,13 +1139,13 @@ abstract class Metadata {
             $ecriture_id = isset($row['id']) ? $row['id'] : '';
             if ($ecriture_id) {
                 $CI =& get_instance();
-                $CI->db->where('referenced_table', 'ecritures');
-                $CI->db->where('referenced_id', $ecriture_id);
+                      $CI->db->where('referenced_table', 'ecritures');
+          $CI->db->where('referenced_id', $ecriture_id);
                 $attachment_count = $CI->db->count_all_results('attachments');
 
                 // Build paperclip icon with appropriate color
                 // Gray (muted) for no attachments, bright green for attachments present
-                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
+                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-light-muted';
                 $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
                 $icon_html = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" data-ecriture-id="' . $ecriture_id . '" data-attachment-count="' . $attachment_count . '" style="cursor: pointer; margin-right: 5px; font-size: 1.1em;" title="' . $title . '"></i>';
 

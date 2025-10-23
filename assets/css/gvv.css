@@ -87,3 +87,8 @@
     margin-top: 8px;
     font-style: italic;
 }
+
+.text-light-muted {
+  color: #ccc !important;
+  /* color: rgba(252, 0, 0, 0.5) !important; */
+}

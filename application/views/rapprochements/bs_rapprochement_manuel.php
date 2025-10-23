@@ -174,17 +174,13 @@ echo '</div>';
     <!-- Écritures sélectionnées pour le rapprochement -->
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Écritures sélectionnées pour le rapprochement</h5>
-                <div id="amount-indicator" class="alert alert-info d-none" role="alert">
-                    <small>
-                        <strong>Montant opération:</strong> <span id="operation-amount"><?php echo number_format($amount, 2, ',', ' '); ?> €</span><br>
-                        <strong>Montant sélectionné:</strong> <span id="selected-amount">0,00 €</span><br>
-                        <strong>Écart:</strong> <span id="difference-amount">0,00 €</span>
-                    </small>
-                </div>
-            </div>
+            <h5 class="mb-3">Écritures sélectionnées pour le rapprochement</h5>
+        </div>
+    </div>
 
+    <div class="row">
+        <!-- Table des écritures sélectionnées -->
+        <div class="col-md-9 col-lg-10">
             <?php
             echo form_open_multipart('rapprochements/rapprochez');
 
@@ -192,7 +188,7 @@ echo '</div>';
             echo '<input type="hidden" name="manual_mode" value="1">';
             echo '<input type="hidden" name="line" value="' . $line . '">';
 
-            echo '<div class="mt-3" id="selected-entries-container">';
+            echo '<div id="selected-entries-container">';
 
             // Créer une version pour le tableau "sélectionnées" (avec checkboxes préfixées "sel_")
             $selected_display_lines = array();
@@ -223,7 +219,18 @@ echo '</div>';
             ));
             echo '</div>';
             ?>
+        </div>
 
+        <!-- Indicateur de montant -->
+        <div class="col-md-3 col-lg-2">
+            <div id="amount-indicator" class="alert alert-info" role="alert">
+                <strong>Montant opération:</strong><br>
+                <span id="operation-amount" class="fs-5"><?php echo number_format($amount, 2, ',', ' '); ?> €</span><br><br>
+                <strong>Montant sélectionné:</strong><br>
+                <span id="selected-amount" class="fs-5">0,00 €</span><br><br>
+                <strong>Écart:</strong><br>
+                <span id="difference-amount" class="fs-5"><?php echo number_format($amount, 2, ',', ' '); ?> €</span>
+            </div>
         </div>
     </div>
 
