@@ -54,7 +54,7 @@ class File_manager {
         );
         
         // Fusionner avec la configuration fournie
-        $this->init(array_merge($default_config, $config));
+        $this->init(array_merge($default_config, (array)$config));
     }
     
     /**

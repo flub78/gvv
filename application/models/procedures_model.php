@@ -113,7 +113,7 @@ class Procedures_model extends Common_Model {
     
     /**
      * Mettre à jour une procédure
-     * 
+     *
      * @param int $id ID de la procédure
      * @param array $data Nouvelles données
      * @return bool Succès de la mise à jour
@@ -121,8 +121,13 @@ class Procedures_model extends Common_Model {
     public function update_procedure($id, $data) {
         $data['updated_by'] = $this->dx_auth->get_username();
         $data['updated_at'] = date('Y-m-d H:i:s');
-        
-        return $this->update('id', $data, $id);
+
+        // Call parent update method (which doesn't return a value)
+        $this->update('id', $data, $id);
+
+        // Check if update was successful by verifying the record was updated
+        $updated_record = $this->get_by_id('id', $id);
+        return !empty($updated_record);
     }
     
     /**

@@ -231,8 +231,8 @@ class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
         $deleted = $this->model->get_by_id('id', $procedure_id);
         $this->assertEmpty($deleted, 'Procedure should be deleted from database');
 
-        // Verify directory deletion
-        $this->assertDirectoryDoesNotExist($proc_dir, 'Procedure directory should be deleted');
+        // Verify directory deletion (PHPUnit 8.5 compatible check)
+        $this->assertFalse(is_dir($proc_dir), 'Procedure directory should be deleted');
     }
 
     /**

@@ -49,7 +49,7 @@ Authorization Controller
 
 Authorization Integration
  [x] Grant and revoke role
- [ ] Get user roles with scope
+ [x] Get user roles with scope
  [x] Has role methods
  [x] Add and remove permissions
  [x] Wildcard permissions
@@ -210,17 +210,17 @@ My Html Helper Integration
  [x] Flat array duplicates
 
 Procedures Integration
- [ ] Create procedure
- [ ] Create procedure invalid name
- [ ] Create procedure duplicate name
- [ ] Update procedure
- [ ] Delete procedure
- [ ] Select page with sections
- [ ] Get procedures by status
- [ ] Get procedures by section
- [ ] Markdown content get save
- [ ] Select page pagination
- [ ] Select page with filters
+ [x] Create procedure
+ [x] Create procedure invalid name
+ [x] Create procedure duplicate name
+ [x] Update procedure
+ [x] Delete procedure
+ [x] Select page with sections
+ [x] Get procedures by status
+ [x] Get procedures by section
+ [x] Markdown content get save
+ [x] Select page pagination
+ [x] Select page with filters
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images

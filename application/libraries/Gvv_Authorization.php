@@ -187,26 +187,31 @@ class Gvv_Authorization {
      */
     public function grant_role($user_id, $types_roles_id, $section_id, $granted_by, $notes = NULL)
     {
-        // Ensure all IDs are integers
+        // Ensure all IDs are integers, but allow NULL for section_id
         $user_id = (int)$user_id;
         $types_roles_id = (int)$types_roles_id;
-        $section_id = (int)$section_id;
+        $section_id = ($section_id !== NULL) ? (int)$section_id : NULL;
         $granted_by = (int)$granted_by;
 
         // Log parameters for debugging
-        log_message('info', 'grant_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ' (0=cross-section), granted_by=' . $granted_by);
+        log_message('info', 'grant_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . ($section_id ?? 'NULL') . ', granted_by=' . $granted_by);
 
         // Check if role is already granted and active
-        $existing = $this->CI->db
+        $this->CI->db
             ->where('user_id', $user_id)
             ->where('types_roles_id', $types_roles_id)
-            ->where('section_id', $section_id)
-            ->where('revoked_at IS NULL')
-            ->get('user_roles_per_section')
-            ->row_array();
+            ->where('revoked_at IS NULL');
+        
+        if ($section_id === NULL) {
+            $this->CI->db->where('section_id IS NULL');
+        } else {
+            $this->CI->db->where('section_id', $section_id);
+        }
+        
+        $existing = $this->CI->db->get('user_roles_per_section')->row_array();
 
         if ($existing) {
-            log_message('info', 'grant_role: Role already exists for user=' . $user_id . ', role=' . $types_roles_id . ', section=' . $section_id);
+            log_message('info', 'grant_role: Role already exists for user=' . $user_id . ', role=' . $types_roles_id . ', section=' . ($section_id ?? 'NULL'));
             return 'EXISTS'; // Already has this role - not an error
         }
 
@@ -249,20 +254,26 @@ class Gvv_Authorization {
      */
     public function revoke_role($user_id, $types_roles_id, $section_id, $revoked_by)
     {
-        // Ensure all IDs are integers
+        // Ensure all IDs are integers, but allow NULL for section_id
         $user_id = (int)$user_id;
         $types_roles_id = (int)$types_roles_id;
-        $section_id = (int)$section_id;
+        $section_id = ($section_id !== NULL) ? (int)$section_id : NULL;
         $revoked_by = (int)$revoked_by;
 
-        log_message('info', 'revoke_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ' (0=cross-section), revoked_by=' . $revoked_by);
+        log_message('info', 'revoke_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . ($section_id ?? 'NULL') . ', revoked_by=' . $revoked_by);
 
-        $result = $this->CI->db
+        $this->CI->db
             ->where('user_id', $user_id)
             ->where('types_roles_id', $types_roles_id)
-            ->where('section_id', $section_id)
-            ->where('revoked_at IS NULL')
-            ->update('user_roles_per_section', array(
+            ->where('revoked_at IS NULL');
+
+        if ($section_id === NULL) {
+            $this->CI->db->where('section_id IS NULL');
+        } else {
+            $this->CI->db->where('section_id', $section_id);
+        }
+
+        $result = $this->CI->db->update('user_roles_per_section', array(
                 'revoked_at' => date('Y-m-d H:i:s')
             ));
 

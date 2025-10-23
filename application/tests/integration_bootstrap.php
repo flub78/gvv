@@ -5,6 +5,7 @@
 // Define constants that CodeIgniter needs
 define('BASEPATH', dirname(__FILE__) . '/../../system/');
 define('APPPATH', dirname(__FILE__) . '/../');
+define('FCPATH', dirname(__FILE__) . '/../../');  // Front controller path (project root)
 define('ENVIRONMENT', 'testing');
 
 // Suppress notices for cleaner test output
@@ -652,6 +653,21 @@ class MockInput {
     }
 }
 
+// Mock DX_Auth class for authentication
+class MockDxAuth {
+    public function get_username() {
+        return 'test_user';
+    }
+
+    public function get_user_id() {
+        return 1;
+    }
+
+    public function is_logged_in() {
+        return TRUE;
+    }
+}
+
 // Create a mock CI instance
 class MockCI {
     public $load;
@@ -660,6 +676,7 @@ class MockCI {
     public $config;
     public $lang;
     public $input;
+    public $dx_auth;
 
     public function __construct() {
         $this->load = new MockLoader();
@@ -668,6 +685,7 @@ class MockCI {
         $this->config = new MockConfig();
         $this->lang = new MockLang();
         $this->input = new MockInput();
+        $this->dx_auth = new MockDxAuth();
     }
 }
 

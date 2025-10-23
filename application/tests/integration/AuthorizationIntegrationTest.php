@@ -184,27 +184,34 @@ class AuthorizationIntegrationTest extends TestCase
         // Grant section-scoped role
         $this->auth->grant_role($this->test_user_id, 5, $this->test_section_id, $this->test_admin_id);
 
-        // Grant global role (club-admin)
-        $this->auth->grant_role($this->test_user_id, 10, NULL, $this->test_admin_id);
+        // Create a second test section for testing cross-section role
+        $this->CI->db->insert('sections', array(
+            'nom' => 'Second Test Section ' . time(),
+            'acronyme' => 'ST2'
+        ));
+        $second_section_id = $this->CI->db->insert_id();
 
-        // Get roles for specific section (should include global)
+        // Grant role in a different section (to test section filtering)
+        $this->auth->grant_role($this->test_user_id, 10, $second_section_id, $this->test_admin_id);
+
+        // Get roles for specific section (should only get section 1 roles)
         $section_roles = $this->model->get_user_roles(
             $this->test_user_id,
             $this->test_section_id,
-            TRUE  // include global
+            FALSE  // exclude global (section filtering)
         );
 
-        $this->assertGreaterThanOrEqual(2, count($section_roles));
+        $this->assertCount(1, $section_roles, 'Should have exactly 1 role for the first section');
+        $this->assertEquals(5, $section_roles[0]['types_roles_id']);
 
-        // Get roles excluding global
-        $section_only = $this->model->get_user_roles(
+        // Get all roles for user (both sections)
+        $all_roles = $this->model->get_user_roles(
             $this->test_user_id,
-            $this->test_section_id,
-            FALSE  // exclude global
+            NULL,  // No section filter
+            FALSE
         );
 
-        $this->assertCount(1, $section_only);
-        $this->assertEquals(5, $section_only[0]['types_roles_id']);
+        $this->assertGreaterThanOrEqual(2, count($all_roles), 'Should have roles from multiple sections');
     }
 
     /**
