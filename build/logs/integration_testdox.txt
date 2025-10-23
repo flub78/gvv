@@ -45,21 +45,21 @@ Authorization Controller
  [x] User roles view data structure
  [x] Roles categorization
  [x] Sections available
- [ ] User roles encoding
+ [x] User roles encoding
 
 Authorization Integration
- [ ] Grant and revoke role
+ [x] Grant and revoke role
  [ ] Get user roles with scope
- [ ] Has role methods
+ [x] Has role methods
  [x] Add and remove permissions
- [ ] Wildcard permissions
+ [x] Wildcard permissions
  [x] Data access rules with scopes
- [ ] Can access data with row level security
- [ ] Audit log records role grants
- [ ] Audit log filtering
- [ ] Permission caching
+ [x] Can access data with row level security
+ [x] Audit log records role grants
+ [x] Audit log filtering
+ [x] Permission caching
  [x] Migration status
- [ ] Complete authorization workflow
+ [x] Complete authorization workflow
 
 Categorie Model Integration
  [x] Basic crud operations

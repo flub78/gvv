@@ -65,7 +65,7 @@ class Migration_Procedures extends CI_Migration {
 		$errors = 0;
 
 		$sqls = array(
-			"CREATE TABLE `procedures` (
+			"CREATE TABLE IF NOT EXISTS `procedures` (
   				`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   				`name` varchar(128) NOT NULL COMMENT 'Nom unique de la procédure',
   				`title` varchar(255) NOT NULL COMMENT 'Titre affiché de la procédure', 
@@ -86,7 +86,7 @@ class Migration_Procedures extends CI_Migration {
   				CONSTRAINT `fk_procedures_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gestion des procédures du club'",
 			
-			"INSERT INTO `procedures` (`name`, `title`, `description`, `section_id`, `status`, `version`, `created_by`) VALUES 
+			"INSERT IGNORE INTO `procedures` (`name`, `title`, `description`, `section_id`, `status`, `version`, `created_by`) VALUES 
 				('example_procedure', 'Procédure d\\'exemple', 'Exemple de procédure pour tester le système', NULL, 'draft', '1.0', 'admin'),
 				('maintenance_planeur', 'Maintenance des planeurs', 'Procédures de maintenance préventive des planeurs', NULL, 'published', '2.1', 'admin')"
 		);
