@@ -151,6 +151,6 @@ Controller
 
 Vols Decouverte Background Image
  [x] Background image path validation
- [ ] Background image selection logic
- [ ] Discovery flight background image file
+ [x] Background image selection logic
+ [x] Discovery flight background image file
 

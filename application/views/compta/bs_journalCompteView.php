@@ -509,7 +509,18 @@ echo '</div>';
 // Handle click on attachment paperclip icon
 $(document).on('click', '.attachment-icon', function() {
     var ecritureId = $(this).data('ecriture-id');
-    var attachmentCount = $(this).data('attachment-count');
+    var date = $(this).data('date');
+    var description = $(this).data('description');
+    var debit = $(this).data('debit');
+    var credit = $(this).data('credit');
+
+    // Format date to locale
+    var date_op = new Date(date);
+    var formattedDate = date_op.toLocaleDateString();
+
+    var amount = debit ? debit : credit;
+    var modalTitle = 'Justificatifs ' + formattedDate + ' : ' + description + ' (' + amount + ' €)';
+    $('#attachmentsModalLabel').html('<i class="fas fa-paperclip"></i> ' + modalTitle);
 
     // Open modal
     var modal = new bootstrap.Modal(document.getElementById('attachmentsModal'));

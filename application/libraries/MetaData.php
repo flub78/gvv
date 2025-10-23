@@ -1147,7 +1147,21 @@ abstract class Metadata {
                 // Gray (muted) for no attachments, bright green for attachments present
                 $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-light-muted';
                 $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
-                $icon_html = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" data-ecriture-id="' . $ecriture_id . '" data-attachment-count="' . $attachment_count . '" style="cursor: pointer; margin-right: 5px; font-size: 1.1em;" title="' . $title . '"></i>';
+                
+                $date_op = isset($row['date_op']) ? $row['date_op'] : '';
+                $description = isset($row['description']) ? $row['description'] : '';
+                $debit = isset($row['debit']) ? $row['debit'] : '';
+                $credit = isset($row['credit']) ? $row['credit'] : '';
+
+                $icon_html = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" ' .
+                    'data-ecriture-id="' . $ecriture_id . '" ' .
+                    'data-attachment-count="' . $attachment_count . '" ' .
+                    'data-date="' . $date_op . '" ' .
+                    'data-description="' . htmlspecialchars($description) . '" ' .
+                    'data-debit="' . $debit . '" ' .
+                    'data-credit="' . $credit . '" ' .
+                    'style="cursor: pointer; margin-right: 5px; font-size: 1.1em;" ' .
+                    'title="' . $title . '"></i>';
 
                 return $icon_html . htmlspecialchars($value);
             }
