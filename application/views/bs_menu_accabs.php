@@ -31,6 +31,7 @@
   <ul class="dropdown-menu">
 
     <li><a class="dropdown-item" href="https://github.com/flub78/gvv/blob/main/README.md" target="_blank" rel="noopener noreferrer"><i class="fas fa-book text-primary"></i> <?= translation("GVV") ?></a></li>
+    <li><a class="dropdown-item" href="https://github.com/flub78/gvv/tree/main/doc/users" target="_blank" rel="noopener noreferrer"><i class="fas fa-question-circle text-info"></i> <?= translation("Guide utilisateur") ?></a></li>
     <li><a class="dropdown-item" href="http://aeroclub-abbeville.fr/" target="_blank" rel="noopener noreferrer"><i class="fas fa-home text-success"></i> <?= translation("Site club") ?></a></li>
 
     <li><a class="dropdown-item" href="https://moncompte.ffvp.fr/" target="_blank" rel="noopener noreferrer"><i class="fas fa-user-circle text-info"></i> Comptes FFVP, GESASSO</a></li>
@@ -42,8 +43,9 @@
       <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer"><i class="fas fa-id-card text-success"></i> <?= translation("Licences assurance") ?></a></li>
     <?php endif; ?>
 
+
     <?php if (has_role('tresorier')) : ?>
-      <li><a class="dropdown-item" href="https://www.credit-du-nord.fr/" target="_blank" rel="noopener noreferrer"><i class="fas fa-university text-danger"></i> <?= translation("CDN") ?></a></li>
+      <li><a class="dropdown-item" href="https://professionnels.sg.fr/" target="_blank" rel="noopener noreferrer"><i class="fas fa-university text-danger"></i> <?= translation("CDN") ?></a></li>
     <?php endif; ?>
 
     <li>

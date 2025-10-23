@@ -97,6 +97,18 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 
 ---
 
+### 🔐 Sécurité et Administration
+
+#### [9. Gestion des Autorisations](09_autorisations.md)
+**Contrôle d'accès et permissions**
+- Rôles et permissions
+- Gestion des utilisateurs et attribution des rôles
+- Règles d'accès aux données par section
+- Journal d'audit et traçabilité
+- Bonnes pratiques de sécurité
+
+---
+
 ### 🔗 Guides d'Intégration
 
 #### [OpenFlyers Integration](../openflyers_user.md)
@@ -127,9 +139,10 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 ### 👨‍💼 Gestion du Club
 **Pour les responsables et trésoriers :**
 
-1. **[📊 Comptabilité](07_comptabilite.md)** - Contrôle financier  
+1. **[📊 Comptabilité](07_comptabilite.md)** - Contrôle financier
 2. **[📈 Rapports](08_rapports.md)** - Analyser les performances
-3. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+3. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
+4. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

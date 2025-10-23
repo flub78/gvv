@@ -409,6 +409,7 @@ $lang['GESASSO'] = "GESASSO";
 $lang['Pompes'] = "Pompes";
 $lang['Aide'] = "Aide";
 $lang['GVV'] = "Projet GVV";
+$lang['Guide utilisateur'] = "Guide utilisateur";
 $lang['Site club'] = "Site du club";
 $lang['FFVP'] = "Site FFVP";
 $lang["Retours d'expérience"] = "Retours d'expérience";

@@ -381,6 +381,7 @@ $lang['GESASSO'] = "GESASSO";
 $lang['Pompes'] = "Fuel";
 $lang['Aide'] = "Help";
 $lang['GVV'] = "GVV";
+$lang['Guide utilisateur'] = "User Guide";
 $lang['Site club'] = "Club website";
 $lang['FFVP'] = "FFVP";
 $lang['Retours d\'expérience'] = "Experience feedback";
