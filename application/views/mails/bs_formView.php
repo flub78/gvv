@@ -41,6 +41,11 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 echo form_hidden('id', $id);
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 // echo validation_errors();
 echo ($this->mailmetadata->form('mails', array(
     'titre' => $titre,

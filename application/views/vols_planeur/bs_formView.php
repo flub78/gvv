@@ -46,6 +46,11 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 echo form_hidden('vpid', $vpid);
 echo form_hidden('saisie_par', $saisie_par, '');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 $attrs = ['onfocusout' => "calculp()", "type" => "time"];
 $altitude = ($remorque_100eme) ? $this->lang->line("gvv_vols_planeur_label_centieme") : $this->lang->line("gvv_vols_planeur_label_alt");
 $percent_selector = array('0' => 0, '50' => 50, '100' => 100);

@@ -48,6 +48,11 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 echo form_hidden('action', $action);
 if (isset($id)) echo form_hidden('id', $id);
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 $table = array();
 $row = 0;
 $table[$row][] = $this->lang->line("gvv_backend_field_nom") . ": ";

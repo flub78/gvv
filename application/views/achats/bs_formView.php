@@ -47,6 +47,11 @@ echo form_hidden('saisie_par', $saisie_par, '');
 echo form_hidden('id', $id);
 echo form_hidden('action', $action);
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 // echo validation_errors();
 echo ($this->gvvmetadata->form('achats', array(
 	'date' => $date,

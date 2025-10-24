@@ -311,6 +311,11 @@ if ($has_modification_rights) {
     echo form_fieldset_close();
 } else {
     echo form_hidden('compte', $compte);
+
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
 }
 
 // ========================================================================

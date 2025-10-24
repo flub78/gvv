@@ -44,6 +44,11 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 echo form_hidden('emlogin', $emlogin, '');
 echo form_hidden('id', $id, '');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 if (($evaid != 0) && ($evaid != null)) {
     $event_type_flight = "avion";
     $display_plane = "block";

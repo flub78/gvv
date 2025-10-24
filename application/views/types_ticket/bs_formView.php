@@ -45,6 +45,11 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 
 // echo form_hidden('macimmat', $macimmat);
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 // echo validation_errors();
 echo ($this->gvvmetadata->form('type_ticket', array(
 	'id' => $id,

@@ -111,6 +111,11 @@ if ($modification_type == 'edit') {
 		// done
 		echo form_hidden('urgence', $urgence, '');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 	?>
 		<div class="d-flex flex-wrap">
 			<div class="m-2 ">

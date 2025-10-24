@@ -44,6 +44,11 @@ echo form_hidden('saisie_par', $saisie_par, '');
 echo form_hidden('horametres_en_min', $horametres_en_min, '');
 echo form_hidden('machines', $machines, '');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 ?>
 <div class="d-md-flex flex-row mb-2">
     <!-- Date, immat-->

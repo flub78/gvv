@@ -21,6 +21,11 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 // hidden controller url for javascript access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 // Form fields
 echo ($this->gvvmetadata->form('associations_ecriture', array(
     'string_releve' => $string_releve,

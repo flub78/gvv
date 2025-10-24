@@ -49,6 +49,13 @@ $this->lang->load('attachments');
 				<input type="hidden" name="user_id" value="<?= $user_id ?>" />
 				<input type="hidden" name="club" value="<?= isset($club) ? $club : 0 ?>" />
 
+				<?php
+				// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+				if (isset($kid) && isset($$kid)) {
+					echo '<input type="hidden" name="original_' . $kid . '" value="' . $$kid . '" />';
+				}
+				?>
+
 				<?= ($this->gvvmetadata->form('attachments', array(
 					'description' => $description,
 					'file' => $file

@@ -59,6 +59,11 @@ if ($this->config->item('gestion_tickets')) {
 	$fields['type_ticket'] = $type_ticket;
 } else {
 	echo form_hidden('nb_tickets', 0);
+
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
 }
 
 // echo validation_errors();

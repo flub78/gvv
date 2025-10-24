@@ -45,6 +45,13 @@ $this->lang->load('sections');
 			<p><?= $image ?></p>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
+				<?php
+				// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+				if (isset($kid) && isset($$kid)) {
+					echo '<input type="hidden" name="original_' . $kid . '" value="' . $$kid . '" />';
+				}
+				?>
+
 				<?= ($this->gvvmetadata->form('user_roles_per_section', array(
 					'user_id' => $user_id,
 					'types_roles_id' => $types_roles_id,

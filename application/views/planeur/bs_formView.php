@@ -43,6 +43,11 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 // echo validation_errors();
 echo ($this->gvvmetadata->form('machinesp', array(
 	'mpconstruc' => $mpconstruc,

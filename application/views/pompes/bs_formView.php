@@ -56,6 +56,11 @@ echo form_hidden('pnum', $pnum); // 0: 100LL (défaut), 1: 98SP
 echo form_hidden('pdatesaisie', date('d/m/Y')); // date de la saisie
 echo form_hidden('psaisipar', $saisie_par); // date de la saisie
 
+// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
+if (isset($kid) && isset($$kid)) {
+    echo form_hidden('original_' . $kid, $$kid);
+}
+
 $tabs = nbs(3);
 $table = array();
 $row = 0;
