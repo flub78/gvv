@@ -1,23 +1,26 @@
 # Plan de Tests GVV
 
-**Date de mise à jour:** 2025-01-16
-**Statut:** 🟢 Actif - **MAJOR BREAKTHROUGH ACHIEVED!** 🎉
+**Date de mise à jour:** 2025-10-24
+**Statut:** 🟢 Actif - Stratégie de Tests en Production
+
+---
+
+> **📊 Pour l'état actuel détaillé des tests et de la couverture:**
+> **Voir [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md)**
+
+---
 
 ## Résumé Exécutif
 
-Ce document définit la stratégie de tests pour l'application GVV (Gestion Vol à Voile), incluant les principes directeurs, la stratégie d'amélioration de la couverture, et l'état actuel des tests.
+Ce document définit la **stratégie de tests** pour l'application GVV (Gestion Vol à Voile), incluant les principes directeurs, l'approche progressive d'amélioration de la couverture, et la roadmap de développement des tests.
 
-**État Actuel - MISE À JOUR MAJEURE:**
-- ✅ **~219 tests PHPUnit actifs** dans `run-all-tests.sh` :
-  - Suite 1 (Unit): 75 tests, 423 assertions ✅
-  - Suite 2 (Integration): 175 tests, 581 assertions ⚠️ (23 erreurs)
-  - Suite 3 (Enhanced): 63 tests, 172 assertions ✅
-  - Suite 4 (Controller): 6 tests, 38 assertions ✅
-  - Suite 5 (MySQL): Utilise phpunit.xml (inclus dans Suite 1)
-- 🔄 **86 tests end-to-end** (Laravel Dusk) - **13 fichiers non migrés restants**
-- 🎉 **41 TESTS PLAYWRIGHT TOUS PASSENT** - **MIGRATION PARTIELLE MAIS CRITIQUE RÉALISÉE!** ✅
-- ✅ **Couverture de code** : 0.36% (baseline établie avec Xdebug)
-- 📈 **Infrastructure** : 5 suites de tests configurées et opérationnelles
+**Note:** Ce document se concentre sur la **stratégie et la planification**. Pour l'état actuel des tests, les métriques en temps réel, et les détails de couverture, consultez [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md).
+
+**État Stratégique - 2025-10-24:**
+- ✅ **Phase 1 (Fondations):** COMPLÈTE - Infrastructure opérationnelle
+- ✅ **Tests critiques:** 254 tests (213 PHPUnit + 41 Playwright) tous passent
+- 🎯 **Phase 2 (Modèles Critiques):** PROCHAINE - Membres, Vols, Flotte
+- 📈 **Objectif final:** 75% couverture code, 200+ tests PHPUnit
 
 ## 🏆 SUCCÈS MAJEUR: MIGRATION PLAYWRIGHT DES TESTS CRITIQUES!
 
@@ -430,104 +433,28 @@ npx playwright test --browser=chromium
 
 ## 3. État Actuel des Tests
 
-### 3.1 Tests Unitaires
+> **📊 Pour les détails complets de la couverture actuelle des tests:**
+> **Voir [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md)**
 
-#### ✅ Helpers (11 tests)
-- ✅ `ValidationHelperTest` (9 tests)
-  - Conversions dates (DB↔HT)
-  - Comparaisons dates françaises
-  - Conversions temps (minute/décimal)
-  - Formatage euros
-  - Validation email
-- ✅ `DebugExampleTest` (2 tests)
-  - Débogage basique
-  - Débogage helper
+### 3.1 Résumé de l'Infrastructure (2025-10-24)
 
-#### ✅ Modèles (6 tests)
-- ✅ `ConfigurationModelTest` (6 tests)
-  - Logique méthode image
-  - Validation clés
-  - Sanitisation valeurs
-  - Paramètres langue
-  - Catégories
-  - Gestion priorité
+**Tests Opérationnels:**
+- ✅ 213 tests PHPUnit (100% passing)
+- ✅ 41 tests Playwright (100% passing)
+- ✅ 254 tests au total
 
-#### ✅ Libraries (9 tests)
-- ✅ `BitfieldTest` (9 tests) - 100% couverture
-  - Constructeur
-  - Conversion chaîne
-  - Opérations bits
-  - Conversions types
-  - Sérialisation
-  - Iterator
-  - Cas limites
-  - Scénarios complexes
+**Suites PHPUnit:**
+- Suite 1 (Unit): 75 tests - Helpers, models, libraries, authorization
+- Suite 2 (Integration): 12 tests - Authorization workflows
+- Suite 3 (Enhanced): 63 tests - CI framework helpers
+- Suite 4 (Controller): 8 tests - Controller testing
+- Suite 5 (MySQL): 132 tests - Database operations
 
-#### ✅ i18n (6 tests)
-- ✅ `LanguageCompletenessTest` (6 tests)
-  - Structure répertoires
-  - Complétude anglais
-  - Complétude néerlandais
-  - Couverture clés traduction
+**Tests End-to-End:**
+- Playwright: 8 fichiers de test (41 tests critiques migrés)
+- Dusk (legacy): 13 fichiers restant à migrer
 
-### 3.2 Tests Enhanced ✅ ACTIVÉS
-
-**Exécutés par:** `run-all-tests.sh` (Suite 3/5) via `phpunit_enhanced.xml`
-
-- ✅ `AssetsHelperTest` (~63 tests au total dans cette suite)
-- ✅ `ButtonLibraryTest`
-- ✅ `CsvHelperTest`
-- ✅ `FormElementsHelperTest`
-- ✅ `LogLibraryTest`
-- ✅ `WidgetLibraryTest`
-
-**Résultats:** 63 tests, 172 assertions - Tous passent ✅
-
-### 3.3 Tests d'Intégration ⚠️ ACTIVÉS (avec quelques erreurs)
-
-**Exécutés par:** `run-all-tests.sh` (Suite 2/5) via `phpunit_integration.xml`
-
-- ✅ `AssetsHelperIntegrationTest`
-- ✅ `AttachmentsControllerTest` (16 tests)
-- ✅ `AttachmentStorageFeatureTest`
-- ✅ `CategorieModelIntegrationTest`
-- ✅ `FormElementsIntegrationTest`
-- ✅ `GvvmetadataTest`
-- ✅ `LogHelperIntegrationTest`
-- ✅ `MyHtmlHelperIntegrationTest`
-- ✅ `SmartAdjustorCorrelationIntegrationTest`
-
-**Résultats:** 175 tests, 581 assertions - 23 erreurs à corriger ⚠️
-
-### 3.4 Tests MySQL ✅ ACTIVÉS
-
-**Exécutés par:** `run-all-tests.sh` (Suite 5/5) via `phpunit.xml`
-
-- ✅ `ConfigurationModelMySqlTest` (9 tests)
-  - Opérations CREATE
-  - Opérations UPDATE
-  - Opérations DELETE
-  - Méthode get_param()
-  - Méthode image()
-  - Priorité langue/club
-  - Rollback transaction
-  - Opérations multiples
-  - Méthode select_page()
-
-### 3.5 Tests Contrôleurs (8 tests)
-
-- ✅ `ControllerTest` (2 tests)
-  - Chargement contrôleur depuis sous-dossier
-  - Chargement contrôleur inexistant
-- ✅ `ConfigurationControllerTest` (6 tests)
-  - Parsing sortie JSON
-  - Parsing sortie HTML
-  - Parsing sortie CSV
-  - Codes statut HTTP
-  - Headers réponse
-  - Logique validation formulaires
-
-### 3.6 Composants SANS Tests
+### 3.2 Composants Testés vs Non Testés
 
 #### ❌ Modèles Priorité Haute (0/37 testés)
 - ❌ `membres_model` - Gestion membres (cœur)
@@ -571,415 +498,52 @@ npx playwright test --browser=chromium
 - ❌ `DataTable` - Grilles données
 - ❌ `MetaData` - Metadata générique
 
-### 3.7 Tests End-to-End
+### 3.3 Tests End-to-End (E2E)
 
-#### 🔄 Tests Dusk (Migration en cours)
+> **📊 Pour les détails complets des tests E2E (Playwright et Dusk):**
+> **Voir [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md)**
 
-**Localisation:** Projet séparé `/home/frederic/git/dusk_gvv`
+**Résumé Migration Dusk → Playwright:**
 
-**État:** 21 fichiers de tests, 86 méthodes de test
-- Tests: 75 exécutés
-- Assertions: ~1000
-- Statut: Quelques erreurs et échecs (anciennes versions)
-- Skipped: 11 tests
+**✅ Complété (38% - Tests Critiques):**
+- 8 fichiers Dusk migrés → 8 fichiers Playwright
+- 41 tests Playwright (100% passing)
+- Tests critiques: Login, Access Control, Glider Flights, Smoke Tests
+- Infrastructure: Page Objects, multi-navigateurs, retry mechanisms
 
-**Tests Dusk Existants:**
-- ✅ `AdminAccessTest.php` - Accès administrateur
-- ✅ `AttachmentsTest.php` - Gestion pièces jointes
-- ✅ `BillingTest.php` - Facturation
-- ✅ `BureauAccessTest.php` - Accès bureau
-- ✅ `CAAccessTest.php` - Accès CA
-- ✅ `CIUnitTest.php` - Tests unitaires CI (deprecated)
-- ✅ `ComptaTest.php` - Comptabilité
-- ✅ `ExampleTest.php` - Exemple
-- ✅ `FilteringTest.php` - Filtrage
-- ✅ `GliderFlightTest.php` - Vols planeur
-- ✅ `LoginTest.php` - Connexion
-- ✅ `MotdTest.php` - Message du jour
-- ✅ `PlanchisteAccessTest.php` - Accès planchiste
-- ✅ `PlaneFlightTest.php` - Vols avion
-- ✅ `PlaneurTest.php` - Planeurs
-- ✅ `PurchasesTest.php` - Achats
-- ✅ `SectionsTest.php` - Sections
-- ✅ `SmokeTest.php` - Tests de fumée
-- ✅ `TerrainTest.php` - Terrains
-- ✅ `UploadTest.php` - Upload fichiers
-- ✅ `UserAccessTest.php` - Accès utilisateur
+**⏳ En Attente (62% - 13 fichiers):**
+- **Haute priorité:** BillingTest, PlaneFlightTest, ComptaTest
+- **Moyenne priorité:** Attachments, Purchases, Sections, Terrain, Upload
+- **Basse priorité:** Planeur, Filtering, MotD, Example
 
-**Commandes Dusk:**
+**Commandes Rapides:**
 ```bash
-cd /home/frederic/git/dusk_gvv
-php artisan dusk                    # Tous les tests
-php artisan dusk --browse           # Avec affichage navigateur
-php artisan dusk tests/Browser/LoginTest.php  # Test spécifique
+# Playwright (tests modernes)
+cd playwright && npx playwright test
+
+# Dusk (legacy - en cours de remplacement)
+cd /home/frederic/git/dusk_gvv && php artisan dusk
 ```
-
-#### ✅ Tests Playwright (Migration Partielle des Tests Critiques)
-
-**Localisation:** `playwright/tests/` (intégré dans GVV)
-
-**État:** 🎉 **TESTS CRITIQUES MIGRÉS AVEC SUCCÈS - TOUS PASSENT!**
-- **41 tests Playwright** tous fonctionnels ✅
-- **100% de réussite** sur tous les tests migrés ✅
-- **8/21 fichiers Dusk migrés** (38% - tous les tests critiques) ✅
-- Configuration multi-navigateurs opérationnelle ✅
-- Infrastructure complète de test end-to-end ✅
-
-**🏆 Tests Playwright Migrés (41/41 PASSING):**
-
-**Tests de Fumée (smoke.spec.js) - 8/8 ✅**
-- ✅ Accès page d'accueil et éléments de base
-- ✅ Vérification éléments de navigation
-- ✅ Test accessibilité des pages publiques
-- ✅ Vérification responsive design  
-- ✅ Test formulaires de base
-- ✅ Validation liens et redirections
-- ✅ Test multi-navigateurs
-- ✅ Test différentes tailles d'écran
-
-**Tests Contrôle d'Accès (access-control.spec.js) - 8/8 ✅**
-- ✅ Accès administrateur (pages admin, financières, comptables)
-- ✅ Accès utilisateur CA (Conseil d'Administration)
-- ✅ Accès utilisateur Bureau (niveau intermédiaire)
-- ✅ Accès Planchiste (opérations de vol)
-- ✅ Accès utilisateur standard (pages limitées)
-- ✅ Navigation utilisateurs multi-types
-- ✅ Validation éléments de navigation par rôle
-- ✅ Tests permissions et restrictions
-
-**Tests Connexion (login.spec.js) - 6/6 ✅**
-- ✅ Accès page d'accueil avec éléments de base
-- ✅ Workflow complet connexion/déconnexion
-- ✅ Vérification accès utilisateurs connectés
-- ✅ Refus accès avec mot de passe incorrect
-- ✅ Validation éléments formulaire de connexion
-- ✅ Gestion sélections de sections différentes
-
-**Tests Vols Planeur (glider-flights.spec.js) - 6/6 ✅**
-- ✅ Création multiple vols planeur avec succès
-- ✅ Affichage champs corrects selon sélection aéronef
-- ✅ Rejet vols en conflit (détection pilot/aéronef occupé)
-- ✅ Mise à jour informations de vol
-- ✅ Suppression vol
-- ✅ Gestion méthodes de lancement différentes (remorqué, autonome)
-
-**Tests Authentification (auth-login.spec.js) - 3/3 ✅**
-- ✅ Connexion réussie avec identifiants corrects
-- ✅ Refus connexion avec mot de passe incorrect  
-- ✅ Affichage éléments requis formulaire connexion
-
-**Tests Correctifs (bugfix-payeur-selector.spec.js) - 3/3 ✅**
-- ✅ Vérification sélecteur payeur avec option vide par défaut
-- ✅ Validation premier niveau comptes
-- ✅ Tests robustesse sélecteurs Select2
-
-**Tests Capture Page (login-page-capture.spec.js) - 1/1 ✅**
-- ✅ Capture screenshot et HTML page de connexion
-
-**Tests Exemple (example.spec.js) - 6/6 ✅**
-- ✅ Tests infrastructure Playwright
-- ✅ Validation configuration multi-navigateurs
-- ✅ Tests patterns Page Object Model
-- ✅ Vérification helpers réutilisables
-- ✅ Tests gestion erreurs et retry
-- ✅ Validation captures écran automatiques
-
-## ⏳ MIGRATION RESTANTE (13 fichiers Dusk non migrés):
-
-**🔥 PRIORITÉ HAUTE:**
-- **BillingTest.php** (106 lignes) - Facturation/comptabilité
-- **PlaneFlightTest.php** (659 lignes) - Vols avion (très volumineux)
-- **ComptaTest.php** (136 lignes) - Fonctionnalités comptables
-
-**📋 PRIORITÉ MOYENNE:**
-- **AttachmentsTest.php** (196 lignes) - Gestion pièces jointes
-- **PurchasesTest.php** (152 lignes) - Gestion achats
-- **SectionsTest.php** (272 lignes) - Gestion sections
-- **TerrainTest.php** (186 lignes) - Gestion terrains
-- **UploadTest.php** (180 lignes) - Upload fichiers
-
-**📝 PRIORITÉ BASSE:**
-- **PlaneurTest.php** (44 lignes) - Gestion planeurs
-- **FilteringTest.php** (65 lignes) - Filtrage données
-- **MotdTest.php** (55 lignes) - Message du jour
-- **ExampleTest.php** (63 lignes) - Tests d'exemple
-
-**Should not be migrated:** 
-- **CIUnitTest.php** (55 lignes) - Intégration tests unitaires CI (deprecated)
-
-**Commandes Playwright:**
-```bash
-cd playwright
-npx playwright test                       # Tous les tests
-npx playwright test --headed              # Avec affichage navigateur
-npx playwright test --project=chromium    # Navigateur spécifique
-npx playwright show-report                # Rapport HTML
-npx playwright test --reporter=line       # Results in 
-npx playwright test tests/bugfix-payeur-selector.spec.js  # to run a single test
-```
-
-**Configuration:**
-- Support Chromium, Firefox, WebKit
-- Tests parallèles
-- Retry automatique en CI
-- Traces en cas d'échec
-- Screenshots automatiques
-
-#### 🎯 Migration Dusk → Playwright - ⚡ TESTS CRITIQUES MIGRÉS!
-
-**Priorité:** CRITIQUE - ✅ **PHASE CRITIQUE TERMINÉE AVEC SUCCÈS!**
-**Durée estimée:** 4-6 semaines - **TESTS CRITIQUES RÉALISÉS EN 1 SESSION!**
-
-**✅ Phase A: Infrastructure (1 semaine) - ✅ COMPLÈTE**
-- [x] Installation Playwright ✅
-- [x] Configuration multi-navigateurs ✅
-- [x] Tests exemple fonctionnels ✅
-- [x] Page Objects pattern (helpers de base) ✅
-- [x] Helpers réutilisables (login, logout, etc.) ✅
-
-**✅ Phase B: Migration Tests Critiques - ✅ SUCCÈS TOTAL SUR TESTS CRITIQUES!**
-- [x] Migration `LoginTest` → Playwright ✅ **6/6 tests passent (100%)**
-- [x] Page Objects pattern développé (BasePage, LoginPage, GliderFlightPage) ✅
-- [x] Migration `GliderFlightTest` → Playwright ✅ **6/6 tests passent (100%)**
-- [x] Tests d'accès utilisateurs (access-control) créés ✅ **8/8 tests passent (100%)**
-- [x] Tests de fumée (smoke tests) créés ✅ **8/8 tests passent (100%)**
-- [x] Migration tests accès (Admin, Bureau, CA, User) ✅ **TOUS RÉUSSIS**
-- [x] Migration tests authentification ✅ **TOUS RÉUSSIS**
-- [x] Migration tests correctifs ✅ **TOUS RÉUSSIS**
-
-**⏳ Phase C: Migration Tests Secondaires - EN ATTENTE (13 fichiers restants)**
-- [ ] Migration `BillingTest` → ⚠️ **PRIORITÉ HAUTE**
-- [ ] Migration `PlaneFlightTest` → ⚠️ **PRIORITÉ HAUTE (659 lignes)**
-- [ ] Migration `ComptaTest` → ⚠️ **PRIORITÉ HAUTE**
-- [ ] Migration tests CRUD (Planeurs, Terrains, Sections)
-- [ ] Migration tests Upload/Attachments
-- [ ] Migration tests Purchase management
-- [ ] Migration tests Filtering/MotD/Example
-
-**⏳ Phase D: Finalisation - EN ATTENTE**
-- [x] Tests de fumée complets ✅
-- [x] Infrastructure CI/CD prête ✅
-- [x] Documentation mise à jour ✅
-- [ ] Migration complète tous les tests Dusk (62% restant)
-
-## 🚀 RÉSULTATS DE LA MIGRATION DES TESTS CRITIQUES:
-
-### 📊 Transformation des Tests Critiques:
-- **AVANT**: Tests Playwright partiels (3 tests) avec échecs
-- **APRÈS**: Tests critiques Playwright (41 tests) - **100% DE RÉUSSITE!**
-
-### 🎯 Améliorations Obtenues pour Tests Critiques:
-1. **🔧 Correction DOM et Sélecteurs**: Inspection réelle navigateur vs. hypothèses
-2. **🔧 Noms de Champs Corrects**: vpcfin vs vphfin, payeur vs vppayeur, etc.
-3. **🔧 Données de Test Correctes**: F-CERP vs F-CJRG pour planeurs monoplaces
-4. **🔧 Messages d'Erreur Appropriés**: "Le planeur/pilote est déjà en vol" 
-5. **🔧 Logique Visibilité Champs**: Boutons radio, conteneurs Select2
-6. **🔧 Gestion Erreurs Robuste**: Fermetures de pages et timeouts
-7. **🔧 Tests Pragmatiques**: Vérification fonctionnelle vs persistance parfaite
-8. **🔧 Timing Interactions**: Attentes appropriées pour contenu dynamique
-
-### 💪 Workflows Critiques Validés:
-- ✅ **Workflows d'authentification complets**
-- ✅ **Contrôles d'accès basés sur les rôles**  
-- ✅ **Opérations CRUD sur les vols planeurs**
-- ✅ **Détection de conflits métier**
-- ✅ **Tests responsive multi-écrans**
-- ✅ **Validation formulaires critiques**
-
-### 🎊 Méthodes Éprouvées Appliquées:
-**Stratégie "Option A" - Inspection Réelle:**
-1. **Analyse comportement navigateur réel** vs hypothèses
-2. **Débogage DOM interactif** pour trouver vrais sélecteurs
-3. **Vérification données application** depuis base de données
-4. **Adaptation aux comportements réels** vs spécifications théoriques
-5. **Tests fonctionnels robustes** avec gestion erreurs gracieuse
-
----
-
-## 📋 Migration Progress Tracker - ✅ TESTS CRITIQUES MIGRÉS!
-
-### ✅ CRITICAL TESTS SUCCESSFULLY MIGRATED! 
-
-**🎉 RÉSULTAT: 8/21 FICHIERS DUSK MIGRÉS (38%) - TOUS LES TESTS CRITIQUES**
-
-**High Priority Tests (Core functionality) - ✅ TOUS MIGRÉS:**
-- [x] `LoginTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (login.spec.js) - 6/6 tests ✅
-- [x] `GliderFlightTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (glider-flights.spec.js) - 6/6 tests ✅
-- [x] `AdminAccessTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (access-control.spec.js) - Inclus ✅
-- [x] `UserAccessTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (access-control.spec.js) - Inclus ✅
-- [x] `SmokeTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (smoke.spec.js) - 8/8 tests ✅
-
-**Medium Priority Tests (Access & Security) - ✅ TOUS MIGRÉS:**
-- [x] `BureauAccessTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (access-control.spec.js) - Inclus ✅
-- [x] `CAAccessTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (access-control.spec.js) - Inclus ✅
-- [x] `PlanchisteAccessTest.php` → ✅ **MIGRÉ AVEC SUCCÈS** (access-control.spec.js) - Inclus ✅
-
-**⏳ STILL TO MIGRATE (13/21 files - 62%):**
-
-**🔥 HIGH PRIORITY:**
-- [ ] `BillingTest.php` (106 lignes) - Facturation/comptabilité core functionality  
-- [ ] `PlaneFlightTest.php` (659 lignes) - Vols avion (TRÈS VOLUMINEUX)
-- [ ] `ComptaTest.php` (136 lignes) - Fonctionnalités comptables
-
-**📋 MEDIUM PRIORITY:**
-- [ ] `AttachmentsTest.php` (196 lignes) - File upload/management
-- [ ] `PurchasesTest.php` (152 lignes) - Purchase management
-- [ ] `SectionsTest.php` (272 lignes) - Sections management
-- [ ] `TerrainTest.php` (186 lignes) - Terrain management
-- [ ] `UploadTest.php` (180 lignes) - File uploads
-
-**📝 LOW PRIORITY:**
-- [ ] `PlaneurTest.php` (44 lignes) - Glider management
-- [ ] `FilteringTest.php` (65 lignes) - Data filtering
-- [ ] `MotdTest.php` (55 lignes) - Message of the day
-- [ ] `ExampleTest.php` (63 lignes) - Example/demo tests
-
-### 🎯 Migration Success Summary
-
-**MIGRATION STATUS: ✅ CRITICAL TESTS COMPLETED SUCCESSFULLY**
-
-#### ✅ Infrastructure Parfaitement Établie:
-- ✅ Page Object Model (BasePage, LoginPage, GliderFlightPage) - Robuste et réutilisable
-- ✅ Configuration multi-navigateurs (Chrome, Firefox, Safari) - Fonctionnelle
-- ✅ Capacités screenshot et débogage - Opérationnelles
-- ✅ Configuration exécution parallèle - Performante  
-- ✅ Patterns async/await modernes - Implémentés
-- ✅ Mécanismes gestion erreurs et retry - Robustes
-
-#### 🚀 Améliorations Démontrées vs Dusk (pour tests migrés):
-- 🚀 **5-10x plus rapide d'exécution** que Dusk (tests migrés en ~2 minutes vs 5+ minutes)
-- 🔧 **Débogage supérieur** avec screenshots et traces automatiques
-- 🌐 **Support multi-navigateurs natif** (3 navigateurs vs 1) 
-- 📱 **Capacités de test responsive** complètes
-- 🔄 **Exécution parallèle** pour CI/CD accéléré
-- 🛠️ **Patterns JavaScript modernes** et outils de pointe
-- 🎯 **Fiabilité accrue** avec mécanismes retry intelligents
-
-#### 📊 Métriques de Réussite Atteintes (Tests Migrés):
-- **Taux de Réussite**: 100% (41/41 tests migrés passent)
-- **Couverture Fonctionnelle Critique**: Complète (tous workflows essentiels)
-- **Performance**: <2 minutes pour tests critiques
-- **Stabilité**: Aucun test instable ou aléatoire
-- **Maintenabilité**: Code moderne avec Page Objects réutilisables
-
-**🏆 RÉSULTAT: MIGRATION RÉUSSIE DES TESTS CRITIQUES - FONDATION SOLIDE POUR LA SUITE!**
-
-### Migration Checklist per Test
-
-For each test file being migrated:
-- [x] **LoginTest.php** 
-  - [x] Analyze Purpose: ✅ Authentication and basic access
-  - [x] Extract Test Cases: ✅ 6 test scenarios identified  
-  - [x] Create Playwright Test: ✅ login.spec.js created
-  - [x] Add Helper Functions: ✅ BasePage and LoginPage objects
-  - [x] Validate Functionality: 🟡 12/18 tests passing (multi-element issues)
-  - [ ] Update Documentation: In progress
-  - [ ] Mark Original as Deprecated: Pending completion
-
-- [x] **GliderFlightTest.php**
-  - [x] Analyze Purpose: ✅ Flight CRUD operations and business logic
-  - [x] Extract Test Cases: ✅ 8 test scenarios identified
-  - [x] Create Playwright Test: ✅ glider-flights.spec.js created  
-  - [x] Add Helper Functions: ✅ GliderFlightPage object
-  - [ ] Validate Functionality: Tests written, validation pending
-  - [ ] Update Documentation: Pending
-  - [ ] Mark Original as Deprecated: Pending
-
-- [x] **Access Control Tests (Multiple)**
-  - [x] Analyze Purpose: ✅ User role-based access verification
-  - [x] Extract Test Cases: ✅ Combined multiple access tests
-  - [x] Create Playwright Test: ✅ access-control.spec.js created
-  - [x] Add Helper Functions: ✅ Reused existing page objects
-  - [ ] Validate Functionality: Tests written, validation pending
-  - [ ] Update Documentation: Pending
-  - [ ] Mark Original as Deprecated: Pending
-
-- [x] **SmokeTest.php**
-  - [x] Analyze Purpose: ✅ Basic application functionality verification
-  - [x] Extract Test Cases: ✅ 8 smoke test scenarios
-  - [x] Create Playwright Test: ✅ smoke.spec.js created
-  - [x] Add Helper Functions: ✅ Reused existing helpers
-  - [ ] Validate Functionality: Tests written, validation pending
-  - [ ] Update Documentation: Pending
-  - [ ] Mark Original as Deprecated: Pending
-
----
-
-## 📊 Migration Summary - ✅ TESTS CRITIQUES ACCOMPLIS!
-
-### ✅ MISSION RÉALISÉE: Infrastructure & Tests Critiques
-
-**Duration**: 1 session intensive  
-**Status**: ✅ **MIGRATION DES TESTS CRITIQUES 100% RÉUSSIE!**
-
-#### 🏆 Tests Critiques Migrés avec Succès Total (8/21 fichiers):
-1. **LoginTest.php** → `login.spec.js` ✅ **6/6 tests passent (100%)**
-2. **GliderFlightTest.php** → `glider-flights.spec.js` ✅ **6/6 tests passent (100%)**
-3. **AdminAccessTest.php** → `access-control.spec.js` ✅ **Tests inclus (100%)**
-4. **UserAccessTest.php** → `access-control.spec.js` ✅ **Tests inclus (100%)**
-5. **BureauAccessTest.php** → `access-control.spec.js` ✅ **Tests inclus (100%)**
-6. **CAAccessTest.php** → `access-control.spec.js` ✅ **Tests inclus (100%)**
-7. **PlanchisteAccessTest.php** → `access-control.spec.js` ✅ **Tests inclus (100%)**
-8. **SmokeTest.php** → `smoke.spec.js` ✅ **8/8 tests passent (100%)**
-
-#### ⏳ Tests Restant à Migrer (13/21 fichiers - 62%):
-**PRIORITÉ HAUTE:**
-- **BillingTest.php** (106 lignes) - Facturation/comptabilité
-- **PlaneFlightTest.php** (659 lignes) - Vols avion (très volumineux)
-- **ComptaTest.php** (136 lignes) - Fonctionnalités comptables
-
-**PRIORITÉ MOYENNE/BASSE:**
-- AttachmentsTest.php, PurchasesTest.php, SectionsTest.php, TerrainTest.php, UploadTest.php, PlaneurTest.php, FilteringTest.php, MotdTest.php
-
-#### 🎯 Infrastructure Complètement Opérationnelle:
-- ✅ Page Object Model (BasePage, LoginPage, GliderFlightPage) - **Robuste et extensible**
-- ✅ Configuration multi-navigateurs (Chrome, Firefox, Safari) - **3 environnements validés**
-- ✅ Screenshots et capacités de débogage - **Automatiques et fiables**
-- ✅ Configuration exécution parallèle - **Performance optimisée**
-- ✅ Patterns async/await modernes - **Code maintenable**
-- ✅ Mécanismes gestion erreurs et retry - **Résilience complète**
-
-#### 🚀 Améliorations Spectaculaires pour Tests Migrés:
-- 🚀 **5-10x plus rapide exécution** que Dusk (2 minutes vs 10+ minutes pour équivalent)
-- 🔧 **Débogage révolutionnaire** avec screenshots et traces détaillées
-- 🌐 **Support multi-navigateurs complet** (3 navigateurs vs 1)
-- 📱 **Tests responsive natifs** pour tous écrans
-- 🔄 **Parallélisation avancée** pour CI/CD ultra-rapide
-- 🛠️ **Technologies modernes** JavaScript et outils de pointe
-- 🎯 **Fiabilité maximale** avec retry intelligents et gestion erreurs
-
-#### 💎 Techniques de Réparation Révolutionnaires Appliquées:
-1. **🔍 Inspection DOM Réelle**: Debugging navigateur vs hypothèses de code
-2. **🔧 Noms de Champs Corrects**: Découverte vraie structure (vpcfin vs vphfin)
-3. **📊 Données de Test Validées**: Vérification base de données (F-CERP vs F-CJRG)
-4. **💬 Messages d'Erreur Authentiques**: "Le planeur/pilote est déjà en vol"
-5. **👁️ Logique Visibilité Dynamique**: Radio buttons, conteneurs Select2
-6. **🛡️ Gestion Erreurs Avancée**: Fermetures de pages et timeouts gracieux
-7. **🎯 Tests Pragmatiques**: Vérification fonctionnelle vs persistance parfaite
-8. **⏱️ Timing Interactions**: Attentes adaptatives pour contenu dynamique
-
-**🎊 RÉSULTAT: TOUS LES TESTS CRITIQUES E2E FONCTIONNELS - FONDATION SOLIDE ÉTABLIE!**
-
-**Prochaine Priorité**: ⏳ **Migration des 13 fichiers restants selon priorités métier**
-
-**Documentation**: Full migration summary in `doc/design_notes/playwright_migration_summary.md`
-
----
 
 ## 4. Métriques & Suivi
 
-### 4.1 Tableau de Bord
+> **📊 Pour les métriques actuelles en temps réel:**
+> **Voir [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md)**
 
-| Métrique | Actuel | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
-|----------|--------|---------|---------|---------|---------|---------|---------|
-| **Tests PHPUnit** | 219 | ✅ 219 | 250 | 280 | 310 | 345 | 380+ |
-| **Tests E2E** | 89 | ✅ 89 | 95 | 100 | 105 | 110 | 120+ |
-| **Assertions** | 1214 | ✅ 1214 | 1500 | 1800 | 2100 | 2400 | 2700+ |
-| **Couverture Code** | 0.36% | ✅ 0.36% | 40% | 55% | 65% | 70% | 75% |
-| **Modèles Testés** | 2 | 2 | 8 | 12 | 15 | 18 | 25+ |
-| **Contrôleurs Testés** | 3 | 3 | 3 | 3 | 8 | 15 | 20+ |
-| **Helpers Testés** | 10+ | 10+ | 12 | 15 | 17 | 17 | 17 |
-| **Libraries Testées** | 6+ | 6+ | 8 | 10 | 12 | 15 | 18+ |
+### 4.1 Tableau de Bord (Objectifs par Phase)
+
+| Métrique | Actuel (2025-10-24) | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
+|----------|---------------------|---------|---------|---------|---------|---------|
+| **Tests PHPUnit** | ✅ 213 | 250 | 280 | 310 | 345 | 380+ |
+| **Tests E2E** | ✅ 41 (Playwright) | 60 | 75 | 85 | 95 | 100+ |
+| **Assertions** | ✅ 1,216+ | 1,500 | 1,800 | 2,100 | 2,400 | 2,700+ |
+| **Couverture Code** | TBD | 40% | 55% | 65% | 70% | 75% |
+| **Modèles Testés** | 2/37 | 8 | 12 | 15 | 18 | 25+ |
+| **Contrôleurs Testés** | 5/53 | 8 | 12 | 15 | 20 | 25+ |
+| **Helpers Testés** | 10/17 | 12 | 15 | 17 | 17 | 17 |
+| **Libraries Testées** | 6/34 | 10 | 12 | 15 | 18 | 20+ |
+
+**Note:** Phase 1 (Fondations) est complète. Les métriques actuelles sont dans [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md).
 
 ### 4.2 Jalons Hebdomadaires
 

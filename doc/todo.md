@@ -10,6 +10,18 @@
 
 ## Reste à faire
 
+* [ ] tests migration
+  * [ ] phpunit
+    * [ ] checks if there are still some CIUnit tests to migrate
+    * [ ] migrate them
+    * [ ] Implement missing phpunit tests according to the test plan
+    * [ ] Investigate the coverage reporting which looks underestimated
+  * [ ] playwright
+    * [ ] mechanism to restore a well defined test database before testing
+    * [ ] checks if there are still some Dusk tests to migrate
+    * [ ] migrate them
+    * [ ] Implement missing playwright tests according to the test plan
+    
 * [x] Images de configuration
 * [ ] Utiliser la nouvelle configuration en base
 * [] gestion des droits multi sections (wip)
