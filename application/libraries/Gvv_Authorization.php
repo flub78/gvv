@@ -318,6 +318,158 @@ class Gvv_Authorization {
     }
 
     // ========================================================================
+    // CODE-BASED PERMISSIONS API (v2.0 - Phase 7)
+    // ========================================================================
+
+    /**
+     * Require specific roles for controller access (code-based permissions)
+     *
+     * This method declares which roles are required to access a controller or action.
+     * Called in controller constructor for default permissions, or in specific methods
+     * for method-level overrides.
+     *
+     * @param array|string $roles Role name(s) required (e.g., 'ca', ['planchiste', 'ca'])
+     * @param int $section_id Section ID for section-scoped roles (NULL for global)
+     * @param bool $replace TRUE to replace previous requirements, FALSE to add to them
+     * @return bool TRUE if user has required role, FALSE otherwise
+     *
+     * @example
+     * // In controller constructor (default for all methods)
+     * $this->gvv_authorization->require_roles(['ca', 'bureau'], $this->section_id);
+     *
+     * // In specific method (override default)
+     * $this->gvv_authorization->require_roles('user', NULL, TRUE);
+     */
+    public function require_roles($roles, $section_id = NULL, $replace = TRUE)
+    {
+        // Normalize to array
+        if (!is_array($roles)) {
+            $roles = array($roles);
+        }
+
+        // Get current user ID
+        if (!isset($this->CI->dx_auth)) {
+            log_message('error', 'GVV_Auth: DX_Auth not loaded, cannot check roles');
+            return FALSE;
+        }
+
+        $user_id = $this->CI->dx_auth->get_user_id();
+        if (!$user_id) {
+            log_message('info', 'GVV_Auth: No user logged in for require_roles check');
+            $this->CI->dx_auth->deny_access();
+            return FALSE;
+        }
+
+        // Check if user has any of the required roles
+        foreach ($roles as $role_name) {
+            if ($this->has_role($user_id, $role_name, $section_id)) {
+                log_message('debug', "GVV_Auth: User {$user_id} has required role '{$role_name}'");
+                return TRUE;
+            }
+        }
+
+        // User doesn't have any required role - deny access
+        log_message('info', "GVV_Auth: User {$user_id} does not have required roles: " . implode(', ', $roles));
+        $this->_audit_log('access_denied', NULL, $user_id, NULL, $section_id, json_encode(array(
+            'required_roles' => $roles,
+            'reason' => 'Missing required role'
+        )));
+
+        $this->CI->dx_auth->deny_access();
+        return FALSE;
+    }
+
+    /**
+     * Allow additional roles for controller/action access (additive)
+     *
+     * This method adds additional roles to the allowed set without replacing
+     * the base requirements. Useful for method-level exceptions.
+     *
+     * @param array|string $roles Role name(s) to allow additionally
+     * @param int $section_id Section ID for section-scoped roles (NULL for global)
+     * @return bool TRUE if user has any allowed role, FALSE otherwise
+     *
+     * @example
+     * // In controller constructor
+     * $this->gvv_authorization->require_roles(['planchiste'], $this->section_id);
+     *
+     * // In specific method (allow auto_planchiste in addition to planchiste)
+     * if (!$this->gvv_authorization->allow_roles('auto_planchiste', $this->section_id)) {
+     *     show_error('Access denied');
+     * }
+     */
+    public function allow_roles($roles, $section_id = NULL)
+    {
+        // Normalize to array
+        if (!is_array($roles)) {
+            $roles = array($roles);
+        }
+
+        // Get current user ID
+        if (!isset($this->CI->dx_auth)) {
+            log_message('error', 'GVV_Auth: DX_Auth not loaded, cannot check roles');
+            return FALSE;
+        }
+
+        $user_id = $this->CI->dx_auth->get_user_id();
+        if (!$user_id) {
+            log_message('debug', 'GVV_Auth: No user logged in for allow_roles check');
+            return FALSE;
+        }
+
+        // Check if user has any of the allowed roles
+        foreach ($roles as $role_name) {
+            if ($this->has_role($user_id, $role_name, $section_id)) {
+                log_message('debug', "GVV_Auth: User {$user_id} has allowed role '{$role_name}'");
+                return TRUE;
+            }
+        }
+
+        log_message('debug', "GVV_Auth: User {$user_id} does not have any of the allowed roles: " . implode(', ', $roles));
+        return FALSE;
+    }
+
+    /**
+     * Check if user can edit/access a specific data row (row-level security)
+     *
+     * This method combines user role information with row-level data access rules
+     * to determine if a user can access a specific database row.
+     *
+     * @param int $user_id User ID (NULL to use current user)
+     * @param string $table_name Database table name
+     * @param array $row_data Row data to check (must include ownership/section fields)
+     * @param int $section_id Section ID for the check
+     * @param string $access_type Type of access (view, edit, delete)
+     * @return bool TRUE if user can access the row, FALSE otherwise
+     *
+     * @example
+     * // Check if user can edit their own flight
+     * $vol = $this->vols_model->get($id);
+     * if (!$this->gvv_authorization->can_edit_row(NULL, 'vols', $vol, $this->section_id, 'edit')) {
+     *     show_error('You can only edit your own flights');
+     * }
+     */
+    public function can_edit_row($user_id, $table_name, $row_data, $section_id, $access_type = 'edit')
+    {
+        // Use current user if not specified
+        if ($user_id === NULL) {
+            if (!isset($this->CI->dx_auth)) {
+                log_message('error', 'GVV_Auth: DX_Auth not loaded, cannot check row access');
+                return FALSE;
+            }
+            $user_id = $this->CI->dx_auth->get_user_id();
+        }
+
+        if (!$user_id) {
+            log_message('debug', 'GVV_Auth: No user ID for can_edit_row check');
+            return FALSE;
+        }
+
+        // Use the existing can_access_data method
+        return $this->can_access_data($user_id, $table_name, $row_data, $section_id, $access_type);
+    }
+
+    // ========================================================================
     // PRIVATE HELPER METHODS
     // ========================================================================
 

@@ -936,10 +936,113 @@ class Gvv_Controller extends CI_Controller {
         $this->unit->save_coverage();
     }
 
+    // ========================================================================
+    // CODE-BASED PERMISSIONS HELPERS (v2.0 - Phase 7)
+    // ========================================================================
+
+    /**
+     * Require specific roles for controller/action access (helper)
+     *
+     * Wrapper for Gvv_Authorization::require_roles(). Automatically loads
+     * the authorization library if not already loaded.
+     *
+     * @param array|string $roles Role name(s) required
+     * @param int $section_id Section ID (NULL for global, defaults to $this->section_id if exists)
+     * @param bool $replace TRUE to replace previous requirements
+     * @return bool TRUE if user has required role
+     *
+     * @example
+     * // In controller constructor
+     * $this->require_roles(['ca', 'bureau']);
+     *
+     * // In specific method with section
+     * $this->require_roles('planchiste', $this->section_id);
+     */
+    protected function require_roles($roles, $section_id = NULL, $replace = TRUE)
+    {
+        // Load authorization library if not loaded
+        if (!isset($this->gvv_authorization)) {
+            $this->load->library('Gvv_Authorization');
+        }
+
+        // Use controller's section_id if available and not specified
+        if ($section_id === NULL && isset($this->section_id)) {
+            $section_id = $this->section_id;
+        }
+
+        return $this->gvv_authorization->require_roles($roles, $section_id, $replace);
+    }
+
+    /**
+     * Allow additional roles for controller/action access (helper)
+     *
+     * Wrapper for Gvv_Authorization::allow_roles(). Adds additional allowed
+     * roles without replacing base requirements.
+     *
+     * @param array|string $roles Role name(s) to allow additionally
+     * @param int $section_id Section ID (NULL for global, defaults to $this->section_id if exists)
+     * @return bool TRUE if user has any allowed role
+     *
+     * @example
+     * // In specific method (add auto_planchiste to allowed roles)
+     * if (!$this->allow_roles('auto_planchiste')) {
+     *     show_error('Access denied');
+     * }
+     */
+    protected function allow_roles($roles, $section_id = NULL)
+    {
+        // Load authorization library if not loaded
+        if (!isset($this->gvv_authorization)) {
+            $this->load->library('Gvv_Authorization');
+        }
+
+        // Use controller's section_id if available and not specified
+        if ($section_id === NULL && isset($this->section_id)) {
+            $section_id = $this->section_id;
+        }
+
+        return $this->gvv_authorization->allow_roles($roles, $section_id);
+    }
+
+    /**
+     * Check if user can edit/access a specific data row (helper)
+     *
+     * Wrapper for Gvv_Authorization::can_edit_row(). Checks row-level
+     * security based on ownership or section membership.
+     *
+     * @param string $table_name Database table name
+     * @param array $row_data Row data to check
+     * @param string $access_type Type of access (view, edit, delete)
+     * @param int $user_id User ID (NULL for current user)
+     * @param int $section_id Section ID (NULL to use $this->section_id if available)
+     * @return bool TRUE if user can access the row
+     *
+     * @example
+     * // Check if user can edit flight
+     * $vol = $this->vols_model->get($id);
+     * if (!$this->can_edit_row('vols', $vol, 'edit')) {
+     *     show_error('You can only edit your own flights');
+     * }
+     */
+    protected function can_edit_row($table_name, $row_data, $access_type = 'edit', $user_id = NULL, $section_id = NULL)
+    {
+        // Load authorization library if not loaded
+        if (!isset($this->gvv_authorization)) {
+            $this->load->library('Gvv_Authorization');
+        }
+
+        // Use controller's section_id if available and not specified
+        if ($section_id === NULL && isset($this->section_id)) {
+            $section_id = $this->section_id;
+        }
+
+        return $this->gvv_authorization->can_edit_row($user_id, $table_name, $row_data, $section_id, $access_type);
+    }
+
     /**
      * Sanitize filename for safe filesystem use
      * Removes/replaces problematic characters that can cause upload failures
-     * 
+     *
      * @param string $filename The filename to sanitize
      * @return string The sanitized filename
      */

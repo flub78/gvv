@@ -271,4 +271,252 @@ class Gvv_AuthorizationTest extends TestCase
         $result = $this->auth->get_user_roles($user2_id, $section_id);
         $this->assertEquals('role_2', $result[0]['role_name']);
     }
+
+    // ========================================================================
+    // CODE-BASED PERMISSIONS API TESTS (v2.0 - Phase 7)
+    // ========================================================================
+
+    public function test_require_roles_returns_true_when_user_has_required_role()
+    {
+        $user_id = 1;
+        $section_id = 1;
+        $required_roles = array('planchiste');
+
+        // Mock DX_Auth to return user ID
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id', 'deny_access'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model to return roles
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 5, 'role_name' => 'planchiste')
+            ));
+
+        $result = $this->auth->require_roles($required_roles, $section_id);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_require_roles_denies_access_when_user_lacks_required_role()
+    {
+        $user_id = 1;
+        $section_id = 1;
+        $required_roles = array('club-admin');
+
+        // Mock DX_Auth to return user ID and expect deny_access call
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id', 'deny_access'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $dx_auth_mock->expects($this->once())
+            ->method('deny_access');
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model to return roles without the required one
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 5, 'role_name' => 'planchiste')
+            ));
+
+        $result = $this->auth->require_roles($required_roles, $section_id);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_require_roles_accepts_string_or_array()
+    {
+        $user_id = 1;
+        $section_id = 1;
+
+        // Mock DX_Auth
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id', 'deny_access'])
+            ->getMock();
+        $dx_auth_mock->expects($this->exactly(2))
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model
+        $this->model_mock->expects($this->exactly(2))
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 5, 'role_name' => 'planchiste')
+            ));
+
+        // Test with string
+        $result1 = $this->auth->require_roles('planchiste', $section_id);
+        $this->assertTrue($result1);
+
+        // Clear cache for second call
+        $this->auth->clear_cache();
+
+        // Test with array
+        $result2 = $this->auth->require_roles(array('planchiste'), $section_id);
+        $this->assertTrue($result2);
+    }
+
+    public function test_require_roles_accepts_multiple_roles()
+    {
+        $user_id = 1;
+        $section_id = 1;
+        $required_roles = array('club-admin', 'planchiste', 'ca');
+
+        // Mock DX_Auth
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id', 'deny_access'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // User has 'planchiste' which is in the required roles
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 5, 'role_name' => 'planchiste')
+            ));
+
+        $result = $this->auth->require_roles($required_roles, $section_id);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_allow_roles_returns_true_when_user_has_allowed_role()
+    {
+        $user_id = 1;
+        $section_id = 1;
+        $allowed_roles = array('auto_planchiste');
+
+        // Mock DX_Auth
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 7, 'role_name' => 'auto_planchiste')
+            ));
+
+        $result = $this->auth->allow_roles($allowed_roles, $section_id);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_allow_roles_returns_false_when_user_lacks_allowed_role()
+    {
+        $user_id = 1;
+        $section_id = 1;
+        $allowed_roles = array('auto_planchiste');
+
+        // Mock DX_Auth
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // User has different role
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 8, 'role_name' => 'user')
+            ));
+
+        $result = $this->auth->allow_roles($allowed_roles, $section_id);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_edit_row_delegates_to_can_access_data()
+    {
+        $user_id = 1;
+        $table_name = 'vols';
+        $row_data = array('user_id' => 1, 'section_id' => 1);
+        $section_id = 1;
+        $access_type = 'edit';
+
+        // Mock DX_Auth
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model for get_user_roles (called by can_access_data)
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->with($user_id, $section_id)
+            ->willReturn(array(
+                array('types_roles_id' => 7, 'role_name' => 'auto_planchiste')
+            ));
+
+        // Mock model for get_data_access_rules
+        $this->model_mock->expects($this->once())
+            ->method('get_data_access_rules')
+            ->with(7, $table_name)
+            ->willReturn(array(
+                array(
+                    'access_scope' => 'own',
+                    'field_name' => 'user_id',
+                    'section_field' => NULL
+                )
+            ));
+
+        $result = $this->auth->can_edit_row(NULL, $table_name, $row_data, $section_id, $access_type);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_edit_row_uses_current_user_when_null()
+    {
+        $current_user_id = 1;
+        $table_name = 'vols';
+        $row_data = array('user_id' => 1);
+        $section_id = 1;
+
+        // Mock DX_Auth to return current user
+        $dx_auth_mock = $this->getMockBuilder('stdClass')
+            ->addMethods(['get_user_id'])
+            ->getMock();
+        $dx_auth_mock->expects($this->once())
+            ->method('get_user_id')
+            ->willReturn($current_user_id);
+        $this->CI->dx_auth = $dx_auth_mock;
+
+        // Mock model
+        $this->model_mock->expects($this->once())
+            ->method('get_user_roles')
+            ->willReturn(array());
+
+        $result = $this->auth->can_edit_row(NULL, $table_name, $row_data, $section_id);
+
+        $this->assertFalse($result); // No roles = no access
+    }
 }
