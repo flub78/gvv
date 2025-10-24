@@ -1,6 +1,5 @@
 <!-- VIEW: application/views/admin/bs_anonymization_results.php -->
 <?php
-
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -22,71 +21,89 @@
  *
  *    @package vues
  */
+
+$this->load->view('bs_header');
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
+
+echo '<div id="body" class="body container-fluid">';
+
+// Title
+echo heading($title ?? 'Anonymisation globale des données', 3);
+
+// Success message
+if (!empty($message)) {
+    echo '<div class="alert alert-success">';
+    echo '<i class="fas fa-check-circle"></i> ' . htmlspecialchars($message);
+    echo '</div>';
+}
+
+// Results table
+echo '<div class="card mt-3">';
+echo '<div class="card-header bg-warning text-dark">';
+echo '<h4 class="mb-0"><i class="fas fa-list"></i> Résultats par routine</h4>';
+echo '</div>';
+echo '<div class="card-body">';
+
+echo '<table class="table table-striped table-hover">';
+echo '<thead class="table-dark">';
+echo '<tr>';
+echo '<th>Routine</th>';
+echo '<th class="text-end">Mis à jour</th>';
+echo '<th class="text-end">Total</th>';
+echo '<th class="text-center">Pourcentage</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
+
+foreach ($results as $key => $result) {
+    $percentage = $result['total'] > 0 ? round(($result['updated'] / $result['total']) * 100, 2) : 0;
+    $badge_class = $percentage == 100 ? 'success' : ($percentage >= 50 ? 'warning' : 'danger');
+
+    echo '<tr>';
+    echo '<td>' . htmlspecialchars($result['routine']) . '</td>';
+    echo '<td class="text-end text-success"><strong>' . $result['updated'] . '</strong></td>';
+    echo '<td class="text-end">' . $result['total'] . '</td>';
+    echo '<td class="text-center">';
+    echo '<span class="badge bg-' . $badge_class . '">' . $percentage . '%</span>';
+    echo '</td>';
+    echo '</tr>';
+}
+
+echo '</tbody>';
+echo '<tfoot class="table-secondary">';
+echo '<tr>';
+echo '<th>Total</th>';
+echo '<th class="text-end text-success"><strong>' . $total_updated . '</strong></th>';
+echo '<th colspan="2"></th>';
+echo '</tr>';
+echo '</tfoot>';
+echo '</table>';
+
+echo '</div>'; // card-body
+echo '</div>'; // card
+
+// Additional information if errors exist
+if (!empty($errors)) {
+    echo '<div class="alert alert-info mt-3">';
+    echo '<h5><i class="fas fa-info-circle"></i> Informations complémentaires</h5>';
+    echo '<ul class="mb-0">';
+    foreach ($errors as $error) {
+        echo '<li>' . htmlspecialchars($error) . '</li>';
+    }
+    echo '</ul>';
+    echo '</div>';
+}
+
+// Action buttons
+echo '<div class="mt-3">';
+echo '<a href="' . controller_url('admin/page') . '" class="btn btn-primary me-2">';
+echo '<i class="fas fa-arrow-left"></i> Retour à l\'administration';
+echo '</a>';
+echo '<a href="' . controller_url('admin/anonymize_all_data') . '" class="btn btn-warning">';
+echo '<i class="fas fa-sync-alt"></i> Relancer l\'anonymisation';
+echo '</a>';
+echo '</div>';
+
+echo '</div>'; // body container
 ?>
-
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-warning">
-            <h2><i class="fas fa-user-secret"></i> <?= $title ?></h2>
-        </div>
-        <div class="card-body">
-            <?php if (!empty($message)) : ?>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> <?= $message ?>
-                </div>
-            <?php endif; ?>
-
-            <h3>Résultats par routine</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Routine</th>
-                        <th>Mis à jour</th>
-                        <th>Total</th>
-                        <th>Pourcentage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($results as $key => $result) : ?>
-                        <tr>
-                            <td><?= $result['routine'] ?></td>
-                            <td class="text-success"><strong><?= $result['updated'] ?></strong></td>
-                            <td><?= $result['total'] ?></td>
-                            <td>
-                                <?php
-                                $percentage = $result['total'] > 0 ? round(($result['updated'] / $result['total']) * 100, 2) : 0;
-                                $badge_class = $percentage == 100 ? 'success' : ($percentage >= 50 ? 'warning' : 'danger');
-                                ?>
-                                <span class="badge bg-<?= $badge_class ?>"><?= $percentage ?>%</span>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                    <tr class="table-info">
-                        <th>Total</th>
-                        <th class="text-success"><strong><?= $total_updated ?></strong></th>
-                        <th colspan="2"></th>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <?php if (!empty($errors)) : ?>
-                <div class="alert alert-info mt-3">
-                    <h4><i class="fas fa-info-circle"></i> Informations complémentaires</h4>
-                    <ul>
-                        <?php foreach ($errors as $error) : ?>
-                            <li><?= htmlspecialchars($error) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
-
-            <div class="mt-3">
-                <a href="<?= controller_url('admin/page') ?>" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Retour à l'administration
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
