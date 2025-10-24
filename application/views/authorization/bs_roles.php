@@ -52,7 +52,7 @@ $this->load->view('bs_banner');
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
                         <th><?= $this->lang->line('authorization_role_system') ?></th>
-                        <th><?= $this->lang->line('authorization_permissions') ?></th>
+                        <th><?= $this->lang->line('authorization_actions') ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,11 +84,6 @@ $this->load->view('bs_banner');
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="<?= site_url('authorization/role_permissions/' . $role['id']) ?>"
-                                   class="btn btn-sm btn-warning"
-                                   title="<?= $this->lang->line('authorization_permissions') ?>">
-                                    <i class="fas fa-key"></i> <?= $this->lang->line('authorization_permissions') ?>
-                                </a>
                                 <a href="<?= site_url('authorization/data_access_rules/' . $role['id']) ?>"
                                    class="btn btn-sm btn-info"
                                    title="<?= $this->lang->line('authorization_data_rules') ?>">

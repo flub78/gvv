@@ -286,92 +286,6 @@ class Authorization extends CI_Controller {
         load_last_view('authorization/roles', $data);
     }
 
-    /**
-     * Manage role permissions - List permissions for a role
-     */
-    function role_permissions($types_roles_id = NULL, $message = '') {
-        $data = array();
-        $data['controller'] = $this->controller;
-        $data['title'] = $this->lang->line('authorization_permissions');
-        $data['message'] = $message;
-
-        if ($types_roles_id === NULL) {
-            // Show role selector
-            $data['roles'] = $this->authorization_model->get_all_roles();
-            load_last_view('authorization/select_role', $data);
-            return;
-        }
-
-        // Get role details
-        $data['role'] = $this->authorization_model->get_role($types_roles_id);
-        if (!$data['role']) {
-            show_404();
-        }
-
-        // Get permissions for this role
-        $data['permissions'] = $this->authorization_model->get_role_permissions($types_roles_id);
-
-        // Get all controllers for dropdown
-        $data['available_controllers'] = $this->_get_available_controllers();
-
-        load_last_view('authorization/role_permissions', $data);
-    }
-
-    /**
-     * Add permission to role - AJAX endpoint
-     */
-    function add_permission() {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
-
-        $types_roles_id = $this->input->post('types_roles_id');
-        $controller = $this->input->post('controller');
-        $action = $this->input->post('action');
-        $section_id = $this->input->post('section_id');
-        $permission_type = $this->input->post('permission_type');
-
-        if (!$types_roles_id || !$controller) {
-            echo json_encode(array('success' => FALSE, 'message' => 'Missing required parameters'));
-            return;
-        }
-
-        // NULL action means all actions
-        if ($action === '' || $action === 'null') {
-            $action = NULL;
-        }
-
-        // NULL section_id for global roles
-        if ($section_id === '' || $section_id === 'null') {
-            $section_id = NULL;
-        }
-
-        $result = $this->authorization_model->add_permission($types_roles_id, $controller, $action, $section_id, $permission_type);
-        $message = $result ? 'Permission added successfully' : 'Permission already exists or error occurred';
-
-        echo json_encode(array('success' => $result, 'message' => $message));
-    }
-
-    /**
-     * Remove permission from role - AJAX endpoint
-     */
-    function remove_permission() {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
-
-        $permission_id = $this->input->post('permission_id');
-
-        if (!$permission_id) {
-            echo json_encode(array('success' => FALSE, 'message' => 'Missing permission ID'));
-            return;
-        }
-
-        $result = $this->authorization_model->remove_permission($permission_id);
-        $message = $result ? 'Permission removed successfully' : 'Error removing permission';
-
-        echo json_encode(array('success' => $result, 'message' => $message));
-    }
 
     /**
      * Manage data access rules
@@ -639,32 +553,6 @@ class Authorization extends CI_Controller {
         $data['filters'] = $filters;
 
         load_last_view('authorization/audit_log', $data);
-    }
-
-    /**
-     * Get list of available controllers
-     * @return array
-     */
-    private function _get_available_controllers() {
-        $controllers = array();
-
-        // Scan controller directory
-        $controller_path = APPPATH . 'controllers/';
-        $files = scandir($controller_path);
-
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            if (is_file($controller_path . $file) && substr($file, -4) === '.php') {
-                $controller_name = substr($file, 0, -4);
-                $controllers[] = $controller_name;
-            }
-        }
-
-        sort($controllers);
-        return $controllers;
     }
 
     /**

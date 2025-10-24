@@ -36,111 +36,30 @@
 
 **Phase 4: UI Implementation** ✅
 - `Authorization` controller (445 lines, 11 endpoints)
-- 8 views created (1,648 lines): dashboard, user_roles, roles, select pages, permissions, data rules, audit log
+- User roles management interface (DataTables, AJAX)
+- Roles management interface
+- Data access rules interface
+- Audit log viewer
 - Language translations: 207 keys (FR/EN/NL)
 - Menu integration: Admin → Club Admin → Gestion des autorisations
-- Features: Bootstrap 5, DataTables, AJAX, breadcrumbs, badges
-- **Testing Pending**: End-to-end workflow, mobile responsive validation
+- **Note v2.0**: Permissions tab will be removed in Phase 10
 
-### User Roles Modal - Improved Architecture
+**Phase 5: Testing Framework** ✅
+- Unit tests: 26/26 passing (100%)
+- Integration tests: 12/12 passing (100%)
+- Overall test suite: 213/213 passing
+- Test bootstraps with CI mocks
+- Database transaction isolation
 
-The current implementation of the user roles modal is sensitive to timing issues, especially when dealing with the "Toutes sections" (All sections) checkbox. To address this, the architecture will be updated to a more robust, backend-driven model.
-
-**New Architecture:**
-
-1.  **Client-Side Action:** When a user clicks a checkbox (e.g., to grant or revoke a role, or select "All sections"), an AJAX request is sent to the backend. The request includes the user ID, the role ID, the section ID (if applicable), and the action (grant/revoke).
-
-2.  **Backend Processing:** The `Authorization` controller receives the request. It calls the `Authorization_model` to update the `user_roles_per_section` table in the database.
-
-3.  **Backend Response:** After successfully updating the database, the backend will fetch the user's complete and updated list of roles and their corresponding sections. This list will be returned to the client as a JSON response.
-
-4.  **Client-Side Update:** The frontend JavaScript code receives the JSON response. It then re-renders the checkboxes in the modal to accurately reflect the new state of the user's authorizations.
-
-**Benefits of this approach:**
-
-*   **Eliminates Timing Issues:** The state of the checkboxes is always driven by the authoritative data from the backend, eliminating any client-side race conditions or synchronization problems.
-*   **Single Source of Truth:** The database remains the single source of truth for user authorizations. The UI is simply a reflection of this data.
-*   **Improved Reliability:** The new architecture is more resilient and less prone to errors, providing a more stable user experience.
-*   **Simplified Frontend Logic:** The client-side code becomes simpler, as it no longer needs to manually track the state of checkboxes. It only needs to update the UI based on the backend's response.
-
-**Reference Documents**:
-- `/doc/phase4_progress.md` - Detailed UI implementation status
-- `/doc/authorization_implementation_summary.md` - Architecture overview
+**Phase 6: Gvv_Controller Base Class** ✅
+- Base controller class created (384 lines)
+- Foundation for code-based permissions (v2.0)
+- Migration 046 created (authorization_comparison_log table)
+- **Note v2.0**: Dual-mode dashboard and pilot testing made optional
 
 ---
 
-## Active Work
-
-### ✅ Phase 5: Testing Framework - COMPLETE
-
-**Completed**:
-- [x] Unit tests: 26/26 passing (100%) (Gvv_Authorization: 12, Authorization_model: 14)
-- [x] Integration tests: 12/12 passing (100%) (AuthorizationIntegrationTest)
-- [x] All integration tests: 213/213 passing (100%)
-- [x] PHPUnit configurations created (phpunit_authorization_integration.xml)
-- [x] Test bootstraps enhanced with CI constants and mocks
-- [x] Database transaction isolation implemented
-- [x] Fixed model loading in integration_bootstrap.php (lowercase properties)
-- [x] Added missing database methods (where_in, table alias support)
-- [x] Integration test assertions updated for actual behavior
-
-**Test Results Summary**:
-- Authorization Integration Tests: 12/12 (138 assertions)
-- Total Integration Tests: 213/213 (1079 assertions)
-- Unit Tests: 128/128 passing
-- Overall Status: ✅ 100% PASS RATE
-
----
-
-## Upcoming Phases
-
-### Phase 6: Progressive Migration - Dual Mode 🟢 ~90% COMPLETE
-
-**Objectives**:
-- Implement dual-mode authorization in Gvv_Controller ✅
-- Create migration dashboard and tracking ✅
-- Migrate users progressively by role groups ⏳
-
-**Status**: Production-ready migration infrastructure complete. Pending: translations (EN/NL), controller conversion, and pilot testing.
-
-**Planning Documents Created**:
-- [x] `doc/plans_and_progress/phase6_dual_mode_architecture.md` - Technical architecture design
-- [x] `doc/plans_and_progress/phase6_migration_dashboard_mockups.md` - Dashboard UI mockups
-- [x] `doc/plans_and_progress/phase6_implementation_summary.md` - Comprehensive implementation summary
-- [x] `doc/diagrams/phase6_dual_mode_architecture.puml` - PlantUML architecture diagram
-- [x] Test user identification (bin/create_test_users.sh - 6 pilot users)
-
-**Pilot Users** (from bin/create_test_users.sh):
-- Wave 1: `testuser` (basic member - low risk)
-- Wave 2: `testplanchiste` (planning permissions - medium complexity)
-- Wave 3: `testadmin` (global admin - high complexity)
-- Backup: `testca`, `testbureau`, `testtresorier`
-
-**Implementation Tasks**:
-- [x] Create `application/core/Gvv_Controller.php` base class (384 lines)
-- [x] Create migration 046 for `authorization_comparison_log` table (122 lines)
-- [x] Implement dual-mode routing logic in Gvv_Controller
-- [x] Verify `get_migration_status()` exists in Authorization_model
-- [x] Build migration dashboard UI (4 tabs: Overview, Pilot Users, Comparison Log, Statistics)
-- [x] Create migration wizard workflow (4-step modal with AJAX)
-- [x] Implement rollback functionality in dashboard
-- [x] Add AJAX endpoints for migration operations (migrate, rollback, complete)
-- [x] Add helper methods for dashboard (8 methods: pilot users, alerts, wave progress, statistics)
-- [x] Add French translations (153 keys) for migration dashboard
-- [ ] Add English translations (153 keys) for migration dashboard
-- [ ] Add Dutch translations (153 keys) for migration dashboard
-- [ ] Convert pilot controllers to extend Gvv_Controller (Members, Vols_planeur, Authorization)
-- [ ] Wave 1 migration: testuser (7-day monitoring)
-- [ ] Wave 2 migration: testplanchiste (7-day monitoring)
-- [ ] Wave 3 migration: testadmin (7-day monitoring)
-
-**Code Statistics**:
-- Lines of code added: ~2,414 lines
-- New files created: 9 files
-- Modified files: 4 files
-- Dashboard views: 4 complete tabs (1,288 lines total)
-- Controller methods: +11 methods (+467 lines to authorization.php)
-- Translation keys: 153 (FR complete, EN/NL pending)
+## Upcoming Phases (v2.0)
 
 ### Phase 7: Code-Based Permissions API (v2.0) 🔵 NEW
 
@@ -449,7 +368,7 @@ application/
 ├── core/
 │   └── Gvv_Controller.php                 (384 lines) ✅ Phase 6 - Will be extended in Phase 7
 ├── controllers/
-│   ├── authorization.php                  (1,151 lines) ✅ Phase 4-6
+│   ├── authorization.php                  (445 lines) ✅ Phase 4
 │   └── [53 controllers]                   🔵 To migrate in Phases 8-10
 ├── libraries/
 │   └── Gvv_Authorization.php              (480 lines) ✅ Phase 3 - Will be extended in Phase 7
@@ -458,13 +377,13 @@ application/
 ├── migrations/
 │   ├── 042_authorization_refactoring.php  ✅ Phase 2 - Schema
 │   ├── 043_populate_authorization_data.php ✅ Phase 2 - Data (~300 permissions)
-│   ├── 046_dual_mode_support.php          ✅ Phase 6 - Comparison log
+│   ├── 046_dual_mode_support.php          ✅ Phase 6 - Comparison log (optional)
 │   └── 047_deprecate_role_permissions.php 🔵 Phase 10 - Rename role_permissions
 ├── views/authorization/
-│   ├── user_roles.php, roles.php, audit_log.php, etc. (8 files, 1,648 lines) ✅
-│   ├── permissions.php                    ⚠️ To be removed in Phase 10
-│   └── migration/ (4 files, 1,288 lines)  ✅ Phase 6
-└── language/*/gvv_lang.php                (+360 keys total) ✅
+│   ├── user_roles.php, roles.php          ✅ Phase 4 - User/role management
+│   ├── data_access_rules.php, audit_log.php ✅ Phase 4 - Row-level & audit
+│   └── permissions.php                    ⚠️ To be removed in Phase 10
+└── language/*/gvv_lang.php                (+207 keys) ✅ Phase 4
 ```
 
 ### New Code - v2.0 System (Phases 7-12)
@@ -485,10 +404,10 @@ application/
     └── integration/AuthorizationIntegrationTest.php  (+30 tests) 🔵 Phase 9
 ```
 
-**Legacy Lines**: ~5,850 lines (Phases 0-6)
+**Legacy Lines**: ~3,500 lines (Phases 0-6, essential code)
 **New Code**: ~950 lines (Phases 7-12)
 **Removed**: ~300 lines (deprecated permissions code)
-**Net Change**: ~6,500 lines final
+**Net Change**: ~4,150 lines final (v2.0 system)
 
 ### Testing
 ```
@@ -503,14 +422,16 @@ application/tests/
 
 ### Documentation
 ```
-doc/plans_and_progress/
-├── 2025_authorization_refactoring_plan.md        (this file)
-├── phase4_progress.md                            (Phase 4 UI implementation)
-├── authorization_implementation_summary.md       (Phase 3-4 Architecture)
-├── phase6_dual_mode_architecture.md              ✨ NEW - Phase 6 technical design
-├── phase6_migration_dashboard_mockups.md         ✨ NEW - Phase 6 UI mockups
-└── phase6_implementation_summary.md              ✨ NEW - Phase 6 comprehensive summary
+doc/
+├── prds/
+│   └── 2025_authorization_refactoring_prd.md     ✅ v2.0 - Code-based permissions
+├── plans_and_progress/
+│   └── 2025_authorization_refactoring_plan.md    ✅ v2.0 - This file
+└── development/
+    └── code_based_permissions.md                 🔵 Phase 7 - Developer guide
 ```
+
+**Note**: Phase 6 dual-mode documentation archived (optional for v2.0)
 
 ---
 
@@ -519,49 +440,44 @@ doc/plans_and_progress/
 **File**: `application/config/gvv_config.php`
 
 ```php
-$config['use_new_authorization'] = FALSE;  // TRUE to enable new system
+$config['use_new_authorization'] = FALSE;  // Will be removed in v2.0
 ```
 
-**Status**:
-- Development: Can be enabled for testing
-- Production: FALSE (awaiting Phase 7 deployment)
-- Dual-mode: ✅ IMPLEMENTED in Gvv_Controller (Phase 6) - Per-user migration via `authorization_migration_status.use_new_system`
+**Status (v2.0)**:
+- Legacy feature flag no longer needed (code-based permissions don't require flag)
+- Will be removed in Phase 11 cleanup
+- Code-based approach is the new default after Phase 12
 
 ---
 
 ## Next Immediate Actions (Updated v2.0)
 
-### Current Priority: Transition to Code-Based Permissions
+### Current Priority: Implement Code-Based Permissions
 
-1. **🔄 Complete Phase 6 (Legacy System)**:
-   - [ ] Add English/Dutch translations (2 hours)
-   - [ ] Final testing of dual-mode infrastructure
-   - [ ] **Decision Point**: Validate Phase 6 OR proceed directly to v2.0
+**Ready to Start**: Phases 0-6 complete, foundation in place
 
-2. **🔵 Phase 7: Code-Based API Implementation** (2-3 days):
+1. **🔵 Phase 7: Code-Based API Implementation** (2-3 days) - NEXT:
    - [ ] Extend `Gvv_Authorization` with `require_roles()`, `allow_roles()`, `can_edit_row()`
    - [ ] Add helpers to `Gvv_Controller`
    - [ ] Write unit tests for new API (15 tests)
    - [ ] Create developer documentation guide
 
-3. **🔵 Phase 8: Pilot Controller Migration** (3-4 days):
-   - [ ] Migrate 7 simple controllers (sections, terrains, alarmes, presences, licences, tarifs, calendar)
+2. **🔵 Phase 8: Pilot Controller Migration** (3-4 days):
+   - [ ] Migrate 7 simple controllers
    - [ ] Create mapping document (old permissions → new code)
-   - [ ] Integration testing with different roles
-   - [ ] Document migration patterns
+   - [ ] Integration testing
 
-4. **🔵 Phase 9: Complex Controllers** (5-7 days):
-   - [ ] Migrate membre, compta, vols_planeur (complex exceptions)
-   - [ ] Document exception patterns (own vs all, restricted actions)
-   - [ ] Extensive testing of row-level security
-   - [ ] Create exception patterns guide
+3. **🔵 Phase 9: Complex Controllers** (5-7 days):
+   - [ ] Migrate 7 complex controllers (membre, compta, vols_planeur)
+   - [ ] Document exception patterns
+   - [ ] Row-level security testing
 
-5. **Documentation Priorities**:
-   - [ ] PRD v2.0 ✅ (Complete)
-   - [ ] Implementation Plan v2.0 ✅ (This document)
-   - [ ] Developer guide for code-based permissions (Phase 7)
-   - [ ] Migration mapping for all 53 controllers (Phase 8-10)
-   - [ ] Administrator communication (Phase 12)
+4. **Documentation Priorities**:
+   - ✅ PRD v2.0 (Complete)
+   - ✅ Implementation Plan v2.0 (This document)
+   - 🔵 Developer guide for code-based permissions (Phase 7)
+   - 🔵 Migration mapping for all 53 controllers (Phases 8-10)
+   - 🔵 Administrator communication (Phase 12)
 
 ---
 
@@ -594,14 +510,11 @@ $config['use_new_authorization'] = FALSE;  // TRUE to enable new system
 - ✅ Integration test framework operational
 - ✅ Database transaction isolation working
 
-### ✅ Phase 6 Exit Criteria - 90% COMPLETE
-- ✅ Dual-mode infrastructure operational
-- ✅ Migration dashboard functional (4 tabs)
-- ✅ AJAX operations working
-- ✅ Comparison logging active
-- ✅ French translations complete
-- ⏳ English/Dutch translations (optional for v2.0)
-- **Note**: Pilot testing made optional by v2.0 architecture change
+### ✅ Phase 6 Exit Criteria - COMPLETE (for v2.0)
+- ✅ `Gvv_Controller` base class created
+- ✅ Foundation ready for code-based permissions
+- ✅ Migration 046 executed (comparison_log table)
+- **Note v2.0**: Dual-mode dashboard and pilot testing no longer required (superseded by code-based approach)
 
 ### 🔵 Phase 7 Exit Criteria (Code-Based API)
 - [ ] `require_roles()`, `allow_roles()`, `can_edit_row()` implemented

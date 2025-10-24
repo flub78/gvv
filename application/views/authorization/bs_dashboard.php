@@ -98,10 +98,10 @@ $this->load->view('bs_banner');
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body text-center">
-                    <i class="fas fa-key fa-3x mb-3 text-warning"></i>
-                    <h5><?= $this->lang->line('authorization_manage_permissions') ?></h5>
-                    <p class="text-muted"><?= $this->lang->line('authorization_manage_permissions_desc') ?></p>
-                    <a href="<?= site_url('authorization/role_permissions') ?>" class="btn btn-warning">
+                    <i class="fas fa-database fa-3x mb-3 text-warning"></i>
+                    <h5><?= $this->lang->line('authorization_data_access_rules') ?></h5>
+                    <p class="text-muted"><?= $this->lang->line('authorization_data_access_rules_desc') ?></p>
+                    <a href="<?= site_url('authorization/data_access_rules') ?>" class="btn btn-warning">
                         <?= $this->lang->line('authorization_manage') ?>
                     </a>
                 </div>
