@@ -1035,4 +1035,291 @@ class Admin extends CI_Controller {
         return $count;
     }
 
+    /**
+     * Extract test data for Playwright tests
+     * Extracts real pilot, aircraft, and account data from the database
+     * to be used in end-to-end tests, avoiding hardcoded data issues
+     *
+     * Only available in development mode
+     */
+    public function extract_test_data() {
+        // Security check: only in development mode
+        if (ENVIRONMENT !== 'development') {
+            show_error('Cette fonction est uniquement disponible en mode développement', 403, 'Accès refusé');
+            return;
+        }
+
+        // Initialize test data structure
+        $test_data = array(
+            'metadata' => array(
+                'extracted_at' => date('Y-m-d H:i:s'),
+                'database' => $this->db->database,
+                'version' => '1.0'
+            ),
+            'pilots' => array(),
+            'instructors' => array(
+                'glider' => array(),
+                'airplane' => array()
+            ),
+            'gliders' => array(
+                'two_seater' => array(),
+                'single_seater' => array()
+            ),
+            'tow_planes' => array(),
+            'accounts' => array()
+        );
+
+        $results = array();
+
+        // Extract regular pilots with accounts
+        $query = $this->db->query("
+            SELECT
+                m.mlogin,
+                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                m.mprenom as first_name,
+                m.mnom as last_name,
+                m.actif,
+                c.id as account_id,
+                CONCAT('(411) ', m.mprenom, ' ', m.mnom) as account_label
+            FROM membres m
+            LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
+            WHERE m.actif = 1
+                AND m.ext = 0
+                AND c.id IS NOT NULL
+            ORDER BY m.mnom, m.mprenom
+            LIMIT 10
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['pilots'][] = array(
+                'login' => $row->mlogin,
+                'full_name' => $row->full_name,
+                'first_name' => $row->first_name,
+                'last_name' => $row->last_name,
+                'account_id' => (int)$row->account_id,
+                'account_label' => $row->account_label
+            );
+        }
+        $results[] = array(
+            'routine' => 'Pilotes avec comptes',
+            'extracted' => count($test_data['pilots'])
+        );
+
+        // Extract glider instructors
+        $query = $this->db->query("
+            SELECT
+                m.mlogin,
+                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                m.mprenom as first_name,
+                m.mnom as last_name,
+                m.inst_glider,
+                c.id as account_id,
+                CONCAT('(411) ', m.mprenom, ' ', m.mnom) as account_label
+            FROM membres m
+            LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
+            WHERE m.actif = 1
+                AND m.ext = 0
+                AND m.inst_glider IS NOT NULL
+                AND m.inst_glider != ''
+                AND c.id IS NOT NULL
+            ORDER BY m.mnom, m.mprenom
+            LIMIT 5
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['instructors']['glider'][] = array(
+                'login' => $row->mlogin,
+                'full_name' => $row->full_name,
+                'first_name' => $row->first_name,
+                'last_name' => $row->last_name,
+                'qualification' => $row->inst_glider,
+                'account_id' => (int)$row->account_id,
+                'account_label' => $row->account_label
+            );
+        }
+        $results[] = array(
+            'routine' => 'Instructeurs planeur',
+            'extracted' => count($test_data['instructors']['glider'])
+        );
+
+        // Extract airplane instructors (tow pilots)
+        $query = $this->db->query("
+            SELECT
+                m.mlogin,
+                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                m.mprenom as first_name,
+                m.mnom as last_name,
+                m.inst_airplane
+            FROM membres m
+            WHERE m.actif = 1
+                AND m.ext = 0
+                AND m.inst_airplane IS NOT NULL
+                AND m.inst_airplane != ''
+            ORDER BY m.mnom, m.mprenom
+            LIMIT 5
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['instructors']['airplane'][] = array(
+                'login' => $row->mlogin,
+                'full_name' => $row->full_name,
+                'first_name' => $row->first_name,
+                'last_name' => $row->last_name,
+                'qualification' => $row->inst_airplane
+            );
+        }
+        $results[] = array(
+            'routine' => 'Pilotes remorqueurs',
+            'extracted' => count($test_data['instructors']['airplane'])
+        );
+
+        // Extract two-seater gliders
+        $query = $this->db->query("
+            SELECT
+                mpimmat as registration,
+                mpmodele as model,
+                mpconstruc as manufacturer,
+                mpbiplace as seats,
+                mpautonome as autonomous
+            FROM machinesp
+            WHERE actif = 1
+                AND mpbiplace = '1'
+            ORDER BY mpimmat
+            LIMIT 5
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['gliders']['two_seater'][] = array(
+                'registration' => $row->registration,
+                'model' => $row->model,
+                'manufacturer' => $row->manufacturer,
+                'seats' => 2,
+                'autonomous' => (bool)$row->autonomous
+            );
+        }
+        $results[] = array(
+            'routine' => 'Planeurs biplaces',
+            'extracted' => count($test_data['gliders']['two_seater'])
+        );
+
+        // Extract single-seater gliders
+        $query = $this->db->query("
+            SELECT
+                mpimmat as registration,
+                mpmodele as model,
+                mpconstruc as manufacturer,
+                mpbiplace as seats,
+                mpautonome as autonomous
+            FROM machinesp
+            WHERE actif = 1
+                AND mpbiplace = '0'
+            ORDER BY mpimmat
+            LIMIT 5
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['gliders']['single_seater'][] = array(
+                'registration' => $row->registration,
+                'model' => $row->model,
+                'manufacturer' => $row->manufacturer,
+                'seats' => 1,
+                'autonomous' => (bool)$row->autonomous
+            );
+        }
+        $results[] = array(
+            'routine' => 'Planeurs monoplaces',
+            'extracted' => count($test_data['gliders']['single_seater'])
+        );
+
+        // Extract tow planes
+        $query = $this->db->query("
+            SELECT
+                macimmat as registration,
+                macmodele as model,
+                macconstruc as manufacturer,
+                macrem as is_tow_plane
+            FROM machinesa
+            WHERE actif = 1
+                AND macrem = 1
+            ORDER BY macimmat
+            LIMIT 5
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['tow_planes'][] = array(
+                'registration' => $row->registration,
+                'model' => $row->model,
+                'manufacturer' => $row->manufacturer
+            );
+        }
+        $results[] = array(
+            'routine' => 'Avions remorqueurs',
+            'extracted' => count($test_data['tow_planes'])
+        );
+
+        // Extract member accounts (for billing)
+        $query = $this->db->query("
+            SELECT
+                c.id,
+                c.nom as account_name,
+                c.pilote as pilot_login,
+                c.codec as account_code,
+                CONCAT('(', c.codec, ') ', c.nom) as label
+            FROM comptes c
+            WHERE c.actif = 1
+                AND c.codec LIKE '411%'
+                AND c.pilote IS NOT NULL
+                AND c.pilote != ''
+            ORDER BY c.nom
+            LIMIT 20
+        ");
+
+        foreach ($query->result() as $row) {
+            $test_data['accounts'][] = array(
+                'id' => (int)$row->id,
+                'name' => $row->account_name,
+                'pilot_login' => $row->pilot_login,
+                'code' => $row->account_code,
+                'label' => $row->label
+            );
+        }
+        $results[] = array(
+            'routine' => 'Comptes membres',
+            'extracted' => count($test_data['accounts'])
+        );
+
+        // Create output directory if needed
+        $output_dir = FCPATH . 'playwright/test-data';
+        if (!is_dir($output_dir)) {
+            mkdir($output_dir, 0755, true);
+        }
+
+        // Write JSON file
+        $output_file = $output_dir . '/fixtures.json';
+        $json = json_encode($test_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $write_success = file_put_contents($output_file, $json) !== false;
+
+        // Calculate total extracted
+        $total_extracted = 0;
+        foreach ($results as $result) {
+            $total_extracted += $result['extracted'];
+        }
+
+        // Prepare view data
+        $data = array(
+            'title' => 'Extraction de données de test',
+            'message' => $write_success ?
+                'Les données de test ont été extraites avec succès !' :
+                'Erreur lors de l\'écriture du fichier de sortie',
+            'results' => $results,
+            'total_extracted' => $total_extracted,
+            'output_file' => $output_file,
+            'file_size' => $write_success ? filesize($output_file) : 0,
+            'errors' => $write_success ? array() : array('Impossible d\'écrire le fichier ' . $output_file)
+        );
+
+        // Load view
+        load_last_view('admin/bs_extraction_results', $data);
+    }
+
 }

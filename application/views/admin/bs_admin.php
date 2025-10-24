@@ -306,6 +306,14 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('backend/anonymize_all') ?>" class="btn btn-secondary btn-sm">API</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-info">
+                        <i class="fas fa-database text-info"></i>
+                        <div class="card-title">Extraire données test</div>
+                        <div class="card-text text-muted">Pour Playwright</div>
+                        <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">Extraire</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
