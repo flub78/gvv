@@ -698,6 +698,7 @@ class Admin extends CI_Controller {
      * Anonymize all data - calls all anonymization routines
      * Only callable in development mode
      *
+     * @param bool $with_number If true, use numbered anonymization (fast), otherwise use natural data (default)
      * @return void
      */
     public function anonymize_all_data() {
@@ -707,6 +708,9 @@ class Admin extends CI_Controller {
             return;
         }
 
+        // Check if numbered mode is requested via GET parameter
+        $with_number = $this->input->get('with_number') == '1';
+
         $results = array();
         $total_updated = 0;
         $all_errors = array();
@@ -715,43 +719,33 @@ class Admin extends CI_Controller {
         log_message('info', 'Starting global anonymization process');
 
         // Anonymize users emails
-        $users = $this->db->get('users')->result_array();
-        $users_updated = 0;
-
-        foreach ($users as $user) {
-            // Find corresponding membre by username (users.username = membres.mlogin)
-            $membre = $this->db->where('mlogin', $user['username'])->get('membres')->row_array();
-
-            $new_email = '';
-            if ($membre && !empty($membre['memail'])) {
-                // Use membre email if available
-                $new_email = $membre['memail'];
-            } else {
-                // Generate random email if no membre or no email
-                $random_string = substr(md5(uniqid($user['username'], true)), 0, 10);
-                $new_email = $user['username'] . '_' . $random_string . '@example.com';
-                $all_errors[] = "Generated random email for user: {$user['username']} -> {$new_email}";
-                log_message('info', "Anonymization: Generated random email for user {$user['username']}: {$new_email}");
-            }
-
-            // Update user email
-            $this->db->where('id', $user['id']);
-            $this->db->update('users', array('email' => $new_email));
-            $users_updated++;
-            log_message('debug', "Anonymization: Updated user {$user['username']} email to {$new_email}");
-        }
-
+        $users_updated = $this->_anonymize_users();
         $results['users'] = array(
             'routine' => 'Users email anonymization',
             'updated' => $users_updated,
-            'total' => count($users)
+            'total' => $users_updated
         );
         $total_updated += $users_updated;
 
-        // Add more anonymization routines here in the future
-        // Example:
-        // $results['membres'] = $this->anonymize_membres();
-        // $total_updated += $results['membres']['updated'];
+        // Anonymize membres (extracted from membre/anonymize_all)
+        log_message('info', 'Anonymizing membres data');
+        $membres_updated = $this->_anonymize_membres($with_number);
+        $results['membres'] = array(
+            'routine' => 'Members data anonymization',
+            'updated' => $membres_updated,
+            'total' => $membres_updated
+        );
+        $total_updated += $membres_updated;
+
+        // Anonymize vols_decouverte (extracted from vols_decouverte/anonymize_all)
+        log_message('info', 'Anonymizing discovery flights data');
+        $vd_updated = $this->_anonymize_vols_decouverte($with_number);
+        $results['vols_decouverte'] = array(
+            'routine' => 'Discovery flights anonymization',
+            'updated' => $vd_updated,
+            'total' => $vd_updated
+        );
+        $total_updated += $vd_updated;
 
         log_message('info', "Global anonymization completed: $total_updated records updated");
 
@@ -768,5 +762,277 @@ class Admin extends CI_Controller {
         load_last_view('admin/anonymization_results', $data);
     }
 
+    /**
+     * Helper method to anonymize users emails
+     * Synchronizes user emails with corresponding membre emails
+     *
+     * @return int Number of records updated
+     */
+    private function _anonymize_users() {
+        $users = $this->db->get('users')->result_array();
+        $count = 0;
+
+        foreach ($users as $user) {
+            // Find corresponding membre by username (users.username = membres.mlogin)
+            $membre = $this->db->where('mlogin', $user['username'])->get('membres')->row_array();
+
+            $new_email = '';
+            if ($membre && !empty($membre['memail'])) {
+                // Use membre email if available
+                $new_email = $membre['memail'];
+            } else {
+                // Generate random email if no membre or no email
+                $random_string = substr(md5(uniqid($user['username'], true)), 0, 10);
+                $new_email = $user['username'] . '_' . $random_string . '@example.com';
+                log_message('info', "Anonymization: Generated random email for user {$user['username']}: {$new_email}");
+            }
+
+            // Update user email
+            $this->db->where('id', $user['id']);
+            $this->db->update('users', array('email' => $new_email));
+            $count++;
+            log_message('debug', "Anonymization: Updated user {$user['username']} email to {$new_email}");
+        }
+
+        return $count;
+    }
+
+    /**
+     * Helper method to anonymize membres data
+     * Simplified version of membre/anonymize_all logic
+     *
+     * @param bool $with_number If true, use numbered data, otherwise use natural-looking data
+     * @return int Number of records updated
+     */
+    private function _anonymize_membres($with_number = false) {
+        $this->load->model('membres_model');
+        $this->load->model('comptes_model');
+
+        // Natural data lists for realistic anonymization (expanded to 300 surnames for maximum variety)
+        $noms = array(
+            'Dupont', 'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy',
+            'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent',
+            'Fournier', 'Morel', 'Girard', 'Andre', 'Lefevre', 'Mercier', 'Dupuis', 'Lambert', 'Bonnet', 'Francois',
+            'Martinez', 'Legrand', 'Garnier', 'Faure', 'Rousseau', 'Blanc', 'Guerin', 'Muller', 'Henry', 'Roussel',
+            'Nicolas', 'Perrin', 'Morin', 'Mathieu', 'Clement', 'Gauthier', 'Dumont', 'Lopez', 'Fontaine', 'Chevalier',
+            'Robin', 'Masson', 'Sanchez', 'Gerard', 'Nguyen', 'Boyer', 'Denis', 'Lemaire', 'Duval', 'Joly',
+            'Gautier', 'Roger', 'Roche', 'Roy', 'Noel', 'Meyer', 'Lucas', 'Meunier', 'Jean', 'Perez',
+            'Marchand', 'Dufour', 'Blanchard', 'Marie', 'Barbier', 'Brun', 'Dumas', 'Brunet', 'Schmitt', 'Leroux',
+            'Colin', 'Fernandez', 'Renard', 'Arnaud', 'Rolland', 'Caron', 'Giraud', 'Lacroix', 'Riviere', 'Benoit',
+            'Leclerc', 'Payet', 'Olivier', 'Guillot', 'Bourgeois', 'Hubert', 'Berger', 'Carpentier', 'Vasseur', 'Louis',
+            'Menard', 'Rey', 'Picard', 'Leclercq', 'Gaillard', 'Philippe', 'Le Gall', 'Paris', 'Girard', 'Barre',
+            'Pierre', 'Renaud', 'Aubert', 'Schneider', 'Bertrand', 'Fabre', 'Vidal', 'Moulin', 'Delaunay', 'Breton',
+            'Maillard', 'Lemoine', 'Remy', 'Marchal', 'Roussel', 'Dumont', 'Carre', 'Voisin', 'Pelletier', 'Cohen',
+            'Lecomte', 'Fleury', 'Gros', 'Collet', 'Pages', 'Godard', 'Langlois', 'Gay', 'Charpentier', 'Boulanger',
+            'Prevost', 'Perrot', 'Bailly', 'Lejeune', 'Etienne', 'Weber', 'Reynaud', 'Lefebvre', 'Baron', 'Roux',
+            'Legrand', 'Rossi', 'Guillaume', 'Nguyen', 'Da Silva', 'Santos', 'Fernandes', 'Rodrigues', 'Pereira', 'Alves',
+            'Ribeiro', 'Carvalho', 'Gomes', 'Martins', 'Ferreira', 'Costa', 'Oliveira', 'Souza', 'Lima', 'Silva',
+            'Deschamps', 'Charrier', 'Marechal', 'Jacob', 'Leveque', 'Poirier', 'Boucher', 'Chevallier', 'Germain', 'Lebrun',
+            'Levy', 'Besnard', 'Pasquier', 'Georges', 'Adam', 'Mallet', 'Guibert', 'Tanguy', 'Guyot', 'Marty',
+            'Fischer', 'Toussaint', 'Rousseau', 'Bertin', 'Grondin', 'Monnier', 'Collin', 'Courtois', 'Maury', 'Klein',
+            'Lefort', 'Launay', 'Jacquet', 'Coulon', 'Humbert', 'Tessier', 'Reynaud', 'Wagner', 'Dijoux', 'Hoarau',
+            'Olivier', 'Aubry', 'Pruvost', 'Lacombe', 'Poulain', 'Bigot', 'Dupuis', 'Collet', 'Maillard', 'Salmon',
+            'Bouvier', 'Bouchet', 'Lombard', 'Marques', 'Neveu', 'Gilbert', 'Leduc', 'Remy', 'Bonnet', 'Marin',
+            'Germain', 'Lopes', 'Delorme', 'Texier', 'Leblanc', 'Carlier', 'Royer', 'Antoine', 'Barthelemy', 'Dos Santos',
+            'Guillou', 'Berthier', 'Millet', 'Benard', 'Morvan', 'Charles', 'Lelievre', 'Mahe', 'Mounier', 'Vaillant',
+            'Tessier', 'Alonso', 'Laroche', 'Guilbert', 'Picard', 'Leroux', 'Valentin', 'Lebreton', 'Bruneau', 'Cousin',
+            'Guilloux', 'Masse', 'Boulay', 'Parent', 'Gregoire', 'Laine', 'Alexandre', 'Bernier', 'Lebeau', 'Cordier',
+            'Hamon', 'Barriere', 'Raymond', 'Barbier', 'Bonneau', 'Leroy', 'Blondel', 'Buisson', 'Lejeune', 'Vallet',
+            'Meunier', 'Letellier', 'Jacques', 'Martineau', 'Bonnin', 'Guillon', 'Guerin', 'Camus', 'Pichon', 'Reynaud',
+            'Coste', 'Leclerc', 'Godard', 'Colas', 'Pons', 'Charron', 'Rocher', 'Boutin', 'Gay', 'Vallet'
+        );
+        $prenoms = array(
+            'Jean', 'Marie', 'Pierre', 'Michel', 'Andre', 'Philippe', 'Alain', 'Jacques', 'Bernard', 'Christophe',
+            'Claude', 'Patrick', 'Francois', 'Daniel', 'Marc', 'Paul', 'Nicolas', 'Laurent', 'Thierry', 'Christian',
+            'Olivier', 'Sebastien', 'Eric', 'Pascal', 'Antoine', 'Vincent', 'Julien', 'David', 'Alexandre', 'Stephane',
+            'Gerard', 'Frederic', 'Guillaume', 'Rene', 'Henri', 'Bruno', 'Denis', 'Didier', 'Yves', 'Serge',
+            'Matthieu', 'Fabrice', 'Benoit', 'Charles', 'Jerome', 'Franck', 'Thomas', 'Dominique', 'Emmanuel', 'Gilles',
+            'Ludovic', 'Maxime', 'Cedric', 'Benjamin', 'Lucas', 'Sylvain', 'Damien', 'Arnaud', 'Valentin', 'Hugo',
+            'Louis', 'Arthur', 'Gabriel', 'Jules', 'Raphael', 'Felix', 'Oscar', 'Simon', 'Baptiste', 'Nathan',
+            'Fabien', 'Xavier', 'Loic', 'Florian', 'Quentin', 'Clement', 'Alexis', 'Kevin', 'Jeremy', 'Jonathan',
+            'Romain', 'Adrien', 'Mickael', 'Anthony', 'Cyril', 'Nicolas', 'Samuel', 'Mathieu', 'Vincent', 'Yannick',
+            'Christophe', 'Laurent', 'Sebastien', 'Olivier', 'Julien', 'Cedric', 'Gregory', 'Francois', 'Pierre', 'Marc'
+        );
+        $rues = array(
+            'de la République', 'Victor Hugo', 'de la Liberté', 'Jean Jaurès', 'du Général de Gaulle', 'de la Gare',
+            'du 8 Mai 1945', 'des Écoles', 'de l\'Église', 'du Stade', 'de la Poste', 'des Tilleuls', 'du Moulin',
+            'de la Mairie', 'du Commerce', 'de la Paix', 'Pasteur', 'Gambetta', 'Carnot', 'du 11 Novembre',
+            'Nationale', 'de Verdun', 'de la Fontaine', 'des Lilas', 'du Maréchal Foch', 'de la Résistance', 'Foch',
+            'des Roses', 'du Château', 'de Paris', 'de Lyon', 'Aristide Briand', 'Jules Ferry', 'Georges Clemenceau',
+            'de Strasbourg', 'de Bretagne', 'du Pont', 'de la Plage', 'de la Mer', 'du Port', 'de la Vallée',
+            'de la Montagne', 'du Général Leclerc', 'Maréchal Joffre', 'du Docteur Schweitzer', 'de la Forêt',
+            'des Champs', 'des Prés', 'des Vignes', 'du Parc', 'des Jardins', 'de la Source', 'du Ruisseau',
+            'Saint-Martin', 'Sainte-Anne', 'Saint-Jacques', 'Notre-Dame', 'de la Croix', 'du Calvaire', 'de l\'Abbaye',
+            'des Artisans', 'des Commerçants', 'de l\'Industrie', 'du Travail', 'de la Fraternité', 'de l\'Égalité',
+            'Lafayette', 'Mirabeau', 'Danton', 'Robespierre', 'Molière', 'Racine', 'Corneille', 'Voltaire', 'Rousseau',
+            'Diderot', 'Montesquieu', 'Balzac', 'Zola', 'Flaubert', 'Maupassant', 'Baudelaire', 'Verlaine', 'Rimbaud',
+            'des Acacias', 'des Érables', 'des Chênes', 'des Platanes', 'des Peupliers', 'des Saules', 'des Ormes',
+            'du Marché', 'de la Halle', 'de la Place', 'du Centre', 'Principale', 'de la Fontaine', 'du Lavoir'
+        );
+        $villes = array(
+            'Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille',
+            'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Villeurbanne',
+            'Saint-Denis', 'Le Mans', 'Aix-en-Provence', 'Clermont-Ferrand', 'Brest', 'Tours', 'Amiens', 'Limoges', 'Annecy',
+            'Perpignan', 'Boulogne-Billancourt', 'Metz', 'Besançon', 'Orléans', 'Mulhouse', 'Rouen', 'Saint-Paul', 'Caen',
+            'Argenteuil', 'Montreuil', 'Nancy', 'Roubaix', 'Tourcoing', 'Nanterre', 'Vitry-sur-Seine', 'Avignon', 'Créteil',
+            'Poitiers', 'Dunkerque', 'Aubervilliers', 'Asnières-sur-Seine', 'Courbevoie', 'Versailles', 'Colombes', 'Aulnay-sous-Bois',
+            'Saint-Pierre', 'Rueil-Malmaison', 'Pau', 'Champigny-sur-Marne', 'Antibes', 'La Rochelle', 'Cannes', 'Calais',
+            'Béziers', 'Colmar', 'Bourges', 'Saint-Nazaire', 'Valence', 'Ajaccio', 'Issy-les-Moulineaux', 'Levallois-Perret',
+            'Quimper', 'Troyes', 'Neuilly-sur-Seine', 'Antony', 'Sarcelles', 'Cergy', 'Niort', 'Chambéry', 'Lorient',
+            'Saint-Quentin', 'Beauvais', 'Ivry-sur-Seine', 'Clichy', 'Cholet', 'Montauban', 'Laval', 'Pantin', 'Épinay-sur-Seine',
+            'Maisons-Alfort', 'Châteauroux', 'Chelles', 'Évry', 'Sartrouville', 'Hyères', 'Fontenay-sous-Bois', 'Arles', 'La Seyne-sur-Mer',
+            'Bayonne', 'Drancy', 'Sevran', 'Albi', 'Vincennes', 'Charleville-Mézières', 'Saint-Malo', 'Corbeil-Essonnes'
+        );
+
+        // Get all members
+        $membres = $this->db->select('mlogin')->from('membres')->get()->result_array();
+        $count = 0;
+
+        foreach ($membres as $membre) {
+            $mlogin = $membre['mlogin'];
+
+            if ($with_number) {
+                // Numbered mode (fast)
+                $random_data = array(
+                    'mnom' => 'Nom' . mt_rand(1000, 9999),
+                    'mprenom' => 'Prenom' . mt_rand(1000, 9999),
+                    'memail' => 'membre' . mt_rand(1000, 9999) . '@example.com',
+                    'madresse' => mt_rand(1, 999) . ' Rue Test',
+                    'ville' => 'Ville' . mt_rand(100, 999),
+                    'cp' => mt_rand(10000, 99999),
+                    'mtelf' => '0612345' . sprintf('%03d', mt_rand(0, 999)),
+                    'mtelm' => '0698765' . sprintf('%03d', mt_rand(0, 999))
+                );
+            } else {
+                // Natural mode (realistic)
+                $nom = $noms[array_rand($noms)];
+                $prenom = $prenoms[array_rand($prenoms)];
+                $rue = $rues[array_rand($rues)];
+                $ville = $villes[array_rand($villes)];
+
+                $random_data = array(
+                    'mnom' => $nom,
+                    'mprenom' => $prenom,
+                    'memail' => strtolower($prenom . '.' . $nom) . mt_rand(1, 99) . '@example.com',
+                    'madresse' => mt_rand(1, 150) . ' rue ' . $rue,
+                    'ville' => $ville,
+                    'cp' => mt_rand(10000, 99999),
+                    'mtelf' => '01' . sprintf('%02d', mt_rand(20, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)),
+                    'mtelm' => '06' . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99))
+                );
+            }
+
+            // Update membre using direct DB update
+            $this->db->where('mlogin', $mlogin);
+            $this->db->update('membres', $random_data);
+
+            // Update compte if membre has one (pilote column links to membres.mlogin)
+            $this->db->where('pilote', $mlogin);
+            $this->db->update('comptes', array(
+                'nom' => $random_data['mnom'] . ' ' . $random_data['mprenom']
+            ));
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * Helper method to anonymize vols_decouverte data
+     * Simplified version of vols_decouverte/anonymize_all logic
+     *
+     * @param bool $with_number If true, use numbered data, otherwise use natural-looking data
+     * @return int Number of records updated
+     */
+    private function _anonymize_vols_decouverte($with_number = false) {
+        $this->load->model('vols_decouverte_model');
+
+        // Natural data lists for realistic anonymization (expanded to 300 surnames for maximum variety)
+        $noms = array(
+            'Dupont', 'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy',
+            'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel', 'Garcia', 'David', 'Bertrand', 'Roux', 'Vincent',
+            'Fournier', 'Morel', 'Girard', 'Andre', 'Lefevre', 'Mercier', 'Dupuis', 'Lambert', 'Bonnet', 'Francois',
+            'Martinez', 'Legrand', 'Garnier', 'Faure', 'Rousseau', 'Blanc', 'Guerin', 'Muller', 'Henry', 'Roussel',
+            'Nicolas', 'Perrin', 'Morin', 'Mathieu', 'Clement', 'Gauthier', 'Dumont', 'Lopez', 'Fontaine', 'Chevalier',
+            'Robin', 'Masson', 'Sanchez', 'Gerard', 'Nguyen', 'Boyer', 'Denis', 'Lemaire', 'Duval', 'Joly',
+            'Gautier', 'Roger', 'Roche', 'Roy', 'Noel', 'Meyer', 'Lucas', 'Meunier', 'Jean', 'Perez',
+            'Marchand', 'Dufour', 'Blanchard', 'Marie', 'Barbier', 'Brun', 'Dumas', 'Brunet', 'Schmitt', 'Leroux',
+            'Colin', 'Fernandez', 'Renard', 'Arnaud', 'Rolland', 'Caron', 'Giraud', 'Lacroix', 'Riviere', 'Benoit',
+            'Leclerc', 'Payet', 'Olivier', 'Guillot', 'Bourgeois', 'Hubert', 'Berger', 'Carpentier', 'Vasseur', 'Louis',
+            'Menard', 'Rey', 'Picard', 'Leclercq', 'Gaillard', 'Philippe', 'Le Gall', 'Paris', 'Girard', 'Barre',
+            'Pierre', 'Renaud', 'Aubert', 'Schneider', 'Bertrand', 'Fabre', 'Vidal', 'Moulin', 'Delaunay', 'Breton',
+            'Maillard', 'Lemoine', 'Remy', 'Marchal', 'Roussel', 'Dumont', 'Carre', 'Voisin', 'Pelletier', 'Cohen',
+            'Lecomte', 'Fleury', 'Gros', 'Collet', 'Pages', 'Godard', 'Langlois', 'Gay', 'Charpentier', 'Boulanger',
+            'Prevost', 'Perrot', 'Bailly', 'Lejeune', 'Etienne', 'Weber', 'Reynaud', 'Lefebvre', 'Baron', 'Roux',
+            'Legrand', 'Rossi', 'Guillaume', 'Nguyen', 'Da Silva', 'Santos', 'Fernandes', 'Rodrigues', 'Pereira', 'Alves',
+            'Ribeiro', 'Carvalho', 'Gomes', 'Martins', 'Ferreira', 'Costa', 'Oliveira', 'Souza', 'Lima', 'Silva',
+            'Deschamps', 'Charrier', 'Marechal', 'Jacob', 'Leveque', 'Poirier', 'Boucher', 'Chevallier', 'Germain', 'Lebrun',
+            'Levy', 'Besnard', 'Pasquier', 'Georges', 'Adam', 'Mallet', 'Guibert', 'Tanguy', 'Guyot', 'Marty',
+            'Fischer', 'Toussaint', 'Rousseau', 'Bertin', 'Grondin', 'Monnier', 'Collin', 'Courtois', 'Maury', 'Klein',
+            'Lefort', 'Launay', 'Jacquet', 'Coulon', 'Humbert', 'Tessier', 'Reynaud', 'Wagner', 'Dijoux', 'Hoarau',
+            'Olivier', 'Aubry', 'Pruvost', 'Lacombe', 'Poulain', 'Bigot', 'Dupuis', 'Collet', 'Maillard', 'Salmon',
+            'Bouvier', 'Bouchet', 'Lombard', 'Marques', 'Neveu', 'Gilbert', 'Leduc', 'Remy', 'Bonnet', 'Marin',
+            'Germain', 'Lopes', 'Delorme', 'Texier', 'Leblanc', 'Carlier', 'Royer', 'Antoine', 'Barthelemy', 'Dos Santos',
+            'Guillou', 'Berthier', 'Millet', 'Benard', 'Morvan', 'Charles', 'Lelievre', 'Mahe', 'Mounier', 'Vaillant',
+            'Tessier', 'Alonso', 'Laroche', 'Guilbert', 'Picard', 'Leroux', 'Valentin', 'Lebreton', 'Bruneau', 'Cousin',
+            'Guilloux', 'Masse', 'Boulay', 'Parent', 'Gregoire', 'Laine', 'Alexandre', 'Bernier', 'Lebeau', 'Cordier',
+            'Hamon', 'Barriere', 'Raymond', 'Barbier', 'Bonneau', 'Leroy', 'Blondel', 'Buisson', 'Lejeune', 'Vallet',
+            'Meunier', 'Letellier', 'Jacques', 'Martineau', 'Bonnin', 'Guillon', 'Guerin', 'Camus', 'Pichon', 'Reynaud',
+            'Coste', 'Leclerc', 'Godard', 'Colas', 'Pons', 'Charron', 'Rocher', 'Boutin', 'Gay', 'Vallet'
+        );
+        $prenoms = array(
+            'Jean', 'Marie', 'Pierre', 'Michel', 'Andre', 'Philippe', 'Alain', 'Jacques', 'Bernard', 'Christophe',
+            'Claude', 'Patrick', 'Francois', 'Daniel', 'Marc', 'Paul', 'Nicolas', 'Laurent', 'Thierry', 'Christian',
+            'Olivier', 'Sebastien', 'Eric', 'Pascal', 'Antoine', 'Vincent', 'Julien', 'David', 'Alexandre', 'Stephane',
+            'Gerard', 'Frederic', 'Guillaume', 'Rene', 'Henri', 'Bruno', 'Denis', 'Didier', 'Yves', 'Serge',
+            'Matthieu', 'Fabrice', 'Benoit', 'Charles', 'Jerome', 'Franck', 'Thomas', 'Dominique', 'Emmanuel', 'Gilles',
+            'Ludovic', 'Maxime', 'Cedric', 'Benjamin', 'Lucas', 'Sylvain', 'Damien', 'Arnaud', 'Valentin', 'Hugo',
+            'Louis', 'Arthur', 'Gabriel', 'Jules', 'Raphael', 'Felix', 'Oscar', 'Simon', 'Baptiste', 'Nathan',
+            'Fabien', 'Xavier', 'Loic', 'Florian', 'Quentin', 'Clement', 'Alexis', 'Kevin', 'Jeremy', 'Jonathan',
+            'Romain', 'Adrien', 'Mickael', 'Anthony', 'Cyril', 'Nicolas', 'Samuel', 'Mathieu', 'Vincent', 'Yannick',
+            'Christophe', 'Laurent', 'Sebastien', 'Olivier', 'Julien', 'Cedric', 'Gregory', 'Francois', 'Pierre', 'Marc'
+        );
+
+        // Get all discovery flights
+        $vols = $this->db->select('id')->from('vols_decouverte')->get()->result_array();
+        $count = 0;
+
+        foreach ($vols as $row) {
+            $id = $row['id'];
+
+            if ($with_number) {
+                // Numbered mode (fast)
+                $random_data = array(
+                    'beneficiaire' => 'Nom' . mt_rand(1000, 9999),
+                    'de_la_part' => 'DeLaPart' . mt_rand(1000, 9999),
+                    'beneficiaire_email' => 'vol' . mt_rand(1000, 9999) . '@example.com',
+                    'beneficiaire_tel' => '0612345' . sprintf('%03d', mt_rand(0, 999)),
+                    'urgence' => 'Contact' . mt_rand(1000, 9999) . ' - 0698765' . sprintf('%03d', mt_rand(0, 999))
+                );
+            } else {
+                // Natural mode (realistic)
+                $nom = $noms[array_rand($noms)];
+                $prenom = $prenoms[array_rand($prenoms)];
+                $nom_donneur = $noms[array_rand($noms)];
+                $prenom_donneur = $prenoms[array_rand($prenoms)];
+
+                $random_data = array(
+                    'beneficiaire' => $prenom . ' ' . $nom,
+                    'de_la_part' => $prenom_donneur . ' ' . $nom_donneur,
+                    'beneficiaire_email' => strtolower($prenom . '.' . $nom) . mt_rand(1, 99) . '@example.com',
+                    'beneficiaire_tel' => '06' . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)),
+                    'urgence' => $prenoms[array_rand($prenoms)] . ' ' . $noms[array_rand($noms)] . ' - 06' . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99))
+                );
+            }
+
+            // Update vol de decouverte using direct DB update
+            $this->db->where('id', $id);
+            $this->db->update('vols_decouverte', $random_data);
+            $count++;
+        }
+
+        return $count;
+    }
 
 }
