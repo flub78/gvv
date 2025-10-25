@@ -89,156 +89,14 @@ $this->lang->load('admin');
         </div>
     </div>
 
-    <!-- Configuration Section -->
-    <div class="card section-card config">
-        <div class="card-header bg-primary bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-cog text-primary"></i>
-                <?= $this->lang->line("gvv_admin_title_config") ?>
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-cogs text-primary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_config") ?></div>
-                        <div class="card-text text-muted">Configuration</div>
-                        <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-certificate text-success"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_certificates") ?></div>
-                        <div class="card-text text-muted">Événements</div>
-                        <a href="<?= controller_url('events_types') ?>" class="btn btn-success btn-sm">Accéder</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Administration Section -->
-    <div class="card section-card admin">
-        <div class="card-header bg-success bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-tools text-success"></i>
-                <?= $this->lang->line("gvv_admin_title_admin") ?>
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-save text-info"></i>
-                        <div class="card-title">Sauvegardes</div>
-                        <div class="card-text text-muted">Backup DB</div>
-                        <a href="<?= controller_url('admin/backup_form') ?>" class="btn btn-info btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-undo text-warning"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_restore") ?></div>
-                        <div class="card-text text-muted">Restaurer</div>
-                        <a href="<?= controller_url('admin/restore') ?>" class="btn btn-warning btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-exchange-alt text-primary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_migrate") ?></div>
-                        <div class="card-text text-muted">Migrations</div>
-                        <a href="<?= controller_url('migration') ?>" class="btn btn-primary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <?php if (ENVIRONMENT == 'development') : ?>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-file-code text-secondary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_structure") ?></div>
-                        <div class="card-text text-muted">Structure <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">DEV</span></div>
-                        <a href="<?= controller_url('admin/backup/structure') ?>" class="btn btn-secondary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-file-alt text-secondary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_default") ?></div>
-                        <div class="card-text text-muted">Défaut <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">DEV</span></div>
-                        <a href="<?= controller_url('admin/backup/defaut') ?>" class="btn btn-secondary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-lock text-secondary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_lock") ?></div>
-                        <div class="card-text text-muted">Verrou <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">DEV</span></div>
-                        <a href="<?= controller_url('welcome/nyi') ?>" class="btn btn-secondary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <!-- Droits et Permissions Section -->
-    <div class="card section-card rights">
-        <div class="card-header bg-warning bg-opacity-10">
-            <h5 class="mb-0">
-                <i class="fas fa-user-shield text-warning"></i>
-                <?= $this->lang->line("gvv_admin_title_rights") ?>
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-users text-primary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_users") ?></div>
-                        <div class="card-text text-muted">Utilisateurs</div>
-                        <a href="<?= controller_url('backend/users') ?>" class="btn btn-primary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-user-tag text-success"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_roles") ?></div>
-                        <div class="card-text text-muted">Rôles</div>
-                        <a href="<?= controller_url('backend/roles') ?>" class="btn btn-success btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-key text-danger"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_permissions") ?></div>
-                        <div class="card-text text-muted">Permissions</div>
-                        <a href="<?= controller_url('backend/uri_permissions') ?>" class="btn btn-danger btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <?php if (ENVIRONMENT == 'development') : ?>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-user-cog text-secondary"></i>
-                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_custom_permissions") ?></div>
-                        <div class="card-text text-muted">Custom <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">DEV</span></div>
-                        <a href="<?= controller_url('auth/custom_permissions') ?>" class="btn btn-secondary btn-sm">Accéder</a>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <?php if (ENVIRONMENT == 'development') : ?>
+    <?php if (isset($is_dev_authorized) && $is_dev_authorized) : ?>
     <!-- Tests Section -->
     <div class="card section-card tests">
         <div class="card-header" style="background-color: rgba(111, 66, 193, 0.1);">
             <h5 class="mb-0">
                 <i class="fas fa-vial" style="color: #6f42c1;"></i>
                 <?= $this->lang->line("gvv_admin_title_tests") ?>
-                <span class="badge bg-warning text-dark">Développement</span>
+                <span class="badge bg-warning text-dark">Autorisé</span>
             </h5>
         </div>
         <div class="card-body">
@@ -267,14 +125,7 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('admin/info') ?>" class="btn btn-primary btn-sm">Accéder</a>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-book-open text-secondary"></i>
-                        <div class="card-title">phpdoc</div>
-                        <div class="card-text text-muted">Documentation</div>
-                        <a href="http://localhost/gvv2/phpdoc/" class="btn btn-secondary btn-sm">Ouvrir</a>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
@@ -285,7 +136,7 @@ $this->lang->load('admin');
             <h5 class="mb-0">
                 <i class="fas fa-wrench text-danger"></i>
                 Outils de développement
-                <span class="badge bg-warning text-dark">Développement</span>
+                <span class="badge bg-warning text-dark">Autorisé</span>
             </h5>
         </div>
         <div class="card-body">
@@ -295,7 +146,8 @@ $this->lang->load('admin');
                         <i class="fas fa-user-secret text-warning"></i>
                         <div class="card-title">Anonymiser données</div>
                         <div class="card-text text-muted">Toutes les données</div>
-                        <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm">Exécuter</a>
+                        <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm"
+                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">Exécuter</a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -377,6 +229,16 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('dbchecks/sections') ?>" class="btn btn-secondary btn-sm">Vérifier</a>
                     </div>
                 </div>
+                <?php if (isset($is_dev_authorized) && $is_dev_authorized) : ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <div class="card-title">Cohérence comptes</div>
+                        <div class="card-text text-muted">Vérifier soldes <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">Autorisé</span></div>
+                        <a href="<?= controller_url('comptes/check') ?>" class="btn btn-success btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

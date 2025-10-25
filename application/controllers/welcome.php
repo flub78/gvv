@@ -66,6 +66,10 @@ class Welcome extends CI_Controller {
         $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
 
+        // Check if user is authorized for development/test features
+        // Authorized user: fpeignot only
+        $data['is_dev_authorized'] = ($data['username'] === 'fpeignot');
+
         // Configuration options
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');
         $data['ticket_management_active'] = $this->config->item('ticket_management') == true;

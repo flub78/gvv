@@ -737,8 +737,16 @@ class Comptes extends Gvv_Controller {
      * L'enregistrement du solde dans les comptes
      * peut-être considéré comme une optimisation, mais c'est un risque si le moteur de la base de données
      * ne gre pas correctement les transactions. (Cas chez free).
+     *
+     * Only available to authorized user (fpeignot)
      */
     function check() {
+        // Check if user is authorized (fpeignot only)
+        if ($this->dx_auth->get_username() !== 'fpeignot') {
+            show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
+            return;
+        }
+
         $selection = array();
 
         $result = $this->gvv_model->select_page($selection, "31/12/2013", 0);

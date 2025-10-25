@@ -607,7 +607,12 @@ class Admin extends CI_Controller {
      * cela. C'est surement une faille de sécurité potentielle ???
      */
     public function page() {
-        return load_last_view('admin/admin', array(), $this->unit_test);
+        // Check if user is authorized for development/test features
+        // Authorized user: fpeignot only
+        $data = array(
+            'is_dev_authorized' => ($this->dx_auth->get_username() === 'fpeignot')
+        );
+        return load_last_view('admin/admin', $data, $this->unit_test);
     }
 
     /**
@@ -696,15 +701,15 @@ class Admin extends CI_Controller {
 
     /**
      * Anonymize all data - calls all anonymization routines
-     * Only callable in development mode
+     * Only callable by authorized user (fpeignot)
      *
      * @param bool $with_number If true, use numbered anonymization (fast), otherwise use natural data (default)
      * @return void
      */
     public function anonymize_all_data() {
-        // Check if we are in development mode
-        if (ENVIRONMENT !== 'development') {
-            show_error('Cette fonction est uniquement disponible en mode développement', 403, 'Accès refusé');
+        // Check if user is authorized (fpeignot only)
+        if ($this->dx_auth->get_username() !== 'fpeignot') {
+            show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
             return;
         }
 
@@ -1040,12 +1045,12 @@ class Admin extends CI_Controller {
      * Extracts real pilot, aircraft, and account data from the database
      * to be used in end-to-end tests, avoiding hardcoded data issues
      *
-     * Only available in development mode
+     * Only available to authorized user (fpeignot)
      */
     public function extract_test_data() {
-        // Security check: only in development mode
-        if (ENVIRONMENT !== 'development') {
-            show_error('Cette fonction est uniquement disponible en mode développement', 403, 'Accès refusé');
+        // Security check: only for authorized user (fpeignot only)
+        if ($this->dx_auth->get_username() !== 'fpeignot') {
+            show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
             return;
         }
 

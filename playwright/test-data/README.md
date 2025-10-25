@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains JSON fixtures extracted from the GVV database for use in Playwright end-to-end tests. The fixtures are dynamically generated from real database content to avoid hardcoded test data that becomes invalid after database anonymization.
+This directory contains JSON fixtures extracted from the GVV database for use in Playwright end-to-end tests. The fixtures are dynamically generated from real database content to avoid hardcoded test data that becomes invalid after database anonymisation.
 
 ## Files
 

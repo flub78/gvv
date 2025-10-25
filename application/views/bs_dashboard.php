@@ -805,6 +805,57 @@ $this->lang->load('welcome');
         </div>
     <?php endif; ?>
 
+    <?php if (isset($is_dev_authorized) && $is_dev_authorized): ?>
+    <!-- Section Développement / Test (fpeignot only) -->
+    <div class="accordion-item section-card admin">
+        <h2 class="accordion-header" id="headingDevTest">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDevTest" aria-expanded="false" aria-controls="collapseDevTest">
+                <i class="fas fa-flask text-warning me-2"></i>
+                Développement & Tests
+            </button>
+        </h2>
+        <div id="collapseDevTest" class="accordion-collapse collapse" aria-labelledby="headingDevTest" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
+            <div class="row g-2">
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-user-secret text-warning"></i>
+                        <div class="card-title">Anonymisation</div>
+                        <div class="card-text text-muted">Données de test</div>
+                        <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm"
+                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">
+                           Anonymiser
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-database text-info"></i>
+                        <div class="card-title">Extraction test</div>
+                        <div class="card-text text-muted">Données Playwright</div>
+                        <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">
+                           Extraire
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <div class="card-title">Cohérence BDD</div>
+                        <div class="card-text text-muted">Vérification comptes</div>
+                        <a href="<?= controller_url('comptes/check') ?>" class="btn btn-success btn-sm">
+                           Vérifier
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     </div> <!-- end accordion -->
 
 </div>
