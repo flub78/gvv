@@ -160,6 +160,19 @@ $this->lang->load('compta');
 
     echo '</div>';
     ?>
+    <?php
+    if ($has_modification_rights && $section) {
+        $column_defs = [
+            ["aTargets" => [10], "sClass" => "text-end"],
+            ["aTargets" => [4, 6, 11, 12], "sClass" => "text-center"]
+        ];
+    } else {
+        $column_defs = [
+            ["aTargets" => [8], "sClass" => "text-end"],
+            ["aTargets" => [2, 4, 9, 10], "sClass" => "text-center"]
+        ];
+    }
+    ?>
     <script language="JavaScript">
         <!--
         $(document).ready(function() {
@@ -196,15 +209,7 @@ $this->lang->load('compta');
                     [10, 25, 50, 100, 500, 1000, "Tous les"]
                 ],
 
-                "aoColumnDefs": [{
-                        "aTargets": [10],
-                        "sClass": "text-end"
-                    },
-                    {
-                        "aTargets": [4, 6, 11, 12],
-                        "sClass": "text-center"
-                    }
-                ]
+                "aoColumnDefs": <?= json_encode($column_defs) ?>
             });
 
         });
