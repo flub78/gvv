@@ -27,7 +27,43 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 ?>
 
-<div id="body" class="body container-fluid">
+<style>
+.sub-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    height: 100%;
+}
+
+.sub-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.sub-card i {
+    font-size: 1.5rem;
+}
+
+.sub-card .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.sub-card .card-text {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.sub-card .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+}
+</style>
+
+<div id="body" class="body container-fluid py-3">
     <h3><?= $title ?></h3>
 
     <!-- System Status Card -->
@@ -69,52 +105,46 @@ $this->load->view('bs_banner');
 
     <!-- Quick Actions -->
     <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
-                    <h5><?= $this->lang->line('authorization_manage_users') ?></h5>
-                    <p class="text-muted"><?= $this->lang->line('authorization_manage_users_desc') ?></p>
-                    <a href="<?= site_url('authorization/user_roles') ?>" class="btn btn-primary">
+        <div class="row g-2">
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="sub-card text-center">
+                    <i class="fas fa-users text-primary"></i>
+                    <div class="card-title"><?= $this->lang->line('authorization_manage_users') ?></div>
+                    <div class="card-text text-muted"><?= $this->lang->line('authorization_manage_users_desc') ?></div>
+                    <a href="<?= site_url('authorization/user_roles') ?>" class="btn btn-primary btn-sm">
                         <?= $this->lang->line('authorization_manage') ?>
                     </a>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-shield-alt fa-3x mb-3 text-success"></i>
-                    <h5><?= $this->lang->line('authorization_manage_roles') ?></h5>
-                    <p class="text-muted"><?= $this->lang->line('authorization_manage_roles_desc') ?></p>
-                    <a href="<?= site_url('authorization/roles') ?>" class="btn btn-success">
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="sub-card text-center">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    <div class="card-title"><?= $this->lang->line('authorization_manage_roles') ?></div>
+                    <div class="card-text text-muted"><?= $this->lang->line('authorization_manage_roles_desc') ?></div>
+                    <a href="<?= site_url('authorization/roles') ?>" class="btn btn-success btn-sm">
                         <?= $this->lang->line('authorization_view') ?>
                     </a>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-database fa-3x mb-3 text-warning"></i>
-                    <h5><?= $this->lang->line('authorization_data_access_rules') ?></h5>
-                    <p class="text-muted"><?= $this->lang->line('authorization_data_access_rules_desc') ?></p>
-                    <a href="<?= site_url('authorization/data_access_rules') ?>" class="btn btn-warning">
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="sub-card text-center">
+                    <i class="fas fa-database text-warning"></i>
+                    <div class="card-title"><?= $this->lang->line('authorization_data_access_rules') ?></div>
+                    <div class="card-text text-muted"><?= $this->lang->line('authorization_data_access_rules_desc') ?></div>
+                    <a href="<?= site_url('authorization/data_access_rules') ?>" class="btn btn-warning btn-sm">
                         <?= $this->lang->line('authorization_manage') ?>
                     </a>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-history fa-3x mb-3 text-info"></i>
-                    <h5><?= $this->lang->line('authorization_view_audit') ?></h5>
-                    <p class="text-muted"><?= $this->lang->line('authorization_view_audit_desc') ?></p>
-                    <a href="<?= site_url('authorization/audit_log') ?>" class="btn btn-info">
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                <div class="sub-card text-center">
+                    <i class="fas fa-history text-info"></i>
+                    <div class="card-title"><?= $this->lang->line('authorization_view_audit') ?></div>
+                    <div class="card-text text-muted"><?= $this->lang->line('authorization_view_audit_desc') ?></div>
+                    <a href="<?= site_url('authorization/audit_log') ?>" class="btn btn-info btn-sm">
                         <?= $this->lang->line('authorization_view') ?>
                     </a>
                 </div>

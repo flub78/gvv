@@ -788,12 +788,20 @@ class Comptes extends Gvv_Controller {
             }
         }
 
-        $popup = "$cnt comptes vérifiés; $errors erreur(s).";
-        $msg .= br() . $popup;
+        // Build summary at the beginning
+        $summary = "<div class='alert alert-" . ($errors > 0 ? "warning" : "success") . " mb-3'>";
+        $summary .= "<strong>Résultat :</strong> $cnt comptes vérifiés, $errors erreur(s) trouvée(s)";
+        if ($errors > 0) {
+            $summary .= " et corrigée(s) automatiquement.";
+        }
+        $summary .= "</div>";
+
+        // Prepend summary to the message
+        $msg = $summary . $msg;
+
         $data = array(
             'text' => $msg,
-            'popup' => $popup,
-            'title' => "Vérification de la cohérence des comptes."
+            'title' => "Vérification de la cohérence des comptes"
         );
         load_last_view('message', $data);
     }
