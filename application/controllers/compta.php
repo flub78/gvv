@@ -761,6 +761,25 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Encaissement pour une section
+     */
+    function encaissement_pour_une_section() {
+        $this->ecriture("gvv_compta_title_encaissement_section", 
+        ["codec" => "512"],
+        ["codec" => "181"]);
+    }
+
+     /**
+     * Reversement section
+     */
+    function reversement_section() {
+        $this->ecriture("gvv_compta_title_reversement_section", 
+        ["codec" => "181"],
+        ["codec" => "512"]);
+    }
+   
+
+    /**
      * journal
      *
      * @param $premier élément

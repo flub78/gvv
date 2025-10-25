@@ -533,6 +533,25 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <!-- Section Operations -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-building text-info"></i>
+                        <div class="card-title">Encaissement section</div>
+                        <div class="card-text text-muted">Collection</div>
+                        <a href="<?= controller_url('compta/encaissement_pour_une_section') ?>" class="btn btn-info btn-sm">Saisir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-exchange-alt text-secondary"></i>
+                        <div class="card-title">Reversement section</div>
+                        <div class="card-text text-muted">Transfert</div>
+                        <a href="<?= controller_url('compta/reversement_section') ?>" class="btn btn-secondary btn-sm">Saisir</a>
+                    </div>
+                </div>
+
                 <!-- Generic entry creation - moved to end -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">

@@ -4,19 +4,11 @@
 ## Bugs
 
 * [] **la page de retour après une modification des écritures est discutable**
-* [x] **la page après changement de la checkbox gel est incorrecte**
   
 * [] **Déconnexion intempestive**
-* [] les big_select pour les gros select (800 comptes) ne fonctionne pas
+* [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
 ## Reste à faire
-
-* [] Supporter des comptes masqués
-  [x] créer une migration pour ajouter un champ boolean dans comptes "masked" 
-  [x]  modifier le formulaire et le modèle pour pouvoir le modifier. Il n'est possible de masquer un compte que quand son solde est à 0.
-  [x] Modifier le filtre dans comptes/detail pour afficher tous les comptes, les comptes non masqués et les comptes masqués. Le défaut est d'afficher les comptes non masqués.
-  [x] Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visibles
-
 
 * [ ] tests migration
   * [ ] phpunit
@@ -32,6 +24,7 @@
     
 * [x] Images de configuration
 * [ ] Utiliser la nouvelle configuration en base
+
 * [] gestion des droits multi sections (wip)
 * [] Gestionnaire de liste d'adresse email.
 
@@ -168,3 +161,11 @@
   * [x] tester les téléchargements avec espace (upload->do_upload)
   * [x] compression des attachements
   * [x] tester upload photo
+
+* [x] Supporter des comptes masqués
+  [x] créer une migration pour ajouter un champ boolean dans comptes "masked" 
+  [x]  modifier le formulaire et le modèle pour pouvoir le modifier. Il n'est possible de masquer un compte que quand son solde est à 0.
+  [x] Modifier le filtre dans comptes/detail pour afficher tous les comptes, les comptes non masqués et les comptes masqués. Le défaut est d'afficher les comptes non masqués.
+  [x] Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visible
+
+  * [x] **la page après changement de la checkbox gel est incorrecte**

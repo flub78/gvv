@@ -85,6 +85,9 @@ $lang['gvv_menu_entries_wire_transfer'] = "Virement bancaire";
 $lang['gvv_menu_entries_wire_deposit'] = "Dépôt d’espèces";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital";
+$lang['gvv_menu_entries_section_collection'] = "Encaissement pour une section";
+$lang['gvv_menu_entries_section_reversal'] = "Reversement section";
+$lang['welcome_section_operations_title'] = "Opérations de section";
 
 $lang['gvv_menu_rapprochements'] = "Rapprochement bancaire";
 $lang['gvv_menu_associations_releves'] = "Associations relevés bancaires";
