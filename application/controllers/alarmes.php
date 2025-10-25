@@ -52,7 +52,7 @@ class Alarmes extends Gvv_Controller {
 
     protected $controller = 'alarmes';
     protected $model = 'membres_model';
-    protected $modification_level = 'ca';
+    protected $modification_level = 'ca'; // Legacy authorization for non-migrated users
     protected $rules = array ();
     protected $filter_variables = array ();
 
@@ -61,6 +61,11 @@ class Alarmes extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['ca']);
+        }
 
         $this->load->model('membres_model');
         $this->load->model('event_model');

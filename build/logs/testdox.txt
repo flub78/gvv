@@ -136,11 +136,6 @@ Language Completeness
  [x] Dutch has all translation keys
  [x] Reference language has translation files
 
-Backend Anonymization
- [x] Anonymize all method exists
- [x] Anonymize all data method exists
- [x] Environment check
-
 Comptes Controller
  [x] Csv resultat export is truncated
  [x] Fixed csv resultat export contains complete data

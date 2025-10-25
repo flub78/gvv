@@ -31,6 +31,12 @@ class Tarifs extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['ca']);
+        }
+        
         $this->load->model('comptes_model');
         $this->load->model('types_ticket_model');
     }

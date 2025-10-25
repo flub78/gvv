@@ -26,11 +26,25 @@ class Calendar extends CI_Controller {
     function __construct() {
         date_default_timezone_set('Europe/Paris');
         parent::__construct();
+
         // Check if user is logged in or not
         $this->load->library('DX_Auth');
-        if (! getenv('TEST') && ! $this->dx_auth->is_logged_in() && ! $this->dx_auth->is_admin()) {
+        if (! getenv('TEST') && ! $this->dx_auth->is_logged_in()) {
             redirect("auth/login");
         }
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        // For non-migrated users, login check above is sufficient (no additional authorization)
+        $this->load->model('authorization_model');
+        $user_id = $this->dx_auth->get_user_id();
+        $migration = $this->authorization_model->get_migration_status($user_id);
+
+        if ($migration && $migration['use_new_system'] == 1) {
+            // New system - require user role (any logged-in user)
+            $this->dx_auth->require_roles(['user']);
+        }
+        // else: Legacy system - no additional authorization beyond login check
+
         $this->load->library('unit_test');
     }
 

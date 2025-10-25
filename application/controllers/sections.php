@@ -43,6 +43,12 @@ class Sections extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+        
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['ca']);
+        }
+        
         $this->lang->load('sections');
     }
 
@@ -99,10 +105,12 @@ class Sections extends Gvv_Controller {
      * Export de la liste des sections en CSV ou PDF
      */
     public function export($mode = 'csv') {
-        if (!$this->dx_auth->is_role('ca')) {
+        // Legacy authorization for non-migrated users
+        if (!$this->use_new_auth && !$this->dx_auth->is_role('ca')) {
             $this->dx_auth->deny_access();
             return;
         }
+        
         $rows = $this->gvv_model->select_page(10000, 0);
         $fields = array('nom', 'description');
         $title = $this->lang->line('gvv_sections_title');

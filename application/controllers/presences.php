@@ -47,7 +47,20 @@ class Presences extends CI_Controller {
         if (! $this->dx_auth->is_logged_in()) {
             redirect("auth/login");
         }
-        $this->dx_auth->check_uri_permissions();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        // For non-migrated users, use legacy check_uri_permissions()
+        $this->load->model('authorization_model');
+        $user_id = $this->dx_auth->get_user_id();
+        $migration = $this->authorization_model->get_migration_status($user_id);
+
+        if ($migration && $migration['use_new_system'] == 1) {
+            // New system - require ca role
+            $this->dx_auth->require_roles(['ca']);
+        } else {
+            // Legacy system - use URI permissions
+            $this->dx_auth->check_uri_permissions();
+        }
 
         $this->load->library('GoogleCal');
         $this->load->helper('validation_helper');
