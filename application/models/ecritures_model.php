@@ -676,9 +676,11 @@ class Ecritures_model extends Common_Model {
             $this->db->trans_complete();
             return $res;
         } else {
+            $msg = "Suppression impossible, écriture gelée";
             if (! $this->session->userdata('popup')) {
-                $this->session->set_flashdata('popup', "Suppression impossible, écriture gelée");
+                $this->session->set_flashdata('popup', $msg);
             }
+            return false;
         }
     }
 

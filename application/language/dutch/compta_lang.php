@@ -114,6 +114,8 @@ $lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijvin
 $lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit');
 
 $lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";
+$lang['gvv_compta_frozen_line_cannot_modify'] = "Wijziging van een vergrendelde boeking is verboden.";
+$lang['gvv_compta_frozen_line_cannot_delete'] = "Verwijdering van een vergrendelde boeking is verboden.";
 
 // Attachment upload (Phase 1)
 $lang['gvv_choose_files'] = "Bestanden kiezen";

@@ -75,8 +75,12 @@ class Compta extends Gvv_Controller {
 
         $this->push_return_url("edit ecriture");
 
-        if ($this->data['gel']) {
+        // Store whether the line is frozen to pass to view
+        $is_frozen = $this->data['gel'];
+        
+        if ($is_frozen) {
             $this->form_static_element(VISUALISATION);
+            $this->data['frozen_message'] = $this->lang->line('gvv_compta_frozen_line_cannot_modify');
         } else {
             $this->form_static_element(MODIFICATION);
         }

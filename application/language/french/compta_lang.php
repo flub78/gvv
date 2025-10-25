@@ -116,6 +116,8 @@ $lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 
 $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit');
 
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
+$lang['gvv_compta_frozen_line_cannot_modify'] = "La modification d'une écriture gelée est interdite.";
+$lang['gvv_compta_frozen_line_cannot_delete'] = "La suppression d'une écriture gelée est interdite.";
 
 // Attachment upload (Phase 1)
 $lang['gvv_choose_files'] = "Choisir des fichiers";

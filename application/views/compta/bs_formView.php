@@ -82,7 +82,19 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             'gel' => $gel
         )));
 
-        if (!isset($errors) || !$errors) echo validation_button($action);
+        if (!isset($errors) || !$errors) {
+            if (isset($frozen_message) && $frozen_message) {
+                // Show disabled button with message for frozen lines
+                echo '<div class="alert alert-warning mt-3" role="alert">';
+                echo '<i class="bi bi-lock-fill"></i> ' . $frozen_message;
+                echo '</div>';
+                echo '<button type="submit" class="btn btn-primary mt-3" disabled>';
+                echo $this->lang->line("gvv_button_validate");
+                echo '</button>';
+            } else {
+                echo validation_button($action);
+            }
+        }
         echo form_close();
         ?>
     </div>
