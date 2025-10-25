@@ -145,21 +145,23 @@ $lang['gvv_comptes_can_mask'] = "Saldo is 0, rekening kan worden verborgen.";
 
 ## Étapes suivantes (TODO)
 
-### Étape 3: Modifier les sélecteurs
-- Filtrer les comptes masqués dans `comptes_model::selector()`
-- Filtrer dans `comptes_model::selector_with_null()`
-- Préserver l'option d'afficher les comptes masqués pour les administrateurs
+### Étape 3: Modifier les sélecteurs ✅
+- ✅ Filtrer les comptes masqués dans `comptes_model::selector()`
+- ✅ Filtrer dans `comptes_model::selector_with_null()`
+- ✅ Filtrer dans `comptes_model::selector_with_all()`
+- ✅ Filtrer dans `comptes_model::list_of_account()`
+- Les comptes masqués n'apparaissent plus dans aucun sélecteur de compte
 
 ### Étape 4: Modifier les rapports
-- Balance détaillée: ne pas afficher les comptes masqués
-- Balance générale: ne pas afficher les comptes masqués
-- Rapport de résultats: ne pas afficher les comptes masqués
-- Ajouter un filtre optionnel pour afficher les comptes masqués
+- Balance détaillée: ✅ ne pas afficher les comptes masqués (via filtre, défaut = non masqués)
+- Balance générale: ✅ ne pas afficher les comptes masqués (via filtre, défaut = non masqués)
+- Rapport de résultats: TODO - ne pas afficher les comptes masqués
+- ✅ Filtre ajouté pour afficher/masquer les comptes masqués
 
 ### Étape 5: Interface de gestion
-- Ajouter un filtre dans la liste des comptes pour voir les comptes masqués
-- Ajouter un indicateur visuel (icône 👁️❌) pour les comptes masqués
-- Permettre de démasquer facilement un compte
+- ✅ Filtre dans la liste des comptes pour voir les comptes masqués
+- TODO: Ajouter un indicateur visuel (icône 👁️❌) pour les comptes masqués dans les listes
+- TODO: Permettre de démasquer facilement un compte
 
 ## Fichiers modifiés (Étapes 1 & 2)
 

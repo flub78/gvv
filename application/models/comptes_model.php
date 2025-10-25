@@ -129,7 +129,8 @@ class Comptes_model extends Common_Model {
 
         $this->db->select('*')
             ->from($this->table)
-            ->where($where);
+            ->where($where)
+            ->where('masked', 0);  // Exclude masked accounts
             
         // Only add ORDER BY if $order is not empty
         if (!empty($order)) {
@@ -161,17 +162,25 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page($selection = array(), $date, $filter_solde = "") {
+    public function select_page($selection = array(), $date, $filter_solde = "", $filter_masked = 1) {
 
         // selectionne les comptes
         $result = $this->db
-            ->select('id, nom, codec, actif, debit, credit, club')
+            ->select('id, nom, codec, actif, debit, credit, club, masked')
             ->from('comptes, planc')
             ->where($selection)
             ->where('codec = planc.pcode');
 
         if ($this->sections_model->section()) {
             $this->db->where('club', $this->sections_model->section_id());
+        }
+        
+        // Filtre sur les comptes masqués
+        // 0 = Tous, 1 = Non masqués uniquement (défaut), 2 = Masqués uniquement
+        if ($filter_masked == 1) {
+            $this->db->where('masked', 0);
+        } elseif ($filter_masked == 2) {
+            $this->db->where('masked', 1);
         }
 
         $result = $this->db->
@@ -240,7 +249,7 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page_general($selection = array(), $date, $filter_solde = "", $with_sections = true) {
+    public function select_page_general($selection = array(), $date, $filter_solde = "", $filter_masked = 1, $with_sections = true) {
 
         // selectionne les comptes
         $this->db
@@ -251,6 +260,14 @@ class Comptes_model extends Common_Model {
 
         if ($this->sections_model->section() && $with_sections) {
             $this->db->where('club', $this->sections_model->section_id());
+        }
+        
+        // Filtre sur les comptes masqués
+        // 0 = Tous, 1 = Non masqués uniquement (défaut), 2 = Masqués uniquement
+        if ($filter_masked == 1) {
+            $this->db->where('comptes.masked', 0);
+        } elseif ($filter_masked == 2) {
+            $this->db->where('comptes.masked', 1);
         }
 
         $result = $this->db->group_by('codec')
@@ -988,6 +1005,52 @@ class Comptes_model extends Common_Model {
         }
         
         return $selector;
+    }
+
+    /**
+     * Override parent selector to exclude masked accounts
+     * 
+     * @param array $where Additional where conditions
+     * @param string $order Sort order (asc/desc)
+     * @param bool $filter_section Filter by section
+     * @return array Selector array excluding masked accounts
+     */
+    public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
+        // Add condition to exclude masked accounts
+        $where['masked'] = 0;
+        
+        // Call parent selector with updated where clause
+        return parent::selector($where, $order, $filter_section);
+    }
+
+    /**
+     * Override parent selector_with_all to exclude masked accounts
+     * 
+     * @param array $where Additional where conditions
+     * @param bool $filter_section Filter by section
+     * @return array Selector array with "All" option, excluding masked accounts
+     */
+    public function selector_with_all($where = array(), $filter_section = FALSE) {
+        // Add condition to exclude masked accounts
+        $where['masked'] = 0;
+        
+        // Call parent selector_with_all with updated where clause
+        return parent::selector_with_all($where, $filter_section);
+    }
+
+    /**
+     * Override parent selector_with_null to exclude masked accounts
+     * 
+     * @param array $where Additional where conditions
+     * @param bool $filter_section Filter by section
+     * @return array Selector array with null option, excluding masked accounts
+     */
+    public function selector_with_null($where = array(), $filter_section = FALSE) {
+        // Add condition to exclude masked accounts
+        $where['masked'] = 0;
+        
+        // Call parent selector_with_null with updated where clause
+        return parent::selector_with_null($where, $filter_section);
     }
 }
 

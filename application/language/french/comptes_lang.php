@@ -113,6 +113,13 @@ $lang['comptes_cloture_error_129'] = "Clôture impossible car il n'y a pas de co
 
 $lang['comptes_balance_general'] = array('Détaillée' => 0, 'Générale' => 1);
 
+// Masked accounts filter
+$lang['gvv_comptes_filter_masked'] = array(
+    0 => 'Tous les comptes',
+    1 => 'Comptes non masqués',
+    2 => 'Comptes masqués uniquement'
+);
+
 // Masked accounts
 $lang['gvv_comptes_comment_masked'] = "Cocher pour masquer le compte des sélecteurs et rapports (uniquement possible si le solde est à 0)";
 $lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Impossible de masquer un compte dont le solde n'est pas nul. Solde actuel : %s €";

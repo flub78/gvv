@@ -110,6 +110,13 @@ $lang['comptes_cloture_error_129'] = "Sluiting niet mogelijk omdat er geen reken
 
 $lang['comptes_balance_general'] = array('Gedetailleerd' => 0, 'Algemeen' => 1);
 
+// Masked accounts filter
+$lang['gvv_comptes_filter_masked'] = array(
+    0 => 'Alle rekeningen',
+    1 => 'Niet-verborgen rekeningen',
+    2 => 'Alleen verborgen rekeningen'
+);
+
 // Masked accounts
 $lang['gvv_comptes_comment_masked'] = "Aanvinken om de rekening te verbergen in selectoren en rapporten (alleen mogelijk als saldo 0 is)";
 $lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Kan geen rekening verbergen met een saldo dat niet nul is. Huidig saldo: %s €";

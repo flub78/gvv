@@ -37,7 +37,8 @@ class Comptes extends Gvv_Controller {
     ];
     protected $filter_variables = array(
         'filter_active',
-        'filter_solde'
+        'filter_solde',
+        'filter_masked'
     );
 
     /**
@@ -168,6 +169,25 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Retourne le filtre pour les comptes masqués
+     * 0 = Tous les comptes
+     * 1 = Comptes non masqués uniquement (défaut)
+     * 2 = Comptes masqués uniquement
+     */
+    function filter_masked() {
+        $filter_masked = $this->session->userdata('filter_masked');
+        
+        // Défaut: afficher uniquement les comptes non masqués
+        if ($filter_masked === false || $filter_masked === null) {
+            $filter_masked = 1;
+            $this->session->set_userdata('filter_masked', $filter_masked);
+        }
+        
+        $this->data['filter_masked'] = $filter_masked;
+        return $filter_masked;
+    }
+
+    /**
      * Affiche une page de compte
      * $codec: classe de compte à afficher, ex 512= tous les comptes bancaires
      * $codec2: permet d'afficher entre deux classe ex: 4/5 = tous les comptes de classe 4
@@ -181,6 +201,7 @@ class Comptes extends Gvv_Controller {
 
         $this->load_filter($this->filter_variables);
         $filter_solde = $this->filter_solde();
+        $filter_masked = $this->filter_masked();
 
         // gestion de la date d'affichage
         $balance_date = $this->session->userdata('balance_date');
@@ -211,12 +232,12 @@ class Comptes extends Gvv_Controller {
             // général
             $this->data['title_key'] = "gvv_comptes_title_balance";
 
-            $result = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde);
+            $result = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
         } else {
             // détaillé
             $this->data['title_key'] = "gvv_comptes_title_detailed_balance";
 
-            $result = $this->gvv_model->select_page($selection, $this->data['balance_date'], $filter_solde);
+            $result = $this->gvv_model->select_page($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
         }
 
         $total = array(

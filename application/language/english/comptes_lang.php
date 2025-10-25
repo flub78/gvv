@@ -110,6 +110,13 @@ $lang['comptes_cloture_error_129'] = "Closing impossible, no account 129";
 
 $lang['comptes_balance_general'] = array('Detailed' => 0, 'General' => 1);
 
+// Masked accounts filter
+$lang['gvv_comptes_filter_masked'] = array(
+    0 => 'All accounts',
+    1 => 'Non-masked accounts',
+    2 => 'Masked accounts only'
+);
+
 // Masked accounts
 $lang['gvv_comptes_comment_masked'] = "Check to hide the account from selectors and reports (only possible if balance is 0)";
 $lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Cannot mask an account with a non-zero balance. Current balance: %s €";

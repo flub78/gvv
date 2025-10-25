@@ -86,6 +86,7 @@ $this->lang->load('comptes');
 
 							<div class="d-md-flex flex-row  mb-2">
 								<div class="me-3 mb-2">
+									<?= $this->lang->line("gvv_comptes_field_masked") . ": " . enumerate_radio_fields($this->lang->line("gvv_comptes_filter_masked"), 'filter_masked', $filter_masked) ?>
 								</div>
 							</div>
 
