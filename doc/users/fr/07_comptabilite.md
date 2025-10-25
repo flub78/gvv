@@ -10,6 +10,7 @@ Ce guide présente le système comptable intégré de GVV. Vous apprendrez à g�
 4. [Rapprochement bancaire](#rapprochement)
 5. [États financiers](#etats-financiers)
 6. [Clôture d'exercice](#cloture)
+7. [Gestion des éléments inactifs](#elements-inactifs)
 
 ## Vue d'ensemble {#vue-ensemble}
 
@@ -341,10 +342,175 @@ Le rapprochement consiste à vérifier la concordance entre :
 - **Archivez** les pièces justificatives
 - **Respectez** les obligations légales
 
+## Gestion des éléments inactifs {#elements-inactifs}
+
+GVV permet de masquer les éléments qui ne sont plus utilisés sans perdre leur historique. Cette fonctionnalité s'applique aux **comptes**, **membres** et **aéronefs**.
+
+### Principe général
+
+Les éléments inactifs :
+- ✅ **Restent dans la base de données** avec tout leur historique
+- ✅ **N'apparaissent plus dans les listes** et sélecteurs par défaut
+- ✅ **Peuvent être réactivés** à tout moment
+- ✅ **Simplifient l'interface** en réduisant les options affichées
+
+### Comptes masqués
+
+#### Quand masquer un compte ?
+
+Un compte peut être masqué lorsque :
+- Son **solde est à 0 €** (condition obligatoire)
+- Il n'est **plus utilisé** (ex : ancien compte bancaire, pilote parti)
+- Vous souhaitez **alléger les listes** sans perdre l'historique
+
+#### Comment masquer un compte
+
+1. Accédez à **Compta → Balance détaillée**
+2. Cliquez sur **Modifier** pour le compte souhaité
+3. Vérifiez que le **solde est à 0 €**
+4. Cochez la case **"Masqué"**
+5. Cliquez sur **Valider**
+
+**Note** : Si le solde n'est pas à 0 €, la case à cocher est désactivée avec un message d'avertissement.
+
+#### Effet du masquage
+
+Un compte masqué n'apparaît plus dans :
+- Les **sélecteurs de comptes** (dropdowns)
+- Les **listes de comptes** (Balance détaillée/générale)
+- Le **journal comptable** pour la saisie
+- Les **rapports** (par défaut)
+
+#### Comment voir et démasquer un compte
+
+1. Accédez à **Compta → Balance détaillée**
+2. Ouvrez les **Filtres**
+3. Dans la section **"Masqué"**, sélectionnez :
+   - **"Tous les comptes"** → Voir masqués ET non masqués
+   - **"Comptes masqués uniquement"** → Voir uniquement les masqués
+4. Pour démasquer : **Modifier** le compte et **décocher** "Masqué"
+
+#### Exemples d'utilisation
+
+**Compte client 411 d'un pilote parti** :
+- Solde à 0 € → Masquer le compte
+- N'apparaît plus dans les sélecteurs de pilote
+- Historique de vol conservé
+
+**Ancien compte bancaire 512** :
+- Fonds transférés → Solde à 0 €
+- Masquer le compte
+- N'encombre plus les saisies d'écritures
+
+### Membres inactifs
+
+#### Principe
+
+Un membre inactif est un membre qui :
+- A quitté le club
+- N'est plus pilote
+- Doit être conservé pour l'historique
+
+#### Comment rendre un membre inactif
+
+1. Accédez à **Membres → Liste des membres**
+2. Cliquez sur **Modifier** pour le membre
+3. Décochez la case **"Actif"**
+4. Cliquez sur **Valider**
+
+**Note** : Contrairement aux comptes, il n'y a pas de condition de solde pour désactiver un membre.
+
+#### Effet
+
+Un membre inactif n'apparaît plus dans :
+- Les **sélecteurs de pilotes** pour la saisie de vols
+- Les **listes de membres actifs**
+- Les **statistiques des pilotes actifs**
+
+#### Comment voir et réactiver un membre
+
+1. Accédez à **Membres → Liste des membres**
+2. Utilisez le **filtre "Actif"** pour afficher les inactifs
+3. Pour réactiver : **Modifier** le membre et **cocher** "Actif"
+
+### Aéronefs inactifs
+
+#### Principe
+
+Un aéronef inactif est un appareil :
+- Vendu ou détruit
+- En maintenance longue durée
+- Immobilisé temporairement
+
+#### Comment rendre un aéronef inactif
+
+1. Accédez à **Aéronefs → Liste des aéronefs**
+2. Cliquez sur **Modifier** pour l'aéronef
+3. Décochez la case **"Actif"**
+4. Cliquez sur **Valider**
+
+#### Effet
+
+Un aéronef inactif n'apparaît plus dans :
+- Les **sélecteurs d'aéronefs** pour la saisie de vols
+- Le **calendrier de réservation**
+- Les **statistiques d'utilisation**
+
+#### Comment voir et réactiver un aéronef
+
+1. Accédez à **Aéronefs → Liste**
+2. Utilisez le **filtre "Actif"** pour afficher les inactifs
+3. Pour réactiver : **Modifier** l'aéronef et **cocher** "Actif"
+
+### Comparaison des mécanismes
+
+| Élément | Condition | Effet masquage | Réactivation |
+|---------|-----------|----------------|--------------|
+| **Compte** | Solde = 0 € | Invisible partout | Sans condition |
+| **Membre** | Aucune | Invisible dans sélecteurs | Sans condition |
+| **Aéronef** | Aucune | Invisible dans sélecteurs/calendrier | Sans condition |
+
+### Bonnes pratiques
+
+#### Pour les comptes
+- ✅ Masquer régulièrement les comptes soldés
+- ✅ Vérifier le solde avant de tenter de masquer
+- ✅ Utiliser le filtre pour retrouver les masqués
+- ❌ Ne pas supprimer, masquer plutôt
+
+#### Pour les membres
+- ✅ Désactiver les pilotes partis en fin de saison
+- ✅ Conserver les inactifs pour l'historique des vols
+- ✅ Documenter la raison (champ notes)
+- ❌ Ne pas supprimer les membres avec des vols
+
+#### Pour les aéronefs
+- ✅ Désactiver les appareils vendus/détruits
+- ✅ Désactiver temporairement si maintenance longue
+- ✅ Réactiver après remise en service
+- ❌ Ne pas supprimer (historique de vols)
+
+### Cas particuliers
+
+#### Membre avec compte client 411 non soldé
+
+Si un membre doit partir mais son compte n'est pas à 0 :
+1. **Régulariser le compte** en priorité
+2. Une fois soldé, **masquer le compte**
+3. Ensuite, **désactiver le membre**
+
+#### Aéronef vendu avec solde d'amortissement
+
+Si un aéronef est vendu :
+1. Passer l'**écriture de cession** (compte 775)
+2. **Solder les comptes** d'immobilisation et amortissement
+3. **Masquer les comptes** d'immobilisation
+4. **Désactiver l'aéronef**
+
 ---
 
 **Guide GVV** - Gestion Vol à Voile  
 *Comptabilité - Version française*  
-*Mis à jour en décembre 2024*
+*Mis à jour en octobre 2024*
 
 [◀ Facturation](06_facturation.md) | [Retour à l'index](README.md) | [Rapports ▶](08_rapports.md)
