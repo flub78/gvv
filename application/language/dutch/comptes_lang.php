@@ -30,7 +30,7 @@ $lang['gvv_vue_comptes_short_field_solde_credit'] = "Saldo crediteur";
 $lang['gvv_vue_comptes_short_field_nom'] = "Rekening";
 $lang['gvv_vue_comptes_short_field_section_name'] = "Sectie";
 
-$lang['comptes_filter_active_select'] = array(0 => 'Alle', 1 => 'Debiteurs', 2 => 'Niet negatief', 3 => 'Crediteurs');
+$lang['comptes_filter_active_select'] = array(0 => 'Alle', 1 => 'Debiteurs', 2 => 'Niet negatief', 3 => 'Crediteurs', 4 => 'Nulsaldo');
 
 $lang['comptes_label_totals'] = "Totalen";
 $lang['comptes_label_total'] = "Totaal";

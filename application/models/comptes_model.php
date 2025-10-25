@@ -203,33 +203,31 @@ class Comptes_model extends Common_Model {
             $result[$key]['debit'] = $row['debit'];
             $result[$key]['credit'] = $row['credit'];
             $result[$key]['image'] = 'le compte (' . $row['codec'] . ') ' . $row['nom'];
-
             $section = $this->sections_model->get_by_id('id', $row['club']);
             if ($section) {
                 $result[$key]['section_name'] = $section['nom'];
             } else {
                 $result[$key]['section_name'] = '';
             }
-
             if ($row['debit'] > $row['credit']) {
                 // Solde débiteur
                 $result[$key]['solde_debit'] = $row['debit'] - $row['credit'];
                 $result[$key]['solde_credit'] = '';
-                if ($filter_solde == 3) {
+                if ($filter_solde == 3 || $filter_solde == 4) {
                     unset($result[$key]);
                 }
             } else if ($row['debit'] < $row['credit']) {
                 // Solde créditeur
                 $result[$key]['solde_debit'] = '';
                 $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
-                if ($filter_solde == 1) {
+                if ($filter_solde == 1 || $filter_solde == 4) {
                     unset($result[$key]);
                 }
             } else {
                 // Solde null
                 $result[$key]['solde_debit'] = '';
                 $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
-                if (($filter_solde != 0)) {
+                if ($filter_solde == 1 || $filter_solde == 2 || $filter_solde == 3) {
                     unset($result[$key]);
                 }
             }
@@ -292,21 +290,21 @@ class Comptes_model extends Common_Model {
                 // Solde débiteur
                 $result[$key]['solde_debit'] = $row['debit'] - $row['credit'];
                 $result[$key]['solde_credit'] = '';
-                if ($filter_solde == 3) {
+                if ($filter_solde == 3 || $filter_solde == 4) {
                     unset($result[$key]);
                 }
             } else if ($row['debit'] < $row['credit']) {
                 // Solde créditeur
                 $result[$key]['solde_debit'] = '';
                 $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
-                if ($filter_solde == 1) {
+                if ($filter_solde == 1 || $filter_solde == 4) {
                     unset($result[$key]);
                 }
             } else {
                 // Solde null
                 $result[$key]['solde_debit'] = '';
                 $result[$key]['solde_credit'] = $row['credit'] - $row['debit'];
-                if (($filter_solde != 0)) {
+                if ($filter_solde == 1 || $filter_solde == 2 || $filter_solde == 3) {
                     unset($result[$key]);
                 }
             }
