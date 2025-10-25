@@ -345,17 +345,46 @@ function query_selection() {
  * On a changé la valeur de la checkbox d'une ligne d'écriture
  */
 function line_checked(id, state, compte, premier) {
-
-	// alert('line_checked(' + id +  ', ' + state + ')');
-
+	console.log('line_checked called:', id, state, compte, premier);
+	
 	var controllers = document.getElementsByName('controller_url');
 	if (controllers.length < 1) {
 		alert('controller_url not found');
-	} else {
-		var url = controllers[0].value + "/switch_line/" + id + "/" + state + "/" 
-			+ compte + "/" + premier;
-		window.location.href = url;
+		return;
 	}
+	
+	var url = controllers[0].value + "/switch_line/" + id + "/" + state + "/" 
+		+ compte + "/" + premier;
+	
+	console.log('Making AJAX call to:', url);
+	
+	// Check if jQuery is available
+	if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
+		console.error('jQuery not loaded, using fallback to page navigation');
+		window.location.href = url;
+		return;
+	}
+	
+	// Use AJAX to toggle the line state
+	$.ajax({
+		url: url,
+		type: 'POST',
+		dataType: 'json',
+		success: function(response) {
+			console.log('AJAX response:', response);
+			if (response.success) {
+				// Reload the current page to show the updated state
+				window.location.reload();
+			} else {
+				alert('Erreur: ' + (response.error || 'Impossible de modifier le statut'));
+			}
+		},
+		error: function(xhr, status, error) {
+			console.error('AJAX error:', status, error);
+			console.error('Response text:', xhr.responseText);
+			alert('Erreur de communication avec le serveur');
+		}
+	});
 }
 
 function testbiplace() {

@@ -22,6 +22,14 @@ User opens edit form → Form displays but no submit button → User confused
 └─────────────────────────────────────┘
 ```
 
+### Freeze/Unfreeze Checkbox
+User on page: `compta/journal_compte/23`  
+User clicks checkbox → Redirects to different page → User loses context
+```
+Before: compta/journal_compte/23
+After:  compta/page  (or other page from URL stack)
+```
+
 ## After Changes
 
 ### Delete Frozen Line
@@ -50,6 +58,82 @@ User opens edit form → Clear warning message + disabled button
 │ [Valider] (button is greyed out/disabled)     │
 └─────────────────────────────────────────────────┘
 ```
+
+### Freeze/Unfreeze Checkbox
+User on page: `compta/journal_compte/23`  
+User clicks checkbox → Stays on same page → Immediate feedback
+```
+Before: compta/journal_compte/23
+After:  compta/journal_compte/23  ✓ (Same page!)
+```
+
+## Technical Implementation
+
+### JavaScript (AJAX approach)
+Located in `assets/javascript/gvv.js`:
+
+**Before:**
+```javascript
+function line_checked(id, state, compte, premier) {
+    var url = controllers[0].value + "/switch_line/" + id + "/" + state + "/" 
+        + compte + "/" + premier;
+    window.location.href = url;  // ❌ Full page redirect
+}
+```
+
+**After:**
+```javascript
+function line_checked(id, state, compte, premier) {
+    var url = controllers[0].value + "/switch_line/" + id + "/" + state + "/" 
+        + compte + "/" + premier;
+    
+    // Use AJAX to toggle the line state
+    $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                window.location.reload();  // ✓ Reload current page
+            } else {
+                alert('Erreur: ' + (response.error || 'Impossible de modifier le statut'));
+            }
+        },
+        error: function() {
+            alert('Erreur de communication avec le serveur');
+        }
+    });
+}
+```
+
+### Controller Method (AJAX endpoint)
+**Before:**
+```php
+function switch_line($id, $state, $compte, $premier) {
+    $new_state = ($state == 0) ? 1 : 0;
+    $this->gvv_model->switch_line($id, $new_state);
+    $this->pop_return_url();  // ❌ Goes to wrong page
+}
+```
+
+**After:**
+```php
+function switch_line($id, $state, $compte, $premier) {
+    header('Content-Type: application/json');
+    
+    $new_state = ($state == 0) ? 1 : 0;
+    $this->gvv_model->switch_line($id, $new_state);
+    
+    // Return JSON success response
+    echo json_encode([
+        'success' => true,
+        'new_state' => $new_state,
+        'id' => $id
+    ]);  // ✓ AJAX response
+}
+```
+
+**Key improvement:** AJAX request updates the database and returns JSON, then JavaScript reloads the current page. This is cleaner than any redirect approach and guarantees staying on the same URL.
 
 ## HTML Output (French)
 
@@ -88,3 +172,4 @@ User opens edit form → Clear warning message + disabled button
 3. **Visual Feedback**: Lock icon (🔒) provides instant visual cue
 4. **Accessibility**: Disabled button prevents accidental form submission attempts
 5. **Multi-Language**: All three supported languages have proper translations
+6. **Context Preservation**: Checkbox toggle stays on same page, maintaining user workflow

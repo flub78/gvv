@@ -585,15 +585,18 @@ abstract class Metadata {
                     $url = "$base_controller/$action";  // Use base_controller (relative path) not $controller (full URL)
                     $elt_image = isset($row['image']) ? $row['image'] : $row[$this->table_key($table)];
                     $confirm = ($action == 'delete');
+                    
+                    // Check if line is frozen for delete action
+                    $is_frozen = isset($row['gel']) ? $row['gel'] : 0;
 
                     if ($autoplanchiste) {
                         if ($row[$autoplanchiste_id] == $autoplanchiste) {
-                            $res .= "\t\t<td>" . $this->action($action, $url, $elt_id, $elt_image, $confirm) . "</td>\n";
+                            $res .= "\t\t<td>" . $this->action($action, $url, $elt_id, $elt_image, $confirm, $is_frozen) . "</td>\n";
                         } else {
                             $res .= "\t\t<td>" . "</td>\n";
                         }
                     } else {
-                        $res .= "\t\t<td>" . $this->action($action, $url, $elt_id, $elt_image, $confirm) . "</td>\n";
+                        $res .= "\t\t<td>" . $this->action($action, $url, $elt_id, $elt_image, $confirm, $is_frozen) . "</td>\n";
                     }
                 }
             }
@@ -1288,13 +1291,19 @@ abstract class Metadata {
      * @param
      *            confirm
      */
-    function action($action = '', $url = '', $elt_id = '', $elt_image = '', $confirm = 0) {
+    function action($action = '', $url = '', $elt_id = '', $elt_image = '', $confirm = 0, $is_frozen = 0) {
         $label = $this->action_name($action);
         $attrs = '';
 
         if ($confirm) {
-            $txt = $this->CI->lang->line("gvv_button_delete_confirm") . " $elt_image?";
-            $attrs = "onclick=\"return confirm('" . addslashes($txt) . "')\" ";
+            // For delete action on frozen lines, show information popup instead of confirmation
+            if ($action == 'delete' && $is_frozen) {
+                $txt = $this->CI->lang->line("gvv_compta_frozen_line_cannot_delete");
+                $attrs = "onclick=\"alert('" . addslashes($txt) . "'); return false;\" ";
+            } else {
+                $txt = $this->CI->lang->line("gvv_button_delete_confirm") . " $elt_image?";
+                $attrs = "onclick=\"return confirm('" . addslashes($txt) . "')\" ";
+            }
         }
 
         // Build Bootstrap-styled buttons with Font Awesome icons for common actions

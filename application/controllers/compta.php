@@ -200,6 +200,14 @@ class Compta extends Gvv_Controller {
             return;
         }
 
+        // Check if line is frozen before attempting deletion
+        if ($this->data['gel']) {
+            $msg = $this->lang->line('gvv_compta_frozen_line_cannot_delete');
+            $this->session->set_flashdata('popup', $msg);
+            $this->pop_return_url();
+            return;
+        }
+
         $this->load->model('ecritures_model');
         $this->ecritures_model->delete_ecriture($id);
 
@@ -1212,7 +1220,7 @@ class Compta extends Gvv_Controller {
          * avec un current_url incohérent. Ce patch évite juste de ré-enregistrer une URL de
          * retour fausse.
          */
-        if (!preg_match("/favicon/", $current_url) && !preg_match("/filterValidation/", $current_url)) {
+        if (!preg_match("/favicon/", $current_url) && !preg_match("/filterValidation/", $current_url) && !preg_match("/switch_line/", $current_url)) {
             $this->push_return_url("journal compte");
         }
 
@@ -1701,16 +1709,25 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Pointe les écritures
+     * Pointe les écritures (AJAX)
+     * Returns JSON response for checkbox toggle
      *
      * @param unknown_type $id
      * @param unknown_type $state
      *            avant bascule
      */
     function switch_line($id, $state, $compte, $premier) {
+        header('Content-Type: application/json');
+        
         $new_state = ($state == 0) ? 1 : 0;
         $this->gvv_model->switch_line($id, $new_state);
-        $this->pop_return_url();
+        
+        // Return JSON success response
+        echo json_encode([
+            'success' => true,
+            'new_state' => $new_state,
+            'id' => $id
+        ]);
     }
 
     /*

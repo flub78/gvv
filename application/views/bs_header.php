@@ -67,7 +67,7 @@
 	/// echo html_link(array('rel' => "stylesheet", 'media' => "screen", 'title' => "Design", 'type' => "text/css", 'href' => css_url('styles')));
 
 	// Javascript
-	echo html_script(array('type' => "text/javascript", 'src' => js_url('gvv')));
+	echo html_script(array('type' => "text/javascript", 'src' => js_url('gvv') . '?v=' . time()));
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('moment.min')));
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('selectall')));
 	if (ENVIRONMENT == "production") {

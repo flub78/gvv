@@ -4,11 +4,20 @@
 ## Bugs
 
 * [] **la page de retour après une modification des écritures est discutable**
-* [] **la page après changement de la checkbox gel est incorrecte**
+* [x] **la page après changement de la checkbox gel est incorrecte**
   
 * [] **Déconnexion intempestive**
+* [] les big_select pour les gros select (800 comptes) ne fonctionne pas
 
 ## Reste à faire
+
+* [] Supporter des comptes masqués
+  * créer une migration pour ajouter un champ boolean dans comptes "masked" 
+  * modifier le formulaire et le modèle pour pouvoir le modifier
+  * Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visibles
+  * ils ne devraient pas apparaître dans les listes de comptes, balance détaillée, résultat.
+  implémente la première étape
+
 
 * [ ] tests migration
   * [ ] phpunit

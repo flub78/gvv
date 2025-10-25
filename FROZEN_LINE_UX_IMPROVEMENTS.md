@@ -6,14 +6,27 @@ Improved user feedback when attempting to modify or delete frozen accounting lin
 ## Problem
 1. When a user tried to delete a frozen line, the operation was silently rejected with no visible feedback
 2. When a user tried to modify a frozen line, the submit button was completely hidden with no explanation
+3. When a user clicked the checkbox to freeze/unfreeze a line, the page redirected to a different page instead of staying on the current journal_compte view
 
 ## Solution
 
 ### 1. Delete Operation Feedback
-**Changed:** `application/models/ecritures_model.php`
-- Added explicit `return false` when delete is blocked due to frozen status
-- Message already existed in flashdata but wasn't always visible
-- The message "Suppression impossible, écriture gelée" will now properly display after redirect
+**Changed:** 
+- `application/controllers/compta.php` - `delete()` method checks if line is frozen before deletion
+- `application/libraries/MetaData.php` - `action()` method shows informational alert for frozen lines
+
+**Previous behavior:**
+- Delete button showed confirmation popup: "Confirmer la suppression?"
+- If line was frozen, deletion was silently rejected in model
+- User would be confused why deletion didn't work
+
+**New behavior:**
+- Controller checks `gel` field before attempting deletion
+- If frozen, shows flash message and returns without deleting
+- Delete button onclick checks if line is frozen:
+  - **Frozen line**: Shows alert "La suppression d'une écriture gelée est interdite." and returns false (no navigation)
+  - **Normal line**: Shows confirmation "Confirmer la suppression?" and proceeds if confirmed
+- Clear user feedback in all cases
 
 ### 2. Modify Operation Feedback
 **Changed:** `application/controllers/compta.php`
@@ -26,7 +39,29 @@ Improved user feedback when attempting to modify or delete frozen accounting lin
   - A disabled submit button (cannot be clicked)
 - This provides clear visual feedback about why the form cannot be submitted
 
-### 3. Language Support
+### 3. Freeze/Unfreeze Checkbox Behavior (AJAX)
+**Changed:** 
+- `application/controllers/compta.php` - `switch_line()` method converted to AJAX endpoint
+- `assets/javascript/gvv.js` - `line_checked()` function now uses AJAX
+
+**Previous behavior:** 
+- JavaScript redirected to switch_line URL: `window.location.href = url`
+- Controller used `pop_return_url()` which redirected to wrong page
+
+**New behavior:**
+- JavaScript makes AJAX POST request to switch_line
+- Controller returns JSON response: `{'success': true, 'new_state': 1, 'id': 123}`
+- JavaScript reloads the current page: `window.location.reload()`
+- This preserves the exact URL and all context perfectly
+
+**Benefits:**
+- ✅ No redirect issues
+- ✅ Stays on exact same page with same URL
+- ✅ Preserves all session state and context
+- ✅ Better error handling with JSON responses
+- ✅ More responsive UX
+
+### 4. Language Support
 **Added** to all language files:
 - French: `application/language/french/compta_lang.php`
   - `gvv_compta_frozen_line_cannot_modify`: "La modification d'une écriture gelée est interdite."
@@ -49,13 +84,15 @@ Improved user feedback when attempting to modify or delete frozen accounting lin
 **Before:**
 - Delete: Silent failure, no feedback
 - Modify: Button disappeared mysteriously
+- Freeze toggle: Redirected to wrong page
 
 **After:**
 - Delete: Proper error message displayed via flashdata
 - Modify: Clear warning message + disabled button with explanation
+- Freeze toggle: Stays on current journal_compte page
 
 ## Files Modified
-1. `application/controllers/compta.php` - Added frozen_message to view data
+1. `application/controllers/compta.php` - Added frozen_message to view data + fixed switch_line redirect
 2. `application/models/ecritures_model.php` - Return false on frozen delete attempt
 3. `application/views/compta/bs_formView.php` - Display warning + disabled button for frozen lines
 4. `application/language/french/compta_lang.php` - Added French messages
@@ -67,3 +104,4 @@ Improved user feedback when attempting to modify or delete frozen accounting lin
 - Uses Bootstrap 5 alert classes for styling consistency
 - Maintains the existing frozen line logic, only improves user feedback
 - No database schema changes required
+- The freeze/unfreeze checkbox now uses direct redirect to maintain page context
