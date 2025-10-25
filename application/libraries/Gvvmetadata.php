@@ -69,6 +69,7 @@ class GVVMetadata extends Metadata {
                 $this->field['comptes']['actif']['Name'] = 'Actif';
                 $this->field['comptes']['debit']['Name'] = 'Débit';
                 $this->field['comptes']['credit']['Name'] = 'Crédit';
+                $this->field['comptes']['masked']['Name'] = 'Masqué';
                 $this->field['comptes']['codec']['Subtype'] = 'selector';
                 $this->field['comptes']['codec']['Selector'] = 'codec_selector';
                 $this->field['comptes']['pilote']['Subtype'] = 'selector';
@@ -87,6 +88,9 @@ class GVVMetadata extends Metadata {
                 );
 
                 $this->field['comptes']['actif']['Subtype'] = 'enumerate';
+                $this->field['comptes']['masked']['Subtype'] = 'checkbox';
+                $this->field['comptes']['masked']['Type'] = 'tinyint';
+                $this->field['comptes']['masked']['Comment'] = $CI->lang->line("gvv_comptes_comment_masked");
                 $this->field['vue_comptes']['actif']['Enumerate'] = $CI->lang->line("gvv_asset_liability");
                 $this->field['vue_comptes']['debit']['Subtype'] = 'currency';
                 $this->field['vue_comptes']['credit']['Subtype'] = 'currency';

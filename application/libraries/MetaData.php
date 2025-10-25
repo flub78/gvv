@@ -1726,12 +1726,17 @@ abstract class Metadata {
         gvv_debug("input_field($table, $field, $value, $mode) type=$type, subtype=$subtype");
 
         if ($subtype == 'boolean' || 'checkbox' == $subtype) {
-            return form_checkbox(array(
+            $checkbox_attrs = array(
                 'name' => $field,
                 'id' => $field,
                 'value' => 1,
                 'checked' => (0 != $value)
-            ));
+            );
+            // Merge with any additional attributes (disabled, title, etc.)
+            if (!empty($attrs)) {
+                $checkbox_attrs = array_merge($checkbox_attrs, $attrs);
+            }
+            return form_checkbox($checkbox_attrs);
         } elseif ($subtype == 'enumerate') {
             if (isset($this->field[$table][$field]['Enumerate'])) {
                 $values = $this->field[$table][$field]['Enumerate'];
@@ -2140,6 +2145,20 @@ abstract class Metadata {
      */
     function set_selector($selector, $values) {
         $this->selectors[$selector] = $values;
+    }
+
+    /**
+     * Set a field attribute dynamically
+     * @param string $table Table name
+     * @param string $field Field name  
+     * @param string $attr_name Attribute name (e.g., 'disabled', 'readonly', 'title')
+     * @param mixed $attr_value Attribute value
+     */
+    function set_field_attr($table, $field, $attr_name, $attr_value) {
+        if (!isset($this->field[$table][$field]['Attrs'])) {
+            $this->field[$table][$field]['Attrs'] = array();
+        }
+        $this->field[$table][$field]['Attrs'][$attr_name] = $attr_value;
     }
 
     /**

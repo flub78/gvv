@@ -48,7 +48,6 @@ $lang['comptes_label_total_pertes'] = "Losses";
 $lang['comptes_label_total_benefices'] = "Profits";
 
 $lang['comptes_warning'] = "Accounts containing entries cannot be deleted";
-$lang['comptes_pilot_warning'] = "Only specify a pilot for customer account (411)";
 
 $lang['comptes_bilan_actif'] = "Financial assets";
 $lang['comptes_bilan_valeur_brute'] = "Gross value";
@@ -110,6 +109,13 @@ $lang['comptes_cloture_error_120'] = "Closing impossible, no account 120";
 $lang['comptes_cloture_error_129'] = "Closing impossible, no account 129";
 
 $lang['comptes_balance_general'] = array('Detailed' => 0, 'General' => 1);
+
+// Masked accounts
+$lang['gvv_comptes_comment_masked'] = "Check to hide the account from selectors and reports (only possible if balance is 0)";
+$lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Cannot mask an account with a non-zero balance. Current balance: %s €";
+$lang['gvv_comptes_field_masked'] = "Masked";
+$lang['gvv_comptes_masked_warning'] = "Warning: an account with a balance of %s € cannot be masked.";
+$lang['gvv_comptes_can_mask'] = "Balance is 0, account can be masked.";
 
 $lang['gvv_comptes_title_dashboard'] = "Dashboard";
 $lang['comptes_bilan_prets'] = "Loans";

@@ -31,7 +31,10 @@ class Comptes extends Gvv_Controller {
     protected $modification_level = 'tresorier';
 
     // régles de validation
-    protected $rules = ['club' => "callback_section_selected"];
+    protected $rules = [
+        'club' => "callback_section_selected",
+        'masked' => "callback_check_masked_with_balance"
+    ];
     protected $filter_variables = array(
         'filter_active',
         'filter_solde'
@@ -91,6 +94,50 @@ class Comptes extends Gvv_Controller {
         $this->gvvmetadata->set_selector('codec_selector', $this->plan_comptable_model->selector());
         $this->gvvmetadata->set_selector('compte_selector', $this->gvv_model->selector());
         $this->gvvmetadata->set_selector('pilote_selector', $pil_selector);
+        
+        // For modification, calculate current balance and pass to view
+        if ($action == MODIFICATION && isset($this->data['id'])) {
+            $compte_id = $this->data['id'];
+            $solde = $this->gvv_model->solde($compte_id);
+            $this->data['compte_solde'] = $solde;
+            $this->data['can_mask'] = ($solde == 0);
+            
+            // Disable masked checkbox if balance is not 0
+            if ($solde != 0) {
+                $this->gvvmetadata->set_field_attr('comptes', 'masked', 'disabled', 'disabled');
+                $this->gvvmetadata->set_field_attr('comptes', 'masked', 'title', 
+                    sprintf($this->lang->line('gvv_comptes_masked_warning'), 
+                        number_format($solde, 2, ',', ' ')));
+            }
+        }
+    }
+
+    /**
+     * Validation callback for masked field
+     * A compte can only be masked if its balance is 0
+     */
+    public function check_masked_with_balance($masked_value) {
+        // If not trying to mask (masked = 0), allow
+        if (!$masked_value) {
+            return TRUE;
+        }
+        
+        // If trying to mask (masked = 1), check balance
+        $compte_id = $this->input->post('id');
+        if ($compte_id) {
+            $solde = $this->gvv_model->solde($compte_id);
+            if ($solde != 0) {
+                $solde_formatted = number_format($solde, 2, ',', ' ');
+                $msg = sprintf(
+                    $this->lang->line('gvv_comptes_error_cannot_mask_non_zero_balance'),
+                    $solde_formatted
+                );
+                $this->form_validation->set_message('check_masked_with_balance', $msg);
+                return FALSE;
+            }
+        }
+        
+        return TRUE;
     }
 
     /**

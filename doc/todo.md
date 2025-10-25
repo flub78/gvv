@@ -13,7 +13,8 @@
 
 * [] Supporter des comptes masqués
   * créer une migration pour ajouter un champ boolean dans comptes "masked" 
-  * modifier le formulaire et le modèle pour pouvoir le modifier
+  * modifier le formulaire et le modèle pour pouvoir le modifier. Il n'est possible de masquer un compte que quand son solde est à 0.
+  * Modifier le filtre dans comptes/detail pour afficher tous les comptes, les comptes non masqués et les comptes masqués. Le défaut est d'afficher les comptes non masqués.
   * Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visibles
   * ils ne devraient pas apparaître dans les listes de comptes, balance détaillée, résultat.
   implémente la première étape

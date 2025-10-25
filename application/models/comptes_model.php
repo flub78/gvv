@@ -424,6 +424,17 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Retourne le solde d'un compte
+     *
+     * @param int $compte_id ID du compte
+     * @return float Solde du compte (débit - crédit)
+     */
+    public function solde($compte_id) {
+        $solde = $this->ecritures_model->solde_compte($compte_id);
+        return $solde;
+    }
+
+    /**
      * Retourne le propriétaire (membre) d'un compte pilote
      * $key id du compte 411 dont on cherche le pilote
      */

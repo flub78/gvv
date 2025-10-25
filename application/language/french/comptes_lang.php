@@ -40,7 +40,7 @@ $lang['comptes_label_balance'] = "Balance";
 $lang['comptes_label_soldes'] = "Soldes";
 $lang['comptes_label_date'] = "Date";
 $lang['comptes_label_class'] = "Classe";
-$lang['comptes_label_to'] = "jusqu'à";
+$lang['comptes_label_to'] = "jusqus'à";
 $lang['comptes_label_expenses'] = "Charges";
 $lang['comptes_label_earnings'] = "Produits";
 $lang['comptes_label_total_incomes'] = "Total produits";
@@ -49,7 +49,6 @@ $lang['comptes_label_total_pertes'] = "Pertes";
 $lang['comptes_label_total_benefices'] = "Profits";
 
 $lang['comptes_warning'] = "Il n'est pas possible de supprimer des comptes sur lesquels des écritures ont été passées";
-$lang['comptes_pilot_warning'] = "Ne saisir un pilote que pour les comptes clients (411)";
 
 $lang['comptes_bilan_actif'] = "Actif";
 $lang['comptes_bilan_valeur_brute'] = "Valeur brute";
@@ -113,3 +112,10 @@ $lang['comptes_cloture_error_120'] = "Clôture impossible car il n'y a pas de co
 $lang['comptes_cloture_error_129'] = "Clôture impossible car il n'y a pas de compte 129";
 
 $lang['comptes_balance_general'] = array('Détaillée' => 0, 'Générale' => 1);
+
+// Masked accounts
+$lang['gvv_comptes_comment_masked'] = "Cocher pour masquer le compte des sélecteurs et rapports (uniquement possible si le solde est à 0)";
+$lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Impossible de masquer un compte dont le solde n'est pas nul. Solde actuel : %s €";
+$lang['gvv_comptes_field_masked'] = "Masqué";
+$lang['gvv_comptes_masked_warning'] = "Attention : un compte avec un solde de %s € ne peut pas être masqué.";
+$lang['gvv_comptes_can_mask'] = "Le solde est à 0, le compte peut être masqué.";

@@ -56,10 +56,73 @@ echo ($this->gvvmetadata->form('comptes', array(
 	'debit' => $debit,		// Support pour les champs readonly et hidden ???
 	'credit' => $credit,    // Dans ce cas le concept est cachée ou readonly seulement à la création ...
 	'saisie_par' => $saisie_par,
-	'pilote' => $pilote
+	'pilote' => $pilote,
+	'masked' => $masked
 )));
-echo $this->lang->line('comptes_pilot_warning');
+
+// Display message about masked field and balance
+if ($action == MODIFICATION && isset($compte_solde)) {
+	echo '<div class="mt-3">';
+	if ($can_mask) {
+		echo '<div class="alert alert-info">';
+		echo '<i class="bi bi-info-circle"></i> ' . $this->lang->line('gvv_comptes_can_mask');
+		echo '</div>';
+	} else {
+		echo '<div class="alert alert-warning">';
+		$solde_formatted = number_format($compte_solde, 2, ',', ' ');
+		echo '<i class="bi bi-exclamation-triangle"></i> ';
+		echo sprintf($this->lang->line('gvv_comptes_masked_warning'), $solde_formatted);
+		echo '</div>';
+	}
+	echo '</div>';
+}
+
 echo validation_button($action);
 echo form_close();
+
+// JavaScript to enable/disable pilote selector based on codec selection
+?>
+<script type="text/javascript">
+jQuery(document).ready(function($) {
+    // Function to check codec and enable/disable pilote selector
+    function updatePiloteSelector() {
+        var codecValue = $('#codec').val();
+        var piloteSelect = $('#pilote');
+        
+        console.log('Codec selected:', codecValue);
+        
+        // Enable pilote selector only if codec is 411 (Clients)
+        if (codecValue == '411') {
+            piloteSelect.prop('disabled', false);
+            piloteSelect.closest('tr').show(); // Show the row
+            console.log('Pilote selector enabled (codec 411)');
+        } else {
+            piloteSelect.prop('disabled', true);
+            piloteSelect.val(''); // Clear selection
+            piloteSelect.closest('tr').hide(); // Hide the row
+            console.log('Pilote selector disabled (codec not 411)');
+        }
+        
+        // Trigger Select2 update if using Select2
+        if (piloteSelect.hasClass('select2-hidden-accessible')) {
+            piloteSelect.trigger('change.select2');
+        }
+    }
+    
+    // Run on page load
+    updatePiloteSelector();
+    
+    // Run when codec selector changes
+    $('#codec').on('change', function() {
+        updatePiloteSelector();
+    });
+    
+    // Also handle Select2 change events
+    $('#codec').on('select2:select', function() {
+        updatePiloteSelector();
+    });
+});
+</script>
+<?php
 
 echo '</div>';

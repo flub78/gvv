@@ -48,7 +48,6 @@ $lang['comptes_label_total_pertes'] = "Totaal verliezen";
 $lang['comptes_label_total_benefices'] = "Totaal winsten";
 
 $lang['comptes_warning'] = "Het is niet mogelijk rekeningen te verwijderen waarop reeds verwerkingen zijn gebeurd.";
-$lang['comptes_pilot_warning'] = "Enkel een piloot kiezen voor een klantenrekening (411)";
 
 $lang['comptes_bilan_actif'] = "Actief";
 $lang['comptes_bilan_valeur_brute'] = "Brutto waarde";
@@ -110,6 +109,13 @@ $lang['comptes_cloture_error_120'] = "Sluiting niet mogelijk omdat er geen reken
 $lang['comptes_cloture_error_129'] = "Sluiting niet mogelijk omdat er geen rekening 129 is";
 
 $lang['comptes_balance_general'] = array('Gedetailleerd' => 0, 'Algemeen' => 1);
+
+// Masked accounts
+$lang['gvv_comptes_comment_masked'] = "Aanvinken om de rekening te verbergen in selectoren en rapporten (alleen mogelijk als saldo 0 is)";
+$lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Kan geen rekening verbergen met een saldo dat niet nul is. Huidig saldo: %s €";
+$lang['gvv_comptes_field_masked'] = "Verborgen";
+$lang['gvv_comptes_masked_warning'] = "Waarschuwing: een rekening met een saldo van %s € kan niet worden verborgen.";
+$lang['gvv_comptes_can_mask'] = "Saldo is 0, rekening kan worden verborgen.";
 
 $lang['gvv_comptes_title_dashboard'] = "Dashboard";
 $lang['comptes_bilan_prets'] = "Leningen";
