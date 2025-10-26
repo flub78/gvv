@@ -1,10 +1,10 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.1
-**Date:** 2025-01-08 (Updated: 2025-10-24)
-**Status:** Phases 0-7 Complete, Phases 8-12 Planned (v2.0)
+**Document Version:** 2.3
+**Date:** 2025-01-08 (Updated: 2025-10-26)
+**Status:** Phase 7 Complete, Per-User Migration Strategy Implemented
 **Author:** Claude Code Analysis
-**Based on:** PRD v2.0 - Code-Based Permission Management
+**Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
 
 ---
 
@@ -12,13 +12,36 @@
 
 **Major Architecture Change (v2.0):** Following analysis of the implementation (v1.0), the permission management approach has been revised. Instead of managing ~300 permissions in the database (`role_permissions` table), permissions will now be **declared directly in controller code** via declarative API calls. This simplifies maintenance, improves code-permission coherence, and reduces complexity.
 
+**Migration Strategy (v2.3 - Updated):** Per-user progressive deployment with global flag
+
+### 🚀 **Path 1: Per-User Progressive Migration (RECOMMENDED - 3-4 weeks)**
+- ✅ **Granular testing**: Start with 2-3 dev users, expand to 5-10 pilot users
+- ✅ **Zero risk**: Test in production with real users, others unaffected
+- ✅ **Multi-level rollback**: Per-user, pilot group, or global rollback
+- ✅ **PRD-compliant**: Follows Section 6.1 (Per-User Progressive Migration)
+- ✅ **Global cutover**: Single flag flip moves all users when ready
+- **Mechanism**: New table `use_new_authorization` lists users on new system
+- **Phases**: M1-M5 (Per-user testing → Global migration → Cleanup)
+- **Timeline**: 3-4 weeks to production (includes 1-2 week pilot)
+- **Current Status**: Phase M1 complete, starting M2
+
+### ⏳ **Path 2: Controller Code Migration (OPTIONAL - 10+ weeks)**
+- Code cleanliness: All 53 controllers declare permissions in code
+- Long-term maintenance: Permissions visible in controller code
+- Performance optimization: Remove database permission lookups
+- **Phases**: 8-12 (Controller migration phases)
+- **Timeline**: ~10 weeks additional work
+- **Status**: Can be done AFTER production deployment via Path 1
+
+**Recommendation**: Use **Path 1** to go to production quickly, then optionally pursue **Path 2** for code improvements.
+
 **Legacy System Status:** The current implementation (Phases 0-6) remains functional and will be maintained during the transition. The `role_permissions` table will be deprecated but preserved for rollback capability.
 
 ---
 
 ## Current Status Summary
 
-### ✅ Completed Phases (0-6) - Legacy System
+### ✅ Completed Phases (0-7) - Infrastructure Ready
 
 **Phase 0-2: Infrastructure & Data** ✅
 - Database schema migrated (042_authorization_refactoring.php)
@@ -329,28 +352,45 @@
 
 ## Project Status Dashboard (v2.0)
 
+### Development Phases
+
 | Phase | Status | Progress | Estimated Duration | Notes |
 |-------|--------|----------|-------------------|-------|
 | **0-6: Legacy System** | ✅ Complete | 100% | - | Database, UI, dual-mode ready |
 | **7: Code-Based API** | ✅ Complete | 100% | 1 day | Completed 2025-10-24 |
-| **8: Pilot Migration** | 🔵 Planned | 0% | 3-4 days | 7 simple controllers |
-| **9: Complex Controllers** | 🔵 Planned | 0% | 5-7 days | 7 controllers with exceptions |
-| **10: Full Migration** | 🔵 Planned | 0% | 15-20 days | 35 remaining controllers |
-| **11: Cleanup** | 🔵 Planned | 0% | 5-7 days | Remove legacy code |
-| **12: Production Deploy** | 🔵 Planned | 0% | 3-5 days + 1 week | Final deployment |
-| **Overall** | 🟡 In Progress | ~55% | ~40-50 days total | Phase 7 complete, ready for pilot |
+| **8: Pilot Migration** | 🔵 Planned | 0% | 3-4 days | 7 simple controllers (Optional) |
+| **9: Complex Controllers** | 🔵 Planned | 0% | 5-7 days | 7 controllers with exceptions (Optional) |
+| **10: Full Migration** | 🔵 Planned | 0% | 15-20 days | 35 remaining controllers (Optional) |
+| **11: Cleanup** | 🔵 Planned | 0% | 5-7 days | Remove legacy code (Optional) |
+| **12: Production Deploy** | 🔵 Planned | 0% | 3-5 days + 1 week | Final deployment (Optional) |
+
+**Note**: Phases 8-12 are now **optional** with the feature flag approach. System can go to production after Phase 7 by enabling the flag.
+
+### Migration Phases (Feature Flag Based)
+
+| Phase | Status | Duration | Flag Status | User Impact | Notes |
+|-------|--------|----------|-------------|-------------|-------|
+| **M1: Preparation** | ✅ Complete | - | FALSE | None | Infrastructure ready |
+| **M2: Role Setup** | ⏳ Current | 1-2 days | FALSE | None | Grant user roles via SQL |
+| **M3: Testing** | 🔵 Next | 3-5 days | TRUE (test env) | None | Validate with test users |
+| **M4: Pilot** | 🔵 Planned | 1 weekend | TRUE (production) | Minimal | Optional weekend test |
+| **M5: Production** | 🔵 Planned | 1 week | TRUE (permanent) | None | Full cutover with monitoring |
+| **M6: Cleanup** | 🔵 Future | 1-2 days | TRUE (hardcoded) | None | Remove flag (optional) |
+
+**Total Time to Production**: 2-3 weeks (phases M2-M5)
 
 ### Detailed Metrics
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
 | **Legacy System (Phases 0-6)** | 100% | 100% | 🟢 Complete |
-| **Code-Based System (Phases 7-12)** | 100% | 17% | 🟡 Phase 7 Complete |
-| **Controllers Migrated** | 53 | 0 | 🔴 Starting Phase 8 |
-| **Database Tables** | 5 active + 1 deprecated | 6 active | 🟡 Migration 047 pending |
+| **Code-Based API (Phase 7)** | 100% | 100% | 🟢 Complete |
+| **Migration Path** | Feature Flag | Feature Flag | 🟢 PRD-Compliant |
+| **User Roles Setup** | All users | ~30% | 🟡 Phase M2 In Progress |
+| **Feature Flag Status** | TRUE (prod) | FALSE (all envs) | 🔴 Awaiting M3 testing |
 | **Tests Passing** | 100% | Unit: 100%, Integration: 100% | 🟢 Complete (213/213) |
-| **Documentation** | Complete | ~75% | 🟢 Phase 7 docs complete |
-| **Production Ready** | TRUE | FALSE | 🔴 Phase 12 |
+| **Documentation** | Complete | ~85% | 🟢 Migration section added |
+| **Production Ready** | TRUE | FALSE | 🟡 2-3 weeks (via flag) |
 
 ---
 
@@ -445,40 +485,558 @@ doc/
 
 ---
 
-## Feature Flag Configuration
+## Migration Strategy with Feature Flag
+
+### Overview
+
+The migration to the new authorization system uses a **feature flag approach** that allows:
+- ✅ Testing the new system with a subset of users
+- ✅ Setting up all user permissions before full cutover
+- ✅ Quick rollback by flipping the flag
+- ✅ Gradual, low-risk production deployment
+
+### Per-User Migration Configuration
+
+The migration system now supports **granular per-user testing** before global rollout.
+
+#### Database Table: `use_new_authorization`
+
+**Purpose**: Enable testing the new system with specific users while others remain on legacy system.
+
+**Structure**:
+```sql
+CREATE TABLE use_new_authorization (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    KEY idx_username (username)
+);
+```
+
+**Management**: Manual SQL operations (no GUI required)
+
+**Examples**:
+```sql
+-- Add users to test new system
+INSERT INTO use_new_authorization (username) VALUES ('fpeignot');
+INSERT INTO use_new_authorization (username) VALUES ('test_user');
+
+-- Remove user from new system (rollback to legacy)
+DELETE FROM use_new_authorization WHERE username = 'test_user';
+
+-- List users on new system
+SELECT username FROM use_new_authorization ORDER BY username;
+
+-- Clear all test users
+TRUNCATE use_new_authorization;
+```
+
+#### Global Flag Configuration
 
 **File**: `application/config/gvv_config.php`
 
 ```php
-$config['use_new_authorization'] = FALSE;  // Will be removed in v2.0
+/*
+|--------------------------------------------------------------------------
+| Authorization System
+|--------------------------------------------------------------------------
+|
+| use_new_authorization: Enable the new structured authorization system
+|
+| Set to TRUE to use the new Gvv_Authorization library with:
+|   - Code-based permissions (require_roles, allow_roles)
+|   - user_roles_per_section table
+|   - data_access_rules for row-level security
+|
+| Set to FALSE to use the legacy DX_Auth system with PHP-serialized permissions.
+|
+| DEFAULT: FALSE (use legacy system until migration is complete)
+|
+*/
+$config['use_new_authorization'] = FALSE;
 ```
 
-**Status (v2.0)**:
-- Legacy feature flag no longer needed (code-based permissions don't require flag)
-- Will be removed in Phase 11 cleanup
-- Code-based approach is the new default after Phase 12
+#### Decision Logic (Priority Order)
+
+The system determines which authorization to use based on this priority:
+
+1. **Per-User Check**: If username exists in `use_new_authorization` table → **New system**
+2. **Global Flag Check**:
+   - If `$config['use_new_authorization'] = TRUE` → **New system for all**
+   - If `$config['use_new_authorization'] = FALSE` → **Legacy system for all**
+
+**Key Benefit**: When flag is TRUE (Phase M4), the per-user table is **ignored** and everyone uses the new system.
+
+### Migration Phases with Feature Flag
+
+#### **Phase M1: Preparation (Current State)**
+**Config**: Flag = FALSE, Table `use_new_authorization` empty
+
+**Actions**:
+- ✅ Database tables created (`user_roles_per_section`, `types_roles`, etc.)
+- ✅ Authorization library ready (`Gvv_Authorization.php`)
+- ✅ Code-based API implemented (`require_roles()`, `allow_roles()`)
+- ⏳ **Next Step 1**: Create table `use_new_authorization`
+- ⏳ **Next Step 2**: Grant user roles to all existing users
+
+**User Impact**: None - all users on legacy system
 
 ---
 
-## Next Immediate Actions (Updated v2.0)
+#### **Phase M2: User Role Setup + Dev Testing**
+**Config**: Flag = FALSE, Table `use_new_authorization` has 2-3 dev users
 
-### Current Priority: Pilot Controller Migration
+**Actions**:
+1. **Create migration table**:
+   ```sql
+   CREATE TABLE use_new_authorization (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       username VARCHAR(255) NOT NULL UNIQUE,
+       KEY idx_username (username)
+   );
+   ```
 
-**Completed**: Phases 0-7 complete, API ready for use
+2. **Grant user roles** (SQL script):
+   ```bash
+   mysql -h localhost -u gvv_user -p gvv2 < grant_user_roles_simple.sql
+   ```
 
-1. **✅ Phase 7: Code-Based API Implementation** - COMPLETE:
-   - ✅ Extended `Gvv_Authorization` with `require_roles()`, `allow_roles()`, `can_edit_row()`
-   - ✅ Added helpers to `Gvv_Controller`
-   - ✅ Wrote unit tests for new API (15 tests, all passing)
-   - ✅ Created developer documentation guide (647 lines)
+3. **Assign specialized roles** via UI:
+   - Navigate: Admin → Club Admin → Gestion des autorisations
+   - Assign: planchiste, ca, bureau, tresorier, club-admin roles
 
-2. **🔵 Phase 8: Pilot Controller Migration** (3-4 days) - NEXT:
-   - [ ] Migrate 7 simple controllers:
-     - `sections` (ca only)
-     - `terrains` (ca only)
-     - `alarmes` (ca only)
-     - `presences` (ca only)
-     - `licences` (ca only)
+4. **Add dev test users**:
+   ```sql
+   INSERT INTO use_new_authorization (username) VALUES
+       ('dev_user1'), ('dev_user2');
+   ```
+
+5. **Test with dev users** (development environment):
+   - Login as dev users
+   - Verify new authorization system is used
+   - Test basic access patterns
+   - Check audit logs
+
+**User Impact**:
+- Production users: None (still on legacy)
+- Dev users: Testing new system
+
+**Duration**: 2-3 days
+
+**Rollback**: Remove dev users from table
+
+---
+
+#### **Phase M3: Production Pilot Testing**
+**Config**: Flag = FALSE, Table `use_new_authorization` has 5-10 pilot users
+
+**Actions**:
+1. **Select pilot users** (production):
+   - Choose 5-10 experienced users
+   - Mix of roles: user, planchiste, ca, tresorier
+   - Include at least 1 administrator
+
+2. **Add pilot users to table**:
+   ```sql
+   INSERT INTO use_new_authorization (username) VALUES
+       ('fpeignot'), ('agnes'), ('pilot_user3'), ('pilot_user4'), ('pilot_user5');
+   ```
+
+3. **Notify pilot users**:
+   - Explain they're testing new authorization system
+   - Provide contact for reporting issues
+   - Request feedback on any access problems
+
+4. **Monitor intensively** (1-2 weeks):
+   - Check audit logs daily
+   - Look for access denials
+   - Monitor error logs
+   - Gather pilot user feedback
+
+5. **Validation checklist**:
+   - [ ] Pilot users can access authorized pages
+   - [ ] Unauthorized access properly denied
+   - [ ] Audit log shows correct decisions
+   - [ ] Performance acceptable (< 10ms)
+   - [ ] No errors in logs
+   - [ ] Pilot user feedback positive
+
+**User Impact**:
+- Pilot users: Using new system (5-10 users)
+- Other users: Still on legacy (~400+ users)
+
+**Duration**: 1-2 weeks
+
+**Rollback**: Remove specific users from table, or `TRUNCATE use_new_authorization;`
+
+---
+
+#### **Phase M4: Global Migration**
+**Config**: Flag = TRUE (per-user table now ignored - ALL users on new system)
+
+**Actions**:
+1. **Pre-cutover validation**:
+   - [ ] Phase M3 pilot completed successfully (1-2 weeks)
+   - [ ] All pilot user feedback addressed
+   - [ ] All users have roles in `user_roles_per_section`
+   - [ ] Database backup completed
+   - [ ] Rollback plan ready
+
+2. **Monday morning cutover**:
+   - Enable flag: `$config['use_new_authorization'] = TRUE;`
+   - **Effect**: ALL users immediately switch to new system
+   - Announce to users: "Authorization system upgraded"
+   - Monitor intensively for 48 hours
+
+3. **Post-cutover monitoring**:
+   - Day 1-2: Check logs every 2 hours
+   - Day 3-7: Check logs daily
+   - Week 2+: Normal monitoring
+
+4. **If major issues arise**:
+   - Immediately flip flag: `$config['use_new_authorization'] = FALSE;`
+   - All users revert to legacy instantly
+   - Investigate and fix issues
+   - Retry when ready
+
+**User Impact**: All users on new system - should be transparent
+
+**Duration**: 1 week intensive monitoring
+
+**Rollback**: Set flag to FALSE (< 1 minute)
+
+---
+
+#### **Phase M5: Cleanup and Finalization**
+**Config**: Flag = TRUE (table `use_new_authorization` can be dropped)
+
+**Actions** (After 30 days successful operation):
+
+1. **Drop per-user migration table**:
+   ```sql
+   DROP TABLE use_new_authorization;
+   ```
+   (No longer needed - flag controls everything)
+
+2. **Archive legacy permissions**:
+   ```sql
+   RENAME TABLE role_permissions TO role_permissions_legacy_backup;
+   ```
+
+3. **Optional code cleanup**:
+   - Remove legacy authorization code (if desired)
+   - Remove feature flag (hardcode TRUE)
+   - Update documentation
+
+**User Impact**: None
+
+**Duration**: 1-2 days
+
+**Note**: This cleanup is optional - systems can coexist indefinitely
+
+---
+
+### Rollback Procedures
+
+The new per-user migration table enables **granular rollback** at different levels:
+
+#### **Level 1: Per-User Rollback (Phases M2-M3)**
+
+**When**: Individual pilot user encounters problems
+
+**Action**:
+```sql
+-- Remove specific user from new system
+DELETE FROM use_new_authorization WHERE username = 'problematic_user';
+```
+
+**Effect**: User immediately reverts to legacy system, other pilots unaffected
+
+**Time**: < 30 seconds
+
+**Use Case**: One pilot user reports issues, others are fine
+
+---
+
+#### **Level 2: Full Pilot Rollback (Phase M3)**
+
+**When**: Multiple pilot users have issues, need to abort pilot testing
+
+**Action**:
+```sql
+-- Remove all pilot users
+TRUNCATE use_new_authorization;
+```
+
+**Effect**: All pilot users revert to legacy system
+
+**Time**: < 1 minute
+
+**Use Case**: Systemic problem found during pilot, need to regroup
+
+---
+
+#### **Level 3: Global Rollback (Phase M4+)**
+
+**When**: Major issues after global cutover
+
+**Action**:
+```php
+// In application/config/gvv_config.php
+$config['use_new_authorization'] = FALSE;
+```
+
+**Effect**: ALL users immediately revert to legacy system
+
+**Time**: < 1 minute (edit config file)
+
+**Use Case**: Critical bug found after global migration
+
+---
+
+#### **Level 4: Complete System Rollback (Emergency)**
+
+**When**: Database corruption or major system failure
+
+**Actions**:
+1. Set flag to FALSE: `$config['use_new_authorization'] = FALSE;`
+2. Restore database from backup (if needed)
+3. Clear per-user table: `TRUNCATE use_new_authorization;`
+4. Verify legacy system operational
+
+**Effect**: Complete return to pre-migration state
+
+**Time**: < 5 minutes (assuming backup available)
+
+**Use Case**: Catastrophic failure requiring full restoration
+
+---
+
+### Migration Timeline Summary
+
+| Phase | Duration | Users Affected | Rollback Level |
+|-------|----------|----------------|----------------|
+| M1 - Preparation | Current | None | N/A |
+| M2 - Dev Testing | 2-3 days | 2-3 dev users | Level 1 or 2 |
+| M3 - Pilot Testing | 1-2 weeks | 5-10 pilot users | Level 1 or 2 |
+| M4 - Global Migration | 1 week | All users (~400+) | Level 3 |
+| M5 - Cleanup | 1-2 days | None | Level 3 |
+
+**Total Time to Production**: 3-4 weeks
+
+**Risk Level**: Very Low (granular testing + instant rollback at every stage)
+
+#### **During Phases M2-M4 (Testing)**
+**Simple Rollback**:
+1. Set `$config['use_new_authorization'] = FALSE;`
+2. Clear cache (if any)
+3. Test legacy system still works
+
+**Time to Rollback**: < 5 minutes
+
+---
+
+#### **During Phase M5 (Production Cutover)**
+**Emergency Rollback** (if issues found):
+1. Immediately set `$config['use_new_authorization'] = FALSE;`
+2. Verify legacy system operational
+3. Communicate to users
+4. Investigate issue in test environment
+
+**Time to Rollback**: < 5 minutes
+
+**Data Loss**: None - both systems use same user tables
+
+---
+
+#### **After Phase M6 (Legacy Removed)**
+**Full Rollback** (requires code revert):
+1. Revert Git commits (restore legacy code)
+2. Restore `role_permissions` table from `role_permissions_legacy`
+3. Set flag back to FALSE
+4. Deploy code
+
+**Time to Rollback**: 30-60 minutes
+
+---
+
+### Current Status: Phase M1 → M2 Transition
+
+**Completed**:
+- ✅ Database schema ready
+- ✅ Authorization library implemented
+- ✅ Code-based API ready
+- ✅ Test suite passing (213/213 tests)
+- ✅ Feature flag configured (currently FALSE)
+
+**Next Steps**:
+1. **Immediate**: Grant 'user' roles to all users with compte 411 (SQL script ready)
+2. **This week**: Assign specialized roles (planchiste, ca, tresorier) via UI
+3. **Next week**: Enable flag on test environment, begin Phase M3 testing
+
+**Timeline**:
+- Phase M2 (Role Setup): 1-2 days
+- Phase M3 (Testing): 3-5 days  
+- Phase M4 (Pilot): 1 weekend (optional)
+- Phase M5 (Cutover): 1 week monitoring
+- **Total**: 2-3 weeks to production
+
+---
+
+### Feature Flag Status Dashboard
+
+| Environment | Flag Status | User Roles Setup | Testing Status | Production Ready |
+|-------------|-------------|------------------|----------------|------------------|
+| **Development** | FALSE | ✅ Complete | ✅ Unit tests passing | N/A |
+| **Test/Staging** | FALSE → TRUE | ⏳ In progress | ⏳ Pending M3 | Not yet |
+| **Production** | FALSE | ⏳ In progress | ⏳ Pending M4 | Not yet |
+
+**Next Milestone**: Enable flag on test environment after user roles setup
+
+---
+
+## Next Immediate Actions (Updated v2.1 - Feature Flag Migration)
+
+### Current Priority: User Role Setup & Testing (Phase M2 → M3)
+
+**Completed**: 
+- ✅ Phases 0-7 complete (Infrastructure + API ready)
+- ✅ Feature flag configured (currently FALSE in all environments)
+- ✅ Migration strategy documented with 6 phases (M1-M6)
+
+### Immediate Actions (This Week - Phase M2)
+
+1. **⏳ Grant User Roles via SQL Script**:
+   ```bash
+   # Backup first
+   mysqldump -h localhost -u gvv_user -p gvv2 user_roles_per_section > backup_roles.sql
+   
+   # Grant 'user' role to all users with compte 411
+   mysql -h localhost -u gvv_user -p gvv2 < grant_user_roles_simple.sql
+   ```
+   
+   **Expected Result**: ~106 users granted 'user' role across sections:
+   - Section 1 (Planeur): Already complete (289 users)
+   - Section 2 (ULM): ~61 users to be granted
+   - Section 3 (Avion): ~45 users to be granted
+   - Section 4 (Général): Already complete (278 users)
+
+2. **⏳ Assign Specialized Roles via UI**:
+   - Navigate to: Admin → Club Admin → Gestion des autorisations
+   - Assign roles manually:
+     - **planchiste**: Flight loggers who can edit/delete flights
+     - **ca**: Board members (Conseil d'Administration)
+     - **bureau**: Office members
+     - **tresorier**: Treasurers
+     - **club-admin**: Full administrators
+   
+   **Tool**: Use the Authorization UI (completed in Phase 4)
+   
+   **Estimated Time**: 2-3 hours
+
+3. **⏳ Verify All Users Have Roles**:
+   ```sql
+   -- Check role distribution
+   SELECT s.nom, tr.nom, COUNT(*) as user_count
+   FROM user_roles_per_section urps
+   JOIN sections s ON urps.section_id = s.id
+   JOIN types_roles tr ON urps.types_roles_id = tr.id
+   WHERE urps.revoked_at IS NULL
+   GROUP BY s.nom, tr.nom
+   ORDER BY s.id, tr.id;
+   ```
+
+**Duration**: 1-2 days
+
+---
+
+### Next Actions (Next Week - Phase M3)
+
+4. **🔵 Enable Feature Flag on Test Environment**:
+   - Edit `application/config/gvv_config.php` on test server:
+     ```php
+     $config['use_new_authorization'] = TRUE;  // Enable new system
+     ```
+   - Clear any caches
+   - Test with multiple user accounts
+
+5. **🔵 Comprehensive Testing**:
+   - Test each role type:
+     - [ ] Basic user (role: user) - can view own data
+     - [ ] Flight logger (role: planchiste) - can edit flights
+     - [ ] Board member (role: ca) - can access admin pages
+     - [ ] Treasurer (role: tresorier) - can access accounting
+     - [ ] Administrator (role: club-admin) - full access
+   
+   - Test authorization scenarios:
+     - [ ] Access granted for authorized pages
+     - [ ] Access denied for unauthorized pages
+     - [ ] Audit log records all attempts
+     - [ ] Row-level security works (own vs all)
+   
+   - Performance testing:
+     - [ ] Authorization checks < 10ms
+     - [ ] No performance degradation
+
+6. **🔵 Review Audit Logs**:
+   ```sql
+   -- Check recent authorization decisions
+   SELECT * FROM authorization_audit_log 
+   WHERE created_at > DATE_SUB(NOW(), INTERVAL 1 DAY)
+   ORDER BY created_at DESC
+   LIMIT 100;
+   ```
+
+**Duration**: 3-5 days
+
+---
+
+### Optional Actions (Phase M4 - Production Pilot)
+
+7. **🔵 Weekend Production Pilot** (Optional but Recommended):
+   - Friday evening: Enable flag in production
+   - Monitor for 2-4 hours
+   - If successful, leave enabled through weekend
+   - If issues, revert flag to FALSE
+   - Monday: Evaluate results
+
+**Duration**: 1 weekend
+
+---
+
+### Alternative Path: Skip Controller Migration (Phases 8-10)
+
+**Important Note**: With the feature flag approach, **controller migration (Phases 8-10) is now optional**. The system can go to production via the feature flag alone:
+
+- ✅ **With feature flag**: Production-ready in 2-3 weeks (M2-M5)
+- ⏳ **With controller migration**: Production-ready in ~10 weeks (Phases 8-12)
+
+**Recommendation**: 
+1. Go to production via feature flag first (Phases M2-M5)
+2. Optionally migrate controllers later (Phases 8-10) for cleaner code
+3. Keep feature flag indefinitely as a safety mechanism
+
+---
+
+### Documentation Updates
+
+8. **🔵 Update Phase 8-12 Status**:
+   - Mark Phases 8-12 as "Optional - Post-Production Enhancement"
+   - Focus on feature flag migration path (M1-M6)
+   - Update PRD to reflect chosen approach
+
+---
+
+### Timeline Summary
+
+| Phase | Action | Duration | Start |
+|-------|--------|----------|-------|
+| **M2** | Grant user roles, assign specialized roles | 1-2 days | This week |
+| **M3** | Test on staging with flag TRUE | 3-5 days | Next week |
+| **M4** | Optional production pilot | 1 weekend | Week 3 |
+| **M5** | Full production cutover | 1 week | Week 3-4 |
+| **Total** | **Ready for production** | **2-3 weeks** | - |
+
+**Current Status**: Phase M1 complete, starting M2 today
      - `tarifs` (ca only)
      - `calendar` (user)
    - [ ] Create mapping document (old permissions → new code)
@@ -611,6 +1169,19 @@ $config['use_new_authorization'] = FALSE;  // Will be removed in v2.0
   - All 213 tests passing
   - Project now 55% complete, ready for Phase 8 pilot migration
   - Updated timeline: 46 days remaining (Phases 8-12)
+- **v2.2 (2025-10-26): Feature flag migration strategy added**
+  - ✅ Added comprehensive "Migration Strategy with Feature Flag" section
+  - Two paths to production defined:
+    - **Path 1 (Recommended)**: Feature flag migration (2-3 weeks) - Phases M1-M6
+    - **Path 2 (Optional)**: Controller code migration (10 weeks) - Phases 8-12
+  - PRD Section 6.1 (Principe de Migration Progressive) now properly addressed
+  - Feature flag usage documented: `use_new_authorization` controls system selection
+  - Progressive user-based testing strategy defined
+  - Rollback procedures clarified (< 5 min with flag flip)
+  - Current status: Phase M1 complete, M2 in progress (user role setup)
+  - Created quick reference: `AUTHORIZATION_MIGRATION_QUICKREF.md`
+  - Timeline to production: 2-3 weeks via feature flag approach
+  - Phases 8-12 marked as optional post-production enhancements
 
 ---
 

@@ -7,12 +7,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Provides dual-mode authorization support for progressive migration
  * from DX_Auth to Gvv_Authorization system.
  *
+ * Authorization system selection based on configuration:
+ * - If use_new_authorization = FALSE: All users use legacy DX_Auth
+ * - If use_new_authorization = TRUE && authorization_progressive_migration = FALSE:
+ *   All users use new Gvv_Authorization system (global migration)
+ * - If use_new_authorization = TRUE && authorization_progressive_migration = TRUE:
+ *   Per-user migration based on authorization_migration_status table
+ *
  * Part of Phase 6: Progressive Migration - Dual Mode
+ * Updated: v2.2 - Feature flag support for global migration
  *
  * @package    GVV
  * @subpackage Core
  * @author     GVV Development Team
- * @date       2025-10-21
+ * @date       2025-10-21 (Updated: 2025-10-26)
  */
 class Gvv_Controller extends CI_Controller
 {
@@ -59,8 +67,18 @@ class Gvv_Controller extends CI_Controller
      * Initialize authentication and determine which system to use
      *
      * Checks user login status via DX_Auth and then determines whether
-     * to route authorization checks through the new or legacy system
-     * based on the user's migration status.
+     * to route authorization checks through the new or legacy system.
+     *
+     * Decision flow:
+     * 1. If use_new_authorization = FALSE: Use legacy DX_Auth for all users
+     * 2. If use_new_authorization = TRUE:
+     *    a. If authorization_progressive_migration = TRUE: Check per-user status
+     *    b. If authorization_progressive_migration = FALSE: Use new system for all
+     *
+     * This allows three migration strategies:
+     * - Legacy only (flag = FALSE)
+     * - Global migration (flag = TRUE, progressive = FALSE)
+     * - Progressive per-user migration (flag = TRUE, progressive = TRUE)
      *
      * @return void
      */
@@ -74,16 +92,36 @@ class Gvv_Controller extends CI_Controller
         // Get user ID from session
         $this->user_id = $this->dx_auth->get_user_id();
 
-        // Check migration status for this user
-        $migration = $this->authorization_model->get_migration_status($this->user_id);
+        // Load config to check global authorization flag
+        $this->config->load('gvv_config', TRUE);
+        $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
+        $progressive_migration = $this->config->item('authorization_progressive_migration', 'gvv_config');
 
-        if ($migration && $migration['use_new_system'] == 1) {
-            $this->use_new_auth = TRUE;
-            $this->migration_status = $migration['migration_status'];
-            log_message('debug', "GVV_Controller: User {$this->user_id} using NEW authorization system (status: {$this->migration_status})");
+        // Determine which authorization system to use
+        if ($use_new_authorization) {
+            // Global flag enabled - check if progressive migration is also enabled
+            if ($progressive_migration) {
+                // Progressive mode: check per-user migration status
+                $migration = $this->authorization_model->get_migration_status($this->user_id);
+                
+                if ($migration && $migration['use_new_system'] == 1) {
+                    $this->use_new_auth = TRUE;
+                    $this->migration_status = $migration['migration_status'];
+                    log_message('debug', "GVV_Controller: User {$this->user_id} using NEW authorization (progressive mode, status: {$this->migration_status})");
+                } else {
+                    $this->use_new_auth = FALSE;
+                    log_message('debug', "GVV_Controller: User {$this->user_id} using LEGACY authorization (progressive mode, not migrated)");
+                }
+            } else {
+                // Global mode: all users use new system
+                $this->use_new_auth = TRUE;
+                $this->migration_status = 'global_enabled';
+                log_message('debug', "GVV_Controller: User {$this->user_id} using NEW authorization system (global mode)");
+            }
         } else {
+            // Global flag disabled - all users use legacy system
             $this->use_new_auth = FALSE;
-            log_message('debug', "GVV_Controller: User {$this->user_id} using LEGACY authorization system");
+            log_message('debug', "GVV_Controller: User {$this->user_id} using LEGACY authorization system (global flag disabled)");
         }
     }
 

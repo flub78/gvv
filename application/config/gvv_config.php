@@ -29,7 +29,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | @see application/libraries/DX_Auth.php
 |
 */
-$config['use_new_authorization'] = FALSE;
+$config['use_new_authorization'] = false;
 
 /*
 |--------------------------------------------------------------------------

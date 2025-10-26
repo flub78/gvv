@@ -272,27 +272,65 @@ Plusieurs patterns d'exceptions sont identifiés et doivent être supportés :
 
 ### 6.1. Principe de Migration Progressive
 
-La migration vers le système d'autorisation basé sur le code doit être **progressive et réversible** :
+La migration vers le système d'autorisation basé sur le code doit être **progressive et réversible** avec une granularité par utilisateur :
+
+#### 6.1.1. Mécanisme de Migration par Utilisateur
+
+**Table `use_new_authorization`** :
+- **Structure** :
+  - `id` : INT AUTO_INCREMENT PRIMARY KEY
+  - `username` : VARCHAR(255) NOT NULL UNIQUE
+- **Objectif** : Permettre de tester le nouveau système avec des utilisateurs spécifiques
+- **Fonctionnement** :
+  - Si un utilisateur existe dans cette table → il utilise le **nouveau système**
+  - Si un utilisateur n'existe pas dans cette table → comportement selon le flag global `use_new_authorization`
+- **Gestion** : Ajout/suppression manuel via SQL (pas d'interface GUI nécessaire)
+
+#### 6.1.2. Logique de Décision
+
+L'ordre de priorité pour déterminer quel système d'autorisation utiliser :
+
+1. **Vérification utilisateur spécifique** :
+   - Si `username` existe dans la table `use_new_authorization` → **Nouveau système**
+2. **Vérification flag global** :
+   - Si `$config['use_new_authorization'] = TRUE` → **Nouveau système pour tous**
+   - Si `$config['use_new_authorization'] = FALSE` → **Ancien système pour tous**
+
+#### 6.1.3. Phases de Migration
 
 1. **Phase 1 - Préparation** :
    - Implémentation de l'API d'autorisation dans le code (nouvelles méthodes dans `Gvv_Authorization`)
+   - Création de la table `use_new_authorization`
    - Maintien du système actuel en parallèle via feature flag
    - Tests unitaires de l'API
+   - Flag global = FALSE (tous utilisent l'ancien système par défaut)
 
-2. **Phase 2 - Migration Pilote** :
+2. **Phase 2 - Tests Développement (Utilisateurs Sélectionnés)** :
+   - Ajout de 2-3 utilisateurs de test dans `use_new_authorization` (environnement dev)
    - Migration de 5-10 contrôleurs simples (ex: `sections`, `terrains`, `alarmes`)
-   - Validation intensive
+   - Validation intensive avec utilisateurs de test uniquement
    - Documentation des patterns d'implémentation
+   - Flag global = FALSE (autres utilisateurs non affectés)
 
-3. **Phase 3 - Migration Étendue** :
+3. **Phase 3 - Tests Production (Utilisateurs Pilotes)** :
+   - Ajout de 5-10 utilisateurs pilotes dans `use_new_authorization` (environnement prod)
    - Migration des contrôleurs avec exceptions (ex: `membre`, `compta`, `vols_planeur`)
    - Vérification de la sécurité au niveau des lignes
-   - Tests d'intégration
+   - Tests d'intégration en production réelle
+   - Flag global = FALSE (majorité des utilisateurs non affectés)
+   - Monitoring intensif des logs d'audit pour détecter les problèmes
 
-4. **Phase 4 - Finalisation** :
+4. **Phase 4 - Migration Globale** :
+   - Activation du flag global : `$config['use_new_authorization'] = TRUE`
+   - **Tous** les utilisateurs utilisent maintenant le nouveau système
+   - La table `use_new_authorization` est désormais ignorée (le flag global prend le dessus)
    - Migration des contrôleurs restants
-   - Désactivation du feature flag
+   - Monitoring continu
+
+5. **Phase 5 - Finalisation** :
+   - Suppression de la table `use_new_authorization` (devenue inutile)
    - Suppression de la table `role_permissions` (optionnel, peut être conservée pour audit)
+   - Nettoyage du code legacy (après validation complète)
 
 ### 6.2. Coexistence des Deux Systèmes
 
@@ -300,7 +338,9 @@ Pendant la migration, les deux systèmes doivent coexister :
 
 - **Tables conservées** : `types_roles`, `user_roles_per_section`, `data_access_rules`, `authorization_audit_log`
 - **Table en transition** : `role_permissions` (utilisée uniquement par les contrôleurs non migrés)
-- **Feature flag** : `use_new_authorization` contrôle quel système est actif par défaut
+- **Table de migration progressive** : `use_new_authorization` (liste des utilisateurs testant le nouveau système)
+- **Feature flag global** : `$config['use_new_authorization']` contrôle quel système est actif par défaut
+- **Priorité de décision** : Table utilisateur > Flag global
 - **Marqueur par contrôleur** : Chaque contrôleur déclare explicitement s'il utilise le nouveau système
 
 ### 6.3. Critères de Succès
@@ -315,11 +355,23 @@ La migration d'un contrôleur est considérée réussie si :
 
 ### 6.4. Plan de Retour Arrière
 
-En cas de problème, le retour arrière doit être simple :
+En cas de problème, le retour arrière doit être simple et granulaire :
 
-1. Réactivation du feature flag vers l'ancien système
-2. Restauration des permissions en base depuis une sauvegarde
-3. Revert Git des modifications de code du contrôleur
+#### 6.4.1. Rollback par Utilisateur (Phases 2-3)
+Si un utilisateur pilote rencontre des problèmes :
+```sql
+-- Retirer l'utilisateur du nouveau système
+DELETE FROM use_new_authorization WHERE username = 'username_problematique';
+```
+**Effet** : L'utilisateur retourne immédiatement à l'ancien système, les autres pilotes continuent avec le nouveau
+
+#### 6.4.2. Rollback Global (Phase 4+)
+En cas de problème généralisé :
+```php
+// Dans application/config/gvv_config.php
+$config['use_new_authorization'] = FALSE;  // Retour à l'ancien système pour tous
+```
+**Effet** : Tous les utilisateurs retournent immédiatement à l'ancien système
 
 ---
 
@@ -329,17 +381,20 @@ En cas de problème, le retour arrière doit être simple :
 
 1. **Code** :
    - API d'autorisation étendue dans `Gvv_Authorization.php`
-   - Helpers dans `Gvv_Controller.php`
+   - Helpers dans `Gvv_Controller.php` avec logique de migration progressive
    - Migrations de contrôleurs avec annotations des rôles requis
    - Tests unitaires et d'intégration
 
 2. **Base de Données** :
-   - Conservation des tables : `types_roles`, `user_roles_per_section`, `data_access_rules`
-   - Suppression ou archivage de `role_permissions` (après migration complète)
+   - **Création** : Table `use_new_authorization` (id, username)
+   - **Conservation** : Tables `types_roles`, `user_roles_per_section`, `data_access_rules`, `authorization_audit_log`
+   - **Suppression future** : `role_permissions` (après migration complète), `use_new_authorization` (après Phase 4)
 
 3. **Documentation** :
    - Guide développeur pour l'implémentation des autorisations dans le code
+   - Documentation de la migration progressive par utilisateur
    - Documentation des patterns d'exceptions
+   - Guide de gestion de la table `use_new_authorization` (SQL manuel)
    - Changelog détaillé
 
 ### 7.2. Livrables Fonctionnels
@@ -387,9 +442,11 @@ En cas de problème, le retour arrière doit être simple :
 
 ## 9. Conclusion
 
-La version 2.0 de ce PRD introduit un **changement majeur** dans l'approche de gestion des permissions : le passage d'une configuration en base de données à une **déclaration dans le code**.
+La version 2.0 de ce PRD introduit deux **changements majeurs** :
 
-Cette évolution répond au problème critique de maintenance identifié lors de l'analyse : la gestion de ~300 permissions en base de données est trop fastidieuse et source d'erreurs.
+### 9.1. Gestion des Permissions dans le Code
+
+Le passage d'une configuration en base de données à une **déclaration dans le code** répond au problème critique de maintenance : la gestion de ~300 permissions en base de données est trop fastidieuse et source d'erreurs.
 
 **Bénéfices attendus** :
 - Réduction de ~300 permissions configurées → ~50 déclarations dans les constructeurs
@@ -399,8 +456,26 @@ Cette évolution répond au problème critique de maintenance identifié lors de
 - Performance améliorée (moins de requêtes SQL)
 - Versionning naturel via Git
 
-**Conservation des acquis** :
-- Rôles plats et conscients des sections (EF1, EF2)
+### 9.2. Migration Progressive par Utilisateur
+
+L'introduction de la table `use_new_authorization` permet une **granularité fine** dans la migration :
+
+**Avantages** :
+- Tests réels avec utilisateurs sélectionnés (dev et production)
+- Réduction drastique du risque (impact limité en cas de problème)
+- Rollback instantané par utilisateur ou global
+- Validation progressive en conditions réelles
+- Pas d'impact sur les utilisateurs non-pilotes
+
+**Parcours de migration sécurisé** :
+1. Tests développement (2-3 utilisateurs)
+2. Tests production pilote (5-10 utilisateurs)
+3. Activation globale (tous les utilisateurs)
+4. Nettoyage (suppression du code legacy)
+
+### 9.3. Conservation des Acquis
+
+- Rôles plats et conscients des sections (EF1, EF2)s
 - Interface de gestion des rôles utilisateur (EF3)
 - Sécurité au niveau des lignes (EF5)
 - Audit et traçabilité (ENF3)
