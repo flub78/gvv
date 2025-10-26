@@ -179,6 +179,7 @@ Following `doc/development/workflow.md`:
 11. **Database access**: Use the credential from configuration/database.php to analyze the database schema or data.
 12. **Diagrams**: Use plantuml to generate class diagrams and database schemas
 13. **Mockups**: generate mockups in ASCII art, generate prototypes in self contained HTML files
+14. **GUI**: keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
 
 ---
 
@@ -217,6 +218,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 - **Unit tests**: No database dependencies, test helpers/libraries in isolation
 - **Integration tests**: Real database operations, test component interactions
 - **Coverage target**: Aim for 75% overall (currently establishing baseline)
+- **Temporary tests**: Every times that you write a test to validate a modification evaluate if it is worth creating a phpunit test and adding it to the test base. Keep all phpunit tests that demonstrate that a bug has been fixed.
 
 ---
 

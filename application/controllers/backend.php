@@ -314,9 +314,18 @@ class Backend extends GVV_Controller {
      */
     function delete($id) {
         $this->load->model('dx_auth/users', 'users');
+        $this->lang->load('users');
 
         // détruit en base
-        $this->users->delete_user($id);
+        $result = $this->users->delete_user($id);
+
+        // Check if deletion was successful
+        if ($result === TRUE) {
+            // Set success message
+            $this->session->set_flashdata('success', $this->lang->line('user_delete_success'));
+        }
+        // If deletion failed, error message is already set by the model
+        // Don't override it!
 
         // réaffiche la liste (serait sympa de réafficher la même page)
         redirect("backend/users");

@@ -16,6 +16,24 @@ $this->load->library('ButtonDelete');
 
 echo '<div id="body" class="body container-fluid">';
 
+// Show success message
+if ($this->session->flashdata('success')) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
+    echo nl2br(htmlspecialchars($this->session->flashdata('success')));
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    echo '</div>';
+}
+
+// Show error message
+if ($this->session->flashdata('error')) {
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+    echo '<strong><i class="bi bi-exclamation-triangle-fill"></i></strong> ';
+    echo nl2br(htmlspecialchars($this->session->flashdata('error')));
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    echo '</div>';
+}
+
 // Show reset password message if exist
 if (isset($reset_message))
 echo $reset_message;

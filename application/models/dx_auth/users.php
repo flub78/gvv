@@ -120,6 +120,107 @@ class Users extends Common_Model {
     }
 
     function delete_user($user_id) {
+        // First, get the username for this user
+        $user = $this->get_user_by_id($user_id);
+        if (!$user) {
+            return FALSE;
+        }
+        $username = $user->username;
+        
+        // Get CodeIgniter instance for language support
+        $CI =& get_instance();
+        $CI->lang->load('users');
+        
+        // Check if user is referenced in other tables
+        $references = array();
+        
+        // Check membres.mlogin
+        $this->db->where('mlogin', $username);
+        $count = $this->db->count_all_results('membres');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_membre') . " ($count)";
+        }
+        
+        // Check comptes.pilote
+        $this->db->where('pilote', $username);
+        $count = $this->db->count_all_results('comptes');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_compte') . " ($count)";
+        }
+        
+        // Check volsa.vapilid (airplane flights - pilot)
+        $this->db->where('vapilid', $username);
+        $count = $this->db->count_all_results('volsa');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_volsa_pilot') . " ($count)";
+        }
+        
+        // Check volsa.vainst (airplane flights - instructor)
+        $this->db->where('vainst', $username);
+        $count = $this->db->count_all_results('volsa');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_volsa_instructor') . " ($count)";
+        }
+        
+        // Check volsp.vppilid (glider flights - pilot)
+        $this->db->where('vppilid', $username);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_volsp_pilot') . " ($count)";
+        }
+        
+        // Check volsp.vpinst (glider flights - instructor)
+        $this->db->where('vpinst', $username);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_volsp_instructor') . " ($count)";
+        }
+        
+        // Check volsp.pilote_remorqueur (glider flights - tow pilot)
+        $this->db->where('pilote_remorqueur', $username);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('user_delete_ref_volsp_towpilot') . " ($count)";
+        }
+        
+        // If there are references, return FALSE with error message
+        if (!empty($references)) {
+            $CI->load->library('session');
+            $unique_refs = array_unique($references);
+            
+            // Create detailed error message
+            $error_msg = $CI->lang->line('user_delete_blocked') . "\n\n";
+            $error_msg .= $CI->lang->line('user_delete_dependencies') . "\n";
+            $error_msg .= "• " . implode("\n• ", $unique_refs);
+            
+            $CI->session->set_flashdata('error', $error_msg);
+            $CI->session->set_flashdata('delete_failed_user', $username);
+            return FALSE;
+        }
+        
+        // If no references, proceed with deletion
+        
+        // Delete user roles per section (permissions)
+        $this->db->where('user_id', $user_id);
+        $this->db->delete('user_roles_per_section');
+        
+        // Delete authorization comparison log entries
+        $this->db->where('user_id', $user_id);
+        $this->db->delete('authorization_comparison_log');
+        
+        // Delete authorization migration status entries (as migrator)
+        $this->db->where('migrated_by', $user_id);
+        $this->db->delete('authorization_migration_status');
+        
+        // Delete authorization migration status entries (as user)
+        $this->db->where('user_id', $user_id);
+        $this->db->delete('authorization_migration_status');
+        
+        // Delete user autologin entries
+        $this->db->where('user_id', $user_id);
+        $this->db->delete('user_autologin');
+        
+        // Finally, delete the user
         $this->db->where('id', $user_id);
         $this->db->delete($this->_table);
         return $this->db->affected_rows() > 0;

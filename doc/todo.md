@@ -22,29 +22,28 @@
     * [ ] migrate them
     * [ ] Implement missing playwright tests according to the test plan
     
-* [x] Images de configuration
-* [ ] Utiliser la nouvelle configuration en base
 
 * [] gestion des droits multi sections (wip)
 * [] Gestionnaire de liste d'adresse email.
 
+* [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant?
 
-* [x] Support du markdown
-  
 * [] Import des informations planeur dans les vols de découverte
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
   
-* [x] Vérifier les photos des membres sur le site déployé
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   
 * [] Reservation des avions                                   10j (plan OK)
+
 * [] Paiements en ligne                                       10j (PRD OK)
+
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
+
 * [] Gestion des fiches de progressions                       (PRD à rédiger)
 
 * [~] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
@@ -169,3 +168,8 @@
   [x] Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visible
 
   * [x] **la page après changement de la checkbox gel est incorrecte**
+
+* [x] Support du markdown
+* [x] Images de configuration
+* [x] Vérifier les photos des membres sur le site déployé
+

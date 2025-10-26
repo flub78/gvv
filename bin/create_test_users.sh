@@ -51,8 +51,8 @@ VALUES ($role_id, '$username', '$password_hash', '$email', 0, '127.0.0.1', NOW()
 SET @user_id = LAST_INSERT_ID();
 
 -- Insert user role per section
-INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id)
-VALUES (@user_id, $types_roles_id, $SECTION_ID);
+INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id, granted_at)
+VALUES (@user_id, $types_roles_id, $SECTION_ID, NOW());
 EOF
 
         if [ $? -eq 0 ]; then
@@ -100,3 +100,61 @@ echo "  - testplanchiste (role: planchiste)"
 echo "  - testca         (role: ca)"
 echo "  - testbureau     (role: bureau)"
 echo "  - testtresorier  (role: tresorier)"
+echo ""
+echo "========================================="
+echo "Verifying user logins"
+echo "========================================="
+
+# Function to test login
+test_login() {
+    local username=$1
+    local password="password"
+
+    echo -n "Testing login for $username... "
+
+    # Attempt login using curl
+    # The GVV login form posts to /auth/login
+    response=$(curl -s -X POST "http://gvv.net/auth/login" \
+        -d "username=$username" \
+        -d "password=$password" \
+        -c /tmp/cookies_${username}.txt \
+        -L \
+        -w "%{http_code}" \
+        -o /tmp/login_response_${username}.html)
+
+    # Check if login was successful
+    # A successful login typically redirects (302/303) or returns 200
+    # and the response should NOT contain the login form again
+    if grep -q "login failed\|incorrect password\|invalid credentials" /tmp/login_response_${username}.html 2>/dev/null; then
+        echo "✗ FAILED - Invalid credentials"
+        return 1
+    elif [ "$response" = "200" ] || [ "$response" = "302" ] || [ "$response" = "303" ]; then
+        # Check if we're still on login page (which would indicate failure)
+        if grep -q 'name="username"' /tmp/login_response_${username}.html 2>/dev/null; then
+            echo "✗ FAILED - Still on login page"
+            return 1
+        else
+            echo "✓ SUCCESS"
+            return 0
+        fi
+    else
+        echo "✗ FAILED - HTTP $response"
+        return 1
+    fi
+
+    # Cleanup
+    rm -f /tmp/cookies_${username}.txt /tmp/login_response_${username}.html
+}
+
+# Test all created users
+test_login "testuser"
+test_login "testadmin"
+test_login "testplanchiste"
+test_login "testca"
+test_login "testbureau"
+test_login "testtresorier"
+
+echo ""
+echo "========================================="
+echo "Login verification completed"
+echo "========================================="
