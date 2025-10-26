@@ -91,6 +91,9 @@ class Auth extends CI_Controller {
         if (! $this->dx_auth->is_logged_in()) {
             $val = $this->form_validation;
 
+            // Set error delimiters to use same styling as auth errors
+            $val->set_error_delimiters('<p class="error">', '</p>');
+
             // Set form validation rules
             $val->set_rules('username', 'lang:auth_username', 'trim|required|xss_clean');
             $val->set_rules('password', 'lang:auth_password', 'trim|required|xss_clean');

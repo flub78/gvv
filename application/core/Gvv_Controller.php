@@ -52,12 +52,11 @@ class Gvv_Controller extends CI_Controller
     {
         parent::__construct();
 
-        // Load authentication libraries
-        $this->load->library('dx_auth');
+        // Note: dx_auth is autoloaded in application/config/autoload.php
 
         // Load new authorization system (always loaded for dual-mode comparison)
         $this->load->library('Gvv_Authorization');
-        $this->load->model('Authorization_model');
+        $this->load->model('authorization_model');
 
         // Initialize user authentication
         $this->_init_auth();
@@ -69,17 +68,19 @@ class Gvv_Controller extends CI_Controller
      * Checks user login status via DX_Auth and then determines whether
      * to route authorization checks through the new or legacy system.
      *
-     * Decision flow:
-     * 1. If use_new_authorization = FALSE: Use legacy DX_Auth for all users
-     * 2. If use_new_authorization = TRUE:
-     *    a. If authorization_progressive_migration = TRUE: Check per-user status
-     *    b. If authorization_progressive_migration = FALSE: Use new system for all
+     * Decision flow (Priority Order):
+     * 1. Check if username exists in `use_new_authorization` table → NEW system
+     * 2. Check global flag `use_new_authorization`:
+     *    - If TRUE → NEW system for all users
+     *    - If FALSE → LEGACY system for all users
      *
-     * This allows three migration strategies:
-     * - Legacy only (flag = FALSE)
-     * - Global migration (flag = TRUE, progressive = FALSE)
-     * - Progressive per-user migration (flag = TRUE, progressive = TRUE)
+     * This enables progressive per-user migration:
+     * - Phase M2-M3: Flag = FALSE, table has dev/pilot users → Only listed users use new system
+     * - Phase M4: Flag = TRUE → All users use new system (table ignored)
+     * - Rollback: Remove user from table (per-user) or set flag = FALSE (global)
      *
+     * @see doc/prds/2025_authorization_refactoring_prd.md Section 6.1
+     * @see doc/plans_and_progress/2025_authorization_refactoring_plan.md Phases M2-M5
      * @return void
      */
     private function _init_auth()
@@ -89,40 +90,116 @@ class Gvv_Controller extends CI_Controller
             return; // Not logged in - handled by individual controllers
         }
 
-        // Get user ID from session
+        // Get user ID and username from session
         $this->user_id = $this->dx_auth->get_user_id();
+        $username = $this->dx_auth->get_username();
 
         // Load config to check global authorization flag
         $this->config->load('gvv_config', TRUE);
         $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
-        $progressive_migration = $this->config->item('authorization_progressive_migration', 'gvv_config');
 
-        // Determine which authorization system to use
-        if ($use_new_authorization) {
-            // Global flag enabled - check if progressive migration is also enabled
-            if ($progressive_migration) {
-                // Progressive mode: check per-user migration status
-                $migration = $this->authorization_model->get_migration_status($this->user_id);
-                
-                if ($migration && $migration['use_new_system'] == 1) {
-                    $this->use_new_auth = TRUE;
-                    $this->migration_status = $migration['migration_status'];
-                    log_message('debug', "GVV_Controller: User {$this->user_id} using NEW authorization (progressive mode, status: {$this->migration_status})");
-                } else {
-                    $this->use_new_auth = FALSE;
-                    log_message('debug', "GVV_Controller: User {$this->user_id} using LEGACY authorization (progressive mode, not migrated)");
-                }
-            } else {
-                // Global mode: all users use new system
+        // Priority 1: Check if user is in per-user migration table
+        if (!$use_new_authorization) {
+            // Global flag is FALSE - check if this specific user should use new system
+            log_message('debug', "GVV_Controller: Global flag is FALSE, checking per-user migration table for '$username'");
+
+            $this->db->where('username', $username);
+            $query = $this->db->get('use_new_authorization');
+
+            $row_count = $query ? $query->num_rows() : 0;
+            log_message('debug', "GVV_Controller: Per-user table query returned {$row_count} rows");
+
+            if ($query && $query->num_rows() > 0) {
+                // User is in migration table - use NEW system
                 $this->use_new_auth = TRUE;
-                $this->migration_status = 'global_enabled';
-                log_message('debug', "GVV_Controller: User {$this->user_id} using NEW authorization system (global mode)");
+                $this->migration_status = 'per_user_pilot';
+                log_message('debug', "GVV_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (per-user migration)");
+
+                // Check if user has 'user' role for current section (non-hierarchical: login requires 'user' role)
+                $this->_check_login_permission();
+                return;
+            } else {
+                log_message('debug', "GVV_Controller: User '$username' NOT in per-user migration table, will use legacy system");
             }
         } else {
-            // Global flag disabled - all users use legacy system
-            $this->use_new_auth = FALSE;
-            log_message('debug', "GVV_Controller: User {$this->user_id} using LEGACY authorization system (global flag disabled)");
+            log_message('debug', "GVV_Controller: Global flag is TRUE, skipping per-user table check");
         }
+
+        // Priority 2: Use global flag
+        if ($use_new_authorization) {
+            // Global flag enabled - all users use new system
+            $this->use_new_auth = TRUE;
+            $this->migration_status = 'global_enabled';
+            log_message('debug', "GVV_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (global flag)");
+
+            // Check if user has 'user' role for current section (non-hierarchical: login requires 'user' role)
+            $this->_check_login_permission();
+        } else {
+            // Global flag disabled and user not in migration table - use legacy system
+            $this->use_new_auth = FALSE;
+            $this->migration_status = 'legacy';
+            log_message('debug', "GVV_Controller: User '$username' (ID: {$this->user_id}) using LEGACY authorization");
+        }
+    }
+
+    /**
+     * Check if user has login permission (non-hierarchical: requires 'user' role)
+     *
+     * In the new non-hierarchical authorization system, login access is separate from
+     * other permissions. A user MUST have at least the 'user' role for the current
+     * section to be allowed to login.
+     *
+     * This enforces the principle: "You have a right to login AND you have a right to
+     * edit flights - they are unrelated."
+     *
+     * @return void Dies with error message if user lacks 'user' role
+     */
+    private function _check_login_permission()
+    {
+        // Get current section
+        $section_id = $this->session->userdata('section');
+
+        // Check if user has the 'user' role (role_id = 1) for this section
+        // Non-hierarchical: planchiste (5), ca (6), etc. do NOT imply 'user' role
+        // User must explicitly have role_id = 1 to login
+        $this->db->where('user_id', $this->user_id);
+        $this->db->where('section_id', $section_id);
+        $this->db->where('types_roles_id', 1); // Specifically 'user' role (id=1)
+        $this->db->where('revoked_at IS NULL', null, false); // IS NULL check
+        $query = $this->db->get('user_roles_per_section');
+
+        $has_user_role = ($query && $query->num_rows() > 0);
+
+        if (!$has_user_role) {
+            // User does NOT have 'user' role for this section - deny login
+            $username = $this->dx_auth->get_username();
+            log_message('error', "GVV_Controller: User '$username' (ID: {$this->user_id}) denied login - no 'user' role (id=1) for section {$section_id}");
+
+            // Log what roles they DO have for debugging
+            $this->db->where('user_id', $this->user_id);
+            $this->db->where('section_id', $section_id);
+            $this->db->where('revoked_at IS NULL', null, false);
+            $this->db->select('types_roles_id');
+            $other_roles = $this->db->get('user_roles_per_section');
+            if ($other_roles && $other_roles->num_rows() > 0) {
+                $role_ids = array();
+                foreach ($other_roles->result() as $row) {
+                    $role_ids[] = $row->types_roles_id;
+                }
+                log_message('error', "GVV_Controller: User has other roles: " . implode(', ', $role_ids) . " but NOT 'user' role (1)");
+            } else {
+                log_message('error', "GVV_Controller: User has NO roles at all for section {$section_id}");
+            }
+
+            // Log out the user (destroys session)
+            $this->dx_auth->logout();
+
+            // Redirect to login page with error parameter
+            // Use URL parameter since session is destroyed by logout
+            redirect('auth/login?error=no_user_role');
+        }
+
+        log_message('debug', "GVV_Controller: User (ID: {$this->user_id}) login authorized for section {$section_id} - has 'user' role (id=1)");
     }
 
     /**

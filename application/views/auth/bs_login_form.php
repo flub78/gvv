@@ -40,7 +40,19 @@ echo '<div id="body" class="body container-fluid  d-flex justify-content-center 
 
 <?php echo form_open($this->uri->uri_string()) ?>
 
-<?php echo $this->dx_auth->get_auth_error(); ?>
+<?php
+// Display dx_auth errors (incorrect password, etc.)
+$auth_error = $this->dx_auth->get_auth_error();
+if ($auth_error) {
+	echo '<p class="error">' . $auth_error . '</p>';
+}
+
+// Display URL parameter errors (authorization denial after logout/redirect)
+$error_code = $this->input->get('error');
+if ($error_code === 'no_user_role') {
+	echo '<p class="error">' . $this->lang->line('auth_no_user_role') . '</p>';
+}
+?>
 
 <?php
 if ($locked) {

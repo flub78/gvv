@@ -1,6 +1,10 @@
 <?php
 if (! defined('BASEPATH'))
     exit('No direct script access allowed');
+
+// Load Gvv_Controller base class
+require_once(APPPATH . 'core/Gvv_Controller.php');
+
 /**
  * GVV Gestion vol à voile
  * Copyright (C) 2011 Philippe Boissel & Frédéric Peignot
@@ -22,7 +26,7 @@ if (! defined('BASEPATH'))
  * @package controllers
  *          Page d'acceuil
  */
-class Welcome extends CI_Controller {
+class Welcome extends Gvv_Controller {
 
     function __construct() {
         parent::__construct();
