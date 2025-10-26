@@ -143,6 +143,55 @@ class Avions_model extends Common_Model {
     public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
         return parent::selector($where, $order, TRUE);
     }
+
+    /**
+     * Delete an airplane with validation
+     * Checks if the airplane is referenced in flight records before deletion
+     * 
+     * @param array $where - selection criteria
+     * @return boolean - TRUE if deleted, FALSE if blocked
+     */
+    function delete($where = array()) {
+        // Get macimmat from where clause
+        if (!isset($where['macimmat'])) {
+            // If no macimmat specified, can't validate - abort
+            return FALSE;
+        }
+        
+        $macimmat = $where['macimmat'];
+        
+        // Get CodeIgniter instance for language support
+        $CI =& get_instance();
+        $CI->lang->load('avions');
+        
+        // Check if airplane is referenced in flight records
+        $references = array();
+        
+        // Check volsa.vamacid (airplane flights)
+        $this->db->where('vamacid', $macimmat);
+        $count = $this->db->count_all_results('volsa');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('avion_delete_ref_volsa') . " ($count)";
+        }
+        
+        // If there are references, block deletion with error message
+        if (!empty($references)) {
+            $CI->load->library('session');
+            
+            // Create detailed error message
+            $error_msg = $CI->lang->line('avion_delete_blocked') . "\n\n";
+            $error_msg .= $CI->lang->line('avion_delete_dependencies') . "\n";
+            $error_msg .= "• " . implode("\n• ", $references);
+            
+            $CI->session->set_flashdata('error', $error_msg);
+            $CI->session->set_flashdata('delete_failed_avion', $macimmat);
+            return FALSE;
+        }
+        
+        // If no references, proceed with deletion using parent method
+        parent::delete($where);
+        return TRUE;
+    }
 }
 
 /* End of file */

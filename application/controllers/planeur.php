@@ -193,4 +193,30 @@ class Planeur extends Gvv_Controller {
         ));
         $pdf->Output();
     }
+
+    /**
+     * Override delete to handle validation errors from model
+     */
+    function delete($id) {
+        $this->lang->load('planeurs');
+        
+        // Call pre_delete hook
+        $this->pre_delete($id);
+        
+        // Try to delete - model will return FALSE if blocked by references
+        $result = $this->gvv_model->delete(array(
+            $this->kid => $id
+        ));
+        
+        // Check if deletion was successful
+        if ($result === TRUE) {
+            // Set success message
+            $this->session->set_flashdata('success', $this->lang->line('planeur_delete_success'));
+        }
+        // If deletion failed, error message is already set by the model
+        
+        // Return to list page
+        $this->pop_return_url();
+        redirect($this->controller . "/page");
+    }
 }

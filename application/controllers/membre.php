@@ -850,6 +850,34 @@ class Membre extends Gvv_Controller {
         redirect("membre/edit/$mlogin");
     }
 
+
+    /**
+     * Override delete to handle validation errors from model
+     */
+    function delete($id) {
+        $this->lang->load('membres');
+        
+        // Call pre_delete hook
+        $this->pre_delete($id);
+        
+        // Try to delete - model will return FALSE if blocked by references
+        $result = $this->gvv_model->delete(array(
+            $this->kid => $id
+        ));
+        
+        // Check if deletion was successful
+        if ($result === TRUE) {
+            // Set success message
+            $this->session->set_flashdata('success', $this->lang->line('membre_delete_success'));
+        }
+        // If deletion failed, error message is already set by the model
+        // Don't override it!
+        
+        // Return to list page
+        $this->pop_return_url();
+        redirect($this->controller . "/page");
+    }
+
     /**
      * Synchronise les noms des comptes 411 avec les membres anonymisés
      * Corrige les incohérences après anonymisation

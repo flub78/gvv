@@ -376,6 +376,91 @@ class Membres_model extends Common_Model {
         // gvv_debug("query result=" . var_export($select, true));
         return $select;
     }
+
+    /**
+     * Delete a membre with validation
+     * Checks if the membre is referenced in other tables before deletion
+     * 
+     * @param array $where - selection criteria
+     * @return boolean - TRUE if deleted, FALSE if blocked
+     */
+    function delete($where = array()) {
+        // Get mlogin from where clause
+        if (!isset($where['mlogin'])) {
+            // If no mlogin specified, can't validate - abort
+            return FALSE;
+        }
+        
+        $mlogin = $where['mlogin'];
+        
+        // Get CodeIgniter instance for language support
+        $CI =& get_instance();
+        $CI->lang->load('membres');
+        
+        // Check if membre is referenced in other tables
+        $references = array();
+        
+        // Check comptes.pilote
+        $this->db->where('pilote', $mlogin);
+        $count = $this->db->count_all_results('comptes');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_compte') . " ($count)";
+        }
+        
+        // Check volsa.vapilid (airplane flights - pilot)
+        $this->db->where('vapilid', $mlogin);
+        $count = $this->db->count_all_results('volsa');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_volsa_pilot') . " ($count)";
+        }
+        
+        // Check volsa.vainst (airplane flights - instructor)
+        $this->db->where('vainst', $mlogin);
+        $count = $this->db->count_all_results('volsa');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_volsa_instructor') . " ($count)";
+        }
+        
+        // Check volsp.vppilid (glider flights - pilot)
+        $this->db->where('vppilid', $mlogin);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_volsp_pilot') . " ($count)";
+        }
+        
+        // Check volsp.vpinst (glider flights - instructor)
+        $this->db->where('vpinst', $mlogin);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_volsp_instructor') . " ($count)";
+        }
+        
+        // Check volsp.pilote_remorqueur (glider flights - tow pilot)
+        $this->db->where('pilote_remorqueur', $mlogin);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('membre_delete_ref_volsp_towpilot') . " ($count)";
+        }
+        
+        // If there are references, block deletion with error message
+        if (!empty($references)) {
+            $CI->load->library('session');
+            $unique_refs = array_unique($references);
+            
+            // Create detailed error message
+            $error_msg = $CI->lang->line('membre_delete_blocked') . "\n\n";
+            $error_msg .= $CI->lang->line('membre_delete_dependencies') . "\n";
+            $error_msg .= "• " . implode("\n• ", $unique_refs);
+            
+            $CI->session->set_flashdata('error', $error_msg);
+            $CI->session->set_flashdata('delete_failed_membre', $mlogin);
+            return FALSE;
+        }
+        
+        // If no references, proceed with deletion using parent method
+        parent::delete($where);
+        return TRUE;
+    }
 }
 
 /* End of file membres_model.php */

@@ -83,6 +83,62 @@ class Planeurs_model extends Common_Model {
         ->order_by('mpmodele')->get()->result();
     }
 
+    /**
+     * Delete a glider with validation
+     * Checks if the glider is referenced in flight records before deletion
+     * 
+     * @param array $where - selection criteria
+     * @return boolean - TRUE if deleted, FALSE if blocked
+     */
+    function delete($where = array()) {
+        // Get mpimmat from where clause
+        if (!isset($where['mpimmat'])) {
+            // If no mpimmat specified, can't validate - abort
+            return FALSE;
+        }
+        
+        $mpimmat = $where['mpimmat'];
+        
+        // Get CodeIgniter instance for language support
+        $CI =& get_instance();
+        $CI->lang->load('planeurs');
+        
+        // Check if glider is referenced in flight records
+        $references = array();
+        
+        // Check volsp.vpmacid (glider flights)
+        $this->db->where('vpmacid', $mpimmat);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('planeur_delete_ref_volsp') . " ($count)";
+        }
+        
+        // Check volsp.remorqueur (tow plane for glider flights)
+        $this->db->where('remorqueur', $mpimmat);
+        $count = $this->db->count_all_results('volsp');
+        if ($count > 0) {
+            $references[] = $CI->lang->line('planeur_delete_ref_remorqueur') . " ($count)";
+        }
+        
+        // If there are references, block deletion with error message
+        if (!empty($references)) {
+            $CI->load->library('session');
+            
+            // Create detailed error message
+            $error_msg = $CI->lang->line('planeur_delete_blocked') . "\n\n";
+            $error_msg .= $CI->lang->line('planeur_delete_dependencies') . "\n";
+            $error_msg .= "• " . implode("\n• ", $references);
+            
+            $CI->session->set_flashdata('error', $error_msg);
+            $CI->session->set_flashdata('delete_failed_planeur', $mpimmat);
+            return FALSE;
+        }
+        
+        // If no references, proceed with deletion using parent method
+        parent::delete($where);
+        return TRUE;
+    }
+
 }
 
 /* End of file */
