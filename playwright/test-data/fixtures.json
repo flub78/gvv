@@ -1,0 +1,351 @@
+{
+    "metadata": {
+        "extracted_at": "2025-10-26 11:19:20",
+        "database": "gvv2",
+        "version": "1.0"
+    },
+    "pilots": [
+        {
+            "login": "rpavaut",
+            "full_name": "Adam Nicolas",
+            "first_name": "Nicolas",
+            "last_name": "Adam",
+            "account_id": 1171,
+            "account_label": "(411) Adam Nicolas"
+        },
+        {
+            "login": "rpavaut",
+            "full_name": "Adam Nicolas",
+            "first_name": "Nicolas",
+            "last_name": "Adam",
+            "account_id": 1172,
+            "account_label": "(411) Adam Nicolas"
+        },
+        {
+            "login": "afierain",
+            "full_name": "Alexandre Julien",
+            "first_name": "Julien",
+            "last_name": "Alexandre",
+            "account_id": 209,
+            "account_label": "(411) Alexandre Julien"
+        },
+        {
+            "login": "afierain",
+            "full_name": "Alexandre Julien",
+            "first_name": "Julien",
+            "last_name": "Alexandre",
+            "account_id": 865,
+            "account_label": "(411) Alexandre Julien"
+        },
+        {
+            "login": "ebozec",
+            "full_name": "Andre Marc",
+            "first_name": "Marc",
+            "last_name": "Andre",
+            "account_id": 1316,
+            "account_label": "(411) Andre Marc"
+        },
+        {
+            "login": "ebozec",
+            "full_name": "Andre Marc",
+            "first_name": "Marc",
+            "last_name": "Andre",
+            "account_id": 1317,
+            "account_label": "(411) Andre Marc"
+        },
+        {
+            "login": "clentz",
+            "full_name": "Aubert Sebastien",
+            "first_name": "Sebastien",
+            "last_name": "Aubert",
+            "account_id": 241,
+            "account_label": "(411) Aubert Sebastien"
+        },
+        {
+            "login": "clentz",
+            "full_name": "Aubert Sebastien",
+            "first_name": "Sebastien",
+            "last_name": "Aubert",
+            "account_id": 887,
+            "account_label": "(411) Aubert Sebastien"
+        },
+        {
+            "login": "lcaudrelier",
+            "full_name": "Barbier Dominique",
+            "first_name": "Dominique",
+            "last_name": "Barbier",
+            "account_id": 290,
+            "account_label": "(411) Barbier Dominique"
+        },
+        {
+            "login": "lcaudrelier",
+            "full_name": "Barbier Dominique",
+            "first_name": "Dominique",
+            "last_name": "Barbier",
+            "account_id": 933,
+            "account_label": "(411) Barbier Dominique"
+        }
+    ],
+    "instructors": {
+        "glider": [
+            {
+                "login": "ffourcroy",
+                "full_name": "Leroux Marie",
+                "first_name": "Marie",
+                "last_name": "Leroux",
+                "qualification": "fpeignot",
+                "account_id": 300,
+                "account_label": "(411) Leroux Marie"
+            },
+            {
+                "login": "ffourcroy",
+                "full_name": "Leroux Marie",
+                "first_name": "Marie",
+                "last_name": "Leroux",
+                "qualification": "fpeignot",
+                "account_id": 941,
+                "account_label": "(411) Leroux Marie"
+            },
+            {
+                "login": "ffourcroy",
+                "full_name": "Leroux Marie",
+                "first_name": "Marie",
+                "last_name": "Leroux",
+                "qualification": "fpeignot",
+                "account_id": 1266,
+                "account_label": "(411) Leroux Marie"
+            },
+            {
+                "login": "dcoquel",
+                "full_name": "Lombard Gabriel",
+                "first_name": "Gabriel",
+                "last_name": "Lombard",
+                "qualification": "gpruvost",
+                "account_id": 320,
+                "account_label": "(411) Lombard Gabriel"
+            },
+            {
+                "login": "dcoquel",
+                "full_name": "Lombard Gabriel",
+                "first_name": "Gabriel",
+                "last_name": "Lombard",
+                "qualification": "gpruvost",
+                "account_id": 960,
+                "account_label": "(411) Lombard Gabriel"
+            }
+        ],
+        "airplane": [
+            {
+                "login": "tdgd",
+                "full_name": "Barbier Pierre",
+                "first_name": "Pierre",
+                "last_name": "Barbier",
+                "qualification": "fduvollet"
+            }
+        ]
+    },
+    "gliders": {
+        "two_seater": [
+            {
+                "registration": "F-CBAU",
+                "model": "DG808c",
+                "manufacturer": "DG",
+                "seats": 2,
+                "autonomous": true
+            },
+            {
+                "registration": "F-CDRE",
+                "model": "KA6e",
+                "manufacturer": "Alexander Schleicher",
+                "seats": 2,
+                "autonomous": false
+            },
+            {
+                "registration": "F-CERP",
+                "model": "Asw20",
+                "manufacturer": "Alexander Schleicher",
+                "seats": 2,
+                "autonomous": false
+            },
+            {
+                "registration": "F-CFXR",
+                "model": "xPégase",
+                "manufacturer": "Centrair",
+                "seats": 2,
+                "autonomous": false
+            },
+            {
+                "registration": "F-CGBC",
+                "model": "Pégase",
+                "manufacturer": "Centrair",
+                "seats": 2,
+                "autonomous": false
+            }
+        ],
+        "single_seater": []
+    },
+    "tow_planes": [
+        {
+            "registration": "F-BLIT",
+            "model": "MS893-L",
+            "manufacturer": "SOCATA"
+        },
+        {
+            "registration": "F-JRYP",
+            "model": "Ikarus C42 C",
+            "manufacturer": "Comco Ikarus-TROYES"
+        },
+        {
+            "registration": "F-JUFA",
+            "model": "Dynamic",
+            "manufacturer": "AEROPOOL"
+        },
+        {
+            "registration": "YP",
+            "model": "Ikarus C42 B",
+            "manufacturer": "Comco Ikarus LILLE"
+        }
+    ],
+    "accounts": [
+        {
+            "id": 1172,
+            "name": "Adam Nicolas",
+            "pilot_login": "rpavaut",
+            "code": "411",
+            "label": "(411) Adam Nicolas"
+        },
+        {
+            "id": 1171,
+            "name": "Adam Nicolas",
+            "pilot_login": "rpavaut",
+            "code": "411",
+            "label": "(411) Adam Nicolas"
+        },
+        {
+            "id": 865,
+            "name": "Alexandre Julien",
+            "pilot_login": "afierain",
+            "code": "411",
+            "label": "(411) Alexandre Julien"
+        },
+        {
+            "id": 209,
+            "name": "Alexandre Julien",
+            "pilot_login": "afierain",
+            "code": "411",
+            "label": "(411) Alexandre Julien"
+        },
+        {
+            "id": 821,
+            "name": "Andre Gerard",
+            "pilot_login": "pfeuillet",
+            "code": "411",
+            "label": "(411) Andre Gerard"
+        },
+        {
+            "id": 124,
+            "name": "Andre Gerard",
+            "pilot_login": "pfeuillet",
+            "code": "411",
+            "label": "(411) Andre Gerard"
+        },
+        {
+            "id": 1316,
+            "name": "Andre Marc",
+            "pilot_login": "ebozec",
+            "code": "411",
+            "label": "(411) Andre Marc"
+        },
+        {
+            "id": 1317,
+            "name": "Andre Marc",
+            "pilot_login": "ebozec",
+            "code": "411",
+            "label": "(411) Andre Marc"
+        },
+        {
+            "id": 887,
+            "name": "Aubert Sebastien",
+            "pilot_login": "clentz",
+            "code": "411",
+            "label": "(411) Aubert Sebastien"
+        },
+        {
+            "id": 241,
+            "name": "Aubert Sebastien",
+            "pilot_login": "clentz",
+            "code": "411",
+            "label": "(411) Aubert Sebastien"
+        },
+        {
+            "id": 1275,
+            "name": "Bailly Christophe",
+            "pilot_login": "vpeignot",
+            "code": "411",
+            "label": "(411) Bailly Christophe"
+        },
+        {
+            "id": 45,
+            "name": "Bailly Christophe",
+            "pilot_login": "vpeignot",
+            "code": "411",
+            "label": "(411) Bailly Christophe"
+        },
+        {
+            "id": 782,
+            "name": "Bailly Christophe",
+            "pilot_login": "vpeignot",
+            "code": "411",
+            "label": "(411) Bailly Christophe"
+        },
+        {
+            "id": 290,
+            "name": "Barbier Dominique",
+            "pilot_login": "lcaudrelier",
+            "code": "411",
+            "label": "(411) Barbier Dominique"
+        },
+        {
+            "id": 933,
+            "name": "Barbier Dominique",
+            "pilot_login": "lcaudrelier",
+            "code": "411",
+            "label": "(411) Barbier Dominique"
+        },
+        {
+            "id": 105,
+            "name": "Barbier Fabrice",
+            "pilot_login": "crussel",
+            "code": "411",
+            "label": "(411) Barbier Fabrice"
+        },
+        {
+            "id": 816,
+            "name": "Barbier Fabrice",
+            "pilot_login": "crussel",
+            "code": "411",
+            "label": "(411) Barbier Fabrice"
+        },
+        {
+            "id": 350,
+            "name": "Barbier Ludovic",
+            "pilot_login": "amiens",
+            "code": "411",
+            "label": "(411) Barbier Ludovic"
+        },
+        {
+            "id": 279,
+            "name": "Barbier Marie",
+            "pilot_login": "ufortin",
+            "code": "411",
+            "label": "(411) Barbier Marie"
+        },
+        {
+            "id": 922,
+            "name": "Barbier Marie",
+            "pilot_login": "ufortin",
+            "code": "411",
+            "label": "(411) Barbier Marie"
+        }
+    ]
+}

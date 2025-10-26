@@ -1080,12 +1080,12 @@ class Admin extends CI_Controller {
         $query = $this->db->query("
             SELECT
                 m.mlogin,
-                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                CONCAT(m.mnom, ' ', m.mprenom) as full_name,
                 m.mprenom as first_name,
                 m.mnom as last_name,
                 m.actif,
                 c.id as account_id,
-                CONCAT('(411) ', m.mprenom, ' ', m.mnom) as account_label
+                CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
             FROM membres m
             LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
             WHERE m.actif = 1
@@ -1114,12 +1114,12 @@ class Admin extends CI_Controller {
         $query = $this->db->query("
             SELECT
                 m.mlogin,
-                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                CONCAT(m.mnom, ' ', m.mprenom) as full_name,
                 m.mprenom as first_name,
                 m.mnom as last_name,
                 m.inst_glider,
                 c.id as account_id,
-                CONCAT('(411) ', m.mprenom, ' ', m.mnom) as account_label
+                CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
             FROM membres m
             LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
             WHERE m.actif = 1
@@ -1151,7 +1151,7 @@ class Admin extends CI_Controller {
         $query = $this->db->query("
             SELECT
                 m.mlogin,
-                CONCAT(m.mprenom, ' ', m.mnom) as full_name,
+                CONCAT(m.mnom, ' ', m.mprenom) as full_name,
                 m.mprenom as first_name,
                 m.mnom as last_name,
                 m.inst_airplane

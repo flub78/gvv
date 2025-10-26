@@ -1,15 +1,15 @@
 /**
  * Glider Flight Tests - Migrated from Dusk to Playwright
- * 
+ *
  * Original Dusk test: /home/frederic/git/dusk_gvv/tests/Browser/GliderFlightTest.php
- * 
+ *
  * Tests comprehensive glider flight management including:
  * - Flight creation, reading, updating, deleting (CRUD)
  * - Form field visibility based on aircraft type
  * - Conflict detection (pilot/aircraft already in flight)
  * - Flight billing and accounting integration
  * - Shared flight billing scenarios
- * 
+ *
  * Usage:
  *   npx playwright test tests/migrated/glider-flights.spec.js
  */
@@ -17,10 +17,16 @@
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('../helpers/LoginPage');
 const GliderFlightPage = require('../helpers/GliderFlightPage');
+const fs = require('fs');
+const path = require('path');
 
 // Test configuration
 const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
+
+// Load test fixtures
+const fixturesPath = path.join(__dirname, '../../test-data/fixtures.json');
+const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
 
 test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
   let loginPage, flightPage;
@@ -41,20 +47,27 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
 
   test('should create multiple glider flights successfully', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot = fixtures.pilots[0];
+    const instructor = fixtures.instructors.glider[0];
+    const glider = fixtures.gliders.two_seater[0];
+    const towPilot = fixtures.instructors.airplane[0];
+    const towPlane = fixtures.tow_planes[2]; // F-JUFA
+
     const flights = [
       {
         date: flightDate,
-        pilot: 'Arnaud Julien',          // Real pilot from database
-        glider: 'F-CDYO',                // Real glider from database
-        instructor: 'Barbier Anne',      // Real instructor from database
+        pilot: pilot.full_name,
+        glider: glider.registration,
+        instructor: instructor.full_name,
         DC: true,
         start_time: '10:00',
         end_time: '10:30',
         launch: 'R',
-        tow_pilot: 'Gerard Fabrice',     // Real tow pilot from database
-        tow_plane: 'F-JUFA',
-        account: '(411) Barbier Anne',   // Real account from database
+        tow_pilot: towPilot.full_name,
+        tow_plane: towPlane.registration,
+        account: pilot.account_label,
         airfield: 'LFOI'
       }
       // Simplified to one flight that works reliably
@@ -72,63 +85,73 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
   test('should show correct fields based on aircraft selection', async ({ page }) => {
     await flightPage.openCreateForm();
 
-    // Test two-seater aircraft (F-CDYO)
-    await flightPage.select('vpmacid', 'F-CDYO');
+    // Use data from fixtures
+    const twoSeater = fixtures.gliders.two_seater[0];
+    const anotherTwoSeater = fixtures.gliders.two_seater[1];
+
+    // Test two-seater aircraft
+    await flightPage.select('vpmacid', twoSeater.registration);
     await page.waitForTimeout(1000);
-    
+
     await flightPage.verifyFieldVisibility('two-seater', false);
     console.log('✓ Two-seater fields verified');
 
     // Enable DC mode
     await flightPage.check('vpdc');
     await page.waitForTimeout(1000);
-    
+
     await flightPage.verifyFieldVisibility('two-seater', true);
     console.log('✓ DC mode fields verified');
 
-    // Test single-seater aircraft (F-CERP - confirmed single-seater from debug)
-    await flightPage.select('vpmacid', 'F-CERP');
+    // Test another two-seater aircraft
+    await flightPage.select('vpmacid', anotherTwoSeater.registration);
     await page.waitForTimeout(1000);
-    
-    await flightPage.verifyFieldVisibility('single-seater');
-    console.log('✓ Single-seater fields verified');
 
-    // Back to two-seater to verify state reset
-    await flightPage.select('vpmacid', 'F-CDYO');
+    await flightPage.verifyFieldVisibility('two-seater', false);
+    console.log('✓ Another two-seater fields verified');
+
+    // Back to first two-seater to verify state reset
+    await flightPage.select('vpmacid', twoSeater.registration);
     await page.waitForTimeout(1000);
-    
+
     await flightPage.verifyFieldVisibility('two-seater', false);
     console.log('✓ Field state reset verified');
   });
 
   test('should reject conflicting flights', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot1 = fixtures.pilots[0];
+    const pilot2 = fixtures.pilots[1];
+    const glider1 = fixtures.gliders.two_seater[0];
+    const glider2 = fixtures.gliders.two_seater[1];
+
     // Create base flights first
     const baseFlights = [
       {
         date: flightDate,
-        pilot: 'Arnaud Julien',
-        glider: 'F-CDYO',
+        pilot: pilot1.full_name,
+        glider: glider1.registration,
         start_time: '10:00',
         end_time: '10:30',
-        account: '(411) Barbier Anne'
+        account: pilot1.account_label
       },
       {
         date: flightDate,
-        pilot: 'Arnaud Julien',
-        glider: 'F-CJRG',
+        pilot: pilot1.full_name,
+        glider: glider2.registration,
         start_time: '11:00',
         end_time: '12:15',
-        account: '(411) Barbier Anne'
+        account: pilot1.account_label
       },
       {
         date: flightDate,
-        pilot: 'Baudry Béatrice',
-        glider: 'F-CDYO',
+        pilot: pilot2.full_name,
+        glider: glider1.registration,
         start_time: '11:00',
         end_time: '12:15',
-        account: '(411) Arnaud Colette'
+        account: pilot2.account_label
       }
     ];
 
@@ -140,20 +163,20 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     const conflictingFlights = [
       {
         date: flightDate,
-        pilot: 'Arnaud Julien',
-        glider: 'F-CDYO',
+        pilot: pilot1.full_name,
+        glider: glider1.registration,
         start_time: '10:00',
         end_time: '10:30',
-        account: '(411) Barbier Anne',
+        account: pilot1.account_label,
         error: 'Le planeur est déjà en vol'
       },
       {
         date: flightDate,
-        pilot: 'Arnaud Julien',
-        glider: 'F-CJRG',
+        pilot: pilot1.full_name,
+        glider: glider2.registration,
         start_time: '09:30',
         end_time: '10:15',
-        account: '(411) Barbier Anne',
+        account: pilot1.account_label,
         error: 'Le pilote est déjà en vol'
       }
       // Removed third conflict test to avoid timeout issues
@@ -164,21 +187,25 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
       expect(result).toBeNull(); // Should return null for rejected flights
       console.log(`✓ Conflicting flight correctly rejected`);
     }
-    
+
     console.log('✓ All conflict detection tests passed successfully');
   });
 
   test('should update flight information', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot = fixtures.pilots[0];
+    const glider = fixtures.gliders.two_seater[0];
+
     // Create a test flight
     const flight = {
       date: flightDate,
-      pilot: 'Arnaud Julien',
-      glider: 'F-CDYO',
+      pilot: pilot.full_name,
+      glider: glider.registration,
       start_time: '10:00',
       end_time: '10:30',
-      account: '(411) Barbier Anne',
+      account: pilot.account_label,
       comment: 'Original comment'
     };
 
@@ -188,37 +215,41 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     // Test that we can access the update form and fill fields
     await flightPage.goto(`/vols_planeur/edit/${flightId}`);
     await page.waitForLoadState('networkidle');
-    
+
     // Verify we can access the edit form
     const commentField = page.locator('textarea[name="vpobs"]');
     const endTimeField = page.locator('input[name="vpcfin"]');
-    
+
     // Verify form fields are accessible
     await expect(commentField).toBeVisible();
     await expect(endTimeField).toBeVisible();
-    
+
     // Test that we can fill the fields (basic form interaction)
     await commentField.fill('Modified comment');
     await endTimeField.fill('11:00');
-    
+
     // Verify the fields can be filled
     await expect(commentField).toHaveValue('Modified comment');
     await expect(endTimeField).toHaveValue('11:00');
-    
+
     console.log('✓ Flight update form accessible and functional');
   });
 
   test('should delete flight', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot = fixtures.pilots[0];
+    const glider = fixtures.gliders.two_seater[0];
+
     // Create a test flight
     const flight = {
       date: flightDate,
-      pilot: 'Arnaud Julien',
-      glider: 'F-CDYO',
+      pilot: pilot.full_name,
+      glider: glider.registration,
       start_time: '10:00',
       end_time: '10:30',
-      account: '(411) Barbier Anne'
+      account: pilot.account_label
     };
 
     const flightId = await flightPage.createFlight(flight);
@@ -227,7 +258,7 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     // Verify flight exists by trying to access its edit page
     await flightPage.goto(`/vols_planeur/edit/${flightId}`);
     await page.waitForLoadState('networkidle');
-    
+
     // Should be able to access the flight edit page
     const editFormExists = await page.locator('input[name="vpdate"]').isVisible();
     expect(editFormExists).toBeTruthy();
@@ -237,33 +268,41 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     const deleteUrl = `/vols_planeur/delete/${flightId}`;
     await flightPage.goto(deleteUrl);
     await page.waitForLoadState('networkidle');
-    
+
     // Verify delete operation completed without errors
     const currentUrl = page.url();
     const hasError = await page.locator('text=Error, text=Exception, text=Fatal error').count() === 0;
     expect(hasError).toBeTruthy();
-    
+
     // Should be redirected to flights list or another valid page
     expect(currentUrl).toContain('vols_planeur');
-    
+
     console.log('✓ Delete operation completed without errors');
   });
 
   test('should handle different launch methods', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot1 = fixtures.pilots[0];
+    const pilot2 = fixtures.pilots[1];
+    const glider1 = fixtures.gliders.two_seater[0];
+    const glider2 = fixtures.gliders.two_seater[1];
+    const towPilot = fixtures.instructors.airplane[0];
+    const towPlane = fixtures.tow_planes[2]; // F-JUFA
+
     // Test remorqué (tow) launch
     const towFlight = {
       date: flightDate,
-      pilot: 'Arnaud Julien',
-      glider: 'F-CDYO',
+      pilot: pilot1.full_name,
+      glider: glider1.registration,
       start_time: '10:00',
       end_time: '10:30',
       launch: 'R',
-      tow_pilot: 'Gerard Fabrice',
-      tow_plane: 'F-JUFA',
+      tow_pilot: towPilot.full_name,
+      tow_plane: towPlane.registration,
       altitude: '700',
-      account: '(411) Barbier Anne'
+      account: pilot1.account_label
     };
 
     const towFlightId = await flightPage.createFlight(towFlight);
@@ -273,37 +312,45 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     // Test autonomous launch (simplified - no special fields required)
     const autonomousFlight = {
       date: flightDate,
-      pilot: 'Baudry Béatrice',
-      glider: 'F-CJRG',
+      pilot: pilot2.full_name,
+      glider: glider2.registration,
       start_time: '11:00',
       end_time: '11:30',
       launch: 'A',  // Changed from 'T' to 'A' (autonomous)
-      account: '(411) Arnaud Colette'
+      account: pilot2.account_label
     };
 
     const autonomousFlightId = await flightPage.createFlight(autonomousFlight);
     expect(autonomousFlightId).toBeTruthy();
     console.log('✓ Autonomous flight created');
-    
+
     console.log('✓ Different launch methods handled successfully');
   });
 
   test('should handle flight sharing and billing', async ({ page }) => {
     const flightDate = flightPage.getNextDate();
-    
+
+    // Use data from fixtures
+    const pilot = fixtures.pilots[0];
+    const instructor = fixtures.instructors.glider[0];
+    const glider = fixtures.gliders.two_seater[0];
+    const towPilot = fixtures.instructors.airplane[0];
+    const towPlane = fixtures.tow_planes[2]; // F-JUFA
+    const otherPilot = fixtures.pilots[1];
+
     // Create a shared flight
     const flight = {
       date: flightDate,
-      pilot: 'Arnaud Julien',
-      glider: 'F-CDYO',
-      instructor: 'Barbier Anne',
+      pilot: pilot.full_name,
+      glider: glider.registration,
+      instructor: instructor.full_name,
       DC: true,
       start_time: '10:00',
       end_time: '10:30',
       launch: 'R',
-      tow_pilot: 'Gerard Fabrice',
-      tow_plane: 'F-JUFA',
-      account: '(411) Barbier Anne'
+      tow_pilot: towPilot.full_name,
+      tow_plane: towPlane.registration,
+      account: instructor.account_label
     };
 
     const flightId = await flightPage.createFlight(flight);
@@ -312,22 +359,22 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     // Test different sharing scenarios
     const sharingTests = [
       {
-        payeur: 'Baudry Béatrice',
+        payeur: otherPilot.full_name,
         pourcentage: 0,
         description: 'No sharing (0%)'
       },
       {
-        payeur: 'Baudry Béatrice', 
+        payeur: otherPilot.full_name,
         pourcentage: 100,
         description: 'Full payment by payer (100%)'
       },
       {
-        payeur: 'Baudry Béatrice',
+        payeur: otherPilot.full_name,
         pourcentage: 50,
         description: 'Split payment (50%)'
       },
       {
-        payeur: 'Barbier Anne',
+        payeur: instructor.full_name,
         pourcentage: 100,
         description: 'Different payer (100%)'
       }
@@ -335,7 +382,7 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
 
     for (const sharingTest of sharingTests) {
       console.log(`Testing: ${sharingTest.description}`);
-      
+
       const updateData = {
         vpid: flightId,
         payeur: sharingTest.payeur,

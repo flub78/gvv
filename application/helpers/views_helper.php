@@ -66,7 +66,7 @@ if (!function_exists('load_bs_view')) {
                 $view = $bs_view;
             }
         }
-        return $CI->load->view($bs_view, $data, $nodisplay);
+        return $CI->load->view($view, $data, $nodisplay);
     }
 }
 
