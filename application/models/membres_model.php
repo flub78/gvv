@@ -447,8 +447,8 @@ class Membres_model extends Common_Model {
             $CI->load->library('session');
             $unique_refs = array_unique($references);
             
-            // Create detailed error message
-            $error_msg = $CI->lang->line('membre_delete_blocked') . "\n\n";
+            // Create detailed error message with mlogin
+            $error_msg = sprintf($CI->lang->line('membre_delete_blocked'), $mlogin) . "\n\n";
             $error_msg .= $CI->lang->line('membre_delete_dependencies') . "\n";
             $error_msg .= "• " . implode("\n• ", $unique_refs);
             

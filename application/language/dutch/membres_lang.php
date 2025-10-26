@@ -6,7 +6,7 @@
 // Verwijderingsberichten
 $lang['membre_delete_success'] = 'Lid is succesvol verwijderd.';
 $lang['membre_delete_failed'] = 'Kan lid niet verwijderen.';
-$lang['membre_delete_blocked'] = 'VERWIJDERING GEBLOKKEERD: Dit lid kan niet worden verwijderd omdat ernaar wordt verwezen in andere gegevens.';
+$lang['membre_delete_blocked'] = 'VERWIJDERING GEBLOKKEERD: Lid "%s" kan niet worden verwijderd omdat ernaar wordt verwezen in andere gegevens.';
 $lang['membre_delete_dependencies'] = 'Gevonden afhankelijkheden:';
 
 // Tabelreferenties

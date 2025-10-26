@@ -8,7 +8,7 @@ $lang['user_delete_success'] = 'User has been successfully deleted.';
 
 // Error messages
 $lang['user_delete_failed'] = 'Unable to delete user.';
-$lang['user_delete_blocked'] = 'DELETION BLOCKED: This user cannot be deleted because they are referenced in other data.';
+$lang['user_delete_blocked'] = 'DELETION BLOCKED: User "%s" cannot be deleted because they are referenced in other data.';
 $lang['user_delete_dependencies'] = 'Dependencies found:';
 
 // Table references

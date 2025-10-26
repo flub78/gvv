@@ -6,7 +6,7 @@
 // Messages de suppression
 $lang['membre_delete_success'] = 'Le membre a été supprimé avec succès.';
 $lang['membre_delete_failed'] = 'Impossible de supprimer le membre.';
-$lang['membre_delete_blocked'] = 'SUPPRESSION IMPOSSIBLE : Ce membre ne peut pas être supprimé car il est référencé dans d\'autres données.';
+$lang['membre_delete_blocked'] = 'SUPPRESSION IMPOSSIBLE : Le membre "%s" ne peut pas être supprimé car il est référencé dans d\'autres données.';
 $lang['membre_delete_dependencies'] = 'Dépendances trouvées :';
 
 // Références dans les tables

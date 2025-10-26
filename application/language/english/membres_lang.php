@@ -6,7 +6,7 @@
 // Deletion messages
 $lang['membre_delete_success'] = 'Member has been successfully deleted.';
 $lang['membre_delete_failed'] = 'Unable to delete member.';
-$lang['membre_delete_blocked'] = 'DELETION BLOCKED: This member cannot be deleted because they are referenced in other data.';
+$lang['membre_delete_blocked'] = 'DELETION BLOCKED: Member "%s" cannot be deleted because they are referenced in other data.';
 $lang['membre_delete_dependencies'] = 'Dependencies found:';
 
 // Table references

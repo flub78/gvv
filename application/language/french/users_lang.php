@@ -8,7 +8,7 @@ $lang['user_delete_success'] = 'L\'utilisateur a été supprimé avec succès.';
 
 // Messages d'erreur
 $lang['user_delete_failed'] = 'Impossible de supprimer l\'utilisateur.';
-$lang['user_delete_blocked'] = 'SUPPRESSION IMPOSSIBLE : Cet utilisateur ne peut pas être supprimé car il est référencé dans d\'autres données.';
+$lang['user_delete_blocked'] = 'SUPPRESSION IMPOSSIBLE : L\'utilisateur "%s" ne peut pas être supprimé car il est référencé dans d\'autres données.';
 $lang['user_delete_dependencies'] = 'Dépendances trouvées :';
 
 // Références dans les tables

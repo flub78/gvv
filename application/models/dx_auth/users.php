@@ -121,10 +121,11 @@ class Users extends Common_Model {
 
     function delete_user($user_id) {
         // First, get the username for this user
-        $user = $this->get_user_by_id($user_id);
-        if (!$user) {
+        $query = $this->get_user_by_id($user_id);
+        if (!$query || $query->num_rows() == 0) {
             return FALSE;
         }
+        $user = $query->row();
         $username = $user->username;
         
         // Get CodeIgniter instance for language support
@@ -188,8 +189,8 @@ class Users extends Common_Model {
             $CI->load->library('session');
             $unique_refs = array_unique($references);
             
-            // Create detailed error message
-            $error_msg = $CI->lang->line('user_delete_blocked') . "\n\n";
+            // Create detailed error message with username
+            $error_msg = sprintf($CI->lang->line('user_delete_blocked'), $username) . "\n\n";
             $error_msg .= $CI->lang->line('user_delete_dependencies') . "\n";
             $error_msg .= "• " . implode("\n• ", $unique_refs);
             

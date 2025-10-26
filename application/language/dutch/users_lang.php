@@ -8,7 +8,7 @@ $lang['user_delete_success'] = 'Gebruiker is succesvol verwijderd.';
 
 // Foutmeldingen
 $lang['user_delete_failed'] = 'Kan gebruiker niet verwijderen.';
-$lang['user_delete_blocked'] = 'VERWIJDERING GEBLOKKEERD: Deze gebruiker kan niet worden verwijderd omdat ernaar wordt verwezen in andere gegevens.';
+$lang['user_delete_blocked'] = 'VERWIJDERING GEBLOKKEERD: Gebruiker "%s" kan niet worden verwijderd omdat ernaar wordt verwezen in andere gegevens.';
 $lang['user_delete_dependencies'] = 'Gevonden afhankelijkheden:';
 
 // Tabelreferenties
