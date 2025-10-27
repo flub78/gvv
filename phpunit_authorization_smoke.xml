@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="application/tests/integration_bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+		<testsuite name="AuthorizationSmokeTests">
+			<file>application/tests/integration/AuthorizationSmokeTest.php</file>
+		</testsuite>
+	</testsuites>
+	<logging>
+		<log type="junit" target="build/logs/authorization_smoke_junit.xml"/>
+		<log type="testdox-text" target="build/logs/authorization_smoke_testdox.txt"/>
+	</logging>
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+		<env name="XDEBUG_MODE" value="coverage"/>
+	</php>
+</phpunit>

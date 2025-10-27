@@ -5,6 +5,7 @@
     <testsuites>
 		<testsuite name="IntegrationTests">
 			<directory>application/tests/integration</directory>
+			<exclude>application/tests/integration/AuthorizationSmokeTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<logging>

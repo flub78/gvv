@@ -385,6 +385,15 @@ class RealQueryResult {
         return $this->result->fetch_assoc() ?: [];
     }
     
+    public function row() {
+        if ($this->result === true || $this->result === false) {
+            return null;
+        }
+        
+        $row = $this->result->fetch_assoc();
+        return $row ? (object) $row : null;
+    }
+    
     public function num_rows() {
         if ($this->result === true || $this->result === false) {
             return 0;
@@ -645,6 +654,10 @@ class MockInput {
 
     public function get($key = NULL, $xss_clean = FALSE) {
         return isset($_GET[$key]) ? $_GET[$key] : NULL;
+    }
+
+    public function cookie($key = NULL, $xss_clean = FALSE) {
+        return isset($_COOKIE[$key]) ? $_COOKIE[$key] : NULL;
     }
 
     public function is_ajax_request() {

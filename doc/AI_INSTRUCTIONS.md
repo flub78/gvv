@@ -39,8 +39,6 @@ This sets PHP 7.4 as the active version. The project **requires PHP 7.4 specific
 # All phpunit test suites with coverage - ~60 seconds
 ./run-all-tests.sh --coverage
 
-# All test suites without coverage - ~2 seconds
-./run-all-tests.sh
 
 # View coverage report
 firefox build/coverage/index.html
@@ -178,8 +176,9 @@ Following `doc/development/workflow.md`:
 10. **No Composer**: Project uses manual dependency management (predates Composer)
 11. **Database access**: Use the credential from configuration/database.php to analyze the database schema or data.
 12. **Diagrams**: Use plantuml to generate class diagrams and database schemas
-13. **Mockups**: generate mockups in ASCII art, generate prototypes in self contained HTML files
-14. **GUI**: keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
+13. **Mockups**: Generate mockups in ASCII art, generate prototypes in self contained HTML files
+14. **GUI**: Keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
+15. **Documentation**: Do not clutter the project root directory, generate markdown files under doc appropriate subdirectories
 
 ---
 
@@ -231,6 +230,8 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 5. **Don't forget migration version** - Update `config/migration.php` after creating migration
 6. **Don't duplicate code** - Extensive codebase likely has what you need
 7. **Don't use Composer** - Project uses manual dependency management
+8. **Only build what explicitly asked for** - Never assume, add or change features, infra or logic without a clear request in the PRD or plan to do so.
+9. **No Over-Engineering** - Do not introduce features, logs, collections or automation unless directly specified.
 
 ---
 
