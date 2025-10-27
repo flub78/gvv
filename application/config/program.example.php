@@ -183,15 +183,7 @@ $config['new_layout'] = true;
  */
 $config['medical_id'] = 26;
 
-/*
- * Use this library for GUI
- */
-$config['gui_library'] = "bootstrap5";
-// $config['gui_library'] = "";
-
 $config['dev_menu'] = true;
-
-$config['multi_sections'] = false;
 
 /**
  * Ce paramètre s'il existe détermine une section dans laquelle créer un compte 411 supplémentaire 

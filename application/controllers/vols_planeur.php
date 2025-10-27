@@ -616,6 +616,10 @@ class Vols_planeur extends Gvv_Controller {
      *            à afficher
      */
     function page($premier = 0, $message = '', $selection = array()) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->push_return_url("vols planeur page");
 
         $this->select_page($premier, $message);
@@ -626,6 +630,10 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format CSV
      */
     function csv() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->select_page(0, "", 100000);
         $this->gvvmetadata->csv("vue_vols_planeur");
     }
@@ -644,6 +652,10 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format PDF
      */
     function pdf() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         gvv_debug("export des planches en pdf");
         $this->select_page(0, "", 100000, null, "asc");
 
@@ -753,6 +765,10 @@ class Vols_planeur extends Gvv_Controller {
      * Active ou désactive le filtrage
      */
     public function filterValidation() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $button = $this->input->post('button');
 
         if ($button == $this->lang->line("gvv_str_select")) {
@@ -799,6 +815,10 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche les vols du pilote
      */
     public function vols_du_pilote($pilote) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         // Enable filtering
         $session ['filter_date'] = '';
         $session ['date_end'] = '';
@@ -822,6 +842,10 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche les vols de la machine
      */
     public function vols_de_la_machine($machine) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         // Enable filtering
         $session ['filter_date'] = '';
         $session ['date_end'] = '';
@@ -1053,6 +1077,10 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de statistiques
      */
     public function statistic($force_regeneration = false) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->load->helper('Statistic');
 
         $year = $this->session->userdata('year');
@@ -1136,6 +1164,10 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de cumuls annuel
      */
     public function cumuls() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $first_flight = $this->gvv_model->latest_flight(array (), "asc");
         if (count($first_flight) < 1) {
             $data ['title'] = $this->lang->line("gvv_error");
@@ -1157,6 +1189,10 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page historique
      */
     public function histo() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $data = array ();
         $data ['machines'] = $this->gvv_model->histo(true);
         $data ['controller'] = $this->controller;
@@ -1172,6 +1208,9 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page Age moyen du parc
      */
     public function age() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
 
         // $tmp = $this->gvv_model->age();
         // var_dump($tmp); exit;
@@ -1194,6 +1233,10 @@ class Vols_planeur extends Gvv_Controller {
      *            $premier
      */
     function export_per($year, $type = "month") {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->load->helper('statistic');
         date_default_timezone_set('Europe/Paris');
 
@@ -1222,6 +1265,10 @@ class Vols_planeur extends Gvv_Controller {
      *            $premier
      */
     function pdf_machine($year) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->load->helper('statistic');
 
         $data = $this->stat_per_machine($year);
@@ -1308,6 +1355,10 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format PDF
      */
     function pdf_month($year) {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $this->load->helper('statistic');
 
         $data = $this->stat_per_month($year);
@@ -1696,6 +1747,10 @@ class Vols_planeur extends Gvv_Controller {
      * compte le nombre de jours de vol par pilote pour la selection
      */
     function jours_de_vol() {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $data ['title'] = 'Jours de vol sur machine club par personne';
         $data ['text'] = 'Attention, le filtrage est controlé sur la page vols planeur.';
         $data ['attrs'] = array ();
@@ -1708,6 +1763,10 @@ class Vols_planeur extends Gvv_Controller {
      * Liste les heurs par pilotes et par machines
      */
     function par_pilote_machine($type = "html", $what = "total") {
+        if (! $this->dx_auth->is_role('planchiste')) {
+            $this->dx_auth->deny_access();
+        }
+        
         $selection_total = $this->selection(FALSE);
 
         // total par machine

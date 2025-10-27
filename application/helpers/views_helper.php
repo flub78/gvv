@@ -56,16 +56,15 @@ if (!function_exists('load_bs_view')) {
         $legacy_gui = $CI->session->userdata('legacy_gui');
         // echo "legacy_gui = $legacy_gui"; exit;
 
-        if ($CI->config->item('gui_library') == 'bootstrap5') {
-            $path_array = explode('/', $view);
-            $path_array[count($path_array) - 1] = 'bs_' . $path_array[count($path_array) - 1];
-            $bs_view = implode('/', $path_array);
+        $path_array = explode('/', $view);
+        $path_array[count($path_array) - 1] = 'bs_' . $path_array[count($path_array) - 1];
+        $bs_view = implode('/', $path_array);
 
-            $filename = "./application/views/" . $bs_view . ".php";
-            if (file_exists($filename)  && !$legacy_gui) {
-                $view = $bs_view;
-            }
+        $filename = "./application/views/" . $bs_view . ".php";
+        if (file_exists($filename)  && !$legacy_gui) {
+            $view = $bs_view;
         }
+
         return $CI->load->view($view, $data, $nodisplay);
     }
 }

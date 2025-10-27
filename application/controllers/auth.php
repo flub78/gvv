@@ -78,10 +78,11 @@ class Auth extends CI_Controller {
             $this->sections_model->safe_count_all();
 
         // default = planeur, I should use a better strategy
+        // Why a default ? the user has to select one anyway
         $data['section'] = 1;
 
-        // I tried to setup the section selector in the GVV controller, but there are a lot of controllers which are not GVV controllers.
-        // So it has to be done here
+        // The section selector cannot be initialized in the GVV controllers because some controllers do not inherit from GVV
+        // put it in the session makes it easy to access everywhere
         if (! $this->session->userdata('section_selector')) {
             $this->load->model('sections_model');
             $section_selector = $this->sections_model->selector_with_all();
@@ -104,6 +105,8 @@ class Auth extends CI_Controller {
                 $val->set_rules('captcha', 'lang:auth_confirmation_code', 'trim|required|xss_clean|callback_captcha_check');
             }
 
+            // there is a first layer of control with the auth CodeIgniter library
+            // before others controls you have to be logged in with CodeIgniter
             if (
                 $val->run() and
                 $this->dx_auth->login($val->set_value('username'), $val->set_value('password'), $val->set_value('remember'))
@@ -121,6 +124,8 @@ class Auth extends CI_Controller {
                     'filter_membre_actif' => 2,
                     'filter_machine_actif' => 2
                 ];
+
+                // legacy gui mode was set by a checkbox on the login page
                 if ($this->input->post('legacy_gui')) {
                     $session['legacy_gui'] = true;
                 } else {
