@@ -4,11 +4,13 @@ title: Correction comparaison soldes initialisations multiples
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - soldes
   - initialisation
 dependencies: []
+ordinal: 18000
 ---
 
 ## Description

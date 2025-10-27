@@ -4,11 +4,13 @@ title: Supprimer watir
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - cleanup
   - dependencies
   - watir
 dependencies: []
+ordinal: 13000
 ---
 
 ## Description

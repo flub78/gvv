@@ -4,12 +4,14 @@ title: Utiliser accordéons bootstrap vue compte pilote
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - improvement
   - bootstrap
   - interface
   - pilote
 dependencies: []
+ordinal: 12000
 ---
 
 ## Description

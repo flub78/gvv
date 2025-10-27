@@ -4,12 +4,14 @@ title: Compléter exports CSV/PDF manquants
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - export
   - csv
   - pdf
 dependencies: []
+ordinal: 25000
 ---
 
 ## Description

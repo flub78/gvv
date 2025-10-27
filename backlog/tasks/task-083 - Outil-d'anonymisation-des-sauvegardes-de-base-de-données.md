@@ -4,7 +4,7 @@ title: Outil d'anonymisation des sauvegardes de base de données
 status: Done
 assignee: []
 created_date: '2025-10-13 09:50'
-updated_date: '2025-10-13 10:57'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - security
@@ -12,6 +12,7 @@ labels:
   - database
 dependencies: []
 priority: medium
+ordinal: 1000
 ---
 
 ## Description

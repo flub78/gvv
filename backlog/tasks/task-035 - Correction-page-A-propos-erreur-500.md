@@ -4,11 +4,13 @@ title: Correction page A propos erreur 500
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - apropos
   - production
 dependencies: []
+ordinal: 38000
 ---
 
 ## Description

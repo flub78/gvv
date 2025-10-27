@@ -4,11 +4,13 @@ title: Amélioration affichage messages création
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
+updated_date: '2025-10-27 17:55'
 labels:
   - ui
   - messages
   - popup
 dependencies: []
+ordinal: 36000
 ---
 
 ## Description

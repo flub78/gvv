@@ -1,16 +1,16 @@
 ---
 id: task-006
 title: Ajouter support du markdown
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-14 07:02'
+updated_date: '2025-10-27 17:56'
 labels:
   - feature
   - markdown
 dependencies: []
 priority: low
-ordinal: 6000
+ordinal: 50000
 ---
 
 ## Description

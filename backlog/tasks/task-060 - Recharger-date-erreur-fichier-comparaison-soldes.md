@@ -4,12 +4,14 @@ title: Recharger date erreur fichier comparaison soldes
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - soldes
   - comparaison
   - interface
 dependencies: []
+ordinal: 21000
 ---
 
 ## Description

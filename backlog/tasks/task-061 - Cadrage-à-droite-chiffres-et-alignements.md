@@ -4,12 +4,14 @@ title: Cadrage à droite chiffres et alignements
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - improvement
   - interface
   - alignement
   - chiffres
 dependencies: []
+ordinal: 22000
 ---
 
 ## Description

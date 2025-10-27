@@ -4,13 +4,14 @@ title: Vérifier les exports pdf/csv des comptes
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
-updated_date: '2025-10-13 08:50'
+updated_date: '2025-10-27 17:55'
 labels:
   - verification
   - export
   - pdf
   - csv
 dependencies: []
+ordinal: 2000
 ---
 
 ## Description

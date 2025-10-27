@@ -4,11 +4,12 @@ title: Documentation de la sauvegarde automatique
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
-updated_date: '2025-10-13 08:50'
+updated_date: '2025-10-27 17:55'
 labels:
   - documentation
   - sauvegarde
 dependencies: []
+ordinal: 4000
 ---
 
 ## Description

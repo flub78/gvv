@@ -4,11 +4,13 @@ title: Support virgule comme séparateur dans montants
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - ecritures
   - montants
 dependencies: []
+ordinal: 34000
 ---
 
 ## Description

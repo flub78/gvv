@@ -4,11 +4,13 @@ title: Écriture spéciale remise liquide en banque
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - comptabilite
   - banque
 dependencies: []
+ordinal: 47000
 ---
 
 ## Description

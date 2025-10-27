@@ -4,11 +4,13 @@ title: Suppression choix par défaut écritures
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
+updated_date: '2025-10-27 17:55'
 labels:
   - improvement
   - ecritures
   - interface
 dependencies: []
+ordinal: 46000
 ---
 
 ## Description

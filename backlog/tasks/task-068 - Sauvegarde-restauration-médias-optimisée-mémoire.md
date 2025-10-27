@@ -4,6 +4,7 @@ title: Sauvegarde/restauration médias optimisée mémoire
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - sauvegarde
@@ -11,6 +12,7 @@ labels:
   - attachments
   - performance
 dependencies: []
+ordinal: 28000
 ---
 
 ## Description

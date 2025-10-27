@@ -4,12 +4,14 @@ title: Correction parseur opérations multi-comptes
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - parseur
   - operations
   - comptes
 dependencies: []
+ordinal: 17000
 ---
 
 ## Description

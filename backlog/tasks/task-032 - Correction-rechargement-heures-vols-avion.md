@@ -4,12 +4,13 @@ title: Correction rechargement heures vols avion
 status: Done
 assignee: []
 created_date: '2025-10-13 07:55'
-updated_date: '2025-10-13 08:50'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - vols
   - avion
 dependencies: []
+ordinal: 6000
 ---
 
 ## Description

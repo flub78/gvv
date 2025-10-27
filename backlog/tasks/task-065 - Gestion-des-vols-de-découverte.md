@@ -4,12 +4,13 @@ title: Gestion des vols de découverte
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
-updated_date: '2025-10-13 08:50'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - vols
   - decouverte
 dependencies: []
+ordinal: 9000
 ---
 
 ## Description

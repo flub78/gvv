@@ -4,12 +4,13 @@ title: Synchronisation avec OpenFlyer
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
-updated_date: '2025-10-13 08:50'
+updated_date: '2025-10-27 17:55'
 labels:
   - feature
   - synchro
   - openflyer
 dependencies: []
+ordinal: 8000
 ---
 
 ## Description

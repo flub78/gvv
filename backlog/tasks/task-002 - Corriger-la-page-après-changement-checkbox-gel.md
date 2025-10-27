@@ -1,16 +1,16 @@
 ---
 id: task-002
 title: Corriger la page après changement checkbox gel
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:48'
+updated_date: '2025-10-27 17:55'
 labels:
   - bug
   - interface
 dependencies: []
 priority: medium
-ordinal: 1000
+ordinal: 49000
 ---
 
 ## Description

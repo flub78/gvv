@@ -4,12 +4,14 @@ title: Correction CSS boutons calendrier et sélecteurs
 status: Done
 assignee: []
 created_date: '2025-10-13 07:56'
+updated_date: '2025-10-27 17:55'
 labels:
   - bugfix
   - css
   - calendrier
   - interface
 dependencies: []
+ordinal: 19000
 ---
 
 ## Description
