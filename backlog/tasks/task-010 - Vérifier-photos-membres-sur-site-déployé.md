@@ -1,17 +1,17 @@
 ---
 id: task-010
 title: Vérifier photos membres sur site déployé
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:49'
+updated_date: '2025-10-27 17:58'
 labels:
   - verification
   - photos
   - production
 dependencies: []
 priority: medium
-ordinal: 10000
+ordinal: 51000
 ---
 
 ## Description

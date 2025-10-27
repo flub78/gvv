@@ -1,17 +1,17 @@
 ---
 id: task-017
 title: Supprimer vues non bootstrap (emails)
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:49'
+updated_date: '2025-10-27 17:59'
 labels:
   - debt
   - bootstrap
   - cleanup
 dependencies: []
 priority: low
-ordinal: 17000
+ordinal: 52000
 ---
 
 ## Description

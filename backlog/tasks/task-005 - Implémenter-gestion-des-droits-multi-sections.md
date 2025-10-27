@@ -1,16 +1,16 @@
 ---
 id: task-005
 title: Implémenter gestion des droits multi-sections
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2025-10-13 07:46'
-updated_date: '2025-10-13 08:48'
+updated_date: '2025-10-27 17:58'
 labels:
   - feature
   - permissions
 dependencies: []
 priority: high
-ordinal: 5000
+ordinal: 1000
 ---
 
 ## Description
