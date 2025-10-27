@@ -54,7 +54,7 @@ $lang['gvv_vols_planeur_tooltip_1'] = "Les vols d'essais et les vols d'initiatio
 $lang['gvv_vols_planeur_tooltip_2'] = "Si le remorqué est facturé par un autre club (concours) choisir lancement extérieur.";
 
 $lang['gvv_vols_planeur_tab_per_glider'] = "Par machine";
-$lang['gvv_vols_planeur_tab_solo_per_glider'] = "Lachés machine";
+$lang['gvv_vols_planeur_tab_solo_per_glider'] = "Lâchés machine";
 $lang['gvv_vols_planeur_tab_yearly_hours'] = "Heures par an";
 $lang['gvv_vols_planeur_tab_yearly_flights'] = "Vols par an";
 $lang['gvv_vols_planeur_tab_dual'] = "Heures double";

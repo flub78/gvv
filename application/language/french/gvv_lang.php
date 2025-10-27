@@ -299,7 +299,7 @@ $lang['gvv_label_menu'] = "Menu";
 
 # Hints, tooltips
 $lang['gvv_str_filter'] = "Filtre";
-$lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères de selection";
+$lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères de sélection";
 $lang['gvv_str_select'] = "Filtrer";
 $lang['gvv_str_display'] = "Ne pas filtrer";
 

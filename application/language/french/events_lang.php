@@ -13,7 +13,7 @@ $lang['gvv_events_title_training_avion'] = "Formation avion";
 $lang['gvv_events_title_training_ulm'] = "Formation ULM";
 $lang['gvv_events_title_FAI'] = "Certificats de performance FAI";
 
-$lang['gvv_events_title_event'] = "Evénement";
+$lang['gvv_events_title_event'] = "Événement";
 
 $lang['gvv_events_field_event_type'] = "Type de vol";
 $lang['gvv_events_field_emlogin'] = "Pilote";

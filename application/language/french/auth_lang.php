@@ -44,7 +44,7 @@ $lang['auth_confirmation_code'] = "Code de confirmation";
 $lang['auth_confirm_password'] = "Confirmation du mot de passe";
 $lang['auth_email'] = "Courriel";
 $lang['auth_user_or_email'] = "Utilisateur ou adresse email";
-$lang['auth_previous_password'] = "Mot de passe précédant";
+$lang['auth_previous_password'] = "Mot de passe précédent";
 $lang['auth_new_password'] = "Nouveau mot de passe";
 $lang['auth_confirm_password'] = "Confirmez le mot de passe";
 

@@ -36,7 +36,7 @@ $lang['welcome_options'] =  array(
 );
 
 $lang['welcome_forbiden_title'] = "Accès non autorisé";
-$lang['welcome_forbiden_text'] = "Vous ne pouvez pas accéder à cette page. Elle peut être vérouillée pour maintenance, 
+$lang['welcome_forbiden_text'] = "Vous ne pouvez pas accéder à cette page. Elle peut être verrouillée pour maintenance, 
 		ou vous n'avez pas les droits correspondants
 	    ou elle est réellement manquante. Si la situation perdure et qu'elle vous semble anormale contactez votre administrateur.";
 
@@ -50,10 +50,10 @@ $lang['welcome_accounts_title'] = "Listing complet des comptes";
 $lang['welcome_airplane_flightlog'] = "Planches de vol avion";
 $lang['welcome_glider_flightlog'] = "Planches de vol planeur";
 
-$lang['welcome_dates'] = "Gestion des dates, lachés, brevets, visite médicale";
+$lang['welcome_dates'] = "Gestion des dates, lâchés, brevets, visite médicale";
 $lang['welcome_certificates'] = "Certificats par pilote";
 
-$lang['welcome_treasurer_title'] = "Page reservée aux trésoriers";
+$lang['welcome_treasurer_title'] = "Page réservée aux trésoriers";
 $lang['welcome_database_backup_title'] = "Sauvegarde de la base de données";
 $lang['welcome_database_endofyear_title'] = "Clôture des comptes";
 
@@ -66,8 +66,8 @@ $lang['welcome_ticket_types_title'] = "Types de ticket";
 
 $lang['welcome_special_entries_title'] = "Ecritures spécialisées";
 $lang['welcome_global_entries_title'] = "Ecriture générale";
-$lang['welcome_special_entries_warning'] = "A cause du risque d'erreur, le passage d'ecritures générales est déconseillé. Les ecritures générales sont possibles entre n'importe quel comptes dans n'importe quel sens. Les écrans d'écritures spécialisé, recettes, dépenses, paiement pilotes, etc. "
-	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est contrôlé, il guident l'utilisateur. Si vous êtes amené à passer régulièrement des écritures générales, faites créer un écran de saisie spécialisé.";
+$lang['welcome_special_entries_warning'] = "À cause du risque d'erreur, le passage d'écritures générales est déconseillé. Les écritures générales sont possibles entre n'importe quels comptes dans n'importe quel sens. Les écrans d'écritures spécialisés, recettes, dépenses, paiement pilotes, etc. "
+	. " n'autorisent les écritures qu'entre comptes d'un certain type et le sens d'écriture est contrôlé, ils guident l'utilisateur. Si vous êtes amené à passer régulièrement des écritures générales, faites créer un écran de saisie spécialisé.";
 
 $lang['welcome_global_financial_report'] = "Rapport financier annuel";
 
