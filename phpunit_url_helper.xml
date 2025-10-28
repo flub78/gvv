@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="application/tests/unit/helpers/url_helper_bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+		<testsuite name="UrlHelperTests">
+			<file>application/tests/unit/helpers/UrlHelperTest.php</file>
+		</testsuite>
+	</testsuites>
+	<php>
+		<const name="PHPUNIT_TEST" value="1" />
+		<const name="PHPUNIT_CHARSET" value="UTF-8" />
+		<server name="REMOTE_ADDR" value="0.0.0.0" />
+	</php>
+</phpunit>

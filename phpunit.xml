@@ -9,6 +9,8 @@
 			<directory>application/tests/unit/libraries</directory>
 			<directory>application/tests/unit/i18n</directory>
 			<directory>application/tests/controllers</directory>
+			<!-- Exclude UrlHelperTest - it has its own config (phpunit_url_helper.xml) -->
+			<exclude>application/tests/unit/helpers/UrlHelperTest.php</exclude>
 		</testsuite>
 	</testsuites>
 	<php>

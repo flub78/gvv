@@ -171,6 +171,54 @@ class MinimalMockConfig {
         }
         return TRUE;
     }
+
+    public function site_url($uri = '', $protocol = NULL) {
+        // Build URL from base_url and index_page config
+        $base_url = $this->item('base_url');
+        $index_page = $this->item('index_page');
+
+        if (empty($base_url)) {
+            $base_url = 'http://localhost/';
+        }
+
+        // Ensure base_url has trailing slash
+        if (substr($base_url, -1) !== '/') {
+            $base_url .= '/';
+        }
+
+        // Add index_page if set
+        if (!empty($index_page)) {
+            $base_url .= $index_page . '/';
+        }
+
+        // Add URI, removing leading slash
+        return $base_url . ltrim($uri, '/');
+    }
+
+    public function slash_item($item) {
+        $value = $this->item($item);
+        if (empty($value)) {
+            return '';
+        }
+        return rtrim($value, '/') . '/';
+    }
+
+    public function base_url($uri = '', $protocol = NULL) {
+        // Same as site_url but without index_page
+        $base_url = $this->item('base_url');
+
+        if (empty($base_url)) {
+            $base_url = 'http://localhost/';
+        }
+
+        // Ensure base_url has trailing slash
+        if (substr($base_url, -1) !== '/') {
+            $base_url .= '/';
+        }
+
+        // Add URI, removing leading slash
+        return $base_url . ltrim($uri, '/');
+    }
 }
 
 // Mock input class for CI

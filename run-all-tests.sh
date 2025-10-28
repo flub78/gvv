@@ -18,7 +18,7 @@ PHP_BIN="/usr/bin/php7.4"
 show_help() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
-    echo "Run all GVV PHPUnit tests (125 tests across all suites)"
+    echo "Run all GVV PHPUnit tests (~136 tests across all suites)"
     echo ""
     echo "Options:"
     echo "  -c, --coverage     Generate code coverage report (slower ~60s)"
@@ -29,12 +29,13 @@ show_help() {
     echo "  $0 --coverage      Run all tests with coverage (slow ~60s)"
     echo ""
     echo "Test Suites Included:"
-    echo "  - Unit Tests (38 tests): helpers, models, libraries, i18n, controllers"
+    echo "  - Unit Tests (30 tests): helpers, models, libraries, i18n, controllers (excl. URL)"
+    echo "  - URL Helper Tests (8 tests): URL generation and validation"
     echo "  - Integration Tests (35 tests): database operations, metadata"
     echo "  - Enhanced Tests (40 tests): CI framework helpers/libraries"
     echo "  - Controller Tests (6 tests): JSON/HTML/CSV output parsing"
     echo "  - MySQL Tests (9 tests): real database CRUD"
-    echo "  Total: ~128 tests"
+    echo "  Total: ~136 tests"
     exit 0
 }
 
@@ -71,13 +72,21 @@ fi
 echo -e "${YELLOW}Configuration:${NC}"
 echo "  PHP: 7.4.33"
 echo "  Coverage: $([ "$COVERAGE" = true ] && echo 'ENABLED' || echo 'DISABLED')"
-echo "  Test suites: ALL (5 suites, ~128 tests)"
+echo "  Test suites: ALL (6 suites, ~136 tests)"
 echo ""
 
 # Track results
 TOTAL_TESTS=0
 TOTAL_ASSERTIONS=0
 FAILED_SUITES=0
+
+# Arrays to store suite results
+declare -a SUITE_NAMES
+declare -a SUITE_TESTS
+declare -a SUITE_PASSED
+declare -a SUITE_FAILED
+declare -a SUITE_SKIPPED
+SUITE_COUNT=0
 
 # Coverage setup
 if [ "$COVERAGE" = true ]; then
@@ -134,6 +143,48 @@ run_suite() {
         local exit_code=${PIPESTATUS[0]}
     fi
 
+    # Parse test results from output
+    local output_file="/tmp/phpunit_${suite_id}_output.txt"
+    local tests=0
+    local passed=0
+    local failed=0
+    local skipped=0
+
+    # Extract test counts from PHPUnit output
+    # Look for patterns like: "Tests: 8, Assertions: 32" or "OK (8 tests, 32 assertions)"
+    if [ -f "$output_file" ]; then
+        # Try format: "Tests: X, Assertions: Y, ..."
+        local test_line=$(grep -E "^Tests: [0-9]+" "$output_file" | tail -1)
+        if [ -n "$test_line" ]; then
+            tests=$(echo "$test_line" | grep -oP 'Tests: \K[0-9]+' || echo 0)
+            failed=$(echo "$test_line" | grep -oP 'Failures: \K[0-9]+' || echo 0)
+            local errors=$(echo "$test_line" | grep -oP 'Errors: \K[0-9]+' || echo 0)
+            local incomplete=$(echo "$test_line" | grep -oP 'Incomplete: \K[0-9]+' || echo 0)
+            local risky=$(echo "$test_line" | grep -oP 'Risky: \K[0-9]+' || echo 0)
+
+            failed=$((failed + errors))
+            skipped=$((incomplete + risky))
+            passed=$((tests - failed - skipped))
+        else
+            # Try format: "OK (8 tests, 32 assertions)" or "FAILURES! Tests: 8, ..."
+            local ok_line=$(grep -E "^OK \([0-9]+ tests?" "$output_file" | tail -1)
+            if [ -n "$ok_line" ]; then
+                tests=$(echo "$ok_line" | grep -oP '\(\K[0-9]+' || echo 0)
+                passed=$tests
+                failed=0
+                skipped=0
+            fi
+        fi
+    fi
+
+    # Store results in arrays
+    SUITE_NAMES[$SUITE_COUNT]="$suite_name"
+    SUITE_TESTS[$SUITE_COUNT]=$tests
+    SUITE_PASSED[$SUITE_COUNT]=$passed
+    SUITE_FAILED[$SUITE_COUNT]=$failed
+    SUITE_SKIPPED[$SUITE_COUNT]=$skipped
+    SUITE_COUNT=$((SUITE_COUNT + 1))
+
     # Check for test failures or errors
     # PHPUnit returns 0 for success, 1 for test failures, 2 for errors
     if [ $exit_code -ne 0 ]; then
@@ -147,27 +198,32 @@ run_suite() {
 
 # Run each test suite with its proper bootstrap
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 1/5: Unit Tests${NC}"
+echo -e "${BLUE}  Test Suite 1/6: Unit Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 run_suite "Unit Tests" "phpunit.xml" "Helpers, Models, Libraries, i18n, Controllers" "unit"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 2/5: Integration Tests${NC}"
+echo -e "${BLUE}  Test Suite 2/6: URL Helper Tests${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
+run_suite "URL Helper Tests" "phpunit_url_helper.xml" "URL generation and validation" "url_helper"
+
+echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}  Test Suite 3/6: Integration Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 run_suite "Integration Tests" "phpunit_integration.xml" "Real database operations, metadata" "integration"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 3/5: Enhanced Tests${NC}"
+echo -e "${BLUE}  Test Suite 4/6: Enhanced Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 run_suite "Enhanced Tests" "phpunit_enhanced.xml" "CI framework helpers and libraries" "enhanced"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 4/5: Controller Tests${NC}"
+echo -e "${BLUE}  Test Suite 5/6: Controller Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 run_suite "Controller Tests" "phpunit_controller.xml" "JSON/HTML/CSV output parsing" "controller"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 5/5: MySQL Tests${NC}"
+echo -e "${BLUE}  Test Suite 6/6: MySQL Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 run_suite "MySQL Tests" "phpunit.xml" "Real database CRUD operations" "mysql"
 
@@ -175,6 +231,46 @@ run_suite "MySQL Tests" "phpunit.xml" "Real database CRUD operations" "mysql"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Final Summary${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
+echo ""
+
+# Calculate totals
+total_tests=0
+total_passed=0
+total_failed=0
+total_skipped=0
+
+for ((i=0; i<SUITE_COUNT; i++)); do
+    total_tests=$((total_tests + SUITE_TESTS[i]))
+    total_passed=$((total_passed + SUITE_PASSED[i]))
+    total_failed=$((total_failed + SUITE_FAILED[i]))
+    total_skipped=$((total_skipped + SUITE_SKIPPED[i]))
+done
+
+# Display table header
+printf "%-30s | %6s | %6s | %6s | %8s\n" "Suite Name" "Tests" "Passed" "Failed" "Skipped"
+echo "───────────────────────────────────────────────────────────────────────────"
+
+# Display each suite's results
+for ((i=0; i<SUITE_COUNT; i++)); do
+    name="${SUITE_NAMES[i]}"
+    tests="${SUITE_TESTS[i]:-0}"
+    passed="${SUITE_PASSED[i]:-0}"
+    failed="${SUITE_FAILED[i]:-0}"
+    skipped="${SUITE_SKIPPED[i]:-0}"
+
+    # Color code the status
+    if [ "$failed" -gt 0 ] 2>/dev/null; then
+        printf "${RED}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+    elif [ "$skipped" -gt 0 ] 2>/dev/null; then
+        printf "${YELLOW}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+    else
+        printf "${GREEN}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+    fi
+done
+
+# Display totals
+echo "───────────────────────────────────────────────────────────────────────────"
+printf "${CYAN}%-30s${NC} | %6d | %6d | %6d | %8d\n" "TOTAL" "$total_tests" "$total_passed" "$total_failed" "$total_skipped"
 echo ""
 
 if [ $FAILED_SUITES -eq 0 ]; then
