@@ -232,6 +232,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 7. **Don't use Composer** - Project uses manual dependency management
 8. **Only build what explicitly asked for** - Never assume, add or change features, infra or logic without a clear request in the PRD or plan to do so.
 9. **No Over-Engineering** - Do not introduce features, logs, collections or automation unless directly specified.
+10. **Do not generate additional documents when not required** - Restrict the documentation to the minimal, a PRD for the feature description and an implementation plan for the design , breakdown into tasks and status progress. Do not generate summaries of implementation, external todo lists or subpart design documents.
 
 ---
 
@@ -279,6 +280,7 @@ When working with AI assistants on GVV:
 4. **Work incrementally**: Break complex changes into reviewable steps
 5. **Ask when unclear**: Request clarification before proceeding
 6. **Reuse first**: Check existing implementations before writing new code
+7. **Cleanup after yourself**: Delete all temporary tests
 
 ---
 
