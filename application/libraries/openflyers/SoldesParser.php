@@ -144,8 +144,8 @@ class SoldesParser {
                 $image = $CI->comptes_model->image($compte_gvv);
                 $compte_gvv = anchor(controller_url("compta/journal_compte/" . $associated_gvv), $image);
             } else {
-                // $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                //     . $id_of . ',\'' . $nom_of  . '\')"';
+                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                    . $id_of . ',\'' . $nom_of  . '\')"';
 
                 $attrs = 'class="form-control big_select" ';
                 $compte_gvv = dropdown_field(

@@ -385,10 +385,10 @@ class GrandLivreParser {
                 }
 
                 // On affiche un sélecteur
-                // $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                //     . $id_of . ',\'' . $nom_of  . '\')"';
+                $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                    . $id_of . ',\'' . $nom_of  . '\')"';
 
-                $attrs = 'class="form-control big_select" ';
+                // $attrs = 'class="form-control big_select" ';
 
                 $compte_gvv = dropdown_field(
                     "compte_" . $line,
@@ -443,10 +443,10 @@ class GrandLivreParser {
                     $compte2_gvv = anchor_compte($associated_gvv_compte2);
                 } else {
                     // On affiche un sélecteur
-                    // $attrs = 'class="form-control big_select" onchange="updateRow(this, '
-                    //     . $id_of . ',\'' . $nom_of  . '\')"';
+                    $attrs = 'class="form-control big_select" onchange="updateRow(this, '
+                        . $id_of . ',\'' . $nom_of  . '\')"';
 
-                    $attrs = 'class="form-control big_select" ';
+                    // $attrs = 'class="form-control big_select" ';
                     $compte2_gvv = dropdown_field(
                         "compte_" . $line,
                         $associated_gvv_account,

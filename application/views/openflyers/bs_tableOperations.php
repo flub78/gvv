@@ -163,6 +163,9 @@ document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function(tab) 
     });
 });
 </script>
+<script>
+window.APP_BASE_URL = "<?php echo base_url(); ?>";
+</script>
 
 <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="openflyers" role="tabpanel" aria-labelledby="openflyers-tab">
