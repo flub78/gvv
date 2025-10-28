@@ -103,6 +103,15 @@ $lang['gvv_volsp_field_tempmoteur'] = "Motortijd";
 $lang['gvv_volsp_field_essence'] = "Brandstof";
 $lang['gvv_volsp_field_avitaillement'] = "Avitaillement?";
 $lang['gvv_volsp_field_vpnumvi'] = "N° VI";
+$lang['gvv_volsp_field_club'] = "Club";
+$lang['gvv_volsp_field_facture'] = "Factuur";
+$lang['gvv_volsp_field_payeur'] = "Betaler";
+$lang['gvv_volsp_field_pourcentage'] = "Percentage";
+$lang['gvv_volsp_field_reappro'] = "Bevoorrading";
+$lang['gvv_volsp_field_saisie_par'] = "Ingevoerd door";
+$lang['gvv_volsp_field_vpid'] = "ID";
+$lang['gvv_volsp_field_vpinst'] = "Instructeur";
+$lang['gvv_volsp_field_vpticcolle'] = "Ticket gebruikt";
 
 $lang['gvv_vue_vols_planeur_short_field_vpdate'] = "Datum";
 $lang['gvv_vue_vols_planeur_short_field_vpcdeb'] = "Start";

@@ -19,3 +19,4 @@ $lang['gvv_backend_header'] = array('', 'Utilisateur', 'Email', 'Role', 'Exclu',
 $lang['gvv_backend_delete_confirm'] = "Etes vous sur de vouloir supprimer";
 $lang['gvv_backend_delete_yes'] = "Oui";
 $lang['gvv_backend_delete_no'] = "Non";
+$lang['gvv_backend_no'] = "Nee";

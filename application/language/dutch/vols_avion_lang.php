@@ -49,7 +49,7 @@ $lang['gvv_vols_avion_fieldset_conso'] = "Verbruik";
 $lang['gvv_vols_avion_tooltip_conso'] = "Klik hier om het verbruik te verbergen/tonen.";
 
 $lang['gvv_vols_avion_tip_unit'] = "De duur wordt weergegeven in 1/100 uur, zelfs al is de tacho in uren en minuten.";
-$lang['gvv_vols_avion_tip_billing'] = "Initiatievluchten en sleeps worden niet aangerekend aan de piloot.";
+$lang['gvv_vols_avion_tip_billing'] = "Factureringsparameters worden gedefinieerd in de tariefconfiguratie.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";

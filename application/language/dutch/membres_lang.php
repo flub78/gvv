@@ -9,6 +9,10 @@ $lang['membre_delete_failed'] = 'Kan lid niet verwijderen.';
 $lang['membre_delete_blocked'] = 'VERWIJDERING GEBLOKKEERD: Lid "%s" kan niet worden verwijderd omdat ernaar wordt verwezen in andere gegevens.';
 $lang['membre_delete_dependencies'] = 'Gevonden afhankelijkheden:';
 
+// Foto
+$lang['photo_with_badges'] = 'Foto';
+$lang['gvv_membres_short_field_photo_with_badges'] = 'Foto';
+
 // Tabelreferenties
 $lang['membre_delete_ref_compte'] = 'Rekeningen';
 $lang['membre_delete_ref_volsa_pilot'] = 'Vliegtuigvluchten (piloot)';

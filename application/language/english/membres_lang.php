@@ -9,6 +9,10 @@ $lang['membre_delete_failed'] = 'Unable to delete member.';
 $lang['membre_delete_blocked'] = 'DELETION BLOCKED: Member "%s" cannot be deleted because they are referenced in other data.';
 $lang['membre_delete_dependencies'] = 'Dependencies found:';
 
+// Photo
+$lang['photo_with_badges'] = 'Photo';
+$lang['gvv_membres_short_field_photo_with_badges'] = 'Photo';
+
 // Table references
 $lang['membre_delete_ref_compte'] = 'Accounts';
 $lang['membre_delete_ref_volsa_pilot'] = 'Airplane flights (pilot)';

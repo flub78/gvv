@@ -49,6 +49,7 @@ $lang['gvv_vols_avion_fieldset_conso'] = "Consommation";
 $lang['gvv_vols_avion_tooltip_conso'] = "Cliquez pour afficher/masquer les consommations.";
 
 $lang['gvv_vols_avion_tip_unit'] = "Les durées sont affichées en 1/100 d'heures, même quand les horamètres sont en minutes.";
+$lang['gvv_vols_avion_tip_billing'] = "Les paramètres de facturation sont définis dans la configuration des tarifs.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Par machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Heures par an";

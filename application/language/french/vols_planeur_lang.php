@@ -103,6 +103,15 @@ $lang['gvv_volsp_field_tempmoteur'] = "Temps moteur";
 $lang['gvv_volsp_field_essence'] = "Essence";
 $lang['gvv_volsp_field_avitaillement'] = "Avitaillement";
 $lang['gvv_volsp_field_vpnumvi'] = "N° VI";
+$lang['gvv_volsp_field_club'] = "Club";
+$lang['gvv_volsp_field_facture'] = "Facture";
+$lang['gvv_volsp_field_payeur'] = "Payeur";
+$lang['gvv_volsp_field_pourcentage'] = "Pourcentage";
+$lang['gvv_volsp_field_reappro'] = "Avitaillement";
+$lang['gvv_volsp_field_saisie_par'] = "Saisi par";
+$lang['gvv_volsp_field_vpid'] = "ID";
+$lang['gvv_volsp_field_vpinst'] = "Instructeur";
+$lang['gvv_volsp_field_vpticcolle'] = "Ticket collé";
 
 $lang['gvv_vue_vols_planeur_short_field_vpdate'] = "Date";
 $lang['gvv_vue_vols_planeur_short_field_vpcdeb'] = "Début";

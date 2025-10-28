@@ -11,9 +11,14 @@ $lang['gvv_sections_element'] = "Section";
 
 $lang['gvv_sections_field_nom'] = "Nom";
 $lang['gvv_sections_field_description'] = "Description";
+$lang['gvv_sections_field_id'] = "ID";
+$lang['gvv_sections_field_acronyme'] = "Acronyme";
+$lang['gvv_sections_field_couleur'] = "Couleur";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Nom";
 $lang['gvv_vue_sections_short_field_description'] = "Description";
+$lang['gvv_vue_sections_short_field_acronyme'] = "Acronyme";
+$lang['gvv_vue_sections_short_field_couleur'] = "Couleur";
 
 $lang['all_sections'] = "Toutes";
 

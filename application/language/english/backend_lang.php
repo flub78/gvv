@@ -19,3 +19,4 @@ $lang['gvv_backend_header'] = array('', 'User', 'Email', 'Role', 'Disabled', 'IP
 $lang['gvv_backend_delete_confirm'] = "Confirm delete";
 $lang['gvv_backend_delete_yes'] = "Yes";
 $lang['gvv_backend_delete_no'] = "No";
+$lang['gvv_backend_no'] = "No";

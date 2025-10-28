@@ -102,6 +102,15 @@ $lang['gvv_volsp_field_tempmoteur'] = "Motor hours";
 $lang['gvv_volsp_field_essence'] = "Fuel";
 $lang['gvv_volsp_field_avitaillement'] = "Refueling";
 $lang['gvv_volsp_field_vpnumvi'] = "N° VI";
+$lang['gvv_volsp_field_club'] = "Club";
+$lang['gvv_volsp_field_facture'] = "Invoice";
+$lang['gvv_volsp_field_payeur'] = "Payer";
+$lang['gvv_volsp_field_pourcentage'] = "Percentage";
+$lang['gvv_volsp_field_reappro'] = "Refueling";
+$lang['gvv_volsp_field_saisie_par'] = "Entered by";
+$lang['gvv_volsp_field_vpid'] = "ID";
+$lang['gvv_volsp_field_vpinst'] = "Instructor";
+$lang['gvv_volsp_field_vpticcolle'] = "Used ticket";
 
 
 $lang['gvv_vue_vols_planeur_short_field_vpdate'] = "Date";
