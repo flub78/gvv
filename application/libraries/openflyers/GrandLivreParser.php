@@ -367,11 +367,8 @@ class GrandLivreParser {
                 // On affiche un lien vers le journal du compte
                 // JSON encode the flux_of array for the compte
                 $flux_of_json = json_encode($row['flux_of'], JSON_UNESCAPED_UNICODE);
-                $compte_gvv = anchor_compte(
-                    $associated_gvv_account,
-                    [],
-                    ['of_synchronized' => $flux_of_json]
-                );
+                // Lien simple vers le compte (pas besoin du paramètre of_synchronized ici)
+                $compte_gvv = anchor_compte($associated_gvv_account);
                 // gvv_dump($row['flux_of']);
 
                 $compte_gvv .= form_hidden('flux_of_' . $id_of, $flux_of_json);

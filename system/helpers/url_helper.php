@@ -175,12 +175,13 @@ if ( ! function_exists('anchor'))
 if ( ! function_exists('anchor_compte')) {
 	function anchor_compte($compte, $attributes = '', $params = [])
 	{
-		$url = controller_url("compta/journal_compte/") . $compte;
+		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
+		$url = controller_url("compta/journal_compte/" . $compte);
 		$CI =& get_instance();
 		$CI->load->model('comptes_model');
 		$image = $CI->comptes_model->image($compte);
 		return anchor($url, $image, $attributes, $params);
-	}	
+	}
 }
 
 if ( ! function_exists('anchor_of')) {
@@ -194,7 +195,8 @@ if ( ! function_exists('anchor_of')) {
 if ( ! function_exists('anchor_ecriture')) {
 	function anchor_ecriture($ecriture, $attributes = '')
 	{
-		$url = controller_url("compta/edit/") . $ecriture;
+		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
+		$url = controller_url("compta/edit/" . $ecriture);
 		$CI =& get_instance();
 		$CI->load->model('ecritures_model');
 		$image = $CI->ecritures_model->image($ecriture);
@@ -205,7 +207,8 @@ if ( ! function_exists('anchor_ecriture')) {
 if ( ! function_exists('anchor_ecriture_edit')) {
 	function anchor_ecriture_edit($ecriture, $attributes = '')
 	{
-		$url = controller_url("compta/edit/") . $ecriture;
+		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
+		$url = controller_url("compta/edit/" . $ecriture);
 		$img_url = base_url('themes/binary-news/images/pencil.png');
 		$img = '<img class="icon" src="'.$img_url.'" title="Changer" alt="">';
 		return anchor($url, $img, $attributes);
@@ -228,7 +231,8 @@ if ( ! function_exists('anchor_ecriture_delete')) {
 		} else {
 			$confirm = "Êtes vous sûr de vouloir supprimer cette écriture ?";
 		}
-		$url = controller_url("compta/delete/") . $ecriture;
+		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
+		$url = controller_url("compta/delete/" . $ecriture);
 		$img_url = base_url('themes/binary-news/images/delete.png');
 		$img = '<img class="icon" src="'.$img_url.'" title="Supprimer" alt="">';
 		$onclick = "return confirm('".htmlspecialchars($confirm, ENT_QUOTES, 'UTF-8')."')";
