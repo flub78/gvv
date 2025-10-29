@@ -879,39 +879,105 @@ $this->lang->load('welcome');
 
 </div>
 
+<!-- CSS for responsive MOD dialog -->
+<style>
+/* Ensure dialog never exceeds viewport width */
+.ui-dialog {
+    max-width: 90vw !important;
+    box-sizing: border-box;
+}
+
+/* Make dialog content responsive */
+#mod_dialog {
+    max-width: 100%;
+    overflow-x: hidden;
+    word-wrap: break-word;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+    .ui-dialog {
+        margin: 10px !important;
+    }
+
+    .ui-dialog .ui-dialog-content {
+        padding: 10px !important;
+    }
+
+    .ui-dialog .ui-dialog-buttonpane {
+        padding: 5px 10px !important;
+    }
+}
+</style>
+
 <!-- JavaScript for MOD dialog handling -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize MOD dialog if it exists
     const modDialog = document.getElementById('mod_dialog');
     if (modDialog) {
+        // Shared function to handle "don't show again" checkbox
+        function handleDontShowAgain() {
+            const noModCheckbox = document.getElementById('no_mod');
+            if (noModCheckbox && noModCheckbox.checked) {
+                // Set cookie to hide MOD
+                fetch('<?= controller_url("welcome/set_cookie") ?>')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'OK') {
+                            console.log('MOD cookie set successfully');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error setting MOD cookie:', error);
+                    });
+            }
+        }
+
+        // Function to calculate responsive width
+        function getResponsiveWidth() {
+            return Math.min(600, window.innerWidth * 0.9);
+        }
+
+        // Calculate initial responsive width for modal
+        const modalWidth = getResponsiveWidth();
+
         // Initialize jQuery UI dialog
         $('#mod_dialog').dialog({
             modal: true,
-            width: 600,
+            width: modalWidth,
             height: 'auto',
             resizable: true,
             draggable: true,
             closeOnEscape: true,
-            close: function() {
-                // Check if "don't show again" is checked when modal is closed
-                const noModCheckbox = document.getElementById('no_mod');
-                if (noModCheckbox && noModCheckbox.checked) {
-                    // Set cookie to hide MOD
-                    fetch('<?= controller_url("welcome/set_cookie") ?>')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'OK') {
-                                console.log('MOD cookie set successfully');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error setting MOD cookie:', error);
-                        });
+            buttons: {
+                "OK": function() {
+                    // Handle "don't show again" checkbox
+                    handleDontShowAgain();
+                    $(this).dialog('close');
                 }
-            }
+            },
+            close: function() {
+                // Handle "don't show again" checkbox when closed via X button or Escape
+                handleDontShowAgain();
+            },
+            // Ensure dialog is centered
+            position: { my: "center", at: "center", of: window }
         });
-        
+
+        // Handle window resize to keep dialog responsive
+        let resizeTimer;
+        $(window).on('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if ($('#mod_dialog').dialog('isOpen')) {
+                    const newWidth = getResponsiveWidth();
+                    $('#mod_dialog').dialog('option', 'width', newWidth);
+                    $('#mod_dialog').dialog('option', 'position', { my: "center", at: "center", of: window });
+                }
+            }, 250);
+        });
+
         // Show dialog on page load
         $('#mod_dialog').dialog('open');
     }
