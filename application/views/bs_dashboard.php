@@ -894,18 +894,37 @@ $this->lang->load('welcome');
     word-wrap: break-word;
 }
 
+/* Ensure dialog appears above navbar */
+.ui-dialog {
+    z-index: 9999 !important;
+}
+
+.ui-widget-overlay {
+    z-index: 9998 !important;
+}
+
 /* Responsive adjustments for small screens */
 @media (max-width: 768px) {
     .ui-dialog {
         margin: 10px !important;
+        /* Ensure dialog doesn't go under fixed navbar */
+        top: 70px !important;
+        max-height: calc(100vh - 80px) !important;
     }
 
     .ui-dialog .ui-dialog-content {
         padding: 10px !important;
+        max-height: calc(100vh - 180px) !important;
+        overflow-y: auto !important;
     }
 
     .ui-dialog .ui-dialog-buttonpane {
         padding: 5px 10px !important;
+    }
+
+    /* Make dialog title bar more compact on mobile */
+    .ui-dialog .ui-dialog-titlebar {
+        padding: 8px 10px !important;
     }
 }
 </style>
