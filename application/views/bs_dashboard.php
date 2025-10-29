@@ -894,6 +894,20 @@ $this->lang->load('welcome');
     word-wrap: break-word;
 }
 
+/* Ensure images display properly in MOD dialog */
+#mod_dialog img {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 10px auto !important;
+    visibility: visible !important;
+}
+
+#mod_dialog .markdown-content img {
+    display: block !important;
+    visibility: visible !important;
+}
+
 /* Ensure dialog appears above navbar */
 .ui-dialog {
     z-index: 9999 !important;
@@ -999,6 +1013,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show dialog on page load
         $('#mod_dialog').dialog('open');
+
+        // Debug image loading in MOD dialog
+        $('#mod_dialog img').on('error', function() {
+            console.error('Failed to load image:', this.src);
+            console.error('Image element:', this);
+            // Try to fix protocol mismatch (http vs https)
+            if (this.src.startsWith('http://') && window.location.protocol === 'https:') {
+                console.warn('Mixed content detected - attempting to fix by using https');
+                this.src = this.src.replace('http://', 'https://');
+            }
+        });
+
+        $('#mod_dialog img').on('load', function() {
+            console.log('Successfully loaded image:', this.src);
+        });
+
+        // Log all images found in dialog
+        console.log('Images in MOD dialog:', $('#mod_dialog img').length);
+        $('#mod_dialog img').each(function() {
+            console.log('Image src:', this.src, 'Complete:', this.complete, 'Natural width:', this.naturalWidth);
+        });
     }
 });
 </script>
