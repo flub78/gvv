@@ -101,6 +101,31 @@
             "bJQueryUI": true,
         });
 
+        $('.searchable_nosort_datatable').dataTable({
+            "bFilter": true,
+            "bPaginate": true,
+            "iDisplayLength": 100,
+            "bStateSave": false,
+            "bSort": false,
+            "bInfo": true,
+            "bAutoWidth": true,
+            "bJQueryUI": true,
+            "ordering": false,
+            "sPaginationType": "full_numbers",
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage,
+            "aLengthMenu": [
+                [10, 25, 50, 100, 500, 1000, -1],
+                [10, 25, 50, 100, 500, 1000, "Tous les"]
+            ],
+            "columnDefs": [{
+                "orderable": false,
+                "targets": "_all"
+            }]
+        });
+
         // to replace the select by an input that select values in the dropdown
         $('.big_select').select2({
             placeholder: 'Filtre...',
