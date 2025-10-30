@@ -64,6 +64,7 @@ $lang['gvv_menu_reports_financial_reports'] = "Rapports financier";
 $lang['gvv_menu_accounting'] = "Compta";
 $lang['gvv_menu_accounting_journal'] = "Journaux";
 $lang['gvv_menu_accounting_balance'] = "Balance";
+$lang['gvv_menu_accounting_balance_hierarchical'] = "Balance hiérarchique";
 $lang['gvv_menu_accounting_pilot_balance'] = "Soldes pilote";
 $lang['gvv_menu_accounting_results'] = "Résultats";
 $lang['gvv_menu_accounting_bilan'] = "Bilan";

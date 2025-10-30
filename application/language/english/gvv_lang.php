@@ -54,6 +54,7 @@ $lang['gvv_menu_reports_admin_report'] = "DGAC";
 $lang['gvv_menu_accounting'] = "Accounting";
 $lang['gvv_menu_accounting_journal'] = "Journal entries";
 $lang['gvv_menu_accounting_balance'] = "Balance";
+$lang['gvv_menu_accounting_balance_hierarchical'] = "Hierarchical balance";
 $lang['gvv_menu_accounting_pilot_balance'] = "Pilot balance";
 $lang['gvv_menu_accounting_results'] = "Results";
 $lang['gvv_menu_accounting_bilan'] = "End of year statement";

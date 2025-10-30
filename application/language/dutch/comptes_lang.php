@@ -126,3 +126,8 @@ $lang['gvv_comptes_can_mask'] = "Saldo is 0, rekening kan worden verborgen.";
 
 $lang['gvv_comptes_title_dashboard'] = "Dashboard";
 $lang['comptes_bilan_prets'] = "Leningen";
+
+// Hierarchical balance
+$lang['gvv_comptes_title_hierarchical_balance'] = "Hiërarchische balans";
+$lang['gvv_comptes_expand_all'] = "Alles uitvouwen";
+$lang['gvv_comptes_collapse_all'] = "Alles inklappen";

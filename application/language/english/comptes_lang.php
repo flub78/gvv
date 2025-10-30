@@ -126,3 +126,8 @@ $lang['gvv_comptes_can_mask'] = "Balance is 0, account can be masked.";
 
 $lang['gvv_comptes_title_dashboard'] = "Dashboard";
 $lang['comptes_bilan_prets'] = "Loans";
+
+// Hierarchical balance
+$lang['gvv_comptes_title_hierarchical_balance'] = "Hierarchical Balance";
+$lang['gvv_comptes_expand_all'] = "Expand All";
+$lang['gvv_comptes_collapse_all'] = "Collapse All";

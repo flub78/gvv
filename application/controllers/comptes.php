@@ -293,6 +293,89 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Balance hiérarchique développable à la demande avec accordéons Bootstrap
+     * Utilise des accordéons pour afficher la balance générale et détaillée
+     * 
+     * @param string $codec Code compte début (optionnel)
+     * @param string $codec2 Code compte fin (optionnel)
+     */
+    function balance($codec = "", $codec2 = "") {
+        $this->push_return_url("comptes balance");
+
+        $this->load_filter($this->filter_variables);
+        $filter_solde = $this->filter_solde();
+        $filter_masked = $this->filter_masked();
+
+        // gestion de la date d'affichage
+        $balance_date = $this->session->userdata('balance_date');
+        if ($balance_date) {
+            $this->data['balance_date'] = $balance_date;
+        } else {
+            $this->data['balance_date'] = date('d/m/Y');
+        }
+
+        // selection des codec
+        $selection = array();
+        if ($codec != '') {
+            $selection = "codec = \"$codec\"";
+            if ($codec2 != "") {
+                $selection = "codec >= \"$codec\" and codec < \"$codec2\"";
+            }
+        }
+
+        $this->data['codec'] = $codec;
+        $this->data['codec2'] = $codec2;
+        $this->data['section'] = $this->gvv_model->section();
+        $this->data['title_key'] = "gvv_comptes_title_hierarchical_balance";
+
+        // Récupération de la balance générale
+        $result_general = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
+        
+        // Organisation des comptes détaillés par codec
+        $details_by_codec = array();
+        foreach ($result_general as $general_row) {
+            $codec_key = $general_row['codec'];
+            // Récupération de la balance détaillée pour ce codec spécifique
+            $selection_detail = "codec = \"$codec_key\"";
+            $result_detail = $this->gvv_model->select_page($selection_detail, $this->data['balance_date'], $filter_solde, $filter_masked);
+            $details_by_codec[$codec_key] = $result_detail;
+        }
+
+        $total = array(
+            'debit' => 0,
+            'credit' => 0,
+            'solde_debit' => 0,
+            'solde_credit' => 0
+        );
+        foreach ($result_general as $row) {
+            foreach (
+                array(
+                    'debit',
+                    'credit',
+                    'solde_debit',
+                    'solde_credit'
+                ) as $field
+            ) {
+                if (is_numeric($row[$field])) {
+                    $total[$field] += $row[$field];
+                }
+            }
+        }
+        $this->data['total'] = $total;
+
+        $this->data['result_general'] = $result_general;
+        $this->data['details_by_codec'] = $details_by_codec;
+        $this->data['kid'] = $this->kid;
+        $this->data['controller'] = $this->controller;
+        $this->data['count'] = count($result_general);
+        $this->data['premier'] = 0;
+        $this->data['message'] = "";
+        $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+
+        return load_last_view('comptes/bs_balanceView', $this->data, $this->unit_test);
+    }
+
+    /**
      * Balance des comptes
      */
     function view($codec = '') {
@@ -695,6 +778,82 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Export CSV de la balance hiérarchique
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_csv($codec = '', $codec2 = "") {
+        $filter_solde = $this->filter_solde();
+        $filter_masked = $this->filter_masked();
+        
+        $titre = $this->lang->line("gvv_comptes_title_hierarchical_balance");
+        $selection = array();
+        
+        if ($codec != '') {
+            $selection = "codec = \"$codec\"";
+            $titre .= ", " . $this->lang->line('comptes_label_class') . "=$codec";
+            if ($codec2 != "") {
+                $selection = "codec >= \"$codec\" and codec < \"$codec2\"";
+                $titre .= " " . $this->lang->line('comptes_label_to') . " $codec2";
+            }
+        }
+
+        $balance_date = $this->session->userdata('balance_date');
+        if (!$balance_date) {
+            $balance_date = date('d/m/Y');
+        }
+        $titre .= "=$balance_date";
+        
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $titre .= " section " . $section['nom'];
+        }
+
+        $result_general = $this->gvv_model->select_page_general($selection, $balance_date, $filter_solde, $filter_masked);
+        $result_detail = $this->gvv_model->select_page($selection, $balance_date, $filter_solde, $filter_masked);
+
+        $details_by_codec = array();
+        foreach ($result_detail as $row) {
+            $codec_key = $row['codec'];
+            if (!isset($details_by_codec[$codec_key])) {
+                $details_by_codec[$codec_key] = array();
+            }
+            $details_by_codec[$codec_key][] = $row;
+        }
+
+        $merged_result = array();
+        foreach ($result_general as $general_row) {
+            $merged_result[] = array(
+                'codec' => $general_row['codec'],
+                'nom' => $general_row['nom'],
+                'section_name' => '',
+                'solde_debit' => isset($general_row['solde_debit']) ? $general_row['solde_debit'] : '',
+                'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : ''
+            );
+            
+            $codec_key = $general_row['codec'];
+            if (isset($details_by_codec[$codec_key])) {
+                foreach ($details_by_codec[$codec_key] as $detail_row) {
+                    $merged_result[] = array(
+                        'codec' => '  ' . $detail_row['codec'],
+                        'nom' => '  ' . $detail_row['nom'],
+                        'section_name' => $detail_row['section_name'],
+                        'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
+                        'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : ''
+                    );
+                }
+            }
+        }
+
+        $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
+        $this->gvvmetadata->csv_table("vue_comptes", $merged_result, array(
+            'title' => $titre,
+            'fields' => $fields
+        ));
+    }
+
+    /**
      * Soldes pilotes
      */
     function balance_pdf($codec = '', $codec2 = "") {
@@ -756,6 +915,88 @@ class Comptes extends Gvv_Controller {
             ),
             'fields' => $fields
         ));
+        $pdf->Output();
+    }
+
+    /**
+     * Export PDF de la balance hiérarchique
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_pdf($codec = '', $codec2 = "") {
+        $filter_solde = $this->filter_solde();
+        $filter_masked = $this->filter_masked();
+        
+        $titre = $this->lang->line("gvv_comptes_title_hierarchical_balance");
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $titre .= " section " . $section['nom'];
+        }
+        
+        $selection = array();
+        if ($codec != '') {
+            $selection = "codec = \"$codec\"";
+            $titre .= ", " . $this->lang->line('comptes_label_class') . "=$codec";
+            if ($codec2 != "") {
+                $selection = "codec >= \"$codec\" and codec < \"$codec2\"";
+                $titre .= " " . $this->lang->line('comptes_label_to') . " $codec2";
+            }
+        }
+
+        $balance_date = $this->session->userdata('balance_date');
+        if (!$balance_date) {
+            $balance_date = date('d/m/Y');
+        }
+        $titre .= ", " . $this->lang->line("comptes_label_date") . "=$balance_date";
+
+        $result_general = $this->gvv_model->select_page_general($selection, $balance_date, $filter_solde, $filter_masked);
+        $result_detail = $this->gvv_model->select_page($selection, $balance_date, $filter_solde, $filter_masked);
+
+        $details_by_codec = array();
+        foreach ($result_detail as $row) {
+            $codec_key = $row['codec'];
+            if (!isset($details_by_codec[$codec_key])) {
+                $details_by_codec[$codec_key] = array();
+            }
+            $details_by_codec[$codec_key][] = $row;
+        }
+
+        $merged_result = array();
+        foreach ($result_general as $general_row) {
+            $merged_result[] = array(
+                'codec' => $general_row['codec'],
+                'nom' => $general_row['nom'],
+                'solde_debit' => isset($general_row['solde_debit']) ? $general_row['solde_debit'] : '',
+                'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : '',
+                'is_general' => true
+            );
+            
+            $codec_key = $general_row['codec'];
+            if (isset($details_by_codec[$codec_key])) {
+                foreach ($details_by_codec[$codec_key] as $detail_row) {
+                    $merged_result[] = array(
+                        'codec' => '  ' . $detail_row['codec'],
+                        'nom' => '  ' . $detail_row['nom'],
+                        'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
+                        'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : '',
+                        'is_general' => false
+                    );
+                }
+            }
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage();
+        
+        $fields = array('codec', 'nom', 'solde_debit', 'solde_credit');
+        $this->gvvmetadata->pdf_table("vue_comptes", $merged_result, $pdf, array(
+            'title' => $titre,
+            'width' => array(12, 50, 30, 30),
+            'fields' => $fields
+        ));
+        
         $pdf->Output();
     }
 
