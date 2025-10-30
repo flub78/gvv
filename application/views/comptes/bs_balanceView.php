@@ -269,8 +269,9 @@ $this->lang->load('comptes');
 	// Chargement du helper balance
 	$this->load->helper('balance');
 
-	// Boutons développer/réduire tout
-	echo '<div class="mb-3">';
+	// Boutons développer/réduire tout et recherche
+	echo '<div class="mb-3 d-flex align-items-center">';
+	echo '<div class="me-auto">';
 	if ($has_modification_rights && $section) {
 		echo '<a href="' . site_url('comptes/create') . '" class="btn btn-sm btn-success me-2">'
 			. '<i class="fas fa-plus" aria-hidden="true"></i> '
@@ -281,10 +282,15 @@ $this->lang->load('comptes');
 		. '<i class="fas fa-chevron-down" aria-hidden="true"></i> '
 		. $this->lang->line('gvv_comptes_expand_all')
 		. '</button>';
-	echo '<button type="button" class="btn btn-sm btn-secondary" id="collapse-all">'
+	echo '<button type="button" class="btn btn-sm btn-secondary me-2" id="collapse-all">'
 		. '<i class="fas fa-chevron-up" aria-hidden="true"></i> '
 		. $this->lang->line('gvv_comptes_collapse_all')
 		. '</button>';
+	echo '</div>';
+	echo '<div class="d-flex align-items-center">';
+	echo '<label for="accordion-search" class="me-2 mb-0">Rechercher:</label>';
+	echo '<input type="text" id="accordion-search" class="form-control form-control-sm" placeholder="Rechercher..." style="width: 250px;">';
+	echo '</div>';
 	echo '</div>';
 
 	// Accordéon Bootstrap pour la balance hiérarchique
@@ -389,11 +395,46 @@ $this->lang->load('comptes');
 		}
 	}
 
+	// Fonction de recherche dans les accordéons
+	function initializeAccordionSearch() {
+		var searchInput = document.getElementById('accordion-search');
+		if (searchInput) {
+			searchInput.addEventListener('input', function(e) {
+				var searchTerm = e.target.value.toLowerCase().trim();
+				var accordionItems = document.querySelectorAll('#balanceAccordion .accordion-item');
+
+				accordionItems.forEach(function(item) {
+					// Rechercher dans la seconde ligne du titre (tbody tr)
+					var dataRow = item.querySelector('.accordion-button table tbody tr');
+					if (dataRow) {
+						// Extraire le texte de toutes les cellules de la ligne de données
+						var cells = dataRow.querySelectorAll('td');
+						var textContent = '';
+						cells.forEach(function(cell) {
+							textContent += cell.textContent.toLowerCase() + ' ';
+						});
+
+						// Afficher ou masquer l'accordéon selon le résultat de la recherche
+						if (searchTerm === '' || textContent.indexOf(searchTerm) !== -1) {
+							item.style.display = '';
+						} else {
+							item.style.display = 'none';
+						}
+					}
+				});
+			});
+		}
+	}
+
 	// Essayer plusieurs méthodes pour s'assurer que le code s'exécute
 	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initializeBalanceAccordion);
+		document.addEventListener('DOMContentLoaded', function() {
+			initializeBalanceAccordion();
+			initializeAccordionSearch();
+		});
 	} else {
 		initializeBalanceAccordion();
+		initializeAccordionSearch();
 	}
 	</script>
 
