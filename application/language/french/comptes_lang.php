@@ -126,3 +126,8 @@ $lang['gvv_comptes_error_cannot_mask_non_zero_balance'] = "Impossible de masquer
 $lang['gvv_comptes_field_masked'] = "Masqué";
 $lang['gvv_comptes_masked_warning'] = "Attention : un compte avec un solde de %s € ne peut pas être masqué.";
 $lang['gvv_comptes_can_mask'] = "Le solde est à 0, le compte peut être masqué.";
+
+// Hierarchical balance
+$lang['gvv_comptes_title_hierarchical_balance'] = "Balance hiérarchique";
+$lang['gvv_comptes_expand_all'] = "Tout développer";
+$lang['gvv_comptes_collapse_all'] = "Tout réduire";
