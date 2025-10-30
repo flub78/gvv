@@ -293,8 +293,8 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Balance hiérarchique développable à la demande
-     * Fusionne les vues général et détaillée avec sections développables/réductibles
+     * Balance hiérarchique développable à la demande avec accordéons Bootstrap
+     * Utilise des accordéons pour afficher la balance générale et détaillée
      * 
      * @param string $codec Code compte début (optionnel)
      * @param string $codec2 Code compte fin (optionnel)
@@ -331,35 +331,14 @@ class Comptes extends Gvv_Controller {
         // Récupération de la balance générale
         $result_general = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
         
-        // Récupération de la balance détaillée
-        $result_detail = $this->gvv_model->select_page($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
-
         // Organisation des comptes détaillés par codec
         $details_by_codec = array();
-        foreach ($result_detail as $row) {
-            $codec_key = $row['codec'];
-            if (!isset($details_by_codec[$codec_key])) {
-                $details_by_codec[$codec_key] = array();
-            }
-            $details_by_codec[$codec_key][] = $row;
-        }
-
-        // Fusion des résultats
-        $merged_result = array();
         foreach ($result_general as $general_row) {
-            // Marquer cette ligne comme section générale
-            $general_row['is_general'] = true;
-            $merged_result[] = $general_row;
-            
-            // Ajouter les lignes détaillées correspondantes
             $codec_key = $general_row['codec'];
-            if (isset($details_by_codec[$codec_key])) {
-                foreach ($details_by_codec[$codec_key] as $detail_row) {
-                    $detail_row['is_detail'] = true;
-                    $detail_row['parent_codec'] = $codec_key;
-                    $merged_result[] = $detail_row;
-                }
-            }
+            // Récupération de la balance détaillée pour ce codec spécifique
+            $selection_detail = "codec = \"$codec_key\"";
+            $result_detail = $this->gvv_model->select_page($selection_detail, $this->data['balance_date'], $filter_solde, $filter_masked);
+            $details_by_codec[$codec_key] = $result_detail;
         }
 
         $total = array(
@@ -384,10 +363,11 @@ class Comptes extends Gvv_Controller {
         }
         $this->data['total'] = $total;
 
-        $this->data['select_result'] = $merged_result;
+        $this->data['result_general'] = $result_general;
+        $this->data['details_by_codec'] = $details_by_codec;
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
-        $this->data['count'] = count($merged_result);
+        $this->data['count'] = count($result_general);
         $this->data['premier'] = 0;
         $this->data['message'] = "";
         $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));

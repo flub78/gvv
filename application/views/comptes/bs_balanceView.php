@@ -30,35 +30,128 @@ $this->lang->load('comptes');
 ?>
 
 <style>
-.balance-general-row {
-    background-color: #e7f1ff;
-    font-weight: 600;
+/* Accordéons de balance hiérarchique */
+.accordion-item {
+    border: 2px solid #dee2e6;
+    margin-bottom: 0.75rem;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.accordion-button {
+    padding: 0;
+    background-color: #f8f9fa;
+    border: 2px solid #0d6efd;
+    box-shadow: none;
     cursor: pointer;
-    border-left: 4px solid #0d6efd;
 }
-.balance-general-row:hover {
-    background-color: #cfe2ff;
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
 }
-.balance-general-row td {
-    padding: 0.75rem !important;
+
+.accordion-button:hover {
+    background-color: #e9ecef;
 }
-.balance-detail-row {
-    background-color: #ffffff;
-    display: none;
+
+.accordion-button:not(.collapsed):hover {
+    background-color: #d3e5ff;
 }
-.balance-detail-row.show {
-    display: table-row;
+
+.accordion-button table {
+    margin: 0;
+    width: 100%;
+    pointer-events: none;
 }
-.balance-detail-row td {
-    padding-left: 2rem !important;
+
+/* Changement de couleur de tous les éléments du titre au survol */
+.accordion-button:hover table thead tr,
+.accordion-button:hover table tbody tr,
+.accordion-button:hover table thead,
+.accordion-button:hover table tbody {
+    background-color: inherit !important;
 }
-.toggle-icon {
-    display: inline-block;
-    margin-right: 0.5rem;
-    transition: transform 0.2s;
+
+.accordion-button:hover table th,
+.accordion-button:hover table td {
+    color: inherit;
+    background-color: transparent !important;
 }
-.toggle-icon.expanded {
-    transform: rotate(90deg);
+
+/* Surcharge du style table-light au survol */
+.accordion-button:hover .table-light {
+    background-color: transparent !important;
+}
+
+.accordion-button::after {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.accordion-body {
+    padding: 0;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.balance-header-table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.balance-header-table th,
+.balance-header-table td {
+    padding: 0.75rem;
+    border: none;
+}
+
+.balance-header-table th {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.balance-header-table td {
+    font-size: 1rem;
+}
+
+/* Animation visuelle pour l'ouverture/fermeture */
+.accordion-collapse {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Style pour les datatables dans les accordéons */
+.accordion-body .table {
+    background-color: white;
+    margin-bottom: 0;
+}
+
+/* Liens vers les opérations des comptes */
+.balance-datatable-wrapper a:not(.btn) {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.balance-datatable-wrapper a:not(.btn):hover {
+    text-decoration: underline;
+}
+
+/* Wrapper avec bordure colorée autour de la datatable */
+.balance-datatable-wrapper {
+    border: 2px solid #0d6efd;
+    border-radius: 0;
+    padding: 0;
+    background-color: white;
+    margin: 0;
+}
+
+/* Supprimer tout padding du body de l'accordéon */
+.accordion-body {
+    padding: 0 !important;
 }
 </style>
 
@@ -149,6 +242,9 @@ $this->lang->load('comptes');
 	$footer = [];
 	$footer[] = ['', $this->lang->line("comptes_label_balance"), $solde_deb, $solde_cred, '', ''];
 
+	// Chargement du helper balance
+	$this->load->helper('balance');
+
 	// Boutons développer/réduire tout
 	echo '<div class="mb-3">';
 	if ($has_modification_rights && $section) {
@@ -167,67 +263,41 @@ $this->lang->load('comptes');
 		. '</button>';
 	echo '</div>';
 
-	// Génération manuelle du tableau pour gérer les lignes développables
+	// Accordéon Bootstrap pour la balance hiérarchique
 	?>
-	<table class="table table-striped searchable_nosort_datatable" id="balance-table">
-		<thead>
-			<tr>
-				<th><?= $this->gvvmetadata->label('vue_comptes', 'codec') ?></th>
-				<th><?= $this->gvvmetadata->label('vue_comptes', 'nom') ?></th>
-				<th><?= $this->gvvmetadata->label('vue_comptes', 'section_name') ?></th>
-				<th><?= $this->gvvmetadata->label('vue_comptes', 'solde_debit') ?></th>
-				<th><?= $this->gvvmetadata->label('vue_comptes', 'solde_credit') ?></th>
-				<th><?= $this->lang->line('gvv_str_actions') ?></th>
-			</tr>
-		</thead>
-		<tbody>
-			<?php foreach ($select_result as $row): ?>
-				<?php if (isset($row['is_general']) && $row['is_general']): ?>
-					<!-- Ligne générale (développable) -->
-					<tr class="balance-general-row" data-codec="<?= $row['codec'] ?>" onclick="toggleCodec('<?= $row['codec'] ?>')">
-						<td>
-							<span class="toggle-icon">▶</span>
-							<?= $row['codec'] ?>
-						</td>
-						<td><?= $row['nom'] ?></td>
-						<td></td>
-						<td><?= isset($row['solde_debit']) && $row['solde_debit'] ? euro($row['solde_debit']) : '' ?></td>
-						<td><?= isset($row['solde_credit']) && $row['solde_credit'] ? euro($row['solde_credit']) : '' ?></td>
-						<td></td>
+	<div class="accordion" id="balanceAccordion">
+		<?php
+		$index = 0;
+		foreach ($result_general as $general_row):
+			$codec = $general_row['codec'];
+			$details = isset($details_by_codec[$codec]) ? $details_by_codec[$codec] : array();
+			echo balance_accordion_item($general_row, $details, $index, $this->gvvmetadata, $controller, $has_modification_rights, $section);
+			$index++;
+		endforeach;
+		?>
+	</div>
+
+	<!-- Totaux -->
+	<div class="card mt-3">
+		<div class="card-body">
+			<table class="table table-sm mb-0">
+				<thead>
+					<tr>
+						<th style="width: 50%"><?= $this->lang->line("comptes_label_balance") ?></th>
+						<th style="width: 25%" class="text-end"><?= $this->gvvmetadata->label('vue_comptes', 'solde_debit') ?></th>
+						<th style="width: 25%" class="text-end"><?= $this->gvvmetadata->label('vue_comptes', 'solde_credit') ?></th>
 					</tr>
-				<?php elseif (isset($row['is_detail']) && $row['is_detail']): ?>
-					<!-- Ligne détaillée (cachée par défaut) -->
-					<tr class="balance-detail-row" data-parent-codec="<?= $row['parent_codec'] ?>">
-						<td><?= $row['codec'] ?></td>
-						<td><?= $row['nom'] ?></td>
-						<td><?= isset($row['section_name']) ? $row['section_name'] : '' ?></td>
-						<td><?= isset($row['solde_debit']) && $row['solde_debit'] ? euro($row['solde_debit']) : '' ?></td>
-						<td><?= isset($row['solde_credit']) && $row['solde_credit'] ? euro($row['solde_credit']) : '' ?></td>
-						<td>
-							<?php if ($has_modification_rights && $section): ?>
-							<a href="<?= site_url($controller . '/edit/' . $row['id']) ?>" title="<?= $this->lang->line('gvv_button_edit') ?>">
-								<i class="fas fa-edit"></i>
-							</a>
-							<a href="<?= site_url($controller . '/delete/' . $row['id']) ?>" title="<?= $this->lang->line('gvv_button_delete') ?>" onclick="return confirm('<?= $this->lang->line('gvv_str_confirm_delete') ?>')">
-								<i class="fas fa-trash"></i>
-							</a>
-							<?php endif; ?>
-						</td>
+				</thead>
+				<tbody>
+					<tr>
+						<td><strong><?= $this->lang->line("comptes_label_balance") ?></strong></td>
+						<td class="text-end"><strong><?= $footer[0][2] ?></strong></td>
+						<td class="text-end"><strong><?= $footer[0][3] ?></strong></td>
 					</tr>
-				<?php endif; ?>
-			<?php endforeach; ?>
-		</tbody>
-		<tfoot>
-			<tr>
-				<td></td>
-				<td><strong><?= $footer[0][1] ?></strong></td>
-				<td></td>
-				<td><strong><?= $footer[0][2] ?></strong></td>
-				<td><strong><?= $footer[0][3] ?></strong></td>
-				<td></td>
-			</tr>
-		</tfoot>
-	</table>
+				</tbody>
+			</table>
+		</div>
+	</div>
 
 	<?php
 	$csv_url = "$controller/balance_hierarchical_csv";
@@ -253,55 +323,78 @@ $this->lang->load('comptes');
 	?>
 
 	<script type="text/javascript">
-	function toggleCodec(codec) {
-		var detailRows = document.querySelectorAll('tr[data-parent-codec="' + codec + '"]');
-		var generalRow = document.querySelector('tr[data-codec="' + codec + '"]');
-		var icon = generalRow.querySelector('.toggle-icon');
-		var isExpanded = detailRows[0] && detailRows[0].classList.contains('show');
-		
-		detailRows.forEach(function(row) {
-			if (isExpanded) {
-				row.classList.remove('show');
-			} else {
-				row.classList.add('show');
-			}
-		});
-		
-		if (icon) {
-			if (isExpanded) {
-				icon.classList.remove('expanded');
-			} else {
-				icon.classList.add('expanded');
-			}
+	function initializeBalanceAccordion() {
+		// D'ABORD: Gérer les boutons expand/collapse (priorité!)
+		// Gérer le bouton "Développer tout"
+		var expandBtn = document.getElementById('expand-all');
+		if (expandBtn) {
+			// Retirer les anciens listeners si présents
+			expandBtn.replaceWith(expandBtn.cloneNode(true));
+			expandBtn = document.getElementById('expand-all');
+
+			expandBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				var buttons = document.querySelectorAll('#balanceAccordion .accordion-button.collapsed');
+				if (buttons.length === 0) {
+					buttons = document.querySelectorAll('#balanceAccordion .accordion-button');
+				}
+				buttons.forEach(function(button) {
+					button.click();
+				});
+			});
+		}
+
+		// Gérer le bouton "Réduire tout"
+		var collapseBtn = document.getElementById('collapse-all');
+		if (collapseBtn) {
+			// Retirer les anciens listeners si présents
+			collapseBtn.replaceWith(collapseBtn.cloneNode(true));
+			collapseBtn = document.getElementById('collapse-all');
+
+			collapseBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				var buttons = document.querySelectorAll('#balanceAccordion .accordion-button:not(.collapsed)');
+				buttons.forEach(function(button) {
+					button.click();
+				});
+			});
+		}
+
+		// ENSUITE: Initialiser les datatables (après les boutons)
+		var datatables = document.querySelectorAll('.searchable_datatable');
+
+		// Vérifier si jQuery et DataTables sont chargés
+		if (typeof jQuery !== 'undefined' && typeof jQuery.fn.DataTable !== 'undefined') {
+			datatables.forEach(function(table) {
+				try {
+					if ($.fn.DataTable.isDataTable(table)) {
+						$(table).DataTable().destroy();
+					}
+					$(table).DataTable({
+						"paging": true,
+						"pageLength": 10,
+						"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tous"]],
+						"searching": true,
+						"ordering": true,
+						"info": true,
+						"autoWidth": false,
+						"language": {
+							"url": "<?= base_url('assets/js/datatables/French.json') ?>"
+						}
+					});
+				} catch (e) {
+					console.error('Error initializing DataTable:', e);
+				}
+			});
 		}
 	}
 
-	document.getElementById('expand-all').addEventListener('click', function() {
-		var detailRows = document.querySelectorAll('.balance-detail-row');
-		var icons = document.querySelectorAll('.balance-general-row .toggle-icon');
-		
-		detailRows.forEach(function(row) {
-			row.classList.add('show');
-		});
-		
-		icons.forEach(function(icon) {
-			icon.classList.add('expanded');
-		});
-	});
-
-	document.getElementById('collapse-all').addEventListener('click', function() {
-		var detailRows = document.querySelectorAll('.balance-detail-row');
-		var icons = document.querySelectorAll('.balance-general-row .toggle-icon');
-		
-		detailRows.forEach(function(row) {
-			row.classList.remove('show');
-		});
-		
-		icons.forEach(function(icon) {
-			icon.classList.remove('expanded');
-		});
-	});
-
+	// Essayer plusieurs méthodes pour s'assurer que le code s'exécute
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initializeBalanceAccordion);
+	} else {
+		initializeBalanceAccordion();
+	}
 	</script>
 
 	<script type="text/javascript" src="<?php echo js_url('balance'); ?>"></script>
