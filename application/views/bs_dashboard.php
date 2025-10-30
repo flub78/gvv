@@ -908,6 +908,22 @@ $this->lang->load('welcome');
     visibility: visible !important;
 }
 
+/* Ensure links are highly visible and clickable in MOD dialog */
+#mod_dialog a,
+#mod_dialog .markdown-content a {
+    color: #007bff !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+}
+
+#mod_dialog a:hover,
+#mod_dialog .markdown-content a:hover {
+    color: #0056b3 !important;
+    text-decoration: underline !important;
+    font-weight: 600 !important;
+}
+
 /* Ensure dialog appears above navbar */
 .ui-dialog {
     z-index: 9999 !important;
@@ -1033,6 +1049,24 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Images in MOD dialog:', $('#mod_dialog img').length);
         $('#mod_dialog img').each(function() {
             console.log('Image src:', this.src, 'Complete:', this.complete, 'Natural width:', this.naturalWidth);
+        });
+
+        // Debug links in MOD dialog
+        console.log('Links in MOD dialog:', $('#mod_dialog a').length);
+        $('#mod_dialog a').each(function() {
+            console.log('Link href:', this.href, 'Text:', this.textContent);
+        });
+
+        // Ensure links open in new tab for external links
+        $('#mod_dialog a').each(function() {
+            const link = $(this);
+            const href = link.attr('href');
+
+            // External links open in new tab
+            if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                link.attr('target', '_blank');
+                link.attr('rel', 'noopener noreferrer');
+            }
         });
     }
 });

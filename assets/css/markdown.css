@@ -172,6 +172,24 @@
     padding-left: 1.5em;
 }
 
+/* Ensure links are clearly visible and styled in MOD dialog */
+#mod_dialog .markdown-content a {
+    color: #007bff !important;
+    text-decoration: underline !important;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+#mod_dialog .markdown-content a:hover {
+    color: #0056b3 !important;
+    text-decoration: underline !important;
+    font-weight: 600;
+}
+
+#mod_dialog .markdown-content a:visited {
+    color: #6610f2 !important;
+}
+
 #mod_dialog label {
     display: flex;
     align-items: center;

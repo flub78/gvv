@@ -150,7 +150,7 @@ $this->lang->load('comptes');
 		'mode' => ($has_modification_rights && $section && ! $general) ? "rw" : "ro",
 		'footer' => $footer,
 		'fields' => $fields,
-		'class' => "datatable  table table-striped"
+		'class' => "searchable_nosort_datatable table table-striped"
 	);
 
 	// Create button above the table
