@@ -48,6 +48,7 @@ $lang['gvv_menu_reports_admin_report'] = "DGLV";
 $lang['gvv_menu_accounting'] = "Boekhouding";
 $lang['gvv_menu_accounting_journal'] = "Journaal";
 $lang['gvv_menu_accounting_balance'] = "Balans";
+$lang['gvv_menu_accounting_balance_hierarchical'] = "Hiërarchische balans";
 $lang['gvv_menu_accounting_pilot_balance'] = "Balans piloten";
 $lang['gvv_menu_accounting_results'] = "Resultaten";
 $lang['gvv_menu_accounting_bilan'] = "Jaarrekening";

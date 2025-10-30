@@ -30,69 +30,90 @@ $this->lang->load('comptes');
 ?>
 
 <style>
-/* Accordéons de balance hiérarchique */
-.accordion-item {
+/* Accordéons de balance hiérarchique - seulement pour #balanceAccordion */
+#balanceAccordion .accordion-item {
     border: 2px solid #dee2e6;
     margin-bottom: 0.75rem;
     border-radius: 0.375rem;
     overflow: hidden;
 }
 
-.accordion-button {
+#balanceAccordion .accordion-button {
     padding: 0;
-    background-color: #f8f9fa;
+    background-color: #d3e5ff;
     border: 2px solid #0d6efd;
     box-shadow: none;
     cursor: pointer;
 }
 
-.accordion-button:not(.collapsed) {
-    background-color: #e7f1ff;
+#balanceAccordion .accordion-button:not(.collapsed) {
+    background-color: #d3e5ff;
     color: #0d6efd;
     border: 2px solid #0d6efd;
 }
 
-.accordion-button:hover {
-    background-color: #e9ecef;
+#balanceAccordion .accordion-button:hover {
+    background-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.accordion-button:not(.collapsed):hover {
-    background-color: #d3e5ff;
+#balanceAccordion .accordion-button:not(.collapsed):hover {
+    background-color: #d1d5db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.accordion-button table {
+#balanceAccordion .accordion-button table {
     margin: 0;
     width: 100%;
     pointer-events: none;
 }
 
+/* Forcer la couleur de fond du thead à être transparente pour hériter du bouton */
+#balanceAccordion .accordion-button table thead,
+#balanceAccordion .accordion-button table thead tr,
+#balanceAccordion .accordion-button table thead.table-light {
+    background-color: transparent !important;
+}
+
+#balanceAccordion .accordion-button table thead th {
+    background-color: transparent !important;
+}
+
+#balanceAccordion .accordion-button table tbody tr {
+    background-color: transparent !important;
+}
+
+#balanceAccordion .accordion-button table tbody td {
+    background-color: transparent !important;
+}
+
 /* Changement de couleur de tous les éléments du titre au survol */
-.accordion-button:hover table thead tr,
-.accordion-button:hover table tbody tr,
-.accordion-button:hover table thead,
-.accordion-button:hover table tbody {
+#balanceAccordion .accordion-button:hover table thead tr,
+#balanceAccordion .accordion-button:hover table tbody tr,
+#balanceAccordion .accordion-button:hover table thead,
+#balanceAccordion .accordion-button:hover table tbody {
     background-color: inherit !important;
 }
 
-.accordion-button:hover table th,
-.accordion-button:hover table td {
+#balanceAccordion .accordion-button:hover table th,
+#balanceAccordion .accordion-button:hover table td {
     color: inherit;
     background-color: transparent !important;
 }
 
 /* Surcharge du style table-light au survol */
-.accordion-button:hover .table-light {
+#balanceAccordion .accordion-button:hover .table-light {
     background-color: transparent !important;
 }
 
-.accordion-button::after {
+#balanceAccordion .accordion-button::after {
     font-size: 1.5rem;
     font-weight: bold;
     margin-left: 1rem;
 }
 
-.accordion-body {
-    padding: 0;
+#balanceAccordion .accordion-body {
+    padding: 0 !important;
     background-color: #f8f9fa;
     border-top: 1px solid #dee2e6;
 }
@@ -115,17 +136,25 @@ $this->lang->load('comptes');
     text-transform: uppercase;
 }
 
+.balance-header-table thead {
+    background-color: transparent !important;
+}
+
+.balance-header-table thead tr {
+    background-color: transparent !important;
+}
+
 .balance-header-table td {
     font-size: 1rem;
 }
 
 /* Animation visuelle pour l'ouverture/fermeture */
-.accordion-collapse {
+#balanceAccordion .accordion-collapse {
     transition: all 0.3s ease-in-out;
 }
 
 /* Style pour les datatables dans les accordéons */
-.accordion-body .table {
+#balanceAccordion .accordion-body .table {
     background-color: white;
     margin-bottom: 0;
 }
@@ -147,11 +176,6 @@ $this->lang->load('comptes');
     padding: 0;
     background-color: white;
     margin: 0;
-}
-
-/* Supprimer tout padding du body de l'accordéon */
-.accordion-body {
-    padding: 0 !important;
 }
 </style>
 
@@ -277,28 +301,6 @@ $this->lang->load('comptes');
 		?>
 	</div>
 
-	<!-- Totaux -->
-	<div class="card mt-3">
-		<div class="card-body">
-			<table class="table table-sm mb-0">
-				<thead>
-					<tr>
-						<th style="width: 50%"><?= $this->lang->line("comptes_label_balance") ?></th>
-						<th style="width: 25%" class="text-end"><?= $this->gvvmetadata->label('vue_comptes', 'solde_debit') ?></th>
-						<th style="width: 25%" class="text-end"><?= $this->gvvmetadata->label('vue_comptes', 'solde_credit') ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td><strong><?= $this->lang->line("comptes_label_balance") ?></strong></td>
-						<td class="text-end"><strong><?= $footer[0][2] ?></strong></td>
-						<td class="text-end"><strong><?= $footer[0][3] ?></strong></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
-
 	<?php
 	$csv_url = "$controller/balance_hierarchical_csv";
 	$pdf_url = "$controller/balance_hierarchical_pdf";
@@ -324,7 +326,6 @@ $this->lang->load('comptes');
 
 	<script type="text/javascript">
 	function initializeBalanceAccordion() {
-		// D'ABORD: Gérer les boutons expand/collapse (priorité!)
 		// Gérer le bouton "Développer tout"
 		var expandBtn = document.getElementById('expand-all');
 		if (expandBtn) {
@@ -334,12 +335,24 @@ $this->lang->load('comptes');
 
 			expandBtn.addEventListener('click', function(e) {
 				e.preventDefault();
-				var buttons = document.querySelectorAll('#balanceAccordion .accordion-button.collapsed');
-				if (buttons.length === 0) {
-					buttons = document.querySelectorAll('#balanceAccordion .accordion-button');
-				}
-				buttons.forEach(function(button) {
-					button.click();
+				// Trouver TOUS les collapse (peu importe leur état actuel)
+				var collapses = document.querySelectorAll('#balanceAccordion .accordion-collapse');
+				collapses.forEach(function(collapseElement) {
+					// Forcer l'ouverture: ajouter la classe 'show' directement
+					if (!collapseElement.classList.contains('show')) {
+						collapseElement.classList.add('collapsing');
+						collapseElement.classList.add('show');
+						// Mettre à jour le bouton correspondant
+						var button = document.querySelector('[data-bs-target="#' + collapseElement.id + '"]');
+						if (button) {
+							button.classList.remove('collapsed');
+							button.setAttribute('aria-expanded', 'true');
+						}
+						// Retirer la classe 'collapsing' après l'animation
+						setTimeout(function() {
+							collapseElement.classList.remove('collapsing');
+						}, 350);
+					}
 				});
 			});
 		}
@@ -353,38 +366,25 @@ $this->lang->load('comptes');
 
 			collapseBtn.addEventListener('click', function(e) {
 				e.preventDefault();
-				var buttons = document.querySelectorAll('#balanceAccordion .accordion-button:not(.collapsed)');
-				buttons.forEach(function(button) {
-					button.click();
-				});
-			});
-		}
-
-		// ENSUITE: Initialiser les datatables (après les boutons)
-		var datatables = document.querySelectorAll('.searchable_datatable');
-
-		// Vérifier si jQuery et DataTables sont chargés
-		if (typeof jQuery !== 'undefined' && typeof jQuery.fn.DataTable !== 'undefined') {
-			datatables.forEach(function(table) {
-				try {
-					if ($.fn.DataTable.isDataTable(table)) {
-						$(table).DataTable().destroy();
-					}
-					$(table).DataTable({
-						"paging": true,
-						"pageLength": 10,
-						"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tous"]],
-						"searching": true,
-						"ordering": true,
-						"info": true,
-						"autoWidth": false,
-						"language": {
-							"url": "<?= base_url('assets/js/datatables/French.json') ?>"
+				// Trouver TOUS les collapse (peu importe leur état actuel)
+				var collapses = document.querySelectorAll('#balanceAccordion .accordion-collapse');
+				collapses.forEach(function(collapseElement) {
+					// Forcer la fermeture: retirer la classe 'show' directement
+					if (collapseElement.classList.contains('show')) {
+						collapseElement.classList.add('collapsing');
+						collapseElement.classList.remove('show');
+						// Mettre à jour le bouton correspondant
+						var button = document.querySelector('[data-bs-target="#' + collapseElement.id + '"]');
+						if (button) {
+							button.classList.add('collapsed');
+							button.setAttribute('aria-expanded', 'false');
 						}
-					});
-				} catch (e) {
-					console.error('Error initializing DataTable:', e);
-				}
+						// Retirer la classe 'collapsing' après l'animation
+						setTimeout(function() {
+							collapseElement.classList.remove('collapsing');
+						}, 350);
+					}
+				});
 			});
 		}
 	}
