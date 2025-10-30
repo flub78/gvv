@@ -289,7 +289,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-university text-primary"></i>
                         <div class="card-title">Comptes bancaires</div>
                         <div class="card-text text-muted">Soldes</div>
-                        <a href="<?= controller_url('comptes/page/512') ?>" class="btn btn-primary btn-sm">Voir</a>
+                        <a href="<?= controller_url('comptes/balance/512?start_expanded=true') ?>" class="btn btn-primary btn-sm">Voir</a>
                     </div>
                 </div>
 
@@ -319,7 +319,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-user-check text-success"></i>
                         <div class="card-title">Comptes pilotes</div>
                         <div class="card-text text-muted">Balance</div>
-                        <a href="<?= controller_url('comptes/page/411') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <a href="<?= controller_url('comptes/balance/411?start_expanded=true') ?>" class="btn btn-success btn-sm">Voir</a>
                     </div>
                 </div>
 

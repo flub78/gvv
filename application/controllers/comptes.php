@@ -327,6 +327,9 @@ class Comptes extends Gvv_Controller {
         $this->data['codec2'] = $codec2;
         $this->data['section'] = $this->gvv_model->section();
         $this->data['title_key'] = "gvv_comptes_title_hierarchical_balance";
+        
+        // Récupérer le paramètre start_expanded depuis la query string
+        $this->data['start_expanded'] = ($this->input->get('start_expanded') === 'true');
 
         // Récupération de la balance générale
         $result_general = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde, $filter_masked);

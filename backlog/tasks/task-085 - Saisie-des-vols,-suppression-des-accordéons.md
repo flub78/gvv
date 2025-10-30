@@ -4,8 +4,10 @@ title: 'Saisie des vols, suppression des accordéons'
 status: To Do
 assignee: []
 created_date: '2025-10-14 07:02'
+updated_date: '2025-10-30 19:37'
 labels: []
 dependencies: []
+priority: low
 ---
 
 ## Description

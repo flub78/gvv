@@ -301,7 +301,7 @@ $this->lang->load('comptes');
 		foreach ($result_general as $general_row):
 			$codec = $general_row['codec'];
 			$details = isset($details_by_codec[$codec]) ? $details_by_codec[$codec] : array();
-			echo balance_accordion_item($general_row, $details, $index, $this->gvvmetadata, $controller, $has_modification_rights, $section);
+			echo balance_accordion_item($general_row, $details, $index, $this->gvvmetadata, $controller, $has_modification_rights, $section, $start_expanded);
 			$index++;
 		endforeach;
 		?>

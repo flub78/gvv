@@ -136,22 +136,28 @@ if (!function_exists('balance_detail_datatable')) {
  * @param string $controller Le nom du contrôleur
  * @param bool $has_modification_rights Si l'utilisateur a les droits de modification
  * @param array $section Informations sur la section
+ * @param bool $start_expanded Si true, l'accordéon démarre en position ouverte
  * @return string Le HTML de l'accordéon complet
  */
 if (!function_exists('balance_accordion_item')) {
-    function balance_accordion_item($general_row, $details, $index, $gvvmetadata, $controller, $has_modification_rights, $section) {
+    function balance_accordion_item($general_row, $details, $index, $gvvmetadata, $controller, $has_modification_rights, $section, $start_expanded = false) {
         $codec = $general_row['codec'];
         $accordion_id = 'accordion_' . str_replace('.', '_', $codec);
         $heading_id = 'heading_' . str_replace('.', '_', $codec);
         $collapse_id = 'collapse_' . str_replace('.', '_', $codec);
 
+        // Déterminer les classes et attributs en fonction de start_expanded
+        $button_class = $start_expanded ? 'accordion-button' : 'accordion-button collapsed';
+        $collapse_class = $start_expanded ? 'accordion-collapse collapse show' : 'accordion-collapse collapse';
+        $aria_expanded = $start_expanded ? 'true' : 'false';
+
         $html = '<div class="accordion-item">';
         $html .= '<h2 class="accordion-header" id="' . $heading_id . '">';
-        $html .= '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#' . $collapse_id . '" aria-expanded="false" aria-controls="' . $collapse_id . '">';
+        $html .= '<button class="' . $button_class . '" type="button" data-bs-toggle="collapse" data-bs-target="#' . $collapse_id . '" aria-expanded="' . $aria_expanded . '" aria-controls="' . $collapse_id . '">';
         $html .= balance_accordion_header($general_row, $codec, $gvvmetadata);
         $html .= '</button>';
         $html .= '</h2>';
-        $html .= '<div id="' . $collapse_id . '" class="accordion-collapse collapse" aria-labelledby="' . $heading_id . '" data-bs-parent="#balanceAccordion">';
+        $html .= '<div id="' . $collapse_id . '" class="' . $collapse_class . '" aria-labelledby="' . $heading_id . '" data-bs-parent="#balanceAccordion">';
         $html .= '<div class="accordion-body p-3">';
 
         if (!empty($details)) {
