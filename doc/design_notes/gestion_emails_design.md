@@ -222,8 +222,7 @@ class Email_lists extends CI_Controller {
     // Téléchargement fichier TXT
     public function download_txt($id)
 
-    // Téléchargement fichier Markdown
-    public function download_md($id)
+
 
     // API AJAX: Prévisualisation nombre de destinataires
     public function preview_count()
@@ -425,8 +424,7 @@ function chunk_emails($emails, $size = 20)
 // Export TXT
 function generate_txt_export($emails, $separator = ',')
 
-// Export Markdown
-function generate_markdown_export($list_data, $emails)
+
 
 // Génération mailto
 function generate_mailto($emails, $params = [])
@@ -436,34 +434,7 @@ function parse_text_emails($content)
 function parse_csv_emails($content, $config)
 ```
 
-**Exemple de génération Markdown:**
 
-```php
-function generate_markdown_export($list_data, $emails) {
-    $md = "# Liste: {$list_data['name']}\n\n";
-    $md .= "**Description:** {$list_data['description']}\n";
-    $md .= "**Créée le:** {$list_data['created_at']}\n";
-    $md .= "**Mise à jour:** {$list_data['updated_at']}\n";
-    $md .= "**Nombre de destinataires:** " . count($emails) . "\n\n";
-
-    $md .= "## Adresses (copier/coller)\n";
-    $email_list = implode(', ', array_column($emails, 'email'));
-    $md .= $email_list . "\n\n";
-
-    $md .= "## Détails des membres\n\n";
-    $md .= "| Nom | Prénom | Email |\n";
-    $md .= "|-----|--------|-------|\n";
-
-    foreach ($emails as $member) {
-        $nom = $member['nom'] ?? '';
-        $prenom = $member['prenom'] ?? '';
-        $email = $member['email'];
-        $md .= "| $nom | $prenom | $email |\n";
-    }
-
-    return $md;
-}
-```
 
 ### 3.4 Views
 
@@ -489,7 +460,7 @@ application/views/email_lists/
 index.php (Liste) → create.php (Création avec 3 onglets)
                  → edit.php (Modification avec 3 onglets)
                  → view.php (Prévisualisation + export)
-                 → download_txt/download_md (Téléchargement)
+                 → download_txt (Téléchargement)
 ```
 
 **Interface de sélection par rôles (_criteria_tab.php):**
@@ -543,6 +514,46 @@ L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes 
 - Les checkboxes génèrent le JSON avec `types_roles_id` + `section_id`
 - La prévisualisation AJAX appelle `preview_count()` pour afficher le nombre de destinataires
 - Extensible automatiquement: nouveaux rôles apparaissent sans modification du code
+
+**Interface de découpage (_chunk_selector.php):**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Liste: Membres actifs (87 destinataires)                │
+├─────────────────────────────────────────────────────────┤
+│ Taille des sous-listes: [20 ▼] destinataires            │
+│                                                         │
+│ → Nombre de parties nécessaires: 5                      │
+│                                                         │
+│ Sélectionner la partie à exporter:                      │
+│ ● Partie: [1 ▼] sur 5                        │
+│                                                         │
+│ Partie 1: destinataires 1-20                            │
+│ Partie 2: destinataires 21-40                           │
+│ Partie 3: destinataires 41-60                           │
+│ Partie 4: destinataires 61-80                           │
+│ Partie 5: destinataires 81-87                           │
+│                                                         │
+│ [Prévisualiser partie] [Copier] [Ouvrir client mail]    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Interface d'export vers client mail (_mailto_form.php):**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Paramètres d'envoi                                      │
+├─────────────────────────────────────────────────────────┤
+│ Placer les destinataires en:                            │
+│ ● TO (À)    ○ CC (Copie)    ○ BCC (Copie cachée)        │
+│                                                         │
+│ Titre du message:                                       │
+│ [Information importante - Assemblée générale       ]    │
+│                                                         │
+│ Adresse de destinataire si liste en BCC:                │
+│ [secretaire@club-aviation.fr                       ]    │
+│                                                         │
+│ [Ouvrir le client de messagerie]                        │
+└─────────────────────────────────────────────────────────┘
+```
 
 ### 3.5 JavaScript: `assets/js/email_lists.js`
 
@@ -615,18 +626,18 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 [DB] email_lists (criteria = JSON)
 ```
 
-### 5.2 Export vers fichier Markdown
+### 5.2 Export vers fichier TXT
 
 ```
 [User] → view.php ($list_id)
-         ↓ Clic "Télécharger MD"
+         ↓ Clic "Télécharger TXT"
          ↓
-[Controller] → download_md($id)
+[Controller] → download_txt($id)
                ↓ resolve_list_members($id)
-               ↓ generate_markdown_export($list, $members)
+               ↓ generate_txt_export($list, $members)
                ↓ Headers HTTP (Content-Disposition, UTF-8)
                ↓
-[Browser] ← Téléchargement animateurs_simulateur.md
+[Browser] ← Téléchargement animateurs_simulateur.txt
 ```
 
 ### 5.3 Résolution complète avec dédoublonnage
@@ -889,7 +900,7 @@ end note
 @enduml
 ```
 
-### 9.2 Diagramme de séquence - Export Markdown
+### 9.2 Diagramme de séquence - Export TXT
 
 ```plantuml
 @startuml
@@ -899,7 +910,7 @@ participant "email_lists_model\n(Model)" as Model
 participant "email_helper\n(Helper)" as Helper
 database MySQL
 
-User -> Ctrl: download_md($id)
+User -> Ctrl: download_txt($id)
 activate Ctrl
 
 Ctrl -> Model: resolve_list_members($id)
@@ -919,13 +930,13 @@ Model -> Model: deduplicate_emails()
 Model --> Ctrl: [$emails]
 deactivate Model
 
-Ctrl -> Helper: generate_markdown_export($list, $emails)
+Ctrl -> Helper: generate_txt_export($list, $emails)
 activate Helper
-Helper --> Ctrl: $markdown_content
+Helper --> Ctrl: $txt_content
 deactivate Helper
 
 Ctrl -> Ctrl: Set HTTP headers\n(Content-Disposition, UTF-8)
-Ctrl --> User: Download animateurs_simulateur.md
+Ctrl --> User: Download animateurs_simulateur.txt
 deactivate Ctrl
 @enduml
 ```
@@ -1124,9 +1135,6 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 
 ## 12. Évolutions futures possibles
 
-### 12.1 Import bidirectionnel Markdown
-- Permettre la réimportation d'un fichier .md modifié
-- Détection des changements et synchronisation
 
 ### 12.2 Historique des envois
 - Tracker quand une liste a été utilisée pour un envoi
