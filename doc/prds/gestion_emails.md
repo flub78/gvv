@@ -3,6 +3,9 @@
 ## 1. Vue d'ensemble
 
 ### 1.1 Objectif
+
+Permettre aux responsables du club d'envoyer un mail aux membres ou à une selection de membres en quelques clicks que ce soit à partir d'une ordinateur ou de leur smartphone.
+
 Moderniser le système de gestion des adresses email dans GVV en abandonnant l'envoi direct d'emails au profit d'un système de sélection et d'export d'adresses vers le client de messagerie préféré de l'utilisateur.
 
 ### 1.2 Problème à résoudre
@@ -43,9 +46,10 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 
 **Cas d'usage principaux:**
 1. Envoyer un courriel à une liste prédéfinie
-2. Créer une nouvelle liste par sélection de critères
-3. Enrichir une liste avec des adresses externes (une list peut être uniquement externe)
-4. Modifier/supprimer des listes existantes
+2. Créer une nouvelle liste par sélection de critères (ex: tous les instructeurs)
+3. Créer une nouvelle liste par sélection manuelle de membres (ex: animateurs simulateur - volontaires)
+4. Enrichir une liste avec des adresses externes (une liste peut être uniquement externe)
+5. Modifier/supprimer des listes existantes
 
 ## 4. Exigences fonctionnelles
 
@@ -70,9 +74,17 @@ Le système doit permettre la sélection selon:
 #### 4.2.1 Création de liste
 - Nommage de la liste (obligatoire, unique)
 - Description optionnelle
-- Sélection d'adresses par critères GVV
-- Ajout d'adresses externes manuellement ou par import
+- **Trois modes de création:**
+  1. **Par critères GVV:** sélection automatique selon rôles, sections, statuts (mise à jour automatique)
+  2. **Par sélection manuelle de membres:** choix individuel de membres dans une liste (liste statique)
+  3. **Par import externe:** ajout d'adresses externes via fichier ou saisie manuelle
+- Les trois modes peuvent être combinés dans une même liste
 - Sauvegarde de la liste
+
+**Exemples d'utilisation:**
+- Liste "Instructeurs actifs": création par critères (rôle=instructeur, statut=actif) → mise à jour automatique
+- Liste "Animateurs simulateur": création par sélection manuelle de volontaires → liste statique qui ne change que si modifiée manuellement
+- Liste "Auditeurs BIA 2024": création par import externe + ajout manuel éventuel → liste statique
 
 #### 4.2.2 Modification de liste
 - Modification du nom/description
@@ -198,17 +210,29 @@ Pour s'adapter aux limitations des clients de messagerie:
 
 ### 6.1 Architecture
 
-#### 6.1.1 Base de données (nouvelle table)
+#### 6.1.1 Base de données (nouvelles tables)
 ```
 email_lists:
   - id (PK)
   - name (unique)
   - description
-  - criteria (JSON: sélection GVV)
+  - criteria (JSON: sélection GVV par critères, NULL si liste manuelle)
   - external_emails (TEXT: emails externes)
   - created_by (FK: users)
   - created_at
   - updated_at
+
+email_list_members:
+  - id (PK)
+  - email_list_id (FK: email_lists)
+  - user_id (FK: users, pour sélection manuelle de membres GVV)
+  - external_email (VARCHAR: pour adresses externes, NULL si user_id est renseigné)
+  - added_at
+
+Note:
+- Si criteria est NULL, la liste est de type "sélection manuelle" et utilise email_list_members
+- Si criteria est renseigné, la liste est générée dynamiquement à partir des critères
+- Une liste peut combiner les deux: critères + membres supplémentaires dans email_list_members
 ```
 
 #### 6.1.2 Composants
