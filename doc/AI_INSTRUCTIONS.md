@@ -175,10 +175,12 @@ Following `doc/development/workflow.md`:
 9. **Permissions**: Web-writable directories need `chmod +wx` (logs, uploads, assets/images)
 10. **No Composer**: Project uses manual dependency management (predates Composer)
 11. **Database access**: Use the credential from configuration/database.php to analyze the database schema or data.
-12. **Diagrams**: Use plantuml to generate class diagrams and database schemas
-13. **Mockups**: Generate mockups in ASCII art, generate prototypes in self contained HTML files
-14. **GUI**: Keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
+12. **Mockups**: Generate mockups in ASCII art, generate prototypes in self contained HTML files
+13. **GUI**: Keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
 15. **Documentation**: Do not clutter the project root directory, generate markdown files under doc appropriate subdirectories
+16. **PRD**: Limit the PRD documents to the description of requirements, no design elements.
+17. **Design notes**: Stay minimalist, do not describe the implementation. Only include code when it is necessary to understand the design. Use plantuml diagrams for database schemas and classes relationship when it is useful.
+18. **Progress tracking**: When working on an implementation plan avoid to create new documents. Do not create additional summaries, todo lists or work description, just update the plan. When adding a new feature or modification to a plan, restructure if necessary, so it does not appeared to be patched. 
 
 ---
 

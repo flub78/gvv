@@ -4,7 +4,7 @@
 
 ### 1.1 Objectif
 
-Permettre aux responsables du club d'envoyer un mail aux membres ou à une selection de membres en quelques clicks que ce soit à partir d'une ordinateur ou de leur smartphone.
+Permettre aux responsables du club d'envoyer un mail aux membres ou à une selection de membres en quelques clics que ce soit à partir d'une ordinateur ou de leur smartphone.
 
 Moderniser le système de gestion des adresses email dans GVV en abandonnant l'envoi direct d'emails au profit d'un système de sélection et d'export d'adresses vers le client de messagerie préféré de l'utilisateur.
 
@@ -27,6 +27,7 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 - Import d'adresses email externes (format texte et CSV)
 - Création, modification, suppression de listes de diffusion
 - Export vers le presse-papier
+- Export vers fichier texte/Markdown pour partage
 - Ouverture du client de messagerie avec les adresses sélectionnées
 
 ### 2.2 Hors périmètre
@@ -49,7 +50,8 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 2. Créer une nouvelle liste par sélection de critères (ex: tous les instructeurs)
 3. Créer une nouvelle liste par sélection manuelle de membres (ex: animateurs simulateur - volontaires)
 4. Enrichir une liste avec des adresses externes (une liste peut être uniquement externe)
-5. Modifier/supprimer des listes existantes
+5. Exporter une liste vers fichier pour partage avec personnes n'ayant pas accès à GVV
+6. Modifier/supprimer des listes existantes
 
 ## 4. Exigences fonctionnelles
 
@@ -122,7 +124,56 @@ Le système doit permettre la sélection selon:
 - Notification visuelle de succès
 - Gestion des cas d'erreur (liste vide, permissions insuffisantes)
 
-#### 4.4.2 Découpage en sous-listes
+#### 4.4.2 Export vers fichier texte/Markdown
+Pour permettre le partage avec des personnes n'ayant pas accès à GVV:
+
+**Formats d'export:**
+1. **Format simple (TXT):** liste d'adresses séparées par virgules ou points-virgules, prête pour copier/coller dans un client email
+2. **Format Markdown (MD):** fichier structuré avec métadonnées et liste détaillée
+
+**Format TXT - Copier/coller direct:**
+```
+jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com
+```
+ou
+```
+jean.dupont@example.com; marie.martin@example.com; pierre.durant@example.com
+```
+
+**Format Markdown - Partage avec contexte:**
+```markdown
+# Liste: Animateurs simulateur
+**Description:** Volontaires pour animer les sessions simulateur
+**Créée le:** 2025-01-15
+**Mise à jour:** 2025-01-20
+**Nombre de destinataires:** 12
+
+## Adresses (copier/coller)
+jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com, ...
+
+## Détails des membres
+
+| Nom | Prénom | Email |
+|-----|--------|-------|
+| Dupont | Jean | jean.dupont@example.com |
+| Martin | Marie | marie.martin@example.com |
+| Durant | Pierre | pierre.durant@example.com |
+| ... | ... | ... |
+```
+
+**Fonctionnalités:**
+- Bouton de téléchargement du fichier (.txt ou .md)
+- Choix du format (TXT simple ou Markdown avec détails)
+- Choix du séparateur pour format TXT (virgule ou point-virgule)
+- Nom de fichier automatique basé sur le nom de la liste (ex: `animateurs_simulateur.txt`)
+- Encodage UTF-8 pour compatibilité universelle
+
+**Cas d'usage:**
+- Secrétaire exporte "Auditeurs BIA 2024" en .txt et envoie le fichier à l'instructeur BIA externe
+- L'instructeur ouvre le fichier, copie les adresses et les colle dans Thunderbird
+- Président exporte "Animateurs simulateur" en .md pour garder une trace avec les noms complets
+
+#### 4.4.3 Découpage en sous-listes
 Pour s'adapter aux limitations des clients de messagerie:
 - **Taille de découpage configurable:** par défaut 20 destinataires maximum par sous-liste
 - **Sélection de la partie à exporter:** interface permettant de choisir "Partie 1/5", "Partie 2/5", etc.
@@ -156,7 +207,7 @@ Pour s'adapter aux limitations des clients de messagerie:
 └─────────────────────────────────────────────────────────┘
 ```
 
-#### 4.4.3 Ouverture client de messagerie
+#### 4.4.4 Ouverture client de messagerie
 - Génération d'un lien `mailto:` avec les adresses de la partie sélectionnée
 - Support des limites de taille d'URL (fallback vers presse-papier si trop long)
 - **Placement des adresses:** option de choix entre TO, CC, BCC pour les destinataires sélectionnés
@@ -202,167 +253,39 @@ Pour s'adapter aux limitations des clients de messagerie:
 - Clients de messagerie: Outlook, Thunderbird, Gmail, clients web standard
 
 ### 5.4 Maintenance
-- Code conforme aux standards GVV (CodeIgniter 2.x, PHP 7.4)
-- Tests PHPUnit avec couverture > 70%
+- Tests avec couverture > 70%
 - Documentation utilisateur en français, anglais, néerlandais
 
-## 6. Spécifications techniques
-
-### 6.1 Architecture
-
-#### 6.1.1 Base de données (nouvelles tables)
-```
-email_lists:
-  - id (PK)
-  - name (unique)
-  - description
-  - criteria (JSON: sélection GVV par critères, NULL si liste manuelle)
-  - external_emails (TEXT: emails externes)
-  - created_by (FK: users)
-  - created_at
-  - updated_at
-
-email_list_members:
-  - id (PK)
-  - email_list_id (FK: email_lists)
-  - user_id (FK: users, pour sélection manuelle de membres GVV)
-  - external_email (VARCHAR: pour adresses externes, NULL si user_id est renseigné)
-  - added_at
-
-Note:
-- Si criteria est NULL, la liste est de type "sélection manuelle" et utilise email_list_members
-- Si criteria est renseigné, la liste est générée dynamiquement à partir des critères
-- Une liste peut combiner les deux: critères + membres supplémentaires dans email_list_members
-```
-
-#### 6.1.2 Composants
-- **Controller:** `application/controllers/email_lists.php`
-- **Model:** `application/models/email_lists_model.php`
-- **Metadata:** Extension de `Gvvmetadata.php` pour les nouveaux champs
-- **Views:** Formulaires de sélection, gestion des listes
-- **Helper:** `application/helpers/email_helper.php` (validation, formatage)
-
-### 6.2 Migration
-- Création de la table `email_lists`
-- Migration des anciennes fonctionnalités d'envoi vers le nouveau système
-- Mise à jour de `application/config/migration.php`
-
-## 7. Interface utilisateur
-
-### 7.1 Navigation
-- Nouveau menu: **"Communications" > "Listes de diffusion"**
-- Sous-menus:
-  - Créer une liste
-  - Gérer les listes existantes
-  - Sélection rapide
-
-### 7.2 Écrans principaux
-
-#### 7.2.1 Écran de sélection
-```
-┌─────────────────────────────────────────────────────────┐
-│ Sélection des destinataires                             │
-├─────────────────────────────────────────────────────────┤
-│ [ ] Rôles:     [ ] Trésoriers  [ ] Instructeurs  ...    │
-│ [ ] Sections:  [ ] ULM  [ ] Planeur  [ ] Avion          │
-│ [ ] Statut:    [ ] Actif  [ ] Inactif  [ ] Candidat     │
-│                                                          │
-│ Destinataires sélectionnés: 42                          │
-│                                                          │
-│ [Prévisualiser] [Copier] [Ouvrir client mail]          │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 7.2.2 Gestion des listes
-```
-┌─────────────────────────────────────────────────────────┐
-│ Mes listes de diffusion                    [+ Nouvelle] │
-├──────────────────┬──────────────┬──────────┬───────────┤
-│ Nom              │ Destinataires│ Modifiée │ Actions   │
-├──────────────────┼──────────────┼──────────┼───────────┤
-│ Instructeurs     │ 12           │ 2025-01  │ [✎] [🗑]  │
-│ Membres actifs   │ 87           │ 2025-01  │ [✎] [🗑]  │
-│ BIA 2023         │ 24 (ext)     │ 2024-12  │ [✎] [🗑]  │
-└──────────────────┴──────────────┴──────────┴───────────┘
-```
-
-## 8. Plan de test
-
-### 8.1 Tests unitaires
-- Validation d'adresses email
-- Dédoublonnage d'adresses (sensibilité à la casse, multiples critères)
-- Parsing de fichiers CSV
-- Construction des requêtes de sélection
-- Génération de liens mailto
-
-### 8.2 Tests d'intégration
-- Sélection multi-critères avec la base de données
-- Import CSV avec doublons
-- Export vers presse-papier
-- Création/modification/suppression de listes
-
-### 8.3 Tests manuels
-- Ouverture des clients de messagerie (Outlook, Thunderbird, Gmail)
-- Interface utilisateur sur différents navigateurs
-- Performance avec 500+ membres
-
-## 9. Plan de déploiement
-
-### 9.1 Phase 1: Développement (2 semaines)
-- Migration base de données
-- Controller + Model + Metadata
-- Interface de sélection
-
-### 9.2 Phase 2: Import/Export (1 semaine)
-- Import CSV/texte
-- Export presse-papier et mailto
-- Tests
-
-### 9.3 Phase 3: Gestion des listes (1 semaine)
-- CRUD des listes
-- Interface de gestion
-- Documentation utilisateur
-
-### 9.4 Phase 4: Tests et déploiement (1 semaine)
-- Tests complets
-- Migration des données existantes (si applicable)
-- Déploiement en production
-- Formation utilisateurs
-
-## 10. Critères de succès
+## 6. Critères de succès
 
 - [ ] Les secrétaires peuvent créer une liste en < 2 minutes
 - [ ] Import CSV fonctionne sans erreur pour 95% des fichiers bien formés
 - [ ] Export vers client de messagerie fonctionne sur 3 clients différents
+- [ ] Export fichier TXT permet copier/coller direct dans client email
+- [ ] Export fichier MD contient toutes les métadonnées utiles
 - [ ] Couverture de tests > 70%
 - [ ] Aucune régression sur les fonctionnalités existantes
 - [ ] Documentation traduite dans les 3 langues
 
-## 11. Risques et mitigation
+## 7. Risques et mitigation
 
 | Risque | Impact | Probabilité | Mitigation |
 |--------|--------|-------------|------------|
-| Limite de taille URL mailto | Moyen | Élevée | Fallback vers presse-papier |
+| Limite de taille URL mailto | Moyen | Élevée | Fallback vers presse-papier + découpage en sous-listes |
 | Formats CSV variés | Faible | Moyenne | Configuration flexible, validation claire |
 | Résistance utilisateurs | Moyen | Faible | Documentation, formation |
-| Performance avec grandes listes | Moyen | Faible | Pagination, optimisation requêtes |
+| Performance avec grandes listes (>500 membres) | Moyen | Faible | Optimisation requêtes, tests de charge |
+| Compatibilité clients email mobiles | Moyen | Moyenne | Tests sur iOS/Android, fallbacks |
 
-## 12. Dépendances
+## 8. Documentation requise
 
-- Aucune bibliothèque externe requise
-- Utilisation des composants GVV existants (Bootstrap 5, metadata)
-- Compatible avec l'infrastructure actuelle (PHP 7.4, MySQL 5.x)
-
-## 13. Documentation requise
-
-- Sections dans les guides utilisateur existant (FR/EN/NL)
-- Documentation technique (ajout dans `doc/development/`)
+- Sections dans les guides utilisateur existants (FR/EN/NL)
+- Formation pour les secrétaires
 - Mise à jour du README
-- Commentaires dans le code (PHPDoc)
 
 ---
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2025-10-31
-**Auteur:** Claude Code
+**Auteur:** Claude Code sous supervision Fred
 **Statut:** Proposition initiale
