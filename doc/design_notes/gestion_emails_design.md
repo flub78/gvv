@@ -133,35 +133,52 @@ La combinaison des deux tables permet 3 types de listes :
 
 ### 2.3 Format JSON des critères
 
+**Note:** Le système utilise la table `user_roles_per_section` existante qui gère les autorisations dans GVV. Cette table associe des utilisateurs à des rôles spécifiques par section, permettant une sélection dynamique basée sur les autorisations réelles.
+
 Structure du champ `email_lists.criteria` :
 
 ```json
 {
-  "roles": ["instructeur", "tresorier"],
-  "sections": [1, 3],
-  "status": ["actif"],
+  "roles": [
+    {
+      "types_roles_id": 8,
+      "section_id": 1
+    },
+    {
+      "types_roles_id": 7,
+      "section_id": 2
+    }
+  ],
+  "member_status": [1],
   "logic": "OR"
 }
 ```
 
 **Champs:**
-- `roles` (array): Noms des rôles à sélectionner
-- `sections` (array): IDs des sections à sélectionner
-- `status` (array): Statuts des membres ("actif", "inactif", "candidat")
-- `logic` (string): "AND" ou "OR" pour combiner les critères
+- `roles` (array d'objets): Liste des combinaisons rôle+section
+  - `types_roles_id` (int): ID du rôle dans `types_roles` (ex: 8=tresorier, 7=bureau, 10=club-admin)
+  - `section_id` (int): ID de la section dans `sections` (ex: 1=Planeur, 2=ULM, 3=Avion, 4=Général)
+- `member_status` (array): Statuts des membres dans `membres.actif` (1=actif, 0=inactif, NULL=tous)
+- `logic` (string): "AND" ou "OR" pour combiner les critères de rôles
+
+**Note sur l'extensibilité:** Ce format JSON générique supporte tous les rôles définis dans `types_roles`, y compris les rôles futurs qui seront ajoutés au système (instructeurs, pilotes, etc.).
 
 **Exemple de résolution:**
 ```sql
-SELECT DISTINCT u.id, u.email
-FROM users u
-WHERE (
-  -- Critère rôles
-  (u.role IN ('instructeur', 'tresorier'))
-  OR
-  -- Critère sections
-  (u.section_id IN (1, 3))
-)
-AND u.status IN ('actif');
+-- Sélection des utilisateurs ayant le rôle tresorier (8) dans section Planeur (1)
+-- OU le rôle bureau (7) dans section ULM (2)
+-- ET dont le membre est actif
+SELECT DISTINCT u.id, u.email, m.mnom, m.mprenom
+FROM user_roles_per_section urps
+INNER JOIN users u ON urps.user_id = u.id
+LEFT JOIN membres m ON u.username = m.mlogin
+WHERE urps.revoked_at IS NULL
+  AND (
+    (urps.types_roles_id = 8 AND urps.section_id = 1)
+    OR
+    (urps.types_roles_id = 7 AND urps.section_id = 2)
+  )
+  AND m.actif IN (1);
 ```
 
 ---
@@ -251,9 +268,12 @@ class Email_lists_model extends CI_Model {
     public function delete_list($id)
     public function get_user_lists($user_id)
 
-    // Gestion des critères
+    // Gestion des critères (basée sur user_roles_per_section)
     public function build_criteria_json($selections)
     public function apply_criteria($criteria_json)
+    public function get_available_roles()
+    public function get_available_sections()
+    public function get_users_by_role_and_section($types_roles_id, $section_id)
 
     // Gestion des membres manuels
     public function add_manual_member($list_id, $user_id)
@@ -277,7 +297,7 @@ public function resolve_list_members($list_id) {
     $list = $this->get_list($list_id);
     $emails = [];
 
-    // 1. Membres par critères (si criteria n'est pas NULL)
+    // 1. Membres par critères depuis user_roles_per_section (si criteria n'est pas NULL)
     if ($list['criteria']) {
         $criteria_emails = $this->apply_criteria($list['criteria']);
         $emails = array_merge($emails, $criteria_emails);
@@ -285,9 +305,10 @@ public function resolve_list_members($list_id) {
 
     // 2. Membres manuels (user_id)
     $manual = $this->db
-        ->select('u.email, u.nom, u.prenom')
+        ->select('u.email, u.id as user_id, m.mnom, m.mprenom')
         ->from('email_list_members elm')
-        ->join('users u', 'elm.user_id = u.id')
+        ->join('users u', 'elm.user_id = u.id', 'inner')
+        ->join('membres m', 'u.username = m.mlogin', 'left')
         ->where('elm.email_list_id', $list_id)
         ->where('elm.user_id IS NOT NULL')
         ->get()
@@ -306,6 +327,73 @@ public function resolve_list_members($list_id) {
 
     // 4. Dédoublonnage
     return $this->deduplicate_emails($emails);
+}
+
+/**
+ * Applique les critères JSON basés sur user_roles_per_section
+ *
+ * @param string $criteria_json JSON avec structure roles/member_status/logic
+ * @return array Tableau d'emails avec user_id, email, mnom, mprenom
+ */
+public function apply_criteria($criteria_json) {
+    $criteria = json_decode($criteria_json, true);
+    if (empty($criteria['roles'])) {
+        return [];
+    }
+
+    $emails = [];
+
+    foreach ($criteria['roles'] as $role_criteria) {
+        $this->db->distinct();
+        $this->db->select('u.id as user_id, u.email, m.mnom, m.mprenom');
+        $this->db->from('user_roles_per_section urps');
+        $this->db->join('users u', 'urps.user_id = u.id', 'inner');
+        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
+
+        // Critère: rôle et section
+        $this->db->where('urps.types_roles_id', $role_criteria['types_roles_id']);
+        $this->db->where('urps.section_id', $role_criteria['section_id']);
+        $this->db->where('urps.revoked_at IS NULL');
+
+        // Filtre optionnel sur statut du membre
+        if (!empty($criteria['member_status'])) {
+            $this->db->where_in('m.actif', $criteria['member_status']);
+        }
+
+        $query = $this->db->get();
+        $result = $query->result_array();
+        $emails = array_merge($emails, $result);
+    }
+
+    return $emails;
+}
+
+/**
+ * Récupère tous les rôles disponibles depuis types_roles
+ *
+ * @return array Tableau des rôles avec id, nom, description, scope
+ */
+public function get_available_roles() {
+    return $this->db
+        ->select('id, nom, description, scope, is_system_role')
+        ->from('types_roles')
+        ->order_by('display_order', 'ASC')
+        ->get()
+        ->result_array();
+}
+
+/**
+ * Récupère toutes les sections disponibles
+ *
+ * @return array Tableau des sections avec id, nom, description
+ */
+public function get_available_sections() {
+    return $this->db
+        ->select('id, nom, description, acronyme, couleur')
+        ->from('sections')
+        ->order_by('id', 'ASC')
+        ->get()
+        ->result_array();
 }
 ```
 
@@ -403,6 +491,58 @@ index.php (Liste) → create.php (Création avec 3 onglets)
                  → view.php (Prévisualisation + export)
                  → download_txt/download_md (Téléchargement)
 ```
+
+**Interface de sélection par rôles (_criteria_tab.php):**
+
+L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes les sections depuis `sections`, permettant ainsi de supporter automatiquement les rôles futurs (instructeurs, pilotes, etc.) sans modification de code.
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Sélection par rôles et sections                     │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│ ┌─ Section: Planeur ────────────────────────────┐  │
+│ │ ☐ club-admin (Administrateur club) [global]   │  │
+│ │ ☐ bureau (Membre du bureau)                   │  │
+│ │ ☐ tresorier (Trésorier)                        │  │
+│ │ ☐ ca (Membre CA)                               │  │
+│ │ ☐ planchiste (Planchiste)                      │  │
+│ │ ☐ auto_planchiste (Auto-planchiste)            │  │
+│ │ ☐ user (Utilisateur)                           │  │
+│ └────────────────────────────────────────────────┘  │
+│                                                      │
+│ ┌─ Section: ULM ────────────────────────────────┐  │
+│ │ ☐ club-admin (Administrateur club) [global]   │  │
+│ │ ☐ bureau (Membre du bureau)                   │  │
+│ │ ☐ tresorier (Trésorier)                        │  │
+│ │ ...                                            │  │
+│ └────────────────────────────────────────────────┘  │
+│                                                      │
+│ ┌─ Section: Avion ──────────────────────────────┐  │
+│ │ ☐ club-admin (Administrateur club) [global]   │  │
+│ │ ...                                            │  │
+│ └────────────────────────────────────────────────┘  │
+│                                                      │
+│ Statut des membres:                                 │
+│   ☐ Actifs uniquement                               │
+│   ☐ Inactifs uniquement                             │
+│   ☐ Tous                                            │
+│                                                      │
+│ Logique de combinaison:                             │
+│   ● OU (un des rôles sélectionnés)                  │
+│   ○ ET (tous les rôles sélectionnés)                │
+│                                                      │
+│ Aperçu: 12 destinataires                            │
+│ [Prévisualiser] [Sauvegarder]                       │
+└─────────────────────────────────────────────────────┘
+```
+
+**Fonctionnement:**
+- Les rôles sont chargés depuis `get_available_roles()` et groupés par section
+- Les rôles avec `scope='global'` sont affichés dans chaque section avec marqueur `[global]`
+- Les checkboxes génèrent le JSON avec `types_roles_id` + `section_id`
+- La prévisualisation AJAX appelle `preview_count()` pour afficher le nombre de destinataires
+- Extensible automatiquement: nouveaux rôles apparaissent sans modification du code
 
 ### 3.5 JavaScript: `assets/js/email_lists.js`
 
@@ -623,13 +763,24 @@ function validate_email($email) {
 
 ### 8.2 Optimisation des requêtes
 
-**Résolution des critères:**
+**Résolution des critères via user_roles_per_section:**
 ```sql
--- Optimisé avec index sur role, section_id, status
-SELECT DISTINCT u.id, u.email, u.nom, u.prenom
-FROM users u
-WHERE u.role IN (?) AND u.status IN (?)
+-- Optimisé avec index FK existants sur user_roles_per_section
+SELECT DISTINCT u.id, u.email, m.mnom, m.mprenom
+FROM user_roles_per_section urps
+INNER JOIN users u ON urps.user_id = u.id
+LEFT JOIN membres m ON u.username = m.mlogin
+WHERE urps.types_roles_id IN (?)
+  AND urps.section_id IN (?)
+  AND urps.revoked_at IS NULL
+  AND m.actif IN (?);
 ```
+
+**Index requis:**
+- `user_roles_per_section(user_id)` - Existe (FK)
+- `user_roles_per_section(types_roles_id)` - Existe (FK)
+- `user_roles_per_section(section_id)` - Existe (FK)
+- `users(username)` - **À ajouter** pour optimiser jointure avec membres
 
 **Dédoublonnage:**
 - Fait en PHP avec `array_unique()` après normalisation lowercase
@@ -672,17 +823,69 @@ entity email_list_members {
 entity users {
   * id : INT [PK]
   --
-  email : VARCHAR(255)
-  nom : VARCHAR(100)
-  prenom : VARCHAR(100)
-  role : VARCHAR(50)
-  section_id : INT
-  status : VARCHAR(50)
+  * username : VARCHAR(25)
+  * email : VARCHAR(100)
+  password : VARCHAR(34)
+  banned : TINYINT(1)
+}
+
+entity membres {
+  * mlogin : VARCHAR(25) [PK]
+  --
+  * mnom : VARCHAR(80)
+  * mprenom : VARCHAR(80)
+  memail : VARCHAR(50)
+  actif : TINYINT(4)
+  username : VARCHAR(25)
+}
+
+entity user_roles_per_section {
+  * id : INT [PK]
+  --
+  * user_id : INT [FK]
+  * types_roles_id : INT [FK]
+  * section_id : INT [FK]
+  granted_by : INT [FK]
+  granted_at : DATETIME
+  revoked_at : DATETIME
+}
+
+entity types_roles {
+  * id : INT [PK]
+  --
+  * nom : VARCHAR(64)
+  description : VARCHAR(128)
+  scope : ENUM('global','section')
+}
+
+entity sections {
+  * id : INT [PK]
+  --
+  * nom : VARCHAR(64)
+  description : VARCHAR(128)
 }
 
 email_lists ||--o{ email_list_members : contains
-email_list_members }o--|| users : references (optional)
+email_list_members }o--|| users : manual_selection
 email_lists }o--|| users : created_by
+
+users ||--o{ user_roles_per_section : has_roles
+user_roles_per_section }o--|| types_roles : role_type
+user_roles_per_section }o--|| sections : in_section
+users ||--o| membres : linked_via_username
+
+note right of user_roles_per_section
+  **Source des critères de sélection**
+  Le JSON dans email_lists.criteria
+  référence types_roles_id + section_id
+  pour sélection automatique
+end note
+
+note right of membres
+  **Lien users ↔ membres:**
+  membres.mlogin = users.username
+  (VARCHAR → VARCHAR)
+end note
 @enduml
 ```
 
@@ -706,10 +909,10 @@ Model -> MySQL: SELECT email_lists WHERE id=$id
 MySQL --> Model: {name, description, criteria, ...}
 
 Model -> Model: apply_criteria(JSON)
-Model -> MySQL: SELECT users WHERE role IN (...) AND ...
-MySQL --> Model: [{email, nom, prenom}, ...]
+Model -> MySQL: SELECT FROM user_roles_per_section\nJOIN users JOIN membres\nWHERE types_roles_id + section_id
+MySQL --> Model: [{email, mnom, mprenom}, ...]
 
-Model -> MySQL: SELECT email_list_members WHERE email_list_id=$id
+Model -> MySQL: SELECT email_list_members\nJOIN users JOIN membres\nWHERE email_list_id=$id
 MySQL --> Model: [{user_id, external_email}, ...]
 
 Model -> Model: deduplicate_emails()

@@ -1,4 +1,4 @@
-# Plan & Progress - Gestion des Adresses Email
+# Implementation Plan - Gestion des Adresses Email
 
 **Projet:** GVV - Gestion Vol à voile
 **Fonctionnalité:** Système de gestion des listes de diffusion email
@@ -7,43 +7,15 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
----
-
-## Métadonnées du projet
-
-| Champ | Valeur |
-|-------|--------|
-| **Responsable** | À définir |
-| **Date de début** | Non démarré |
-| **Date de fin estimée** | +8 semaines après démarrage |
-| **Statut global** | ⚪ Non démarré (0%) |
-| **Phase actuelle** | N/A |
-| **Budget temps** | 8 semaines (1 personne) |
-
----
-
-## Timeline et jalons
-
-| Phase | Dates estimées | Durée | Statut |
-|-------|----------------|-------|--------|
-| Phase 1: Fondations | Semaine 1 | 1 sem | ⚪ Non démarré |
-| Phase 2: Sélection par critères | Semaine 2 | 1 sem | ⚪ Non démarré |
-| Phase 3: Sélection manuelle et import | Semaine 3 | 1 sem | ⚪ Non démarré |
-| Phase 4: Export et utilisation | Semaine 4 | 1 sem | ⚪ Non démarré |
-| Phase 5: Controller et UI | Semaine 5 | 1 sem | ⚪ Non démarré |
-| Phase 6: i18n et documentation | Semaine 6 | 1 sem | ⚪ Non démarré |
-| Phase 7: Tests et qualité | Semaine 7 | 1 sem | ⚪ Non démarré |
-| Phase 8: Déploiement | Semaine 8 | 1 sem | ⚪ Non démarré |
+**Statut global:** ⚪ Non démarré (0/113 tâches - 0%)
+**Phase actuelle:** N/A
+**Estimation:** 8 semaines (1 personne)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
 
 ---
 
-## Phase 1: Fondations (Semaine 1)
-
-**Statut:** ⚪ Non démarré (0/19 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 1: Fondations - ⚪ 0/19 (Semaine 1)
 
 ### 1.1 Migration base de données
 - [ ] Créer migration `043_create_email_lists.php`
@@ -72,51 +44,44 @@
 - [ ] Tests unitaires helper : `application/tests/unit/helpers/EmailHelperTest.php`
 - [ ] Tests MySQL model : `application/tests/mysql/EmailListsModelTest.php`
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 2: Sélection par critères (Semaine 2)
+## Phase 2: Sélection par critères via user_roles_per_section - ⚪ 0/15 (Semaine 2)
 
-**Statut:** ⚪ Non démarré (0/12 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+### 2.1 Analyse architecture autorisations
+- [ ] Analyser table `user_roles_per_section` (user_id, types_roles_id, section_id, revoked_at)
+- [ ] Analyser table `types_roles` (id, nom, description, scope)
+- [ ] Analyser table `sections` (id, nom, description)
+- [ ] Comprendre lien users ↔ membres (mlogin = username)
+- [ ] Tester requête 3-tables: user_roles_per_section → users → membres
 
-### 2.1 Sélection par rôles/droits
-- [ ] Analyser table users (champs de droits/rôles)
-- [ ] Méthode model `get_members_by_role($role)`
-- [ ] Méthode model `get_members_by_permission($permission)`
-- [ ] Interface view de sélection par rôles (checkboxes)
+### 2.2 Méthodes model pour chargement données
+- [ ] Méthode `get_available_roles()` - charge tous types_roles pour UI
+- [ ] Méthode `get_available_sections()` - charge toutes sections pour UI
+- [ ] Méthode `get_users_by_role_and_section($types_roles_id, $section_id)` - sélection simple
 
-### 2.2 Sélection par sections
-- [ ] Analyser structure sections dans la base
-- [ ] Méthode model `get_members_by_section($section_id)`
-- [ ] Interface view de sélection par sections
-- [ ] Combinaison sections + rôles (logique ET/OU)
-
-### 2.3 Sélection par statut
-- [ ] Méthode model `get_members_by_status($status)`
-- [ ] Interface view de sélection par statut (actif, inactif, candidat)
-- [ ] Prévisualisation AJAX du nombre de destinataires
-- [ ] Dédoublonnage automatique lors de sélections multiples
-
-### 2.4 Stockage critères JSON
-- [ ] Méthode `build_criteria_json($selections)` - construction JSON
-- [ ] Méthode `apply_criteria($criteria_json)` - résolution SQL
+### 2.3 Résolution critères JSON
+- [ ] Méthode `build_criteria_json($selections)` - construit JSON avec types_roles_id + section_id
+- [ ] Méthode `apply_criteria($criteria_json)` - résout via user_roles_per_section
+- [ ] Gérer filtre `revoked_at IS NULL` (rôles actifs uniquement)
+- [ ] Gérer filtre optionnel `membres.actif` (statut membre)
 - [ ] Méthode `resolve_list_members($list_id)` - résolution complète (critères + manuels + externes)
 
-### 2.5 Tests
-- [ ] Tests d'intégration sélection multi-critères
+### 2.4 Interface UI sélection par rôles
+- [ ] Charger rôles et sections via AJAX/PHP
+- [ ] Grouper checkboxes par section
+- [ ] Marquer rôles globaux (scope='global')
+- [ ] Logique combinaison ET/OU
+- [ ] Prévisualisation AJAX du nombre de destinataires
 
-**Blocages/Notes:** Aucun
+### 2.5 Tests et optimisation
+- [ ] Ajouter index `users(username)` pour performance jointure membres
+- [ ] Tests d'intégration sélection multi-rôles/sections
+- [ ] Test dédoublonnage (utilisateur avec multiples rôles)
 
 ---
 
-## Phase 3: Sélection manuelle et import (Semaine 3)
-
-**Statut:** ⚪ Non démarré (0/15 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 3: Sélection manuelle et import - ⚪ 0/15 (Semaine 3)
 
 ### 3.1 Sélection manuelle de membres
 - [ ] Interface view avec liste déroulante/recherche de membres
@@ -148,15 +113,9 @@
 - [ ] Tests unitaires parsing (texte, CSV)
 - [ ] Tests détection doublons
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 4: Export et utilisation (Semaine 4)
-
-**Statut:** ⚪ Non démarré (0/20 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 4: Export et utilisation - ⚪ 0/20 (Semaine 4)
 
 ### 4.1 Export presse-papier
 - [ ] JS `copyToClipboard(text)` avec Clipboard API
@@ -195,15 +154,9 @@
 - [ ] Tests unitaires export fichiers
 - [ ] Tests JS (si framework disponible)
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 5: Controller et UI (Semaine 5)
-
-**Statut:** ⚪ Non démarré (0/15 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 5: Controller et UI - ⚪ 0/15 (Semaine 5)
 
 ### 5.1 Controller
 - [ ] Créer `application/controllers/email_lists.php`
@@ -231,15 +184,9 @@
 ### 5.4 Tests
 - [ ] Tests controller (toutes actions)
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 6: Internationalisation et documentation (Semaine 6)
-
-**Statut:** ⚪ Non démarré (0/9 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 6: Internationalisation et documentation - ⚪ 0/9 (Semaine 6)
 
 ### 6.1 Traductions
 - [ ] `application/language/french/email_lists_lang.php`
@@ -257,15 +204,9 @@
 - [ ] Diagrammes PlantUML (si modifications)
 - [ ] PHPDoc dans tout le code
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 7: Tests et qualité (Semaine 7)
-
-**Statut:** ⚪ Non démarré (0/11 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 7: Tests et qualité - ⚪ 0/11 (Semaine 7)
 
 ### 7.1 Tests unitaires
 - [ ] Helper email: couverture >80%
@@ -291,15 +232,9 @@
 - [ ] Exécuter `./run-all-tests.sh --coverage`
 - [ ] Vérifier couverture >70% globale
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Phase 8: Déploiement (Semaine 8)
-
-**Statut:** ⚪ Non démarré (0/9 tâches)
-**Responsable:** À définir
-**Dates:** Non démarrée
+## Phase 8: Déploiement - ⚪ 0/9 (Semaine 8)
 
 ### 8.1 Pré-déploiement
 - [ ] Analyser données existantes (ancien système email)
@@ -318,19 +253,11 @@
 - [ ] Déploiement production
 - [ ] Monitoring initial
 
-**Blocages/Notes:** Aucun
-
 ---
 
-## Blocages actuels
+## Notes et blocages
 
-Aucun blocage - projet non démarré.
-
----
-
-## Décisions et notes
-
-### 2025-10-31 - Création du projet
+**2025-10-31 - Création du projet**
 - PRD validé
 - Design Document créé
 - Architecture confirmée : 2 tables, 3 types de listes
@@ -338,37 +265,8 @@ Aucun blocage - projet non démarré.
 - Décision : JSON pour critères (flexibilité)
 - Budget estimé : 8 semaines
 
----
-
-## Rétrospectives
-
-_(À compléter après chaque phase)_
-
-### Phase 1 (à venir)
-**Ce qui a bien fonctionné:**
-- TBD
-
-**À améliorer:**
-- TBD
-
-**Blocages rencontrés:**
-- TBD
-
----
-
-## Statistiques
-
-| Métrique | Valeur |
-|----------|--------|
-| **Tâches totales** | 110 |
-| **Tâches complétées** | 0 |
-| **% Complétion** | 0% |
-| **Phase actuelle** | Aucune (non démarré) |
-| **Jours écoulés** | 0 |
-| **Jours restants estimés** | 40 (8 semaines × 5 jours) |
+**Blocages actuels:** Aucun - projet non démarré
 
 ---
 
 **Dernière mise à jour:** 2025-10-31
-**Par:** Claude Code
-**Prochaine révision:** Au démarrage de la Phase 1

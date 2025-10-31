@@ -59,10 +59,11 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 
 #### 4.1.1 Critères de sélection GVV
 Le système doit permettre la sélection selon:
-- **Rôles/Droits:** trésoriers, instructeurs, pilotes, administrateurs, etc.
-- **Sections:** ULM, planeur, avion, etc.
-- **Statut:** membre actif, inactif, candidat, invité
+- **Rôles/Droits:** trésoriers, instructeurs, pilotes, administrateurs, etc. (basé sur le système d'autorisations existant de GVV)
+- **Sections:** ULM, planeur, avion, général, etc.
+- **Statut:** membre actif, inactif
 - **Combinaisons multiples** de critères (ET/OU logique)
+- **Extensibilité:** Le système doit supporter automatiquement les nouveaux rôles ajoutés au système d'autorisations
 
 #### 4.1.2 Interface de sélection
 - Interface visuelle similaire au mécanisme d'attribution des droits utilisateur
