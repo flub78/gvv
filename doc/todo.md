@@ -61,13 +61,13 @@
 ## Idées et suggestions
 
 * restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
-* Accés à un carnet de vol ULM pour les membres
+* Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
 
 ## Fait récemment
 
 * [x] Vérifier les exports pdf/csv des comptes
-  * Testé sur Echéance pret ULM, OK en local, OK Chez Ionos, CSV et PDF
+  * Testé sur Échéance pret ULM, OK en local, OK Chez Ionos, CSV et PDF
   * Testé sur compte client Ionos, OK CSV et PDF
 * [x] Correction du téléchargement des photos                                  
 * [x] Documentation de la sauvegarde automatique            
@@ -154,7 +154,7 @@
 * [x] Gérer la configuration dans la base.
 * [x] Sauvegarde/restauration des medias et attachements (optimisé mémoire)
 
-* [x] Quand un trésorier saisie une écriture à partir du menu Ecritures, il a le choix entre Recette, Réglement par pilote, Dépenses, etc. Dans chaque cas, il y a présélection des comptes possibles. Mais quand la saisie est rejetée suite à une erreur de validation, il n'y a plus de présélection et l'utilisateur peut choisir n'importe quel compte en emploi et resource. Cela va à l'encontre de la volonté de guider l'utilisateur.
+* [x] Quand un trésorier saisie une écriture à partir du menu Écritures, il a le choix entre Recette, Règlement par pilote, Dépenses, etc. Dans chaque cas, il y a présélection des comptes possibles. Mais quand la saisie est rejetée suite à une erreur de validation, il n'y a plus de présélection et l'utilisateur peut choisir n'importe quel compte en emploi et resource. Cela va à l'encontre de la volonté de guider l'utilisateur.
 
 * [x] Attachements lors de la création d'écriture (plan OK)
   * [x] tester les téléchargements avec espace (upload->do_upload)
@@ -165,7 +165,7 @@
   [x] créer une migration pour ajouter un champ boolean dans comptes "masked" 
   [x]  modifier le formulaire et le modèle pour pouvoir le modifier. Il n'est possible de masquer un compte que quand son solde est à 0.
   [x] Modifier le filtre dans comptes/detail pour afficher tous les comptes, les comptes non masqués et les comptes masqués. Le défaut est d'afficher les comptes non masqués.
-  [x] Modifier les selecteurs de comptes pour que les comptes masqués ne soient plus visible
+  [x] Modifier les sélecteurs de comptes pour que les comptes masqués ne soient plus visible
 
   * [x] **la page après changement de la checkbox gel est incorrecte**
 
