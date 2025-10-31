@@ -723,15 +723,6 @@ class Admin extends CI_Controller {
         // Call backend/users anonymization
         log_message('info', 'Starting global anonymization process');
 
-        // Anonymize users emails
-        $users_updated = $this->_anonymize_users();
-        $results['users'] = array(
-            'routine' => 'Users email anonymization',
-            'updated' => $users_updated,
-            'total' => $users_updated
-        );
-        $total_updated += $users_updated;
-
         // Anonymize membres (extracted from membre/anonymize_all)
         log_message('info', 'Anonymizing membres data');
         $membres_updated = $this->_anonymize_membres($with_number);
@@ -741,6 +732,15 @@ class Admin extends CI_Controller {
             'total' => $membres_updated
         );
         $total_updated += $membres_updated;
+
+        // Anonymize users emails
+        $users_updated = $this->_anonymize_users();
+        $results['users'] = array(
+            'routine' => 'Users email anonymization',
+            'updated' => $users_updated,
+            'total' => $users_updated
+        );
+        $total_updated += $users_updated;
 
         // Anonymize vols_decouverte (extracted from vols_decouverte/anonymize_all)
         log_message('info', 'Anonymizing discovery flights data');
