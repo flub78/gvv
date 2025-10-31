@@ -4,7 +4,7 @@
 
 ### 1.1 Objectif
 
-Permettre aux responsables du club d'envoyer un mail aux membres ou à une selection de membres en quelques clics que ce soit à partir d'une ordinateur ou de leur smartphone.
+Permettre aux responsables du club d'envoyer un mail aux membres ou à une selection de membres en quelques clics que ce soit à partir d'une ordinateur ou de leur smartphone. Il faut que le système soit simple et que tout le monde puisse envoyer un email sans se poser de questions.
 
 Moderniser le système de gestion des adresses email dans GVV en abandonnant l'envoi direct d'emails au profit d'un système de sélection et d'export d'adresses vers le client de messagerie préféré de l'utilisateur.
 
@@ -50,7 +50,7 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 2. Créer une nouvelle liste par sélection de critères (ex: tous les instructeurs)
 3. Créer une nouvelle liste par sélection manuelle de membres (ex: animateurs simulateur - volontaires)
 4. Enrichir une liste avec des adresses externes (une liste peut être uniquement externe)
-5. Exporter une liste vers fichier pour partage avec personnes n'ayant pas accès à GVV
+5. Exporter une liste vers fichier pour partage avec des personnes n'ayant pas accès à GVV
 6. Modifier/supprimer des listes existantes
 
 ## 4. Exigences fonctionnelles
@@ -60,9 +60,9 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 #### 4.1.1 Critères de sélection GVV
 Le système doit permettre la sélection selon:
 - **Rôles/Droits:** trésoriers, instructeurs, pilotes, administrateurs, etc. (basé sur le système d'autorisations existant de GVV)
-- **Sections:** ULM, planeur, avion, général, etc.
+- **Sections:** ULM, planeur, avion, etc.
 - **Statut:** membre actif, inactif
-- **Combinaisons multiples** de critères (ET/OU logique)
+- **Combinaisons** On doit pouvoir sélectionner plusieurs groupes (les trésorier ULM et avion, mais pas planeur)
 - **Extensibilité:** Le système doit supporter automatiquement les nouveaux rôles ajoutés au système d'autorisations
 
 #### 4.1.2 Interface de sélection
@@ -72,12 +72,15 @@ Le système doit permettre la sélection selon:
 - Validation des adresses email (format valide)
 - **Dédoublonnage automatique:** si un utilisateur est sélectionné par plusieurs critères (ex: instructeur ET membre de la section ULM), son adresse n'apparaît qu'une seule fois dans la liste finale
 
+La selection ressemblera à l'attribution des rôles. Il suffira de cliquer sur les groupes.
+![Attribution des rôles](./images/attribution_des_roles.png)  
+
 ### 4.2 Gestion des listes de diffusion
 
 #### 4.2.1 Création de liste
 - Nommage de la liste (obligatoire, unique)
 - Description optionnelle
-- **Trois modes de création:**
+- **Trois modes d'ajout d'adresse:**
   1. **Par critères GVV:** sélection automatique selon rôles, sections, statuts (mise à jour automatique)
   2. **Par sélection manuelle de membres:** choix individuel de membres dans une liste (liste statique)
   3. **Par import externe:** ajout d'adresses externes via fichier ou saisie manuelle
@@ -91,81 +94,59 @@ Le système doit permettre la sélection selon:
 
 #### 4.2.2 Modification de liste
 - Modification du nom/description
-- Ajout/suppression d'adresses
+- Ajout/suppression d'adresses sélectionnées manuellement ou importées 
 - Re-sélection par critères
 - Les listes basées sur des critères se mettent à jour automatiquement
 
 #### 4.2.3 Suppression de liste
 - Confirmation obligatoire avant suppression
-- Impossibilité de supprimer une liste en cours d'utilisation
 
-### 4.3 Import d'adresses externes
+#### 4.3 Détection des doublons
+  - Les doublons sont supprimés des listes lors de leur utilisation
+  - Quelque soit la source des adresses, selection, création manuelle ou import
+  - Comparaison insensible à la casse (user@example.com = USER@EXAMPLE.COM)
+  - Pas de détection à l'import
 
-#### 4.3.1 Formats supportés
-- **Texte brut:** une adresse par ligne
+### 4.4 Import d'adresses externes
+
+#### 4.4.1 Formats supportés
+- **Texte brut:** une adresse par ligne ou liste séparé par des virgules
 - **CSV:** colonnes configurables (nom, prénom, email, etc.)
 - Validation du format lors de l'import
 - Rapport d'erreurs en cas d'adresses invalides
 
-#### 4.3.2 Traitement de l'import
-- **Détection des doublons:**
-  - Entre adresses importées (au sein du fichier)
-  - Entre adresses importées et adresses GVV existantes dans la liste
-  - Comparaison insensible à la casse (user@example.com = USER@EXAMPLE.COM)
-- **Gestion des doublons détectés:**
-  - Option de fusion (garder l'existant, ignorer le doublon)
-  - Option de remplacement (remplacer par la nouvelle adresse)
-  - Rapport détaillé des doublons détectés
-- Prévisualisation avant validation finale
 
-### 4.4 Export et envoi
+### 4.5 Export et envoi
 
-#### 4.4.1 Export vers presse-papier
-- Copie des adresses au format standard (séparées par virgules ou points-virgules)
+#### 4.5.1 Export vers presse-papier
+- Copie des adresses au format standard (séparées par virgules)
 - Notification visuelle de succès
-- Gestion des cas d'erreur (liste vide, permissions insuffisantes)
+- Si on ne sélectionne rien la liste sera vide
+- Voir s'il faut différencier les droits de gestion et d'utilisation des listes existantes
 
-#### 4.4.2 Export vers fichier texte/Markdown
+#### 4.5.2 Export vers fichier texte/Markdown
 Pour permettre le partage avec des personnes n'ayant pas accès à GVV:
 
 **Formats d'export:**
-1. **Format simple (TXT):** liste d'adresses séparées par virgules ou points-virgules, prête pour copier/coller dans un client email
-2. **Format Markdown (MD):** fichier structuré avec métadonnées et liste détaillée
+1. **Format Texte (TXT):** liste d'adresses séparées par virgules, prête pour copier/coller dans un client email. Le fichier pourra comporter le nom de la liste, sa date de création, les critères.
 
-**Format TXT - Copier/coller direct:**
+**Exemple:**
 ```
-jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com
-```
-ou
-```
-jean.dupont@example.com; marie.martin@example.com; pierre.durant@example.com
-```
-
-**Format Markdown - Partage avec contexte:**
-```markdown
 # Liste: Animateurs simulateur
 **Description:** Volontaires pour animer les sessions simulateur
-**Créée le:** 2025-01-15
-**Mise à jour:** 2025-01-20
+**Date:** 2025-01-15
 **Nombre de destinataires:** 12
+
+jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com
+```
+
 
 ## Adresses (copier/coller)
 jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com, ...
 
-## Détails des membres
-
-| Nom | Prénom | Email |
-|-----|--------|-------|
-| Dupont | Jean | jean.dupont@example.com |
-| Martin | Marie | marie.martin@example.com |
-| Durant | Pierre | pierre.durant@example.com |
-| ... | ... | ... |
-```
 
 **Fonctionnalités:**
-- Bouton de téléchargement du fichier (.txt ou .md)
-- Choix du format (TXT simple ou Markdown avec détails)
-- Choix du séparateur pour format TXT (virgule ou point-virgule)
+- Bouton de téléchargement du fichier 
 - Nom de fichier automatique basé sur le nom de la liste (ex: `animateurs_simulateur.txt`)
 - Encodage UTF-8 pour compatibilité universelle
 
@@ -190,32 +171,29 @@ Pour s'adapter aux limitations des clients de messagerie:
 ┌─────────────────────────────────────────────────────────┐
 │ Liste: Membres actifs (87 destinataires)                │
 ├─────────────────────────────────────────────────────────┤
-│ Taille des sous-listes: [20 ▼] destinataires           │
-│                                                          │
+│ Taille des sous-listes: [20 ▼] destinataires            │
+│                                                         │
 │ → Nombre de parties nécessaires: 5                      │
-│                                                          │
+│                                                         │
 │ Sélectionner la partie à exporter:                      │
-│ ○ Toutes les parties (exports séquentiels)             │
-│ ● Partie spécifique: [1 ▼] sur 5                       │
-│                                                          │
+│ ● Partie: [1 ▼] sur 5                        │
+│                                                         │
 │ Partie 1: destinataires 1-20                            │
 │ Partie 2: destinataires 21-40                           │
 │ Partie 3: destinataires 41-60                           │
 │ Partie 4: destinataires 61-80                           │
 │ Partie 5: destinataires 81-87                           │
-│                                                          │
-│ [Prévisualiser partie] [Copier] [Ouvrir client mail]   │
+│                                                         │
+│ [Prévisualiser partie] [Copier] [Ouvrir client mail]    │
 └─────────────────────────────────────────────────────────┘
 ```
 
 #### 4.4.4 Ouverture client de messagerie
 - Génération d'un lien `mailto:` avec les adresses de la partie sélectionnée
-- Support des limites de taille d'URL (fallback vers presse-papier si trop long)
 - **Placement des adresses:** option de choix entre TO, CC, BCC pour les destinataires sélectionnés
 - **Titre du message (Subject):** champ de saisie pour définir l'objet du courriel
-- **Adresse de retour (Reply-To):** champ optionnel pour définir l'adresse de réponse
+- **Adresse du destinataire:** si la liste est en BCC
 - **Mémorisation des préférences:** le navigateur se souvient des choix précédents (TO/CC/BCC, titre, adresse de retour) via localStorage
-- Pour les exports de toutes les parties: ouverture séquentielle avec confirmation entre chaque partie
 
 **Interface d'export vers client mail:**
 ```
@@ -223,17 +201,15 @@ Pour s'adapter aux limitations des clients de messagerie:
 │ Paramètres d'envoi                                      │
 ├─────────────────────────────────────────────────────────┤
 │ Placer les destinataires en:                            │
-│ ● TO (À)    ○ CC (Copie)    ○ BCC (Copie cachée)       │
-│                                                          │
+│ ● TO (À)    ○ CC (Copie)    ○ BCC (Copie cachée)        │
+│                                                         │
 │ Titre du message:                                       │
 │ [Information importante - Assemblée générale       ]    │
-│                                                          │
-│ Adresse de retour (Reply-To): (optionnel)              │
+│                                                         │
+│ Adresse de destinataire si liste en BCC:                │
 │ [secretaire@club-aviation.fr                       ]    │
-│                                                          │
-│ ℹ️ Vos préférences sont sauvegardées automatiquement    │
-│                                                          │
-│ [Ouvrir le client de messagerie]                       │
+│                                                         │
+│ [Ouvrir le client de messagerie]                        │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -245,7 +221,7 @@ Pour s'adapter aux limitations des clients de messagerie:
 - Affichage liste: < 1 seconde
 
 ### 5.2 Sécurité
-- Contrôle d'accès basé sur les rôles (seuls les secrétaires accèdent à la fonctionnalité)
+- Contrôle d'accès basé sur les rôles (seuls les membres du CA accèdent à la fonctionnalité)
 - Validation des entrées (injection SQL, XSS)
 - Journalisation des actions (création/modification/suppression de listes)
 
@@ -259,14 +235,13 @@ Pour s'adapter aux limitations des clients de messagerie:
 
 ## 6. Critères de succès
 
-- [ ] Les secrétaires peuvent créer une liste en < 2 minutes
-- [ ] Import CSV fonctionne sans erreur pour 95% des fichiers bien formés
+- [ ] Les utilisateurs peuvent créer une liste en < 2 minutes
+- [ ] Import CSV fonctionne sans erreur pour 99% des fichiers bien formés
 - [ ] Export vers client de messagerie fonctionne sur 3 clients différents
 - [ ] Export fichier TXT permet copier/coller direct dans client email
-- [ ] Export fichier MD contient toutes les métadonnées utiles
+- [ ] Export fichier TXT contient toutes les métadonnées utiles
 - [ ] Couverture de tests > 70%
 - [ ] Aucune régression sur les fonctionnalités existantes
-- [ ] Documentation traduite dans les 3 langues
 
 ## 7. Risques et mitigation
 
@@ -281,12 +256,11 @@ Pour s'adapter aux limitations des clients de messagerie:
 ## 8. Documentation requise
 
 - Sections dans les guides utilisateur existants (FR/EN/NL)
-- Formation pour les secrétaires
 - Mise à jour du README
 
 ---
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2025-10-31
 **Auteur:** Claude Code sous supervision Fred
 **Statut:** Proposition initiale

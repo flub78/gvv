@@ -180,7 +180,9 @@ Following `doc/development/workflow.md`:
 15. **Documentation**: Do not clutter the project root directory, generate markdown files under doc appropriate subdirectories
 16. **PRD**: Limit the PRD documents to the description of requirements, no design elements.
 17. **Design notes**: Stay minimalist and focused on architecture, do not describe the implementation. Only include code when it is necessary to understand the design. Use plantuml diagrams for database schemas and classes relationship when it is useful. Enforce clear separation of concerns between components.
-18. **Progress tracking**: When working on an implementation plan avoid to create new documents. Do not create additional summaries, todo lists or work description, just update the plan. When adding a new feature or modification to a plan, restructure if necessary, so it does not appeared to be patched. 
+18. **Progress tracking**: When working on an implementation plan avoid to create new documents. Do not create additional summaries, todo lists or work description, just update the plan. When adding a new feature or modification to a plan, restructure if necessary, so it does not appeared to be patched.
+19. **Propagation**: When asked to modify a PRD also update the design document and plan if they exists. When asked to modify a design also update the PRD and plan if necessary. When asked to modify a plan, update design and PRD if they are impacted.
+20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission
 
 ---
 
