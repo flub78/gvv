@@ -443,50 +443,38 @@ index.php (Liste) → create.php (Création avec 3 onglets)
 L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes les sections depuis `sections`, permettant ainsi de supporter automatiquement les rôles futurs (instructeurs, pilotes, etc.) sans modification de code.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ Sélection par rôles et sections                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│ ┌─ Section: Planeur ────────────────────────────┐  │
-│ │ ☐ club-admin (Administrateur club) [global]   │  │
-│ │ ☐ bureau (Membre du bureau)                   │  │
-│ │ ☐ tresorier (Trésorier)                        │  │
-│ │ ☐ ca (Membre CA)                               │  │
-│ │ ☐ planchiste (Planchiste)                      │  │
-│ │ ☐ auto_planchiste (Auto-planchiste)            │  │
-│ │ ☐ user (Utilisateur)                           │  │
-│ └────────────────────────────────────────────────┘  │
-│                                                      │
-│ ┌─ Section: ULM ────────────────────────────────┐  │
-│ │ ☐ club-admin (Administrateur club) [global]   │  │
-│ │ ☐ bureau (Membre du bureau)                   │  │
-│ │ ☐ tresorier (Trésorier)                        │  │
-│ │ ...                                            │  │
-│ └────────────────────────────────────────────────┘  │
-│                                                      │
-│ ┌─ Section: Avion ──────────────────────────────┐  │
-│ │ ☐ club-admin (Administrateur club) [global]   │  │
-│ │ ...                                            │  │
-│ └────────────────────────────────────────────────┘  │
-│                                                      │
-│ Statut des membres:                                 │
-│   ☐ Actifs uniquement                               │
-│   ☐ Inactifs uniquement                             │
-│   ☐ Tous                                            │
-│                                                      │
-│ Logique de combinaison:                             │
-│   ● OU (un des rôles sélectionnés)                  │
-│   ○ ET (tous les rôles sélectionnés)                │
-│                                                      │
-│ Aperçu: 12 destinataires                            │
-│ [Prévisualiser] [Sauvegarder]                       │
-└─────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│ Sélection par rôles et sections                                │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│ ┌─ Selection des rôles ─────────────────────────────────────┐  │
+│ │ Voir image ci-dessous                                     │  │
+│ │ Rôle  | Global | Toutes  | Planeur| ULM | Avion | Général │  │
+│ │ admin |   ☐    |   -     |   -    |  -  |   -   |    -    |  │
+│ │ suptr |   ☐    |   -     |   -    |  -  |   -   |    -    │  │
+│ │ burea |   -    |   ☐     |   ☐    |  ☐  |   ☐   |    ☐    │  │
+│ │ treso |   -    |   ☐     |   ☐    |  ☐  |   ☐   |    ☐    │  │
+│ │ ca    |   -    |   ☐     |   ☐    |  ☐  |   ☐   |    ☐    │  │
+│ │ user  |   -    |   ☐     |   ☐    |  ☐  |   ☐   |    ☐    │  │
+│ └───────────────────────────────────────────────────────────┘  │
+│                                                                │
+│ Statut des membres:                                            │
+│   ☐ Actifs uniquement                                          │
+│   ☐ Inactifs uniquement                                        │
+│   ☐ Tous                                                       │
+│                                                                │
+│ Logique de combinaison:                                        │
+│   ● OU (un des rôles sélectionnés)                             │
+│   ○ ET (tous les rôles sélectionnés)                           │
+│                                                                │
+│ Aperçu: 12 destinataires                                       │
+│ [Prévisualiser] [Sauvegarder]                                  │
+└────────────────────────────────────────────────────────────────┘
 ```
-
+![Selecteur de rôle](images/roles_selection.png)
 **Fonctionnement:**
-- Les rôles sont chargés depuis `get_available_roles()` et groupés par section
+- Les rôles sont chargés depuis `get_available_roles()` et organisés par colonnes pour chaque section
 - Les rôles avec `scope='global'` sont affichés dans chaque section avec marqueur `[global]`
-- Les checkboxes génèrent le JSON avec `types_roles_id` + `section_id`
 - La prévisualisation AJAX appelle `preview_count()` pour afficher le nombre de destinataires
 - Extensible automatiquement: nouveaux rôles apparaissent sans modification du code
 
@@ -575,8 +563,6 @@ $this->field['email_lists']['name']['Required'] = TRUE;
 $this->field['email_lists']['description']['Type'] = 'string';
 $this->field['email_lists']['description']['Subtype'] = 'textarea';
 
-$this->field['email_lists']['criteria']['Type'] = 'string';
-$this->field['email_lists']['criteria']['Subtype'] = 'json';
 ```
 
 ---
@@ -620,7 +606,7 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 ```
 [Model] → textual_list($list_id)
           ↓
-          ├─→ Résolution par rôles → SQL SELECT via email_list_roles + user_roles_per_section
+          ├─→ Résolution par rôles → SQL SELECT via email_list_roles
           ├─→ get_manual_members() → SQL SELECT (membre_id)
           ├─→ get_external_emails() → SQL SELECT (external_email)
           ↓
@@ -734,9 +720,9 @@ function validate_email($email) {
 ### 7.3 Journalisation
 
 **Actions journalisées:**
-- Création de liste : `log_message('info', "Liste créée: $name par user $user_id")`
-- Modification : `log_message('info', "Liste modifiée: $id par user $user_id")`
-- Suppression : `log_message('info', "Liste supprimée: $id par user $user_id")`
+- Création de liste : ` gvv_info("Liste créée: $name par user $user_id")`
+- Modification : ` gvv_info("Liste modifiée: $id par user $user_id")`
+- Suppression : ` gvv_info("Liste supprimée: $id par user $user_id")`
 
 ---
 
@@ -766,7 +752,7 @@ function validate_email($email) {
 
 ### 8.2 Optimisation des requêtes
 
-**Résolution des rôles via email_list_roles + user_roles_per_section:**
+**Résolution des rôles via email_list_roles:**
 ```sql
 -- Optimisé avec index FK existants
 SELECT DISTINCT m.memail, m.mnom, m.mprenom, m.mlogin
@@ -791,12 +777,6 @@ WHERE elr.email_list_id = ?
 **Dédoublonnage:**
 - Fait en PHP avec `array_unique()` après normalisation lowercase
 - Plus rapide que `DISTINCT` sur plusieurs tables avec JOINs
-
-### 8.3 Cache (à évaluer en Phase 7)
-
-**Candidats pour cache:**
-- Listes par critères : cache de 5 minutes (expire automatiquement)
-- Non implémenté initialement, à ajouter si tests de performance montrent nécessité
 
 ---
 
@@ -826,15 +806,25 @@ Ce diagramme illustre le flux complet de résolution et d'export d'une liste ema
 
 ### 10.1 Fichier de migration
 
-**Fichier:** `application/migrations/043_create_email_lists.php`
+**Fichier:** `application/migrations/049_create_email_lists.php`
 
 ```php
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Migration 049: Create email lists tables
+ *
+ * Creates the database schema for email lists management:
+ * - email_lists: Main table for email lists
+ * - email_list_roles: Role-based member selection
+ * - email_list_members: Manually added internal members
+ * - email_list_external: External email addresses
+ */
 class Migration_Create_email_lists extends CI_Migration {
 
     public function up() {
-        // Table email_lists
+        // Table: email_lists
+        // Main table for managing email distribution lists
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
@@ -844,94 +834,135 @@ class Migration_Create_email_lists extends CI_Migration {
             'name' => [
                 'type' => 'VARCHAR',
                 'constraint' => 100,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'Unique list name (case-sensitive)'
             ],
             'description' => [
                 'type' => 'TEXT',
-                'null' => TRUE
-            ],
-            'criteria' => [
-                'type' => 'TEXT',
                 'null' => TRUE,
-                'comment' => 'JSON: critères de sélection'
+                'comment' => 'Optional description'
+            ],
+            'active_member' => [
+                'type' => 'ENUM',
+                'constraint' => ['active', 'inactive', 'all'],
+                'default' => 'active',
+                'null' => FALSE,
+                'comment' => 'Member status filter'
+            ],
+            'visible' => [
+                'type' => 'TINYINT',
+                'constraint' => 1,
+                'default' => 1,
+                'null' => TRUE,
+                'comment' => 'List visibility in selections'
             ],
             'created_by' => [
                 'type' => 'INT',
                 'unsigned' => TRUE,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'User ID who created the list'
             ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'Creation timestamp'
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'Last update timestamp'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('email_lists');
 
-        // Index unique sur name
+        // Add unique index on name (case-sensitive via COLLATE utf8_bin)
+        $this->db->query('ALTER TABLE email_lists MODIFY name VARCHAR(100) NOT NULL COLLATE utf8_bin');
         $this->db->query('ALTER TABLE email_lists ADD UNIQUE INDEX idx_name (name)');
+        $this->db->query('ALTER TABLE email_lists ADD INDEX idx_created_by (created_by)');
 
-        // FK vers users
+        // Add FK to users table
         $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
 
-        // Table email_list_roles (sélection dynamique par rôles)
+        // Add triggers for automatic timestamp management
+        $this->db->query("
+            CREATE TRIGGER email_lists_created_at
+            BEFORE INSERT ON email_lists
+            FOR EACH ROW
+            SET NEW.created_at = NOW()
+        ");
+
+        $this->db->query("
+            CREATE TRIGGER email_lists_updated_at
+            BEFORE UPDATE ON email_lists
+            FOR EACH ROW
+            SET NEW.updated_at = NOW()
+        ");
+
+        // Table: email_list_roles
+        // Dynamic member selection based on roles and sections
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
-                'auto_increment' => TRUE
+                'constraint' => 11,
+                'auto_increment' => TRUE,
+                'null' => FALSE
             ],
             'email_list_id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
-                'null' => FALSE
+                'constraint' => 11,
+                'null' => FALSE,
+                'comment' => 'FK to email_lists'
             ],
             'types_roles_id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
-                'null' => FALSE
+                'constraint' => 11,
+                'null' => FALSE,
+                'comment' => 'FK to types_roles'
             ],
             'section_id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
-                'null' => FALSE
+                'constraint' => 11,
+                'null' => FALSE,
+                'comment' => 'FK to sections'
             ],
             'granted_by' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
-                'null' => TRUE
+                'constraint' => 11,
+                'null' => TRUE,
+                'comment' => 'User ID who granted this role'
             ],
             'granted_at' => [
                 'type' => 'DATETIME',
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'When role was granted'
             ],
             'revoked_at' => [
                 'type' => 'DATETIME',
-                'null' => TRUE
+                'null' => TRUE,
+                'comment' => 'When role was revoked (NULL if active)'
             ],
             'notes' => [
                 'type' => 'TEXT',
-                'null' => TRUE
+                'null' => TRUE,
+                'comment' => 'Optional notes'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('email_list_roles');
 
-        // Index
+        // Add indexes for email_list_roles
         $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_email_list_id (email_list_id)');
         $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_types_roles_id (types_roles_id)');
         $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_section_id (section_id)');
 
-        // FK
+        // Add foreign keys for email_list_roles
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_types_roles_id FOREIGN KEY (types_roles_id) REFERENCES types_roles(id) ON DELETE RESTRICT');
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_section_id FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE RESTRICT');
 
-        // Table email_list_members (membres internes)
+        // Table: email_list_members
+        // Manually added internal members
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
@@ -941,30 +972,42 @@ class Migration_Create_email_lists extends CI_Migration {
             'email_list_id' => [
                 'type' => 'INT',
                 'unsigned' => TRUE,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'FK to email_lists'
             ],
             'membre_id' => [
                 'type' => 'VARCHAR',
                 'constraint' => 25,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'FK to membres.mlogin'
             ],
             'added_at' => [
                 'type' => 'DATETIME',
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'When member was added'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('email_list_members');
 
-        // Index
+        // Add indexes for email_list_members
         $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_email_list_id (email_list_id)');
         $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_membre_id (membre_id)');
 
-        // FK
+        // Add foreign keys for email_list_members
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_membre_id FOREIGN KEY (membre_id) REFERENCES membres(mlogin) ON DELETE CASCADE');
 
-        // Table email_list_external (adresses externes)
+        // Add trigger for automatic timestamp
+        $this->db->query("
+            CREATE TRIGGER email_list_members_added_at
+            BEFORE INSERT ON email_list_members
+            FOR EACH ROW
+            SET NEW.added_at = NOW()
+        ");
+
+        // Table: email_list_external
+        // External email addresses
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
@@ -974,34 +1017,53 @@ class Migration_Create_email_lists extends CI_Migration {
             'email_list_id' => [
                 'type' => 'INT',
                 'unsigned' => TRUE,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'FK to email_lists'
             ],
             'external_email' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'External email address'
             ],
             'external_name' => [
                 'type' => 'VARCHAR',
                 'constraint' => 100,
-                'null' => TRUE
+                'null' => TRUE,
+                'comment' => 'Optional display name'
             ],
             'added_at' => [
                 'type' => 'DATETIME',
-                'null' => FALSE
+                'null' => FALSE,
+                'comment' => 'When email was added'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
         $this->dbforge->create_table('email_list_external');
 
-        // Index
+        // Add index for email_list_external
         $this->db->query('ALTER TABLE email_list_external ADD INDEX idx_email_list_id (email_list_id)');
 
-        // FK
+        // Add foreign key for email_list_external
         $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
+
+        // Add trigger for automatic timestamp
+        $this->db->query("
+            CREATE TRIGGER email_list_external_added_at
+            BEFORE INSERT ON email_list_external
+            FOR EACH ROW
+            SET NEW.added_at = NOW()
+        ");
     }
 
     public function down() {
+        // Drop triggers first
+        $this->db->query('DROP TRIGGER IF EXISTS email_list_external_added_at');
+        $this->db->query('DROP TRIGGER IF EXISTS email_list_members_added_at');
+        $this->db->query('DROP TRIGGER IF EXISTS email_lists_updated_at');
+        $this->db->query('DROP TRIGGER IF EXISTS email_lists_created_at');
+
+        // Drop tables in reverse order (to respect FK dependencies)
         $this->dbforge->drop_table('email_list_external', TRUE);
         $this->dbforge->drop_table('email_list_members', TRUE);
         $this->dbforge->drop_table('email_list_roles', TRUE);
@@ -1012,8 +1074,28 @@ class Migration_Create_email_lists extends CI_Migration {
 
 **Mise à jour de `application/config/migration.php`:**
 ```php
-$config['migration_version'] = 43;
+$config['migration_version'] = 49;
 ```
+
+### 10.2 Points clés de la migration
+
+**Automatisation des timestamps:**
+- Triggers MySQL pour `created_at`, `updated_at`, `added_at`
+- Pas besoin de gérer manuellement ces champs dans l'application
+
+**Ordre de création:**
+1. `email_lists` (table principale)
+2. `email_list_roles` (dépend de email_lists, types_roles, sections)
+3. `email_list_members` (dépend de email_lists, membres)
+4. `email_list_external` (dépend de email_lists)
+
+**Ordre de suppression (down):**
+1. Suppression des triggers en premier
+2. Tables dans l'ordre inverse pour respecter les FK
+
+**Collation spéciale:**
+- `name` utilise `utf8_bin` pour être sensible à la casse
+- Permet de distinguer "Liste" de "liste"
 
 ---
 
@@ -1126,4 +1208,4 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 **Version:** 1.0
 **Date:** 2025-10-31
 **Auteur:** Claude Code sous supervision Fred
-**Statut:** Proposition - À valider
+**Statut:** Approuvé pour implémentation
