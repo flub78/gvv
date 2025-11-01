@@ -7,7 +7,7 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** ⚪ Non démarré (0/113 tâches - 0%)
+**Statut global:** ⚪ Non démarré (0/118 tâches - 0%)
 **Phase actuelle:** N/A
 **Estimation:** 8 semaines (1 personne)
 
@@ -15,18 +15,21 @@
 
 ---
 
-## Phase 1: Fondations - ⚪ 0/19 (Semaine 1)
+## Phase 1: Fondations - ⚪ 0/24 (Semaine 1)
 
 ### 1.1 Migration base de données
-- [ ] Créer migration `043_create_email_lists.php`
-- [ ] Table email_lists avec champs (id, name, description, criteria, created_by, timestamps)
-- [ ] Table email_list_members avec champs (id, email_list_id, user_id, external_email, added_at)
-- [ ] Ajouter index (name UNIQUE, email_list_id, user_id)
-- [ ] Ajouter FK (created_by → users, email_list_id → email_lists, user_id → users)
-- [ ] Ajouter contrainte CHECK (user_id XOR external_email)
+- [ ] Créer migration `049_create_email_lists.php`
+- [ ] Table email_lists avec champs (id, name, description, active_member, visible, created_by, timestamps)
+- [ ] Ajouter COLLATE utf8_bin sur name (sensibilité à la casse)
+- [ ] Table email_list_roles avec champs (id, email_list_id, types_roles_id, section_id, granted_by, granted_at, revoked_at, notes)
+- [ ] Table email_list_members avec champs (id, email_list_id, membre_id, added_at)
+- [ ] Table email_list_external avec champs (id, email_list_id, external_email, external_name, added_at)
+- [ ] Ajouter index sur toutes les FK
+- [ ] Ajouter FK (created_by → users, email_list_id → email_lists, types_roles_id → types_roles, section_id → sections, membre_id → membres.mlogin)
+- [ ] Créer triggers pour timestamps automatiques (created_at, updated_at, added_at)
 - [ ] Tester migration up
 - [ ] Tester migration down (rollback)
-- [ ] Mettre à jour `application/config/migration.php` version = 43
+- [ ] Mettre à jour `application/config/migration.php` version = 49
 
 ### 1.2 Helper de validation email
 - [ ] Créer `application/helpers/email_helper.php`
@@ -46,26 +49,27 @@
 
 ---
 
-## Phase 2: Sélection par critères via user_roles_per_section - ⚪ 0/15 (Semaine 2)
+## Phase 2: Sélection par critères via email_list_roles - ⚪ 0/16 (Semaine 2)
 
 ### 2.1 Analyse architecture autorisations
 - [ ] Analyser table `user_roles_per_section` (user_id, types_roles_id, section_id, revoked_at)
 - [ ] Analyser table `types_roles` (id, nom, description, scope)
 - [ ] Analyser table `sections` (id, nom, description)
 - [ ] Comprendre lien users ↔ membres (mlogin = username)
-- [ ] Tester requête 3-tables: user_roles_per_section → users → membres
+- [ ] Tester requête 4-tables: email_list_roles → user_roles_per_section → users → membres
 
 ### 2.2 Méthodes model pour chargement données
 - [ ] Méthode `get_available_roles()` - charge tous types_roles pour UI
 - [ ] Méthode `get_available_sections()` - charge toutes sections pour UI
 - [ ] Méthode `get_users_by_role_and_section($types_roles_id, $section_id)` - sélection simple
 
-### 2.3 Résolution critères JSON
-- [ ] Méthode `build_criteria_json($selections)` - construit JSON avec types_roles_id + section_id
-- [ ] Méthode `apply_criteria($criteria_json)` - résout via user_roles_per_section
+### 2.3 Gestion table email_list_roles
+- [ ] Méthode `add_role_to_list($list_id, $types_roles_id, $section_id)` - ajoute rôle à liste
+- [ ] Méthode `remove_role_from_list($list_id, $role_id)` - supprime rôle de liste
+- [ ] Méthode `get_list_roles($list_id)` - récupère rôles d'une liste
 - [ ] Gérer filtre `revoked_at IS NULL` (rôles actifs uniquement)
-- [ ] Gérer filtre optionnel `membres.actif` (statut membre)
-- [ ] Méthode `resolve_list_members($list_id)` - résolution complète (critères + manuels + externes)
+- [ ] Gérer filtre `membres.actif` selon email_lists.active_member (active/inactive/all)
+- [ ] Méthode `textual_list($list_id)` - résolution complète (rôles + manuels + externes)
 
 ### 2.4 Interface UI sélection par rôles
 - [ ] Charger rôles et sections via AJAX/PHP
@@ -81,35 +85,40 @@
 
 ---
 
-## Phase 3: Sélection manuelle et import - ⚪ 0/15 (Semaine 3)
+## Phase 3: Sélection manuelle et import - ⚪ 0/17 (Semaine 3)
 
-### 3.1 Sélection manuelle de membres
-- [ ] Interface view avec liste déroulante/recherche de membres
-- [ ] Méthode model `add_manual_member($list_id, $user_id)`
-- [ ] Méthode model `remove_manual_member($list_id, $user_id)`
-- [ ] Méthode model `get_manual_members($list_id)`
+### 3.1 Sélection manuelle de membres internes
+- [ ] Interface view avec liste déroulante/recherche de membres (table membres)
+- [ ] Méthode model `add_manual_member($list_id, $membre_id)` - ajoute dans email_list_members
+- [ ] Méthode model `remove_manual_member($list_id, $member_id)` - supprime de email_list_members
+- [ ] Méthode model `get_manual_members($list_id)` - récupère depuis email_list_members
 - [ ] Affichage liste des membres avec bouton suppression
 
-### 3.2 Import fichier texte
+### 3.2 Gestion emails externes
+- [ ] Méthode model `add_external_email($list_id, $email, $name)` - ajoute dans email_list_external
+- [ ] Méthode model `remove_external_email($list_id, $external_id)` - supprime de email_list_external
+- [ ] Méthode model `get_external_emails($list_id)` - récupère depuis email_list_external
+
+### 3.3 Import fichier texte
 - [ ] Interface upload fichier texte
 - [ ] Helper `parse_text_emails($content)` - extraction emails ligne par ligne
 - [ ] Validation de chaque adresse
 - [ ] Détection doublons (fichier + liste)
 - [ ] Rapport d'erreurs
 
-### 3.3 Import fichier CSV
+### 3.4 Import fichier CSV
 - [ ] Interface upload CSV avec configuration colonnes
 - [ ] Helper `parse_csv_emails($content, $config)` - colonnes configurables
 - [ ] Support nom, prénom, email
 - [ ] Détection encoding (UTF-8, ISO-8859-1)
 - [ ] Prévisualisation avant import final
 
-### 3.4 Gestion doublons
+### 3.5 Gestion doublons
 - [ ] Interface gestion doublons (ignorer/remplacer)
 - [ ] Helper `detect_duplicates($new_emails, $existing_emails)`
 - [ ] Rapport détaillé des doublons
 
-### 3.5 Tests
+### 3.6 Tests
 - [ ] Tests unitaires parsing (texte, CSV)
 - [ ] Tests détection doublons
 
@@ -260,13 +269,22 @@
 **2025-10-31 - Création du projet**
 - PRD validé
 - Design Document créé
-- Architecture confirmée : 2 tables, 3 types de listes
+- Architecture confirmée : 4 tables (email_lists, email_list_roles, email_list_members, email_list_external)
+- Décision : Séparation membres internes / externes dans tables distinctes (type safety, intégrité référentielle)
+- Décision : Table email_list_roles pour critères de sélection (pas de JSON, requêtable SQL, intégrité FK)
+- Décision : Triggers MySQL pour timestamps automatiques (created_at, updated_at, added_at)
 - Décision : localStorage pour préférences mailto (pas en DB)
-- Décision : JSON pour critères (flexibilité)
+- Décision : COLLATE utf8_bin sur nom de liste (sensibilité à la casse)
 - Budget estimé : 8 semaines
+
+**2025-11-01 - Mise à jour architecture**
+- Migration 049 (au lieu de 043) selon nouveau numéro de version
+- Ajout champs active_member (ENUM) et visible (TINYINT) dans email_lists
+- Séparation complète des 3 sources d'adresses (rôles / membres / externes)
+- Design document approuvé pour implémentation
 
 **Blocages actuels:** Aucun - projet non démarré
 
 ---
 
-**Dernière mise à jour:** 2025-10-31
+**Dernière mise à jour:** 2025-11-01
