@@ -1,0 +1,103 @@
+@startuml
+entity email_lists {
+  * id : INT [PK]
+  --
+  * name : VARCHAR(100) [UNIQUE]
+  description : TEXT
+  criteria : TEXT (JSON)
+  * created_by : INT [FK]
+  * created_at : DATETIME
+  * updated_at : DATETIME
+}
+
+entity email_list_members {
+  * id : INT [PK]
+  --
+  * email_list_id : INT [FK]
+  * user_id : INT [FK]
+  * added_at : DATETIME
+}
+
+entity email_list_external {
+  * id : INT [PK]
+  --
+  * email_list_id : INT [FK]
+  * external_email : VARCHAR(255)
+  external_name : VARCHAR(100)
+  * added_at : DATETIME
+}
+
+entity users {
+  * id : INT [PK]
+  --
+  * username : VARCHAR(25)
+  * email : VARCHAR(100)
+  password : VARCHAR(34)
+  banned : TINYINT(1)
+}
+
+entity membres {
+  * mlogin : VARCHAR(25) [PK]
+  --
+  * mnom : VARCHAR(80)
+  * mprenom : VARCHAR(80)
+  memail : VARCHAR(50)
+  actif : TINYINT(4)
+  username : VARCHAR(25)
+}
+
+entity user_roles_per_section {
+  * id : INT [PK]
+  --
+  * user_id : INT [FK]
+  * types_roles_id : INT [FK]
+  * section_id : INT [FK]
+  granted_by : INT [FK]
+  granted_at : DATETIME
+  revoked_at : DATETIME
+}
+
+entity types_roles {
+  * id : INT [PK]
+  --
+  * nom : VARCHAR(64)
+  description : VARCHAR(128)
+  scope : ENUM('global','section')
+}
+
+entity sections {
+  * id : INT [PK]
+  --
+  * nom : VARCHAR(64)
+  description : VARCHAR(128)
+}
+
+email_lists ||--o{ email_list_members : contains_internal
+email_lists ||--o{ email_list_external : contains_external
+email_list_members }o--|| users : references
+email_lists }o--|| users : created_by
+
+users ||--o{ user_roles_per_section : has_roles
+user_roles_per_section }o--|| types_roles : role_type
+user_roles_per_section }o--|| sections : in_section
+users ||--o| membres : linked_via_username
+
+note right of user_roles_per_section
+  **Source des critères de sélection**
+  Le JSON dans email_lists.criteria
+  référence types_roles_id + section_id
+  pour sélection automatique
+end note
+
+note right of email_list_external
+  **Adresses externes**
+  Pas de FK vers users
+  Adresses email brutes
+end note
+
+note right of membres
+  **Lien users ↔ membres:**
+  membres.mlogin = users.username
+  (VARCHAR → VARCHAR)
+end note
+@enduml

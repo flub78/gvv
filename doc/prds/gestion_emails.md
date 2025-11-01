@@ -27,7 +27,7 @@ Moderniser le système de gestion des adresses email dans GVV en abandonnant l'e
 - Import d'adresses email externes (format texte et CSV)
 - Création, modification, suppression de listes de diffusion
 - Export vers le presse-papier
-- Export vers fichier texte/Markdown pour partage
+- Export vers fichier texte pour partage
 - Ouverture du client de messagerie avec les adresses sélectionnées
 
 ### 2.2 Hors périmètre
@@ -124,7 +124,7 @@ La selection ressemblera à l'attribution des rôles. Il suffira de cliquer sur 
 - Si on ne sélectionne rien la liste sera vide
 - Voir s'il faut différencier les droits de gestion et d'utilisation des listes existantes
 
-#### 4.5.2 Export vers fichier texte/Markdown
+#### 4.5.2 Export vers fichier texte
 Pour permettre le partage avec des personnes n'ayant pas accès à GVV:
 
 **Formats d'export:**

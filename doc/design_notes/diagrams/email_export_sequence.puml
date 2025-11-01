@@ -1,0 +1,39 @@
+@startuml
+actor User
+participant "email_lists.php\n(Controller)" as Ctrl
+participant "email_lists_model\n(Model)" as Model
+participant "email_helper\n(Helper)" as Helper
+database MySQL
+
+User -> Ctrl: download_txt($id)
+activate Ctrl
+
+Ctrl -> Model: resolve_list_members($id)
+activate Model
+
+Model -> MySQL: SELECT email_lists WHERE id=$id
+MySQL --> Model: {name, description, criteria, ...}
+
+Model -> Model: apply_criteria(JSON)
+Model -> MySQL: SELECT FROM user_roles_per_section\nJOIN users JOIN membres\nWHERE types_roles_id + section_id
+MySQL --> Model: [{email, mnom, mprenom}, ...]
+
+Model -> MySQL: SELECT email_list_members\nJOIN users JOIN membres\nWHERE email_list_id=$id
+MySQL --> Model: [{user_id, email}, ...]
+
+Model -> MySQL: SELECT email_list_external\nWHERE email_list_id=$id
+MySQL --> Model: [{external_email, external_name}, ...]
+
+Model -> Model: deduplicate_emails()
+Model --> Ctrl: [$emails]
+deactivate Model
+
+Ctrl -> Helper: generate_txt_export($list, $emails)
+activate Helper
+Helper --> Ctrl: $txt_content
+deactivate Helper
+
+Ctrl -> Ctrl: Set HTTP headers\n(Content-Disposition, UTF-8)
+Ctrl --> User: Download animateurs_simulateur.txt
+deactivate Ctrl
+@enduml

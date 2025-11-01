@@ -26,22 +26,23 @@
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│              email_lists.php (Controller)                │
+│              email_lists.php (Controller)               │
 │  - index(), create(), edit(), delete()                  │
-│  - export(), download_txt(), download_md()              │
+│  - export(), download_txt()                             │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│         email_lists_model.php (Model)                    │
-│  - CRUD operations                                       │
-│  - Criteria resolution (JSON → SQL)                     │
+│         email_lists_model.php (Model)                   │
+│  - CRUD operations                                      │
 │  - Member resolution (manual + external)                │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│           MySQL Database (2 tables)                      │
-│  - email_lists                                          │
-│  - email_list_members                                   │
+│           MySQL Database (4 tables)                     │
+│  - email_lists                                          |
+|  - email_list_roles (selection sur critères)            │
+│  - email_list_members (selection manuelle)              │
+│  - email_list_external (external emails)                │
 └─────────────────────────────────────────────────────────┘
 
         Helper: email_helper.php
@@ -55,14 +56,16 @@
 ### 2.1 Schéma des tables
 
 #### Table: `email_lists`
-Stocke les métadonnées des listes de diffusion.
+
+Cette table permet de manipuler et stocker les listes de diffusion.
 
 ```sql
 CREATE TABLE `email_lists` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL UNIQUE COLLATE utf8_bin,
   `description` TEXT,
-  `criteria` TEXT COMMENT 'JSON: sélection par critères GVV, NULL si liste manuelle pure',
+  `active_member` ENUM('active', 'inactive', 'all') NOT NULL DEFAULT 'active',
+  `visible` TINYINT(1),
   `created_by` INT UNSIGNED NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -77,109 +80,99 @@ CREATE TABLE `email_lists` (
 - `id`: Clé primaire auto-incrémentée
 - `name`: Nom unique de la liste (sensible à la casse via COLLATE utf8_bin)
 - `description`: Description optionnelle
-- `criteria`: JSON stockant les critères de sélection automatique (NULL si sélection manuelle pure)
+- `active_member`: défini si on inclut les membres non actif
+- `visible`: la liste est visible dans les choix, ou pas
 - `created_by`: FK vers users, utilisateur créateur
 - `created_at`: Timestamp de création
 - `updated_at`: Timestamp de dernière modification (auto-update)
 
+#### Table: `email_list_roles`
+
+Cette table permet de gérer la selection dynamique. Elle contient
+des éléments qui pointent sur une liste d'email (pour définir à quelle liste ils se rapportent) et des pointeurs sur des rôles.
+
+Quand il existe un élément dans cette table il définit que le rôle associé doit être prix en compte dans la selection des membres.
+
+```sql
+CREATE TABLE `email_list_roles` (
+  `id` int(11) NOT NULL,
+  `email_list_id` int(11) NOT NULL,
+  `types_roles_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `granted_by` int(11) DEFAULT NULL,
+  `granted_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
 #### Table: `email_list_members`
-Stocke les membres ajoutés manuellement ou les adresses externes.
+
+Stocke les membres internes ajoutés manuellement à une liste.
 
 ```sql
 CREATE TABLE `email_list_members` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `email_list_id` INT UNSIGNED NOT NULL,
-  `user_id` INT UNSIGNED DEFAULT NULL COMMENT 'FK vers users si membre GVV, NULL si externe',
-  `external_email` VARCHAR(255) DEFAULT NULL COMMENT 'Email externe, NULL si user_id renseigné',
+  `membre_id` VARCHAR() NOT NULL,
   `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_email_list_id` (`email_list_id`),
   KEY `idx_user_id` (`user_id`),
   FOREIGN KEY (`email_list_id`) REFERENCES `email_lists`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_member_type` CHECK (
-    (`user_id` IS NOT NULL AND `external_email` IS NULL) OR
-    (`user_id` IS NULL AND `external_email` IS NOT NULL)
-  )
+  FOREIGN KEY (`membre_id`) REFERENCES `membres`(`mlogin`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 **Champs:**
 - `id`: Clé primaire auto-incrémentée
 - `email_list_id`: FK vers email_lists, ON DELETE CASCADE
-- `user_id`: FK vers users si membre GVV (NULL si externe)
-- `external_email`: Adresse email externe (NULL si user_id renseigné)
+- `membre_id`: FK vers membres, membre ajouté manuellement (NOT NULL)
 - `added_at`: Timestamp d'ajout
-- **Contrainte:** Un enregistrement doit avoir SOIT user_id SOIT external_email (jamais les deux)
 
-### 2.2 Types de listes
+#### Table: `email_list_external`
 
-La combinaison des deux tables permet 3 types de listes :
+Stocke les adresses email externes ajoutées à une liste.
 
-1. **Liste dynamique (par critères):**
-   - `email_lists.criteria` contient JSON
-   - `email_list_members` peut être vide ou contenir des ajouts manuels supplémentaires
-   - Exemple: "Instructeurs actifs" (critères) + 2 bénévoles ajoutés manuellement
-
-2. **Liste statique (sélection manuelle):**
-   - `email_lists.criteria` = NULL
-   - `email_list_members` contient tous les membres (user_id renseigné)
-   - Exemple: "Animateurs simulateur" (12 volontaires sélectionnés manuellement)
-
-3. **Liste externe:**
-   - `email_lists.criteria` = NULL
-   - `email_list_members` contient des external_email
-   - Exemple: "Auditeurs BIA 2024" (adresses importées depuis CSV)
-
-### 2.3 Format JSON des critères
-
-**Note:** Le système utilise la table `user_roles_per_section` existante qui gère les autorisations dans GVV. Cette table associe des utilisateurs à des rôles spécifiques par section, permettant une sélection dynamique basée sur les autorisations réelles.
-
-Structure du champ `email_lists.criteria` :
-
-```json
-{
-  "roles": [
-    {
-      "types_roles_id": 8,
-      "section_id": 1
-    },
-    {
-      "types_roles_id": 7,
-      "section_id": 2
-    }
-  ],
-  "member_status": [1],
-  "logic": "OR"
-}
+```sql
+CREATE TABLE `email_list_external` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `email_list_id` INT UNSIGNED NOT NULL,
+  `external_email` VARCHAR(255) NOT NULL,
+  `external_name` VARCHAR(100) DEFAULT NULL COMMENT 'Nom optionnel pour affichage',
+  `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_email_list_id` (`email_list_id`),
+  FOREIGN KEY (`email_list_id`) REFERENCES `email_lists`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 **Champs:**
-- `roles` (array d'objets): Liste des combinaisons rôle+section
-  - `types_roles_id` (int): ID du rôle dans `types_roles` (ex: 8=tresorier, 7=bureau, 10=club-admin)
-  - `section_id` (int): ID de la section dans `sections` (ex: 1=Planeur, 2=ULM, 3=Avion, 4=Général)
-- `member_status` (array): Statuts des membres dans `membres.actif` (1=actif, 0=inactif, NULL=tous)
-- `logic` (string): "AND" ou "OR" pour combiner les critères de rôles
+- `id`: Clé primaire auto-incrémentée
+- `email_list_id`: FK vers email_lists, ON DELETE CASCADE
+- `external_email`: Adresse email externe (NOT NULL)
+- `external_name`: Nom optionnel associé à l'adresse externe
+- `added_at`: Timestamp d'ajout
 
-**Note sur l'extensibilité:** Ce format JSON générique supporte tous les rôles définis dans `types_roles`, y compris les rôles futurs qui seront ajoutés au système (instructeurs, pilotes, etc.).
+### 2.2 Diagramme ER
 
-**Exemple de résolution:**
-```sql
--- Sélection des utilisateurs ayant le rôle tresorier (8) dans section Planeur (1)
--- OU le rôle bureau (7) dans section ULM (2)
--- ET dont le membre est actif
-SELECT DISTINCT u.id, u.email, m.mnom, m.mprenom
-FROM user_roles_per_section urps
-INNER JOIN users u ON urps.user_id = u.id
-LEFT JOIN membres m ON u.username = m.mlogin
-WHERE urps.revoked_at IS NULL
-  AND (
-    (urps.types_roles_id = 8 AND urps.section_id = 1)
-    OR
-    (urps.types_roles_id = 7 AND urps.section_id = 2)
-  )
-  AND m.actif IN (1);
-```
+Ce diagramme montre les relations entre les tables du système de gestion des listes email.
+
+![Diagramme ER des listes email](diagrams/email_lists_er.png)
+
+**Source:** [email_lists_er.puml](diagrams/email_lists_er.puml)
+
+**Points clés:**
+- Séparation claire entre membres internes (`email_list_members`) et externes (`email_list_external`)
+- Utilisation de `email_list_roles` pour la sélection dynamique par critères
+- Liens entre `users` et `membres` via `username`/`mlogin`
+
+### 2.3 Types de source d'adresse
+
+Une liste contient:
+* des rôles sélectionnés
+* des membres sélectionnés manuellement
+* des adresses email externes saisies ou importées
 
 ---
 
@@ -191,7 +184,7 @@ WHERE urps.revoked_at IS NULL
 - Gestion des requêtes HTTP
 - Contrôle d'accès (secrétaires uniquement)
 - Orchestration des opérations CRUD
-- Génération des exports (TXT, Markdown)
+- Génération des exports (TXT)
 
 **Actions publiques:**
 
@@ -267,18 +260,22 @@ class Email_lists_model extends CI_Model {
     public function delete_list($id)
     public function get_user_lists($user_id)
 
-    // Gestion des critères (basée sur user_roles_per_section)
+    // Gestion des critères (basée sur email_list_roles)
     public function build_criteria_json($selections)
     public function apply_criteria($criteria_json)
     public function get_available_roles()
     public function get_available_sections()
     public function get_users_by_role_and_section($types_roles_id, $section_id)
 
-    // Gestion des membres manuels
+    // Gestion des membres manuels internes
     public function add_manual_member($list_id, $user_id)
-    public function add_external_email($list_id, $email)
-    public function remove_member($list_id, $member_id)
+    public function remove_manual_member($list_id, $member_id)
     public function get_manual_members($list_id)
+
+    // Gestion des adresses externes
+    public function add_external_email($list_id, $email, $name = null)
+    public function remove_external_email($list_id, $external_id)
+    public function get_external_emails($list_id)
 
     // Résolution complète
     public function resolve_list_members($list_id)
@@ -296,30 +293,28 @@ public function resolve_list_members($list_id) {
     $list = $this->get_list($list_id);
     $emails = [];
 
-    // 1. Membres par critères depuis user_roles_per_section (si criteria n'est pas NULL)
+    // 1. Membres par critères depuis email_list_roles (si criteria n'est pas NULL)
     if ($list['criteria']) {
         $criteria_emails = $this->apply_criteria($list['criteria']);
         $emails = array_merge($emails, $criteria_emails);
     }
 
-    // 2. Membres manuels (user_id)
+    // 2. Membres manuels internes (table email_list_members)
     $manual = $this->db
         ->select('u.email, u.id as user_id, m.mnom, m.mprenom')
         ->from('email_list_members elm')
         ->join('users u', 'elm.user_id = u.id', 'inner')
         ->join('membres m', 'u.username = m.mlogin', 'left')
         ->where('elm.email_list_id', $list_id)
-        ->where('elm.user_id IS NOT NULL')
         ->get()
         ->result_array();
     $emails = array_merge($emails, $manual);
 
-    // 3. Emails externes
+    // 3. Emails externes (table email_list_external)
     $external = $this->db
-        ->select('external_email as email')
-        ->from('email_list_members')
+        ->select('external_email as email, external_name as name')
+        ->from('email_list_external')
         ->where('email_list_id', $list_id)
-        ->where('external_email IS NOT NULL')
         ->get()
         ->result_array();
     $emails = array_merge($emails, $external);
@@ -329,7 +324,7 @@ public function resolve_list_members($list_id) {
 }
 
 /**
- * Applique les critères JSON basés sur user_roles_per_section
+ * Applique les critères JSON basés sur email_list_roles
  *
  * @param string $criteria_json JSON avec structure roles/member_status/logic
  * @return array Tableau d'emails avec user_id, email, mnom, mprenom
@@ -345,7 +340,7 @@ public function apply_criteria($criteria_json) {
     foreach ($criteria['roles'] as $role_criteria) {
         $this->db->distinct();
         $this->db->select('u.id as user_id, u.email, m.mnom, m.mprenom');
-        $this->db->from('user_roles_per_section urps');
+        $this->db->from('email_list_roles urps');
         $this->db->join('users u', 'urps.user_id = u.id', 'inner');
         $this->db->join('membres m', 'u.username = m.mlogin', 'left');
 
@@ -403,7 +398,7 @@ public function get_available_sections() {
 - Normalisation (lowercase, trim)
 - Dédoublonnage
 - Découpage en sous-listes
-- Génération de fichiers d'export (TXT, Markdown)
+- Génération de fichiers d'export (TXT)
 - Génération de liens mailto
 
 **Fonctions principales:**
@@ -659,20 +654,34 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 
 ## 6. Décisions d'architecture
 
-### 6.1 Pourquoi 2 tables au lieu de 1 ?
+### 6.1 Pourquoi 3 tables au lieu de 1 ou 2 ?
 
-**Décision:** Séparation `email_lists` et `email_list_members`
+**Décision:** Séparation `email_lists`, `email_list_members`, et `email_list_external`
 
-**Justification:**
+**Justification de la séparation email_lists / membres:**
 - **Normalisation:** Évite la duplication des métadonnées (nom, description, date)
 - **Flexibilité:** Permet de combiner critères dynamiques + ajouts manuels
 - **Performance:** Les critères sont réévalués à la volée, les ajouts manuels sont persistants
 - **Intégrité:** ON DELETE CASCADE garantit la suppression en cascade des membres
 
-**Alternative rejetée:** Une seule table avec JSON pour tout
+**Justification de la séparation membres internes / externes:**
+- **Type safety:** Pas de colonnes nullables ni de CHECK constraints complexes
+- **Intégrité référentielle:** FK non-nullable sur `user_id` dans `email_list_members`
+- **Index efficiency:** Meilleure performance des index sans valeurs NULL
+- **Clarté sémantique:** Deux types d'entités clairement séparés
+- **Extension future:** Possibilité d'ajouter des champs spécifiques (ex: `external_name`)
+- **Alignement UI:** L'interface utilisateur sépare déjà ces deux concepts
+
+**Alternative rejetée 1:** Une seule table avec JSON pour tout
 - ❌ Difficile de gérer les relations avec users
 - ❌ Pas de contraintes de FK
 - ❌ Dédoublonnage complexe
+
+**Alternative rejetée 2:** Une seule table `email_list_members` avec pattern discriminé
+- ❌ Nécessite CHECK constraint complexe
+- ❌ FK nullable sur `user_id` (moins performant)
+- ❌ Confusion sémantique entre deux types d'entités
+- ❌ Impossible d'ajouter des champs spécifiques par type
 
 ### 6.2 Pourquoi localStorage pour les préférences ?
 
@@ -770,15 +779,19 @@ function validate_email($email) {
 **email_list_members:**
 - PRIMARY KEY sur `id`
 - INDEX sur `email_list_id` (jointures fréquentes)
-- INDEX sur `user_id` (jointures avec users)
+- INDEX sur `user_id` (jointures avec users, FK non-nullable = optimal)
+
+**email_list_external:**
+- PRIMARY KEY sur `id`
+- INDEX sur `email_list_id` (jointures fréquentes)
 
 ### 8.2 Optimisation des requêtes
 
-**Résolution des critères via user_roles_per_section:**
+**Résolution des critères via email_list_roles:**
 ```sql
--- Optimisé avec index FK existants sur user_roles_per_section
+-- Optimisé avec index FK existants sur email_list_roles
 SELECT DISTINCT u.id, u.email, m.mnom, m.mprenom
-FROM user_roles_per_section urps
+FROM email_list_roles urps
 INNER JOIN users u ON urps.user_id = u.id
 LEFT JOIN membres m ON u.username = m.mlogin
 WHERE urps.types_roles_id IN (?)
@@ -788,9 +801,9 @@ WHERE urps.types_roles_id IN (?)
 ```
 
 **Index requis:**
-- `user_roles_per_section(user_id)` - Existe (FK)
-- `user_roles_per_section(types_roles_id)` - Existe (FK)
-- `user_roles_per_section(section_id)` - Existe (FK)
+- `email_list_roles(user_id)` - Existe (FK)
+- `email_list_roles(types_roles_id)` - Existe (FK)
+- `email_list_roles(section_id)` - Existe (FK)
 - `users(username)` - **À ajouter** pour optimiser jointure avec membres
 
 **Dédoublonnage:**
@@ -807,139 +820,23 @@ WHERE urps.types_roles_id IN (?)
 
 ## 9. Diagrammes
 
-### 9.1 Diagramme ER (PlantUML)
+### 9.1 Diagramme de séquence - Export TXT
 
-```plantuml
-@startuml
-entity email_lists {
-  * id : INT [PK]
-  --
-  * name : VARCHAR(100) [UNIQUE]
-  description : TEXT
-  criteria : TEXT (JSON)
-  * created_by : INT [FK]
-  * created_at : DATETIME
-  * updated_at : DATETIME
-}
+Ce diagramme illustre le flux complet de résolution et d'export d'une liste email vers un fichier TXT.
 
-entity email_list_members {
-  * id : INT [PK]
-  --
-  * email_list_id : INT [FK]
-  user_id : INT [FK, nullable]
-  external_email : VARCHAR(255) [nullable]
-  * added_at : DATETIME
-}
+![Séquence d'export TXT](diagrams/email_export_sequence.png)
 
-entity users {
-  * id : INT [PK]
-  --
-  * username : VARCHAR(25)
-  * email : VARCHAR(100)
-  password : VARCHAR(34)
-  banned : TINYINT(1)
-}
+**Source:** [email_export_sequence.puml](diagrams/email_export_sequence.puml)
 
-entity membres {
-  * mlogin : VARCHAR(25) [PK]
-  --
-  * mnom : VARCHAR(80)
-  * mprenom : VARCHAR(80)
-  memail : VARCHAR(50)
-  actif : TINYINT(4)
-  username : VARCHAR(25)
-}
-
-entity user_roles_per_section {
-  * id : INT [PK]
-  --
-  * user_id : INT [FK]
-  * types_roles_id : INT [FK]
-  * section_id : INT [FK]
-  granted_by : INT [FK]
-  granted_at : DATETIME
-  revoked_at : DATETIME
-}
-
-entity types_roles {
-  * id : INT [PK]
-  --
-  * nom : VARCHAR(64)
-  description : VARCHAR(128)
-  scope : ENUM('global','section')
-}
-
-entity sections {
-  * id : INT [PK]
-  --
-  * nom : VARCHAR(64)
-  description : VARCHAR(128)
-}
-
-email_lists ||--o{ email_list_members : contains
-email_list_members }o--|| users : manual_selection
-email_lists }o--|| users : created_by
-
-users ||--o{ user_roles_per_section : has_roles
-user_roles_per_section }o--|| types_roles : role_type
-user_roles_per_section }o--|| sections : in_section
-users ||--o| membres : linked_via_username
-
-note right of user_roles_per_section
-  **Source des critères de sélection**
-  Le JSON dans email_lists.criteria
-  référence types_roles_id + section_id
-  pour sélection automatique
-end note
-
-note right of membres
-  **Lien users ↔ membres:**
-  membres.mlogin = users.username
-  (VARCHAR → VARCHAR)
-end note
-@enduml
-```
-
-### 9.2 Diagramme de séquence - Export TXT
-
-```plantuml
-@startuml
-actor User
-participant "email_lists.php\n(Controller)" as Ctrl
-participant "email_lists_model\n(Model)" as Model
-participant "email_helper\n(Helper)" as Helper
-database MySQL
-
-User -> Ctrl: download_txt($id)
-activate Ctrl
-
-Ctrl -> Model: resolve_list_members($id)
-activate Model
-
-Model -> MySQL: SELECT email_lists WHERE id=$id
-MySQL --> Model: {name, description, criteria, ...}
-
-Model -> Model: apply_criteria(JSON)
-Model -> MySQL: SELECT FROM user_roles_per_section\nJOIN users JOIN membres\nWHERE types_roles_id + section_id
-MySQL --> Model: [{email, mnom, mprenom}, ...]
-
-Model -> MySQL: SELECT email_list_members\nJOIN users JOIN membres\nWHERE email_list_id=$id
-MySQL --> Model: [{user_id, external_email}, ...]
-
-Model -> Model: deduplicate_emails()
-Model --> Ctrl: [$emails]
-deactivate Model
-
-Ctrl -> Helper: generate_txt_export($list, $emails)
-activate Helper
-Helper --> Ctrl: $txt_content
-deactivate Helper
-
-Ctrl -> Ctrl: Set HTTP headers\n(Content-Disposition, UTF-8)
-Ctrl --> User: Download animateurs_simulateur.txt
-deactivate Ctrl
-@enduml
-```
+**Flux principal:**
+1. Le contrôleur reçoit la demande d'export
+2. Le modèle résout les membres en 3 étapes :
+   - Membres par critères (via `email_list_roles`)
+   - Membres manuels internes (via `email_list_members`)
+   - Adresses externes (via `email_list_external`)
+3. Dédoublonnage des emails
+4. Le helper génère le fichier TXT
+5. Le contrôleur retourne le fichier avec les headers HTTP appropriés
 
 ---
 
@@ -999,7 +896,7 @@ class Migration_Create_email_lists extends CI_Migration {
         // FK vers users
         $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
 
-        // Table email_list_members
+        // Table email_list_members (membres internes)
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
@@ -1014,12 +911,7 @@ class Migration_Create_email_lists extends CI_Migration {
             'user_id' => [
                 'type' => 'INT',
                 'unsigned' => TRUE,
-                'null' => TRUE
-            ],
-            'external_email' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => TRUE
+                'null' => FALSE
             ],
             'added_at' => [
                 'type' => 'DATETIME',
@@ -1037,11 +929,45 @@ class Migration_Create_email_lists extends CI_Migration {
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE');
 
-        // Contrainte CHECK
-        $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT chk_member_type CHECK ((user_id IS NOT NULL AND external_email IS NULL) OR (user_id IS NULL AND external_email IS NOT NULL))');
+        // Table email_list_external (adresses externes)
+        $this->dbforge->add_field([
+            'id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'auto_increment' => TRUE
+            ],
+            'email_list_id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'null' => FALSE
+            ],
+            'external_email' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => FALSE
+            ],
+            'external_name' => [
+                'type' => 'VARCHAR',
+                'constraint' => 100,
+                'null' => TRUE
+            ],
+            'added_at' => [
+                'type' => 'DATETIME',
+                'null' => FALSE
+            ]
+        ]);
+        $this->dbforge->add_key('id', TRUE);
+        $this->dbforge->create_table('email_list_external');
+
+        // Index
+        $this->db->query('ALTER TABLE email_list_external ADD INDEX idx_email_list_id (email_list_id)');
+
+        // FK
+        $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
     }
 
     public function down() {
+        $this->dbforge->drop_table('email_list_external', TRUE);
         $this->dbforge->drop_table('email_list_members', TRUE);
         $this->dbforge->drop_table('email_lists', TRUE);
     }
@@ -1136,21 +1062,19 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 ## 12. Évolutions futures possibles
 
 
-### 12.2 Historique des envois
-- Tracker quand une liste a été utilisée pour un envoi
-- Statistiques d'utilisation
+### 12.2 Historique des envois (non)
+- Non, les envoies sont hors scope.
 
 ### 12.3 Templates de messages
 - Sauvegarder des templates de titre/corps de message
 - Réutilisables avec variables (ex: `{{prenom}}`)
+- bonne idée mais ne sera probablement pas utilisé
 
-### 12.4 API REST
-- Endpoints JSON pour intégrations externes
-- Webhook lors de modifications de listes
+### 12.4 API REST (inutile)
 
 ---
 
 **Version:** 1.0
 **Date:** 2025-10-31
-**Auteur:** Claude Code
+**Auteur:** Claude Code sous supervision Fred
 **Statut:** Proposition - À valider

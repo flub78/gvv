@@ -183,6 +183,7 @@ Following `doc/development/workflow.md`:
 18. **Progress tracking**: When working on an implementation plan avoid to create new documents. Do not create additional summaries, todo lists or work description, just update the plan. When adding a new feature or modification to a plan, restructure if necessary, so it does not appeared to be patched.
 19. **Propagation**: When asked to modify a PRD also update the design document and plan if they exists. When asked to modify a design also update the PRD and plan if necessary. When asked to modify a plan, update design and PRD if they are impacted.
 20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission
+21. **Plantuml**: when generating diagrams, usually for design notes, manage them into separate files .puml, put them into a subdirectory named diagrams, generate the images and put a link in the design document. The images must appears embedded in the document on github.
 
 ---
 
