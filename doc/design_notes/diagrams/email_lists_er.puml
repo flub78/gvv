@@ -95,12 +95,10 @@ end note
 note right of email_list_members
   **Sélection manuelle**
   FK directe vers membres.mlogin
-  Pas de passage par users
 end note
 
 note right of email_list_external
   **Adresses externes**
-  Pas de FK vers users ou membres
   Adresses email brutes
 end note
 

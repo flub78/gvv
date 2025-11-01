@@ -21,7 +21,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     User Interface                       │
+│                     User Interface                      │
 │  (Bootstrap 5 Views + JavaScript)                       │
 └────────────────────┬────────────────────────────────────┘
                      │
@@ -221,7 +221,9 @@ class Email_lists extends CI_Controller {
     public function preview_count()
 
     // API AJAX: Résolution complète des membres
-    public function resolve_members($id)
+    // return a json answer with a textual field "textual_email_list" containing a string with the emails 
+    // separated by commas. There is no duplicate in the list.
+    public function textual_list($list_id)
 }
 ```
 
@@ -245,7 +247,7 @@ public function __construct() {
 **Responsabilités:**
 - Opérations CRUD sur les tables
 - Résolution des critères JSON en requêtes SQL
-- Résolution complète des membres (critères + manuels + externes)
+- Résolution complète des listes (critères + manuels + externes)
 - Dédoublonnage
 
 **Méthodes principales:**
@@ -278,7 +280,7 @@ class Email_lists_model extends CI_Model {
     public function get_external_emails($list_id)
 
     // Résolution complète
-    public function resolve_list_members($list_id)
+    public function textual_list($list_id)
 
     // Utilitaires
     public function count_members($list_id)
@@ -289,7 +291,7 @@ class Email_lists_model extends CI_Model {
 **Exemple de résolution complète:**
 
 ```php
-public function resolve_list_members($list_id) {
+public function textual_list($list_id) {
     $list = $this->get_list($list_id);
     $emails = [];
 
@@ -606,8 +608,8 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
          ↓ Clic "Télécharger TXT"
          ↓
 [Controller] → download_txt($id)
-               ↓ resolve_list_members($id)
-               ↓ generate_txt_export($list, $members)
+               ↓ textual_list($id) (Model)
+               ↓ generate_txt_export($list, $members) (Helper)
                ↓ Headers HTTP (Content-Disposition, UTF-8)
                ↓
 [Browser] ← Téléchargement animateurs_simulateur.txt
@@ -616,16 +618,16 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 ### 5.3 Résolution complète avec dédoublonnage
 
 ```
-[Model] → resolve_list_members($list_id)
+[Model] → textual_list($list_id)
           ↓
-          ├─→ apply_criteria(JSON) → SQL SELECT (rôles, sections, statut)
-          ├─→ get_manual_members() → SQL SELECT (user_id)
+          ├─→ Résolution par rôles → SQL SELECT via email_list_roles + user_roles_per_section
+          ├─→ get_manual_members() → SQL SELECT (membre_id)
           ├─→ get_external_emails() → SQL SELECT (external_email)
           ↓
           └─→ array_merge() → deduplicate_emails()
               ↓ array_unique (lowercase comparison)
               ↓
-          [Retour] Array d'emails dédoublonnés
+          [Retour] Array d'emails dédoublonnés (sans doublons)
 ```
 
 ---
@@ -1112,10 +1114,10 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 ### 12.2 Historique des envois (non)
 - Non, les envoies sont hors scope.
 
-### 12.3 Templates de messages
+### 12.3 Templates de messages (?)
 - Sauvegarder des templates de titre/corps de message
 - Réutilisables avec variables (ex: `{{prenom}}`)
-- bonne idée mais ne sera probablement pas utilisé
+- Ca existait avant. Maintenant que la philosophie est de se limiter à la fourniture des adresses email, cela a beaucoup moins de sens. Quel serait le résultat, une grande liste de bouton mailto, ou la concaténation de tout les textes pour tout les mails pour tout les destinataires ?
 
 ### 12.4 API REST (inutile)
 

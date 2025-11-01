@@ -262,5 +262,5 @@ Pour s'adapter aux limitations des clients de messagerie:
 
 **Version:** 1.2
 **Date:** 2025-10-31
-**Auteur:** Claude Code sous supervision Fred
-**Statut:** Proposition initiale
+**Auteur:** Claude Code sous supervision de Fred
+**Statut:** Approuvé pour commencer la conception
