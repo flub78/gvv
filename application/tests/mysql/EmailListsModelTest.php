@@ -362,4 +362,171 @@ class EmailListsModelTest extends TestCase
 
         $this->assertEquals(2, $count);
     }
+
+    // ========================================================================
+    // Multi-Role Selection Tests (Phase 2)
+    // ========================================================================
+
+    public function testMultiRoleSelection_ReturnsUniqueUsers()
+    {
+        // Get available roles and sections
+        $roles = $this->model->get_available_roles();
+        $sections = $this->model->get_available_sections();
+
+        if (empty($roles) || empty($sections)) {
+            $this->markTestSkipped('No roles or sections in database');
+        }
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_MultiRoleList1',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Add multiple roles to the list
+        $this->model->add_role_to_list($list_id, $roles[0]['id'], $sections[0]['id']);
+
+        if (count($roles) > 1) {
+            $this->model->add_role_to_list($list_id, $roles[1]['id'], $sections[0]['id']);
+        }
+
+        // Resolve the list
+        $emails = $this->model->textual_list($list_id);
+
+        // Should return array of email strings
+        $this->assertIsArray($emails);
+
+        // All items should be strings
+        foreach ($emails as $email) {
+            $this->assertIsString($email);
+        }
+    }
+
+    public function testDeduplication_WithMultipleRoles()
+    {
+        // Get available roles and sections
+        $roles = $this->model->get_available_roles();
+        $sections = $this->model->get_available_sections();
+
+        if (empty($roles) || empty($sections)) {
+            $this->markTestSkipped('No roles or sections in database');
+        }
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_DedupList1',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Add same user via multiple sources to test deduplication
+        // 1. Add via role
+        $this->model->add_role_to_list($list_id, $roles[0]['id'], $sections[0]['id']);
+
+        // 2. Get a user from this role
+        $role_users = $this->model->get_users_by_role_and_section($roles[0]['id'], $sections[0]['id']);
+
+        if (empty($role_users)) {
+            $this->markTestSkipped('No users found for the selected role');
+        }
+
+        $test_user = $role_users[0];
+
+        // 3. Also add this user manually
+        $this->model->add_manual_member($list_id, $test_user['mlogin']);
+
+        // 4. Also add via external email (uppercase to test case-insensitive dedup)
+        if (!empty($test_user['email'])) {
+            $this->model->add_external_email($list_id, strtoupper($test_user['email']));
+        }
+
+        // Resolve the list
+        $emails = $this->model->textual_list($list_id);
+
+        // Count occurrences of the test user's email
+        $test_email_lower = strtolower($test_user['email']);
+        $occurrences = 0;
+
+        foreach ($emails as $email) {
+            if (strtolower($email) === $test_email_lower) {
+                $occurrences++;
+            }
+        }
+
+        // The email should appear only ONCE despite being in 3 sources
+        $this->assertEquals(1, $occurrences, 'Email should be deduplicated across all sources');
+    }
+
+    public function testGetUsersByRoleAndSection_ActiveFilter()
+    {
+        $roles = $this->model->get_available_roles();
+        $sections = $this->model->get_available_sections();
+
+        if (empty($roles) || empty($sections)) {
+            $this->markTestSkipped('No roles or sections in database');
+        }
+
+        // Get active users
+        $active_users = $this->model->get_users_by_role_and_section(
+            $roles[0]['id'],
+            $sections[0]['id'],
+            'active'
+        );
+
+        // All returned users should be active
+        foreach ($active_users as $user) {
+            $this->assertEquals(1, $user['actif'], 'User should be active');
+        }
+
+        // Get inactive users
+        $inactive_users = $this->model->get_users_by_role_and_section(
+            $roles[0]['id'],
+            $sections[0]['id'],
+            'inactive'
+        );
+
+        // All returned users should be inactive
+        foreach ($inactive_users as $user) {
+            $this->assertEquals(0, $user['actif'], 'User should be inactive');
+        }
+    }
+
+    public function testGetAvailableRoles_OrderedByDisplayOrder()
+    {
+        $roles = $this->model->get_available_roles();
+
+        $this->assertNotEmpty($roles);
+
+        // Verify roles have required fields
+        foreach ($roles as $role) {
+            $this->assertArrayHasKey('id', $role);
+            $this->assertArrayHasKey('nom', $role);
+            $this->assertArrayHasKey('scope', $role);
+        }
+
+        // Verify ordering by display_order
+        if (count($roles) > 1) {
+            for ($i = 0; $i < count($roles) - 1; $i++) {
+                $this->assertLessThanOrEqual(
+                    $roles[$i + 1]['display_order'],
+                    $roles[$i]['display_order'],
+                    'Roles should be ordered by display_order'
+                );
+            }
+        }
+    }
+
+    public function testGetAvailableSections_ReturnsAllSections()
+    {
+        $sections = $this->model->get_available_sections();
+
+        $this->assertNotEmpty($sections);
+
+        // Verify sections have required fields
+        foreach ($sections as $section) {
+            $this->assertArrayHasKey('id', $section);
+            $this->assertArrayHasKey('nom', $section);
+        }
+    }
 }

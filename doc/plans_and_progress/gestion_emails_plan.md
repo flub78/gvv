@@ -7,8 +7,8 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours (24/118 tâches - 20%)
-**Phase actuelle:** Phase 1 terminée
+**Statut global:** 🔵 En cours (35/118 tâches - 30%)
+**Phase actuelle:** Phase 2 - Backend terminé, UI pending
 **Estimation:** 8 semaines (1 personne)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
@@ -49,39 +49,39 @@
 
 ---
 
-## Phase 2: Sélection par critères via email_list_roles - ⚪ 0/16 (Semaine 2)
+## Phase 2: Sélection par critères via email_list_roles - 🔵 11/16 (Semaine 2)
 
-### 2.1 Analyse architecture autorisations
-- [ ] Analyser table `user_roles_per_section` (user_id, types_roles_id, section_id, revoked_at)
-- [ ] Analyser table `types_roles` (id, nom, description, scope)
-- [ ] Analyser table `sections` (id, nom, description)
-- [ ] Comprendre lien users ↔ membres (mlogin = username)
-- [ ] Tester requête 4-tables: email_list_roles → user_roles_per_section → users → membres
+### 2.1 Analyse architecture autorisations ✅
+- [x] Analyser table `user_roles_per_section` (user_id, types_roles_id, section_id, revoked_at)
+- [x] Analyser table `types_roles` (id, nom, description, scope)
+- [x] Analyser table `sections` (id, nom, description)
+- [x] Comprendre lien users ↔ membres (mlogin = username)
+- [x] Tester requête 4-tables: email_list_roles → user_roles_per_section → users → membres
 
-### 2.2 Méthodes model pour chargement données
-- [ ] Méthode `get_available_roles()` - charge tous types_roles pour UI
-- [ ] Méthode `get_available_sections()` - charge toutes sections pour UI
-- [ ] Méthode `get_users_by_role_and_section($types_roles_id, $section_id)` - sélection simple
+### 2.2 Méthodes model pour chargement données ✅ (déjà implémenté Phase 1)
+- [x] Méthode `get_available_roles()` - charge tous types_roles pour UI
+- [x] Méthode `get_available_sections()` - charge toutes sections pour UI
+- [x] Méthode `get_users_by_role_and_section($types_roles_id, $section_id)` - sélection simple
 
-### 2.3 Gestion table email_list_roles
-- [ ] Méthode `add_role_to_list($list_id, $types_roles_id, $section_id)` - ajoute rôle à liste
-- [ ] Méthode `remove_role_from_list($list_id, $role_id)` - supprime rôle de liste
-- [ ] Méthode `get_list_roles($list_id)` - récupère rôles d'une liste
-- [ ] Gérer filtre `revoked_at IS NULL` (rôles actifs uniquement)
-- [ ] Gérer filtre `membres.actif` selon email_lists.active_member (active/inactive/all)
-- [ ] Méthode `textual_list($list_id)` - résolution complète (rôles + manuels + externes)
+### 2.3 Gestion table email_list_roles ✅ (déjà implémenté Phase 1)
+- [x] Méthode `add_role_to_list($list_id, $types_roles_id, $section_id)` - ajoute rôle à liste
+- [x] Méthode `remove_role_from_list($list_id, $role_id)` - supprime rôle de liste
+- [x] Méthode `get_list_roles($list_id)` - récupère rôles d'une liste
+- [x] Gérer filtre `revoked_at IS NULL` (rôles actifs uniquement)
+- [x] Gérer filtre `membres.actif` selon email_lists.active_member (active/inactive/all)
+- [x] Méthode `textual_list($list_id)` - résolution complète (rôles + manuels + externes)
 
-### 2.4 Interface UI sélection par rôles
+### 2.4 Interface UI sélection par rôles (à faire)
 - [ ] Charger rôles et sections via AJAX/PHP
 - [ ] Grouper checkboxes par section
 - [ ] Marquer rôles globaux (scope='global')
 - [ ] Logique combinaison ET/OU
 - [ ] Prévisualisation AJAX du nombre de destinataires
 
-### 2.5 Tests et optimisation
-- [ ] Ajouter index `users(username)` pour performance jointure membres
-- [ ] Tests d'intégration sélection multi-rôles/sections
-- [ ] Test dédoublonnage (utilisateur avec multiples rôles)
+### 2.5 Tests et optimisation ✅
+- [x] Ajouter index `users(username)` pour performance jointure membres - Migration 050
+- [x] Tests d'intégration sélection multi-rôles/sections - 5 nouveaux tests
+- [x] Test dédoublonnage (utilisateur avec multiples rôles)
 
 ---
 
@@ -292,6 +292,24 @@
 - Migration validée (syntaxe PHP OK)
 - config/migration.php mis à jour (version = 49)
 - Ajout email_helper.php dans minimal_bootstrap.php pour tests
+
+**2025-11-01 - Phase 2 backend terminé (11/16 tâches)**
+- Analyse architecture autorisations terminée (4 tables analysées)
+- Requête 4-tables validée: email_list_roles → user_roles_per_section → users → membres
+- Sections 2.2 et 2.3 déjà complètes (implémentées en Phase 1)
+  - Toutes méthodes model pour rôles/sections déjà présentes
+  - Filtres revoked_at et membres.actif déjà implémentés
+  - textual_list() avec résolution complète et dédoublonnage
+- Migration 050 créée: ajout index sur users.username pour optimisation jointures
+- config/migration.php mis à jour (version = 50)
+- 5 nouveaux tests MySQL d'intégration:
+  - testMultiRoleSelection_ReturnsUniqueUsers
+  - testDeduplication_WithMultipleRoles
+  - testGetUsersByRoleAndSection_ActiveFilter
+  - testGetAvailableRoles_OrderedByDisplayOrder
+  - testGetAvailableSections_ReturnsAllSections
+- Total tests MySQL: 20 tests (15 Phase 1 + 5 Phase 2)
+- **Reste à faire:** Section 2.4 (Interface UI) - 5 tâches
 
 **Blocages actuels:** Aucun
 
