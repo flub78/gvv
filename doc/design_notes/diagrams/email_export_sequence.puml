@@ -1,4 +1,4 @@
-@startuml
+@startuml email_export_sequence
 actor User
 participant "email_lists.php\n(Controller)" as Ctrl
 participant "email_lists_model\n(Model)" as Model
@@ -14,12 +14,12 @@ activate Model
 Model -> MySQL: SELECT email_lists WHERE id=$id
 MySQL --> Model: {name, description, criteria, ...}
 
-Model -> Model: apply_criteria(JSON)
-Model -> MySQL: SELECT FROM user_roles_per_section\nJOIN users JOIN membres\nWHERE types_roles_id + section_id
+Model -> Model: resolve_roles()
+Model -> MySQL: SELECT FROM email_list_roles\nJOIN user_roles_per_section\nJOIN users JOIN membres\nWHERE types_roles_id + section_id
 MySQL --> Model: [{email, mnom, mprenom}, ...]
 
-Model -> MySQL: SELECT email_list_members\nJOIN users JOIN membres\nWHERE email_list_id=$id
-MySQL --> Model: [{user_id, email}, ...]
+Model -> MySQL: SELECT email_list_members\nJOIN membres\nWHERE email_list_id=$id
+MySQL --> Model: [{membre_id, email, mnom, mprenom}, ...]
 
 Model -> MySQL: SELECT email_list_external\nWHERE email_list_id=$id
 MySQL --> Model: [{external_email, external_name}, ...]

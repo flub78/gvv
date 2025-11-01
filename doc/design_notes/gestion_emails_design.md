@@ -260,15 +260,15 @@ class Email_lists_model extends CI_Model {
     public function delete_list($id)
     public function get_user_lists($user_id)
 
-    // Gestion des critères (basée sur email_list_roles)
-    public function build_criteria_json($selections)
-    public function apply_criteria($criteria_json)
+    // Gestion des rôles (table email_list_roles)
+    public function add_role_to_list($list_id, $types_roles_id, $section_id)
+    public function remove_role_from_list($list_id, $role_id)
+    public function get_list_roles($list_id)
     public function get_available_roles()
     public function get_available_sections()
-    public function get_users_by_role_and_section($types_roles_id, $section_id)
 
     // Gestion des membres manuels internes
-    public function add_manual_member($list_id, $user_id)
+    public function add_manual_member($list_id, $membre_id)
     public function remove_manual_member($list_id, $member_id)
     public function get_manual_members($list_id)
 
@@ -293,18 +293,35 @@ public function resolve_list_members($list_id) {
     $list = $this->get_list($list_id);
     $emails = [];
 
-    // 1. Membres par critères depuis email_list_roles (si criteria n'est pas NULL)
-    if ($list['criteria']) {
-        $criteria_emails = $this->apply_criteria($list['criteria']);
-        $emails = array_merge($emails, $criteria_emails);
+    // 1. Membres par rôles (table email_list_roles)
+    $roles = $this->db
+        ->select('elr.types_roles_id, elr.section_id')
+        ->from('email_list_roles elr')
+        ->where('elr.email_list_id', $list_id)
+        ->where('elr.revoked_at IS NULL')
+        ->get()
+        ->result_array();
+
+    foreach ($roles as $role) {
+        $role_members = $this->db
+            ->select('m.memail as email, m.mnom, m.mprenom, m.mlogin')
+            ->from('user_roles_per_section urps')
+            ->join('users u', 'urps.user_id = u.id', 'inner')
+            ->join('membres m', 'u.username = m.mlogin', 'inner')
+            ->where('urps.types_roles_id', $role['types_roles_id'])
+            ->where('urps.section_id', $role['section_id'])
+            ->where('urps.revoked_at IS NULL')
+            ->where('m.actif', $list['active_member'] == 'active' ? 1 : ($list['active_member'] == 'inactive' ? 0 : NULL), FALSE)
+            ->get()
+            ->result_array();
+        $emails = array_merge($emails, $role_members);
     }
 
     // 2. Membres manuels internes (table email_list_members)
     $manual = $this->db
-        ->select('u.email, u.id as user_id, m.mnom, m.mprenom')
+        ->select('m.memail as email, m.mnom, m.mprenom, m.mlogin')
         ->from('email_list_members elm')
-        ->join('users u', 'elm.user_id = u.id', 'inner')
-        ->join('membres m', 'u.username = m.mlogin', 'left')
+        ->join('membres m', 'elm.membre_id = m.mlogin', 'inner')
         ->where('elm.email_list_id', $list_id)
         ->get()
         ->result_array();
@@ -321,45 +338,6 @@ public function resolve_list_members($list_id) {
 
     // 4. Dédoublonnage
     return $this->deduplicate_emails($emails);
-}
-
-/**
- * Applique les critères JSON basés sur email_list_roles
- *
- * @param string $criteria_json JSON avec structure roles/member_status/logic
- * @return array Tableau d'emails avec user_id, email, mnom, mprenom
- */
-public function apply_criteria($criteria_json) {
-    $criteria = json_decode($criteria_json, true);
-    if (empty($criteria['roles'])) {
-        return [];
-    }
-
-    $emails = [];
-
-    foreach ($criteria['roles'] as $role_criteria) {
-        $this->db->distinct();
-        $this->db->select('u.id as user_id, u.email, m.mnom, m.mprenom');
-        $this->db->from('email_list_roles urps');
-        $this->db->join('users u', 'urps.user_id = u.id', 'inner');
-        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
-
-        // Critère: rôle et section
-        $this->db->where('urps.types_roles_id', $role_criteria['types_roles_id']);
-        $this->db->where('urps.section_id', $role_criteria['section_id']);
-        $this->db->where('urps.revoked_at IS NULL');
-
-        // Filtre optionnel sur statut du membre
-        if (!empty($criteria['member_status'])) {
-            $this->db->where_in('m.actif', $criteria['member_status']);
-        }
-
-        $query = $this->db->get();
-        $result = $query->result_array();
-        $emails = array_merge($emails, $result);
-    }
-
-    return $emails;
 }
 
 /**
@@ -654,34 +632,40 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 
 ## 6. Décisions d'architecture
 
-### 6.1 Pourquoi 3 tables au lieu de 1 ou 2 ?
+### 6.1 Pourquoi 4 tables au lieu de 1 ou 2 ?
 
-**Décision:** Séparation `email_lists`, `email_list_members`, et `email_list_external`
+**Décision:** Séparation `email_lists`, `email_list_roles`, `email_list_members`, et `email_list_external`
 
-**Justification de la séparation email_lists / membres:**
+**Justification de la séparation email_lists / sources:**
 - **Normalisation:** Évite la duplication des métadonnées (nom, description, date)
-- **Flexibilité:** Permet de combiner critères dynamiques + ajouts manuels
-- **Performance:** Les critères sont réévalués à la volée, les ajouts manuels sont persistants
-- **Intégrité:** ON DELETE CASCADE garantit la suppression en cascade des membres
+- **Flexibilité:** Permet de combiner sélection dynamique par rôles + ajouts manuels + emails externes
+- **Performance:** Les rôles sont réévalués à la volée, les ajouts manuels sont persistants
+- **Intégrité:** ON DELETE CASCADE garantit la suppression en cascade
+
+**Justification de la table email_list_roles séparée:**
+- **Simplicité:** Table simple avec FK vers rôles et sections existants
+- **Pas de JSON:** Évite le parsing et validation côté application
+- **Requêtable:** Possibilité de faire des requêtes SQL directes (rapports, stats)
+- **Intégrité référentielle:** FK vers `types_roles` et `sections` avec ON DELETE RESTRICT
+- **Audit:** Traçabilité avec `granted_by`, `granted_at`, `revoked_at`
 
 **Justification de la séparation membres internes / externes:**
 - **Type safety:** Pas de colonnes nullables ni de CHECK constraints complexes
-- **Intégrité référentielle:** FK non-nullable sur `user_id` dans `email_list_members`
+- **Intégrité référentielle:** FK non-nullable sur `membre_id` dans `email_list_members`
 - **Index efficiency:** Meilleure performance des index sans valeurs NULL
-- **Clarté sémantique:** Deux types d'entités clairement séparés
-- **Extension future:** Possibilité d'ajouter des champs spécifiques (ex: `external_name`)
-- **Alignement UI:** L'interface utilisateur sépare déjà ces deux concepts
+- **Clarté sémantique:** Trois types d'entités clairement séparés (rôles / membres / externes)
+- **Extension future:** Possibilité d'ajouter des champs spécifiques par type
+- **Alignement UI:** L'interface utilisateur sépare ces trois concepts
 
 **Alternative rejetée 1:** Une seule table avec JSON pour tout
-- ❌ Difficile de gérer les relations avec users
+- ❌ Difficile de gérer les relations avec membres
 - ❌ Pas de contraintes de FK
-- ❌ Dédoublonnage complexe
+- ❌ Parsing JSON côté application
 
-**Alternative rejetée 2:** Une seule table `email_list_members` avec pattern discriminé
-- ❌ Nécessite CHECK constraint complexe
-- ❌ FK nullable sur `user_id` (moins performant)
-- ❌ Confusion sémantique entre deux types d'entités
-- ❌ Impossible d'ajouter des champs spécifiques par type
+**Alternative rejetée 2:** Critères JSON dans `email_lists.criteria`
+- ❌ Pas de validation au niveau DB
+- ❌ Impossible de faire des requêtes SQL sur les critères
+- ❌ Pas d'audit trail (qui a ajouté quoi, quand)
 
 ### 6.2 Pourquoi localStorage pour les préférences ?
 
@@ -698,20 +682,7 @@ $this->field['email_lists']['criteria']['Subtype'] = 'json';
 - ❌ Nécessite table supplémentaire
 - ❌ Plus lent (requête HTTP à chaque chargement)
 
-### 6.3 Pourquoi JSON pour les critères ?
-
-**Décision:** Stockage des critères en JSON (champ TEXT)
-
-**Justification:**
-- ✅ Flexibilité : facile d'ajouter de nouveaux critères sans migration
-- ✅ Lisibilité : structure claire et documentée
-- ✅ CodeIgniter 2.x n'a pas de type JSON natif (contrairement à MySQL 5.7+)
-
-**Alternative rejetée:** Colonnes booléennes pour chaque critère
-- ❌ Rigide : ajout de critère = migration DB
-- ❌ Nombreuses colonnes (role_instructeur, role_tresorier, etc.)
-
-### 6.4 Pourquoi découpage côté client ?
+### 6.3 Pourquoi découpage côté client ?
 
 **Décision:** Découpage en sous-listes fait en JavaScript
 
@@ -776,10 +747,16 @@ function validate_email($email) {
 - UNIQUE INDEX sur `name`
 - INDEX sur `created_by` (pour get_user_lists)
 
+**email_list_roles:**
+- PRIMARY KEY sur `id`
+- INDEX sur `email_list_id` (jointures fréquentes)
+- INDEX sur `types_roles_id` (recherche par rôle)
+- INDEX sur `section_id` (recherche par section)
+
 **email_list_members:**
 - PRIMARY KEY sur `id`
 - INDEX sur `email_list_id` (jointures fréquentes)
-- INDEX sur `user_id` (jointures avec users, FK non-nullable = optimal)
+- INDEX sur `membre_id` (FK vers membres, VARCHAR optimal)
 
 **email_list_external:**
 - PRIMARY KEY sur `id`
@@ -787,24 +764,27 @@ function validate_email($email) {
 
 ### 8.2 Optimisation des requêtes
 
-**Résolution des critères via email_list_roles:**
+**Résolution des rôles via email_list_roles + user_roles_per_section:**
 ```sql
--- Optimisé avec index FK existants sur email_list_roles
-SELECT DISTINCT u.id, u.email, m.mnom, m.mprenom
-FROM email_list_roles urps
+-- Optimisé avec index FK existants
+SELECT DISTINCT m.memail, m.mnom, m.mprenom, m.mlogin
+FROM email_list_roles elr
+INNER JOIN user_roles_per_section urps
+  ON elr.types_roles_id = urps.types_roles_id
+  AND elr.section_id = urps.section_id
 INNER JOIN users u ON urps.user_id = u.id
-LEFT JOIN membres m ON u.username = m.mlogin
-WHERE urps.types_roles_id IN (?)
-  AND urps.section_id IN (?)
+INNER JOIN membres m ON u.username = m.mlogin
+WHERE elr.email_list_id = ?
+  AND elr.revoked_at IS NULL
   AND urps.revoked_at IS NULL
-  AND m.actif IN (?);
+  AND m.actif = ?;
 ```
 
 **Index requis:**
-- `email_list_roles(user_id)` - Existe (FK)
-- `email_list_roles(types_roles_id)` - Existe (FK)
-- `email_list_roles(section_id)` - Existe (FK)
+- `email_list_roles(email_list_id, types_roles_id, section_id)` - Existe
+- `user_roles_per_section(types_roles_id, section_id)` - Existe (FK)
 - `users(username)` - **À ajouter** pour optimiser jointure avec membres
+- `membres(mlogin)` - Existe (PK)
 
 **Dédoublonnage:**
 - Fait en PHP avec `array_unique()` après normalisation lowercase
@@ -896,6 +876,59 @@ class Migration_Create_email_lists extends CI_Migration {
         // FK vers users
         $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
 
+        // Table email_list_roles (sélection dynamique par rôles)
+        $this->dbforge->add_field([
+            'id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'auto_increment' => TRUE
+            ],
+            'email_list_id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'null' => FALSE
+            ],
+            'types_roles_id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'null' => FALSE
+            ],
+            'section_id' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'null' => FALSE
+            ],
+            'granted_by' => [
+                'type' => 'INT',
+                'unsigned' => TRUE,
+                'null' => TRUE
+            ],
+            'granted_at' => [
+                'type' => 'DATETIME',
+                'null' => FALSE
+            ],
+            'revoked_at' => [
+                'type' => 'DATETIME',
+                'null' => TRUE
+            ],
+            'notes' => [
+                'type' => 'TEXT',
+                'null' => TRUE
+            ]
+        ]);
+        $this->dbforge->add_key('id', TRUE);
+        $this->dbforge->create_table('email_list_roles');
+
+        // Index
+        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_email_list_id (email_list_id)');
+        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_types_roles_id (types_roles_id)');
+        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_section_id (section_id)');
+
+        // FK
+        $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
+        $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_types_roles_id FOREIGN KEY (types_roles_id) REFERENCES types_roles(id) ON DELETE RESTRICT');
+        $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_section_id FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE RESTRICT');
+
         // Table email_list_members (membres internes)
         $this->dbforge->add_field([
             'id' => [
@@ -908,9 +941,9 @@ class Migration_Create_email_lists extends CI_Migration {
                 'unsigned' => TRUE,
                 'null' => FALSE
             ],
-            'user_id' => [
-                'type' => 'INT',
-                'unsigned' => TRUE,
+            'membre_id' => [
+                'type' => 'VARCHAR',
+                'constraint' => 25,
                 'null' => FALSE
             ],
             'added_at' => [
@@ -923,11 +956,11 @@ class Migration_Create_email_lists extends CI_Migration {
 
         // Index
         $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_email_list_id (email_list_id)');
-        $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_user_id (user_id)');
+        $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_membre_id (membre_id)');
 
         // FK
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
-        $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE');
+        $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_membre_id FOREIGN KEY (membre_id) REFERENCES membres(mlogin) ON DELETE CASCADE');
 
         // Table email_list_external (adresses externes)
         $this->dbforge->add_field([
@@ -969,6 +1002,7 @@ class Migration_Create_email_lists extends CI_Migration {
     public function down() {
         $this->dbforge->drop_table('email_list_external', TRUE);
         $this->dbforge->drop_table('email_list_members', TRUE);
+        $this->dbforge->drop_table('email_list_roles', TRUE);
         $this->dbforge->drop_table('email_lists', TRUE);
     }
 }
@@ -1036,11 +1070,12 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
         $this->CI->load->model('email_lists_model');
     }
 
-    public function testCreateList_WithCriteria_InsertsRecord() {
+    public function testCreateList_InsertsRecord() {
         $data = [
             'name' => 'Test Liste',
             'description' => 'Test',
-            'criteria' => json_encode(['roles' => ['instructeur']]),
+            'active_member' => 'active',
+            'visible' => 1,
             'created_by' => 1
         ];
         $id = $this->CI->email_lists_model->create_list($data);
@@ -1050,8 +1085,20 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
         $this->CI->email_lists_model->delete_list($id);
     }
 
-    public function testResolveListMembers_WithManualAndExternal_ReturnsDeduplicated() {
-        // Test avec liste contenant critères + manuels + externes
+    public function testAddRoleToList_InsertsRole() {
+        // Créer liste
+        $list_id = 1;
+
+        // Ajouter rôle
+        $this->CI->email_lists_model->add_role_to_list($list_id, 8, 1); // tresorier, section Planeur
+
+        // Vérifier
+        $roles = $this->CI->email_lists_model->get_list_roles($list_id);
+        $this->assertCount(1, $roles);
+    }
+
+    public function testResolveListMembers_WithRolesManualAndExternal_ReturnsDeduplicated() {
+        // Test avec liste contenant rôles + manuels + externes
         // Vérifier dédoublonnage
     }
 }

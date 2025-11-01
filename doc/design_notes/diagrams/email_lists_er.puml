@@ -1,20 +1,33 @@
-@startuml
+@startuml email_lists_er
 entity email_lists {
   * id : INT [PK]
   --
   * name : VARCHAR(100) [UNIQUE]
   description : TEXT
-  criteria : TEXT (JSON)
+  * active_member : ENUM('active','inactive','all')
+  * visible : TINYINT(1)
   * created_by : INT [FK]
   * created_at : DATETIME
   * updated_at : DATETIME
+}
+
+entity email_list_roles {
+  * id : INT [PK]
+  --
+  * email_list_id : INT [FK]
+  * types_roles_id : INT [FK]
+  * section_id : INT [FK]
+  granted_by : INT [FK]
+  granted_at : DATETIME
+  revoked_at : DATETIME
+  notes : TEXT
 }
 
 entity email_list_members {
   * id : INT [PK]
   --
   * email_list_id : INT [FK]
-  * user_id : INT [FK]
+  * membre_id : VARCHAR(25) [FK]
   * added_at : DATETIME
 }
 
@@ -46,16 +59,6 @@ entity membres {
   username : VARCHAR(25)
 }
 
-entity user_roles_per_section {
-  * id : INT [PK]
-  --
-  * user_id : INT [FK]
-  * types_roles_id : INT [FK]
-  * section_id : INT [FK]
-  granted_by : INT [FK]
-  granted_at : DATETIME
-  revoked_at : DATETIME
-}
 
 entity types_roles {
   * id : INT [PK]
@@ -72,32 +75,40 @@ entity sections {
   description : VARCHAR(128)
 }
 
-email_lists ||--o{ email_list_members : contains_internal
-email_lists ||--o{ email_list_external : contains_external
-email_list_members }o--|| users : references
+email_lists ||--o{ email_list_roles : selection_roles
+email_lists ||--o{ email_list_members : selection_manuelle
+email_lists ||--o{ email_list_external : adresses_externes
+email_list_members }o--|| membres : references
 email_lists }o--|| users : created_by
 
-users ||--o{ user_roles_per_section : has_roles
-user_roles_per_section }o--|| types_roles : role_type
-user_roles_per_section }o--|| sections : in_section
+email_list_roles }o--|| types_roles : role_type
+email_list_roles }o--|| sections : in_section
 users ||--o| membres : linked_via_username
 
-note right of user_roles_per_section
-  **Source des critères de sélection**
-  Le JSON dans email_lists.criteria
-  référence types_roles_id + section_id
-  pour sélection automatique
+note right of email_list_roles
+  **Sélection dynamique par rôles**
+  Référence types_roles_id + section_id
+  pour sélection automatique des membres
+  ayant ces rôles 
+end note
+
+note right of email_list_members
+  **Sélection manuelle**
+  FK directe vers membres.mlogin
+  Pas de passage par users
 end note
 
 note right of email_list_external
   **Adresses externes**
-  Pas de FK vers users
+  Pas de FK vers users ou membres
   Adresses email brutes
 end note
 
-note right of membres
-  **Lien users ↔ membres:**
-  membres.mlogin = users.username
-  (VARCHAR → VARCHAR)
+note right of email_lists
+  **active_member**: filtre les membres
+  actifs/inactifs lors de la résolution
+
+  **visible**: contrôle si la liste
+  apparaît dans les sélecteurs UI
 end note
 @enduml
