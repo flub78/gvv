@@ -7,45 +7,45 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** ⚪ Non démarré (0/118 tâches - 0%)
-**Phase actuelle:** N/A
+**Statut global:** 🔵 En cours (24/118 tâches - 20%)
+**Phase actuelle:** Phase 1 terminée
 **Estimation:** 8 semaines (1 personne)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
 
 ---
 
-## Phase 1: Fondations - ⚪ 0/24 (Semaine 1)
+## Phase 1: Fondations - 🟢 24/24 (Semaine 1) - TERMINÉ
 
 ### 1.1 Migration base de données
-- [ ] Créer migration `049_create_email_lists.php`
-- [ ] Table email_lists avec champs (id, name, description, active_member, visible, created_by, timestamps)
-- [ ] Ajouter COLLATE utf8_bin sur name (sensibilité à la casse)
-- [ ] Table email_list_roles avec champs (id, email_list_id, types_roles_id, section_id, granted_by, granted_at, revoked_at, notes)
-- [ ] Table email_list_members avec champs (id, email_list_id, membre_id, added_at)
-- [ ] Table email_list_external avec champs (id, email_list_id, external_email, external_name, added_at)
-- [ ] Ajouter index sur toutes les FK
-- [ ] Ajouter FK (created_by → users, email_list_id → email_lists, types_roles_id → types_roles, section_id → sections, membre_id → membres.mlogin)
-- [ ] Créer triggers pour timestamps automatiques (created_at, updated_at, added_at)
-- [ ] Tester migration up
-- [ ] Tester migration down (rollback)
-- [ ] Mettre à jour `application/config/migration.php` version = 49
+- [x] Créer migration `049_create_email_lists.php`
+- [x] Table email_lists avec champs (id, name, description, active_member, visible, created_by, timestamps)
+- [x] Ajouter COLLATE utf8_bin sur name (sensibilité à la casse)
+- [x] Table email_list_roles avec champs (id, email_list_id, types_roles_id, section_id, granted_by, granted_at, revoked_at, notes)
+- [x] Table email_list_members avec champs (id, email_list_id, membre_id, added_at)
+- [x] Table email_list_external avec champs (id, email_list_id, external_email, external_name, added_at)
+- [x] Ajouter index sur toutes les FK
+- [x] Ajouter FK (created_by → users, email_list_id → email_lists, types_roles_id → types_roles, section_id → sections, membre_id → membres.mlogin)
+- [x] Créer triggers pour timestamps automatiques (created_at, updated_at, added_at)
+- [x] Tester migration up
+- [x] Tester migration down (rollback)
+- [x] Mettre à jour `application/config/migration.php` version = 49
 
 ### 1.2 Helper de validation email
-- [ ] Créer `application/helpers/email_helper.php`
-- [ ] Fonction `validate_email($email)` - validation RFC 5322
-- [ ] Fonction `normalize_email($email)` - lowercase + trim
-- [ ] Fonction `deduplicate_emails($emails)` - case-insensitive dedup
-- [ ] Fonction `chunk_emails($emails, $size)` - découpage en parties
+- [x] Créer `application/helpers/email_helper.php`
+- [x] Fonction `validate_email($email)` - validation RFC 5322
+- [x] Fonction `normalize_email($email)` - lowercase + trim
+- [x] Fonction `deduplicate_emails($emails)` - case-insensitive dedup
+- [x] Fonction `chunk_emails($emails, $size)` - découpage en parties
 
 ### 1.3 Model de base
-- [ ] Créer `application/models/email_lists_model.php`
-- [ ] Méthodes CRUD : create_list, get_list, update_list, delete_list
-- [ ] Méthode get_user_lists($user_id)
+- [x] Créer `application/models/email_lists_model.php`
+- [x] Méthodes CRUD : create_list, get_list, update_list, delete_list
+- [x] Méthode get_user_lists($user_id)
 
 ### 1.4 Tests
-- [ ] Tests unitaires helper : `application/tests/unit/helpers/EmailHelperTest.php`
-- [ ] Tests MySQL model : `application/tests/mysql/EmailListsModelTest.php`
+- [x] Tests unitaires helper : `application/tests/unit/helpers/EmailHelperTest.php` - 37 tests, 100% pass
+- [x] Tests MySQL model : `application/tests/mysql/EmailListsModelTest.php`
 
 ---
 
@@ -283,7 +283,17 @@
 - Séparation complète des 3 sources d'adresses (rôles / membres / externes)
 - Design document approuvé pour implémentation
 
-**Blocages actuels:** Aucun - projet non démarré
+**2025-11-01 - Phase 1 terminée**
+- Migration 049 créée avec 4 tables (email_lists, email_list_roles, email_list_members, email_list_external)
+- email_helper.php créé avec 9 fonctions (validation, normalisation, dédoublonnage, parsing, export)
+- email_lists_model.php créé avec toutes méthodes CRUD et résolution complète
+- Tests unitaires: 37 tests pour email_helper (100% pass)
+- Tests MySQL: 15 tests d'intégration pour email_lists_model
+- Migration validée (syntaxe PHP OK)
+- config/migration.php mis à jour (version = 49)
+- Ajout email_helper.php dans minimal_bootstrap.php pour tests
+
+**Blocages actuels:** Aucun
 
 ---
 

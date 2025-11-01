@@ -33,6 +33,7 @@ require_once APPPATH . 'helpers/assets_helper.php';
 require_once APPPATH . 'helpers/crypto_helper.php';
 require_once APPPATH . 'helpers/csv_helper.php';
 require_once APPPATH . 'helpers/markdown_helper.php';
+require_once APPPATH . 'helpers/email_helper.php';
 
 // Load library files for testing
 function load_library($library_name) {
