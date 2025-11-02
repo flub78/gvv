@@ -33,6 +33,7 @@ class Email_lists extends Gvv_Controller
     protected $controller = 'email_lists';
     protected $model = 'email_lists_model';
     protected $modification_level = 'secretaire'; // Legacy authorization for non-migrated users
+    protected $use_new_auth = FALSE; // Use legacy authorization system
     protected $rules = array();
     protected $filter_variables = array();
 
@@ -207,9 +208,15 @@ class Email_lists extends Gvv_Controller
      * Edit - Display form for editing existing list
      *
      * @param int $id List ID
+     * @param bool $load_view Whether to load the view (default true)
+     * @param string $action Action type (default MODIFICATION)
      */
-    public function edit($id)
+    public function edit($id = '', $load_view = true, $action = MODIFICATION)
     {
+        if (empty($id)) {
+            show_404();
+        }
+
         $list = $this->email_lists_model->get_list($id);
         if (!$list) {
             show_404();
@@ -383,7 +390,7 @@ class Email_lists extends Gvv_Controller
      * @param string $filename Filename to sanitize
      * @return string Sanitized filename
      */
-    private function sanitize_filename($filename)
+    protected function sanitize_filename($filename)
     {
         // Remove special characters, keep only alphanumeric, dash, underscore
         $filename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $filename);

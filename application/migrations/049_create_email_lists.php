@@ -15,6 +15,27 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Migration_Create_email_lists extends CI_Migration
 {
+    /**
+     * Check if an index exists on a table
+     *
+     * @param string $table_name Table name
+     * @param string $index_name Index name
+     * @return bool True if index exists
+     */
+    private function index_exists($table_name, $index_name)
+    {
+        $query = $this->db->query("
+            SELECT COUNT(*) as count
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+            AND table_name = ?
+            AND index_name = ?
+        ", array($table_name, $index_name));
+
+        $result = $query->row_array();
+        return $result['count'] > 0;
+    }
+
     public function up()
     {
         // Table: email_lists
@@ -22,7 +43,7 @@ class Migration_Create_email_lists extends CI_Migration
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'auto_increment' => TRUE
             ],
             'name' => [
@@ -37,11 +58,11 @@ class Migration_Create_email_lists extends CI_Migration
                 'comment' => 'Optional description'
             ],
             'active_member' => [
-                'type' => 'ENUM',
-                'constraint' => ['active', 'inactive', 'all'],
+                'type' => 'VARCHAR',
+                'constraint' => 20,
                 'default' => 'active',
                 'null' => FALSE,
-                'comment' => 'Member status filter'
+                'comment' => 'Member status filter (active/inactive/all)'
             ],
             'visible' => [
                 'type' => 'TINYINT',
@@ -52,7 +73,7 @@ class Migration_Create_email_lists extends CI_Migration
             ],
             'created_by' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'null' => FALSE,
                 'comment' => 'User ID who created the list'
             ],
@@ -76,8 +97,17 @@ class Migration_Create_email_lists extends CI_Migration
 
         // Add unique index on name (case-sensitive via COLLATE utf8_bin)
         $this->db->query('ALTER TABLE email_lists MODIFY name VARCHAR(100) NOT NULL COLLATE utf8_bin');
-        $this->db->query('ALTER TABLE email_lists ADD UNIQUE INDEX idx_name (name)');
-        $this->db->query('ALTER TABLE email_lists ADD INDEX idx_created_by (created_by)');
+
+        if (!$this->index_exists('email_lists', 'idx_name')) {
+            $this->db->query('ALTER TABLE email_lists ADD UNIQUE INDEX idx_name (name)');
+        }
+
+        if (!$this->index_exists('email_lists', 'idx_created_by')) {
+            $this->db->query('ALTER TABLE email_lists ADD INDEX idx_created_by (created_by)');
+        }
+
+        // Convert active_member to ENUM after table creation
+        $this->db->query("ALTER TABLE email_lists MODIFY active_member ENUM('active', 'inactive', 'all') DEFAULT 'active' NOT NULL");
 
         // Add FK to users table
         $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
@@ -154,9 +184,15 @@ class Migration_Create_email_lists extends CI_Migration
         ]);
 
         // Add indexes for email_list_roles
-        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_email_list_id (email_list_id)');
-        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_types_roles_id (types_roles_id)');
-        $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_section_id (section_id)');
+        if (!$this->index_exists('email_list_roles', 'idx_email_list_id')) {
+            $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_email_list_id (email_list_id)');
+        }
+        if (!$this->index_exists('email_list_roles', 'idx_types_roles_id')) {
+            $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_types_roles_id (types_roles_id)');
+        }
+        if (!$this->index_exists('email_list_roles', 'idx_section_id')) {
+            $this->db->query('ALTER TABLE email_list_roles ADD INDEX idx_section_id (section_id)');
+        }
 
         // Add foreign keys for email_list_roles
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
@@ -176,12 +212,12 @@ class Migration_Create_email_lists extends CI_Migration
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'auto_increment' => TRUE
             ],
             'email_list_id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'null' => FALSE,
                 'comment' => 'FK to email_lists'
             ],
@@ -205,8 +241,12 @@ class Migration_Create_email_lists extends CI_Migration
         ]);
 
         // Add indexes for email_list_members
-        $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_email_list_id (email_list_id)');
-        $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_membre_id (membre_id)');
+        if (!$this->index_exists('email_list_members', 'idx_email_list_id')) {
+            $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_email_list_id (email_list_id)');
+        }
+        if (!$this->index_exists('email_list_members', 'idx_membre_id')) {
+            $this->db->query('ALTER TABLE email_list_members ADD INDEX idx_membre_id (membre_id)');
+        }
 
         // Add foreign keys for email_list_members
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
@@ -225,12 +265,12 @@ class Migration_Create_email_lists extends CI_Migration
         $this->dbforge->add_field([
             'id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'auto_increment' => TRUE
             ],
             'email_list_id' => [
                 'type' => 'INT',
-                'unsigned' => TRUE,
+                'constraint' => 11,
                 'null' => FALSE,
                 'comment' => 'FK to email_lists'
             ],
@@ -260,7 +300,9 @@ class Migration_Create_email_lists extends CI_Migration
         ]);
 
         // Add index for email_list_external
-        $this->db->query('ALTER TABLE email_list_external ADD INDEX idx_email_list_id (email_list_id)');
+        if (!$this->index_exists('email_list_external', 'idx_email_list_id')) {
+            $this->db->query('ALTER TABLE email_list_external ADD INDEX idx_email_list_id (email_list_id)');
+        }
 
         // Add foreign key for email_list_external
         $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');

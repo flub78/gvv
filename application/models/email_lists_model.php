@@ -20,6 +20,24 @@ class Email_lists_model extends CI_Model {
         $this->load->helper('email');
     }
 
+    /**
+     * Return the primary key name
+     *
+     * @return string
+     */
+    public function primary_key() {
+        return $this->primary_key;
+    }
+
+    /**
+     * Return the table name
+     *
+     * @return string
+     */
+    public function table() {
+        return $this->table;
+    }
+
     // ========================================================================
     // CRUD Operations for email_lists
     // ========================================================================

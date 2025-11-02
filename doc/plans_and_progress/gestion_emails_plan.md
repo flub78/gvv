@@ -413,6 +413,42 @@
 - Déplacer l'entrée vers un menu permanent (ex: Admin > Communications)
 - Ou activer `dev_menu` pour les utilisateurs autorisés
 
+**2025-11-02 - Tests Playwright et découverte d'erreurs**
+- **Test créé:** playwright/tests/email-lists-smoke.spec.js
+  - Test 1: Accès page index après login
+  - Test 2: Accès formulaire création et vérification onglets
+  - Test 3: Vérification entrée menu Dev
+- **Erreurs découvertes par tests:**
+  - ✅ `Undefined property: Email_lists::$use_new_auth` → Ajouté propriété protected $use_new_auth = FALSE
+  - ❌ `Table 'gvv2.email_lists' doesn't exist` → **Migrations non exécutées!**
+- **Erreurs migration découvertes lors exécution:**
+  - ❌ **Erreur 1:** `Array to string conversion` dans ENUM definition (ligne 40)
+    - **Cause:** dbforge ne supporte pas ENUM avec arrays dans 'constraint'
+    - **Solution:** Changé ENUM en VARCHAR(20) puis ALTER TABLE pour convertir en ENUM
+  - ❌ **Erreur 2:** `Can't create table (errno: 150 "Foreign key constraint is incorrectly formed")`
+    - **Cause:** Types de colonnes incompatibles pour FK - INT UNSIGNED vs INT(11)
+    - **Impact:** 4 tables (email_lists, email_list_roles, email_list_members, email_list_external)
+    - **Solution:** Remplacé tous les INT UNSIGNED par INT(11) pour correspondre aux tables existantes (users, types_roles, sections)
+    - **Colonnes corrigées:** id (4×), email_list_id (3×), created_by (1×)
+- **Statut tests:** 1/3 passed (création formulaire ✓), index et menu échouent (tables manquantes)
+- **Statut migration:** ✅ Toutes erreurs corrigées, FK types compatibles, prête à réexécuter
+
+**2025-11-02 - Corrections compatibilité Gvv_Controller**
+- **Problème 1:** Erreurs PHP sur signatures de méthodes incompatibles avec classe parente
+  - `edit($id)` ne correspondait pas à `edit($id='', $load_view=true, $action=MODIFICATION)`
+  - `sanitize_filename()` était private au lieu de protected
+- **Solution 1:**
+  - Ajusté signature `edit()` pour correspondre à parent (controller ligne 213)
+  - Ajout validation `empty($id)` pour compatibilité avec paramètre optionnel
+  - Changé visibilité `sanitize_filename()` de private à protected (controller ligne 388)
+- **Problème 2:** Call to undefined method Email_lists_model::primary_key()
+  - Gvv_Controller attend que les models aient les méthodes `primary_key()` et `table()`
+- **Solution 2:**
+  - Ajouté méthode `primary_key()` dans email_lists_model.php (ligne 28)
+  - Ajouté méthode `table()` dans email_lists_model.php (ligne 37)
+- **Validation:** `php -l` - 0 erreurs sur controller et model
+- **Statut:** Tous problèmes résolus, fonctionnel
+
 ---
 
 **Dernière mise à jour:** 2025-11-02
