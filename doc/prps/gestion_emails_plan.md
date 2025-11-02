@@ -7,11 +7,68 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours (105/123 tâches - 85%)
-**Phase actuelle:** Phase 5 terminée + menu ajouté, Phase 6 en attente
-**Estimation:** 8 semaines (1 personne)
+**Statut global:** 🔵 En cours (105/138 tâches - 76%)
+**Phase actuelle:** Phase 5 terminée + menu ajouté, Phase 6 (système couleur) en attente
+**Estimation:** 9 semaines (1 personne)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
+
+## Table des matières
+
+- [Implementation Plan - Gestion des Adresses Email](#implementation-plan---gestion-des-adresses-email)
+  - [Table des matières](#table-des-matières)
+  - [Phase 1: Fondations - 🟢 24/24 (Semaine 1) - TERMINÉ](#phase-1-fondations----2424-semaine-1---terminé)
+    - [1.1 Migration base de données](#11-migration-base-de-données)
+    - [1.2 Helper de validation email](#12-helper-de-validation-email)
+    - [1.3 Model de base](#13-model-de-base)
+    - [1.4 Tests](#14-tests)
+  - [Phase 2: Sélection par critères via email\_list\_roles - 🟢 11/11 (Semaine 2) - TERMINÉ](#phase-2-sélection-par-critères-via-email_list_roles----1111-semaine-2---terminé)
+    - [2.1 Analyse architecture autorisations ✅](#21-analyse-architecture-autorisations-)
+    - [2.2 Méthodes model pour chargement données ✅ (déjà implémenté Phase 1)](#22-méthodes-model-pour-chargement-données--déjà-implémenté-phase-1)
+    - [2.3 Gestion table email\_list\_roles ✅ (déjà implémenté Phase 1)](#23-gestion-table-email_list_roles--déjà-implémenté-phase-1)
+    - [2.4 Tests et optimisation ✅](#24-tests-et-optimisation-)
+  - [Phase 3: Sélection manuelle et import - 🟢 17/17 (Semaine 3) - TERMINÉ](#phase-3-sélection-manuelle-et-import----1717-semaine-3---terminé)
+    - [3.1 Sélection manuelle de membres internes ✅](#31-sélection-manuelle-de-membres-internes-)
+    - [3.2 Gestion emails externes ✅](#32-gestion-emails-externes-)
+    - [3.3 Import fichier texte ✅](#33-import-fichier-texte-)
+    - [3.4 Import fichier CSV ✅](#34-import-fichier-csv-)
+    - [3.5 Gestion doublons ✅](#35-gestion-doublons-)
+    - [3.6 Tests ✅](#36-tests-)
+  - [Phase 4: Export et utilisation - 🟢 20/20 (Semaine 4) - TERMINÉ](#phase-4-export-et-utilisation----2020-semaine-4---terminé)
+    - [4.1 Export presse-papier ✅](#41-export-presse-papier-)
+    - [4.2 Export fichiers TXT/Markdown ✅](#42-export-fichiers-txtmarkdown-)
+    - [4.3 Découpage en sous-listes ✅](#43-découpage-en-sous-listes-)
+    - [4.4 Génération mailto ✅](#44-génération-mailto-)
+    - [4.5 Mémorisation préférences ✅](#45-mémorisation-préférences-)
+    - [4.6 Tests ✅](#46-tests-)
+  - [Phase 5: Controller et UI - 🟢 20/20 (Semaine 5) - TERMINÉ](#phase-5-controller-et-ui----2020-semaine-5---terminé)
+    - [5.1 Controller ✅ (10/10 tâches)](#51-controller--1010-tâches)
+    - [5.2 Views ✅ (8/8 tâches)](#52-views--88-tâches)
+    - [5.3 UI sélection par rôles (déplacé de Phase 2.4) ✅ (5/5 tâches)](#53-ui-sélection-par-rôles-déplacé-de-phase-24--55-tâches)
+    - [5.4 Metadata et navigation ✅ (2/2 tâches)](#54-metadata-et-navigation--22-tâches)
+    - [5.5 Tests ⚪ (0/1 tâche)](#55-tests--01-tâche)
+  - [Phase 6: Système de codage couleur (PRD 4.2.4) - ⚪ 0/15 (Semaine 6)](#phase-6-système-de-codage-couleur-prd-424----015-semaine-6)
+    - [6.1 Extension table types\_roles pour couleurs](#61-extension-table-types_roles-pour-couleurs)
+    - [6.2 Attribution automatique couleurs de rôles](#62-attribution-automatique-couleurs-de-rôles)
+    - [6.3 Enrichissement résolution avec métadonnées couleur](#63-enrichissement-résolution-avec-métadonnées-couleur)
+    - [6.4 Controller AJAX pour UI couleur](#64-controller-ajax-pour-ui-couleur)
+    - [6.5 Interface à onglets avec système de couleur](#65-interface-à-onglets-avec-système-de-couleur)
+    - [6.6 JavaScript pour gestion couleur](#66-javascript-pour-gestion-couleur)
+    - [6.7 Tests système couleur](#67-tests-système-couleur)
+  - [Phase 7: Documentation et finalisation - ⚪ 0/9 (Semaine 7)](#phase-7-documentation-et-finalisation----09-semaine-7)
+    - [7.1 Documentation utilisateur](#71-documentation-utilisateur)
+    - [7.2 Documentation technique](#72-documentation-technique)
+    - [7.3 Diagrammes et prototypes](#73-diagrammes-et-prototypes)
+  - [Phase 8: Tests et qualité - ⚪ 0/11 (Semaine 8)](#phase-8-tests-et-qualité----011-semaine-8)
+    - [8.1 Tests unitaires](#81-tests-unitaires)
+    - [8.2 Tests d'intégration](#82-tests-dintégration)
+    - [8.3 Tests manuels](#83-tests-manuels)
+    - [8.4 Validation couverture](#84-validation-couverture)
+  - [Phase 9: Déploiement - ⚪ 0/9 (Semaine 9)](#phase-9-déploiement----09-semaine-9)
+    - [9.1 Pré-déploiement](#91-pré-déploiement)
+    - [9.2 Documentation déploiement](#92-documentation-déploiement)
+    - [9.3 Formation et production](#93-formation-et-production)
+  - [Notes et blocages](#notes-et-blocages)
 
 ---
 
@@ -203,69 +260,114 @@
 
 ---
 
-## Phase 6: Internationalisation et documentation - ⚪ 0/9 (Semaine 6)
+## Phase 6: Système de codage couleur (PRD 4.2.4) - ⚪ 0/15 (Semaine 6)
 
-### 6.1 Traductions
-- [ ] `application/language/french/email_lists_lang.php`
-- [ ] `application/language/english/email_lists_lang.php`
-- [ ] `application/language/dutch/email_lists_lang.php`
+### 6.1 Extension table types_roles pour couleurs
+- [ ] Créer migration 051 pour ajouter colonne `color` à `types_roles`
+- [ ] ALTER TABLE types_roles ADD COLUMN color VARCHAR(7) DEFAULT NULL
+- [ ] Mise à jour config/migration.php version = 51
 
-### 6.2 Documentation utilisateur
-- [ ] Section guide utilisateur français
-- [ ] Section guide utilisateur anglais
-- [ ] Section guide utilisateur néerlandais
-- [ ] Captures d'écran interfaces
+### 6.2 Attribution automatique couleurs de rôles
+- [ ] Helper `generate_role_color($role_name)` - génération via hash MD5
+- [ ] Palette prédéfinie pour rôles courants (admin, bureau, tresorier, etc.)
+- [ ] Intégration dans `get_available_roles()` pour couleurs automatiques
 
-### 6.3 Documentation technique
-- [ ] Vérifier Design Document à jour
-- [ ] Diagrammes PlantUML (si modifications)
-- [ ] PHPDoc dans tout le code
+### 6.3 Enrichissement résolution avec métadonnées couleur
+- [ ] Modifier `textual_list($list_id, $include_color_metadata = false)`
+- [ ] Retourner badges avec section_color, role_color, section_name, role_name
+- [ ] Méthode `deduplicate_emails_with_badges()` pour fusion des pastilles
+
+### 6.4 Controller AJAX pour UI couleur
+- [ ] Action `ajax_update_selected_list()` - liste droite avec pastilles en temps réel
+- [ ] Action `textual_list($list_id)` - JSON avec métadonnées de couleur
+- [ ] Modification `preview_count()` pour inclure infos couleur
+
+### 6.5 Interface à onglets avec système de couleur
+- [ ] Restructurer views avec split-panel gauche/droite
+- [ ] Onglets : Par critères (couleur) / Manuel / Externes avec badges de comptage
+- [ ] Grille rôles × sections avec couleurs de background section
+- [ ] Checkboxes colorées (background section + bordure rôle) quand cochées
+- [ ] Liste droite avec pastilles colorées par critère de sélection
+
+### 6.6 JavaScript pour gestion couleur
+- [ ] `generateColorBadge(sectionColor, roleColor)` - génération pastilles HTML
+- [ ] `assignRoleColors(roles)` - attribution couleurs côté client
+- [ ] `updateTabCounts()` - badges de comptage sur onglets
+- [ ] Mise à jour `updateSelectedList()` pour pastilles couleur
+
+### 6.7 Tests système couleur
+- [ ] Tests unitaires génération couleurs
+- [ ] Tests intégration résolution avec badges
+- [ ] Tests JavaScript (si framework disponible)
 
 ---
 
-## Phase 7: Tests et qualité - ⚪ 0/11 (Semaine 7)
+## Phase 7: Documentation et finalisation - ⚪ 0/9 (Semaine 7)
 
-### 7.1 Tests unitaires
+### 7.1 Documentation utilisateur
+- [ ] Section guide utilisateur français
+- [ ] Section guide utilisateur anglais
+- [ ] Section guide utilisateur néerlandais
+- [ ] Captures d'écran interfaces avec système couleur
+
+### 7.2 Documentation technique
+- [ ] Vérifier Design Document à jour avec évolutions couleur
+- [ ] Diagrammes PlantUML (si modifications)
+- [ ] PHPDoc dans tout le code
+
+### 7.3 Diagrammes et prototypes
+- [ ] Générer diagrammes PlantUML (email_lists_er.puml, email_export_sequence.puml)
+- [ ] Créer images des diagrammes pour GitHub
+- [ ] Prototype HTML interactif pour démonstration
+
+---
+
+## Phase 8: Tests et qualité - ⚪ 0/11 (Semaine 8)
+
+### 8.1 Tests unitaires
 - [ ] Helper email: couverture >80%
 - [ ] Validation, normalisation, dédoublonnage
 - [ ] Parsing (texte, CSV)
 - [ ] Génération mailto et fichiers
+- [ ] Tests génération couleurs et badges
 
-### 7.2 Tests d'intégration
+### 8.2 Tests d'intégration
 - [ ] Sélection multi-critères avec base réelle
 - [ ] Résolution listes (critères + manuels + externes)
 - [ ] Détection doublons complexes
 - [ ] CRUD listes
 - [ ] Tests avec données volumineuses (500+ membres)
+- [ ] Tests résolution avec métadonnées couleur
 
-### 7.3 Tests manuels
+### 8.3 Tests manuels
 - [ ] Chrome, Firefox, Edge (dernières versions)
 - [ ] Mobile (Chrome/Safari iOS/Android)
 - [ ] Outlook, Thunderbird, Gmail (ouverture mailto)
 - [ ] Export fichiers et copier/coller
 - [ ] Tests performance (>100 destinataires)
+- [ ] Interface à onglets et système couleur
 
-### 7.4 Validation couverture
+### 8.4 Validation couverture
 - [ ] Exécuter `./run-all-tests.sh --coverage`
 - [ ] Vérifier couverture >70% globale
 
 ---
 
-## Phase 8: Déploiement - ⚪ 0/9 (Semaine 8)
+## Phase 9: Déploiement - ⚪ 0/9 (Semaine 9)
 
-### 8.1 Pré-déploiement
+### 9.1 Pré-déploiement
 - [ ] Analyser données existantes (ancien système email)
 - [ ] Script migration si nécessaire
 - [ ] Tests migration sur copie base
 - [ ] Déployer sur environnement de test
 - [ ] Validation toutes fonctionnalités
 
-### 8.2 Documentation déploiement
+### 9.2 Documentation déploiement
 - [ ] Procédure de déploiement
 - [ ] Checklist pré-déploiement
 - [ ] Plan de rollback
 
-### 8.3 Formation et production
+### 9.3 Formation et production
 - [ ] Formation secrétaires
 - [ ] Déploiement production
 - [ ] Monitoring initial
@@ -403,15 +505,29 @@
   - Accessible si dev_menu activé dans config
 - **Restant à faire:**
   - Tests controller (section 5.5)
-  - Phase 6 (internationalisation et documentation)
-  - Phase 7 (tests et qualité)
-  - Phase 8 (déploiement)
+  - Système de codage couleur complet (Phase 6 dédiée)
+  - Phase 7 (documentation et finalisation)
+  - Phase 8 (tests et qualité)
+  - Phase 9 (déploiement)
+
+**Note importante:** L'interface implémentée en Phase 5 a les 3 onglets requis mais **manque le système de codage couleur complet** spécifié dans PRD 4.2.4 (pastilles, couleurs section/rôle, interface split-panel améliorée). Cette fonctionnalité majeure fait l'objet de la Phase 6.
 
 **Blocages actuels:** Aucun
 
 **Note déploiement:** Le menu Dev est contrôlé par la configuration `dev_menu`. En production, il faudra soit :
 - Déplacer l'entrée vers un menu permanent (ex: Admin > Communications)
 - Ou activer `dev_menu` pour les utilisateurs autorisés
+
+**2025-11-02 - Évolution PRD et Design: Système de codage couleur (PRD 4.2.4)**
+- **Nouvelle exigence identifiée:** Interface à onglets avec système de codage couleur
+- **Interface split-panel:** Gauche (sélection avec 3 onglets) / Droite (liste adresses avec pastilles)
+- **Codage couleur:** Background colonnes = couleur section, bordure checkbox = couleur rôle
+- **Pastilles dans liste:** Visualisation critères de sélection (section + rôle)
+- **Extension DB requise:** Colonne `color` dans table `types_roles`
+- **Impact planning:** +15 tâches, +1 semaine (Phase 6 dédiée au système couleur)
+- **Total projet:** 138 tâches (123 + 15), 9 semaines (8 + 1)
+- **Migration requise:** 051 pour extension table types_roles
+- **Statut actuel:** Phase 5 terminée mais manque système couleur du PRD 4.2.4
 
 **2025-11-02 - Tests Playwright et découverte d'erreurs**
 - **Test créé:** playwright/tests/email-lists-smoke.spec.js

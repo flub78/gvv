@@ -1,5 +1,49 @@
 # Product Requirements Document (PRD) - Gestion des Adresses Email dans GVV
 
+## Table des matières
+
+- [Product Requirements Document (PRD) - Gestion des Adresses Email dans GVV](#product-requirements-document-prd---gestion-des-adresses-email-dans-gvv)
+  - [Table des matières](#table-des-matières)
+  - [1. Vue d'ensemble](#1-vue-densemble)
+    - [1.1 Objectif](#11-objectif)
+    - [1.2 Problème à résoudre](#12-problème-à-résoudre)
+    - [1.3 Valeur ajoutée](#13-valeur-ajoutée)
+  - [2. Périmètre fonctionnel](#2-périmètre-fonctionnel)
+    - [2.1 Dans le périmètre](#21-dans-le-périmètre)
+    - [2.2 Hors périmètre](#22-hors-périmètre)
+  - [3. Utilisateurs et rôles](#3-utilisateurs-et-rôles)
+    - [3.1 Rôle : Secrétaire](#31-rôle--secrétaire)
+  - [4. Exigences fonctionnelles](#4-exigences-fonctionnelles)
+    - [4.1 Sélection d'adresses](#41-sélection-dadresses)
+      - [4.1.1 Critères de sélection GVV](#411-critères-de-sélection-gvv)
+      - [4.1.2 Interface de sélection](#412-interface-de-sélection)
+    - [4.2 Gestion des listes de diffusion](#42-gestion-des-listes-de-diffusion)
+      - [4.2.1 Création de liste](#421-création-de-liste)
+      - [4.2.2 Modification de liste](#422-modification-de-liste)
+      - [4.2.3 Suppression de liste](#423-suppression-de-liste)
+      - [4.2.4 Fenêtre de création/modification des listes](#424-fenêtre-de-créationmodification-des-listes)
+        - [Maquette avec onglets (onglet Par critères GVV)](#maquette-avec-onglets-onglet-par-critères-gvv)
+        - [Maquette avec onglets (onglet Sélection manuelle)](#maquette-avec-onglets-onglet-sélection-manuelle)
+        - [Maquette avec onglets (onglet Adresses externes)](#maquette-avec-onglets-onglet-adresses-externes)
+      - [4.3 Détection des doublons](#43-détection-des-doublons)
+    - [4.4 Import d'adresses externes](#44-import-dadresses-externes)
+      - [4.4.1 Formats supportés](#441-formats-supportés)
+    - [4.5 Export et envoi](#45-export-et-envoi)
+      - [4.5.1 Export vers presse-papier](#451-export-vers-presse-papier)
+      - [4.5.2 Export vers fichier texte](#452-export-vers-fichier-texte)
+      - [4.5.3 Découpage en sous-listes](#453-découpage-en-sous-listes)
+      - [4.5.4 Paramètres d'ouverture du client de messagerie](#454-paramètres-douverture-du-client-de-messagerie)
+  - [5. Exigences non-fonctionnelles](#5-exigences-non-fonctionnelles)
+    - [5.1 Performance](#51-performance)
+    - [5.2 Sécurité](#52-sécurité)
+    - [5.3 Compatibilité](#53-compatibilité)
+    - [5.4 Maintenance](#54-maintenance)
+  - [6. Critères de succès](#6-critères-de-succès)
+  - [7. Risques et mitigation](#7-risques-et-mitigation)
+  - [8. Documentation requise](#8-documentation-requise)
+
+---
+
 ## 1. Vue d'ensemble
 
 ### 1.1 Objectif
@@ -72,8 +116,6 @@ Le système doit permettre la sélection selon:
 - Validation des adresses email (format valide)
 - **Dédoublonnage automatique:** si un utilisateur est sélectionné par plusieurs critères (ex: instructeur ET membre de la section ULM), son adresse n'apparaît qu'une seule fois dans la liste finale
 
-La selection ressemblera à l'attribution des rôles. Il suffira de cliquer sur les groupes.
-![Attribution des rôles](./images/attribution_des_roles.png)  
 
 ### 4.2 Gestion des listes de diffusion
 
@@ -106,15 +148,22 @@ La selection ressemblera à l'attribution des rôles. Il suffira de cliquer sur 
 La fenêtre de création/modification doit respecter les critères suivants:
 
 1. Elle sera constituée d'une fenêtre de sélection (à gauche) et d'un liste des adresses sélectionnées (à droite)
-1. La fenêtre de sélection comprendra trois sections: la sélection par critères GVV, la sélection manuelle et la gestion des adresses externes.
+1. La fenêtre de sélection comprendra trois onglets: la sélection par critères GVV, la sélection manuelle et la gestion des adresses externes.
 
 1. La selection par critères GVV permettra de cocher les rôles dans les sections. Elle se présentera comme la fenêtre d'attribution des rôles.
 1. La sélection manuelle permettra de cocher les membres un par un dans une liste paginée avec barre de recherche.
 1. La gestion des adresses externes permettra d'importer des adresses depuis un fichier ou de les saisir manuellement. La saisie manuelle permettra la saisie d'une adresse et d'un nom optionnel.
-1. La liste des adresses sélectionnées affichera les adresses avec le nom (si disponible). Pour les adresses sélectionnées manuellement ou importées, elle seront affichées telles avec une icône poubelle pour les supprimer de la liste.
-1. Selection par critère: Nom de colonnes utiliseront les couleurs des section en background. On affectera une couleur à chacun des rôles. Lorsque un rôle est sélectionné, la checkbox sera colorée avec la couleur de la section avec une bordure de la couleur du rôle. On affichera une pastille avec le même code couleur à côté de chaque adresse sélectionnée par critère dans la liste des adresses sélectionnées. Cela permettra de visualiser rapidement par quel critère une adresse a été sélectionnée. Si une adresse est sélectionnée par plusieurs critères, on affichera plusieurs pastilles.
+2. La liste des adresses sélectionnées affichera les adresses avec le nom (si disponible). Pour les adresses sélectionnées manuellement ou importées, elle seront affichées avec une icône poubelle pour les supprimer de la liste.
+3. Selection par critère: Nom de colonnes utiliseront les couleurs des section en background. On affectera une couleur à chacun des rôles. Lorsque un rôle est sélectionné, la checkbox sera colorée avec la couleur de la section avec une bordure de la couleur du rôle. On affichera une pastille avec le même code couleur à côté de chaque adresse sélectionnée par critère dans la liste des adresses sélectionnées. Cela permettra de visualiser rapidement par quel critère une adresse a été sélectionnée. Si une adresse est sélectionnée par plusieurs critères, on affichera plusieurs pastilles.
 
-![Prototype gestion des listes](images/liste_creation_window.png)  
+##### Maquette avec onglets (onglet Par critères GVV)
+![Prototype version préférée](images/liste_creation_window_with_tabs_1.png) 
+
+##### Maquette avec onglets (onglet Sélection manuelle)
+![Prototype version préférée](images/liste_creation_window_with_tabs_2.png) 
+
+##### Maquette avec onglets (onglet Adresses externes)
+![Prototype version préférée](images/liste_creation_window_with_tabs_3.png)  
 
 
 
@@ -155,13 +204,9 @@ Pour permettre le partage avec des personnes n'ayant pas accès à GVV:
 **Date:** 2025-01-15
 **Nombre de destinataires:** 12
 
-jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com
-```
-
-
 ## Adresses (copier/coller)
 jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com, ...
-
+```
 
 **Fonctionnalités:**
 - Bouton de téléchargement du fichier 
@@ -173,7 +218,7 @@ jean.dupont@example.com, marie.martin@example.com, pierre.durant@example.com, ..
 - L'instructeur ouvre le fichier, copie les adresses et les colle dans Thunderbird
 - Président exporte "Animateurs simulateur" en .md pour garder une trace avec les noms complets
 
-#### 4.4.3 Découpage en sous-listes
+#### 4.5.3 Découpage en sous-listes
 Pour s'adapter aux limitations des clients de messagerie:
 - **Taille de découpage configurable:** par défaut 20 destinataires maximum par sous-liste
 - **Sélection de la partie à exporter:** interface permettant de choisir "Partie 1/5", "Partie 2/5", etc.
@@ -206,7 +251,7 @@ Pour s'adapter aux limitations des clients de messagerie:
 └─────────────────────────────────────────────────────────┘
 ```
 
-#### 4.4.4 Ouverture client de messagerie
+#### 4.5.4 Paramètres d'ouverture du client de messagerie
 - Génération d'un lien `mailto:` avec les adresses de la partie sélectionnée
 - **Placement des adresses:** option de choix entre TO, CC, BCC pour les destinataires sélectionnés
 - **Titre du message (Subject):** champ de saisie pour définir l'objet du courriel
@@ -230,6 +275,7 @@ Pour s'adapter aux limitations des clients de messagerie:
 │ [Ouvrir le client de messagerie]                        │
 └─────────────────────────────────────────────────────────┘
 ```
+![](images/export_mailto.png)
 
 ## 5. Exigences non-fonctionnelles
 

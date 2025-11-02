@@ -46,6 +46,30 @@
             font-size: 1.1rem;
         }
 
+        /* Tab styling */
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 500;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: #0d6efd;
+            color: #0d6efd;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            border-bottom-color: #0d6efd;
+            background-color: transparent;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+
         /* Couleurs des sections */
         .section-ulm { background-color: #fff3cd; }
         .section-planeur { background-color: #d1ecf1; }
@@ -206,6 +230,16 @@
             color: #6c757d;
             font-size: 0.9rem;
         }
+
+        /* Tab badge count */
+        .tab-count {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -225,214 +259,278 @@
     </div>
 
     <div class="split-container">
-        <!-- PANNEAU GAUCHE : Sélection -->
+        <!-- PANNEAU GAUCHE : Sélection avec onglets -->
         <div class="left-panel">
             <h5><i class="bi bi-funnel"></i> Critères de sélection</h5>
 
-            <!-- 1. Sélection par critères GVV -->
-            <div class="section-box">
-                <div class="section-title"><i class="bi bi-grid-3x3-gap"></i> Sélection par rôles et sections</div>
-
-                <table class="criteria-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 150px;">Rôle</th>
-                            <th class="section-ulm">ULM</th>
-                            <th class="section-planeur">Planeur</th>
-                            <th class="section-avion">Avion</th>
-                            <th class="section-admin">Admin</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="role-label role-instructeur">
-                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Instructeur
-                            </td>
-                            <td class="section-ulm">
-                                <div class="checkbox-wrapper checked role-instructeur" style="background-color: #fff3cd;">
-                                    <input type="checkbox" class="colored-checkbox" checked>
-                                </div>
-                            </td>
-                            <td class="section-planeur">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-avion">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-admin">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="role-label role-tresorier">
-                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trésorier
-                            </td>
-                            <td class="section-ulm">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-planeur">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-avion">
-                                <div class="checkbox-wrapper checked role-tresorier" style="background-color: #f8d7da;">
-                                    <input type="checkbox" class="colored-checkbox" checked>
-                                </div>
-                            </td>
-                            <td class="section-admin">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="role-label role-pilote">
-                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Pilote
-                            </td>
-                            <td class="section-ulm">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-planeur">
-                                <div class="checkbox-wrapper checked role-pilote" style="background-color: #d1ecf1;">
-                                    <input type="checkbox" class="colored-checkbox" checked>
-                                </div>
-                            </td>
-                            <td class="section-avion">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-admin">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="role-label role-admin">
-                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Administrateur
-                            </td>
-                            <td class="section-ulm">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-planeur">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-avion">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" class="colored-checkbox">
-                                </div>
-                            </td>
-                            <td class="section-admin">
-                                <div class="checkbox-wrapper checked role-admin" style="background-color: #d4edda;">
-                                    <input type="checkbox" class="colored-checkbox" checked>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="alert alert-info mt-2 mb-0" style="font-size: 0.85rem;">
-                    <i class="bi bi-info-circle"></i> Les adresses sont mises à jour automatiquement selon les critères sélectionnés
-                </div>
-            </div>
-
-            <!-- 2. Sélection manuelle -->
-            <div class="section-box">
-                <div class="section-title"><i class="bi bi-person-check"></i> Sélection manuelle de membres</div>
-
-                <div class="search-box">
-                    <input type="text" class="form-control form-control-sm" placeholder="🔍 Rechercher un membre...">
-                </div>
-
-                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="member1" checked>
-                        <label class="form-check-label" for="member1" style="font-size: 0.9rem;">
-                            Jean Dupont <small class="text-muted">(jean.dupont@example.com)</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="member2">
-                        <label class="form-check-label" for="member2" style="font-size: 0.9rem;">
-                            Marie Martin <small class="text-muted">(marie.martin@example.com)</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="member3">
-                        <label class="form-check-label" for="member3" style="font-size: 0.9rem;">
-                            Pierre Durant <small class="text-muted">(pierre.durant@example.com)</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="member4">
-                        <label class="form-check-label" for="member4" style="font-size: 0.9rem;">
-                            Sophie Bernard <small class="text-muted">(sophie.bernard@example.com)</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="member5" checked>
-                        <label class="form-check-label" for="member5" style="font-size: 0.9rem;">
-                            Luc Petit <small class="text-muted">(luc.petit@example.com)</small>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="pagination-simple">
-                    <span>Page 1 sur 12</span>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary" disabled>←</button>
-                        <button class="btn btn-sm btn-outline-secondary">→</button>
-                    </div>
-                </div>
-
-                <div class="alert alert-warning mt-2 mb-0" style="font-size: 0.85rem;">
-                    <i class="bi bi-exclamation-triangle"></i> Liste statique - mise à jour manuelle uniquement
-                </div>
-            </div>
-
-            <!-- 3. Adresses externes -->
-            <div class="section-box">
-                <div class="section-title"><i class="bi bi-box-arrow-in-down"></i> Adresses externes</div>
-
-                <div class="import-zone mb-2">
-                    <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
-                    <div class="mt-2">Glisser un fichier CSV ou TXT ici</div>
-                    <small class="text-muted">ou cliquer pour parcourir</small>
-                    <input type="file" class="d-none" accept=".csv,.txt">
-                </div>
-
-                <div class="input-group input-group-sm">
-                    <input type="email" class="form-control" placeholder="email@externe.com">
-                    <input type="text" class="form-control" placeholder="Nom (optionnel)">
-                    <button class="btn btn-outline-primary" type="button">
-                        <i class="bi bi-plus-circle"></i>
+            <!-- Navigation par onglets -->
+            <ul class="nav nav-tabs mt-3" id="selectionTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="criteria-tab" data-bs-toggle="tab" data-bs-target="#criteria" type="button" role="tab">
+                        <i class="bi bi-grid-3x3-gap"></i> Par critères
+                        <span class="tab-count">3</span>
                     </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+                        <i class="bi bi-person-check"></i> Sélection manuelle
+                        <span class="tab-count">2</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="external-tab" data-bs-toggle="tab" data-bs-target="#external" type="button" role="tab">
+                        <i class="bi bi-box-arrow-in-down"></i> Adresses externes
+                        <span class="tab-count">2</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Contenu des onglets -->
+            <div class="tab-content" id="selectionTabContent">
+                <!-- ONGLET 1: Sélection par critères GVV -->
+                <div class="tab-pane fade show active" id="criteria" role="tabpanel">
+                    <div class="section-box">
+                        <div class="section-title">Rôles et sections</div>
+
+                        <table class="criteria-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px;">Rôle</th>
+                                    <th class="section-ulm">ULM</th>
+                                    <th class="section-planeur">Planeur</th>
+                                    <th class="section-avion">Avion</th>
+                                    <th class="section-admin">Admin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="role-label role-instructeur">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Instructeur
+                                    </td>
+                                    <td class="section-ulm">
+                                        <div class="checkbox-wrapper checked role-instructeur" style="background-color: #fff3cd;">
+                                            <input type="checkbox" class="colored-checkbox" checked>
+                                        </div>
+                                    </td>
+                                    <td class="section-planeur">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-avion">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-admin">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="role-label role-tresorier">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Trésorier
+                                    </td>
+                                    <td class="section-ulm">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-planeur">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-avion">
+                                        <div class="checkbox-wrapper checked role-tresorier" style="background-color: #f8d7da;">
+                                            <input type="checkbox" class="colored-checkbox" checked>
+                                        </div>
+                                    </td>
+                                    <td class="section-admin">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="role-label role-pilote">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Pilote
+                                    </td>
+                                    <td class="section-ulm">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-planeur">
+                                        <div class="checkbox-wrapper checked role-pilote" style="background-color: #d1ecf1;">
+                                            <input type="checkbox" class="colored-checkbox" checked>
+                                        </div>
+                                    </td>
+                                    <td class="section-avion">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-admin">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="role-label role-admin">
+                                        <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Administrateur
+                                    </td>
+                                    <td class="section-ulm">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-planeur">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-avion">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="colored-checkbox">
+                                        </div>
+                                    </td>
+                                    <td class="section-admin">
+                                        <div class="checkbox-wrapper checked role-admin" style="background-color: #d4edda;">
+                                            <input type="checkbox" class="colored-checkbox" checked>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="alert alert-info mt-3 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-info-circle"></i> Les adresses sont mises à jour automatiquement selon les critères sélectionnés
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mt-2" style="font-size: 0.85rem;">
-                    <div class="d-flex justify-content-between align-items-center py-1">
-                        <span><i class="bi bi-envelope"></i> auditeur1@externe.fr <small class="text-muted">(Auditeur BIA)</small></span>
-                        <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                <!-- ONGLET 2: Sélection manuelle -->
+                <div class="tab-pane fade" id="manual" role="tabpanel">
+                    <div class="section-box">
+                        <div class="section-title">Membres à ajouter individuellement</div>
+
+                        <div class="search-box">
+                            <input type="text" class="form-control form-control-sm" placeholder="🔍 Rechercher un membre...">
+                        </div>
+
+                        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 5px;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member1" checked>
+                                <label class="form-check-label" for="member1" style="font-size: 0.9rem;">
+                                    Jean Dupont <small class="text-muted">(jean.dupont@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member2">
+                                <label class="form-check-label" for="member2" style="font-size: 0.9rem;">
+                                    Marie Martin <small class="text-muted">(marie.martin@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member3">
+                                <label class="form-check-label" for="member3" style="font-size: 0.9rem;">
+                                    Pierre Durant <small class="text-muted">(pierre.durant@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member4">
+                                <label class="form-check-label" for="member4" style="font-size: 0.9rem;">
+                                    Sophie Bernard <small class="text-muted">(sophie.bernard@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member5" checked>
+                                <label class="form-check-label" for="member5" style="font-size: 0.9rem;">
+                                    Luc Petit <small class="text-muted">(luc.petit@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member6">
+                                <label class="form-check-label" for="member6" style="font-size: 0.9rem;">
+                                    Anne Dubois <small class="text-muted">(anne.dubois@example.com)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="member7">
+                                <label class="form-check-label" for="member7" style="font-size: 0.9rem;">
+                                    Thomas Lefebvre <small class="text-muted">(thomas.lefebvre@example.com)</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pagination-simple">
+                            <span>Page 1 sur 12</span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary" disabled>←</button>
+                                <button class="btn btn-sm btn-outline-secondary">→</button>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-exclamation-triangle"></i> Liste statique - mise à jour manuelle uniquement
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center py-1">
-                        <span><i class="bi bi-envelope"></i> externe@gmail.com</span>
-                        <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                </div>
+
+                <!-- ONGLET 3: Adresses externes -->
+                <div class="tab-pane fade" id="external" role="tabpanel">
+                    <div class="section-box">
+                        <div class="section-title">Import et saisie d'adresses externes</div>
+
+                        <div class="import-zone mb-3">
+                            <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
+                            <div class="mt-2">Glisser un fichier CSV ou TXT ici</div>
+                            <small class="text-muted">ou cliquer pour parcourir</small>
+                            <input type="file" class="d-none" accept=".csv,.txt">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ajout manuel d'une adresse</label>
+                            <div class="input-group">
+                                <input type="email" class="form-control" placeholder="email@externe.com">
+                                <input type="text" class="form-control" placeholder="Nom (optionnel)">
+                                <button class="btn btn-outline-primary" type="button">
+                                    <i class="bi bi-plus-circle"></i> Ajouter
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-bold">Adresses ajoutées (2)</label>
+                            <div style="border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;">
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div>
+                                        <i class="bi bi-envelope"></i>
+                                        <code>auditeur1@externe.fr</code>
+                                        <small class="text-muted ms-2">(Auditeur BIA)</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-danger p-0">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2">
+                                    <div>
+                                        <i class="bi bi-envelope"></i>
+                                        <code>externe@gmail.com</code>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-danger p-0">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-info-circle"></i> Format CSV accepté : email, nom (séparateur virgule ou point-virgule)
+                        </div>
                     </div>
                 </div>
             </div>
@@ -611,9 +709,35 @@
     });
 
     // Simulation zone de drop
-    document.querySelector('.import-zone').addEventListener('click', function() {
-        this.querySelector('input[type="file"]').click();
+    const importZone = document.querySelector('.import-zone');
+    if (importZone) {
+        importZone.addEventListener('click', function() {
+            this.querySelector('input[type="file"]').click();
+        });
+    }
+
+    // Update tab counts dynamically
+    function updateTabCounts() {
+        // Criteria tab - count checked checkboxes in criteria table
+        const criteriaChecked = document.querySelectorAll('#criteria .colored-checkbox:checked').length;
+        document.querySelector('#criteria-tab .tab-count').textContent = criteriaChecked;
+
+        // Manual tab - count checked checkboxes in manual selection
+        const manualChecked = document.querySelectorAll('#manual .form-check-input:checked').length;
+        document.querySelector('#manual-tab .tab-count').textContent = manualChecked;
+
+        // External tab - count external emails
+        const externalCount = document.querySelectorAll('#external code').length;
+        document.querySelector('#external-tab .tab-count').textContent = externalCount;
+    }
+
+    // Listen for checkbox changes
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateTabCounts);
     });
+
+    // Initialize counts on load
+    updateTabCounts();
 </script>
 
 </body>

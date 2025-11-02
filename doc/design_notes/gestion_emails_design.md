@@ -4,8 +4,66 @@
 **Fonctionnalité:** Système de gestion des listes de diffusion email
 **PRD:** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 **Date de création:** 2025-10-31
-**Version:** 1.0
-**Statut:** Proposition
+**Version:** 1.2
+**Dernière mise à jour:** 2025-11-02
+**Statut:** Approuvé pour implémentation
+
+## Table des matières
+
+- [Design Document - Gestion des Adresses Email dans GVV](#design-document---gestion-des-adresses-email-dans-gvv)
+  - [Table des matières](#table-des-matières)
+  - [1. Vue d'ensemble de l'architecture](#1-vue-densemble-de-larchitecture)
+    - [1.1 Stack technique](#11-stack-technique)
+    - [1.2 Architecture MVC](#12-architecture-mvc)
+  - [2. Base de données](#2-base-de-données)
+    - [2.1 Schéma des tables](#21-schéma-des-tables)
+      - [Table: `email_lists`](#table-email_lists)
+      - [Table: `email_list_roles`](#table-email_list_roles)
+      - [Table: `email_list_members`](#table-email_list_members)
+      - [Table: `email_list_external`](#table-email_list_external)
+    - [2.2 Diagramme ER](#22-diagramme-er)
+    - [2.3 Types de source d'adresse](#23-types-de-source-dadresse)
+    - [2.4 Extension de la table `types_roles` pour les couleurs](#24-extension-de-la-table-types_roles-pour-les-couleurs)
+  - [3. Composants applicatifs](#3-composants-applicatifs)
+    - [3.1 Controller: `application/controllers/email_lists.php`](#31-controller-applicationcontrollersemail_listsphp)
+    - [3.2 Model: `application/models/email_lists_model.php`](#32-model-applicationmodelsemail_lists_modelphp)
+    - [3.3 Helper: `application/helpers/email_helper.php`](#33-helper-applicationhelpersemail_helperphp)
+    - [3.4 Views](#34-views)
+    - [3.5 JavaScript: `assets/js/email_lists.js`](#35-javascript-assetsjsemail_listsjs)
+  - [4. Système de codage couleur (PRD 4.2.4)](#4-système-de-codage-couleur-prd-424)
+    - [4.1 Vue d'ensemble](#41-vue-densemble)
+    - [4.2 Application des couleurs](#42-application-des-couleurs)
+    - [4.3 Attribution des couleurs de rôle](#43-attribution-des-couleurs-de-rôle)
+    - [4.4 Stockage et transmission des couleurs](#44-stockage-et-transmission-des-couleurs)
+    - [4.5 Responsabilités par composant](#45-responsabilités-par-composant)
+  - [5. Metadata (Gvvmetadata.php)](#5-metadata-gvvmetadataphp)
+  - [5. Flux de données](#5-flux-de-données)
+    - [5.1 Création d'une liste par critères](#51-création-dune-liste-par-critères)
+    - [5.2 Export vers fichier TXT](#52-export-vers-fichier-txt)
+    - [5.3 Résolution complète avec dédoublonnage](#53-résolution-complète-avec-dédoublonnage)
+  - [6. Décisions d'architecture](#6-décisions-darchitecture)
+    - [6.1 Pourquoi 4 tables au lieu de 1 ou 2 ?](#61-pourquoi-4-tables-au-lieu-de-1-ou-2-)
+    - [6.2 Pourquoi localStorage pour les préférences ?](#62-pourquoi-localstorage-pour-les-préférences-)
+    - [6.3 Pourquoi découpage côté client ?](#63-pourquoi-découpage-côté-client-)
+  - [7. Sécurité](#7-sécurité)
+    - [7.1 Contrôle d'accès](#71-contrôle-daccès)
+    - [7.2 Validation des entrées](#72-validation-des-entrées)
+    - [7.3 Journalisation](#73-journalisation)
+  - [8. Performance](#8-performance)
+    - [8.1 Index](#81-index)
+    - [8.2 Optimisation des requêtes](#82-optimisation-des-requêtes)
+  - [9. Diagrammes](#9-diagrammes)
+    - [9.1 Diagramme de séquence - Export TXT](#91-diagramme-de-séquence---export-txt)
+  - [10. Migration](#10-migration)
+    - [10.1 Fichier de migration](#101-fichier-de-migration)
+    - [10.2 Points clés de la migration](#102-points-clés-de-la-migration)
+  - [11. Tests](#11-tests)
+    - [11.1 Tests unitaires (PHPUnit)](#111-tests-unitaires-phpunit)
+    - [11.2 Tests d'intégration (MySQL)](#112-tests-dintégration-mysql)
+  - [12. Évolutions futures possibles](#12-évolutions-futures-possibles)
+    - [12.2 Historique des envois (non)](#122-historique-des-envois-non)
+    - [12.3 Templates de messages (?)](#123-templates-de-messages-)
+    - [12.4 API REST (inutile)](#124-api-rest-inutile)
 
 ---
 
@@ -174,6 +232,23 @@ Une liste contient:
 * des membres sélectionnés manuellement
 * des adresses email externes saisies ou importées
 
+### 2.4 Extension de la table `types_roles` pour les couleurs
+
+Pour supporter le système de codage couleur (PRD 4.2.4), la table `types_roles` peut être étendue avec une colonne optionnelle:
+
+```sql
+ALTER TABLE `types_roles` ADD COLUMN `color` VARCHAR(7) DEFAULT NULL COMMENT 'Couleur hexadécimale (#RRGGBB)';
+```
+
+**Stratégie de migration:**
+- Les rôles existants conservent `color = NULL`
+- Le système génère automatiquement des couleurs via `generate_role_color()` quand `color IS NULL`
+- Les administrateurs peuvent ensuite personnaliser les couleurs via une interface dédiée (optionnel)
+
+**Alternative sans modification de schéma:**
+- Stocker les couleurs dans un fichier de configuration (`application/config/role_colors.php`)
+- Plus simple, mais moins flexible pour la personnalisation future
+
 ---
 
 ## 3. Composants applicatifs
@@ -194,13 +269,13 @@ class Email_lists extends CI_Controller {
     // Liste des listes de diffusion
     public function index()
 
-    // Formulaire de création
+    // Formulaire de création (layout split)
     public function create()
 
     // Sauvegarde d'une nouvelle liste
     public function store()
 
-    // Formulaire de modification
+    // Formulaire de modification (layout split)
     public function edit($id)
 
     // Sauvegarde des modifications
@@ -215,15 +290,28 @@ class Email_lists extends CI_Controller {
     // Téléchargement fichier TXT
     public function download_txt($id)
 
-
-
     // API AJAX: Prévisualisation nombre de destinataires
     public function preview_count()
 
-    // API AJAX: Résolution complète des membres
-    // return a json answer with a textual field "textual_email_list" containing a string with the emails 
-    // separated by commas. There is no duplicate in the list.
+    // API AJAX: Résolution complète des membres avec métadonnées de couleur
+    // Retourne JSON avec emails + pastilles (section_color + role_color)
     public function textual_list($list_id)
+
+    // API AJAX: Mise à jour dynamique de la liste des sélectionnés
+    // Retourne HTML de la liste droite avec pastilles
+    public function ajax_update_selected_list()
+
+    // API AJAX: Recherche paginée de membres (sélection manuelle)
+    public function ajax_search_members()
+
+    // API AJAX: Import fichier externe (TXT/CSV)
+    public function ajax_import_external()
+
+    // API AJAX: Ajout manuel d'une adresse externe
+    public function ajax_add_external()
+
+    // API AJAX: Suppression d'une adresse manuelle/externe
+    public function ajax_remove_address()
 }
 ```
 
@@ -288,12 +376,24 @@ class Email_lists_model extends CI_Model {
 }
 ```
 
-**Exemple de résolution complète:**
+**Exemple de résolution complète avec métadonnées de couleur:**
 
 ```php
-public function textual_list($list_id) {
+public function textual_list($list_id, $include_color_metadata = false) {
     $list = $this->get_list($list_id);
     $emails = [];
+
+    // Charger sections et rôles avec couleurs si nécessaire
+    $sections_map = [];
+    $roles_map = [];
+    if ($include_color_metadata) {
+        foreach ($this->get_available_sections() as $s) {
+            $sections_map[$s['id']] = $s;
+        }
+        foreach ($this->get_available_roles() as $r) {
+            $roles_map[$r['id']] = $r;
+        }
+    }
 
     // 1. Membres par rôles (table email_list_roles)
     $roles = $this->db
@@ -316,6 +416,21 @@ public function textual_list($list_id) {
             ->where('m.actif', $list['active_member'] == 'active' ? 1 : ($list['active_member'] == 'inactive' ? 0 : NULL), FALSE)
             ->get()
             ->result_array();
+
+        // Enrichir avec métadonnées de couleur
+        foreach ($role_members as &$member) {
+            $member['source'] = 'criteria';
+            if ($include_color_metadata) {
+                $member['badges'][] = [
+                    'section_id' => $role['section_id'],
+                    'role_id' => $role['types_roles_id'],
+                    'section_color' => $sections_map[$role['section_id']]['couleur'],
+                    'role_color' => $roles_map[$role['types_roles_id']]['color'],
+                    'section_name' => $sections_map[$role['section_id']]['nom'],
+                    'role_name' => $roles_map[$role['types_roles_id']]['nom']
+                ];
+            }
+        }
         $emails = array_merge($emails, $role_members);
     }
 
@@ -327,6 +442,10 @@ public function textual_list($list_id) {
         ->where('elm.email_list_id', $list_id)
         ->get()
         ->result_array();
+    foreach ($manual as &$m) {
+        $m['source'] = 'manual';
+        $m['badges'] = [];
+    }
     $emails = array_merge($emails, $manual);
 
     // 3. Emails externes (table email_list_external)
@@ -336,10 +455,36 @@ public function textual_list($list_id) {
         ->where('email_list_id', $list_id)
         ->get()
         ->result_array();
+    foreach ($external as &$e) {
+        $e['source'] = 'external';
+        $e['badges'] = [];
+    }
     $emails = array_merge($emails, $external);
 
-    // 4. Dédoublonnage
-    return $this->deduplicate_emails($emails);
+    // 4. Dédoublonnage avec fusion des badges
+    return $this->deduplicate_emails_with_badges($emails);
+}
+
+/**
+ * Dédoublonne les emails en fusionnant les badges
+ */
+private function deduplicate_emails_with_badges($emails) {
+    $result = [];
+    foreach ($emails as $item) {
+        $key = strtolower($item['email']);
+        if (!isset($result[$key])) {
+            $result[$key] = $item;
+            if (!isset($result[$key]['badges'])) {
+                $result[$key]['badges'] = [];
+            }
+        } else {
+            // Fusionner les badges
+            if (isset($item['badges']) && is_array($item['badges'])) {
+                $result[$key]['badges'] = array_merge($result[$key]['badges'], $item['badges']);
+            }
+        }
+    }
+    return array_values($result);
 }
 
 /**
@@ -418,12 +563,13 @@ function parse_csv_emails($content, $config)
 ```
 application/views/email_lists/
 ├── index.php                   # Liste des listes (tableau)
-├── create.php                  # Formulaire de création
-├── edit.php                    # Formulaire de modification
+├── create.php                  # Formulaire de création (layout split avec onglets)
+├── edit.php                    # Formulaire de modification (layout split avec onglets)
 ├── view.php                    # Prévisualisation + export
-├── _criteria_tab.php           # Onglet sélection par critères
-├── _manual_tab.php             # Onglet sélection manuelle
-├── _import_tab.php             # Onglet import externe
+├── _criteria_tab.php           # Onglet sélection par critères (gauche)
+├── _manual_tab.php             # Onglet sélection manuelle (gauche)
+├── _external_tab.php           # Onglet gestion adresses externes (gauche)
+├── _selected_list.php          # Liste des adresses sélectionnées (droite)
 ├── _export_buttons.php         # Boutons d'export (presse-papier, fichiers, mailto)
 ├── _chunk_selector.php         # Sélecteur de découpage en parties
 └── _mailto_form.php            # Formulaire paramètres mailto
@@ -432,15 +578,58 @@ application/views/email_lists/
 **Pattern de navigation:**
 
 ```
-index.php (Liste) → create.php (Création avec 3 onglets)
-                 → edit.php (Modification avec 3 onglets)
+index.php (Liste) → create.php (Création avec layout split + onglets)
+                 → edit.php (Modification avec layout split + onglets)
                  → view.php (Prévisualisation + export)
                  → download_txt (Téléchargement)
 ```
 
-**Interface de sélection par rôles (_criteria_tab.php):**
+**Layout de la fenêtre de création/modification (create.php, edit.php):**
 
-L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes les sections depuis `sections`, permettant ainsi de supporter automatiquement les rôles futurs (instructeurs, pilotes, etc.) sans modification de code.
+Selon PRD 4.2.4, la fenêtre est divisée en deux parties avec un système d'onglets à gauche:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Création/Modification de liste                                     │
+├──────────────────────────┬──────────────────────────────────────────┤
+│ GAUCHE: Sélection        │ DROITE: Adresses sélectionnées           │
+│                          │                                          │
+│ ┌─────────────────────┐  │ ┌─ Liste des destinataires ───────────┐ │
+│ │ ◉ Par critères (3) │  │ │ 🟢🔵 jean.dupont@ex.com (Jean D.)    │ │
+│ │ ○ Manuel (2)       │  │ │ 🟢    marie.martin@ex.com (Marie M.) │ │
+│ │ ○ Externes (2)     │  │ │ 🟠    pierre@ex.com 🗑️ (externe)     │ │
+│ └─────────────────────┘  │ │                                      │ │
+│                          │ │ Total: 87 destinataires              │ │
+│ ┌─ Critères actifs ───┐  │ └──────────────────────────────────────┘ │
+│ │ [Grille rôles]      │  │                                          │
+│ │ [Statut membres]    │  │                                          │
+│ └─────────────────────┘  │                                          │
+└──────────────────────────┴──────────────────────────────────────────┘
+```
+
+**Navigation par onglets:**
+- **Onglet "Par critères"**: Grille rôles × sections avec checkboxes colorées
+- **Onglet "Sélection manuelle"**: Liste paginée avec recherche
+- **Onglet "Adresses externes"**: Import fichier + saisie manuelle
+
+**Badges de comptage:**
+Chaque onglet affiche un badge avec le nombre de sélections actives dans cette catégorie (ex: "Par critères (3)" signifie 3 critères cochés).
+
+**Prototype HTML:**
+Voir `/home/frederic/git/gvv/doc/prds/images/liste_creation_mockup.html` pour une démo interactive complète.
+
+**Codage couleur (PRD 4.2.4):**
+- **Colonnes sections:** Background avec couleur de section (de `sections.couleur`)
+- **Rôles:** Chaque rôle se voit attribuer une couleur dédiée
+- **Checkboxes cochées:** Couleur de section en background + bordure couleur du rôle
+- **Pastilles dans liste:**
+  - Couleur de section avec bordure couleur du rôle pour chaque critère correspondant
+  - Plusieurs pastilles si membre sélectionné par plusieurs critères
+  - Icône 🗑️ pour adresses manuelles/externes permettant suppression
+
+**Onglet 1: Sélection par critères (_criteria_tab.php):**
+
+L'onglet "Par critères" charge dynamiquement tous les rôles depuis `types_roles` et toutes les sections depuis `sections`, permettant ainsi de supporter automatiquement les rôles futurs (instructeurs, pilotes, etc.) sans modification de code.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -448,8 +637,8 @@ L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes 
 ├────────────────────────────────────────────────────────────────┤
 │                                                                │
 │ ┌─ Selection des rôles ─────────────────────────────────────┐  │
-│ │ Voir image ci-dessous                                     │  │
 │ │ Rôle  | Global | Toutes  | Planeur| ULM | Avion | Général │  │
+│ │       |        | (toutes)| (bleu) |(vert)|(rouge)|(gris)  │  │
 │ │ admin |   ☐    |   -     |   -    |  -  |   -   |    -    |  │
 │ │ suptr |   ☐    |   -     |   -    |  -  |   -   |    -    │  │
 │ │ burea |   -    |   ☐     |   ☐    |  ☐  |   ☐   |    ☐    │  │
@@ -463,20 +652,90 @@ L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes 
 │   ☐ Inactifs uniquement                                        │
 │   ☐ Tous                                                       │
 │                                                                │
-│ Logique de combinaison:                                        │
-│   ● OU (un des rôles sélectionnés)                             │
-│   ○ ET (tous les rôles sélectionnés)                           │
-│                                                                │
 │ Aperçu: 12 destinataires                                       │
-│ [Prévisualiser] [Sauvegarder]                                  │
+│ [Prévisualiser]                                                │
 └────────────────────────────────────────────────────────────────┘
 ```
 ![Selecteur de rôle](images/roles_selection.png)
+
 **Fonctionnement:**
 - Les rôles sont chargés depuis `get_available_roles()` et organisés par colonnes pour chaque section
+- Les colonnes de section utilisent la couleur de `sections.couleur` en background
+- Chaque rôle se voit attribuer une couleur dédiée (définie dans CSS ou métadonnées)
+- Les checkboxes cochées affichent la couleur de section avec bordure de la couleur du rôle
 - Les rôles avec `scope='global'` sont affichés dans chaque section avec marqueur `[global]`
 - La prévisualisation AJAX appelle `preview_count()` pour afficher le nombre de destinataires
 - Extensible automatiquement: nouveaux rôles apparaissent sans modification du code
+
+**Onglet 2: Sélection manuelle (_manual_tab.php):**
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ Sélection manuelle de membres                                  │
+├────────────────────────────────────────────────────────────────┤
+│ Recherche: [_________________] 🔍                               │
+│                                                                │
+│ ☐ Jean DUPONT (jean.dupont@example.com)                        │
+│ ☐ Marie MARTIN (marie.martin@example.com)                      │
+│ ☐ Pierre DURANT (pierre.durant@example.com)                    │
+│ ...                                                            │
+│                                                                │
+│ [< Précédent] Page 1/5 [Suivant >]                             │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Fonctionnement:**
+- Liste paginée de tous les membres avec barre de recherche
+- Checkbox pour sélectionner individuellement
+- Affichage nom + email pour clarté
+- Recherche en temps réel (AJAX)
+
+**Onglet 3: Gestion des adresses externes (_external_tab.php):**
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ Adresses externes                                              │
+├────────────────────────────────────────────────────────────────┤
+│ Importer depuis fichier:                                       │
+│ [Choisir fichier...] [Importer]                                 │
+│                                                                │
+│ Ou saisir manuellement:                                        │
+│ Email: [_____________________]                                 │
+│ Nom (optionnel): [_____________________]                       │
+│ [Ajouter]                                                      │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Fonctionnement:**
+- Import fichier (TXT ou CSV)
+- Saisie manuelle d'une adresse + nom optionnel
+- Validation immédiate du format email
+
+**Affichage de la liste des adresses sélectionnées (_selected_list.php):**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Destinataires sélectionnés (87)                                │
+├─────────────────────────────────────────────────────────────────┤
+│ 🟢🔵 jean.dupont@example.com (Jean DUPONT)                      │
+│ 🟢    marie.martin@example.com (Marie MARTIN)                   │
+│ 🟠    pierre@externe.com (Pierre E.) 🗑️                         │
+│ 🔴🟡 julie.bernard@example.com (Julie BERNARD)                  │
+│ ...                                                            │
+│                                                                │
+│ Légende:                                                       │
+│ 🟢 Planeur/Trésorier 🔵 Planeur/CA 🔴 Avion/Bureau             │
+│ 🗑️ = Supprimer (pour adresses manuelles/externes uniquement)   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Fonctionnement:**
+- Affichage en temps réel des adresses sélectionnées
+- Pastilles de couleur indiquant par quel(s) critère(s) l'adresse est sélectionnée
+  - Couleur de fond = section
+  - Bordure = rôle
+- Icône 🗑️ uniquement pour adresses manuelles et externes (pour permettre suppression)
+- Mise à jour dynamique via AJAX quand sélections changent
 
 **Interface de découpage (_chunk_selector.php):**
 ```
@@ -526,6 +785,10 @@ L'interface charge dynamiquement tous les rôles depuis `types_roles` et toutes 
 - Génération liens mailto côté client
 - Sauvegarde/restauration préférences (localStorage)
 - AJAX pour prévisualisation en temps réel
+- Mise à jour dynamique de la liste des adresses sélectionnées
+- Génération des pastilles de couleur (section + rôle)
+- Gestion de la barre de recherche paginée (sélection manuelle)
+- Gestion des onglets et mise à jour des badges de comptage
 
 **Fonctions principales:**
 
@@ -543,13 +806,167 @@ function generateMailto(emails, params)
 function saveMailtoPreferences(prefs)
 function loadMailtoPreferences()
 
-// AJAX prévisualisation
+// AJAX prévisualisation et mise à jour liste
 function previewMemberCount(criteria)
+function updateSelectedList() // Met à jour la liste droite en temps réel
+
+// Gestion des couleurs et pastilles
+function generateColorBadge(sectionColor, roleColor)
+function assignRoleColors(roles) // Attribue une couleur à chaque rôle
+
+// Recherche paginée (sélection manuelle)
+function searchMembers(query)
+function loadMembersPage(page)
+
+// Import externe
+function importExternalFile(file)
+function addManualEmail(email, name)
+
+// Gestion des onglets
+function updateTabCounts() // Met à jour les badges (3), (2), etc.
+function switchTab(tabId) // Change d'onglet
 ```
+
+**Codage couleur dynamique:**
+
+Le JavaScript génère dynamiquement:
+- Les couleurs de background des colonnes de section depuis `sections.couleur`
+- Les couleurs des rôles (palette prédéfinie ou générée)
+- Les pastilles de couleur dans la liste des sélectionnés (combinaison section + rôle)
+- Les styles des checkboxes cochées (background section + bordure rôle)
 
 ---
 
-## 4. Metadata (Gvvmetadata.php)
+## 4. Système de codage couleur (PRD 4.2.4)
+
+### 4.1 Vue d'ensemble
+
+Le système de codage couleur permet à l'utilisateur de comprendre visuellement par quels critères (section + rôle) chaque adresse a été sélectionnée.
+
+**Sources des couleurs:**
+- **Couleurs de section:** Proviennent de la colonne `sections.couleur` (ex: `#0066cc` pour Planeur)
+- **Couleurs de rôle:** Attribuées via une palette prédéfinie ou générées dynamiquement
+
+### 4.2 Application des couleurs
+
+**Dans l'interface de sélection par critères:**
+- Les **en-têtes de colonne** de chaque section ont un background de `sections.couleur`
+- Les **checkboxes cochées** affichent:
+  - Background: couleur de la section
+  - Bordure: couleur du rôle
+
+**Dans la liste des adresses sélectionnées (panneau droit):**
+- Chaque adresse affiche des **pastilles** (badges) pour chaque critère qui l'a sélectionnée
+- Chaque pastille est composée de:
+  - Background: couleur de la section
+  - Bordure: couleur du rôle
+  - Format visuel: petit cercle ou rectangle arrondi (ex: 🟢)
+
+**Exemples de pastilles:**
+```
+jean.dupont@example.com (Jean DUPONT)
+🟢🔵  Planeur/Trésorier (vert planeur, bordure bleue trésorier)
+      + Planeur/CA (vert planeur, bordure bleue CA)
+
+marie.martin@example.com (Marie MARTIN)
+🟠    ULM/Instructeur (orange ULM, bordure rouge instructeur)
+
+pierre@externe.com (Pierre E.) 🗑️
+[Aucune pastille, car adresse externe]
+```
+
+### 4.3 Attribution des couleurs de rôle
+
+**Palette prédéfinie suggérée:**
+```php
+$role_colors = [
+    'admin'       => '#e74c3c', // Rouge
+    'super_tresorier' => '#3498db', // Bleu
+    'bureau'      => '#f39c12', // Orange
+    'tresorier'   => '#2ecc71', // Vert
+    'ca'          => '#9b59b6', // Violet
+    'instructeur' => '#e67e22', // Orange foncé
+    'pilote'      => '#1abc9c', // Turquoise
+    'user'        => '#95a5a6', // Gris
+    // ... autres rôles
+];
+```
+
+**Génération automatique:**
+Si un nouveau rôle n'a pas de couleur prédéfinie, le système génère une couleur via un algorithme de hachage basé sur le nom du rôle pour garantir la cohérence.
+
+```php
+function generate_role_color($role_name) {
+    $hash = md5($role_name);
+    $r = hexdec(substr($hash, 0, 2));
+    $g = hexdec(substr($hash, 2, 2));
+    $b = hexdec(substr($hash, 4, 2));
+    return sprintf("#%02x%02x%02x", $r, $g, $b);
+}
+```
+
+### 4.4 Stockage et transmission des couleurs
+
+**Côté serveur (Model):**
+- `get_available_sections()` retourne `sections.couleur`
+- `get_available_roles()` retourne les rôles avec couleurs (prédéfinies ou générées)
+
+**Côté client (JavaScript):**
+- Les couleurs sont transmises via JSON dans les réponses AJAX
+- Le JavaScript génère les pastilles HTML avec styles inline ou classes CSS dynamiques
+
+**Format JSON des adresses résolues:**
+```json
+{
+  "emails": [
+    {
+      "email": "jean.dupont@example.com",
+      "name": "Jean DUPONT",
+      "source": "criteria",
+      "badges": [
+        {
+          "section_color": "#00cc66",
+          "role_color": "#2ecc71",
+          "section_name": "Planeur",
+          "role_name": "Trésorier"
+        },
+        {
+          "section_color": "#00cc66",
+          "role_color": "#9b59b6",
+          "section_name": "Planeur",
+          "role_name": "CA"
+        }
+      ]
+    },
+    {
+      "email": "pierre@externe.com",
+      "name": "Pierre E.",
+      "source": "external",
+      "badges": []
+    }
+  ]
+}
+```
+
+### 4.5 Responsabilités par composant
+
+**Model (`email_lists_model.php`):**
+- `textual_list()` retourne les emails avec métadonnées de critères (rôle + section)
+- Utilise `get_available_sections()` et `get_available_roles()` pour enrichir les données
+
+**Controller (`email_lists.php`):**
+- `ajax_update_selected_list()` appelle le model et transmet JSON avec couleurs
+
+**View (`_selected_list.php`):**
+- Affiche les pastilles via HTML/CSS généré côté serveur ou JavaScript
+
+**JavaScript (`email_lists.js`):**
+- `generateColorBadge(sectionColor, roleColor)` génère le HTML d'une pastille
+- Applique les couleurs aux checkboxes cochées dans la grille de critères
+
+---
+
+## 5. Metadata (Gvvmetadata.php)
 
 Extension de `application/libraries/Gvvmetadata.php` pour les champs de `email_lists`.
 
@@ -1205,7 +1622,11 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 
 ---
 
-**Version:** 1.0
-**Date:** 2025-10-31
+**Version:** 1.2
+**Date:** 2025-11-02
 **Auteur:** Claude Code sous supervision Fred
 **Statut:** Approuvé pour implémentation
+**Changelog:**
+- v1.2 (2025-11-02): Ajout de l'interface à onglets (PRD 4.2.4) - Les trois modes de sélection sont maintenant organisés en onglets avec badges de comptage
+- v1.1 (2025-11-02): Ajout du système de codage couleur (PRD 4.2.4) - Layout split-panel, pastilles de couleur section+rôle
+- v1.0 (2025-10-31): Version initiale
