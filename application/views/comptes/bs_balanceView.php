@@ -404,22 +404,49 @@ $this->lang->load('comptes');
 				var accordionItems = document.querySelectorAll('#balanceAccordion .accordion-item');
 
 				accordionItems.forEach(function(item) {
-					// Rechercher dans la seconde ligne du titre (tbody tr)
+					var shouldShow = false;
+					
+					// Rechercher dans la seconde ligne du titre (tbody tr) - header de l'accordéon
 					var dataRow = item.querySelector('.accordion-button table tbody tr');
 					if (dataRow) {
-						// Extraire le texte de toutes les cellules de la ligne de données
+						// Extraire le texte de toutes les cellules de la ligne de données du header
 						var cells = dataRow.querySelectorAll('td');
-						var textContent = '';
+						var headerTextContent = '';
 						cells.forEach(function(cell) {
-							textContent += cell.textContent.toLowerCase() + ' ';
+							headerTextContent += cell.textContent.toLowerCase() + ' ';
 						});
-
-						// Afficher ou masquer l'accordéon selon le résultat de la recherche
-						if (searchTerm === '' || textContent.indexOf(searchTerm) !== -1) {
-							item.style.display = '';
-						} else {
-							item.style.display = 'none';
+						
+						// Vérifier si le terme de recherche est dans le header
+						if (searchTerm === '' || headerTextContent.indexOf(searchTerm) !== -1) {
+							shouldShow = true;
 						}
+					}
+					
+					// Si pas trouvé dans le header, rechercher dans les comptes enfants (accordion body)
+					if (!shouldShow && searchTerm !== '') {
+						var accordionBody = item.querySelector('.accordion-body table tbody');
+						if (accordionBody) {
+							var childRows = accordionBody.querySelectorAll('tr');
+							childRows.forEach(function(childRow) {
+								var childCells = childRow.querySelectorAll('td');
+								var childTextContent = '';
+								childCells.forEach(function(cell) {
+									childTextContent += cell.textContent.toLowerCase() + ' ';
+								});
+								
+								// Si trouvé dans un compte enfant, afficher l'accordéon
+								if (childTextContent.indexOf(searchTerm) !== -1) {
+									shouldShow = true;
+								}
+							});
+						}
+					}
+
+					// Afficher ou masquer l'accordéon selon le résultat de la recherche
+					if (shouldShow) {
+						item.style.display = '';
+					} else {
+						item.style.display = 'none';
 					}
 				});
 			});

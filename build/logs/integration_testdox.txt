@@ -36,7 +36,7 @@ Attachments Controller
  [x] Spaces in filename replaced with underscores
  [x] Directory created with correct permissions
  [x] Attachment helper generates image tag for jpeg
- [x] Attachment helper generates link for pdf
+ [ ] Attachment helper generates link for pdf
  [x] Edit attachment replaces old file
  [x] Edit attachment handles missing old file
  [x] Replace image with pdf
@@ -60,6 +60,11 @@ Authorization Integration
  [x] Permission caching
  [x] Migration status
  [x] Complete authorization workflow
+
+Balance Accordion Search
+ [x] Accordion search java script logic
+ [x] Search logic with simulated data
+ [x] Search edge cases
 
 Categorie Model Integration
  [x] Basic crud operations
@@ -169,13 +174,13 @@ My Html Helper Integration
  [x] Html link
  [x] Html script
  [x] Attachment empty
- [x] Attachment returns link
+ [ ] Attachment returns link
  [x] Attachment pdf
  [x] Attachment csv
- [x] Attachment processes files
- [x] Attachment with various extensions
+ [ ] Attachment processes files
+ [ ] Attachment with various extensions
  [x] Attachment avif
- [x] Attachment valid html structure
+ [ ] Attachment valid html structure
  [x] Cur page u r l http
  [x] Cur page u r l https
  [x] Cur page u r l custom port
