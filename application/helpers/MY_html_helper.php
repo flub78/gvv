@@ -637,6 +637,6 @@ if (! function_exists('attachment')) {
                 $inner_html = "<i class=\"fas fa-file fa-2x\" title=\"$filename\"></i>";
             }
         }
-        return "<a href=\"$url\" target=\"_blank\">$inner_html</a>";
+        return "<a href=\"$url\" target=\"_self\">$inner_html</a>";
     }
 }

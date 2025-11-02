@@ -1979,7 +1979,7 @@ class Compta extends Gvv_Controller {
                     $html .= '<div class="view-mode">';
                     if (file_exists($file_path)) {
                         $file_url = base_url() . ltrim($file_path, './');
-                        $html .= '<a href="' . $file_url . '" target="_blank">' . htmlspecialchars($file_name) . '</a>';
+                        $html .= '<a href="' . $file_url . '" target="_self">' . htmlspecialchars($file_name) . '</a>';
                     } else {
                         $html .= htmlspecialchars($file_name) . ' <span class="text-danger">(manquant)</span>';
                     }
