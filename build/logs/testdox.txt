@@ -33,6 +33,50 @@ Debug Example
  [x] Debugging example
  [x] Debugging with helpers
 
+Email Helper
+ [x] ValidateEmail ValidEmails ReturnsTrue
+ [x] ValidateEmail InvalidEmails ReturnsFalse
+ [x] ValidateEmail EmptyString ReturnsFalse
+ [x] NormalizeEmail LowercasesAndTrims
+ [x] NormalizeEmail EmptyString ReturnsEmpty
+ [x] DeduplicateEmails CaseInsensitive
+ [x] DeduplicateEmails StringArray
+ [x] DeduplicateEmails EmptyArray ReturnsEmpty
+ [x] DeduplicateEmails SkipsEmptyEntries
+ [x] ChunkEmails Standard20PerChunk
+ [x] ChunkEmails CustomSize
+ [x] ChunkEmails EmptyArray ReturnsEmpty
+ [x] ChunkEmails InvalidSize ReturnsEmpty
+ [x] GenerateTxtExport CommaSeparated
+ [x] GenerateTxtExport SemicolonSeparated
+ [x] GenerateTxtExport StringArray
+ [x] GenerateTxtExport EmptyArray ReturnsEmpty
+ [x] GenerateMailto ToField
+ [x] GenerateMailto CcField
+ [x] GenerateMailto BccField
+ [x] GenerateMailto WithSubject
+ [x] GenerateMailto WithReplyTo
+ [x] GenerateMailto EmptyEmails ReturnsBasicMailto
+ [x] GenerateMailto TooLong ReturnsFalse
+ [x] ParseTextEmails ValidEmails
+ [x] ParseTextEmails MixedValidAndInvalid
+ [x] ParseTextEmails SkipsEmptyLines
+ [x] ParseTextEmails EmptyContent ReturnsEmpty
+ [x] ParseCsvEmails BasicParsing
+ [x] ParseCsvEmails WithNameColumns
+ [x] ParseCsvEmails SemicolonDelimiter
+ [x] ParseCsvEmails NoHeader
+ [x] ParseCsvEmails EmptyContent ReturnsEmpty
+ [x] DetectDuplicates FindsDuplicates
+ [x] DetectDuplicates NoDuplicates ReturnsEmpty
+ [x] DetectDuplicates CaseInsensitive
+ [x] DetectDuplicates AssociativeArrays
+ [x] GenerateMarkdownExport BasicContent
+ [x] GenerateMarkdownExport WithTimestamps
+ [x] GenerateMarkdownExport EmptyEmails
+ [x] GenerateMarkdownExport NoDescription
+ [x] GenerateMarkdownExport MissingName
+
 Markdown Helper
  [x] Markdown helper loads successfully
  [x] Markdown converts headers

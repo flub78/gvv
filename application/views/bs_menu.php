@@ -344,6 +344,7 @@ $section_count = $CI->sections_model->safe_count_all();
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
 
+              <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("tests/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>

@@ -447,4 +447,77 @@ class EmailHelperTest extends TestCase
 
         $this->assertCount(1, $result);
     }
+
+    // ========================================================================
+    // Markdown Export Tests
+    // ========================================================================
+
+    public function testGenerateMarkdownExport_BasicContent()
+    {
+        $list_data = array(
+            'name' => 'Test List',
+            'description' => 'A test email list'
+        );
+        $emails = array('test1@example.com', 'test2@example.com', 'test3@example.com');
+
+        $result = generate_markdown_export($list_data, $emails);
+
+        $this->assertStringContainsString('# Test List', $result);
+        $this->assertStringContainsString('A test email list', $result);
+        $this->assertStringContainsString('**Total:** 3 destinataire(s)', $result);
+        $this->assertStringContainsString('- test1@example.com', $result);
+        $this->assertStringContainsString('- test2@example.com', $result);
+        $this->assertStringContainsString('- test3@example.com', $result);
+    }
+
+    public function testGenerateMarkdownExport_WithTimestamps()
+    {
+        $list_data = array(
+            'name' => 'Test List',
+            'created_at' => '2025-11-02 10:00:00',
+            'updated_at' => '2025-11-02 12:00:00'
+        );
+        $emails = array('test@example.com');
+
+        $result = generate_markdown_export($list_data, $emails);
+
+        $this->assertStringContainsString('**Créé le:** 2025-11-02 10:00:00', $result);
+        $this->assertStringContainsString('**Mis à jour le:** 2025-11-02 12:00:00', $result);
+    }
+
+    public function testGenerateMarkdownExport_EmptyEmails()
+    {
+        $list_data = array('name' => 'Empty List');
+        $emails = array();
+
+        $result = generate_markdown_export($list_data, $emails);
+
+        $this->assertStringContainsString('# Empty List', $result);
+        $this->assertStringContainsString('**Total:** 0 destinataire(s)', $result);
+        $this->assertStringContainsString('*Aucun destinataire*', $result);
+    }
+
+    public function testGenerateMarkdownExport_NoDescription()
+    {
+        $list_data = array('name' => 'Test List');
+        $emails = array('test@example.com');
+
+        $result = generate_markdown_export($list_data, $emails);
+
+        $this->assertStringContainsString('# Test List', $result);
+        $this->assertStringContainsString('**Total:** 1 destinataire(s)', $result);
+        $this->assertStringNotContainsString('Description:', $result);
+    }
+
+    public function testGenerateMarkdownExport_MissingName()
+    {
+        $list_data = array('description' => 'Test description');
+        $emails = array('test@example.com');
+
+        $result = generate_markdown_export($list_data, $emails);
+
+        // Should use default name
+        $this->assertStringContainsString('# Email List', $result);
+        $this->assertStringContainsString('Test description', $result);
+    }
 }

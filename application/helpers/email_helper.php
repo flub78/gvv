@@ -126,6 +126,45 @@ if (!function_exists('generate_txt_export')) {
 }
 
 /**
+ * Generate Markdown export content
+ *
+ * @param array $list_data List metadata (name, description, created_at, etc.)
+ * @param array $emails Array of email strings
+ * @return string Markdown formatted content
+ */
+if (!function_exists('generate_markdown_export')) {
+    function generate_markdown_export($list_data, $emails) {
+        $md = "# " . (isset($list_data['name']) ? $list_data['name'] : 'Email List') . "\n\n";
+
+        if (!empty($list_data['description'])) {
+            $md .= $list_data['description'] . "\n\n";
+        }
+
+        $md .= "**Total:** " . count($emails) . " destinataire(s)\n\n";
+
+        if (!empty($list_data['created_at'])) {
+            $md .= "**Créé le:** " . $list_data['created_at'] . "\n\n";
+        }
+
+        if (!empty($list_data['updated_at'])) {
+            $md .= "**Mis à jour le:** " . $list_data['updated_at'] . "\n\n";
+        }
+
+        $md .= "## Destinataires\n\n";
+
+        if (empty($emails)) {
+            $md .= "*Aucun destinataire*\n";
+        } else {
+            foreach ($emails as $email) {
+                $md .= "- " . $email . "\n";
+            }
+        }
+
+        return $md;
+    }
+}
+
+/**
  * Generate mailto URL
  *
  * @param array $emails Array of email addresses
