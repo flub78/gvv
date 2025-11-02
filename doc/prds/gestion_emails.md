@@ -101,6 +101,24 @@ La selection ressemblera à l'attribution des rôles. Il suffira de cliquer sur 
 #### 4.2.3 Suppression de liste
 - Confirmation obligatoire avant suppression
 
+#### 4.2.4 Fenêtre de création/modification des listes
+
+La fenêtre de création/modification doit respecter les critères suivants:
+
+1. Elle sera constituée d'une fenêtre de sélection (à gauche) et d'un liste des adresses sélectionnées (à droite)
+1. La fenêtre de sélection comprendra trois sections: la sélection par critères GVV, la sélection manuelle et la gestion des adresses externes.
+
+1. La selection par critères GVV permettra de cocher les rôles dans les sections. Elle se présentera comme la fenêtre d'attribution des rôles.
+1. La sélection manuelle permettra de cocher les membres un par un dans une liste paginée avec barre de recherche.
+1. La gestion des adresses externes permettra d'importer des adresses depuis un fichier ou de les saisir manuellement. La saisie manuelle permettra la saisie d'une adresse et d'un nom optionnel.
+1. La liste des adresses sélectionnées affichera les adresses avec le nom (si disponible). Pour les adresses sélectionnées manuellement ou importées, elle seront affichées telles avec une icône poubelle pour les supprimer de la liste.
+1. Selection par critère: Nom de colonnes utiliseront les couleurs des section en background. On affectera une couleur à chacun des rôles. Lorsque un rôle est sélectionné, la checkbox sera colorée avec la couleur de la section avec une bordure de la couleur du rôle. On affichera une pastille avec le même code couleur à côté de chaque adresse sélectionnée par critère dans la liste des adresses sélectionnées. Cela permettra de visualiser rapidement par quel critère une adresse a été sélectionnée. Si une adresse est sélectionnée par plusieurs critères, on affichera plusieurs pastilles.
+
+![Prototype gestion des listes](images/liste_creation_window.png)  
+
+
+
+
 #### 4.3 Détection des doublons
   - Les doublons sont supprimés des listes lors de leur utilisation
   - Quelque soit la source des adresses, selection, création manuelle ou import
