@@ -74,6 +74,7 @@ class Migration_Create_email_lists extends CI_Migration
             'created_by' => [
                 'type' => 'INT',
                 'constraint' => 11,
+                'unsigned' => FALSE,
                 'null' => FALSE,
                 'comment' => 'User ID who created the list'
             ],
@@ -94,6 +95,9 @@ class Migration_Create_email_lists extends CI_Migration
             'DEFAULT CHARSET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_unicode_ci'
         ]);
+
+        // Fix created_by column type to match users.id (signed INT)
+        $this->db->query('ALTER TABLE email_lists MODIFY created_by INT(11) NOT NULL COMMENT "User ID who created the list"');
 
         // Add unique index on name (case-sensitive via COLLATE utf8_bin)
         $this->db->query('ALTER TABLE email_lists MODIFY name VARCHAR(100) NOT NULL COLLATE utf8_bin');
