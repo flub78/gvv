@@ -395,16 +395,34 @@ $this->lang->load('comptes');
 		}
 	}
 
+	// Variable globale pour mémoriser l'état original des accordéons
+	var originalAccordionStates = {};
+
 	// Fonction de recherche dans les accordéons
 	function initializeAccordionSearch() {
 		var searchInput = document.getElementById('accordion-search');
 		if (searchInput) {
+			// Capturer l'état initial des accordéons au premier chargement
+			captureOriginalAccordionStates();
+			
 			searchInput.addEventListener('input', function(e) {
 				var searchTerm = e.target.value.toLowerCase().trim();
 				var accordionItems = document.querySelectorAll('#balanceAccordion .accordion-item');
 
+				// Si la recherche est vide, restaurer l'état original
+				if (searchTerm === '') {
+					restoreOriginalAccordionStates();
+					// Afficher tous les accordéons et effacer les filtres DataTable
+					accordionItems.forEach(function(item) {
+						item.style.display = '';
+						clearDataTableSearch(item);
+					});
+					return;
+				}
+
 				accordionItems.forEach(function(item) {
 					var shouldShow = false;
+					var foundInChildren = false;
 					
 					// Rechercher dans la seconde ligne du titre (tbody tr) - header de l'accordéon
 					var dataRow = item.querySelector('.accordion-button table tbody tr');
@@ -417,7 +435,7 @@ $this->lang->load('comptes');
 						});
 						
 						// Vérifier si le terme de recherche est dans le header
-						if (searchTerm === '' || headerTextContent.indexOf(searchTerm) !== -1) {
+						if (headerTextContent.indexOf(searchTerm) !== -1) {
 							shouldShow = true;
 						}
 					}
@@ -437,6 +455,7 @@ $this->lang->load('comptes');
 								// Si trouvé dans un compte enfant, afficher l'accordéon
 								if (childTextContent.indexOf(searchTerm) !== -1) {
 									shouldShow = true;
+									foundInChildren = true;
 								}
 							});
 						}
@@ -445,10 +464,185 @@ $this->lang->load('comptes');
 					// Afficher ou masquer l'accordéon selon le résultat de la recherche
 					if (shouldShow) {
 						item.style.display = '';
+						
+						// Si trouvé dans les comptes enfants, développer l'accordéon et appliquer la recherche DataTable
+						if (foundInChildren && searchTerm !== '') {
+							expandAccordionAndApplyDataTableSearch(item, searchTerm);
+						} else {
+							// Pour les matches dans le header, juste appliquer le filtre DataTable si l'accordéon est ouvert
+							if (isAccordionExpanded(item)) {
+								applyDataTableSearch(item, searchTerm);
+							}
+						}
 					} else {
 						item.style.display = 'none';
 					}
 				});
+			});
+		}
+	}
+
+	// Fonction pour capturer l'état original des accordéons
+	function captureOriginalAccordionStates() {
+		var accordionItems = document.querySelectorAll('#balanceAccordion .accordion-item');
+		accordionItems.forEach(function(item, index) {
+			var collapseElement = item.querySelector('.accordion-collapse');
+			if (collapseElement) {
+				var accordionId = collapseElement.id || 'accordion_' + index;
+				originalAccordionStates[accordionId] = {
+					isExpanded: collapseElement.classList.contains('show'),
+					element: collapseElement,
+					button: item.querySelector('.accordion-button')
+				};
+			}
+		});
+	}
+
+	// Fonction pour restaurer l'état original des accordéons
+	function restoreOriginalAccordionStates() {
+		for (var accordionId in originalAccordionStates) {
+			var state = originalAccordionStates[accordionId];
+			var collapseElement = state.element;
+			var button = state.button;
+			
+			if (collapseElement && button) {
+				if (state.isExpanded) {
+					// Était ouvert à l'origine, s'assurer qu'il reste ouvert
+					if (!collapseElement.classList.contains('show')) {
+						collapseElement.classList.add('show');
+						button.classList.remove('collapsed');
+						button.setAttribute('aria-expanded', 'true');
+					}
+				} else {
+					// Était fermé à l'origine, s'assurer qu'il se ferme
+					if (collapseElement.classList.contains('show')) {
+						collapseElement.classList.add('collapsing');
+						collapseElement.classList.remove('show');
+						button.classList.add('collapsed');
+						button.setAttribute('aria-expanded', 'false');
+						
+						// Retirer la classe 'collapsing' après l'animation
+						setTimeout(function() {
+							collapseElement.classList.remove('collapsing');
+						}, 350);
+					}
+				}
+			}
+		}
+	}
+
+	// Fonction pour vérifier si un accordéon est actuellement développé
+	function isAccordionExpanded(accordionItem) {
+		var collapseElement = accordionItem.querySelector('.accordion-collapse');
+		return collapseElement && collapseElement.classList.contains('show');
+	}
+
+	// Fonction pour développer un accordéon et appliquer la recherche DataTable
+	function expandAccordionAndApplyDataTableSearch(accordionItem, searchTerm) {
+		// Trouver le collapse element
+		var collapseElement = accordionItem.querySelector('.accordion-collapse');
+		var button = accordionItem.querySelector('.accordion-button');
+		
+		if (collapseElement && button) {
+			// Développer l'accordéon si pas déjà ouvert
+			if (!collapseElement.classList.contains('show')) {
+				collapseElement.classList.add('collapsing');
+				collapseElement.classList.add('show');
+				button.classList.remove('collapsed');
+				button.setAttribute('aria-expanded', 'true');
+				
+				// Retirer la classe 'collapsing' après l'animation
+				setTimeout(function() {
+					collapseElement.classList.remove('collapsing');
+				}, 350);
+			}
+			
+			// Attendre que l'accordéon soit complètement ouvert puis appliquer la recherche DataTable
+			setTimeout(function() {
+				applyDataTableSearch(accordionItem, searchTerm);
+			}, 400);
+		}
+	}
+
+	// Fonction pour appliquer la recherche dans la DataTable
+	function applyDataTableSearch(accordionItem, searchTerm) {
+		// Trouver la DataTable dans cet accordéon
+		var dataTable = accordionItem.querySelector('.accordion-body table');
+		if (dataTable) {
+			var tableId = dataTable.getAttribute('id');
+			
+			// Si c'est une DataTable initialisée (searchable_nosort_datatable)
+			if (dataTable.classList.contains('searchable_nosort_datatable') && typeof $ !== 'undefined' && $.fn.DataTable) {
+				try {
+					var dt = $('#' + tableId).DataTable();
+					// Appliquer la recherche avec le terme original (pas en minuscules)
+					var originalSearchTerm = document.getElementById('accordion-search').value.trim();
+					dt.search(originalSearchTerm).draw();
+				} catch (e) {
+					// Si la DataTable n'est pas encore initialisée, essayer plus tard
+					setTimeout(function() {
+						try {
+							var dt = $('#' + tableId).DataTable();
+							var originalSearchTerm = document.getElementById('accordion-search').value.trim();
+							dt.search(originalSearchTerm).draw();
+						} catch (e2) {
+							// Fallback: utiliser la recherche manuelle pour les tables simples
+							applyManualTableFilter(dataTable, searchTerm);
+						}
+					}, 500);
+				}
+			} else {
+				// Pour les tables simples (sans DataTable), appliquer un filtre manuel
+				applyManualTableFilter(dataTable, searchTerm);
+			}
+		}
+	}
+
+	// Fonction pour effacer la recherche DataTable
+	function clearDataTableSearch(accordionItem) {
+		var dataTable = accordionItem.querySelector('.accordion-body table');
+		if (dataTable) {
+			var tableId = dataTable.getAttribute('id');
+			
+			// Si c'est une DataTable initialisée
+			if (dataTable.classList.contains('searchable_nosort_datatable') && typeof $ !== 'undefined' && $.fn.DataTable) {
+				try {
+					var dt = $('#' + tableId).DataTable();
+					dt.search('').draw();
+				} catch (e) {
+					// DataTable pas encore initialisée ou erreur, effacer le filtre manuel
+					clearManualTableFilter(dataTable);
+				}
+			} else {
+				// Pour les tables simples, effacer le filtre manuel
+				clearManualTableFilter(dataTable);
+			}
+		}
+	}
+
+	// Fonction pour appliquer un filtre manuel sur une table simple
+	function applyManualTableFilter(table, searchTerm) {
+		var tbody = table.querySelector('tbody');
+		if (tbody) {
+			var rows = tbody.querySelectorAll('tr');
+			rows.forEach(function(row) {
+				var rowText = row.textContent.toLowerCase();
+				if (rowText.indexOf(searchTerm) !== -1) {
+					row.style.display = '';
+				} else {
+					row.style.display = 'none';
+				}
+			});
+		}
+	}
+
+	// Fonction pour effacer le filtre manuel d'une table simple
+	function clearManualTableFilter(table) {
+		var tbody = table.querySelector('tbody');
+		if (tbody) {
+			var rows = tbody.querySelectorAll('tr');
+			rows.forEach(function(row) {
+				row.style.display = '';
 			});
 		}
 	}
@@ -458,10 +652,59 @@ $this->lang->load('comptes');
 		document.addEventListener('DOMContentLoaded', function() {
 			initializeBalanceAccordion();
 			initializeAccordionSearch();
+			// Ajouter des listeners pour capturer les changements d'état manuels
+			addAccordionStateChangeListeners();
 		});
 	} else {
 		initializeBalanceAccordion();
 		initializeAccordionSearch();
+		// Ajouter des listeners pour capturer les changements d'état manuels
+		addAccordionStateChangeListeners();
+	}
+
+	// Fonction pour ajouter des listeners aux changements d'état des accordéons
+	function addAccordionStateChangeListeners() {
+		// Listener pour les clics sur les boutons d'accordéon
+		var accordionButtons = document.querySelectorAll('#balanceAccordion .accordion-button');
+		accordionButtons.forEach(function(button) {
+			button.addEventListener('click', function() {
+				// Attendre que Bootstrap ait fini de traiter le changement d'état
+				setTimeout(function() {
+					captureOriginalAccordionStates();
+				}, 50);
+			});
+		});
+
+		// Listener pour le bouton "Développer tout"
+		var expandBtn = document.getElementById('expand-all');
+		if (expandBtn) {
+			// Utiliser capture pour intercepter avant le handler existant
+			expandBtn.addEventListener('click', function() {
+				setTimeout(function() {
+					// Marquer tous comme étant ouverts dans l'état original
+					updateAllAccordionStates(true);
+				}, 400);
+			}, true);
+		}
+
+		// Listener pour le bouton "Réduire tout"
+		var collapseBtn = document.getElementById('collapse-all');
+		if (collapseBtn) {
+			// Utiliser capture pour intercepter avant le handler existant
+			collapseBtn.addEventListener('click', function() {
+				setTimeout(function() {
+					// Marquer tous comme étant fermés dans l'état original
+					updateAllAccordionStates(false);
+				}, 400);
+			}, true);
+		}
+	}
+
+	// Fonction pour mettre à jour l'état de tous les accordéons
+	function updateAllAccordionStates(isExpanded) {
+		for (var accordionId in originalAccordionStates) {
+			originalAccordionStates[accordionId].isExpanded = isExpanded;
+		}
 	}
 	</script>
 
