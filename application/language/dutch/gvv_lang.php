@@ -85,6 +85,7 @@ $lang['gvv_button_create'] = "Bewaar";
 $lang['gvv_button_create_and_continue'] = "Bewaar en ga verder";
 $lang['gvv_button_update'] = "Bijwerken";
 $lang['gvv_button_validate'] = "Bewaar";
+$lang['gvv_button_save'] = "Opslaan";
 $lang['gvv_button_delete'] = "Verwijder";
 $lang['gvv_button_cancel'] = "Annuleer";
 $lang['gvv_button_clone'] = "Kopieer";

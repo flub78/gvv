@@ -128,7 +128,3 @@ if ($this->session->flashdata('error')) {
     <?php endif; ?>
 
 </div>
-
-<?php
-$this->load->view('bs_footer');
-?>

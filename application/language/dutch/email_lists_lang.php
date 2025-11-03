@@ -26,7 +26,7 @@ $lang['email_lists_copy'] = 'Kopiëren';
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Op Criteria';
 $lang['email_lists_tab_manual'] = 'Handmatige Selectie';
-$lang['email_lists_tab_import'] = 'Bestand Importeren';
+$lang['email_lists_tab_external'] = 'Externe adressen';
 
 // Criteria tab
 $lang['email_lists_roles'] = 'Rollen';
@@ -50,7 +50,7 @@ $lang['email_lists_external_name'] = 'Naam';
 $lang['email_lists_paste_emails'] = 'Plak adressen (één per regel)';
 
 // Import tab
-$lang['email_lists_import_text'] = 'Tekst Importeren';
+$lang['email_lists_external_addresses'] = 'Externe adressen';
 $lang['email_lists_import_csv'] = 'CSV Importeren';
 $lang['email_lists_upload_file'] = 'Bestand Uploaden';
 $lang['email_lists_parse'] = 'Analyseren';
@@ -121,8 +121,8 @@ $lang['email_lists_enter_email'] = 'Voer een e-mailadres in';
 $lang['email_lists_import_pasted'] = 'Adressen Importeren';
 $lang['email_lists_emails_added'] = 'adressen toegevoegd';
 $lang['email_lists_emails_invalid'] = 'ongeldige adressen';
-$lang['email_lists_import_text_help'] = 'Plak tekst met e-mailadressen (één per regel)';
-$lang['email_lists_paste_text'] = 'Plak tekst hier';
+$lang['email_lists_external_addresses_help'] = 'Voer in of plak adressen, één per regel. Adressen kunnen gevolgd worden door een naam.';
+$lang['email_lists_paste_addresses'] = 'Voer in of plak adressen hier';
 $lang['email_lists_import_csv_help'] = 'Plak CSV met configureerbare kolommen';
 $lang['email_lists_paste_csv'] = 'Plak CSV hier';
 $lang['email_lists_csv_delimiter'] = 'Scheidingsteken';
@@ -149,3 +149,10 @@ $lang['email_lists_showing'] = 'Tonen';
 $lang['email_lists_mailto_help'] = 'Opent uw e-mailclient met vooraf ingevulde adressen';
 $lang['email_lists_mailto_too_long'] = 'Lijst te lang voor mailto. In plaats daarvan naar klembord kopiëren?';
 $lang['email_lists_prefs_saved'] = 'Voorkeuren opgeslagen';
+
+// Preview panel
+$lang['email_lists_list_under_construction'] = 'Lijst in opbouw';
+$lang['email_lists_total_recipients'] = 'Totaal ontvangers';
+$lang['email_lists_from_criteria'] = 'Van criteria';
+$lang['email_lists_select_criteria_to_preview'] = 'Selecteer criteria om de lijst te bekijken';
+$lang['email_lists_refresh_preview'] = 'Voorbeeld vernieuwen';

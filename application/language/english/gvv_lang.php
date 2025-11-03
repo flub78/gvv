@@ -91,6 +91,7 @@ $lang['gvv_button_create'] = "Create";
 $lang['gvv_button_create_and_continue'] = "Create and continue";
 $lang['gvv_button_update'] = "Update";
 $lang['gvv_button_validate'] = "Validate";
+$lang['gvv_button_save'] = "Save";
 $lang['gvv_button_delete'] = "Delete";
 $lang['gvv_button_cancel'] = "Cancel";
 $lang['gvv_button_clone'] = "Clone";

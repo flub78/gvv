@@ -53,6 +53,7 @@ class Email_lists extends Gvv_Controller
         $this->load->helper('email');
         $this->load->library('form_validation');
         $this->lang->load('email_lists');
+        $this->lang->load('gvv');
     }
 
     /**
@@ -382,6 +383,118 @@ class Email_lists extends Gvv_Controller
 
         echo json_encode(array('count' => $count));
         exit;
+    }
+
+    /**
+     * AJAX endpoint for preview list during creation/editing
+     * Returns the full resolved list with counts
+     */
+    public function preview_list()
+    {
+        try {
+            // Get form data
+            $roles = $this->input->post('roles') ?: array();
+            $manual_members = $this->input->post('manual_members') ?: array();
+            $external_emails = $this->input->post('external_emails') ?: array();
+            $external_names = $this->input->post('external_names') ?: array();
+            $active_member = $this->input->post('active_member') ?: 'active';
+
+            $all_emails = array();
+            $criteria_count = 0;
+
+        // Resolve emails from criteria (roles)
+        if (!empty($roles)) {
+            foreach ($roles as $role_value) {
+                // Parse role_id and section_id from value (format: "role_id_section_id")
+                $parts = explode('_', $role_value);
+                if (count($parts) == 2) {
+                    $role_id = (int)$parts[0];
+                    $section_id = (int)$parts[1];
+                    $section_id = ($section_id === 0) ? NULL : $section_id;
+
+                    // Get users for this role/section
+                    $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member);
+                    foreach ($users as $user) {
+                        if (!empty($user['email'])) {
+                            $all_emails[] = strtolower(trim($user['email']));
+                        }
+                    }
+                }
+            }
+            // Count unique emails from criteria
+            $criteria_count = count(array_unique($all_emails));
+        }
+
+        // Add manual members
+        if (!empty($manual_members)) {
+            $this->load->model('membres_model');
+            foreach ($manual_members as $membre_id) {
+                $membre = $this->membres_model->get_membre($membre_id);
+                if ($membre && !empty($membre['email'])) {
+                    $all_emails[] = strtolower(trim($membre['email']));
+                }
+            }
+        }
+
+        // Add external emails (store with names)
+        $external_with_names = array();
+        $external_emails_set = array(); // Set of all external emails for quick lookup
+        if (!empty($external_emails)) {
+            foreach ($external_emails as $idx => $email) {
+                if (!empty($email)) {
+                    $email_lower = strtolower(trim($email));
+                    $all_emails[] = $email_lower;
+                    $external_emails_set[$email_lower] = true; // Mark as external
+                    // Store name if provided
+                    $name = isset($external_names[$idx]) ? trim($external_names[$idx]) : '';
+                    if (!empty($name)) {
+                        $external_with_names[$email_lower] = $name;
+                    }
+                }
+            }
+        }
+
+        // Deduplicate
+        $this->load->helper('email');
+        $unique_emails = deduplicate_emails($all_emails);
+
+        // Build email list with metadata
+        $emails_with_metadata = array();
+        foreach ($unique_emails as $email) {
+            $item = array(
+                'email' => $email,
+                'display' => $email,
+                'is_external' => isset($external_emails_set[$email])
+            );
+
+            if (isset($external_with_names[$email])) {
+                $item['display'] = $email . ' - ' . $external_with_names[$email];
+                $item['name'] = $external_with_names[$email];
+            }
+
+            $emails_with_metadata[] = $item;
+        }
+
+            // Return JSON response
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(array(
+                    'success' => TRUE,
+                    'total' => count($unique_emails),
+                    'criteria_count' => $criteria_count,
+                    'manual_count' => count($manual_members),
+                    'external_count' => count($external_emails),
+                    'emails' => array_values($emails_with_metadata)
+                )));
+        } catch (Exception $e) {
+            log_message('error', 'Error in preview_list: ' . $e->getMessage());
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(array(
+                    'success' => FALSE,
+                    'message' => 'Erreur: ' . $e->getMessage()
+                )));
+        }
     }
 
     /**

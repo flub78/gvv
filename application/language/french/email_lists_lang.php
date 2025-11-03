@@ -26,7 +26,7 @@ $lang['email_lists_copy'] = 'Copier';
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Par critères';
 $lang['email_lists_tab_manual'] = 'Sélection manuelle';
-$lang['email_lists_tab_import'] = 'Import fichier';
+$lang['email_lists_tab_external'] = 'Adresses externes';
 
 // Criteria tab
 $lang['email_lists_roles'] = 'Rôles';
@@ -50,7 +50,7 @@ $lang['email_lists_external_name'] = 'Nom';
 $lang['email_lists_paste_emails'] = 'Coller les adresses (une par ligne)';
 
 // Import tab
-$lang['email_lists_import_text'] = 'Import texte';
+$lang['email_lists_external_addresses'] = 'Adresses externes';
 $lang['email_lists_import_csv'] = 'Import CSV';
 $lang['email_lists_upload_file'] = 'Télécharger un fichier';
 $lang['email_lists_parse'] = 'Analyser';
@@ -121,8 +121,8 @@ $lang['email_lists_enter_email'] = 'Veuillez saisir une adresse email';
 $lang['email_lists_import_pasted'] = 'Importer les adresses';
 $lang['email_lists_emails_added'] = 'adresses ajoutées';
 $lang['email_lists_emails_invalid'] = 'adresses invalides';
-$lang['email_lists_import_text_help'] = 'Collez du texte contenant des adresses email (une par ligne)';
-$lang['email_lists_paste_text'] = 'Collez le texte ici';
+$lang['email_lists_external_addresses_help'] = 'Saisissez ou collez des adresses, une par ligne. Les adresses peuvent être suivies par un nom.';
+$lang['email_lists_paste_addresses'] = 'Saisissez ou collez les adresses ici';
 $lang['email_lists_import_csv_help'] = 'Collez du CSV avec colonnes configurables';
 $lang['email_lists_paste_csv'] = 'Collez le CSV ici';
 $lang['email_lists_csv_delimiter'] = 'Délimiteur';
@@ -149,3 +149,10 @@ $lang['email_lists_showing'] = 'Affichage';
 $lang['email_lists_mailto_help'] = 'Ouvre votre client email avec les adresses pré-remplies';
 $lang['email_lists_mailto_too_long'] = 'Liste trop longue pour mailto. Copier dans le presse-papier à la place ?';
 $lang['email_lists_prefs_saved'] = 'Préférences sauvegardées';
+
+// Preview panel
+$lang['email_lists_list_under_construction'] = 'Liste en construction';
+$lang['email_lists_total_recipients'] = 'Total destinataires';
+$lang['email_lists_from_criteria'] = 'Depuis critères';
+$lang['email_lists_select_criteria_to_preview'] = 'Sélectionnez des critères pour prévisualiser la liste';
+$lang['email_lists_refresh_preview'] = 'Actualiser l\'aperçu';

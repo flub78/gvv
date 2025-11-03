@@ -26,7 +26,7 @@ $lang['email_lists_copy'] = 'Copy';
 // Tabs
 $lang['email_lists_tab_criteria'] = 'By Criteria';
 $lang['email_lists_tab_manual'] = 'Manual Selection';
-$lang['email_lists_tab_import'] = 'File Import';
+$lang['email_lists_tab_external'] = 'External addresses';
 
 // Criteria tab
 $lang['email_lists_roles'] = 'Roles';
@@ -50,7 +50,7 @@ $lang['email_lists_external_name'] = 'Name';
 $lang['email_lists_paste_emails'] = 'Paste addresses (one per line)';
 
 // Import tab
-$lang['email_lists_import_text'] = 'Text Import';
+$lang['email_lists_external_addresses'] = 'External addresses';
 $lang['email_lists_import_csv'] = 'CSV Import';
 $lang['email_lists_upload_file'] = 'Upload a file';
 $lang['email_lists_parse'] = 'Parse';
@@ -121,8 +121,8 @@ $lang['email_lists_enter_email'] = 'Please enter an email address';
 $lang['email_lists_import_pasted'] = 'Import Addresses';
 $lang['email_lists_emails_added'] = 'addresses added';
 $lang['email_lists_emails_invalid'] = 'invalid addresses';
-$lang['email_lists_import_text_help'] = 'Paste text containing email addresses (one per line)';
-$lang['email_lists_paste_text'] = 'Paste text here';
+$lang['email_lists_external_addresses_help'] = 'Enter or paste addresses, one per line. Addresses can be followed by a name.';
+$lang['email_lists_paste_addresses'] = 'Enter or paste addresses here';
 $lang['email_lists_import_csv_help'] = 'Paste CSV with configurable columns';
 $lang['email_lists_paste_csv'] = 'Paste CSV here';
 $lang['email_lists_csv_delimiter'] = 'Delimiter';
@@ -149,3 +149,10 @@ $lang['email_lists_showing'] = 'Showing';
 $lang['email_lists_mailto_help'] = 'Opens your email client with pre-filled addresses';
 $lang['email_lists_mailto_too_long'] = 'List too long for mailto. Copy to clipboard instead?';
 $lang['email_lists_prefs_saved'] = 'Preferences saved';
+
+// Preview panel
+$lang['email_lists_list_under_construction'] = 'List under construction';
+$lang['email_lists_total_recipients'] = 'Total recipients';
+$lang['email_lists_from_criteria'] = 'From criteria';
+$lang['email_lists_select_criteria_to_preview'] = 'Select criteria to preview the list';
+$lang['email_lists_refresh_preview'] = 'Refresh preview';

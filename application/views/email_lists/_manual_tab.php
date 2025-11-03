@@ -165,14 +165,12 @@ function addManualMember() {
     const memberName = selector.options[selector.selectedIndex].text;
 
     if (!memberId) {
-        alert('<?= $this->lang->line("email_lists_select_member_first") ?>');
-        return;
+        return; // No popup needed, just don't add anything
     }
 
     // Check if already added
     if (document.querySelector('#manual_members_list [data-member-id="' + memberId + '"]')) {
-        alert('<?= $this->lang->line("email_lists_member_already_added") ?>');
-        return;
+        return; // Already in list, silently ignore
     }
 
     // Add to list
@@ -210,14 +208,12 @@ function addExternalEmail() {
     const name = nameInput.value.trim();
 
     if (!email) {
-        alert('<?= $this->lang->line("email_lists_enter_email") ?>');
-        return;
+        return; // No popup needed, just don't add anything
     }
 
     // Basic email validation
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        alert('<?= $this->lang->line("email_lists_invalid_email") ?>');
-        return;
+        return; // Invalid email, silently ignore
     }
 
     // Add to list
@@ -246,8 +242,7 @@ function bulkAddExternalEmails() {
     });
 
     textarea.value = '';
-    alert(added + ' <?= $this->lang->line("email_lists_emails_added") ?>' +
-          (invalid > 0 ? ', ' + invalid + ' <?= $this->lang->line("email_lists_emails_invalid") ?>' : ''));
+    // No popup needed, visual feedback is obvious from list update
 }
 
 // Helper to add external email to DOM
@@ -255,23 +250,67 @@ function addExternalEmailToList(email, name) {
     const listDiv = document.getElementById('external_emails_list');
     const emailDiv = document.createElement('div');
     emailDiv.className = 'd-flex justify-content-between align-items-center mb-2 border-bottom pb-2';
-    emailDiv.innerHTML = `
-        <div>
-            <input type="hidden" name="external_emails[]" value="${email}">
-            <input type="hidden" name="external_names[]" value="${name}">
-            <i class="bi bi-envelope"></i>
-            <code>${email}</code>
-            ${name ? '<span class="text-muted"> - ' + name + '</span>' : ''}
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeExternalEmail(this)">
-            <i class="bi bi-trash"></i>
-        </button>
-    `;
+
+    // Create the main content div
+    const contentDiv = document.createElement('div');
+
+    // Add hidden inputs
+    const emailInput = document.createElement('input');
+    emailInput.type = 'hidden';
+    emailInput.name = 'external_emails[]';
+    emailInput.value = email;
+    contentDiv.appendChild(emailInput);
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'external_names[]';
+    nameInput.value = name || '';
+    contentDiv.appendChild(nameInput);
+
+    // Add icon
+    const icon = document.createElement('i');
+    icon.className = 'bi bi-envelope';
+    contentDiv.appendChild(icon);
+    contentDiv.appendChild(document.createTextNode(' '));
+
+    // Add email in code tag
+    const codeTag = document.createElement('code');
+    codeTag.textContent = email;
+    contentDiv.appendChild(codeTag);
+
+    // Add name if present
+    if (name && name.trim()) {
+        contentDiv.appendChild(document.createTextNode(' - '));
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-muted';
+        nameSpan.textContent = name;
+        contentDiv.appendChild(nameSpan);
+    }
+
+    // Create delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-sm btn-outline-danger';
+    deleteBtn.onclick = function() { removeExternalEmail(this); };
+
+    const trashIcon = document.createElement('i');
+    trashIcon.className = 'bi bi-trash';
+    deleteBtn.appendChild(trashIcon);
+
+    // Assemble the row
+    emailDiv.appendChild(contentDiv);
+    emailDiv.appendChild(deleteBtn);
+
     listDiv.appendChild(emailDiv);
 }
 
 // Remove external email
 function removeExternalEmail(button) {
     button.closest('div').remove();
+
+    // Update preview counts automatically
+    if (typeof updatePreviewCounts === 'function') {
+        updatePreviewCounts();
+    }
 }
 </script>

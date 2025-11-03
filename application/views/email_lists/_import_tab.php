@@ -8,21 +8,24 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5 class="card-title">
-            <i class="bi bi-file-earmark-text"></i>
-            <?= $this->lang->line("email_lists_import_text") ?>
+            <i class="bi bi-envelope-at"></i>
+            <?= $this->lang->line("email_lists_external_addresses") ?>
         </h5>
         <p class="text-muted">
-            <?= $this->lang->line("email_lists_import_text_help") ?>
+            <?= $this->lang->line("email_lists_external_addresses_help") ?>
         </p>
+
+        <!-- Error messages container -->
+        <div id="text_import_errors" class="mb-3"></div>
 
         <div class="mb-3">
             <label for="text_import" class="form-label">
-                <?= $this->lang->line("email_lists_paste_text") ?>
+                <?= $this->lang->line("email_lists_paste_addresses") ?>
             </label>
             <textarea class="form-control font-monospace"
                       id="text_import"
                       rows="8"
-                      placeholder="email1@example.com&#10;email2@example.com&#10;email3@example.com"></textarea>
+                      placeholder="email1@example.com Arthur Zorglub&#10;email2@example.com&#10;email3@example.com Association XYZ"></textarea>
         </div>
 
         <button type="button"
@@ -43,6 +46,9 @@
         <p class="text-muted">
             <?= $this->lang->line("email_lists_import_csv_help") ?>
         </p>
+
+        <!-- Error messages container -->
+        <div id="csv_import_errors" class="mb-3"></div>
 
         <div class="mb-3">
             <label for="csv_import" class="form-label">
@@ -108,55 +114,27 @@
     </div>
 </div>
 
-<!-- Import results -->
-<div id="import_results" class="mt-3" style="display: none;">
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
-                <i class="bi bi-check-circle"></i>
-                <?= $this->lang->line("email_lists_import_results") ?>
-            </h5>
-        </div>
-        <div class="card-body">
-            <div id="import_summary"></div>
-            <div id="import_preview" class="mt-3"></div>
-            <div class="mt-3">
-                <button type="button"
-                        class="btn btn-success"
-                        onclick="confirmImport()">
-                    <i class="bi bi-check-circle"></i>
-                    <?= $this->lang->line("email_lists_confirm_import") ?>
-                </button>
-                <button type="button"
-                        class="btn btn-secondary"
-                        onclick="cancelImport()">
-                    <i class="bi bi-x-circle"></i>
-                    <?= $this->lang->line("gvv_str_cancel") ?>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-let pendingImports = [];
 
 // Import text emails
 function importTextEmails() {
     const textarea = document.getElementById('text_import');
     const text = textarea.value.trim();
+    const errorsDiv = document.getElementById('text_import_errors');
+
+    // Clear previous errors
+    errorsDiv.innerHTML = '';
 
     if (!text) {
-        alert('<?= $this->lang->line("email_lists_no_text_to_import") ?>');
-        return;
+        return; // No popup needed, user can see textarea is empty
     }
 
     // Parse emails from text (one per line, extract email addresses)
     const lines = text.split(/[\n\r]+/);
-    const emails = [];
-    const errors = [];
+    let added = 0;
+    const invalidLines = [];
 
-    lines.forEach((line, idx) => {
+    lines.forEach((line) => {
         const trimmed = line.trim();
         if (!trimmed) return;
 
@@ -164,29 +142,60 @@ function importTextEmails() {
         const match = trimmed.match(/([^\s@]+@[^\s@]+\.[^\s@]+)/);
         if (match) {
             const email = match[1].toLowerCase();
-            // Extract potential name (text before email)
-            const namePart = trimmed.replace(match[0], '').trim().replace(/[<>]/g, '');
-            emails.push({
-                email: email,
-                name: namePart || '',
-                source: 'text'
-            });
+            // Extract potential name (text after email)
+            let namePart = trimmed.replace(match[0], '').trim().replace(/[<>]/g, '');
+
+            // Add directly to external emails list
+            addExternalEmailToList(email, namePart);
+            added++;
         } else {
-            errors.push({line: idx + 1, text: trimmed});
+            invalidLines.push(trimmed);
         }
     });
 
-    displayImportResults(emails, errors, 'text');
+    // Display errors if any
+    if (invalidLines.length > 0) {
+        let errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+        errorHtml += '<strong><i class="bi bi-exclamation-triangle-fill"></i> Erreur:</strong> ';
+        errorHtml += 'Les adresses suivantes ne sont pas correctement formées:<ul class="mb-0 mt-2">';
+        invalidLines.forEach(line => {
+            errorHtml += '<li><code>' + escapeHtml(line) + '</code></li>';
+        });
+        errorHtml += '</ul>';
+        errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        errorHtml += '</div>';
+        errorsDiv.innerHTML = errorHtml;
+    }
+
+    // Clear textarea only if at least one email was added
+    if (added > 0) {
+        textarea.value = '';
+    }
+
+    // Update preview counts automatically (no popup needed, visual feedback is obvious)
+    if (typeof updatePreviewCounts === 'function') {
+        updatePreviewCounts();
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Import CSV emails
 function importCsvEmails() {
     const textarea = document.getElementById('csv_import');
     const csv = textarea.value.trim();
+    const errorsDiv = document.getElementById('csv_import_errors');
+
+    // Clear previous errors
+    errorsDiv.innerHTML = '';
 
     if (!csv) {
-        alert('<?= $this->lang->line("email_lists_no_csv_to_import") ?>');
-        return;
+        return; // No popup needed, user can see textarea is empty
     }
 
     const delimiter = document.getElementById('csv_delimiter').value;
@@ -196,8 +205,8 @@ function importCsvEmails() {
 
     // Parse CSV
     const lines = csv.split(/[\n\r]+/);
-    const emails = [];
-    const errors = [];
+    let added = 0;
+    const invalidLines = [];
 
     lines.forEach((line, idx) => {
         // Skip header
@@ -211,7 +220,7 @@ function importCsvEmails() {
 
         // Get email
         if (emailCol >= columns.length) {
-            errors.push({line: idx + 1, text: trimmed, error: 'Column index out of range'});
+            invalidLines.push({line: trimmed, reason: 'Colonne email manquante (ligne ' + (idx + 1) + ')'});
             return;
         }
 
@@ -220,78 +229,36 @@ function importCsvEmails() {
 
         // Validate email
         if (email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            emails.push({
-                email: email,
-                name: name,
-                source: 'csv'
-            });
+            // Add directly to external emails list
+            addExternalEmailToList(email, name);
+            added++;
         } else {
-            errors.push({line: idx + 1, text: trimmed, error: 'Invalid email format'});
+            invalidLines.push({line: email, reason: 'Adresse email mal formée (ligne ' + (idx + 1) + ')'});
         }
     });
 
-    displayImportResults(emails, errors, 'csv');
-}
-
-// Display import results
-function displayImportResults(emails, errors, source) {
-    pendingImports = emails;
-
-    const resultsDiv = document.getElementById('import_results');
-    const summaryDiv = document.getElementById('import_summary');
-    const previewDiv = document.getElementById('import_preview');
-
-    // Summary
-    let summaryHtml = '<p><strong><?= $this->lang->line("email_lists_valid_emails") ?>:</strong> ' + emails.length + '</p>';
-    if (errors.length > 0) {
-        summaryHtml += '<p class="text-warning"><strong><?= $this->lang->line("email_lists_errors") ?>:</strong> ' + errors.length + '</p>';
-        summaryHtml += '<details class="mt-2"><summary><?= $this->lang->line("email_lists_show_errors") ?></summary><ul>';
-        errors.forEach(err => {
-            summaryHtml += '<li>Line ' + err.line + ': ' + err.text + (err.error ? ' (' + err.error + ')' : '') + '</li>';
+    // Display errors if any
+    if (invalidLines.length > 0) {
+        let errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+        errorHtml += '<strong><i class="bi bi-exclamation-triangle-fill"></i> Erreur:</strong> ';
+        errorHtml += 'Problèmes détectés lors de l\'import:<ul class="mb-0 mt-2">';
+        invalidLines.forEach(err => {
+            errorHtml += '<li><code>' + escapeHtml(err.line) + '</code> - ' + err.reason + '</li>';
         });
-        summaryHtml += '</ul></details>';
+        errorHtml += '</ul>';
+        errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        errorHtml += '</div>';
+        errorsDiv.innerHTML = errorHtml;
     }
-    summaryDiv.innerHTML = summaryHtml;
 
-    // Preview (first 10)
-    let previewHtml = '<h6><?= $this->lang->line("email_lists_preview") ?>:</h6><ul>';
-    emails.slice(0, 10).forEach(item => {
-        previewHtml += '<li><code>' + item.email + '</code>';
-        if (item.name) {
-            previewHtml += ' - ' + item.name;
-        }
-        previewHtml += '</li>';
-    });
-    if (emails.length > 10) {
-        previewHtml += '<li><em>... et ' + (emails.length - 10) + ' autres</em></li>';
+    // Clear textarea only if at least one email was added
+    if (added > 0) {
+        textarea.value = '';
     }
-    previewHtml += '</ul>';
-    previewDiv.innerHTML = previewHtml;
 
-    resultsDiv.style.display = 'block';
-}
-
-// Confirm import
-function confirmImport() {
-    if (pendingImports.length === 0) return;
-
-    // Add to external emails list
-    pendingImports.forEach(item => {
-        addExternalEmailToList(item.email, item.name);
-    });
-
-    // Clear pending and hide results
-    pendingImports = [];
-    document.getElementById('import_results').style.display = 'none';
-    document.getElementById('text_import').value = '';
-    document.getElementById('csv_import').value = '';
-
-    alert(pendingImports.length + ' <?= $this->lang->line("email_lists_emails_imported") ?>');
-}
-
-// Cancel import
-function cancelImport() {
-    pendingImports = [];
-    document.getElementById('import_results').style.display = 'none';
+    // Update preview counts automatically (no popup needed, visual feedback is obvious)
+    if (typeof updatePreviewCounts === 'function') {
+        updatePreviewCounts();
+    }
 }
 </script>
