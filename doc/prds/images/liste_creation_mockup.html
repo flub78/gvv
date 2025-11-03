@@ -274,12 +274,12 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
                         <i class="bi bi-person-check"></i> Sélection manuelle
-                        <span class="tab-count">2</span>
+                        <span class="tab-count">4</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="external-tab" data-bs-toggle="tab" data-bs-target="#external" type="button" role="tab">
-                        <i class="bi bi-box-arrow-in-down"></i> Adresses externes
+                    <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button" role="tab">
+                        <i class="bi bi-cloud-upload"></i> Import de fichiers
                         <span class="tab-count">2</span>
                     </button>
                 </li>
@@ -414,6 +414,7 @@
 
                 <!-- ONGLET 2: Sélection manuelle -->
                 <div class="tab-pane fade" id="manual" role="tabpanel">
+                    <!-- Sélection de membres -->
                     <div class="section-box">
                         <div class="section-title">Membres à ajouter individuellement</div>
 
@@ -478,22 +479,12 @@
                             <i class="bi bi-exclamation-triangle"></i> Liste statique - mise à jour manuelle uniquement
                         </div>
                     </div>
-                </div>
 
-                <!-- ONGLET 3: Adresses externes -->
-                <div class="tab-pane fade" id="external" role="tabpanel">
-                    <div class="section-box">
-                        <div class="section-title">Import et saisie d'adresses externes</div>
-
-                        <div class="import-zone mb-3">
-                            <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
-                            <div class="mt-2">Glisser un fichier CSV ou TXT ici</div>
-                            <small class="text-muted">ou cliquer pour parcourir</small>
-                            <input type="file" class="d-none" accept=".csv,.txt">
-                        </div>
+                    <!-- Ajout manuel d'adresses externes -->
+                    <div class="section-box mt-3">
+                        <div class="section-title">Ajout manuel d'adresses externes</div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Ajout manuel d'une adresse</label>
                             <div class="input-group">
                                 <input type="email" class="form-control" placeholder="email@externe.com">
                                 <input type="text" class="form-control" placeholder="Nom (optionnel)">
@@ -529,7 +520,74 @@
                         </div>
 
                         <div class="alert alert-info mt-3 mb-0" style="font-size: 0.85rem;">
-                            <i class="bi bi-info-circle"></i> Format CSV accepté : email, nom (séparateur virgule ou point-virgule)
+                            <i class="bi bi-info-circle"></i> Ces adresses ne sont pas dans GVV et doivent être ajoutées manuellement
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ONGLET 3: Import de fichiers -->
+                <div class="tab-pane fade" id="import" role="tabpanel">
+                    <div class="section-box">
+                        <div class="section-title">Importer des adresses depuis un fichier</div>
+
+                        <!-- Upload de fichier -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Télécharger un fichier CSV ou TXT</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" accept=".csv,.txt" id="fileUpload">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="bi bi-cloud-upload"></i> Importer
+                                </button>
+                            </div>
+                            <small class="text-muted">Formats acceptés: CSV (email,nom) ou TXT (une adresse par ligne)</small>
+                        </div>
+
+                        <!-- Liste des fichiers importés -->
+                        <div class="mt-4">
+                            <label class="form-label fw-bold">Fichiers importés (2)</label>
+                            <div style="border: 1px solid #dee2e6; border-radius: 4px;">
+                                <!-- Fichier 1 -->
+                                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                                    <div class="flex-grow-1">
+                                        <div>
+                                            <i class="bi bi-file-earmark-text"></i>
+                                            <strong>auditeurs_bia_2024.csv</strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            Importé le 15/10/2024 • 15 adresses valides
+                                        </small>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-danger">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                                
+                                <!-- Fichier 2 -->
+                                <div class="d-flex justify-content-between align-items-center p-3">
+                                    <div class="flex-grow-1">
+                                        <div>
+                                            <i class="bi bi-file-earmark-text"></i>
+                                            <strong>contacts_externes.txt</strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            Importé le 12/09/2024 • 8 adresses valides
+                                        </small>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-danger">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            <strong>Attention:</strong> Supprimer un fichier supprime toutes les adresses qu'il contenait
+                        </div>
+
+                        <div class="alert alert-info mt-2 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-info-circle"></i> 
+                            Les fichiers sont stockés dans <code>/uploads/emails/</code>
                         </div>
                     </div>
                 </div>
@@ -546,25 +604,9 @@
                 <div class="stats-label">destinataires (après dédoublonnage)</div>
             </div>
 
-            <!-- Légende -->
-            <div class="mb-3 p-2" style="background-color: #f8f9fa; border-radius: 6px; font-size: 0.85rem;">
-                <div><strong>Légende des pastilles :</strong></div>
-                <div class="mt-2">
-                    <span class="criteria-badge badge-ulm-instructeur"></span> ULM + Instructeur &nbsp;
-                    <span class="criteria-badge badge-planeur-pilote"></span> Planeur + Pilote &nbsp;
-                    <span class="criteria-badge badge-avion-tresorier"></span> Avion + Trésorier<br>
-                    <span class="criteria-badge badge-admin-admin"></span> Admin &nbsp;
-                    <span class="criteria-badge badge-manual"></span> Sélection manuelle &nbsp;
-                    <span class="criteria-badge badge-external"></span> Adresse externe
-                </div>
-            </div>
-
             <!-- Liste des destinataires -->
             <div class="recipient-list">
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-ulm-instructeur"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>pierre.instructor@club.fr</div>
                         <div class="recipient-name">Pierre Instructor</div>
@@ -572,20 +614,13 @@
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-ulm-instructeur"></span>
-                        <span class="criteria-badge badge-manual"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>jean.dupont@example.com</div>
-                        <div class="recipient-name">Jean Dupont <em>(aussi sélection manuelle)</em></div>
+                        <div class="recipient-name">Jean Dupont</div>
                     </div>
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-planeur-pilote"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>sophie.glider@club.fr</div>
                         <div class="recipient-name">Sophie Glider</div>
@@ -593,9 +628,6 @@
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-avion-tresorier"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>tresorier.avion@club.fr</div>
                         <div class="recipient-name">Marc Trésorier</div>
@@ -603,9 +635,6 @@
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-admin-admin"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>admin@club.fr</div>
                         <div class="recipient-name">Administrateur Principal</div>
@@ -613,48 +642,27 @@
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-manual"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>luc.petit@example.com</div>
                         <div class="recipient-name">Luc Petit</div>
                     </div>
-                    <button class="btn btn-sm btn-link text-danger p-0">
-                        <i class="bi bi-trash"></i>
-                    </button>
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-external"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>auditeur1@externe.fr</div>
                         <div class="recipient-name">Auditeur BIA</div>
                     </div>
-                    <button class="btn btn-sm btn-link text-danger p-0">
-                        <i class="bi bi-trash"></i>
-                    </button>
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-external"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>externe@gmail.com</div>
                         <div class="recipient-name"><em>Nom non spécifié</em></div>
                     </div>
-                    <button class="btn btn-sm btn-link text-danger p-0">
-                        <i class="bi bi-trash"></i>
-                    </button>
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-ulm-instructeur"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>marie.ulm@club.fr</div>
                         <div class="recipient-name">Marie ULM</div>
@@ -662,9 +670,6 @@
                 </div>
 
                 <div class="recipient-item">
-                    <div style="flex-shrink: 0;">
-                        <span class="criteria-badge badge-planeur-pilote"></span>
-                    </div>
                     <div class="recipient-email">
                         <div>paul.planeur@club.fr</div>
                         <div class="recipient-name">Paul Planeur</div>
@@ -722,13 +727,14 @@
         const criteriaChecked = document.querySelectorAll('#criteria .colored-checkbox:checked').length;
         document.querySelector('#criteria-tab .tab-count').textContent = criteriaChecked;
 
-        // Manual tab - count checked checkboxes in manual selection
+        // Manual tab - count checked checkboxes in manual selection + external addresses
         const manualChecked = document.querySelectorAll('#manual .form-check-input:checked').length;
-        document.querySelector('#manual-tab .tab-count').textContent = manualChecked;
+        const externalManualCount = document.querySelectorAll('#manual code').length;
+        document.querySelector('#manual-tab .tab-count').textContent = manualChecked + externalManualCount;
 
-        // External tab - count external emails
-        const externalCount = document.querySelectorAll('#external code').length;
-        document.querySelector('#external-tab .tab-count').textContent = externalCount;
+        // Import tab - count imported files
+        const importedFiles = document.querySelectorAll('#import .bi-file-earmark-text').length;
+        document.querySelector('#import-tab .tab-count').textContent = importedFiles;
     }
 
     // Listen for checkbox changes
