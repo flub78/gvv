@@ -147,14 +147,40 @@ Le système doit permettre la sélection selon:
 
 La fenêtre de création/modification doit respecter les critères suivants:
 
-1. Elle sera constituée d'une fenêtre de sélection (à gauche) et d'un liste des adresses sélectionnées (à droite)
-1. La fenêtre de sélection comprendra trois onglets: la sélection par critères GVV, la sélection manuelle et la gestion des adresses externes.
+1. **Structure générale:** Elle sera constituée d'une fenêtre de sélection (à gauche) et d'une liste de prévisualisation des adresses sélectionnées (à droite).
 
-1. La selection par critères GVV permettra de cocher les rôles dans les sections. Elle se présentera comme la fenêtre d'attribution des rôles.
-1. La sélection manuelle permettra de cocher les membres un par un dans une liste paginée avec barre de recherche.
-1. La gestion des adresses externes permettra d'importer des adresses depuis un fichier ou de les saisir manuellement. La saisie manuelle permettra la saisie d'une adresse et d'un nom optionnel.
-2. La liste des adresses sélectionnées affichera les adresses avec le nom (si disponible). Pour les adresses sélectionnées manuellement ou importées, elle seront affichées avec une icône poubelle pour les supprimer de la liste.
-3. Selection par critère: Nom de colonnes utiliseront les couleurs des section en background. On affectera une couleur à chacun des rôles. Lorsque un rôle est sélectionné, la checkbox sera colorée avec la couleur de la section avec une bordure de la couleur du rôle. On affichera une pastille avec le même code couleur à côté de chaque adresse sélectionnée par critère dans la liste des adresses sélectionnées. Cela permettra de visualiser rapidement par quel critère une adresse a été sélectionnée. Si une adresse est sélectionnée par plusieurs critères, on affichera plusieurs pastilles.
+2. **Trois onglets de sélection:**
+   - **"Par critères"** - Sélection par rôles GVV et sections
+   - **"Sélection manuelle"** - Sélection individuelle de membres
+   - **"Import de fichiers"** - Upload et gestion de fichiers CSV/TXT
+
+3. **Onglet "Par critères":**
+   - Permet de cocher les rôles dans les sections
+   - Interface similaire à la fenêtre d'attribution des rôles
+   - Checkboxes simples sans système de couleur
+
+4. **Onglet "Sélection manuelle":**
+   - Liste paginée avec barre de recherche
+   - Sélection de membres un par un via checkboxes
+   - Ajout individuel d'adresses externes (email + nom optionnel)
+   - Chaque adresse externe ajoutée manuellement a une icône poubelle pour suppression
+
+5. **Onglet "Import de fichiers":**
+   - Bouton "Télécharger un fichier" (formats: CSV, TXT)
+   - Fichiers stockés dans `/uploads/emails/` avec nommage unique
+   - Liste des fichiers importés sous le bouton, avec:
+     - Nom du fichier
+     - Date d'import
+     - Nombre d'adresses valides
+     - Icône poubelle pour supprimer le fichier
+   - **Important:** Suppression d'un fichier supprime toutes les adresses qu'il contenait
+   - Pas de zone de copier/coller (upload uniquement)
+
+6. **Panneau de prévisualisation (à droite):**
+   - Affiche les totaux (total destinataires, par critères, manuels, externes)
+   - Tableau avec colonnes: Email | Nom
+   - **Pas d'icône de suppression dans la preview** (suppression via onglets sources)
+   - Mise à jour en temps réel lors des modifications
 
 ##### Maquette avec onglets (onglet Par critères GVV)
 ![Prototype version préférée](images/liste_creation_window_with_tabs_1.png) 
@@ -177,10 +203,13 @@ La fenêtre de création/modification doit respecter les critères suivants:
 ### 4.4 Import d'adresses externes
 
 #### 4.4.1 Formats supportés
-- **Texte brut:** une adresse par ligne ou liste séparé par des virgules
-- **CSV:** colonnes configurables (nom, prénom, email, etc.)
-- Validation du format lors de l'import
-- Rapport d'erreurs en cas d'adresses invalides
+- **Texte brut (.txt):** une adresse par ligne, optionnellement suivie d'un nom
+- **CSV (.csv):** colonnes configurables (nom, prénom, email, etc.)
+- **Stockage:** Fichiers uploadés conservés dans `/uploads/emails/[list_id]/[fichier].csv`
+- **Traçabilité:** Chaque adresse importée est liée au fichier source
+- **Validation:** Format validé lors de l'upload avec rapport d'erreurs détaillé
+- **Suppression en cascade:** Suppression d'un fichier supprime toutes ses adresses
+- **Pas de saisie manuelle dans l'onglet import** - Ajout manuel via onglet "Sélection manuelle"
 
 
 ### 4.5 Export et envoi
@@ -324,7 +353,14 @@ Pour s'adapter aux limitations des clients de messagerie:
 
 ---
 
-**Version:** 1.2
-**Date:** 2025-10-31
+**Version:** 1.3
+**Date:** 2025-11-03
 **Auteur:** Claude Code sous supervision de Fred
-**Statut:** Approuvé pour commencer la conception
+**Statut:** En cours d'implémentation
+**Changements v1.3:**
+- Preview sans icônes delete (suppression via onglets sources)
+- Onglets renommés: "Par critères", "Sélection manuelle", "Import de fichiers"
+- Import par upload uniquement (pas de copier/coller)
+- Stockage fichiers dans `/uploads/emails/` avec traçabilité
+- Suppression fichier supprime ses adresses en cascade
+- **Suppression du système de codage couleur** (plus nécessaire avec nouvelle UX)

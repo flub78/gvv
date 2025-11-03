@@ -7,12 +7,61 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours (107/138 tâches - 78%)
-**Phase actuelle:** Phase 5 terminée + split-panel preview ajouté
-**Estimation:** 9 semaines (1 personne)
-**Priorité:** Fonctionnalité complète d'abord, système couleur ensuite (nice-to-have)
+**Statut global:** 🔵 En cours - Révision architecture (107/135 tâches - 79%)
+**Phase actuelle:** Phase 5 - Refactoring en cours suite changements v1.3
+**Estimation:** 8 semaines (1 personne) - réduit de 9 semaines
+**Priorité:** Fonctionnalité complète uniquement
+**Nouvelles tâches v1.3:** +12 tâches (gestion fichiers) | -15 tâches (Phase 9 supprimée)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
+
+---
+
+## Changements v1.3 (2025-11-03)
+
+**Modifications majeures demandées par l'utilisateur:**
+
+1. **Preview simplifiée:**
+   - ❌ Plus d'icônes delete dans la preview
+   - ✅ Tableau simple: Email | Nom
+   - ✅ Totaux affichés (critères, manuels, externes)
+   - Suppression uniquement via les onglets sources
+
+2. **Onglets renommés pour clarté:**
+   - "Par critères GVV" → **"Par critères"**
+   - "Sélection manuelle" → **"Sélection manuelle"** (inchangé)
+   - "Adresses externes" → **"Import de fichiers"**
+
+3. **Import restreint à l'upload:**
+   - ❌ Suppression des zones de copier/coller texte/CSV
+   - ✅ Upload fichier uniquement (button "Télécharger un fichier")
+   - ✅ Stockage dans `/uploads/emails/[list_id]/[fichier]`
+   - ✅ Liste des fichiers importés avec métadonnées
+   - ✅ Suppression fichier → suppression en cascade des adresses
+
+4. **Traçabilité fichiers:**
+   - Ajout champ `source_file` dans table `email_list_external`
+   - Index composé `(email_list_id, source_file)` pour performances
+   - Suppression fichier supprime toutes ses adresses automatiquement
+
+5. **Ajout manuel d'adresses externes:**
+   - Déplacé dans onglet "Sélection manuelle"
+   - Formulaire: email + nom optionnel
+   - Chaque adresse a une icône poubelle pour suppression individuelle
+
+6. **Suppression du système de codage couleur:**
+   - Phase 9 complètement supprimée (-15 tâches)
+   - Plus de pastilles colorées dans la preview
+   - Interface simplifiée: checkboxes standards
+   - Justification: Suppression directe dans onglets sources rend le codage couleur inutile
+
+**Impact sur le plan:**
+- Phase 1: Migration nécessite ALTER TABLE pour ajouter `source_file`
+- Phase 3: +12 tâches (section 3.7 gestion fichiers uploadés)
+- Phase 5: Révision des vues (onglets, preview, gestion fichiers)
+- Phase 9: **SUPPRIMÉE** (système couleur non nécessaire)
+
+---
 
 ## Table des matières
 
@@ -140,6 +189,13 @@
 
 ## Phase 3: Sélection manuelle et import - 🟢 17/17 (Semaine 3) - TERMINÉ
 
+**⚠️ Changements v1.3 à implémenter:**
+- Ajout manuel d'adresses externes déplacé dans onglet "Sélection manuelle"
+- Import limité à upload fichier (suppression copier/coller)
+- Ajout champ `source_file` dans `email_list_external`
+- Gestion liste des fichiers uploadés avec suppression en cascade
+- Voir nouvelle section 3.7 ci-dessous
+
 ### 3.1 Sélection manuelle de membres internes ✅
 - [x] Interface view avec liste déroulante/recherche de membres - Déféré à Phase 5 (UI)
 - [x] Méthode model `add_manual_member($list_id, $membre_id)` - email_lists_model.php:266
@@ -176,6 +232,29 @@
 - [x] Tests détection doublons - EmailHelperTest.php (5 tests, lignes 394-449)
 - [x] Tests MySQL manual members - EmailListsModelTest.php:229
 - [x] Tests MySQL external emails - EmailListsModelTest.php:262-315
+
+### 3.7 Gestion fichiers uploadés (v1.3) - ⚪ 0/12
+
+**⚠️ Nouvelles tâches suite changements architecture v1.3**
+
+#### 3.7.1 Migration base de données
+- [ ] Créer migration `051_add_source_file_to_email_list_external.php`
+- [ ] ALTER TABLE `email_list_external` ADD COLUMN `source_file` VARCHAR(255) NULL
+- [ ] Créer index composé `(email_list_id, source_file)` pour performances
+- [ ] Tester migration up/down
+- [ ] Mettre à jour `application/config/migration.php` version = 51
+
+#### 3.7.2 Méthodes model pour upload
+- [ ] Méthode `upload_external_file($list_id, $file)` - Upload et parse fichier
+- [ ] Méthode `get_uploaded_files($list_id)` - Liste fichiers avec métadonnées
+- [ ] Méthode `delete_file_and_addresses($list_id, $filename)` - Suppression cascade
+- [ ] Méthode `get_file_stats($list_id, $filename)` - Comptage adresses par fichier
+
+#### 3.7.3 Gestion système de fichiers
+- [ ] Créer répertoire `/uploads/emails/` avec permissions appropriées
+- [ ] Fonction helper `save_uploaded_file($list_id, $uploaded_file)` avec nommage unique
+- [ ] Fonction helper `delete_uploaded_file($list_id, $filename)` avec vérifications
+- [ ] Gestion erreurs upload (taille, format, permissions)
 
 ---
 
@@ -335,43 +414,19 @@
 
 ---
 
-## Phase 9: Système de codage couleur (PRD 4.2.4) - ⚪ 0/15 (Semaine 9) - NICE-TO-HAVE
+## ~~Phase 9: Système de codage couleur~~ - SUPPRIMÉE v1.3
 
-**Note:** Cette phase est un enhancement visuel optionnel. Le système est pleinement fonctionnel sans elle.
+**Raison de la suppression:** Avec la nouvelle UX v1.3 où la suppression se fait directement dans les onglets sources (et non via la preview), le système de pastilles colorées n'est plus nécessaire. L'interface est simplifiée avec des checkboxes standards.
 
-### 9.1 Extension table types_roles pour couleurs
-- [ ] Créer migration 051 pour ajouter colonne `color` à `types_roles`
-- [ ] ALTER TABLE types_roles ADD COLUMN color VARCHAR(7) DEFAULT NULL
-- [ ] Mise à jour config/migration.php version = 51
+**Tâches économisées:** 15 tâches supprimées | Estimation réduite de 1 semaine
 
-### 9.2 Attribution automatique couleurs de rôles
-- [ ] Helper `generate_role_color($role_name)` - génération via hash MD5
-- [ ] Palette prédéfinie pour rôles courants (admin, bureau, tresorier, etc.)
-- [ ] Intégration dans `get_available_roles()` pour couleurs automatiques
-
-### 9.3 Enrichissement résolution avec métadonnées couleur
-- [ ] Modifier `textual_list($list_id, $include_color_metadata = false)`
-- [ ] Retourner badges avec section_color, role_color, section_name, role_name
-- [ ] Méthode `deduplicate_emails_with_badges()` pour fusion des pastilles
-
-### 9.4 Controller AJAX pour UI couleur
-- [ ] Action avec métadonnées de couleur pour preview
-- [ ] Modification `preview_list()` pour inclure infos couleur
-
-### 9.5 Interface à onglets avec système de couleur
-- [ ] Grille rôles × sections avec couleurs de background section
-- [ ] Checkboxes colorées (background section + bordure rôle) quand cochées
-- [ ] Liste droite avec pastilles colorées par critère de sélection
-
-### 9.6 JavaScript pour gestion couleur
-- [ ] `generateColorBadge(sectionColor, roleColor)` - génération pastilles HTML
-- [ ] `assignRoleColors(roles)` - attribution couleurs côté client
-- [ ] Mise à jour preview pour afficher pastilles couleur
-
-### 9.7 Tests système couleur
-- [ ] Tests unitaires génération couleurs
-- [ ] Tests intégration résolution avec badges
-- [ ] Tests JavaScript (si framework disponible)
+**Anciennes tâches (référence):**
+- ~~Extension table types_roles pour couleurs~~ (3 tâches)
+- ~~Attribution automatique couleurs~~ (3 tâches)
+- ~~Enrichissement résolution avec métadonnées~~ (3 tâches)
+- ~~Controller AJAX pour UI couleur~~ (2 tâches)
+- ~~Interface avec système de couleur~~ (3 tâches)
+- ~~Tests système couleur~~ (3 tâches)
 
 ---
 

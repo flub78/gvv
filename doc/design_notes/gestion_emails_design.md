@@ -4,9 +4,16 @@
 **Fonctionnalité:** Système de gestion des listes de diffusion email
 **PRD:** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 **Date de création:** 2025-10-31
-**Version:** 1.2
-**Dernière mise à jour:** 2025-11-02
-**Statut:** Approuvé pour implémentation
+**Version:** 1.3
+**Dernière mise à jour:** 2025-11-03
+**Statut:** En cours d'implémentation
+
+**Changements v1.3:**
+- Ajout champ `source_file` dans `email_list_external` pour traçabilité
+- Section 2.4 "Gestion des fichiers uploadés" avec workflow complet
+- Preview simplifiée sans icônes delete (suppression via onglets sources)
+- Onglets renommés pour clarté
+- **Suppression de la Phase 9 (système de codage couleur) - Plus nécessaire**
 
 ## Table des matières
 
@@ -198,9 +205,11 @@ CREATE TABLE `email_list_external` (
   `email_list_id` INT UNSIGNED NOT NULL,
   `external_email` VARCHAR(255) NOT NULL,
   `external_name` VARCHAR(100) DEFAULT NULL COMMENT 'Nom optionnel pour affichage',
+  `source_file` VARCHAR(255) DEFAULT NULL COMMENT 'Nom du fichier source si importé',
   `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_email_list_id` (`email_list_id`),
+  KEY `idx_source_file` (`email_list_id`, `source_file`),
   FOREIGN KEY (`email_list_id`) REFERENCES `email_lists`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
@@ -210,7 +219,10 @@ CREATE TABLE `email_list_external` (
 - `email_list_id`: FK vers email_lists, ON DELETE CASCADE
 - `external_email`: Adresse email externe (NOT NULL)
 - `external_name`: Nom optionnel associé à l'adresse externe
+- `source_file`: Nom du fichier source pour traçabilité (NULL si ajout manuel)
 - `added_at`: Timestamp d'ajout
+
+**Index composé `idx_source_file`:** Permet de supprimer efficacement toutes les adresses d'un fichier donné
 
 ### 2.2 Diagramme ER
 
@@ -228,17 +240,43 @@ Ce diagramme montre les relations entre les tables du système de gestion des li
 ### 2.3 Types de source d'adresse
 
 Une liste contient:
-* des rôles sélectionnés
-* des membres sélectionnés manuellement
-* des adresses email externes saisies ou importées
+* **Rôles sélectionnés** → table `email_list_roles` (sélection dynamique)
+* **Membres sélectionnés manuellement** → table `email_list_members` (sélection statique)
+* **Adresses externes** → table `email_list_external` avec deux sous-types:
+  - **Ajoutées manuellement** : `source_file` = NULL
+  - **Importées depuis fichier** : `source_file` = nom du fichier
 
-### 2.4 Extension de la table `types_roles` pour les couleurs
+### 2.4 Gestion des fichiers uploadés
 
-Pour supporter le système de codage couleur (PRD 4.2.4), la table `types_roles` peut être étendue avec une colonne optionnelle:
+**Stockage physique:**
+- Répertoire: `/uploads/emails/[list_id]/`
+- Nommage: `[timestamp]_[original_filename]` pour éviter collisions
+- Permissions: 644 (lecture seule après création)
+- Formats acceptés: `.txt`, `.csv`
 
-```sql
-ALTER TABLE `types_roles` ADD COLUMN `color` VARCHAR(7) DEFAULT NULL COMMENT 'Couleur hexadécimale (#RRGGBB)';
-```
+**Workflow d'import:**
+1. Upload fichier → validation format
+2. Parse contenu → extraction email + nom
+3. Validation adresses → rapport d'erreurs
+4. Insertion en base avec `source_file = nom_fichier`
+5. Conservation du fichier pour traçabilité
+
+**Workflow de suppression:**
+1. Utilisateur clique sur icône poubelle du fichier
+2. Confirmation obligatoire
+3. Suppression de toutes les lignes `email_list_external` WHERE `source_file = nom_fichier`
+4. Suppression du fichier physique
+5. Mise à jour de la preview en temps réel
+
+**Avantages:**
+- Traçabilité complète (quel fichier a ajouté quelle adresse)
+- Suppression en bloc simple et efficace
+- Audit: possibilité de ré-analyser le fichier source
+- Pas de duplication: un fichier ne peut être uploadé qu'une seule fois par liste
+
+### 2.5 Extension future (réservée)
+
+_Section réservée pour évolutions futures éventuelles._
 
 **Stratégie de migration:**
 - Les rôles existants conservent `color = NULL`
@@ -837,7 +875,11 @@ Le JavaScript génère dynamiquement:
 
 ---
 
-## 4. Système de codage couleur (PRD 4.2.4)
+## 4. Système de codage couleur ~~(SUPPRIMÉ v1.3)~~
+
+**Note:** Cette section a été supprimée dans la version 1.3. Le système de codage couleur n'est plus nécessaire avec la nouvelle UX où la suppression se fait directement dans les onglets sources plutôt que dans la preview.
+
+---
 
 ### 4.1 Vue d'ensemble
 
