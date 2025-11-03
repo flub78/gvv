@@ -50,13 +50,34 @@ $attrs = array(
     'class' => "datatable table table-striped"
 );
 
-// Create button above the table
-echo '<div class="mb-3">'
-    . '<a href="' . site_url('attachments/create') . '" class="btn btn-sm btn-success">'
-    . '<i class="fas fa-plus" aria-hidden="true"></i> '
-    . $this->lang->line('gvv_button_create')
-    . '</a>'
-    . '</div>';
+// Modify actions and mode based on user permissions
+if (isset($can_modify) && $can_modify) {
+    // Tresorier: full read-write access
+    $attrs['actions'] = array('edit', 'delete');
+    $attrs['mode'] = "rw";
+} else {
+    // Bureau: read-only access
+    $attrs['actions'] = array(); // No edit/delete actions
+    $attrs['mode'] = "ro";       // Read-only mode
+}
+
+// Create button above the table - only for tresorier
+if (isset($can_modify) && $can_modify) {
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('attachments/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
+} else {
+    // Show info message for bureau users  
+    echo '<div class="mb-3">'
+        . '<div class="alert alert-info" role="alert">'
+        . '<i class="fas fa-info-circle"></i> '
+        . 'Mode consultation - Droits de modification requis pour créer ou modifier des justificatifs'
+        . '</div>'
+        . '</div>';
+}
 
 echo $this->gvvmetadata->table("vue_attachments", $attrs, "");
 

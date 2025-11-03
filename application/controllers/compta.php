@@ -1791,6 +1791,12 @@ class Compta extends Gvv_Controller {
     public function create_attachment() {
         header('Content-Type: application/json');
 
+        // Check authorization - only tresorier can create attachments
+        if (!has_role('tresorier')) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
+
         try {
             $ecriture_id = isset($_POST['ecriture_id']) ? $_POST['ecriture_id'] : $this->input->post('ecriture_id');
             $description = isset($_POST['description']) ? $_POST['description'] : $this->input->post('description');
@@ -1925,28 +1931,32 @@ class Compta extends Gvv_Controller {
             // Build attachments section HTML
             $html = '<div class="ms-4">';
 
-            // Add inline creation form
-            $html .= '<div class="card mb-3" id="createAttachmentCard" style="display: none;">';
-            $html .= '<div class="card-body">';
-            $html .= '<h5 class="card-title">Nouveau justificatif</h5>';
-            $html .= '<div class="mb-2">';
-            $html .= '<label class="form-label">Description</label>';
-            $html .= '<input type="text" class="form-control form-control-sm" id="newDescription" placeholder="Description du justificatif">';
-            $html .= '</div>';
-            $html .= '<div class="mb-2">';
-            $html .= '<label class="form-label">Fichier</label>';
-            $html .= '<input type="file" class="form-control form-control-sm" id="newFile" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
-            $html .= '</div>';
-            $html .= '<div class="text-danger mb-2" id="createErrorMessage" style="display: none;"></div>';
-            $html .= '<button class="btn btn-sm btn-success" id="saveNewAttachment"><i class="fas fa-save"></i> Enregistrer</button> ';
-            $html .= '<button class="btn btn-sm btn-secondary" id="cancelNewAttachment"><i class="fas fa-times"></i> Annuler</button>';
-            $html .= '</div>';
-            $html .= '</div>';
+            // Add inline creation form - only for tresorier role
+            if (has_role('tresorier')) {
+                $html .= '<div class="card mb-3" id="createAttachmentCard" style="display: none;">';
+                $html .= '<div class="card-body">';
+                $html .= '<h5 class="card-title">Nouveau justificatif</h5>';
+                $html .= '<div class="mb-2">';
+                $html .= '<label class="form-label">Description</label>';
+                $html .= '<input type="text" class="form-control form-control-sm" id="newDescription" placeholder="Description du justificatif">';
+                $html .= '</div>';
+                $html .= '<div class="mb-2">';
+                $html .= '<label class="form-label">Fichier</label>';
+                $html .= '<input type="file" class="form-control form-control-sm" id="newFile" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
+                $html .= '</div>';
+                $html .= '<div class="text-danger mb-2" id="createErrorMessage" style="display: none;"></div>';
+                $html .= '<button class="btn btn-sm btn-success" id="saveNewAttachment"><i class="fas fa-save"></i> Enregistrer</button> ';
+                $html .= '<button class="btn btn-sm btn-secondary" id="cancelNewAttachment"><i class="fas fa-times"></i> Annuler</button>';
+                $html .= '</div>';
+                $html .= '</div>';
+            }
 
-            // Add "Create" button
-            $html .= '<div class="mb-3">';
-            $html .= '<button class="btn btn-sm btn-success" id="showCreateForm"><i class="fas fa-plus"></i> Créer</button>';
-            $html .= '</div>';
+            // Add "Create" button - only for tresorier role
+            if (has_role('tresorier')) {
+                $html .= '<div class="mb-3">';
+                $html .= '<button class="btn btn-sm btn-success" id="showCreateForm"><i class="fas fa-plus"></i> Créer</button>';
+                $html .= '</div>';
+            }
 
             // Generate attachments table with inline editing
             if (!empty($attachments)) {
@@ -2032,6 +2042,12 @@ class Compta extends Gvv_Controller {
      */
     public function update_attachment() {
         header('Content-Type: application/json');
+
+        // Check authorization - only tresorier can update attachments
+        if (!has_role('tresorier')) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
 
         try {
             // Debug: log everything we receive
@@ -2148,6 +2164,12 @@ class Compta extends Gvv_Controller {
      */
     public function delete_attachment() {
         header('Content-Type: application/json');
+
+        // Check authorization - only tresorier can delete attachments
+        if (!has_role('tresorier')) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
 
         try {
             $attachment_id = isset($_POST['attachment_id']) ? $_POST['attachment_id'] : $this->input->post('attachment_id');

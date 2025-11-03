@@ -35,7 +35,9 @@ include('./application/libraries/Gvv_Controller.php');
 class Attachments extends Gvv_Controller {
     protected $controller = 'attachments';
     protected $model = 'attachments_model';
-    // protected $modification_level = 'ca';
+    // Custom access control: bureau = read-only, tresorier = read-write
+    protected $view_level = 'bureau';        // Minimum role for viewing
+    protected $modification_level = 'tresorier';  // Role required for modifications
 
     protected $rules = array();
 
@@ -53,12 +55,31 @@ class Attachments extends Gvv_Controller {
      * Affiche le formulaire de création
      */
     function create() {
+        // Check authorization - only tresorier can create attachments
+        if (!has_role('tresorier')) {
+            redirect('welcome/deny');
+            return;
+        }
+
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
         $this->form_static_element(CREATION);
 
         return load_last_view($this->form_view, $this->data, $this->unit_test);
+    }
+
+    /**
+     * Affiche le formulaire d'édition
+     */
+    function edit($id = "", $load_view = TRUE, $action = MODIFICATION) {
+        // Check authorization - only tresorier can edit attachments
+        if (!has_role('tresorier')) {
+            redirect('welcome/deny');
+            return;
+        }
+
+        return parent::edit($id, $load_view, $action);
     }
 
     /**
@@ -103,6 +124,11 @@ class Attachments extends Gvv_Controller {
      * Validation du formulaire
      */
     public function formValidation($action, $return_on_success = false) {
+        // Check authorization - only tresorier can modify attachments
+        if (!has_role('tresorier')) {
+            redirect('welcome/deny');
+            return;
+        }
 
         $year = date('Y');
 
@@ -184,6 +210,11 @@ class Attachments extends Gvv_Controller {
      * Supprime un élément
      */
     function delete($id) {
+        // Check authorization - only tresorier can delete attachments
+        if (!has_role('tresorier')) {
+            redirect('welcome/deny');
+            return;
+        }
 
         $elt = $this->gvv_model->get_by_id('id', $id);
 
@@ -243,10 +274,20 @@ class Attachments extends Gvv_Controller {
      * Page with year selector like other views
      */
     function page($premier = 0, $message = '', $selection = array()) {
+        // Check minimum authorization - bureau can view, tresorier can modify
+        if (!has_role('bureau')) {
+            redirect('welcome/deny');
+            return;
+        }
+
         // Provide year and selector to the view
         $this->data['controller'] = $this->controller;
         $this->data['year'] = $this->session->userdata('year') ?: date('Y');
         $this->data['year_selector'] = $this->gvv_model->get_available_years();
+        
+        // Set role-based permissions for the view
+        $this->data['can_modify'] = has_role('tresorier');
+        $this->data['can_view'] = has_role('bureau'); // Always true if we reach here
 
         return parent::page($premier, $message, $selection);
     }

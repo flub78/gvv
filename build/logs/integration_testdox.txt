@@ -64,6 +64,8 @@ Authorization Integration
 Balance Accordion Search
  [x] Accordion search java script logic
  [x] Search logic with simulated data
+ [x] Auto expand and data table search
+ [x] Accordion state restoration
  [x] Search edge cases
 
 Categorie Model Integration
