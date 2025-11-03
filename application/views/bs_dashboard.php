@@ -965,9 +965,69 @@ $this->lang->load('welcome');
 }
 </style>
 
-<!-- JavaScript for MOD dialog handling -->
+<!-- JavaScript for MOD dialog handling and accordion state persistence -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // Accordion state persistence
+    const accordionElement = document.getElementById('dashboardAccordion');
+    if (accordionElement) {
+        const STORAGE_KEY = 'gvv_dashboard_accordion_state';
+        
+        // Function to save accordion state
+        function saveAccordionState() {
+            const collapseElements = accordionElement.querySelectorAll('.accordion-collapse');
+            const state = {};
+            
+            collapseElements.forEach(function(element) {
+                const isExpanded = element.classList.contains('show');
+                state[element.id] = isExpanded;
+            });
+            
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+        
+        // Function to restore accordion state
+        function restoreAccordionState() {
+            const savedState = sessionStorage.getItem(STORAGE_KEY);
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    
+                    Object.keys(state).forEach(function(elementId) {
+                        const element = document.getElementById(elementId);
+                        const button = document.querySelector('[data-bs-target="#' + elementId + '"]');
+                        
+                        if (element && button) {
+                            if (state[elementId]) {
+                                // Should be expanded
+                                element.classList.add('show');
+                                button.classList.remove('collapsed');
+                                button.setAttribute('aria-expanded', 'true');
+                            } else {
+                                // Should be collapsed
+                                element.classList.remove('show');
+                                button.classList.add('collapsed');
+                                button.setAttribute('aria-expanded', 'false');
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Failed to restore accordion state:', e);
+                    // Clear corrupted state
+                    sessionStorage.removeItem(STORAGE_KEY);
+                }
+            }
+        }
+        
+        // Listen for accordion state changes
+        accordionElement.addEventListener('shown.bs.collapse', saveAccordionState);
+        accordionElement.addEventListener('hidden.bs.collapse', saveAccordionState);
+        
+        // Restore state after a short delay to ensure Bootstrap has initialized
+        setTimeout(restoreAccordionState, 100);
+    }
+    
     // Initialize MOD dialog if it exists
     const modDialog = document.getElementById('mod_dialog');
     if (modDialog) {
