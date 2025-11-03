@@ -241,8 +241,8 @@ $section_count = $CI->sections_model->safe_count_all();
 
               <?php if (has_role('bureau')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("compta/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("gvv_menu_accounting_journal") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("comptes/general") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance_hierarchical") ?></a></li>
+             
+                <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
               <?php endif; ?>
 
               <?php if (has_role('ca')) : ?>
