@@ -36,3 +36,5 @@ with that:
     Filename: /var/www/html/gvv.net/models/common_model.php
 
     Line Number: 32
+
+Warning: Enabling database debugging in a production environment is not recommended as it may expose sensitive information. Use it only for development and debugging purposes. It may also prevent the application from handling errors gracefully which may result in impossibility to login.

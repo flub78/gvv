@@ -267,7 +267,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($is_treasurer): ?>
+    <?php if ($is_bureau): ?>
     <!-- Section Trésorier -->
     <div class="accordion-item section-card treasurer">
         <h2 class="accordion-header" id="headingTreasurer">
@@ -308,7 +308,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-balance-scale text-info"></i>
                         <div class="card-title">Balance</div>
                         <div class="card-text text-muted">Générale</div>
-                        <a href="<?= controller_url('comptes/general') ?>" class="btn btn-info btn-sm">Voir</a>
+                        <a href="<?= controller_url('comptes/balance') ?>" class="btn btn-info btn-sm">Voir</a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -415,6 +415,8 @@ $this->lang->load('welcome');
                 </div>
                 <?php endif; ?>
                 <?php endif; ?>
+
+                <?php if (has_role('tresorier')) : ?>
 
                 <!-- Ecritures Menu -->
                 <div class="col-12 mt-3">
@@ -561,7 +563,9 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('compta/create') ?>" class="btn btn-danger btn-sm">Créer</a>
                     </div>
                 </div>
+                <?php endif; ?>
 
+                <?php if ($is_treasurer): ?>
                 <!-- Configuration comptable -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-cog"></i> Configuration comptable</h6>
@@ -584,6 +588,8 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('plan_comptable/page') ?>" class="btn btn-info btn-sm">Gérer</a>
                     </div>
                 </div>
+                <?php endif; ?>
+
             </div>
         </div>
         </div>

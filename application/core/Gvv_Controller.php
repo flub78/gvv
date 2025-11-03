@@ -103,8 +103,13 @@ class Gvv_Controller extends CI_Controller
             // Global flag is FALSE - check if this specific user should use new system
             log_message('debug', "GVV_Controller: Global flag is FALSE, checking per-user migration table for '$username'");
 
-            $this->db->where('username', $username);
-            $query = $this->db->get('use_new_authorization');
+            try {
+                $this->db->where('username', $username);
+                $query = $this->db->get('use_new_authorization');
+            } catch (Exception $e) {
+                log_message('error', "GVV_Controller: Database error querying use_new_authorization table: " . $e->getMessage());
+                $query = FALSE;
+            }
 
             $row_count = $query ? $query->num_rows() : 0;
             log_message('debug', "GVV_Controller: Per-user table query returned {$row_count} rows");

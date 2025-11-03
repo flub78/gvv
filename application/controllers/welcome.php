@@ -67,6 +67,8 @@ class Welcome extends Gvv_Controller {
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
+        $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
+
         $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
 
