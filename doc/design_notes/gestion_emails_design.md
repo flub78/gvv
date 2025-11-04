@@ -249,17 +249,30 @@ Une liste contient:
 ### 2.4 Gestion des fichiers uploadés
 
 **Stockage physique:**
-- Répertoire: `/uploads/emails/[list_id]/`
-- Nommage: `[timestamp]_[original_filename]` pour éviter collisions
-- Permissions: 644 (lecture seule après création)
-- Formats acceptés: `.txt`, `.csv`
+- **Répertoire permanent:** `/uploads/email_lists/[list_id]/`
+- **Répertoire temporaire:** `/uploads/email_lists/tmp/[session_id]/` (mode création)
+- **Nommage:** `[timestamp]_[original_filename]` pour éviter collisions
+- **Permissions:** 644 (lecture seule après création)
+- **Formats acceptés:** `.txt`, `.csv`
 
-**Workflow d'import:**
+**Workflow d'import (mode création - avant sauvegarde liste):**
 1. Upload fichier → validation format
-2. Parse contenu → extraction email + nom
-3. Validation adresses → rapport d'erreurs
-4. Insertion en base avec `source_file = nom_fichier`
-5. Conservation du fichier pour traçabilité
+2. Stockage temporaire dans `/uploads/email_lists/tmp/[session_id]/`
+3. Parse contenu → extraction email + nom
+4. Validation adresses → rapport d'erreurs
+5. Adresses stockées en session ou variable temporaire
+6. À la sauvegarde de la liste:
+   - Création du `list_id`
+   - Déplacement des fichiers de `tmp/[session_id]/` vers `[list_id]/`
+   - Insertion en base avec `source_file = nom_fichier` et `email_list_id`
+
+**Workflow d'import (mode édition - liste existante):**
+1. Upload fichier → validation format
+2. Stockage direct dans `/uploads/email_lists/[list_id]/`
+3. Parse contenu → extraction email + nom
+4. Validation adresses → rapport d'erreurs
+5. Insertion immédiate en base avec `source_file = nom_fichier`
+6. Conservation du fichier pour traçabilité
 
 **Workflow de suppression:**
 1. Utilisateur clique sur icône poubelle du fichier
@@ -268,11 +281,16 @@ Une liste contient:
 4. Suppression du fichier physique
 5. Mise à jour de la preview en temps réel
 
+**Nettoyage automatique:**
+- Job périodique (cron) supprime les fichiers dans `/uploads/email_lists/tmp/` datant de plus de 2 jours
+- Évite l'accumulation de fichiers orphelins si l'utilisateur abandonne la création
+
 **Avantages:**
 - Traçabilité complète (quel fichier a ajouté quelle adresse)
 - Suppression en bloc simple et efficace
 - Audit: possibilité de ré-analyser le fichier source
 - Pas de duplication: un fichier ne peut être uploadé qu'une seule fois par liste
+- Workflow fluide: upload possible avant sauvegarde de la liste
 
 ### 2.5 Extension future (réservée)
 

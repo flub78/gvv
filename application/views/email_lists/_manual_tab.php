@@ -90,46 +90,34 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
             <?= $this->lang->line("email_lists_external_help") ?>
         </p>
 
-        <!-- Add external email form -->
+        <!-- Add external email form (v1.3: one at a time only) -->
         <div class="row mb-3">
             <div class="col-md-5">
                 <input type="email"
                        class="form-control"
                        id="external_email"
-                       placeholder="<?= $this->lang->line("email_lists_external_email") ?>">
+                       placeholder="<?= $this->lang->line("email_lists_external_email") ?>"
+                       required>
             </div>
             <div class="col-md-5">
                 <input type="text"
                        class="form-control"
                        id="external_name"
-                       placeholder="<?= $this->lang->line("email_lists_external_name") ?> (<?= $this->lang->line("gvv_str_optional") ?>)">
+                       placeholder="<?= $this->lang->line("email_lists_external_name") ?>">
             </div>
             <div class="col-md-2">
                 <button type="button"
-                        class="btn btn-primary"
+                        class="btn btn-primary w-100"
                         onclick="addExternalEmail()">
                     <i class="bi bi-plus-circle"></i>
                     <?= $this->lang->line("email_lists_add_external") ?>
                 </button>
             </div>
         </div>
-
-        <!-- Paste multiple emails -->
-        <div class="mb-3">
-            <label for="paste_emails" class="form-label">
-                <?= $this->lang->line("email_lists_paste_emails") ?>
-            </label>
-            <textarea class="form-control"
-                      id="paste_emails"
-                      rows="4"
-                      placeholder="email1@example.com&#10;email2@example.com&#10;email3@example.com"></textarea>
-            <button type="button"
-                    class="btn btn-secondary btn-sm mt-2"
-                    onclick="bulkAddExternalEmails()">
-                <i class="bi bi-upload"></i>
-                <?= $this->lang->line("email_lists_import_pasted") ?>
-            </button>
-        </div>
+        <p class="text-muted small">
+            <i class="bi bi-info-circle"></i>
+            <?= $this->lang->line("email_lists_bulk_import_hint") ?>
+        </p>
 
         <!-- External emails list -->
         <div id="external_emails_list">
@@ -149,6 +137,7 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
                             class="btn btn-sm btn-outline-danger"
                             onclick="removeExternalEmail(this)">
                         <i class="bi bi-trash"></i>
+                        <?= $this->lang->line("email_lists_remove_member") ?>
                     </button>
                 </div>
                 <?php endforeach; ?>
@@ -200,7 +189,7 @@ function removeManualMember(button) {
     button.closest('div[data-member-id]').remove();
 }
 
-// Add external email
+// Add external email (v1.3: one at a time only)
 function addExternalEmail() {
     const emailInput = document.getElementById('external_email');
     const nameInput = document.getElementById('external_name');
@@ -213,7 +202,15 @@ function addExternalEmail() {
 
     // Basic email validation
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        return; // Invalid email, silently ignore
+        alert('<?= $this->lang->line("email_lists_invalid_email") ?>');
+        return;
+    }
+
+    // Check if already added
+    const listDiv = document.getElementById('external_emails_list');
+    const existingEmails = Array.from(listDiv.querySelectorAll('input[name="external_emails[]"]')).map(input => input.value.toLowerCase());
+    if (existingEmails.includes(email.toLowerCase())) {
+        return; // Already in list, silently ignore
     }
 
     // Add to list
@@ -222,27 +219,7 @@ function addExternalEmail() {
     // Reset inputs
     emailInput.value = '';
     nameInput.value = '';
-}
-
-// Bulk add external emails
-function bulkAddExternalEmails() {
-    const textarea = document.getElementById('paste_emails');
-    const emails = textarea.value.split(/[\n,;]+/).map(e => e.trim()).filter(e => e);
-
-    let added = 0;
-    let invalid = 0;
-
-    emails.forEach(email => {
-        if (email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            addExternalEmailToList(email, '');
-            added++;
-        } else {
-            invalid++;
-        }
-    });
-
-    textarea.value = '';
-    // No popup needed, visual feedback is obvious from list update
+    emailInput.focus();
 }
 
 // Helper to add external email to DOM
@@ -296,6 +273,7 @@ function addExternalEmailToList(email, name) {
     const trashIcon = document.createElement('i');
     trashIcon.className = 'bi bi-trash';
     deleteBtn.appendChild(trashIcon);
+    deleteBtn.appendChild(document.createTextNode(' <?= $this->lang->line("email_lists_remove_member") ?>'));
 
     // Assemble the row
     emailDiv.appendChild(contentDiv);

@@ -384,11 +384,212 @@ class Email_lists_model extends CI_Model {
      * @return array Array of external emails
      */
     public function get_external_emails($list_id) {
-        $this->db->select('id, external_email as email, external_name as name');
+        $this->db->select('id, external_email as email, external_name as name, source_file');
         $this->db->from('email_list_external');
         $this->db->where('email_list_id', $list_id);
         $query = $this->db->get();
         return $query->result_array();
+    }
+
+    // ========================================================================
+    // File upload management (v1.3)
+    // ========================================================================
+
+    /**
+     * Upload and process external email file
+     *
+     * Parses uploaded file, validates addresses, and inserts into database
+     * with source_file tracking.
+     *
+     * @param int $list_id List ID
+     * @param array $file PHP $_FILES array element
+     * @return array Result with 'success', 'filename', 'valid_count', 'errors'
+     */
+    public function upload_external_file($list_id, $file) {
+        $this->load->helper('email_helper');
+
+        $result = array(
+            'success' => FALSE,
+            'filename' => NULL,
+            'valid_count' => 0,
+            'invalid_count' => 0,
+            'errors' => array()
+        );
+
+        // Validate file upload
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            $result['errors'][] = 'Invalid file upload';
+            return $result;
+        }
+
+        // Check file extension
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, array('txt', 'csv'))) {
+            $result['errors'][] = 'Invalid file format. Only .txt and .csv are accepted';
+            return $result;
+        }
+
+        // Read file content
+        $content = file_get_contents($file['tmp_name']);
+        if ($content === FALSE) {
+            $result['errors'][] = 'Failed to read file content';
+            return $result;
+        }
+
+        // Parse based on extension
+        if ($ext === 'txt') {
+            $parsed = parse_text_emails($content);
+        } else {
+            // CSV with auto-detection of columns
+            $config = array(
+                'email_column' => 0,  // Will be auto-detected
+                'name_column' => 1,
+                'has_header' => TRUE
+            );
+            $parsed = parse_csv_emails($content, $config);
+        }
+
+        // Generate unique filename for storage
+        $unique_filename = date('YmdHis') . '_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $file['name']);
+
+        // Insert valid addresses with source_file
+        $valid_count = 0;
+        $invalid_count = 0;
+
+        foreach ($parsed as $item) {
+            if (empty($item['error'])) {
+                $data = array(
+                    'email_list_id' => $list_id,
+                    'external_email' => normalize_email($item['email']),
+                    'external_name' => isset($item['name']) ? $item['name'] : NULL,
+                    'source_file' => $unique_filename
+                );
+
+                if ($this->db->insert('email_list_external', $data)) {
+                    $valid_count++;
+                } else {
+                    $invalid_count++;
+                    $result['errors'][] = 'Failed to insert: ' . $item['email'];
+                }
+            } else {
+                $invalid_count++;
+                $result['errors'][] = $item['error'];
+            }
+        }
+
+        // Save physical file if we have valid addresses
+        if ($valid_count > 0) {
+            $upload_path = FCPATH . 'uploads/email_lists/' . $list_id . '/';
+            if (!is_dir($upload_path)) {
+                mkdir($upload_path, 0755, TRUE);
+            }
+
+            if (move_uploaded_file($file['tmp_name'], $upload_path . $unique_filename)) {
+                $result['success'] = TRUE;
+                $result['filename'] = $unique_filename;
+            } else {
+                $result['errors'][] = 'Failed to save file';
+            }
+        }
+
+        $result['valid_count'] = $valid_count;
+        $result['invalid_count'] = $invalid_count;
+
+        return $result;
+    }
+
+    /**
+     * Get list of uploaded files for a list with metadata
+     *
+     * @param int $list_id List ID
+     * @return array Array of files with metadata (filename, count, added_at)
+     */
+    public function get_uploaded_files($list_id) {
+        $this->db->select('source_file as filename, COUNT(*) as address_count, MIN(added_at) as uploaded_at');
+        $this->db->from('email_list_external');
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('source_file IS NOT NULL');
+        $this->db->group_by('source_file');
+        $this->db->order_by('uploaded_at', 'DESC');
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Delete file and all its associated addresses (cascade delete)
+     *
+     * @param int $list_id List ID
+     * @param string $filename Source filename
+     * @return array Result with 'success', 'deleted_count', 'errors'
+     */
+    public function delete_file_and_addresses($list_id, $filename) {
+        $result = array(
+            'success' => FALSE,
+            'deleted_count' => 0,
+            'errors' => array()
+        );
+
+        if (empty($list_id) || empty($filename)) {
+            $result['errors'][] = 'Invalid parameters';
+            return $result;
+        }
+
+        // Get count before deletion
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('source_file', $filename);
+        $count = $this->db->count_all_results('email_list_external');
+
+        // Delete database records
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('source_file', $filename);
+
+        if ($this->db->delete('email_list_external')) {
+            $result['deleted_count'] = $count;
+
+            // Delete physical file
+            $file_path = FCPATH . 'uploads/email_lists/' . $list_id . '/' . $filename;
+            if (file_exists($file_path)) {
+                if (unlink($file_path)) {
+                    $result['success'] = TRUE;
+                } else {
+                    $result['errors'][] = 'Database records deleted but failed to remove physical file';
+                    $result['success'] = TRUE; // Still success for DB deletion
+                }
+            } else {
+                $result['success'] = TRUE; // File already gone, DB deletion succeeded
+            }
+        } else {
+            $result['errors'][] = 'Failed to delete database records';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get statistics for a specific uploaded file
+     *
+     * @param int $list_id List ID
+     * @param string $filename Source filename
+     * @return array Statistics (count, uploaded_at, file_size, file_exists)
+     */
+    public function get_file_stats($list_id, $filename) {
+        // Get count from database
+        $this->db->select('COUNT(*) as address_count, MIN(added_at) as uploaded_at');
+        $this->db->from('email_list_external');
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('source_file', $filename);
+
+        $query = $this->db->get();
+        $stats = $query->row_array();
+
+        // Check physical file
+        $file_path = FCPATH . 'uploads/email_lists/' . $list_id . '/' . $filename;
+        $stats['file_exists'] = file_exists($file_path);
+        $stats['file_size'] = $stats['file_exists'] ? filesize($file_path) : 0;
+        $stats['filename'] = $filename;
+
+        return $stats;
     }
 
     // ========================================================================

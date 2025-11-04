@@ -425,13 +425,20 @@ class Email_lists extends Gvv_Controller
             $criteria_count = count(array_unique($all_emails));
         }
 
-        // Add manual members
+        // Add manual members (store with names)
+        $member_names = array(); // Map email -> name
         if (!empty($manual_members)) {
             $this->load->model('membres_model');
             foreach ($manual_members as $membre_id) {
-                $membre = $this->membres_model->get_membre($membre_id);
-                if ($membre && !empty($membre['email'])) {
-                    $all_emails[] = strtolower(trim($membre['email']));
+                $membre = $this->membres_model->get_by_id('mlogin', $membre_id);
+                if ($membre && !empty($membre['memail'])) {
+                    $email_lower = strtolower(trim($membre['memail']));
+                    $all_emails[] = $email_lower;
+                    // Store name
+                    $name = trim($membre['mnom'] . ' ' . $membre['mprenom']);
+                    if (!empty($name)) {
+                        $member_names[$email_lower] = $name;
+                    }
                 }
             }
         }
@@ -467,9 +474,14 @@ class Email_lists extends Gvv_Controller
                 'is_external' => isset($external_emails_set[$email])
             );
 
+            // Add name from external emails
             if (isset($external_with_names[$email])) {
                 $item['display'] = $email . ' - ' . $external_with_names[$email];
                 $item['name'] = $external_with_names[$email];
+            }
+            // Add name from members
+            elseif (isset($member_names[$email])) {
+                $item['name'] = $member_names[$email];
             }
 
             $emails_with_metadata[] = $item;
@@ -495,6 +507,75 @@ class Email_lists extends Gvv_Controller
                     'message' => 'Erreur: ' . $e->getMessage()
                 )));
         }
+    }
+
+    /**
+     * Upload external email file (v1.3)
+     * AJAX handler for file upload in import tab
+     *
+     * @param int $id List ID
+     */
+    public function upload_file($id = NULL)
+    {
+        header('Content-Type: application/json');
+
+        if (empty($id) || !$this->email_lists_model->get_list($id)) {
+            echo json_encode(array(
+                'success' => FALSE,
+                'errors' => array('Invalid list ID')
+            ));
+            return;
+        }
+
+        // Check file upload
+        if (!isset($_FILES['uploaded_file']) || $_FILES['uploaded_file']['error'] !== UPLOAD_ERR_OK) {
+            echo json_encode(array(
+                'success' => FALSE,
+                'errors' => array('No file uploaded or upload error')
+            ));
+            return;
+        }
+
+        // Use model to handle upload
+        $result = $this->email_lists_model->upload_external_file($id, $_FILES['uploaded_file']);
+
+        echo json_encode($result);
+    }
+
+    /**
+     * Delete uploaded file and its addresses (v1.3)
+     * AJAX handler for file deletion in import tab
+     *
+     * @param int $id List ID
+     */
+    public function delete_file($id = NULL)
+    {
+        header('Content-Type: application/json');
+
+        if (empty($id) || !$this->email_lists_model->get_list($id)) {
+            echo json_encode(array(
+                'success' => FALSE,
+                'errors' => array('Invalid list ID')
+            ));
+            return;
+        }
+
+        // Get JSON input
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, TRUE);
+
+        if (empty($data['filename'])) {
+            echo json_encode(array(
+                'success' => FALSE,
+                'errors' => array('Filename required')
+            ));
+            return;
+        }
+
+        // Use model to handle deletion
+        $result = $this->email_lists_model->delete_file_and_addresses($id, $data['filename']);
+
+        echo json_encode($result);
     }
 
     /**

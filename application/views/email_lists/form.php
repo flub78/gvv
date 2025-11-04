@@ -164,7 +164,7 @@ if ($this->session->flashdata('error')) {
                                 role="tab"
                                 aria-controls="import"
                                 aria-selected="false">
-                            <i class="bi bi-envelope-at"></i> <?= $this->lang->line("email_lists_tab_external") ?>
+                            <i class="bi bi-cloud-upload"></i> <?= $this->lang->line("email_lists_import_files") ?>
                         </button>
                     </li>
                 </ul>
@@ -324,28 +324,22 @@ function refreshListPreview() {
                 document.getElementById('criteria_count').textContent = data.criteria_count;
             }
 
-            // Display email list as table
+            // Display email list as simple Email | Name table (v1.3 - no delete buttons)
             if (data.emails && data.emails.length > 0) {
                 let html = '<table class="table table-sm table-hover mb-0">';
+                html += '<thead><tr>';
+                html += '<th><?= $this->lang->line("email_lists_email") ?></th>';
+                html += '<th><?= $this->lang->line("email_lists_name") ?></th>';
+                html += '</tr></thead>';
                 html += '<tbody>';
 
                 data.emails.slice(0, 20).forEach(function(item) {
                     const email = typeof item === 'string' ? item : item.email;
                     const name = typeof item === 'object' && item.name ? item.name : '';
-                    const isExternal = typeof item === 'object' && item.is_external;
 
                     html += '<tr>';
-                    html += '<td class="text-break"><code class="small text-success">' + email + '</code></td>';
+                    html += '<td class="text-break"><small><code>' + email + '</code></small></td>';
                     html += '<td class="text-muted small">' + (name ? name : '') + '</td>';
-                    html += '<td class="text-end" style="width: 40px;">';
-
-                    if (isExternal) {
-                        html += '<button type="button" class="btn btn-sm btn-danger" onclick="deleteFromPreview(\'' + email + '\')" title="<?= $this->lang->line("gvv_button_delete") ?>">';
-                        html += '<i class="fas fa-trash" aria-hidden="true"></i>';
-                        html += '</button>';
-                    }
-
-                    html += '</td>';
                     html += '</tr>';
                 });
 
@@ -417,25 +411,4 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreviewCounts();
     };
 });
-
-/**
- * Delete an external email from the list (called from preview panel)
- */
-function deleteFromPreview(email) {
-    // Find and remove the corresponding hidden inputs in external_emails_list
-    const listDiv = document.getElementById('external_emails_list');
-    const emailInputs = listDiv.querySelectorAll('input[name="external_emails[]"]');
-
-    emailInputs.forEach(function(input) {
-        if (input.value.toLowerCase() === email.toLowerCase()) {
-            // Remove the entire parent div (the list item)
-            input.closest('div.d-flex').remove();
-        }
-    });
-
-    // Update preview
-    if (typeof updatePreviewCounts === 'function') {
-        updatePreviewCounts();
-    }
-}
 </script>

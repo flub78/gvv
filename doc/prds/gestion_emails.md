@@ -167,7 +167,7 @@ La fenêtre de création/modification doit respecter les critères suivants:
 
 5. **Onglet "Import de fichiers":**
    - Bouton "Télécharger un fichier" (formats: CSV, TXT)
-   - Fichiers stockés dans `/uploads/emails/` avec nommage unique
+   - Fichiers stockés dans `/uploads/emails_lists/` avec nommage unique
    - Liste des fichiers importés sous le bouton, avec:
      - Nom du fichier
      - Date d'import
@@ -205,7 +205,9 @@ La fenêtre de création/modification doit respecter les critères suivants:
 #### 4.4.1 Formats supportés
 - **Texte brut (.txt):** une adresse par ligne, optionnellement suivie d'un nom
 - **CSV (.csv):** colonnes configurables (nom, prénom, email, etc.)
-- **Stockage:** Fichiers uploadés conservés dans `/uploads/emails/[list_id]/[fichier].csv`
+- **Stockage permanent:** Fichiers uploadés conservés dans `/uploads/email_lists/[list_id]/[fichier].csv`
+- **Stockage temporaire:** En mode création, fichiers stockés dans `/uploads/email_lists/tmp/[session_id]/` puis déplacés lors de la sauvegarde
+- **Nettoyage automatique:** Fichiers temporaires de plus de 2 jours supprimés automatiquement
 - **Traçabilité:** Chaque adresse importée est liée au fichier source
 - **Validation:** Format validé lors de l'upload avec rapport d'erreurs détaillé
 - **Suppression en cascade:** Suppression d'un fichier supprime toutes ses adresses
@@ -361,6 +363,6 @@ Pour s'adapter aux limitations des clients de messagerie:
 - Preview sans icônes delete (suppression via onglets sources)
 - Onglets renommés: "Par critères", "Sélection manuelle", "Import de fichiers"
 - Import par upload uniquement (pas de copier/coller)
-- Stockage fichiers dans `/uploads/emails/` avec traçabilité
+- Stockage fichiers dans `/uploads/emails_lists/` avec traçabilité
 - Suppression fichier supprime ses adresses en cascade
 - **Suppression du système de codage couleur** (plus nécessaire avec nouvelle UX)

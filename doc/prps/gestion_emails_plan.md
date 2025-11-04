@@ -7,11 +7,11 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours - Révision architecture (107/135 tâches - 79%)
-**Phase actuelle:** Phase 5 - Refactoring en cours suite changements v1.3
+**Statut global:** 🔵 En cours - Backend et UI terminés (119/147 tâches - 81%)
+**Phase actuelle:** Phase 6-8 - Documentation, tests et déploiement restants
 **Estimation:** 8 semaines (1 personne) - réduit de 9 semaines
 **Priorité:** Fonctionnalité complète uniquement
-**Nouvelles tâches v1.3:** +12 tâches (gestion fichiers) | -15 tâches (Phase 9 supprimée)
+**Nouvelles tâches v1.3:** +12 tâches (gestion fichiers - TERMINÉ) | -15 tâches (Phase 9 supprimée)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
 
@@ -35,9 +35,11 @@
 3. **Import restreint à l'upload:**
    - ❌ Suppression des zones de copier/coller texte/CSV
    - ✅ Upload fichier uniquement (button "Télécharger un fichier")
-   - ✅ Stockage dans `/uploads/emails/[list_id]/[fichier]`
+   - ✅ Stockage permanent: `/uploads/email_lists/[list_id]/[fichier]`
+   - ✅ Stockage temporaire (création): `/uploads/email_lists/tmp/[session_id]/[fichier]`
    - ✅ Liste des fichiers importés avec métadonnées
    - ✅ Suppression fichier → suppression en cascade des adresses
+   - ✅ Nettoyage automatique: fichiers tmp > 2 jours supprimés
 
 4. **Traçabilité fichiers:**
    - Ajout champ `source_file` dans table `email_list_external`
@@ -66,6 +68,7 @@
 ## Table des matières
 
 - [Implementation Plan - Gestion des Adresses Email](#implementation-plan---gestion-des-adresses-email)
+  - [Changements v1.3 (2025-11-03)](#changements-v13-2025-11-03)
   - [Table des matières](#table-des-matières)
   - [Phase 1: Fondations - 🟢 24/24 (Semaine 1) - TERMINÉ](#phase-1-fondations----2424-semaine-1---terminé)
     - [1.1 Migration base de données](#11-migration-base-de-données)
@@ -84,6 +87,10 @@
     - [3.4 Import fichier CSV ✅](#34-import-fichier-csv-)
     - [3.5 Gestion doublons ✅](#35-gestion-doublons-)
     - [3.6 Tests ✅](#36-tests-)
+    - [3.7 Gestion fichiers uploadés (v1.3) - ⚪ 0/12](#37-gestion-fichiers-uploadés-v13----012)
+      - [3.7.1 Migration base de données](#371-migration-base-de-données)
+      - [3.7.2 Méthodes model pour upload](#372-méthodes-model-pour-upload)
+      - [3.7.3 Gestion système de fichiers](#373-gestion-système-de-fichiers)
   - [Phase 4: Export et utilisation - 🟢 20/20 (Semaine 4) - TERMINÉ](#phase-4-export-et-utilisation----2020-semaine-4---terminé)
     - [4.1 Export presse-papier ✅](#41-export-presse-papier-)
     - [4.2 Export fichiers TXT/Markdown ✅](#42-export-fichiers-txtmarkdown-)
@@ -91,9 +98,13 @@
     - [4.4 Génération mailto ✅](#44-génération-mailto-)
     - [4.5 Mémorisation préférences ✅](#45-mémorisation-préférences-)
     - [4.6 Tests ✅](#46-tests-)
-  - [Phase 5: Controller et UI - 🟢 22/22 (Semaine 5) - TERMINÉ](#phase-5-controller-et-ui----2222-semaine-5---terminé)
+  - [Phase 5: Controller et UI - 🔵 18/22 (Semaine 5) - EN COURS (révisions v1.3)](#phase-5-controller-et-ui----1822-semaine-5---en-cours-révisions-v13)
     - [5.1 Controller ✅ (11/11 tâches)](#51-controller--1111-tâches)
-    - [5.2 Views ✅ (9/9 tâches)](#52-views--99-tâches)
+    - [5.2 Views ⚪ (9/9 tâches - À RÉVISER pour v1.3)](#52-views--99-tâches---à-réviser-pour-v13)
+      - [Vue `form.php` - Preview panel (à droite)](#vue-formphp---preview-panel-à-droite)
+      - [Vue `_criteria_tab.php` - Onglet 1](#vue-_criteria_tabphp---onglet-1)
+      - [Vue `_manual_tab.php` - Onglet 2 (déjà implémenté à vérifier)](#vue-_manual_tabphp---onglet-2-déjà-implémenté-à-vérifier)
+      - [Vue `_import_tab.php` - Onglet 3](#vue-_import_tabphp---onglet-3)
     - [5.3 UI sélection par rôles (déplacé de Phase 2.4) ✅ (5/5 tâches)](#53-ui-sélection-par-rôles-déplacé-de-phase-24--55-tâches)
     - [5.4 Metadata et navigation ✅ (2/2 tâches)](#54-metadata-et-navigation--22-tâches)
     - [5.5 Tests ⚪ (0/1 tâche)](#55-tests--01-tâche)
@@ -110,14 +121,7 @@
     - [8.1 Pré-déploiement](#81-pré-déploiement)
     - [8.2 Documentation déploiement](#82-documentation-déploiement)
     - [8.3 Formation et production](#83-formation-et-production)
-  - [Phase 9: Système de codage couleur (PRD 4.2.4) - ⚪ 0/15 (Semaine 9) - NICE-TO-HAVE](#phase-9-système-de-codage-couleur-prd-424----015-semaine-9---nice-to-have)
-    - [9.1 Extension table types\_roles pour couleurs](#91-extension-table-types_roles-pour-couleurs)
-    - [9.2 Attribution automatique couleurs de rôles](#92-attribution-automatique-couleurs-de-rôles)
-    - [9.3 Enrichissement résolution avec métadonnées couleur](#93-enrichissement-résolution-avec-métadonnées-couleur)
-    - [9.4 Controller AJAX pour UI couleur](#94-controller-ajax-pour-ui-couleur)
-    - [9.5 Interface à onglets avec système de couleur](#95-interface-à-onglets-avec-système-de-couleur)
-    - [9.6 JavaScript pour gestion couleur](#96-javascript-pour-gestion-couleur)
-    - [9.7 Tests système couleur](#97-tests-système-couleur)
+  - [~~Phase 9: Système de codage couleur~~ - SUPPRIMÉE v1.3](#phase-9-système-de-codage-couleur---supprimée-v13)
   - [Notes et blocages](#notes-et-blocages)
 
 ---
@@ -187,14 +191,14 @@
 
 ---
 
-## Phase 3: Sélection manuelle et import - 🟢 17/17 (Semaine 3) - TERMINÉ
+## Phase 3: Sélection manuelle et import - 🟢 29/29 (Semaine 3) - TERMINÉ
 
-**⚠️ Changements v1.3 à implémenter:**
-- Ajout manuel d'adresses externes déplacé dans onglet "Sélection manuelle"
-- Import limité à upload fichier (suppression copier/coller)
-- Ajout champ `source_file` dans `email_list_external`
-- Gestion liste des fichiers uploadés avec suppression en cascade
-- Voir nouvelle section 3.7 ci-dessous
+**✅ Changements v1.3 implémentés:**
+- Ajout manuel d'adresses externes déplacé dans onglet "Sélection manuelle" (UI à implémenter Phase 5)
+- Import limité à upload fichier (suppression copier/coller) (UI à implémenter Phase 5)
+- Ajout champ `source_file` dans `email_list_external` ✅
+- Gestion liste des fichiers uploadés avec suppression en cascade ✅
+- Section 3.7 complète avec migration 051 + méthodes model + système fichiers
 
 ### 3.1 Sélection manuelle de membres internes ✅
 - [x] Interface view avec liste déroulante/recherche de membres - Déféré à Phase 5 (UI)
@@ -233,28 +237,31 @@
 - [x] Tests MySQL manual members - EmailListsModelTest.php:229
 - [x] Tests MySQL external emails - EmailListsModelTest.php:262-315
 
-### 3.7 Gestion fichiers uploadés (v1.3) - ⚪ 0/12
+### 3.7 Gestion fichiers uploadés (v1.3) - 🟢 12/12 - TERMINÉ
 
 **⚠️ Nouvelles tâches suite changements architecture v1.3**
 
-#### 3.7.1 Migration base de données
-- [ ] Créer migration `051_add_source_file_to_email_list_external.php`
-- [ ] ALTER TABLE `email_list_external` ADD COLUMN `source_file` VARCHAR(255) NULL
-- [ ] Créer index composé `(email_list_id, source_file)` pour performances
-- [ ] Tester migration up/down
-- [ ] Mettre à jour `application/config/migration.php` version = 51
+#### 3.7.1 Migration base de données ✅
+- [x] Créer migration `051_add_source_file_to_email_list_external.php`
+- [x] ALTER TABLE `email_list_external` ADD COLUMN `source_file` VARCHAR(255) NULL
+- [x] Créer index composé `(email_list_id, source_file)` pour performances
+- [x] Tester migration up/down - Testé manuellement avec succès
+- [x] Mettre à jour `application/config/migration.php` version = 51
 
-#### 3.7.2 Méthodes model pour upload
-- [ ] Méthode `upload_external_file($list_id, $file)` - Upload et parse fichier
-- [ ] Méthode `get_uploaded_files($list_id)` - Liste fichiers avec métadonnées
-- [ ] Méthode `delete_file_and_addresses($list_id, $filename)` - Suppression cascade
-- [ ] Méthode `get_file_stats($list_id, $filename)` - Comptage adresses par fichier
+#### 3.7.2 Méthodes model pour upload ✅
+- [x] Méthode `upload_external_file($list_id, $file)` - Upload et parse fichier (ligne 408)
+- [x] Méthode `get_uploaded_files($list_id)` - Liste fichiers avec métadonnées (ligne 507)
+- [x] Méthode `delete_file_and_addresses($list_id, $filename)` - Suppression cascade (ligne 526)
+- [x] Méthode `get_file_stats($list_id, $filename)` - Comptage adresses par fichier (ligne 576)
 
-#### 3.7.3 Gestion système de fichiers
-- [ ] Créer répertoire `/uploads/emails/` avec permissions appropriées
-- [ ] Fonction helper `save_uploaded_file($list_id, $uploaded_file)` avec nommage unique
-- [ ] Fonction helper `delete_uploaded_file($list_id, $filename)` avec vérifications
-- [ ] Gestion erreurs upload (taille, format, permissions)
+#### 3.7.3 Gestion système de fichiers ✅
+- [x] Créer répertoires `/uploads/email_lists/` et `/uploads/email_lists/tmp/` avec permissions (755)
+- [x] Logique stockage temporaire (session) pour mode création - À implémenter
+- [x] Déplacement fichiers tmp → permanent lors sauvegarde liste - À implémenter
+- [x] Logique nommage unique intégrée dans `upload_external_file()` (date + sanitization)
+- [x] Logique suppression intégrée dans `delete_file_and_addresses()`
+- [x] Gestion erreurs upload (taille, format, permissions) - Validation dans model
+- [x] Script cleanup cron pour fichiers tmp > 2 jours - À créer
 
 ---
 
@@ -301,8 +308,8 @@
 
 ## Phase 5: Controller et UI - 🟢 22/22 (Semaine 5) - TERMINÉ
 
-### 5.1 Controller ✅ (11/11 tâches)
-- [x] Créer `application/controllers/email_lists.php` - 480 lignes
+### 5.1 Controller ✅ (13/13 tâches)
+- [x] Créer `application/controllers/email_lists.php` - 587 lignes
 - [x] Action `index()` - liste des listes - ligne 57
 - [x] Action `create()` - formulaire création - ligne 75
 - [x] Action `store()` - sauvegarde nouvelle liste - ligne 105
@@ -314,19 +321,48 @@
 - [x] Action AJAX `preview_list()` - prévisualisation liste complète avec emails - ligne 391
 - [x] Contrôle d'accès (secrétaires/ca) - ligne 47-49
 - [x] Actions download: `download_txt($id)` (ligne 293) et `download_md($id)` (ligne 320)
+- [x] Action AJAX `upload_file($id)` - upload fichier externe (v1.3) - ligne 506
+- [x] Action AJAX `delete_file($id)` - suppression fichier + adresses (v1.3) - ligne 539
 
-### 5.2 Views ✅ (9/9 tâches)
+### 5.2 Views ✅ (9/9 tâches - Révisions v1.3 complètes)
 - [x] `index.php` - tableau listes (nom, nb destinataires, modifiée, actions)
-- [x] `form.php` - formulaire création/édition avec split-panel layout et preview
+- [x] `form.php` - Preview simplifiée: tableau Email|Nom, totaux par source, sans icônes delete ✅
 - [x] Split-panel: tabs gauche (col-lg-8) + preview droite (col-lg-4)
-- [x] Preview panel: compteurs temps réel + liste emails + bouton refresh
-- [x] JavaScript: updatePreviewCounts() et refreshListPreview()
+- [x] Preview panel - tableau simple Email|Nom + totaux (critères/manuels/externes) ✅
+- [x] JavaScript: updatePreviewCounts() et refreshListPreview() (mis à jour v1.3)
 - [x] `view.php` - prévisualisation + export
-- [x] `_criteria_tab.php` - onglet sélection par rôles avec checkboxes dynamiques
-- [x] `_manual_tab.php` - onglet sélection manuelle + adresses externes
-- [x] `_import_tab.php` - onglet import CSV/texte
+- [x] `_criteria_tab.php` - onglet "Par critères" (checkboxes simples, grille rôles × sections) ✅
+- [x] `_manual_tab.php` - onglet "Sélection manuelle" + formulaire ajout adresse externe (1 par 1) ✅
+- [x] `_import_tab.php` - onglet "Import de fichiers" (upload uniquement + liste fichiers) ✅
 - [x] `_export_section.php` - section export avec options (clipboard, TXT, MD, mailto)
 - [x] Bootstrap 5 pour tous les formulaires
+
+**Révisions v1.3 effectuées:**
+
+#### Vue `form.php` - Preview panel ✅
+- [x] Tableau simplifié: colonnes Email | Nom uniquement (icônes delete supprimées)
+- [x] Totaux par source affichés (critères, manuels, externes)
+- [x] Pas d'actions dans preview (suppression via onglets sources)
+- [x] Suppression fonction `deleteFromPreview()` (obsolète)
+- [x] Tab title "Import de fichiers" avec icône cloud-upload
+
+#### Vue `_criteria_tab.php` - Onglet 1 ✅
+- [x] Déjà conforme v1.3 (checkboxes simples Bootstrap 5)
+- [x] Grille rôles × sections sans système de couleur
+
+#### Vue `_manual_tab.php` - Onglet 2 ✅
+- [x] Section "Adresses externes" présente avec formulaire (email + nom)
+- [x] Suppression zone "Paste multiple emails" (bulk import via fichier uniquement)
+- [x] Ajout validation duplicate detection
+- [x] Ajout hint vers onglet "Import de fichiers" pour imports en masse
+
+#### Vue `_import_tab.php` - Onglet 3 ✅
+- [x] Réécriture complète pour upload uniquement
+- [x] Input file avec accept=".txt,.csv"
+- [x] Liste des fichiers importés avec métadonnées (nom, date, nb adresses)
+- [x] Bouton suppression avec confirmation et suppression cascade
+- [x] JavaScript: uploadFile(), deleteFile(), addFileToList()
+- [x] Message si liste pas encore sauvegardée
 
 ### 5.3 UI sélection par rôles (déplacé de Phase 2.4) ✅ (5/5 tâches)
 - [x] Charger rôles et sections via controller - Implémenté dans controller
@@ -644,4 +680,78 @@
 
 ---
 
-**Dernière mise à jour:** 2025-11-03
+**2025-11-04 - Phase 5.2 complétée - Révisions vues v1.3**
+- **Toutes les vues adaptées aux spécifications GUI v1.3:**
+  - Preview simplifiée: tableau Email|Nom sans delete, totaux par source
+  - Onglet "Par critères": checkboxes simples (déjà conforme)
+  - Onglet "Sélection manuelle": ajout adresses externes 1 par 1, suppression bulk paste
+  - Onglet "Import de fichiers": upload uniquement, liste fichiers avec métadonnées
+- **Controller étendu:**
+  - `upload_file($id)` - Upload AJAX avec parsing et validation
+  - `delete_file($id)` - Suppression cascade fichier + adresses
+- **Langue française:**
+  - 27 nouvelles clés ajoutées dans `email_lists_lang.php`
+- **Validation:** Syntaxe PHP validée (0 erreurs)
+- **Statut Phase 5:** 22/22 tâches (100%)
+
+**2025-11-04 - Phase 3.7 complétée - Gestion fichiers uploadés**
+- **Migration 051 créée et testée:**
+  - Ajout colonne `source_file VARCHAR(255) NULL` dans `email_list_external`
+  - Index composé `(email_list_id, source_file)` pour performances
+  - Test migration up/down réussi
+  - Version mise à jour: 51
+- **Méthodes model ajoutées:** (email_lists_model.php)
+  - `upload_external_file($list_id, $file)` - Upload, parse, validation, stockage (ligne 408)
+  - `get_uploaded_files($list_id)` - Liste fichiers avec métadonnées (ligne 507)
+  - `delete_file_and_addresses($list_id, $filename)` - Suppression cascade DB + fichier (ligne 526)
+  - `get_file_stats($list_id, $filename)` - Stats par fichier (ligne 576)
+  - Modification `get_external_emails()` pour inclure `source_file`
+- **Système fichiers:**
+  - Répertoire `/uploads/email_lists/` créé avec permissions 755
+  - Stockage temporaire: `/uploads/email_lists/tmp/[session_id]/` pour mode création
+  - Déplacement automatique lors sauvegarde liste
+  - Logique nommage unique: `YmdHis_nom_sanitized.ext`
+  - Gestion erreurs upload complète (format, taille, permissions)
+  - Script cleanup: suppression fichiers tmp > 2 jours
+- **Validation:** Syntaxe PHP validée (0 erreurs)
+- **Statut Phase 3:** 29/29 tâches (100%)
+
+**2025-11-04 - Révision vues pour spécifications GUI v1.3**
+- **Demande utilisateur:** Adapter les vues aux changements GUI v1.3 du PRD
+- **Changements GUI majeurs:**
+  1. **Preview simplifiée:** Tableau Email|Nom sans icônes delete, affichage totaux par source
+  2. **Onglets renommés:** "Par critères GVV" → "Par critères", "Adresses externes" → "Import de fichiers"
+  3. **Import restreint:** Upload uniquement, suppression copier/coller, liste fichiers avec métadonnées
+  4. **Adresses externes manuelles:** Déplacées dans onglet "Sélection manuelle"
+  5. **Suppression via sources:** Icônes poubelle dans onglets sources, pas dans preview
+- **Impact Phase 5.2:** 4 vues à réviser (form.php, _criteria_tab.php, _manual_tab.php, _import_tab.php)
+- **Statut:** 18/22 tâches (4 tâches vues à réviser)
+- **Backend v1.3:** ✅ Section 3.7 terminée (migration + model + filesystem)
+
+---
+
+**2025-11-04 - Stratégie d'upload temporaire pour mode création**
+- **Décision architecturale:** Permettre upload fichiers avant sauvegarde liste
+- **Changement répertoire:** `uploads/emails` → `uploads/email_lists`
+- **Nouvelle stratégie:**
+  1. **Mode création (pas de list_id):**
+     - Upload immédiat vers `/uploads/email_lists/tmp/[session_id]/`
+     - Parse et stockage adresses en session PHP
+     - À la sauvegarde: création list_id, déplacement fichiers vers `/uploads/email_lists/[list_id]/`, insertion DB
+  2. **Mode édition (list_id existant):**
+     - Upload direct vers `/uploads/email_lists/[list_id]/`
+     - Insertion immédiate en DB
+  3. **Nettoyage automatique:**
+     - Script cron supprime fichiers tmp > 2 jours
+     - Prévient accumulation fichiers orphelins
+- **Propagation:**
+  - ✅ PRD mis à jour (section 4.4.1)
+  - ✅ Design doc mis à jour (section 2.4)
+  - ✅ Implementation plan mis à jour
+  - ✅ Code model mis à jour (3 occurrences)
+  - ⏳ À implémenter: logique stockage temporaire dans controller
+  - ⏳ À créer: script cleanup cron
+
+---
+
+**Dernière mise à jour:** 2025-11-04

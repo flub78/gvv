@@ -156,3 +156,31 @@ $lang['email_lists_total_recipients'] = 'Total destinataires';
 $lang['email_lists_from_criteria'] = 'Depuis critères';
 $lang['email_lists_select_criteria_to_preview'] = 'Sélectionnez des critères pour prévisualiser la liste';
 $lang['email_lists_refresh_preview'] = 'Actualiser l\'aperçu';
+$lang['email_lists_delete_via_tabs_hint'] = 'Pour supprimer des adresses, utilisez les icônes dans les onglets sources';
+$lang['email_lists_email'] = 'Email';
+$lang['email_lists_name'] = 'Nom';
+
+// Manual tab - external addresses (v1.3)
+$lang['email_lists_bulk_import_hint'] = 'Pour importer plusieurs adresses à la fois, utilisez l\'onglet "Import de fichiers"';
+
+// Import tab (v1.3 - file upload)
+$lang['email_lists_import_files'] = 'Import de fichiers';
+$lang['email_lists_import_files_help'] = 'Importez des adresses depuis un fichier texte ou CSV';
+$lang['email_lists_choose_file'] = 'Choisir un fichier';
+$lang['email_lists_upload_button'] = 'Importer';
+$lang['email_lists_accepted_formats'] = 'Formats acceptés';
+$lang['email_lists_uploaded_files'] = 'Fichiers importés';
+$lang['email_lists_no_files_uploaded'] = 'Aucun fichier importé';
+$lang['email_lists_uploaded_on'] = 'Importé le';
+$lang['email_lists_addresses_count'] = 'Nombre d\'adresses';
+$lang['email_lists_delete_file'] = 'Supprimer le fichier';
+$lang['email_lists_save_before_upload'] = 'Veuillez sauvegarder la liste avant d\'importer des fichiers';
+$lang['email_lists_uploading'] = 'Importation en cours';
+$lang['email_lists_file_uploaded_success'] = 'Fichier importé avec succès !';
+$lang['email_lists_addresses_imported'] = 'adresses importées';
+$lang['email_lists_addresses_invalid'] = 'adresses invalides';
+$lang['email_lists_invalid_file_format'] = 'Format de fichier invalide. Seuls .txt et .csv sont acceptés.';
+$lang['email_lists_upload_error'] = 'Erreur lors de l\'import du fichier';
+$lang['email_lists_confirm_delete_file'] = 'Êtes-vous sûr de vouloir supprimer ce fichier et toutes ses adresses associées ?';
+$lang['email_lists_file_deleted'] = 'Fichier supprimé avec succès';
+$lang['email_lists_addresses'] = 'adresses';
