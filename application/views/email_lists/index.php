@@ -36,7 +36,7 @@ $this->lang->load('email_lists');
 // Show success message
 if ($this->session->flashdata('success')) {
     echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
-    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
+    echo '<strong><i class="fas fa-check-circle" aria-hidden="true"></i></strong> ';
     echo nl2br(htmlspecialchars($this->session->flashdata('success')));
     echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
     echo '</div>';
@@ -45,7 +45,7 @@ if ($this->session->flashdata('success')) {
 // Show error message
 if ($this->session->flashdata('error')) {
     echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-    echo '<strong><i class="bi bi-exclamation-triangle-fill"></i></strong> ';
+    echo '<strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></strong> ';
     echo nl2br(htmlspecialchars($this->session->flashdata('error')));
     echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
     echo '</div>';
@@ -55,31 +55,51 @@ if ($this->session->flashdata('error')) {
     <!-- Action buttons -->
     <div class="mb-3">
         <a href="<?= controller_url($controller) ?>/create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> <?= $this->lang->line("email_lists_create") ?>
+            <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("email_lists_create") ?>
         </a>
     </div>
 
     <!-- Lists table -->
     <?php if (empty($lists)): ?>
         <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> <?= $this->lang->line("email_lists_no_lists") ?>
+            <i class="fas fa-info-circle" aria-hidden="true"></i> <?= $this->lang->line("email_lists_no_lists") ?>
         </div>
     <?php else: ?>
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover datatable" id="email-lists-table">
                 <thead>
                     <tr>
+                        <th class="text-center" style="width: 120px;"><?= $this->lang->line("gvv_str_actions") ?></th>
                         <th><?= $this->lang->line("email_lists_name") ?></th>
                         <th><?= $this->lang->line("email_lists_description") ?></th>
                         <th class="text-center"><?= $this->lang->line("email_lists_recipient_count") ?></th>
                         <th class="text-center"><?= $this->lang->line("email_lists_visible") ?></th>
                         <th><?= $this->lang->line("email_lists_updated") ?></th>
-                        <th class="text-end"><?= $this->lang->line("gvv_str_actions") ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($lists as $list): ?>
                     <tr>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>"
+                                   class="btn btn-primary"
+                                   title="<?= $this->lang->line("email_lists_view") ?>">
+                                    <i class="fas fa-eye text-white" aria-hidden="true"></i>
+                                </a>
+                                <a href="<?= controller_url($controller) ?>/edit/<?= $list['id'] ?>"
+                                   class="btn btn-secondary"
+                                   title="<?= $this->lang->line("email_lists_edit") ?>">
+                                    <i class="fas fa-edit text-white" aria-hidden="true"></i>
+                                </a>
+                                <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>"
+                                   class="btn btn-danger"
+                                   title="<?= $this->lang->line("email_lists_delete") ?>"
+                                   onclick="return confirm('<?= $this->lang->line("email_lists_delete_confirm") ?>')">
+                                    <i class="fas fa-trash text-white" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </td>
                         <td>
                             <strong><?= htmlspecialchars($list['name']) ?></strong>
                         </td>
@@ -92,33 +112,13 @@ if ($this->session->flashdata('error')) {
                         </td>
                         <td class="text-center">
                             <?php if ($list['visible']): ?>
-                                <i class="bi bi-eye text-success"></i>
+                                <i class="fas fa-eye text-success" aria-hidden="true"></i>
                             <?php else: ?>
-                                <i class="bi bi-eye-slash text-muted"></i>
+                                <i class="fas fa-eye-slash text-muted" aria-hidden="true"></i>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?= date('d/m/Y H:i', strtotime($list['updated_at'])) ?>
-                        </td>
-                        <td class="text-end">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>"
-                                   class="btn btn-outline-primary"
-                                   title="<?= $this->lang->line("email_lists_view") ?>">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="<?= controller_url($controller) ?>/edit/<?= $list['id'] ?>"
-                                   class="btn btn-outline-secondary"
-                                   title="<?= $this->lang->line("email_lists_edit") ?>">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>"
-                                   class="btn btn-outline-danger"
-                                   title="<?= $this->lang->line("email_lists_delete") ?>"
-                                   onclick="return confirm('<?= $this->lang->line("email_lists_delete_confirm") ?>')">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>

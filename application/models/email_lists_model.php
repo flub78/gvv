@@ -124,13 +124,11 @@ class Email_lists_model extends CI_Model {
     }
 
     /**
-     * Get all lists created by a user
+     * Get all email lists
      *
-     * @param int $user_id User ID
      * @return array Array of lists
      */
-    public function get_user_lists($user_id) {
-        $this->db->where('created_by', $user_id);
+    public function get_user_lists() {
         $this->db->order_by('created_at', 'DESC');
         $query = $this->db->get($this->table);
         return $query->result_array();
