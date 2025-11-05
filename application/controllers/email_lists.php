@@ -189,7 +189,8 @@ class Email_lists extends Gvv_Controller
 
         // Load current list configuration
         $data['selected_roles'] = $this->email_lists_model->get_list_roles($id);
-        $data['selected_members'] = $this->email_lists_model->get_manual_members($id);
+        $data['current_manual_members'] = $this->email_lists_model->get_manual_members($id);
+        $data['current_external_emails'] = $this->email_lists_model->get_external_emails($id);
         $data['uploaded_files'] = $this->email_lists_model->get_uploaded_files($id);
 
         // Load all members for manual selection
@@ -235,6 +236,71 @@ class Email_lists extends Gvv_Controller
             return $this->edit($id);
         }
 
+        // Process manual members
+        $manual_members = $this->input->post('manual_members');
+        if (is_array($manual_members)) {
+            // Get current manual members
+            $current_members = $this->email_lists_model->get_manual_members($id);
+            $current_member_ids = array_column($current_members, 'membre_id');
+
+            // Remove members that are no longer selected
+            foreach ($current_member_ids as $member_id) {
+                if (!in_array($member_id, $manual_members)) {
+                    $this->email_lists_model->remove_manual_member($id, $member_id);
+                }
+            }
+
+            // Add new members
+            foreach ($manual_members as $member_id) {
+                if (!in_array($member_id, $current_member_ids)) {
+                    $this->email_lists_model->add_manual_member($id, $member_id);
+                }
+            }
+        } else {
+            // No manual members selected - remove all
+            $current_members = $this->email_lists_model->get_manual_members($id);
+            foreach ($current_members as $member) {
+                $this->email_lists_model->remove_manual_member($id, $member['membre_id']);
+            }
+        }
+
+        // Process external emails
+        $external_emails = $this->input->post('external_emails');
+        $external_names = $this->input->post('external_names');
+
+        // DEBUG: Log what we received
+        log_message('debug', 'EMAIL_LISTS UPDATE: external_emails = ' . print_r($external_emails, TRUE));
+        log_message('debug', 'EMAIL_LISTS UPDATE: external_names = ' . print_r($external_names, TRUE));
+
+        if (is_array($external_emails)) {
+            // Get current external emails
+            $current_external = $this->email_lists_model->get_external_emails($id);
+            $current_external_emails = array_column($current_external, 'external_email');
+
+            // Remove emails that are no longer in the list
+            foreach ($current_external as $ext) {
+                if (!in_array($ext['external_email'], $external_emails)) {
+                    $this->email_lists_model->remove_external_email($id, $ext['external_email']);
+                }
+            }
+
+            // Add new emails
+            foreach ($external_emails as $index => $email) {
+                if (!in_array($email, $current_external_emails)) {
+                    $name = isset($external_names[$index]) ? $external_names[$index] : '';
+                    log_message('debug', "EMAIL_LISTS UPDATE: Adding external email: $email, name: $name");
+                    $result = $this->email_lists_model->add_external_email($id, $email, $name);
+                    log_message('debug', "EMAIL_LISTS UPDATE: Add result: " . ($result ? $result : 'FALSE'));
+                }
+            }
+        } else {
+            // No external emails - remove all
+            $current_external = $this->email_lists_model->get_external_emails($id);
+            foreach ($current_external as $ext) {
+                $this->email_lists_model->remove_external_email($id, $ext['external_email']);
+            }
+        }
+
         $this->session->set_flashdata('success', $this->lang->line('email_lists_update_success'));
         redirect('email_lists/edit/' . $id);
     }
@@ -260,6 +326,64 @@ class Email_lists extends Gvv_Controller
         }
 
         redirect('email_lists');
+    }
+
+    /**
+     * AJAX: Add external email to list
+     * Called when user clicks "Ajouter une adresse"
+     */
+    public function add_external_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $email = $this->input->post('email');
+        $name = $this->input->post('name');
+
+        if (empty($list_id) || empty($email)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Verify list exists
+        $list = $this->email_lists_model->get_list($list_id);
+        if (!$list) {
+            echo json_encode(['success' => false, 'message' => 'List not found']);
+            return;
+        }
+
+        $result = $this->email_lists_model->add_external_email($list_id, $email, $name);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'id' => $result, 'message' => 'Email added successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to add email']);
+        }
+    }
+
+    /**
+     * AJAX: Remove external email from list
+     * Called when user clicks delete button
+     */
+    public function remove_external_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $email = $this->input->post('email');
+
+        if (empty($list_id) || empty($email)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        $result = $this->email_lists_model->remove_external_email($list_id, $email);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Email removed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to remove email']);
+        }
     }
 
     /**
@@ -353,6 +477,20 @@ class Email_lists extends Gvv_Controller
             $external_emails = $this->input->post('external_emails') ?: array();
             $external_names = $this->input->post('external_names') ?: array();
             $active_member = $this->input->post('active_member') ?: 'active';
+            $list_id = $this->input->post('list_id') ?: NULL;
+
+            // If we have a list_id, fetch external emails from database (overrides posted data)
+            if ($list_id) {
+                $db_external = $this->email_lists_model->get_external_emails($list_id);
+                if (!empty($db_external)) {
+                    $external_emails = array();
+                    $external_names = array();
+                    foreach ($db_external as $ext) {
+                        $external_emails[] = $ext['email'];
+                        $external_names[] = $ext['name'];
+                    }
+                }
+            }
 
             $all_emails = array();
             $criteria_count = 0;

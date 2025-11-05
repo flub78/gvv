@@ -343,20 +343,40 @@ class Email_lists_model extends CI_Model {
      * @return int|false New external email ID or FALSE on failure
      */
     public function add_external_email($list_id, $email, $name = NULL) {
-        if (empty($list_id) || empty($email) || !validate_email($email)) {
+        log_message('debug', "EMAIL_LISTS_MODEL add_external_email() called: list_id=$list_id, email=$email, name=$name");
+
+        if (empty($list_id)) {
+            log_message('debug', "EMAIL_LISTS_MODEL: list_id is empty");
             return FALSE;
         }
 
-        $data = array(
-            'email_list_id' => $list_id,
-            'external_email' => normalize_email($email),
-            'external_name' => $name
-        );
-
-        if ($this->db->insert('email_list_external', $data)) {
-            return $this->db->insert_id();
+        if (empty($email)) {
+            log_message('debug', "EMAIL_LISTS_MODEL: email is empty");
+            return FALSE;
         }
 
+        if (!validate_email($email)) {
+            log_message('debug', "EMAIL_LISTS_MODEL: email validation failed for: $email");
+            return FALSE;
+        }
+
+        $normalized_email = normalize_email($email);
+        $data = array(
+            'email_list_id' => $list_id,
+            'external_email' => $normalized_email,
+            'external_name' => $name,
+            'added_at' => date('Y-m-d H:i:s')
+        );
+
+        log_message('debug', "EMAIL_LISTS_MODEL: Inserting data: " . print_r($data, TRUE));
+
+        if ($this->db->insert('email_list_external', $data)) {
+            $insert_id = $this->db->insert_id();
+            log_message('debug', "EMAIL_LISTS_MODEL: Insert successful, ID=$insert_id");
+            return $insert_id;
+        }
+
+        log_message('debug', "EMAIL_LISTS_MODEL: Insert failed, error: " . $this->db->_error_message());
         return FALSE;
     }
 
@@ -364,15 +384,16 @@ class Email_lists_model extends CI_Model {
      * Remove an external email from a list
      *
      * @param int $list_id List ID
-     * @param int $external_id External email entry ID
+     * @param string $email Email address to remove
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_external_email($list_id, $external_id) {
-        if (empty($list_id) || empty($external_id)) {
+    public function remove_external_email($list_id, $email) {
+        if (empty($list_id) || empty($email)) {
             return FALSE;
         }
 
-        $this->db->where('id', $external_id);
+        $normalized_email = normalize_email($email);
+        $this->db->where('external_email', $normalized_email);
         $this->db->where('email_list_id', $list_id);
         return $this->db->delete('email_list_external');
     }

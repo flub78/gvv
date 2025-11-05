@@ -81,3 +81,8 @@ form textarea,
 form select {
     background-color: white;
 }
+
+/* Override Bootstrap's default red/pink color for code tags */
+code {
+    color: #212529; /* Bootstrap's default body text color */
+}

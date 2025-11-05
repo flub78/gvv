@@ -26,6 +26,8 @@
 * [] gestion des droits multi sections (wip)
 * [] Gestionnaire de liste d'adresse email.
 
+* [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
+
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant?
 
 * [] Import des informations planeur dans les vols de découverte

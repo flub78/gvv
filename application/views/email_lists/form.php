@@ -328,8 +328,8 @@ function updatePreviewCounts() {
     const manualCount = document.querySelectorAll('input[name="manual_members[]"]').length;
     document.getElementById('manual_count').textContent = manualCount;
 
-    // Count external emails
-    const externalCount = document.querySelectorAll('input[name="external_emails[]"]').length;
+    // Count external emails from DOM display (not hidden inputs anymore)
+    const externalCount = document.querySelectorAll('#external_emails_list > div').length;
     document.getElementById('external_count').textContent = externalCount;
 
     // Auto-refresh the full list preview from server
@@ -348,6 +348,15 @@ function refreshListPreview() {
     // Get form data
     const formData = new FormData();
 
+    // Add list_id if in edit mode (for fetching external emails from DB)
+    const card = document.querySelector('.card[data-list-id]');
+    if (card) {
+        const listId = card.dataset.listId;
+        if (listId && listId != '0') {
+            formData.append('list_id', listId);
+        }
+    }
+
     // Add roles
     document.querySelectorAll('input[name="roles[]"]:checked').forEach(function(checkbox) {
         formData.append('roles[]', checkbox.value);
@@ -358,13 +367,7 @@ function refreshListPreview() {
         formData.append('manual_members[]', input.value);
     });
 
-    // Add external emails and names
-    document.querySelectorAll('input[name="external_emails[]"]').forEach(function(input) {
-        formData.append('external_emails[]', input.value);
-    });
-    document.querySelectorAll('input[name="external_names[]"]').forEach(function(input) {
-        formData.append('external_names[]', input.value);
-    });
+    // Note: external_emails are now fetched from database via list_id, no need to send them
 
     // Add active_member filter
     formData.append('active_member', document.getElementById('active_member').value);
@@ -471,5 +474,38 @@ document.addEventListener('DOMContentLoaded', function() {
         originalConfirmImport();
         updatePreviewCounts();
     };
+    // ============================
+    // SESSION PERSISTENCE FOR TABS
+    // ============================
+    
+    // Restore active tab from session storage
+    const lastActiveTab = sessionStorage.getItem('email_lists_active_tab');
+    if (lastActiveTab) {
+        // Deactivate all tabs
+        document.querySelectorAll('#listTabs .nav-link').forEach(tab => {
+            tab.classList.remove('active');
+            tab.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('#listTabsContent .tab-pane').forEach(pane => {
+            pane.classList.remove('active', 'show');
+        });
+        
+        // Activate the stored tab
+        const tabButton = document.getElementById(lastActiveTab);
+        const tabTarget = document.querySelector(tabButton.getAttribute('data-bs-target'));
+        
+        if (tabButton && tabTarget) {
+            tabButton.classList.add('active');
+            tabButton.setAttribute('aria-selected', 'true');
+            tabTarget.classList.add('active', 'show');
+        }
+    }
+    
+    // Save active tab to session storage when clicked
+    document.querySelectorAll('#listTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', function() {
+            sessionStorage.setItem('email_lists_active_tab', this.id);
+        });
+    });
 });
 </script>

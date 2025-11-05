@@ -80,7 +80,15 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
 </div>
 
 <!-- External emails section -->
-<div class="card">
+<?php
+// DEBUG: Check what variables are available
+if (ENVIRONMENT === 'development') {
+    echo '<!-- DEBUG _manual_tab: list_id=' . (isset($list_id) ? $list_id : 'NOT SET') . ', ';
+    echo 'email_list_id=' . (isset($email_list_id) ? $email_list_id : 'NOT SET') . ', ';
+    echo 'controller=' . (isset($controller) ? $controller : 'NOT SET') . ' -->' . "\n";
+}
+?>
+<div class="card" data-list-id="<?= isset($email_list_id) ? $email_list_id : 0 ?>" data-controller="<?= isset($controller) ? $controller : 'email_lists' ?>">
     <div class="card-body">
         <h5 class="card-title">
             <i class="bi bi-envelope-at"></i>
@@ -124,12 +132,10 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
                 <?php foreach ($current_external as $idx => $ext): ?>
                 <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
                     <div>
-                        <input type="hidden" name="external_emails[]" value="<?= htmlspecialchars($ext['external_email']) ?>">
-                        <input type="hidden" name="external_names[]" value="<?= htmlspecialchars($ext['external_name'] ?? '') ?>">
                         <i class="bi bi-envelope"></i>
-                        <code><?= htmlspecialchars($ext['external_email']) ?></code>
-                        <?php if (!empty($ext['external_name'])): ?>
-                            - <span class="text-muted"><?= htmlspecialchars($ext['external_name']) ?></span>
+                        <code><?= htmlspecialchars($ext['email']) ?></code>
+                        <?php if (!empty($ext['name'])): ?>
+                            - <span class="text-muted"><?= htmlspecialchars($ext['name']) ?></span>
                         <?php endif; ?>
                     </div>
                     <button type="button"
@@ -147,7 +153,7 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
 
 <script>
 // Add manual member
-function addManualMember() {
+window.addManualMember = function() {
     const selector = document.getElementById('member_selector');
     const memberId = selector.value;
     const memberName = selector.options[selector.selectedIndex].text;
@@ -184,12 +190,12 @@ function addManualMember() {
 }
 
 // Remove manual member
-function removeManualMember(button) {
+window.removeManualMember = function(button) {
     button.closest('div[data-member-id]').remove();
 }
 
 // Add external email (v1.3: one at a time only)
-function addExternalEmail() {
+window.addExternalEmail = function() {
     const emailInput = document.getElementById('external_email');
     const nameInput = document.getElementById('external_name');
     const email = emailInput.value.trim();
@@ -207,41 +213,68 @@ function addExternalEmail() {
 
     // Check if already added
     const listDiv = document.getElementById('external_emails_list');
-    const existingEmails = Array.from(listDiv.querySelectorAll('input[name="external_emails[]"]')).map(input => input.value.toLowerCase());
+    const existingEmails = Array.from(listDiv.querySelectorAll('code')).map(code => code.textContent.toLowerCase());
     if (existingEmails.includes(email.toLowerCase())) {
         return; // Already in list, silently ignore
     }
 
-    // Add to list
-    addExternalEmailToList(email, name);
+    // Save to database via AJAX
+    const card = document.querySelector('.card[data-list-id]');
+    const listId = card.dataset.listId;
 
-    // Reset inputs
-    emailInput.value = '';
-    nameInput.value = '';
-    emailInput.focus();
+    if (!listId || listId == '0') {
+        alert('Please save the list first before adding external emails');
+        return;
+    }
+
+    const url = '<?= controller_url($controller) ?>/add_external_ajax';
+    console.log('AJAX URL:', url);
+    console.log('list_id:', listId, 'email:', email, 'name:', name);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'list_id': listId,
+            'email': email,
+            'name': name
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text(); // Get as text first to see what we're getting
+    })
+    .then(text => {
+        console.log('Response text:', text);
+        const data = JSON.parse(text); // Then parse it
+        if (data.success) {
+            // Add to DOM display
+            addExternalEmailToList(email, name);
+
+            // Reset inputs
+            emailInput.value = '';
+            nameInput.value = '';
+            emailInput.focus();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add email'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
 }
 
 // Helper to add external email to DOM
-function addExternalEmailToList(email, name) {
+window.addExternalEmailToList = function(email, name) {
     const listDiv = document.getElementById('external_emails_list');
     const emailDiv = document.createElement('div');
     emailDiv.className = 'd-flex justify-content-between align-items-center mb-2 border-bottom pb-2';
 
     // Create the main content div
     const contentDiv = document.createElement('div');
-
-    // Add hidden inputs
-    const emailInput = document.createElement('input');
-    emailInput.type = 'hidden';
-    emailInput.name = 'external_emails[]';
-    emailInput.value = email;
-    contentDiv.appendChild(emailInput);
-
-    const nameInput = document.createElement('input');
-    nameInput.type = 'hidden';
-    nameInput.name = 'external_names[]';
-    nameInput.value = name || '';
-    contentDiv.appendChild(nameInput);
 
     // Add icon
     const icon = document.createElement('i');
@@ -279,15 +312,56 @@ function addExternalEmailToList(email, name) {
     emailDiv.appendChild(deleteBtn);
 
     listDiv.appendChild(emailDiv);
-}
-
-// Remove external email
-function removeExternalEmail(button) {
-    button.closest('div').remove();
 
     // Update preview counts automatically
     if (typeof updatePreviewCounts === 'function') {
         updatePreviewCounts();
     }
+}
+
+// Remove external email
+window.removeExternalEmail = function(button) {
+    const emailDiv = button.closest('div');
+    const emailElement = emailDiv.querySelector('code');
+    const email = emailElement ? emailElement.textContent : '';
+
+    if (!email) {
+        emailDiv.remove();
+        return;
+    }
+
+    // Remove from database via AJAX
+    const card = document.querySelector('.card[data-list-id]');
+    const listId = card.dataset.listId;
+    const controller = card.dataset.controller;
+
+    fetch('<?= controller_url($controller) ?>/remove_external_ajax', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'list_id': listId,
+            'email': email
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove from DOM
+            emailDiv.remove();
+
+            // Update preview counts automatically
+            if (typeof updatePreviewCounts === 'function') {
+                updatePreviewCounts();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to remove email'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
 }
 </script>
