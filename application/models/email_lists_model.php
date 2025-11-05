@@ -519,6 +519,12 @@ class Email_lists_model extends CI_Model {
             return $result;
         }
 
+        // Check file size (max 5MB)
+        if ($file['size'] > 5 * 1024 * 1024) {
+            $result['errors'][] = 'File too large. Maximum size is 5MB';
+            return $result;
+        }
+
         // Read file content
         $content = file_get_contents($file['tmp_name']);
         if ($content === FALSE) {
@@ -570,15 +576,35 @@ class Email_lists_model extends CI_Model {
         // Save physical file if we have valid addresses
         if ($valid_count > 0) {
             $upload_path = FCPATH . 'uploads/email_lists/' . $list_id . '/';
+            
+            // Create directory if it doesn't exist
             if (!is_dir($upload_path)) {
-                mkdir($upload_path, 0755, TRUE);
+                if (!mkdir($upload_path, 0755, TRUE)) {
+                    $result['errors'][] = 'Failed to create upload directory';
+                    return $result;
+                }
             }
 
-            if (move_uploaded_file($file['tmp_name'], $upload_path . $unique_filename)) {
+            // Ensure target file doesn't already exist
+            $target_file = $upload_path . $unique_filename;
+            if (file_exists($target_file)) {
+                $result['errors'][] = 'File already exists';
+                return $result;
+            }
+
+            if (move_uploaded_file($file['tmp_name'], $target_file)) {
                 $result['success'] = TRUE;
                 $result['filename'] = $unique_filename;
+                
+                // Log successful upload
+                log_message('info', "Email file uploaded: list_id={$list_id}, file={$unique_filename}, valid_emails={$valid_count}");
             } else {
-                $result['errors'][] = 'Failed to save file';
+                $result['errors'][] = 'Failed to save file to uploads directory';
+                
+                // Cleanup database entries since file save failed
+                $this->db->where('email_list_id', $list_id);
+                $this->db->where('source_file', $unique_filename);
+                $this->db->delete('email_list_external');
             }
         }
 
@@ -642,12 +668,15 @@ class Email_lists_model extends CI_Model {
             if (file_exists($file_path)) {
                 if (unlink($file_path)) {
                     $result['success'] = TRUE;
+                    log_message('info', "Email file deleted: list_id={$list_id}, file={$filename}, emails_removed={$count}");
                 } else {
                     $result['errors'][] = 'Database records deleted but failed to remove physical file';
                     $result['success'] = TRUE; // Still success for DB deletion
+                    log_message('error', "Failed to delete physical file: {$file_path}");
                 }
             } else {
                 $result['success'] = TRUE; // File already gone, DB deletion succeeded
+                log_message('info', "Email file deleted from DB: list_id={$list_id}, file={$filename}, emails_removed={$count} (file was already missing)");
             }
         } else {
             $result['errors'][] = 'Failed to delete database records';

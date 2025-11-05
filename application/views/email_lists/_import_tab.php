@@ -17,7 +17,7 @@ if (isset($email_list_id) && !empty($email_list_id)) {
     $list_id = $list['id'];
 }
 
-// Debug output (remove in production)
+// Debug output (removed for production)
 // error_log("DEBUG _import_tab: email_list_id=" . (isset($email_list_id) ? $email_list_id : 'not set'));
 // error_log("DEBUG _import_tab: list[id]=" . (isset($list['id']) ? $list['id'] : 'not set'));
 // error_log("DEBUG _import_tab: final list_id=" . $list_id);

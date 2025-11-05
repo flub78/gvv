@@ -166,3 +166,28 @@ $lang['email_lists_save_first_to_add_addresses'] = 'Please save the list first b
 // Addresses view
 $lang['email_lists_select_list'] = 'Recipient list';
 $lang['email_lists_select_list_placeholder'] = 'Select a list';
+
+// Import tab file upload functionality
+$lang['email_lists_delete_via_tabs_hint'] = 'To delete addresses, use the icons in the source tabs';
+$lang['email_lists_email'] = 'Email';
+$lang['email_lists_bulk_import_hint'] = 'To import multiple addresses at once, use the "Import Files" tab';
+$lang['email_lists_import_files'] = 'Import Files';
+$lang['email_lists_import_files_help'] = 'Import email addresses from text or CSV files';
+$lang['email_lists_choose_file'] = 'Choose File';
+$lang['email_lists_upload_button'] = 'Upload';
+$lang['email_lists_accepted_formats'] = 'Accepted formats';
+$lang['email_lists_uploaded_files'] = 'Uploaded Files';
+$lang['email_lists_no_files_uploaded'] = 'No files uploaded';
+$lang['email_lists_uploaded_on'] = 'Uploaded on';
+$lang['email_lists_addresses_count'] = 'Address count';
+$lang['email_lists_delete_file'] = 'Delete file';
+$lang['email_lists_save_before_upload'] = 'Please save the list before importing files';
+$lang['email_lists_uploading'] = 'Uploading';
+$lang['email_lists_file_uploaded_success'] = 'File uploaded successfully!';
+$lang['email_lists_addresses_imported'] = 'addresses imported';
+$lang['email_lists_addresses_invalid'] = 'invalid addresses';
+$lang['email_lists_invalid_file_format'] = 'Invalid file format. Only .txt and .csv are accepted.';
+$lang['email_lists_upload_error'] = 'File upload error';
+$lang['email_lists_confirm_delete_file'] = 'Are you sure you want to delete this file and all its associated addresses?';
+$lang['email_lists_file_deleted'] = 'File deleted successfully';
+$lang['email_lists_addresses'] = 'addresses';

@@ -166,3 +166,28 @@ $lang['email_lists_save_first_to_add_addresses'] = 'Sla de lijst eerst op voorda
 // Addresses view
 $lang['email_lists_select_list'] = 'Ontvangerslijst';
 $lang['email_lists_select_list_placeholder'] = 'Selecteer een lijst';
+
+// Import tab file upload functionality  
+$lang['email_lists_delete_via_tabs_hint'] = 'Om adressen te verwijderen, gebruik de pictogrammen in de brontabbladen';
+$lang['email_lists_email'] = 'E-mail';
+$lang['email_lists_bulk_import_hint'] = 'Om meerdere adressen tegelijk te importeren, gebruik het "Bestanden importeren" tabblad';
+$lang['email_lists_import_files'] = 'Bestanden importeren';
+$lang['email_lists_import_files_help'] = 'Importeer e-mailadressen uit tekst- of CSV-bestanden';
+$lang['email_lists_choose_file'] = 'Bestand kiezen';
+$lang['email_lists_upload_button'] = 'Uploaden';
+$lang['email_lists_accepted_formats'] = 'Geaccepteerde formaten';
+$lang['email_lists_uploaded_files'] = 'Geüploade bestanden';
+$lang['email_lists_no_files_uploaded'] = 'Geen bestanden geüpload';
+$lang['email_lists_uploaded_on'] = 'Geüpload op';
+$lang['email_lists_addresses_count'] = 'Aantal adressen';
+$lang['email_lists_delete_file'] = 'Bestand verwijderen';
+$lang['email_lists_save_before_upload'] = 'Bewaar de lijst voordat u bestanden importeert';
+$lang['email_lists_uploading'] = 'Uploaden';
+$lang['email_lists_file_uploaded_success'] = 'Bestand succesvol geüpload!';
+$lang['email_lists_addresses_imported'] = 'adressen geïmporteerd';
+$lang['email_lists_addresses_invalid'] = 'ongeldige adressen';
+$lang['email_lists_invalid_file_format'] = 'Ongeldig bestandsformaat. Alleen .txt en .csv zijn geaccepteerd.';
+$lang['email_lists_upload_error'] = 'Bestand upload fout';
+$lang['email_lists_confirm_delete_file'] = 'Weet u zeker dat u dit bestand en alle bijbehorende adressen wilt verwijderen?';
+$lang['email_lists_file_deleted'] = 'Bestand succesvol verwijderd';
+$lang['email_lists_addresses'] = 'adressen';

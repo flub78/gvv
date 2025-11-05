@@ -591,3 +591,17 @@ $lang['migration_none'] = 'Geen';
 
 // Common strings
 $lang['gvv_str_of'] = 'van';
+
+// Email Lists strings
+$lang['email_lists_import_files'] = 'Import bestanden';
+$lang['email_lists_import_files_help'] = 'Importeer e-mailadressen uit .txt of .csv bestanden';
+$lang['email_lists_choose_file'] = 'Kies bestand';
+$lang['email_lists_upload_button'] = 'Uploaden';
+$lang['email_lists_save_before_upload'] = 'Sla eerst de lijst op voordat u bestanden importeert';
+$lang['email_lists_accepted_formats'] = 'Geaccepteerde formaten';
+$lang['email_lists_uploaded_files'] = 'Geüploade bestanden';
+$lang['email_lists_no_files_uploaded'] = 'Geen bestanden geüpload';
+$lang['email_lists_uploaded_on'] = 'Geüpload op';
+$lang['email_lists_addresses_count'] = 'Aantal adressen';
+$lang['email_lists_confirm_delete_file'] = 'Weet u zeker dat u dit bestand en al zijn adressen wilt verwijderen?';
+$lang['email_lists_delete_file'] = 'Verwijder bestand';
