@@ -97,10 +97,11 @@ if ($this->session->flashdata('error')) {
                                    title="<?= $this->lang->line("email_lists_mailto") ?>">
                                     <i class="fas fa-envelope text-white" aria-hidden="true"></i>
                                 </a>
+                                <?php $confirm_msg = str_replace('{name}', $list['name'], $this->lang->line("email_lists_delete_confirm")); ?>
                                 <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>"
                                    class="btn btn-danger"
                                    title="<?= $this->lang->line("email_lists_delete") ?>"
-                                   onclick="return confirm('<?= $this->lang->line("email_lists_delete_confirm") ?>')">
+                                   onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">
                                     <i class="fas fa-trash text-white" aria-hidden="true"></i>
                                 </a>
                             </div>
