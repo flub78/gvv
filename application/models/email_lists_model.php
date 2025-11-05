@@ -163,8 +163,21 @@ class Email_lists_model extends CI_Model {
      * @return int|false New role ID or FALSE on failure
      */
     public function add_role_to_list($list_id, $types_roles_id, $section_id, $granted_by = NULL, $notes = NULL) {
-        if (empty($list_id) || empty($types_roles_id) || empty($section_id)) {
+        if (empty($list_id) || empty($types_roles_id)) {
             return FALSE;
+        }
+
+        // Check if already exists
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('types_roles_id', $types_roles_id);
+        if ($section_id === NULL) {
+            $this->db->where('section_id IS NULL', NULL, FALSE);
+        } else {
+            $this->db->where('section_id', $section_id);
+        }
+        $existing = $this->db->get('email_list_roles')->row_array();
+        if ($existing) {
+            return TRUE; // Already exists, treat as success
         }
 
         $data = array(
@@ -172,6 +185,7 @@ class Email_lists_model extends CI_Model {
             'types_roles_id' => $types_roles_id,
             'section_id' => $section_id,
             'granted_by' => $granted_by,
+            'granted_at' => date('Y-m-d H:i:s'),
             'notes' => $notes
         );
 
@@ -183,10 +197,17 @@ class Email_lists_model extends CI_Model {
     }
 
     /**
-     * Remove a role from a list
+     * Add role by role_id and section_id (convenience wrapper)
+     */
+    public function add_role($list_id, $role_id, $section_id) {
+        return $this->add_role_to_list($list_id, $role_id, $section_id);
+    }
+
+    /**
+     * Remove a role from a list by database row ID
      *
      * @param int $list_id List ID
-     * @param int $role_id Role entry ID
+     * @param int $role_id Role entry ID (database row id)
      * @return bool TRUE on success, FALSE on failure
      */
     public function remove_role_from_list($list_id, $role_id) {
@@ -196,6 +217,29 @@ class Email_lists_model extends CI_Model {
 
         $this->db->where('id', $role_id);
         $this->db->where('email_list_id', $list_id);
+        return $this->db->delete('email_list_roles');
+    }
+
+    /**
+     * Remove a role from a list by role_id and section_id
+     *
+     * @param int $list_id List ID
+     * @param int $types_roles_id Role type ID
+     * @param int|null $section_id Section ID (NULL for "All sections")
+     * @return bool TRUE on success, FALSE on failure
+     */
+    public function remove_role($list_id, $types_roles_id, $section_id) {
+        if (empty($list_id) || empty($types_roles_id)) {
+            return FALSE;
+        }
+
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('types_roles_id', $types_roles_id);
+        if ($section_id === NULL) {
+            $this->db->where('section_id IS NULL', NULL, FALSE);
+        } else {
+            $this->db->where('section_id', $section_id);
+        }
         return $this->db->delete('email_list_roles');
     }
 

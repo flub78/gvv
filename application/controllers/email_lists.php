@@ -188,7 +188,7 @@ class Email_lists extends Gvv_Controller
         $data['available_sections'] = $this->email_lists_model->get_available_sections();
 
         // Load current list configuration
-        $data['selected_roles'] = $this->email_lists_model->get_list_roles($id);
+        $data['current_roles'] = $this->email_lists_model->get_list_roles($id);
         $data['current_manual_members'] = $this->email_lists_model->get_manual_members($id);
         $data['current_external_emails'] = $this->email_lists_model->get_external_emails($id);
         $data['uploaded_files'] = $this->email_lists_model->get_uploaded_files($id);
@@ -440,6 +440,78 @@ class Email_lists extends Gvv_Controller
             echo json_encode(['success' => true, 'message' => 'Member removed successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to remove member']);
+        }
+    }
+
+    /**
+     * AJAX: Add role criteria to list
+     * Called when user checks a role checkbox
+     */
+    public function add_role_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $role_value = $this->input->post('role_value'); // Format: "role_id_section_id"
+
+        if (empty($list_id) || empty($role_value)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Parse role_id and section_id
+        $parts = explode('_', $role_value);
+        if (count($parts) != 2) {
+            echo json_encode(['success' => false, 'message' => 'Invalid role format']);
+            return;
+        }
+
+        $role_id = (int)$parts[0];
+        $section_id = (int)$parts[1];
+        $section_id = ($section_id === 0) ? NULL : $section_id;
+
+        $result = $this->email_lists_model->add_role($list_id, $role_id, $section_id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Role added successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to add role']);
+        }
+    }
+
+    /**
+     * AJAX: Remove role criteria from list
+     * Called when user unchecks a role checkbox
+     */
+    public function remove_role_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $role_value = $this->input->post('role_value'); // Format: "role_id_section_id"
+
+        if (empty($list_id) || empty($role_value)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Parse role_id and section_id
+        $parts = explode('_', $role_value);
+        if (count($parts) != 2) {
+            echo json_encode(['success' => false, 'message' => 'Invalid role format']);
+            return;
+        }
+
+        $role_id = (int)$parts[0];
+        $section_id = (int)$parts[1];
+        $section_id = ($section_id === 0) ? NULL : $section_id;
+
+        $result = $this->email_lists_model->remove_role($list_id, $role_id, $section_id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Role removed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to remove role']);
         }
     }
 

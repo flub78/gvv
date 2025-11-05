@@ -317,6 +317,56 @@ if ($this->session->flashdata('success')) {
 
 <script>
 /**
+ * Handle role checkbox change (add/remove from database via AJAX)
+ */
+function handleRoleChange(checkbox) {
+    const card = document.querySelector('.card[data-list-id]');
+    if (!card) {
+        updatePreviewCounts();
+        return;
+    }
+
+    const listId = card.dataset.listId;
+    if (!listId || listId == '0') {
+        // List not saved yet, just update preview
+        updatePreviewCounts();
+        return;
+    }
+
+    const roleValue = checkbox.value;
+    const isChecked = checkbox.checked;
+    const url = '<?= controller_url($controller) ?>/' + (isChecked ? 'add_role_ajax' : 'remove_role_ajax');
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'list_id': listId,
+            'role_value': roleValue
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update preview counts
+            updatePreviewCounts();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to update role'));
+            // Revert checkbox state
+            checkbox.checked = !isChecked;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+        // Revert checkbox state
+        checkbox.checked = !isChecked;
+    });
+}
+
+/**
  * Update counts in the preview panel
  */
 function updatePreviewCounts() {
@@ -434,7 +484,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Listen for changes on criteria checkboxes
     document.querySelectorAll('input[name="roles[]"]').forEach(function(checkbox) {
-        checkbox.addEventListener('change', updatePreviewCounts);
+        checkbox.addEventListener('change', function(e) {
+            handleRoleChange(e.target);
+        });
     });
 
     // Listen for changes on active_member filter
