@@ -588,3 +588,6 @@ $lang['migration_stats_export_csv'] = 'Exporteer CSV';
 $lang['migration_back_dashboard'] = 'Terug naar dashboard';
 $lang['migration_confirm'] = 'Bevestigen';
 $lang['migration_none'] = 'Geen';
+
+// Common strings
+$lang['gvv_str_of'] = 'van';

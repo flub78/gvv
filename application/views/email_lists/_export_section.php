@@ -187,35 +187,60 @@ function copyEmailsToClipboard() {
     const emails = getCurrentEmailChunk();
     const text = emails.join(separator);
 
-    copyToClipboard(text, function(success) {
-        if (success) {
+    copyToClipboard(text, 
+        function() {
+            // Success callback
             showToast('<?= $this->lang->line("email_lists_copy_success") ?>', 'success');
-        } else {
+        },
+        function(error) {
+            // Error callback
             showToast('<?= $this->lang->line("email_lists_copy_error") ?>', 'danger');
         }
-    });
+    );
 }
 
 // Get current email chunk based on selection
 function getCurrentEmailChunk() {
-    const chunkSize = parseInt(document.getElementById('chunk_size').value);
-    const chunkPart = parseInt(document.getElementById('chunk_part').value);
+    const chunkSizeInput = document.getElementById('chunk_size');
+    const chunkPartInput = document.getElementById('chunk_part');
+    
+    if (!chunkSizeInput || !chunkPartInput || !emailListFull) {
+        // Fallback to full list if chunk controls not available
+        return emailListFull || [];
+    }
+    
+    const chunkSize = parseInt(chunkSizeInput.value);
+    const chunkPart = parseInt(chunkPartInput.value);
 
-    if (chunkSize >= emailListFull.length) {
+    if (!chunkSize || chunkSize >= emailListFull.length) {
         return emailListFull;
     }
 
-    return chunkEmails(emailListFull, chunkSize, chunkPart);
+    // Calculate start and end indices for the selected chunk part
+    const startIndex = (chunkPart - 1) * chunkSize;
+    const endIndex = Math.min(startIndex + chunkSize, emailListFull.length);
+    
+    return emailListFull.slice(startIndex, endIndex);
 }
 
 // Update chunk display
 function updateChunkDisplay() {
-    const chunkSize = parseInt(document.getElementById('chunk_size').value);
+    if (!emailListFull || emailListFull.length === 0) {
+        return;
+    }
+    
+    const chunkSizeInput = document.getElementById('chunk_size');
+    const partSelect = document.getElementById('chunk_part');
+    
+    if (!chunkSizeInput || !partSelect) {
+        return;
+    }
+    
+    const chunkSize = parseInt(chunkSizeInput.value) || 20;
     const totalEmails = emailListFull.length;
     const numParts = Math.ceil(totalEmails / chunkSize);
 
     // Update part selector
-    const partSelect = document.getElementById('chunk_part');
     partSelect.innerHTML = '';
     for (let i = 1; i <= numParts; i++) {
         const option = document.createElement('option');
@@ -230,14 +255,26 @@ function updateChunkDisplay() {
 
 // Update chunk info display
 function updateChunkInfo() {
-    const chunkSize = parseInt(document.getElementById('chunk_size').value);
-    const chunkPart = parseInt(document.getElementById('chunk_part').value);
+    if (!emailListFull || emailListFull.length === 0) {
+        return;
+    }
+    
+    const chunkSizeInput = document.getElementById('chunk_size');
+    const chunkPartInput = document.getElementById('chunk_part');
+    const chunkInfoElement = document.getElementById('chunk_info');
+    
+    if (!chunkSizeInput || !chunkPartInput || !chunkInfoElement) {
+        return;
+    }
+    
+    const chunkSize = parseInt(chunkSizeInput.value) || 20;
+    const chunkPart = parseInt(chunkPartInput.value) || 1;
     const totalEmails = emailListFull.length;
 
     const start = (chunkPart - 1) * chunkSize + 1;
     const end = Math.min(chunkPart * chunkSize, totalEmails);
 
-    document.getElementById('chunk_info').innerHTML =
+    chunkInfoElement.innerHTML =
         '<?= $this->lang->line("email_lists_showing") ?> ' + start + '-' + end +
         ' <?= $this->lang->line("gvv_str_of") ?> ' + totalEmails;
 }
@@ -260,11 +297,16 @@ function openMailtoLink() {
     // Check URL length (browser limit ~2000 chars)
     if (mailto.length > 2000) {
         if (confirm('<?= $this->lang->line("email_lists_mailto_too_long") ?>')) {
-            copyToClipboard(emails.join(', '), function(success) {
-                if (success) {
+            copyToClipboard(emails.join(', '), 
+                function() {
+                    // Success callback
                     showToast('<?= $this->lang->line("email_lists_copy_success") ?>', 'success');
+                },
+                function(error) {
+                    // Error callback  
+                    showToast('<?= $this->lang->line("email_lists_copy_error") ?>', 'danger');
                 }
-            });
+            );
         }
         return;
     }

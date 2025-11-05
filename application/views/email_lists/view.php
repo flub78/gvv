@@ -252,5 +252,5 @@ if ($this->session->flashdata('success')) {
 <script src="<?= base_url('assets/javascript/email_lists.js') ?>"></script>
 <script>
 // Initialize with email data
-var emailList = <?= json_encode(array_column($emails, 'email')) ?>;
+var emailListFull = <?= json_encode(array_column($emails, 'email')) ?>;
 </script>

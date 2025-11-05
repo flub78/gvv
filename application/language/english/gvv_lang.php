@@ -588,3 +588,20 @@ $lang['migration_stats_export_csv'] = 'Export CSV';
 $lang['migration_back_dashboard'] = 'Back to dashboard';
 $lang['migration_confirm'] = 'Confirm';
 $lang['migration_none'] = 'None';
+
+// Common strings
+$lang['gvv_str_of'] = 'of';
+
+// Email Lists strings
+$lang['email_lists_import_files'] = 'Import Files';
+$lang['email_lists_import_files_help'] = 'Import email addresses from .txt or .csv files';
+$lang['email_lists_choose_file'] = 'Choose File';
+$lang['email_lists_upload_button'] = 'Upload';
+$lang['email_lists_save_before_upload'] = 'Please save the list first before importing files';
+$lang['email_lists_accepted_formats'] = 'Accepted formats';
+$lang['email_lists_uploaded_files'] = 'Uploaded Files';
+$lang['email_lists_no_files_uploaded'] = 'No files uploaded';
+$lang['email_lists_uploaded_on'] = 'Uploaded on';
+$lang['email_lists_addresses_count'] = 'Address count';
+$lang['email_lists_confirm_delete_file'] = 'Are you sure you want to delete this file and all its addresses?';
+$lang['email_lists_delete_file'] = 'Delete file';

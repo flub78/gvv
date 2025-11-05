@@ -147,7 +147,7 @@ class Email_lists extends Gvv_Controller
         }
 
         $data['list'] = $list;
-        $data['emails'] = $this->email_lists_model->textual_list($id);
+        $data['emails'] = $this->email_lists_model->detailed_list($id);
         $data['recipient_count'] = count($data['emails']);
 
         // Get detailed sources
@@ -830,29 +830,59 @@ class Email_lists extends Gvv_Controller
      */
     public function upload_file($id = NULL)
     {
-        header('Content-Type: application/json');
-
         if (empty($id) || !$this->email_lists_model->get_list($id)) {
-            echo json_encode(array(
-                'success' => FALSE,
-                'errors' => array('Invalid list ID')
-            ));
-            return;
+            // Check if this is an AJAX request
+            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => FALSE,
+                    'errors' => array('Invalid list ID')
+                ));
+                return;
+            } else {
+                // Form submission - redirect with error
+                $this->session->set_flashdata('error', 'Invalid list ID');
+                redirect('email_lists/view/' . $id);
+                return;
+            }
         }
 
         // Check file upload
         if (!isset($_FILES['uploaded_file']) || $_FILES['uploaded_file']['error'] !== UPLOAD_ERR_OK) {
-            echo json_encode(array(
-                'success' => FALSE,
-                'errors' => array('No file uploaded or upload error')
-            ));
-            return;
+            // Check if this is an AJAX request
+            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => FALSE,
+                    'errors' => array('No file uploaded or upload error')
+                ));
+                return;
+            } else {
+                // Form submission - redirect with error
+                $this->session->set_flashdata('error', 'No file uploaded or upload error');
+                redirect('email_lists/view/' . $id);
+                return;
+            }
         }
 
         // Use model to handle upload
         $result = $this->email_lists_model->upload_external_file($id, $_FILES['uploaded_file']);
 
-        echo json_encode($result);
+        // Check if this is an AJAX request
+        if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } else {
+            // Form submission - redirect with message
+            if ($result['success']) {
+                $this->session->set_flashdata('success', 
+                    'File uploaded successfully. ' . $result['valid_count'] . ' addresses imported.');
+            } else {
+                $this->session->set_flashdata('error', 
+                    'Upload error: ' . implode(', ', $result['errors']));
+            }
+            redirect('email_lists/view/' . $id);
+        }
     }
 
     /**
@@ -863,32 +893,70 @@ class Email_lists extends Gvv_Controller
      */
     public function delete_file($id = NULL)
     {
-        header('Content-Type: application/json');
-
         if (empty($id) || !$this->email_lists_model->get_list($id)) {
-            echo json_encode(array(
-                'success' => FALSE,
-                'errors' => array('Invalid list ID')
-            ));
-            return;
+            // Check if this is an AJAX request
+            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => FALSE,
+                    'errors' => array('Invalid list ID')
+                ));
+                return;
+            } else {
+                // Form submission - redirect with error
+                $this->session->set_flashdata('error', 'Invalid list ID');
+                redirect('email_lists/view/' . $id);
+                return;
+            }
         }
 
-        // Get JSON input
-        $json = file_get_contents('php://input');
-        $data = json_decode($json, TRUE);
+        // Get filename from JSON (AJAX) or POST (form)
+        $filename = NULL;
+        if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+            // AJAX - get JSON input
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, TRUE);
+            $filename = isset($data['filename']) ? $data['filename'] : NULL;
+        } else {
+            // Form submission - get POST data
+            $filename = $this->input->post('filename');
+        }
 
-        if (empty($data['filename'])) {
-            echo json_encode(array(
-                'success' => FALSE,
-                'errors' => array('Filename required')
-            ));
-            return;
+        if (empty($filename)) {
+            // Check if this is an AJAX request
+            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => FALSE,
+                    'errors' => array('Filename required')
+                ));
+                return;
+            } else {
+                // Form submission - redirect with error
+                $this->session->set_flashdata('error', 'Filename required');
+                redirect('email_lists/view/' . $id);
+                return;
+            }
         }
 
         // Use model to handle deletion
-        $result = $this->email_lists_model->delete_file_and_addresses($id, $data['filename']);
+        $result = $this->email_lists_model->delete_file_and_addresses($id, $filename);
 
-        echo json_encode($result);
+        // Check if this is an AJAX request
+        if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } else {
+            // Form submission - redirect with message
+            if ($result['success']) {
+                $this->session->set_flashdata('success', 
+                    'File deleted successfully. ' . $result['deleted_count'] . ' addresses removed.');
+            } else {
+                $this->session->set_flashdata('error', 
+                    'Delete error: ' . implode(', ', $result['errors']));
+            }
+            redirect('email_lists/view/' . $id);
+        }
     }
 
     /**

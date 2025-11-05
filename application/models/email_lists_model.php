@@ -745,4 +745,108 @@ class Email_lists_model extends CI_Model {
         $emails = $this->textual_list($list_id);
         return count($emails);
     }
+
+    /**
+     * Resolve complete email list with metadata (emails, names, sources)
+     * Similar to textual_list() but returns array of arrays with metadata
+     *
+     * @param int $list_id List ID
+     * @return array Array of email objects with 'email', 'name', 'source' keys
+     */
+    public function detailed_list($list_id) {
+        $list = $this->get_list($list_id);
+
+        if (!$list) {
+            return array();
+        }
+
+        $all_emails = array();
+        $member_names = array(); // Map email -> name
+        $external_emails_set = array(); // Set of external emails
+        $external_with_names = array(); // Map email -> name for external
+
+        // 1. Resolve members by roles (table email_list_roles)
+        $roles = $this->get_list_roles($list_id);
+
+        foreach ($roles as $role) {
+            $role_members = $this->get_users_by_role_and_section(
+                $role['types_roles_id'],
+                $role['section_id'],
+                $list['active_member']
+            );
+            foreach ($role_members as $user) {
+                if (!empty($user['email'])) {
+                    $email_lower = strtolower(trim($user['email']));
+                    $all_emails[] = $email_lower;
+                    // Store name from members
+                    $name = trim($user['mnom'] . ' ' . $user['mprenom']);
+                    if (!empty($name)) {
+                        $member_names[$email_lower] = $name;
+                    }
+                }
+            }
+        }
+
+        // 2. Add manually selected members (table email_list_members)
+        $manual_members = $this->get_manual_members($list_id);
+        foreach ($manual_members as $member) {
+            if (!empty($member['email'])) {
+                $email_lower = strtolower(trim($member['email']));
+                $all_emails[] = $email_lower;
+                // Store name from members
+                $name = trim($member['mnom'] . ' ' . $member['mprenom']);
+                if (!empty($name)) {
+                    $member_names[$email_lower] = $name;
+                }
+            }
+        }
+
+        // 3. Add external emails (table email_list_external)
+        $external_emails = $this->get_external_emails($list_id);
+        foreach ($external_emails as $ext) {
+            if (!empty($ext['email'])) {
+                $email_lower = strtolower(trim($ext['email']));
+                $all_emails[] = $email_lower;
+                $external_emails_set[$email_lower] = true; // Mark as external
+                // Store name if provided
+                if (!empty($ext['name'])) {
+                    $external_with_names[$email_lower] = $ext['name'];
+                }
+            }
+        }
+
+        // 4. Deduplicate
+        $this->load->helper('email');
+        $unique_emails = deduplicate_emails($all_emails);
+
+        // 5. Build email list with metadata
+        $emails_with_metadata = array();
+        foreach ($unique_emails as $email) {
+            $item = array(
+                'email' => $email,
+                'display' => $email,
+                'is_external' => isset($external_emails_set[$email])
+            );
+
+            // Add name from external emails
+            if (isset($external_with_names[$email])) {
+                $item['name'] = $external_with_names[$email];
+            }
+            // Add name from members
+            elseif (isset($member_names[$email])) {
+                $item['name'] = $member_names[$email];
+            }
+
+            // Set source
+            if (isset($external_emails_set[$email])) {
+                $item['source'] = 'external';
+            } else {
+                $item['source'] = 'member';
+            }
+
+            $emails_with_metadata[] = $item;
+        }
+
+        return $emails_with_metadata;
+    }
 }
