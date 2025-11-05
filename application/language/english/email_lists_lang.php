@@ -161,3 +161,7 @@ $lang['email_lists_refresh_preview'] = 'Refresh preview';
 // Workflow v1.4 - Separation creation/modification
 $lang['email_lists_add_remove_addresses'] = 'Add and remove email addresses';
 $lang['email_lists_save_first_to_add_addresses'] = 'Please save the list first before you can add email addresses';
+
+// Addresses view
+$lang['email_lists_select_list'] = 'Recipient list';
+$lang['email_lists_select_list_placeholder'] = 'Select a list';

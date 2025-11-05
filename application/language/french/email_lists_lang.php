@@ -189,3 +189,7 @@ $lang['email_lists_addresses'] = 'adresses';
 // Workflow v1.4 - Separation creation/modification
 $lang['email_lists_add_remove_addresses'] = 'Ajout et suppression d\'adresses email';
 $lang['email_lists_save_first_to_add_addresses'] = 'Veuillez d\'abord enregistrer la liste avant de pouvoir ajouter des adresses email';
+
+// Addresses view
+$lang['email_lists_select_list'] = 'Liste de destinataires';
+$lang['email_lists_select_list_placeholder'] = 'Sélectionnez une liste';

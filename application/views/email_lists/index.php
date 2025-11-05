@@ -92,6 +92,11 @@ if ($this->session->flashdata('error')) {
                                    title="<?= $this->lang->line("email_lists_edit") ?>">
                                     <i class="fas fa-edit text-white" aria-hidden="true"></i>
                                 </a>
+                                <a href="<?= controller_url($controller) ?>/addresses/<?= $list['id'] ?>"
+                                   class="btn btn-info"
+                                   title="<?= $this->lang->line("email_lists_mailto") ?>">
+                                    <i class="fas fa-envelope text-white" aria-hidden="true"></i>
+                                </a>
                                 <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>"
                                    class="btn btn-danger"
                                    title="<?= $this->lang->line("email_lists_delete") ?>"
