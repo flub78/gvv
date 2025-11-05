@@ -4,9 +4,17 @@
 **Fonctionnalité:** Système de gestion des listes de diffusion email
 **PRD:** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 **Date de création:** 2025-10-31
-**Version:** 1.3
-**Dernière mise à jour:** 2025-11-03
+**Version:** 1.4
+**Dernière mise à jour:** 2025-11-05
 **Statut:** En cours d'implémentation
+
+**Changements v1.4:**
+- **Workflow création/modification séparé:**
+  - Partie supérieure: métadonnées liste (nom, description, type, visibilité)
+  - Boutons Enregistrer/Annuler sous partie supérieure
+  - Partie inférieure: gestion adresses (désactivée en création, activée en modification)
+  - Rechargement page avec email_list_id après première sauvegarde
+  - Controller: distinction create() vs edit($id) pour les deux modes
 
 **Changements v1.3:**
 - Ajout champ `source_file` dans `email_list_external` pour traçabilité
@@ -325,16 +333,21 @@ class Email_lists extends CI_Controller {
     // Liste des listes de diffusion
     public function index()
 
-    // Formulaire de création (layout split)
+    // Formulaire de création - partie supérieure uniquement
+    // Partie inférieure désactivée (pas d'email_list_id)
     public function create()
 
-    // Sauvegarde d'une nouvelle liste
+    // Sauvegarde d'une nouvelle liste (métadonnées uniquement)
+    // Redirige vers edit($id) après création
     public function store()
 
-    // Formulaire de modification (layout split)
+    // Formulaire de modification - deux parties actives
+    // email_list_id passé en paramètre URL
+    // Partie supérieure: métadonnées liste
+    // Partie inférieure: gestion adresses (onglets actifs)
     public function edit($id)
 
-    // Sauvegarde des modifications
+    // Sauvegarde des modifications (métadonnées OU adresses)
     public function update($id)
 
     // Suppression d'une liste
@@ -642,26 +655,40 @@ index.php (Liste) → create.php (Création avec layout split + onglets)
 
 **Layout de la fenêtre de création/modification (create.php, edit.php):**
 
-Selon PRD 4.2.4, la fenêtre est divisée en deux parties avec un système d'onglets à gauche:
+Selon PRD 4.2.4 v1.4, la fenêtre est divisée en deux parties:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Création/Modification de liste                                     │
+│  PARTIE SUPÉRIEURE - Métadonnées de la liste                       │
+│  ┌─────────────────────────────────────────────────────────────────┐│
+│  │ Nom: [_____________________________]                            ││
+│  │ Description: [____________________________________]              ││
+│  │ Type de membre: ● Actifs  ○ Inactifs  ○ Tous                   ││
+│  │ Visibilité: ☑ Liste visible                                     ││
+│  └─────────────────────────────────────────────────────────────────┘│
+│  [Enregistrer] [Annuler]                                            │
+├─────────────────────────────────────────────────────────────────────┤
+│  PARTIE INFÉRIEURE - Ajout et suppression d'adresses email         │
+│  (DÉSACTIVÉE en mode création / ACTIVÉE en mode modification)      │
 ├──────────────────────────┬──────────────────────────────────────────┤
 │ GAUCHE: Sélection        │ DROITE: Adresses sélectionnées           │
 │                          │                                          │
 │ ┌─────────────────────┐  │ ┌─ Liste des destinataires ───────────┐ │
-│ │ ◉ Par critères (3) │  │ │ 🟢🔵 jean.dupont@ex.com (Jean D.)    │ │
-│ │ ○ Manuel (2)       │  │ │ 🟢    marie.martin@ex.com (Marie M.) │ │
-│ │ ○ Externes (2)     │  │ │ 🟠    pierre@ex.com 🗑️ (externe)     │ │
+│ │ ◉ Par critères (3) │  │ │ jean.dupont@ex.com | Jean D.         │ │
+│ │ ○ Manuel (2)       │  │ │ marie.martin@ex.com | Marie M.       │ │
+│ │ ○ Fichiers (2)     │  │ │ pierre@ex.com | Pierre E.            │ │
 │ └─────────────────────┘  │ │                                      │ │
-│                          │ │ Total: 87 destinataires              │ │
-│ ┌─ Critères actifs ───┐  │ └──────────────────────────────────────┘ │
-│ │ [Grille rôles]      │  │                                          │
+│                          │ │ Total: 87 (critères:80+manuels:5+    │ │
+│ ┌─ Critères actifs ───┐  │ │        externes:2)                   │ │
+│ │ [Grille rôles]      │  │ └──────────────────────────────────────┘ │
 │ │ [Statut membres]    │  │                                          │
 │ └─────────────────────┘  │                                          │
 └──────────────────────────┴──────────────────────────────────────────┘
 ```
+
+**Workflow visuel:**
+- **Mode création:** Titre "Nouvelle liste d'email", partie inférieure grisée/disabled
+- **Après sauvegarde:** Rechargement page, titre "Modification d'une liste d'email", partie inférieure active
 
 **Navigation par onglets:**
 - **Onglet "Par critères"**: Grille rôles × sections avec checkboxes colorées
@@ -1046,22 +1073,54 @@ $this->field['email_lists']['description']['Subtype'] = 'textarea';
 
 ## 5. Flux de données
 
-### 5.1 Création d'une liste par critères
+### 5.1 Création d'une liste - Workflow v1.4
 
+**Étape 1: Création métadonnées uniquement**
 ```
-[User] → create.php (onglet Critères)
-         ↓ Sélection rôles, sections, statut
-         ↓ Prévisualisation AJAX (preview_count)
-         ↓ Soumission formulaire
+[User] → create.php
+         ↓ Saisie nom, description, type membre, visibilité
+         ↓ Partie inférieure désactivée (pas de sélection adresses)
+         ↓ Clic "Enregistrer"
          ↓
 [Controller] → store()
-               ↓ Validation
-               ↓ build_criteria_json($selections)
-               ↓ create_list($data)
+               ↓ Validation métadonnées
+               ↓ create_list($data) avec métadonnées uniquement
+               ↓ Récupération $list_id
+               ↓ redirect('email_lists/edit/' . $list_id)
                ↓
-[Model] → INSERT INTO email_lists
-          ↓
-[DB] email_lists (criteria = JSON)
+[Model] → INSERT INTO email_lists (name, description, active_member, visible, created_by)
+          ↓ RETURN insert_id
+[DB] email_lists (nouvelle ligne avec id auto-incrémenté)
+```
+
+**Étape 2: Modification et ajout adresses**
+```
+[User] → edit.php?id=123
+         ↓ Titre: "Modification d'une liste d'email"
+         ↓ Partie supérieure: métadonnées modifiables
+         ↓ Partie inférieure: onglets actifs
+         ↓ Sélection rôles, membres, upload fichiers
+         ↓ Prévisualisation AJAX temps réel
+         ↓
+[Controller] → edit($id)
+               ↓ get_list($id)
+               ↓ get_list_roles($id)
+               ↓ get_manual_members($id)
+               ↓ get_uploaded_files($id)
+               ↓ Affichage formulaire avec données
+               ↓
+[User] → Modifications + "Enregistrer"
+         ↓
+[Controller] → update($id)
+               ↓ update_list($id, $metadata)
+               ↓ add_role_to_list() / remove_role_from_list()
+               ↓ add_manual_member() / remove_manual_member()
+               ↓ upload_external_file()
+               ↓
+[Model] → UPDATE email_lists
+          INSERT/DELETE email_list_roles
+          INSERT/DELETE email_list_members
+          INSERT email_list_external + fichier physique
 ```
 
 ### 5.2 Export vers fichier TXT
@@ -1682,11 +1741,13 @@ class EmailListsModelTest extends PHPUnit\Framework\TestCase {
 
 ---
 
-**Version:** 1.2
-**Date:** 2025-11-02
+**Version:** 1.4
+**Date:** 2025-11-05
 **Auteur:** Claude Code sous supervision Fred
 **Statut:** Approuvé pour implémentation
 **Changelog:**
-- v1.2 (2025-11-02): Ajout de l'interface à onglets (PRD 4.2.4) - Les trois modes de sélection sont maintenant organisés en onglets avec badges de comptage
-- v1.1 (2025-11-02): Ajout du système de codage couleur (PRD 4.2.4) - Layout split-panel, pastilles de couleur section+rôle
+- v1.4 (2025-11-05): Workflow création/modification séparé - Partie supérieure (métadonnées) distincte de partie inférieure (gestion adresses). Partie inférieure désactivée en création, activée après première sauvegarde. Rechargement page avec email_list_id.
+- v1.3 (2025-11-03): Gestion fichiers uploadés avec traçabilité, suppression système couleur
+- v1.2 (2025-11-02): Interface à onglets avec badges de comptage
+- v1.1 (2025-11-02): Layout split-panel avec preview
 - v1.0 (2025-10-31): Version initiale

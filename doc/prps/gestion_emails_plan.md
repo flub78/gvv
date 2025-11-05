@@ -7,13 +7,42 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours - Backend et UI terminés (119/147 tâches - 81%)
-**Phase actuelle:** Phase 6-8 - Documentation, tests et déploiement restants
+**Statut global:** 🔵 En cours - Backend et UI terminés (119/150 tâches - 79%)
+**Phase actuelle:** Phase 5.2 - Adaptation UI workflow v1.4
 **Estimation:** 8 semaines (1 personne) - réduit de 9 semaines
 **Priorité:** Fonctionnalité complète uniquement
+**Nouvelles tâches v1.4:** +3 tâches (séparation workflow UI)
 **Nouvelles tâches v1.3:** +12 tâches (gestion fichiers - TERMINÉ) | -15 tâches (Phase 9 supprimée)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
+
+---
+
+## Changements v1.4 (2025-11-05)
+
+**Modification majeure du workflow création/modification:**
+
+La fenêtre de création/modification est maintenant séparée en deux parties distinctes:
+
+1. **Partie supérieure - Métadonnées de la liste:**
+   - Nom, description, type de membre, visibilité
+   - Boutons "Enregistrer" et "Annuler" juste sous cette section
+   - Toujours active (création et modification)
+
+2. **Partie inférieure - Ajout et suppression d'adresses email:**
+   - Titre: "Ajout et suppression d'adresses email"
+   - Trois onglets de sélection + preview
+   - **DÉSACTIVÉE en mode création** (pas d'email_list_id connu)
+   - **ACTIVÉE en mode modification** (email_list_id passé en URL)
+
+**Workflow:**
+- **Création:** Utilisateur saisit nom/description → Clic "Enregistrer" → Liste créée en base → Rechargement page avec email_list_id → Bascule automatique en mode modification
+- **Modification:** Titre change de "Nouvelle liste d'email" à "Modification d'une liste d'email", partie inférieure devient active
+
+**Impact sur le plan:**
+- Phase 5.2: +3 tâches pour adapter les vues (form.php séparé en deux parties, gestion état disabled, logique redirect après store())
+- Controller store(): Doit rediriger vers edit($id) après création
+- JavaScript: Gestion état disabled de la partie inférieure en fonction de présence email_list_id
 
 ---
 
@@ -306,13 +335,13 @@
 
 ---
 
-## Phase 5: Controller et UI - 🟢 22/22 (Semaine 5) - TERMINÉ
+## Phase 5: Controller et UI - 🔵 22/25 (Semaine 5) - EN COURS (révisions v1.4)
 
-### 5.1 Controller ✅ (13/13 tâches)
+### 5.1 Controller ⚪ (13/14 tâches - À réviser pour workflow v1.4)
 - [x] Créer `application/controllers/email_lists.php` - 587 lignes
 - [x] Action `index()` - liste des listes - ligne 57
-- [x] Action `create()` - formulaire création - ligne 75
-- [x] Action `store()` - sauvegarde nouvelle liste - ligne 105
+- [x] Action `create()` - formulaire création - ligne 75 - **À RÉVISER: partie inférieure désactivée**
+- [x] Action `store()` - sauvegarde nouvelle liste - ligne 105 - **À RÉVISER: redirection vers edit($id)**
 - [x] Action `edit($id)` - formulaire modification - ligne 200
 - [x] Action `update($id)` - sauvegarde modifications - ligne 236
 - [x] Action `delete($id)` - suppression avec confirmation - ligne 275
@@ -324,8 +353,11 @@
 - [x] Action AJAX `upload_file($id)` - upload fichier externe (v1.3) - ligne 506
 - [x] Action AJAX `delete_file($id)` - suppression fichier + adresses (v1.3) - ligne 539
 
-### 5.2 Views ✅ (9/9 tâches - Révisions v1.3 complètes)
+### 5.2 Views ⚪ (9/12 tâches - Révisions v1.4 à faire)
 - [x] `index.php` - tableau listes (nom, nb destinataires, modifiée, actions)
+- [ ] **v1.4** `form.php` - Séparation en deux parties distinctes avec titres séparés
+- [ ] **v1.4** Partie supérieure: métadonnées (nom, description, type, visibilité) + boutons Enregistrer/Annuler
+- [ ] **v1.4** Partie inférieure: titre "Ajout et suppression d'adresses email" + onglets + preview (désactivée si pas d'email_list_id)
 - [x] `form.php` - Preview simplifiée: tableau Email|Nom, totaux par source, sans icônes delete ✅
 - [x] Split-panel: tabs gauche (col-lg-8) + preview droite (col-lg-4)
 - [x] Preview panel - tableau simple Email|Nom + totaux (critères/manuels/externes) ✅
@@ -754,4 +786,25 @@
 
 ---
 
-**Dernière mise à jour:** 2025-11-04
+**2025-11-05 - Révision architecture workflow v1.4**
+- **Demande utilisateur:** Séparation workflow création/modification
+- **Changements UI majeurs:**
+  1. **Partie supérieure:** Métadonnées liste (nom, description, type, visibilité) + boutons Enregistrer/Annuler
+  2. **Partie inférieure:** "Ajout et suppression d'adresses email" + onglets + preview
+  3. **État partie inférieure:** Désactivée en création (pas d'email_list_id), activée en modification (email_list_id en URL)
+  4. **Workflow création:** Saisie métadonnées → Enregistrer → Création DB → Rechargement page avec email_list_id → Bascule mode modification → Partie inférieure activée
+- **Impact Phase 5:**
+  - Controller store(): Ajout redirection vers edit($id) après création
+  - Controller create(): Passer variable $email_list_id = NULL aux vues
+  - Vue form.php: Séparation visuelle en deux parties, gestion état disabled
+  - JavaScript: Détection présence email_list_id pour activer/désactiver partie inférieure
+- **Propagation:**
+  - ✅ PRD mis à jour (section 4.2.4 - workflow détaillé) - version 1.4
+  - ✅ Design doc mis à jour (section 3.1, 3.4, 5.1 - flux de données) - version 1.4
+  - ✅ Implementation plan mis à jour (Phase 5.1 et 5.2) - +3 tâches
+- **Statut:** Phase 5: 22/25 tâches (88%)
+- **Restant:** Adaptation controller store() + adaptation form.php (séparation parties)
+
+---
+
+**Dernière mise à jour:** 2025-11-05

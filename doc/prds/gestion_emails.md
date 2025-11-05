@@ -145,11 +145,37 @@ Le système doit permettre la sélection selon:
 
 #### 4.2.4 Fenêtre de création/modification des listes
 
-La fenêtre de création/modification doit respecter les critères suivants:
+La fenêtre de création/modification est séparée en deux parties:
 
-1. **Structure générale:** Elle sera constituée d'une fenêtre de sélection (à gauche) et d'une liste de prévisualisation des adresses sélectionnées (à droite).
+**Partie supérieure - Création/identification de la liste:**
+- Nom de la liste (obligatoire, unique)
+- Description (optionnelle)
+- Type de membre (actifs/inactifs/tous)
+- Visibilité (visible par défaut)
+- Boutons "Enregistrer" et "Annuler" immédiatement sous cette partie
 
-2. **Trois onglets de sélection:**
+**Partie inférieure - Ajout et suppression d'adresses email:**
+- Titre: "Ajout et suppression d'adresses email"
+- Trois onglets de sélection (gauche) + prévisualisation (droite)
+- **État désactivé** tant que la liste n'est pas enregistrée (mode création)
+- **État activé** une fois la liste enregistrée (mode modification avec email_list_id connu)
+
+**Workflow:**
+1. **Mode création (nouvelle liste):**
+   - Titre: "Nouvelle liste d'email"
+   - Partie supérieure active, partie inférieure désactivée
+   - Utilisateur saisit nom, description, type de membre
+   - Clic "Enregistrer" → création liste en base
+   - Rechargement page avec email_list_id en paramètre URL
+   - Bascule automatique en mode modification
+
+2. **Mode modification (liste existante):**
+   - Titre: "Modification d'une liste d'email"
+   - Partie supérieure modifiable
+   - Partie inférieure activée avec trois onglets fonctionnels
+   - email_list_id connu permet gestion des adresses
+
+**Trois onglets de sélection (partie inférieure):**
    - **"Par critères"** - Sélection par rôles GVV et sections
    - **"Sélection manuelle"** - Sélection individuelle de membres
    - **"Import de fichiers"** - Upload et gestion de fichiers CSV/TXT
@@ -355,10 +381,17 @@ Pour s'adapter aux limitations des clients de messagerie:
 
 ---
 
-**Version:** 1.3
-**Date:** 2025-11-03
+**Version:** 1.4
+**Date:** 2025-11-05
 **Auteur:** Claude Code sous supervision de Fred
 **Statut:** En cours d'implémentation
+**Changements v1.4:**
+- **Séparation workflow création/modification:**
+  - Partie supérieure: Nom, description, type membre, visibilité
+  - Boutons Enregistrer/Annuler juste sous la partie supérieure
+  - Partie inférieure désactivée en création, activée en modification
+  - Rechargement page avec email_list_id après création
+  - Titre change: "Nouvelle liste" → "Modification d'une liste"
 **Changements v1.3:**
 - Preview sans icônes delete (suppression via onglets sources)
 - Onglets renommés: "Par critères", "Sélection manuelle", "Import de fichiers"
