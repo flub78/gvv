@@ -387,6 +387,63 @@ class Email_lists extends Gvv_Controller
     }
 
     /**
+     * AJAX: Add manual member to list
+     * Called when user clicks "Ajouter un membre"
+     */
+    public function add_manual_member_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $membre_id = $this->input->post('membre_id');
+
+        if (empty($list_id) || empty($membre_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Verify list exists
+        $list = $this->email_lists_model->get_list($list_id);
+        if (!$list) {
+            echo json_encode(['success' => false, 'message' => 'List not found']);
+            return;
+        }
+
+        $result = $this->email_lists_model->add_manual_member($list_id, $membre_id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Member added successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to add member']);
+        }
+    }
+
+    /**
+     * AJAX: Remove manual member from list
+     * Called when user clicks delete button
+     */
+    public function remove_manual_member_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $membre_id = $this->input->post('membre_id');
+
+        if (empty($list_id) || empty($membre_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        $result = $this->email_lists_model->remove_manual_member($list_id, $membre_id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Member removed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to remove member']);
+        }
+    }
+
+    /**
      * Download TXT export
      *
      * @param int $id List ID

@@ -286,9 +286,18 @@ class Email_lists_model extends CI_Model {
             return FALSE;
         }
 
+        // Check if already exists
+        $this->db->where('email_list_id', $list_id);
+        $this->db->where('membre_id', $membre_id);
+        $existing = $this->db->get('email_list_members')->row_array();
+        if ($existing) {
+            return TRUE; // Already exists, treat as success
+        }
+
         $data = array(
             'email_list_id' => $list_id,
-            'membre_id' => $membre_id
+            'membre_id' => $membre_id,
+            'added_at' => date('Y-m-d H:i:s')
         );
 
         if ($this->db->insert('email_list_members', $data)) {
@@ -302,15 +311,15 @@ class Email_lists_model extends CI_Model {
      * Remove a manual member from a list
      *
      * @param int $list_id List ID
-     * @param int $member_id Member entry ID
+     * @param string $membre_id Member login (FK to membres.mlogin)
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_manual_member($list_id, $member_id) {
-        if (empty($list_id) || empty($member_id)) {
+    public function remove_manual_member($list_id, $membre_id) {
+        if (empty($list_id) || empty($membre_id)) {
             return FALSE;
         }
 
-        $this->db->where('id', $member_id);
+        $this->db->where('membre_id', $membre_id);
         $this->db->where('email_list_id', $list_id);
         return $this->db->delete('email_list_members');
     }

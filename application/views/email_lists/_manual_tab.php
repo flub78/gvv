@@ -167,31 +167,109 @@ window.addManualMember = function() {
         return; // Already in list, silently ignore
     }
 
-    // Add to list
-    const listDiv = document.getElementById('manual_members_list');
-    const memberDiv = document.createElement('div');
-    memberDiv.className = 'd-flex justify-content-between align-items-center mb-2 border-bottom pb-2';
-    memberDiv.setAttribute('data-member-id', memberId);
-    memberDiv.innerHTML = `
-        <div>
-            <input type="hidden" name="manual_members[]" value="${memberId}">
-            <i class="bi bi-person"></i>
-            <strong>${memberName}</strong>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeManualMember(this)">
-            <i class="bi bi-trash"></i>
-            <?= $this->lang->line("email_lists_remove_member") ?>
-        </button>
-    `;
-    listDiv.appendChild(memberDiv);
+    // Get list_id
+    const card = document.querySelector('.card[data-list-id]');
+    const listId = card.dataset.listId;
 
-    // Reset selector
-    selector.value = '';
+    if (!listId || listId == '0') {
+        alert('Please save the list first before adding manual members');
+        return;
+    }
+
+    // Save to database via AJAX
+    const url = '<?= controller_url($controller) ?>/add_manual_member_ajax';
+    console.log('Adding manual member:', memberId, 'to list:', listId);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'list_id': listId,
+            'membre_id': memberId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add to DOM display
+            const listDiv = document.getElementById('manual_members_list');
+            const memberDiv = document.createElement('div');
+            memberDiv.className = 'd-flex justify-content-between align-items-center mb-2 border-bottom pb-2';
+            memberDiv.setAttribute('data-member-id', memberId);
+            memberDiv.innerHTML = `
+                <div>
+                    <input type="hidden" name="manual_members[]" value="${memberId}">
+                    <i class="bi bi-person"></i>
+                    <strong>${memberName}</strong>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeManualMember(this)">
+                    <i class="bi bi-trash"></i>
+                    <?= $this->lang->line("email_lists_remove_member") ?>
+                </button>
+            `;
+            listDiv.appendChild(memberDiv);
+
+            // Reset selector
+            selector.value = '';
+
+            // Update preview counts automatically
+            if (typeof updatePreviewCounts === 'function') {
+                updatePreviewCounts();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add member'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
 }
 
 // Remove manual member
 window.removeManualMember = function(button) {
-    button.closest('div[data-member-id]').remove();
+    const memberDiv = button.closest('div[data-member-id]');
+    const memberId = memberDiv.getAttribute('data-member-id');
+
+    if (!memberId) {
+        memberDiv.remove();
+        return;
+    }
+
+    // Remove from database via AJAX
+    const card = document.querySelector('.card[data-list-id]');
+    const listId = card.dataset.listId;
+
+    fetch('<?= controller_url($controller) ?>/remove_manual_member_ajax', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'list_id': listId,
+            'membre_id': memberId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove from DOM
+            memberDiv.remove();
+
+            // Update preview counts automatically
+            if (typeof updatePreviewCounts === 'function') {
+                updatePreviewCounts();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to remove member'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred');
+    });
 }
 
 // Add external email (v1.3: one at a time only)
