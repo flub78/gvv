@@ -236,7 +236,7 @@ class Email_lists extends Gvv_Controller
         }
 
         $this->session->set_flashdata('success', $this->lang->line('email_lists_update_success'));
-        redirect('email_lists/view/' . $id);
+        redirect('email_lists/edit/' . $id);
     }
 
     /**

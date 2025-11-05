@@ -81,11 +81,13 @@ class Migration_Create_email_lists extends CI_Migration
             'created_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
+                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'Creation timestamp'
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
+                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'Last update timestamp'
             ]
         ]);

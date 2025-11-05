@@ -22,6 +22,7 @@ $lang['email_lists_delete'] = 'Verwijderen';
 $lang['email_lists_delete_confirm'] = 'Weet u zeker dat u deze lijst wilt verwijderen?';
 $lang['email_lists_export'] = 'Exporteren';
 $lang['email_lists_copy'] = 'Kopiëren';
+$lang['email_lists_back'] = 'Terug naar Lijst';
 
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Op Criteria';

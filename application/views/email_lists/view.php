@@ -36,8 +36,8 @@ $this->lang->load('email_lists');
             <a href="<?= controller_url($controller) ?>/edit/<?= $list['id'] ?>" class="btn btn-secondary">
                 <i class="bi bi-pencil"></i> <?= $this->lang->line("email_lists_edit") ?>
             </a>
-            <a href="<?= controller_url($controller) ?>" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> <?= $this->lang->line("gvv_str_back") ?>
+            <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> <?= $this->lang->line("email_lists_back") ?>
             </a>
         </div>
     </div>
@@ -80,7 +80,11 @@ if ($this->session->flashdata('success')) {
                     </p>
                     <p class="mb-1">
                         <strong><?= $this->lang->line("email_lists_visible") ?>:</strong>
-                        <?= $list['visible'] ? $this->lang->line("gvv_str_yes") : $this->lang->line("gvv_str_no") ?>
+                        <?php if ($list['visible'] == 1): ?>
+                            <i class="fas fa-eye text-success" aria-hidden="true"></i>
+                        <?php else: ?>
+                            <i class="fas fa-eye-slash text-muted" aria-hidden="true"></i>
+                        <?php endif; ?>
                     </p>
                 </div>
                 <div class="col-md-6">
@@ -250,7 +254,3 @@ if ($this->session->flashdata('success')) {
 // Initialize with email data
 var emailList = <?= json_encode(array_column($emails, 'email')) ?>;
 </script>
-
-<?php
-$this->load->view('bs_footer');
-?>

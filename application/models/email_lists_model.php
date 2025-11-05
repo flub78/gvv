@@ -64,7 +64,9 @@ class Email_lists_model extends CI_Model {
         if ($this->db->insert($this->table, $insert_data)) {
             return $this->db->insert_id();
         }
-
+        // Log the error
+        gvv_error("sql error: " . $this->db->_error_message());
+        gvv_error("sql last query: " . $this->db->last_query());
         return FALSE;
     }
 

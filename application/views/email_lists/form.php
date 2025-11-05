@@ -34,7 +34,14 @@ $is_modification = !$is_creation;
 $list_id = $is_modification ? $email_list_id : 0;
 ?>
 <div id="body" class="body container-fluid">
-    <h3><?= $is_creation ? $this->lang->line('email_lists_create') : $this->lang->line('email_lists_edit') ?></h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><?= $is_creation ? $this->lang->line('email_lists_create') : $this->lang->line('email_lists_edit') ?></h3>
+        <div>
+            <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> <?= $this->lang->line("email_lists_back") ?>
+            </a>
+        </div>
+    </div>
 
 <?php
 // Show validation errors
@@ -51,6 +58,15 @@ if ($this->session->flashdata('error')) {
     echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
     echo '<strong><i class="bi bi-exclamation-triangle-fill"></i></strong> ';
     echo nl2br(htmlspecialchars($this->session->flashdata('error')));
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    echo '</div>';
+}
+
+// Show success message
+if ($this->session->flashdata('success')) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
+    echo nl2br(htmlspecialchars($this->session->flashdata('success')));
     echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
     echo '</div>';
 }
@@ -82,7 +98,7 @@ if ($this->session->flashdata('error')) {
                                class="form-control"
                                id="name"
                                name="name"
-                               value="<?= htmlspecialchars(set_value('name', $list['name'])) ?>"
+                               value="<?= set_value('name', $list['name']) ?>"
                                required>
                     </div>
                 </div>
@@ -95,7 +111,7 @@ if ($this->session->flashdata('error')) {
                         <textarea class="form-control"
                                   id="description"
                                   name="description"
-                                  rows="3"><?= htmlspecialchars(set_value('description', $list['description'])) ?></textarea>
+                                  rows="3"><?= set_value('description', $list['description']) ?></textarea>
                     </div>
                 </div>
 
@@ -126,7 +142,7 @@ if ($this->session->flashdata('error')) {
                                    id="visible"
                                    name="visible"
                                    value="1"
-                                   <?= set_checkbox('visible', '1', $list['visible']) ?>>
+                                   <?= set_checkbox('visible', '1', $list['visible'] == 1) ?>>
                             <label class="form-check-label" for="visible">
                                 <?= $this->lang->line("email_lists_visible") ?>
                             </label>

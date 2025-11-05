@@ -22,6 +22,7 @@ $lang['email_lists_delete'] = 'Supprimer';
 $lang['email_lists_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer cette liste ?';
 $lang['email_lists_export'] = 'Exporter';
 $lang['email_lists_copy'] = 'Copier';
+$lang['email_lists_back'] = 'Retour à la liste';
 
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Par critères';
