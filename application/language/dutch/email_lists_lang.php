@@ -156,3 +156,7 @@ $lang['email_lists_total_recipients'] = 'Totaal ontvangers';
 $lang['email_lists_from_criteria'] = 'Van criteria';
 $lang['email_lists_select_criteria_to_preview'] = 'Selecteer criteria om de lijst te bekijken';
 $lang['email_lists_refresh_preview'] = 'Voorbeeld vernieuwen';
+
+// Workflow v1.4 - Scheiding creatie/wijziging
+$lang['email_lists_add_remove_addresses'] = 'E-mailadressen toevoegen en verwijderen';
+$lang['email_lists_save_first_to_add_addresses'] = 'Sla de lijst eerst op voordat u e-mailadressen kunt toevoegen';

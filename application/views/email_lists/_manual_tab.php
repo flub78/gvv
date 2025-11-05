@@ -96,8 +96,7 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
                 <input type="email"
                        class="form-control"
                        id="external_email"
-                       placeholder="<?= $this->lang->line("email_lists_external_email") ?>"
-                       required>
+                       placeholder="<?= $this->lang->line("email_lists_external_email") ?>">
             </div>
             <div class="col-md-5">
                 <input type="text"

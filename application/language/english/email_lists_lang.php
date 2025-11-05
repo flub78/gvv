@@ -156,3 +156,7 @@ $lang['email_lists_total_recipients'] = 'Total recipients';
 $lang['email_lists_from_criteria'] = 'From criteria';
 $lang['email_lists_select_criteria_to_preview'] = 'Select criteria to preview the list';
 $lang['email_lists_refresh_preview'] = 'Refresh preview';
+
+// Workflow v1.4 - Separation creation/modification
+$lang['email_lists_add_remove_addresses'] = 'Add and remove email addresses';
+$lang['email_lists_save_first_to_add_addresses'] = 'Please save the list first before you can add email addresses';

@@ -184,3 +184,7 @@ $lang['email_lists_upload_error'] = 'Erreur lors de l\'import du fichier';
 $lang['email_lists_confirm_delete_file'] = 'Êtes-vous sûr de vouloir supprimer ce fichier et toutes ses adresses associées ?';
 $lang['email_lists_file_deleted'] = 'Fichier supprimé avec succès';
 $lang['email_lists_addresses'] = 'adresses';
+
+// Workflow v1.4 - Separation creation/modification
+$lang['email_lists_add_remove_addresses'] = 'Ajout et suppression d\'adresses email';
+$lang['email_lists_save_first_to_add_addresses'] = 'Veuillez d\'abord enregistrer la liste avant de pouvoir ajouter des adresses email';

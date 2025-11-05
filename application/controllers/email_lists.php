@@ -77,39 +77,29 @@ class Email_lists extends Gvv_Controller
     }
 
     /**
-     * Create - Display form for creating new list
+     * Create - Display simple form for creating new list
+     * Workflow v1.4 SIMPLIFIED: Just metadata, no JavaScript
      */
     public function create()
     {
+        log_message('debug', 'EMAIL_LISTS: create() method called');
+
         $data['title'] = $this->lang->line('email_lists_create');
-        $data['controller'] = $this->controller;
-        $data['action'] = 'store';
 
-        // Load available roles and sections for criteria tab
-        $data['available_roles'] = $this->email_lists_model->get_available_roles();
-        $data['available_sections'] = $this->email_lists_model->get_available_sections();
-
-        // Load all members for manual selection tab
-        $this->load->model('membres_model');
-        $data['available_members'] = $this->membres_model->selector(array('actif' => 1));
-
-        // Initialize empty list data
-        $data['list'] = array(
-            'name' => '',
-            'description' => '',
-            'active_member' => 'active',
-            'visible' => 1
-        );
-
-        return load_last_view('email_lists/form', $data, $this->unit_test);
+        return load_last_view('email_lists/create', $data, $this->unit_test);
     }
 
     /**
-     * Store - Save new list
+     * Store - Save new list (metadata only)
+     * Workflow v1.4: Create list with metadata, then redirect to edit() for addresses
      */
     public function store()
     {
-        // Validate input
+        // DEBUG: Log that we entered store()
+        log_message('debug', 'EMAIL_LISTS: store() method called');
+        log_message('debug', 'EMAIL_LISTS: POST data: ' . print_r($_POST, TRUE));
+
+        // Validate input (metadata only)
         $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]');
         $this->form_validation->set_rules('description', $this->lang->line('email_lists_description'), 'max_length[1000]');
         $this->form_validation->set_rules('active_member', $this->lang->line('email_lists_active_member'), 'required|in_list[active,inactive,all]');
@@ -119,7 +109,7 @@ class Email_lists extends Gvv_Controller
             return $this->create();
         }
 
-        // Create the list
+        // Create the list with metadata only
         $user_id = $this->dx_auth->get_user_id();
         $list_data = array(
             'name' => $this->input->post('name'),
@@ -136,46 +126,9 @@ class Email_lists extends Gvv_Controller
             return $this->create();
         }
 
-        // Add roles if provided
-        $roles = $this->input->post('roles');
-        if ($roles && is_array($roles)) {
-            foreach ($roles as $role_data) {
-                if (isset($role_data['types_roles_id']) && isset($role_data['section_id'])) {
-                    $this->email_lists_model->add_role_to_list(
-                        $list_id,
-                        $role_data['types_roles_id'],
-                        $role_data['section_id'],
-                        $user_id
-                    );
-                }
-            }
-        }
-
-        // Add manual members if provided
-        $manual_members = $this->input->post('manual_members');
-        if ($manual_members && is_array($manual_members)) {
-            foreach ($manual_members as $membre_id) {
-                $this->email_lists_model->add_manual_member($list_id, $membre_id);
-            }
-        }
-
-        // Add external emails if provided
-        $external_emails = $this->input->post('external_emails');
-        if ($external_emails) {
-            $parsed = parse_text_emails($external_emails);
-            foreach ($parsed as $email_data) {
-                if ($email_data['valid']) {
-                    $this->email_lists_model->add_external_email(
-                        $list_id,
-                        $email_data['email'],
-                        $email_data['name'] ?? NULL
-                    );
-                }
-            }
-        }
-
+        // Success - redirect to edit mode where address section is enabled
         $this->session->set_flashdata('success', $this->lang->line('email_lists_create_success'));
-        redirect('email_lists/view/' . $list_id);
+        redirect('email_lists/edit/' . $list_id);
     }
 
     /**
@@ -207,6 +160,7 @@ class Email_lists extends Gvv_Controller
 
     /**
      * Edit - Display form for editing existing list
+     * Workflow v1.4: Both metadata and address sections enabled
      *
      * @param int $id List ID
      * @param bool $load_view Whether to load the view (default true)
@@ -227,15 +181,16 @@ class Email_lists extends Gvv_Controller
         $data['controller'] = $this->controller;
         $data['action'] = 'update';
         $data['list'] = $list;
+        $data['email_list_id'] = $id; // ID known - address section will be enabled
 
-        // Load available roles and sections
+        // Load available roles and sections for criteria tab
         $data['available_roles'] = $this->email_lists_model->get_available_roles();
         $data['available_sections'] = $this->email_lists_model->get_available_sections();
 
         // Load current list configuration
-        $data['current_roles'] = $this->email_lists_model->get_list_roles($id);
-        $data['current_manual_members'] = $this->email_lists_model->get_manual_members($id);
-        $data['current_external_emails'] = $this->email_lists_model->get_external_emails($id);
+        $data['selected_roles'] = $this->email_lists_model->get_list_roles($id);
+        $data['selected_members'] = $this->email_lists_model->get_manual_members($id);
+        $data['uploaded_files'] = $this->email_lists_model->get_uploaded_files($id);
 
         // Load all members for manual selection
         $this->load->model('membres_model');

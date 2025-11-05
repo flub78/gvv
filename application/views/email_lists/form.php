@@ -28,11 +28,13 @@ $this->load->view('bs_banner');
 
 $this->lang->load('email_lists');
 
-$is_edit = isset($list['id']);
-$list_id = $is_edit ? $list['id'] : 0;
+// Workflow v1.4: Determine if we're in creation or modification mode
+$is_creation = empty($email_list_id);
+$is_modification = !$is_creation;
+$list_id = $is_modification ? $email_list_id : 0;
 ?>
 <div id="body" class="body container-fluid">
-    <h3><?= $title ?></h3>
+    <h3><?= $is_creation ? $this->lang->line('email_lists_create') : $this->lang->line('email_lists_edit') ?></h3>
 
 <?php
 // Show validation errors
@@ -54,7 +56,15 @@ if ($this->session->flashdata('error')) {
 }
 ?>
 
-    <form action="<?= controller_url($controller) ?>/<?= $action ?><?= $is_edit ? '/' . $list_id : '' ?>"
+    <?php
+    // DEBUG: Show form action URL
+    $form_action = controller_url($controller) . '/' . $action . ($is_modification ? '/' . $list_id : '');
+    if (ENVIRONMENT === 'development') {
+        echo '<!-- DEBUG: Form action URL: ' . htmlspecialchars($form_action) . ' -->' . "\n";
+        echo '<!-- DEBUG: controller=' . htmlspecialchars($controller) . ', action=' . htmlspecialchars($action) . ', is_modification=' . ($is_modification ? 'YES' : 'NO') . ' -->' . "\n";
+    }
+    ?>
+    <form action="<?= $form_action ?>"
           method="post"
           accept-charset="utf-8"
           name="email_list_form"
@@ -123,8 +133,44 @@ if ($this->session->flashdata('error')) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Submit buttons for metadata section -->
+                <div class="row">
+                    <div class="col-sm-10 offset-sm-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> <?= $this->lang->line("gvv_button_save") ?>
+                        </button>
+                        <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> <?= $this->lang->line("gvv_button_cancel") ?>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- PARTIE INFÉRIEURE: Ajout et suppression d'adresses email -->
+        <?php if ($is_modification): ?>
+        <div class="card mt-4" id="addresses-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-envelope-plus"></i> <?= $this->lang->line("email_lists_add_remove_addresses") ?>
+                </h5>
+            </div>
+            <div class="card-body">
+        <?php else: ?>
+        <div class="card mt-4 bg-light" id="addresses-section-disabled">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-envelope-plus"></i> <?= $this->lang->line("email_lists_add_remove_addresses") ?>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> <?= $this->lang->line("email_lists_save_first_to_add_addresses") ?>
+                </div>
+                <!-- Disabled preview of what will be available -->
+                <div class="opacity-25" style="pointer-events: none;">
+        <?php endif; ?>
 
         <!-- Split-panel layout: Tabs on left, Preview on right -->
         <div class="row">
@@ -240,15 +286,14 @@ if ($this->session->flashdata('error')) {
             </div>
         </div>
 
-        <!-- Form actions -->
-        <div class="mt-4 mb-4">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i> <?= $this->lang->line("gvv_button_save") ?>
-            </button>
-            <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
-                <i class="bi bi-x-circle"></i> <?= $this->lang->line("gvv_button_cancel") ?>
-            </a>
-        </div>
+        <?php if ($is_creation): ?>
+                </div><!-- Close opacity wrapper -->
+            </div><!-- Close card-body -->
+        </div><!-- Close card for disabled section -->
+        <?php else: ?>
+            </div><!-- Close card-body -->
+        </div><!-- Close card for enabled section -->
+        <?php endif; ?>
 
     </form>
 
