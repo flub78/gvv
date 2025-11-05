@@ -100,7 +100,7 @@ class Email_lists extends Gvv_Controller
         log_message('debug', 'EMAIL_LISTS: POST data: ' . print_r($_POST, TRUE));
 
         // Validate input (metadata only)
-        $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]');
+        $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]|callback_check_name_unique');
         $this->form_validation->set_rules('description', $this->lang->line('email_lists_description'), 'max_length[1000]');
         $this->form_validation->set_rules('active_member', $this->lang->line('email_lists_active_member'), 'required|in_list[active,inactive,all]');
 
@@ -212,8 +212,11 @@ class Email_lists extends Gvv_Controller
             show_404();
         }
 
+        // Store the list ID for validation callback
+        $this->_update_list_id = $id;
+
         // Validate input
-        $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]');
+        $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]|callback_check_name_unique');
         $this->form_validation->set_rules('description', $this->lang->line('email_lists_description'), 'max_length[1000]');
         $this->form_validation->set_rules('active_member', $this->lang->line('email_lists_active_member'), 'required|in_list[active,inactive,all]');
 
@@ -303,6 +306,25 @@ class Email_lists extends Gvv_Controller
 
         $this->session->set_flashdata('success', $this->lang->line('email_lists_update_success'));
         redirect('email_lists/edit/' . $id);
+    }
+
+    /**
+     * Validation callback - Check if list name is unique
+     *
+     * @param string $name List name to validate
+     * @return bool TRUE if unique, FALSE if duplicate
+     */
+    public function check_name_unique($name)
+    {
+        // Check if updating (exclude current list ID)
+        $exclude_id = isset($this->_update_list_id) ? $this->_update_list_id : NULL;
+
+        if ($this->email_lists_model->name_exists($name, $exclude_id)) {
+            $this->form_validation->set_message('check_name_unique', $this->lang->line('email_lists_name_duplicate'));
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
     /**

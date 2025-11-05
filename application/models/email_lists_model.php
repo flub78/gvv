@@ -148,6 +148,22 @@ class Email_lists_model extends CI_Model {
         return $query->result_array();
     }
 
+    /**
+     * Check if a list name already exists
+     *
+     * @param string $name List name to check
+     * @param int $exclude_id Optional ID to exclude (for updates)
+     * @return bool TRUE if name exists, FALSE otherwise
+     */
+    public function name_exists($name, $exclude_id = NULL) {
+        $this->db->where('name', $name);
+        if ($exclude_id) {
+            $this->db->where('id !=', $exclude_id);
+        }
+        $query = $this->db->get($this->table);
+        return $query->num_rows() > 0;
+    }
+
     // ========================================================================
     // Role-based selection (email_list_roles)
     // ========================================================================

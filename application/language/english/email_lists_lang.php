@@ -94,6 +94,7 @@ $lang['email_lists_empty_list'] = 'This list contains no recipients';
 
 // Validation
 $lang['email_lists_name_required'] = 'Name is required';
+$lang['email_lists_name_duplicate'] = 'This list name already exists. Please choose a different name.';
 $lang['email_lists_invalid_email'] = 'Invalid email address';
 
 // View labels

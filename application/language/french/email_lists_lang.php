@@ -94,6 +94,7 @@ $lang['email_lists_empty_list'] = 'Cette liste ne contient aucun destinataire';
 
 // Validation
 $lang['email_lists_name_required'] = 'Le nom est obligatoire';
+$lang['email_lists_name_duplicate'] = 'Ce nom de liste existe déjà. Veuillez choisir un nom différent.';
 $lang['email_lists_invalid_email'] = 'Adresse email invalide';
 
 // View labels

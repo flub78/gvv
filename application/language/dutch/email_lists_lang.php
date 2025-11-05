@@ -94,6 +94,7 @@ $lang['email_lists_empty_list'] = 'Deze lijst bevat geen ontvangers';
 
 // Validation
 $lang['email_lists_name_required'] = 'Naam is verplicht';
+$lang['email_lists_name_duplicate'] = 'Deze lijstnaam bestaat al. Kies een andere naam.';
 $lang['email_lists_invalid_email'] = 'Ongeldig e-mailadres';
 
 // View labels
