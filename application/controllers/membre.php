@@ -46,7 +46,8 @@ class Membre extends Gvv_Controller {
         'filter_membre_actif',
         'filter_categorie',
         'filter_25',
-        'filter_validation'
+        'filter_validation',
+        'filter_sections'
     );
 
     /**
@@ -108,7 +109,95 @@ class Membre extends Gvv_Controller {
         $this->load_filter($this->filter_variables);
 
         $selection = $this->selection();
-        parent::page($premier, $message, $selection);
+
+        // Load sections for filter
+        $this->load->model('sections_model');
+        $this->data['sections'] = $this->sections_model->section_list();
+
+        // Get section filter before calling parent
+        $filter_sections = $this->session->userdata('filter_sections');
+
+        // If no filter is set, initialize with all sections checked by default
+        if ($filter_sections === FALSE || $filter_sections === NULL) {
+            $all_section_ids = array();
+            foreach ($this->data['sections'] as $section) {
+                $all_section_ids[] = $section['id'];
+            }
+            $this->session->set_userdata('filter_sections', $all_section_ids);
+            $filter_sections = $all_section_ids;
+        }
+
+        // Apply section filter BEFORE calling parent (parent renders the view immediately)
+        // Check if section filtering is active and needed
+        $filter_active = $this->session->userdata('filter_active');
+
+        if ($filter_active && !empty($filter_sections) && is_array($filter_sections)) {
+            // Check if all sections are selected (no filtering needed)
+            $all_section_ids = array();
+            foreach ($this->data['sections'] as $section) {
+                $all_section_ids[] = intval($section['id']);
+            }
+            $filter_section_ids = array_map('intval', $filter_sections);
+
+            // Only filter if not all sections are selected
+            $all_selected = (count($filter_section_ids) === count($all_section_ids));
+
+            if (!$all_selected) {
+                // Mark that we need to apply section filtering after fetching data
+                $this->data['filter_sections_to_apply'] = $filter_section_ids;
+            }
+        }
+
+        // Fetch data manually so we can filter it before rendering
+        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
+
+        // Apply section filtering to the fetched data
+        if (isset($this->data['filter_sections_to_apply'])) {
+            $filter_section_ids = $this->data['filter_sections_to_apply'];
+            $filtered_data = array();
+
+            foreach ($this->data['select_result'] as $row) {
+                if (isset($row['mlogin'])) {
+                    $member_section_ids = $this->gvv_model->registered_in_sections($row['mlogin']);
+
+                    // Include member if:
+                    // 1. They have no 411 accounts (not registered in any section), OR
+                    // 2. They are registered in ANY of the selected sections
+                    if (empty($member_section_ids)) {
+                        // Member has no 411 accounts - always show them
+                        $filtered_data[] = $row;
+                    } else {
+                        // Member has section registrations - check if any match selected sections
+                        $has_match = false;
+                        foreach ($member_section_ids as $member_section_id) {
+                            if (in_array($member_section_id, $filter_section_ids)) {
+                                $has_match = true;
+                                break;
+                            }
+                        }
+                        if ($has_match) {
+                            $filtered_data[] = $row;
+                        }
+                    }
+                }
+            }
+
+            // Replace with filtered data
+            $this->data['select_result'] = $filtered_data;
+
+            // Update metadata db with filtered data so table() renders correctly
+            $this->gvvmetadata->store_table($this->gvv_model->table, $filtered_data);
+        }
+
+        // Now call parent with filtered data already in place
+        $this->data['kid'] = $this->kid;
+        $this->data['controller'] = $this->controller;
+        $this->data['count'] = $this->gvv_model->count();
+        $this->data['premier'] = $premier;
+        $this->data['message'] = $message;
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+
+        return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
 
     /**

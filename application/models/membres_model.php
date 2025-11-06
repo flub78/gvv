@@ -484,7 +484,8 @@ class Membres_model extends Common_Model {
         $query = $this->db->get();
 
         if ($query->num_rows() > 0) {
-            return array_column($query->result_array(), 'section_id');
+            // Convert to integers to ensure consistent type for comparison
+            return array_map('intval', array_column($query->result_array(), 'section_id'));
         }
 
         return array();

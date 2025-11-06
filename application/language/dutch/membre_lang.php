@@ -34,6 +34,8 @@ $lang['membre_filter_active'] = "Actief";
 $lang['membre_filter_age'] = "Leeftijd";
 $lang['membre_filter_category'] = "Categorie";
 $lang['membre_filter_validation'] = "Validatie";
+$lang['membre_filter_sections'] = "Secties";
+$lang['membre_filter_no_sections'] = "Geen secties beschikbaar";
 $lang['membre_filter_all'] = "Alle";
 
 $lang['membre_button_subscription'] = "Inschrijven";

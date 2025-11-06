@@ -32,6 +32,8 @@ $lang['membre_filter_active'] = "Active";
 $lang['membre_filter_age'] = "Age";
 $lang['membre_filter_category'] = "Catégories";
 $lang['membre_filter_validation'] = "Validation";
+$lang['membre_filter_sections'] = "Sections";
+$lang['membre_filter_no_sections'] = "No sections available";
 $lang['membre_filter_all'] = "All";
 
 $lang['membre_button_subscription'] = "Subscription";

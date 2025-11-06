@@ -101,6 +101,35 @@ if ($this->session->flashdata('error')) {
                             <?= $this->lang->line("membre_filter_validation") . ": " .  enumerate_radio_fields($this->lang->line("membres_filter_validation"), 'filter_validation', $filter_validation) ?>
                         </div>
 
+                        <!-- Sections -->
+                        <div class="d-md-flex flex-row mb-2">
+                            <div class="me-3 mb-2">
+                                <?php
+                                echo $this->lang->line("membre_filter_sections") . ": ";
+                                if (isset($sections) && !empty($sections)) {
+                                    // Ensure filter_sections is defined and is an array
+                                    $selected_sections = (isset($filter_sections) && is_array($filter_sections)) ? $filter_sections : array();
+
+                                    foreach ($sections as $section) {
+                                        $section_id = $section['id'];
+                                        $is_checked = in_array($section_id, $selected_sections) ? 'checked' : '';
+                                        echo '<div class="form-check form-check-inline">';
+                                        echo '<input class="form-check-input" type="checkbox" name="filter_sections[]" id="section_' . $section_id . '" value="' . $section_id . '" ' . $is_checked . '>';
+                                        echo '<label class="form-check-label" for="section_' . $section_id . '">';
+                                        echo '<span class="badge rounded-pill" style="background-color: ' . $section['couleur'] . '; color: black; border: 1px solid black;">';
+                                        echo $section['acronyme'];
+                                        echo '</span>';
+                                        echo ' ' . $section['nom'];
+                                        echo '</label>';
+                                        echo '</div>';
+                                    }
+                                } else {
+                                    echo '<span class="text-muted">' . $this->lang->line("membre_filter_no_sections") . '</span>';
+                                }
+                                ?>
+                            </div>
+                        </div>
+
                         <div class="d-md-flex flex-row">
                             <?= filter_buttons() ?>
                         </div>

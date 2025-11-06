@@ -33,6 +33,8 @@ $lang['membre_filter_active'] = "Actifs";
 $lang['membre_filter_age'] = "Age";
 $lang['membre_filter_category'] = "Catégorie";
 $lang['membre_filter_validation'] = "Membre du club";
+$lang['membre_filter_sections'] = "Sections";
+$lang['membre_filter_no_sections'] = "Aucune section disponible";
 $lang['membre_filter_all'] = "Tous";
 
 $lang['membre_button_subscription'] = "Adhésion";
