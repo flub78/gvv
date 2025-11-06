@@ -18,6 +18,27 @@ class Migration_Add_source_file_to_email_list_external extends CI_Migration
 {
     public function up()
     {
+        // Check if table exists before trying to alter it
+        if (!$this->db->table_exists('email_list_external')) {
+            log_message('info', 'Migration 051: email_list_external table does not exist, skipping');
+            return;
+        }
+
+        // Check if column already exists
+        $fields = $this->db->field_data('email_list_external');
+        $source_file_exists = false;
+        foreach ($fields as $field) {
+            if ($field->name === 'source_file') {
+                $source_file_exists = true;
+                break;
+            }
+        }
+
+        if ($source_file_exists) {
+            log_message('info', 'Migration 051: source_file column already exists, skipping');
+            return;
+        }
+
         // Add source_file column for file traceability
         $this->db->query("
             ALTER TABLE email_list_external

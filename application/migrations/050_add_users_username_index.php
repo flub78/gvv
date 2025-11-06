@@ -13,6 +13,21 @@ class Migration_Add_users_username_index extends CI_Migration
 {
     public function up()
     {
+        // Check if index already exists
+        $query = $this->db->query("
+            SELECT COUNT(*) as count
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+            AND table_name = 'users'
+            AND index_name = 'idx_username'
+        ");
+        
+        $result = $query->row_array();
+        if ($result['count'] > 0) {
+            log_message('info', 'Migration 050: idx_username already exists, skipping');
+            return;
+        }
+
         // Add index on username for better join performance with membres table
         $this->db->query('ALTER TABLE users ADD INDEX idx_username (username)');
 

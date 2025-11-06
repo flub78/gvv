@@ -38,88 +38,108 @@ class Migration_Create_email_lists extends CI_Migration
 
     public function up()
     {
-        // Table: email_lists
-        // Main table for managing email distribution lists
-        $this->dbforge->add_field([
-            'id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'auto_increment' => TRUE
-            ],
-            'name' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => FALSE,
-                'comment' => 'Unique list name (case-sensitive)'
-            ],
-            'description' => [
-                'type' => 'TEXT',
-                'null' => TRUE,
-                'comment' => 'Optional description'
-            ],
-            'active_member' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'default' => 'active',
-                'null' => FALSE,
-                'comment' => 'Member status filter (active/inactive/all)'
-            ],
-            'visible' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 1,
-                'null' => TRUE,
-                'comment' => 'List visibility in selections'
-            ],
-            'created_by' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => FALSE,
-                'null' => FALSE,
-                'comment' => 'User ID who created the list'
-            ],
-            'created_at' => [
-                'type' => 'DATETIME',
-                'null' => FALSE,
-                'default' => 'CURRENT_TIMESTAMP',
-                'comment' => 'Creation timestamp'
-            ],
-            'updated_at' => [
-                'type' => 'DATETIME',
-                'null' => FALSE,
-                'default' => 'CURRENT_TIMESTAMP',
-                'comment' => 'Last update timestamp'
-            ]
-        ]);
-        $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('email_lists', TRUE, [
-            'ENGINE' => 'InnoDB',
-            'DEFAULT CHARSET' => 'utf8mb4',
-            'COLLATE' => 'utf8mb4_unicode_ci'
-        ]);
-
-        // Fix created_by column type to match users.id (signed INT)
-        $this->db->query('ALTER TABLE email_lists MODIFY created_by INT(11) NOT NULL COMMENT "User ID who created the list"');
-
-        // Add unique index on name (case-sensitive via COLLATE utf8_bin)
-        $this->db->query('ALTER TABLE email_lists MODIFY name VARCHAR(100) NOT NULL COLLATE utf8_bin');
-
-        if (!$this->index_exists('email_lists', 'idx_name')) {
-            $this->db->query('ALTER TABLE email_lists ADD UNIQUE INDEX idx_name (name)');
+        // Check if all tables already exist (skip if they do)
+        if ($this->db->table_exists('email_lists') && 
+            $this->db->table_exists('email_list_roles') &&
+            $this->db->table_exists('email_list_members') &&
+            $this->db->table_exists('email_list_external')) {
+            log_message('info', 'Migration 049: all email lists tables already exist, skipping');
+            return;
         }
 
-        if (!$this->index_exists('email_lists', 'idx_created_by')) {
-            $this->db->query('ALTER TABLE email_lists ADD INDEX idx_created_by (created_by)');
-        }
+        try {
+            // Table: email_lists
+            // Main table for managing email distribution lists
+            $this->dbforge->add_field([
+                'id' => [
+                    'type' => 'INT',
+                    'constraint' => 11,
+                    'auto_increment' => TRUE
+                ],
+                'name' => [
+                    'type' => 'VARCHAR',
+                    'constraint' => 100,
+                    'null' => FALSE,
+                    'comment' => 'Unique list name (case-sensitive)'
+                ],
+                'description' => [
+                    'type' => 'TEXT',
+                    'null' => TRUE,
+                    'comment' => 'Optional description'
+                ],
+                'active_member' => [
+                    'type' => 'VARCHAR',
+                    'constraint' => 20,
+                    'default' => 'active',
+                    'null' => FALSE,
+                    'comment' => 'Member status filter (active/inactive/all)'
+                ],
+                'visible' => [
+                    'type' => 'TINYINT',
+                    'constraint' => 1,
+                    'default' => 1,
+                    'null' => TRUE,
+                    'comment' => 'List visibility in selections'
+                ],
+                'created_by' => [
+                    'type' => 'INT',
+                    'constraint' => 11,
+                    'unsigned' => FALSE,
+                    'null' => FALSE,
+                    'comment' => 'User ID who created the list'
+                ],
+                'created_at' => [
+                    'type' => 'DATETIME',
+                    'null' => FALSE,
+                    'comment' => 'Creation timestamp'
+                ],
+                'updated_at' => [
+                    'type' => 'DATETIME',
+                    'null' => FALSE,
+                    'comment' => 'Last update timestamp'
+                ]
+            ]);
+            $this->dbforge->add_key('id', TRUE);
+            $this->dbforge->create_table('email_lists', TRUE, [
+                'ENGINE' => 'InnoDB',
+                'DEFAULT CHARSET' => 'utf8mb4',
+                'COLLATE' => 'utf8mb4_unicode_ci'
+            ]);
 
-        // Convert active_member to ENUM after table creation
-        $this->db->query("ALTER TABLE email_lists MODIFY active_member ENUM('active', 'inactive', 'all') DEFAULT 'active' NOT NULL");
+            // Fix created_by column type to match users.id (signed INT)
+            $this->db->query('ALTER TABLE email_lists MODIFY created_by INT(11) NOT NULL COMMENT "User ID who created the list"');
 
-        // Add FK to users table
-        $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
+            // Add unique index on name (case-sensitive via COLLATE utf8_bin)
+            $this->db->query('ALTER TABLE email_lists MODIFY name VARCHAR(100) NOT NULL COLLATE utf8_bin');
 
-        // Set up automatic timestamp management for updated_at
-        $this->db->query('ALTER TABLE email_lists MODIFY updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Last update timestamp"');
+            if (!$this->index_exists('email_lists', 'idx_name')) {
+                $this->db->query('ALTER TABLE email_lists ADD UNIQUE INDEX idx_name (name)');
+            }
+
+            if (!$this->index_exists('email_lists', 'idx_created_by')) {
+                $this->db->query('ALTER TABLE email_lists ADD INDEX idx_created_by (created_by)');
+            }
+
+            // Convert active_member to ENUM after table creation
+            $this->db->query("ALTER TABLE email_lists MODIFY active_member ENUM('active', 'inactive', 'all') DEFAULT 'active' NOT NULL");
+
+            // Add FK to users table (wrapped in try-catch for production compatibility)
+            try {
+                $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
+            } catch (Exception $e) {
+                log_message('error', 'Migration 049: Could not add FK fk_email_lists_created_by: ' . $e->getMessage());
+            }
+
+            // Set up automatic timestamp management for updated_at (MySQL 5.6.5+)
+            try {
+                $this->db->query('ALTER TABLE email_lists MODIFY created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "Creation timestamp"');
+                $this->db->query('ALTER TABLE email_lists MODIFY updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Last update timestamp"');
+            } catch (Exception $e) {
+                log_message('error', 'Migration 049: Could not set CURRENT_TIMESTAMP (MySQL <5.6.5?): ' . $e->getMessage());
+                // Fallback for older MySQL versions
+                $this->db->query('ALTER TABLE email_lists MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "Creation timestamp"');
+                $this->db->query('ALTER TABLE email_lists MODIFY updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Last update timestamp"');
+            }
 
         // Table: email_list_roles
         // Dynamic member selection based on roles and sections
@@ -285,10 +305,20 @@ class Migration_Create_email_lists extends CI_Migration
             $this->db->query('ALTER TABLE email_list_external ADD INDEX idx_email_list_id (email_list_id)');
         }
 
-        // Add foreign key for email_list_external
-        $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
+            // Add foreign key for email_list_external
+            try {
+                $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
+            } catch (Exception $e) {
+                log_message('error', 'Migration 049: Could not add FK fk_ele_email_list_id: ' . $e->getMessage());
+            }
 
-        log_message('info', 'Migration 049: Created email lists tables (email_lists, email_list_roles, email_list_members, email_list_external)');
+            log_message('info', 'Migration 049: Created email lists tables (email_lists, email_list_roles, email_list_members, email_list_external)');
+
+        } catch (Exception $e) {
+            log_message('error', 'Migration 049 FAILED: ' . $e->getMessage());
+            log_message('error', 'Migration 049 Error trace: ' . $e->getTraceAsString());
+            throw $e;  // Re-throw so migration system knows it failed
+        }
     }
 
     public function down()

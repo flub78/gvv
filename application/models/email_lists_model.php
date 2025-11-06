@@ -78,7 +78,12 @@ class Email_lists_model extends CI_Model {
      */
     public function get_list($id) {
         $query = $this->db->get_where($this->table, array('id' => $id));
-        return $query->row_array();
+        if ($query === FALSE) {
+            return NULL;
+        }
+        $result = $query->row_array();
+        // row_array() returns NULL when no record found, which is correct for single record retrieval
+        return $result;
     }
 
     /**
@@ -133,6 +138,9 @@ class Email_lists_model extends CI_Model {
     public function get_user_lists() {
         $this->db->order_by('created_at', 'DESC');
         $query = $this->db->get($this->table);
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -145,6 +153,9 @@ class Email_lists_model extends CI_Model {
         $this->db->where('visible', 1);
         $this->db->order_by('name', 'ASC');
         $query = $this->db->get($this->table);
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -161,6 +172,9 @@ class Email_lists_model extends CI_Model {
             $this->db->where('id !=', $exclude_id);
         }
         $query = $this->db->get($this->table);
+        if ($query === FALSE) {
+            return FALSE;
+        }
         return $query->num_rows() > 0;
     }
 
@@ -191,7 +205,11 @@ class Email_lists_model extends CI_Model {
         } else {
             $this->db->where('section_id', $section_id);
         }
-        $existing = $this->db->get('email_list_roles')->row_array();
+        $query = $this->db->get('email_list_roles');
+        if ($query === FALSE) {
+            return FALSE;
+        }
+        $existing = $query->row_array();
         if ($existing) {
             return TRUE; // Already exists, treat as success
         }
@@ -273,6 +291,9 @@ class Email_lists_model extends CI_Model {
         $this->db->where('elr.email_list_id', $list_id);
         $this->db->where('elr.revoked_at IS NULL');
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -286,6 +307,9 @@ class Email_lists_model extends CI_Model {
         $this->db->from('types_roles');
         $this->db->order_by('display_order', 'ASC');
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -299,6 +323,9 @@ class Email_lists_model extends CI_Model {
         $this->db->from('sections');
         $this->db->order_by('id', 'ASC');
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -327,6 +354,9 @@ class Email_lists_model extends CI_Model {
         // 'all' - no filter
 
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -349,7 +379,11 @@ class Email_lists_model extends CI_Model {
         // Check if already exists
         $this->db->where('email_list_id', $list_id);
         $this->db->where('membre_id', $membre_id);
-        $existing = $this->db->get('email_list_members')->row_array();
+        $query = $this->db->get('email_list_members');
+        if ($query === FALSE) {
+            return FALSE;
+        }
+        $existing = $query->row_array();
         if ($existing) {
             return TRUE; // Already exists, treat as success
         }
@@ -396,6 +430,9 @@ class Email_lists_model extends CI_Model {
         $this->db->join('membres m', 'elm.membre_id = m.mlogin', 'inner');
         $this->db->where('elm.email_list_id', $list_id);
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -478,6 +515,9 @@ class Email_lists_model extends CI_Model {
         $this->db->from('email_list_external');
         $this->db->where('email_list_id', $list_id);
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -629,6 +669,9 @@ class Email_lists_model extends CI_Model {
         $this->db->order_by('uploaded_at', 'DESC');
 
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -700,7 +743,24 @@ class Email_lists_model extends CI_Model {
         $this->db->where('source_file', $filename);
 
         $query = $this->db->get();
+        if ($query === FALSE) {
+            return array(
+                'address_count' => 0,
+                'uploaded_at' => NULL,
+                'file_exists' => FALSE,
+                'file_size' => 0,
+                'filename' => $filename
+            );
+        }
         $stats = $query->row_array();
+        
+        // Handle case where no records found
+        if ($stats === NULL) {
+            $stats = array(
+                'address_count' => 0,
+                'uploaded_at' => NULL
+            );
+        }
 
         // Check physical file
         $file_path = FCPATH . 'uploads/email_lists/' . $list_id . '/' . $filename;
