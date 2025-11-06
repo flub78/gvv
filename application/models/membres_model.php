@@ -127,10 +127,13 @@ class Membres_model extends Common_Model {
 
             $pilote = $row ['mlogin'];
 
+            // Get section IDs where member is registered using the efficient method
+            $registered_section_ids = $this->registered_in_sections($pilote);
+
+            // Build array of section details for registered sections
             $member_sections = array();
             foreach ($sections as $section) {
-                $account = $this->comptes_model->get_by_pilote_codec($pilote, '411', $section['id']);
-                if ($account) {
+                if (in_array($section['id'], $registered_section_ids)) {
                     $member_sections[] = $section;
                 }
             }
@@ -460,6 +463,31 @@ class Membres_model extends Common_Model {
         // If no references, proceed with deletion using parent method
         parent::delete($where);
         return TRUE;
+    }
+
+    /**
+     * Get list of section IDs where the member is registered
+     * A member is registered in a section if they have an account (comptes)
+     * with codec='411' and pilote=membre.mlogin
+     *
+     * @param string $mlogin Member login identifier
+     * @return array Array of section_id values
+     */
+    public function registered_in_sections($mlogin)
+    {
+        $this->db->select('club as section_id');
+        $this->db->from('comptes');
+        $this->db->where('codec', '411');
+        $this->db->where('pilote', $mlogin);
+        $this->db->where('actif', 1);
+
+        $query = $this->db->get();
+
+        if ($query->num_rows() > 0) {
+            return array_column($query->result_array(), 'section_id');
+        }
+
+        return array();
     }
 }
 
