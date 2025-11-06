@@ -201,6 +201,41 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * AJAX: Toggle member actif status (admin only)
+     */
+    public function ajax_toggle_actif()
+    {
+        header('Content-Type: application/json');
+
+        // Admin only
+        if (!$this->dx_auth->is_role('admin', true, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $mlogin = $this->input->post('mlogin');
+        $actif = $this->input->post('actif');
+
+        if (empty($mlogin) || !isset($actif)) {
+            echo json_encode(['success' => false, 'error' => 'Missing parameters']);
+            return;
+        }
+
+        // Update the actif field
+        $data = array(
+            'mlogin' => $mlogin,
+            'actif' => $actif ? '1' : '0'
+        );
+
+        try {
+            $this->gvv_model->update('mlogin', $data, $mlogin);
+            echo json_encode(['success' => true, 'actif' => $actif]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => 'Database update failed: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Active ou désactive le filtrage
      */
     public function filterValidation() {
