@@ -118,20 +118,8 @@ class Migration_Create_email_lists extends CI_Migration
         // Add FK to users table
         $this->db->query('ALTER TABLE email_lists ADD CONSTRAINT fk_email_lists_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT');
 
-        // Add triggers for automatic timestamp management
-        $this->db->query("
-            CREATE TRIGGER email_lists_created_at
-            BEFORE INSERT ON email_lists
-            FOR EACH ROW
-            SET NEW.created_at = IFNULL(NEW.created_at, NOW())
-        ");
-
-        $this->db->query("
-            CREATE TRIGGER email_lists_updated_at
-            BEFORE UPDATE ON email_lists
-            FOR EACH ROW
-            SET NEW.updated_at = NOW()
-        ");
+        // Set up automatic timestamp management for updated_at
+        $this->db->query('ALTER TABLE email_lists MODIFY updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "Last update timestamp"');
 
         // Table: email_list_roles
         // Dynamic member selection based on roles and sections
@@ -169,6 +157,7 @@ class Migration_Create_email_lists extends CI_Migration
             'granted_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
+                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When role was granted'
             ],
             'revoked_at' => [
@@ -205,14 +194,6 @@ class Migration_Create_email_lists extends CI_Migration
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_types_roles_id FOREIGN KEY (types_roles_id) REFERENCES types_roles(id) ON DELETE RESTRICT');
         $this->db->query('ALTER TABLE email_list_roles ADD CONSTRAINT fk_elr_section_id FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE RESTRICT');
 
-        // Add trigger for automatic timestamp
-        $this->db->query("
-            CREATE TRIGGER email_list_roles_granted_at
-            BEFORE INSERT ON email_list_roles
-            FOR EACH ROW
-            SET NEW.granted_at = IFNULL(NEW.granted_at, NOW())
-        ");
-
         // Table: email_list_members
         // Manually added internal members
         $this->dbforge->add_field([
@@ -236,6 +217,7 @@ class Migration_Create_email_lists extends CI_Migration
             'added_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
+                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When member was added'
             ]
         ]);
@@ -257,14 +239,6 @@ class Migration_Create_email_lists extends CI_Migration
         // Add foreign keys for email_list_members
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
         $this->db->query('ALTER TABLE email_list_members ADD CONSTRAINT fk_elm_membre_id FOREIGN KEY (membre_id) REFERENCES membres(mlogin) ON DELETE CASCADE');
-
-        // Add trigger for automatic timestamp
-        $this->db->query("
-            CREATE TRIGGER email_list_members_added_at
-            BEFORE INSERT ON email_list_members
-            FOR EACH ROW
-            SET NEW.added_at = IFNULL(NEW.added_at, NOW())
-        ");
 
         // Table: email_list_external
         // External email addresses
@@ -295,6 +269,7 @@ class Migration_Create_email_lists extends CI_Migration
             'added_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
+                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When email was added'
             ]
         ]);
@@ -313,32 +288,17 @@ class Migration_Create_email_lists extends CI_Migration
         // Add foreign key for email_list_external
         $this->db->query('ALTER TABLE email_list_external ADD CONSTRAINT fk_ele_email_list_id FOREIGN KEY (email_list_id) REFERENCES email_lists(id) ON DELETE CASCADE');
 
-        // Add trigger for automatic timestamp
-        $this->db->query("
-            CREATE TRIGGER email_list_external_added_at
-            BEFORE INSERT ON email_list_external
-            FOR EACH ROW
-            SET NEW.added_at = IFNULL(NEW.added_at, NOW())
-        ");
-
         log_message('info', 'Migration 049: Created email lists tables (email_lists, email_list_roles, email_list_members, email_list_external)');
     }
 
     public function down()
     {
-        // Drop triggers first
-        $this->db->query('DROP TRIGGER IF EXISTS email_list_external_added_at');
-        $this->db->query('DROP TRIGGER IF EXISTS email_list_members_added_at');
-        $this->db->query('DROP TRIGGER IF EXISTS email_list_roles_granted_at');
-        $this->db->query('DROP TRIGGER IF EXISTS email_lists_updated_at');
-        $this->db->query('DROP TRIGGER IF EXISTS email_lists_created_at');
-
         // Drop tables in reverse order (to respect FK dependencies)
         $this->dbforge->drop_table('email_list_external', TRUE);
         $this->dbforge->drop_table('email_list_members', TRUE);
         $this->dbforge->drop_table('email_list_roles', TRUE);
         $this->dbforge->drop_table('email_lists', TRUE);
 
-        log_message('info', 'Migration 049: Dropped email lists tables and triggers');
+        log_message('info', 'Migration 049: Dropped email lists tables');
     }
 }
