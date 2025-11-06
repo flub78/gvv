@@ -673,10 +673,10 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-address-book text-warning"></i>
-                        <div class="card-title">Emails</div>
-                        <div class="card-text text-muted">Adresses</div>
-                        <a href="<?= controller_url('mails/addresses') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                        <i class="fas fa-envelope text-warning"></i>
+                        <div class="card-title">Liste de diffusion</div>
+                        <div class="card-text text-muted">Emails</div>
+                        <a href="<?= controller_url('email_lists') ?>" class="btn btn-warning btn-sm">Gérer</a>
                     </div>
                 </div>
 

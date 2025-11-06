@@ -824,65 +824,37 @@ class Email_lists extends Gvv_Controller
 
     /**
      * Upload external email file (v1.3)
-     * AJAX handler for file upload in import tab
+     * Form handler for file upload in import tab
      *
      * @param int $id List ID
      */
     public function upload_file($id = NULL)
     {
         if (empty($id) || !$this->email_lists_model->get_list($id)) {
-            // Check if this is an AJAX request
-            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
-                header('Content-Type: application/json');
-                echo json_encode(array(
-                    'success' => FALSE,
-                    'errors' => array('Invalid list ID')
-                ));
-                return;
-            } else {
-                // Form submission - redirect with error
-                $this->session->set_flashdata('error', 'Invalid list ID');
-                redirect('email_lists/view/' . $id);
-                return;
-            }
+            $this->session->set_flashdata('error', 'Invalid list ID');
+            redirect('email_lists/view/' . $id);
+            return;
         }
 
         // Check file upload
         if (!isset($_FILES['uploaded_file']) || $_FILES['uploaded_file']['error'] !== UPLOAD_ERR_OK) {
-            // Check if this is an AJAX request
-            if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
-                header('Content-Type: application/json');
-                echo json_encode(array(
-                    'success' => FALSE,
-                    'errors' => array('No file uploaded or upload error')
-                ));
-                return;
-            } else {
-                // Form submission - redirect with error
-                $this->session->set_flashdata('error', 'No file uploaded or upload error');
-                redirect('email_lists/view/' . $id);
-                return;
-            }
+            $this->session->set_flashdata('error', 'No file uploaded or upload error');
+            redirect('email_lists/view/' . $id);
+            return;
         }
 
         // Use model to handle upload
         $result = $this->email_lists_model->upload_external_file($id, $_FILES['uploaded_file']);
 
-        // Check if this is an AJAX request
-        if ($this->input->server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest') {
-            header('Content-Type: application/json');
-            echo json_encode($result);
+        // Form submission - redirect with message
+        if ($result['success']) {
+            $this->session->set_flashdata('success', 
+                'File uploaded successfully. ' . $result['valid_count'] . ' addresses imported.');
         } else {
-            // Form submission - redirect with message
-            if ($result['success']) {
-                $this->session->set_flashdata('success', 
-                    'File uploaded successfully. ' . $result['valid_count'] . ' addresses imported.');
-            } else {
-                $this->session->set_flashdata('error', 
-                    'Upload error: ' . implode(', ', $result['errors']));
-            }
-            redirect('email_lists/view/' . $id);
+            $this->session->set_flashdata('error', 
+                'Upload error: ' . implode(', ', $result['errors']));
         }
+        redirect('email_lists/view/' . $id);
     }
 
     /**

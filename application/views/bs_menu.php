@@ -166,7 +166,7 @@ $section_count = $CI->sections_model->safe_count_all();
             <li><a class="dropdown-item" href="<?= controller_url("membre/page") ?>"><i class="fas fa-users text-primary"></i> <?= translation("gvv_menu_membres") ?></a></li>
             <?php if (has_role('ca')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("licences/per_year") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_menu_membres_licences") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("mails/addresses") ?>"><i class="fas fa-address-book text-warning"></i> <?= translation("gvv_menu_membres_email_addresses") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
@@ -241,7 +241,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
               <?php if (has_role('bureau')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("compta/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("gvv_menu_accounting_journal") ?></a></li>
-             
+
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
               <?php endif; ?>
 
@@ -344,7 +344,6 @@ $section_count = $CI->sections_model->safe_count_all();
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
 
-              <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("tests/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
@@ -374,7 +373,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
         </div>
 
-        <form class="d-flex ms-5 bg-dark border-0"> 
+        <form class="d-flex ms-5 bg-dark border-0">
           <div class="text-white bg-dark me-1 text-center">
             <?= $gvv_user ?>
             <div class="text-white me-1 text-center">
