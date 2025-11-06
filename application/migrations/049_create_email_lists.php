@@ -177,7 +177,6 @@ class Migration_Create_email_lists extends CI_Migration
             'granted_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
-                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When role was granted'
             ],
             'revoked_at' => [
@@ -192,11 +191,18 @@ class Migration_Create_email_lists extends CI_Migration
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('email_list_roles', TRUE, [
+        $result = $this->dbforge->create_table('email_list_roles', TRUE, [
             'ENGINE' => 'InnoDB',
             'DEFAULT CHARSET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_general_ci'
         ]);
+        
+        if ($result === FALSE) {
+            throw new Exception('Failed to create table email_list_roles');
+        }
+        
+        // Set default for granted_at
+        $this->db->query('ALTER TABLE email_list_roles MODIFY granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "When role was granted"');
 
         // Add indexes for email_list_roles
         if (!$this->index_exists('email_list_roles', 'idx_email_list_id')) {
@@ -237,16 +243,22 @@ class Migration_Create_email_lists extends CI_Migration
             'added_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
-                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When member was added'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('email_list_members', TRUE, [
+        $result = $this->dbforge->create_table('email_list_members', TRUE, [
             'ENGINE' => 'InnoDB',
             'DEFAULT CHARSET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_unicode_ci'
         ]);
+        
+        if ($result === FALSE) {
+            throw new Exception('Failed to create table email_list_members');
+        }
+        
+        // Set default for added_at
+        $this->db->query('ALTER TABLE email_list_members MODIFY added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "When member was added"');
 
         // Add indexes for email_list_members
         if (!$this->index_exists('email_list_members', 'idx_email_list_id')) {
@@ -289,16 +301,22 @@ class Migration_Create_email_lists extends CI_Migration
             'added_at' => [
                 'type' => 'DATETIME',
                 'null' => FALSE,
-                'default' => 'CURRENT_TIMESTAMP',
                 'comment' => 'When email was added'
             ]
         ]);
         $this->dbforge->add_key('id', TRUE);
-        $this->dbforge->create_table('email_list_external', TRUE, [
+        $result = $this->dbforge->create_table('email_list_external', TRUE, [
             'ENGINE' => 'InnoDB',
             'DEFAULT CHARSET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_unicode_ci'
         ]);
+        
+        if ($result === FALSE) {
+            throw new Exception('Failed to create table email_list_external');
+        }
+        
+        // Set default for added_at
+        $this->db->query('ALTER TABLE email_list_external MODIFY added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT "When email was added"');
 
         // Add index for email_list_external
         if (!$this->index_exists('email_list_external', 'idx_email_list_id')) {
