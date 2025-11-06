@@ -176,6 +176,13 @@ class Email_lists extends Gvv_Controller
         if (!$list) {
             show_404();
         }
+        
+        log_message('debug', 'EMAIL_LISTS: edit() called for id=' . $id);
+        
+        // If validation errors exist, show them
+        if (validation_errors()) {
+            log_message('debug', 'EMAIL_LISTS: edit() has validation errors');
+        }
 
         $data['title'] = $this->lang->line('email_lists_edit');
         $data['controller'] = $this->controller;
@@ -207,10 +214,15 @@ class Email_lists extends Gvv_Controller
      */
     public function update($id)
     {
+        log_message('debug', 'EMAIL_LISTS: update() called with id=' . $id);
+        
         $list = $this->email_lists_model->get_list($id);
         if (!$list) {
+            log_message('debug', 'EMAIL_LISTS: list not found');
             show_404();
         }
+        
+        log_message('debug', 'EMAIL_LISTS: list found, name=' . $list['name']);
 
         // Store the list ID for validation callback
         $this->_update_list_id = $id;
@@ -219,10 +231,15 @@ class Email_lists extends Gvv_Controller
         $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]|callback_check_name_unique');
         $this->form_validation->set_rules('description', $this->lang->line('email_lists_description'), 'max_length[1000]');
         $this->form_validation->set_rules('active_member', $this->lang->line('email_lists_active_member'), 'required|in_list[active,inactive,all]');
+        
+        log_message('debug', 'EMAIL_LISTS: validation rules set');
 
         if ($this->form_validation->run() === FALSE) {
+            log_message('debug', 'EMAIL_LISTS: validation failed, returning to edit form');
             return $this->edit($id);
         }
+        
+        log_message('debug', 'EMAIL_LISTS: validation passed');
 
         // Update the list
         $list_data = array(
@@ -316,16 +333,27 @@ class Email_lists extends Gvv_Controller
      */
     public function check_name_unique($name)
     {
+        log_message('debug', 'EMAIL_LISTS: check_name_unique called with name=' . $name);
+        
         // Check if updating (exclude current list ID)
         $exclude_id = isset($this->_update_list_id) ? $this->_update_list_id : NULL;
-
-        if ($this->email_lists_model->name_exists($name, $exclude_id)) {
-            $this->form_validation->set_message('check_name_unique', $this->lang->line('email_lists_name_duplicate'));
+        
+        log_message('debug', 'EMAIL_LISTS: exclude_id=' . ($exclude_id ? $exclude_id : 'NULL'));
+        
+        $exists = $this->email_lists_model->name_exists($name, $exclude_id);
+        
+        log_message('debug', 'EMAIL_LISTS: name_exists returned ' . ($exists ? 'TRUE' : 'FALSE'));
+        
+        if ($exists) {
+            $this->form_validation->set_message('check_name_unique', $this->lang->line('email_lists_name_exists'));
             return FALSE;
         }
-
         return TRUE;
     }
+
+    /**
+     * Delete - Remove a list and all its associations
+     */
 
     /**
      * Delete - Remove a list

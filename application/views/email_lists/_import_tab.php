@@ -56,10 +56,10 @@ if ($list_id && isset($list['id'])) {
                            id="file_upload"
                            name="uploaded_file"
                            accept=".txt,.csv"
-                           required
                            <?= !$list_id ? 'disabled' : '' ?>>
                     <button type="submit"
                             class="btn btn-primary"
+                            id="upload_button"
                             <?= !$list_id ? 'disabled' : '' ?>>
                         <i class="bi bi-cloud-upload"></i>
                         <?= $this->lang->line("email_lists_upload_button") ?>
@@ -134,3 +134,29 @@ if ($list_id && isset($list['id'])) {
         </div>
     </div>
 </div>
+
+<script>
+// Make file upload required only when clicking the upload button
+document.addEventListener('DOMContentLoaded', function() {
+    var uploadButton = document.getElementById('upload_button');
+    var fileInput = document.getElementById('file_upload');
+    
+    if (uploadButton && fileInput) {
+        // Make file required when clicking upload button
+        uploadButton.addEventListener('click', function(e) {
+            fileInput.setAttribute('required', 'required');
+        });
+        
+        // Remove required when submitting the main form (not the upload)
+        var mainForm = document.getElementById('email_list_form');
+        if (mainForm) {
+            mainForm.addEventListener('submit', function(e) {
+                // Only remove required if we're not uploading
+                if (!e.submitter || e.submitter.id !== 'upload_button') {
+                    fileInput.removeAttribute('required');
+                }
+            });
+        }
+    }
+});
+</script>

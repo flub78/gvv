@@ -153,12 +153,27 @@ if ($this->session->flashdata('success')) {
                 <!-- Submit buttons for metadata section -->
                 <div class="row">
                     <div class="col-sm-10 offset-sm-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" name="submit_btn" value="save">
                             <i class="bi bi-save"></i> <?= $this->lang->line("gvv_button_save") ?>
                         </button>
                         <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> <?= $this->lang->line("gvv_button_cancel") ?>
                         </a>
+                        <!-- DEBUG button -->
+                        <button type="button" class="btn btn-warning" onclick="
+                            var form = document.getElementById('email_list_form');
+                            var formData = new FormData(form);
+                            var data = {};
+                            for(var pair of formData.entries()) {
+                                data[pair[0]] = pair[1];
+                            }
+                            console.log('Form action:', form.action);
+                            console.log('Form method:', form.method);
+                            console.log('Form data:', data);
+                            alert('Form action: ' + form.action + '\nData keys: ' + Object.keys(data).join(', '));
+                        ">
+                            DEBUG
+                        </button>
                     </div>
                 </div>
             </div>
@@ -558,6 +573,20 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', function() {
             sessionStorage.setItem('email_lists_active_tab', this.id);
         });
+    });
+    
+    // DEBUG: Log form submission
+    document.getElementById('email_list_form').addEventListener('submit', function(e) {
+        console.log('FORM SUBMIT EVENT TRIGGERED');
+        console.log('Form action:', this.action);
+        console.log('Form method:', this.method);
+        var formData = new FormData(this);
+        var data = {};
+        for(var pair of formData.entries()) {
+            data[pair[0]] = pair[1];
+        }
+        console.log('Form data:', data);
+        // Don't prevent default - let it submit
     });
 });
 </script>
