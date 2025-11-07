@@ -24,7 +24,7 @@
     
 
 * [] gestion des droits multi sections (wip)
-* [] Gestionnaire de liste d'adresse email.
+* [] Gestionnaire de liste d'adresse email. (wip)
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
@@ -59,6 +59,8 @@
 * [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
+* [] Cleanup warning in development mode
+* [] Check translations completeness
 
 ## Idées et suggestions
 

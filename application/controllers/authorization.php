@@ -1091,4 +1091,5 @@ class Authorization extends CI_Controller {
             ->get()
             ->result_array();
     }
+
 }

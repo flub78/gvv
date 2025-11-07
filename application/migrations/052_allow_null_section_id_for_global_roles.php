@@ -11,7 +11,28 @@ class Migration_Allow_null_section_id_for_global_roles extends CI_Migration {
 
     public function up()
     {
-        // First, drop the foreign key constraint
+        // Check if table exists before trying to alter it
+        if (!$this->db->table_exists('user_roles_per_section')) {
+            log_message('info', 'Migration 052: user_roles_per_section table does not exist, skipping');
+            return;
+        }
+
+        // Check if column already allows NULL
+        $fields = $this->db->field_data('user_roles_per_section');
+        $section_id_nullable = false;
+        foreach ($fields as $field) {
+            if ($field->name === 'section_id' && $field->null == 1) {
+                $section_id_nullable = true;
+                break;
+            }
+        }
+
+        if ($section_id_nullable) {
+            log_message('info', 'Migration 052: section_id column already allows NULL, skipping');
+            return;
+        }
+
+        // Drop the foreign key constraint
         $this->db->query('ALTER TABLE user_roles_per_section DROP FOREIGN KEY section_id');
 
         // Modify the column to allow NULL
@@ -22,7 +43,7 @@ class Migration_Allow_null_section_id_for_global_roles extends CI_Migration {
             FOREIGN KEY (section_id) REFERENCES sections(id)
             ON DELETE CASCADE ON UPDATE CASCADE');
 
-        echo "Migration 052: section_id column now allows NULL for global roles\n";
+        log_message('info', 'Migration 052: section_id column now allows NULL for global roles');
     }
 
     public function down()
@@ -41,6 +62,6 @@ class Migration_Allow_null_section_id_for_global_roles extends CI_Migration {
             FOREIGN KEY (section_id) REFERENCES sections(id)
             ON DELETE CASCADE ON UPDATE CASCADE');
 
-        echo "Migration 052 rolled back: section_id column is NOT NULL again\n";
+        log_message('info', 'Migration 052: Rolled back - section_id column is NOT NULL again');
     }
 }

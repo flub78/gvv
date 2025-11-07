@@ -39,6 +39,14 @@ $this->load->view('bs_banner');
 
 
 
+    <?php if (has_role('admin')): ?>
+        <div class="mb-3">
+            <a href="<?= site_url('authorization/create_role') ?>" class="btn btn-success">
+                <i class="fas fa-plus"></i> <?= $this->lang->line('authorization_create_role') ?>
+            </a>
+        </div>
+    <?php endif; ?>
+
     <div class="card mt-4">
         <div class="card-header">
             <h5 class="mb-0"><?= $this->lang->line('authorization_available_roles') ?></h5>
@@ -48,16 +56,36 @@ $this->load->view('bs_banner');
             <table class="table table-striped table-bordered datatable">
                 <thead>
                     <tr>
+                        <?php if (has_role('admin')): ?>
+                            <th style="width: 100px;"><?= $this->lang->line('authorization_actions') ?></th>
+                        <?php endif; ?>
                         <th><?= $this->lang->line('authorization_role_name') ?></th>
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
                         <th><?= $this->lang->line('authorization_role_system') ?></th>
-                        <th><?= $this->lang->line('authorization_actions') ?></th>
+                        <th><?= $this->lang->line('authorization_data_rules') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($roles as $role): ?>
                         <tr>
+                            <?php if (has_role('admin')): ?>
+                                <td>
+                                    <a href="<?= site_url('authorization/edit_role/' . $role['id']) ?>"
+                                       class="btn btn-sm btn-primary"
+                                       title="<?= $this->lang->line('authorization_edit') ?>">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <?php if (!$role['is_system_role']): ?>
+                                        <button class="btn btn-sm btn-danger btn-delete-role"
+                                                data-role-id="<?= $role['id'] ?>"
+                                                data-role-name="<?= htmlspecialchars($role['nom']) ?>"
+                                                title="<?= $this->lang->line('authorization_delete') ?>">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endif; ?>
                             <td>
                                 <strong><?= htmlspecialchars($role['nom']) ?></strong>
                                 <?php if (!empty($role['translation_key'])): ?>
@@ -103,3 +131,17 @@ $this->load->view('bs_banner');
         </a>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    $('.btn-delete-role').on('click', function(e) {
+        e.preventDefault();
+        const roleId = $(this).data('role-id');
+        const roleName = $(this).data('role-name');
+
+        if (confirm('<?= $this->lang->line('authorization_confirm_delete_role') ?> "' + roleName + '"?')) {
+            window.location.href = '<?= site_url('authorization/delete_role') ?>/' + roleId;
+        }
+    });
+});
+</script>

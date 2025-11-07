@@ -133,7 +133,7 @@ $this->load->view('bs_banner');
                     <table class="table table-bordered table-sm">
                         <thead>
                             <tr>
-                                <th>Rôle</th>
+                                <th><?= $this->lang->line('authorization_role') ?></th>
                                 <th>Global</th>
                                 <th>Toutes sections</th>
                                 <?php foreach ($sections as $section): ?>
@@ -155,7 +155,14 @@ $this->load->view('bs_banner');
 
                             <?php foreach ($ordered_roles as $role): ?>
                             <tr data-role-id="<?= $role['id'] ?>" data-role-scope="<?= $role['scope'] ?>">
-                                <td><?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?><?= htmlspecialchars($role['nom']) ?><?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?></td>
+                                <td><?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?><?php 
+                                    // Use translation if available, fallback to nom
+                                    if (!empty($role['translation_key']) && $this->lang->line($role['translation_key'])) {
+                                        echo htmlspecialchars($this->lang->line($role['translation_key']));
+                                    } else {
+                                        echo htmlspecialchars($role['nom']);
+                                    }
+                                ?><?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?></td>
                                 <td class="text-center">
                                     <?php if ($role['scope'] === 'global'): ?>
                                         <!-- Global checkbox for global roles only -->

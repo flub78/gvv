@@ -50,7 +50,7 @@ $ordered_roles = array_merge($global_roles, $section_roles);
                 <table class="table table-bordered table-sm">
                     <thead>
                         <tr>
-                            <th>Rôle</th>
+                            <th><?= $this->lang->line('authorization_role') ?></th>
                             <th>Global</th>
                             <th>Toutes sections</th>
                             <?php if (!empty($available_sections)): ?>
@@ -67,7 +67,14 @@ $ordered_roles = array_merge($global_roles, $section_roles);
                         <tr>
                             <td>
                                 <?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?>
-                                <?= htmlspecialchars($role['nom']) ?>
+                                <?php 
+                                    // Use translation if available, fallback to nom
+                                    if (!empty($role['translation_key']) && $this->lang->line($role['translation_key'])) {
+                                        echo htmlspecialchars($this->lang->line($role['translation_key']));
+                                    } else {
+                                        echo htmlspecialchars($role['nom']);
+                                    }
+                                ?>
                                 <?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?>
                             </td>
                             <td class="text-center">

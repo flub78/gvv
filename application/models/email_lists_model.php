@@ -300,10 +300,10 @@ class Email_lists_model extends CI_Model {
     /**
      * Get all available roles
      *
-     * @return array Array of roles with id, nom, description, scope
+     * @return array Array of roles with id, nom, description, scope, translation_key
      */
     public function get_available_roles() {
-        $this->db->select('id, nom, description, scope, is_system_role');
+        $this->db->select('id, nom, description, scope, is_system_role, translation_key');
         $this->db->from('types_roles');
         $this->db->order_by('display_order', 'ASC');
         $query = $this->db->get();
