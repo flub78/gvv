@@ -511,7 +511,7 @@ class Email_lists_model extends CI_Model {
      * @return array Array of external emails
      */
     public function get_external_emails($list_id) {
-        $this->db->select('id, external_email as email, external_name as name, source_file');
+        $this->db->select('id, external_email as email, external_name as name');
         $this->db->from('email_list_external');
         $this->db->where('email_list_id', $list_id);
         $query = $this->db->get();

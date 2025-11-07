@@ -730,9 +730,10 @@ class Email_lists extends Gvv_Controller
             // If we have a list_id, fetch external emails from database (overrides posted data)
             if ($list_id) {
                 $db_external = $this->email_lists_model->get_external_emails($list_id);
+                // Always reset arrays when list_id is provided (fetch from DB, not POST)
+                $external_emails = array();
+                $external_names = array();
                 if (!empty($db_external)) {
-                    $external_emails = array();
-                    $external_names = array();
                     foreach ($db_external as $ext) {
                         $external_emails[] = $ext['email'];
                         $external_names[] = $ext['name'];
