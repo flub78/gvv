@@ -167,6 +167,7 @@ $section_count = $CI->sections_model->safe_count_all();
             <?php if (has_role('ca')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("licences/per_year") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_menu_membres_licences") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("email_lists/addresses") ?>"><i class="fas fa-paper-plane text-info"></i> <?= translation("Envoi email") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>

@@ -236,25 +236,68 @@ class Authorization extends CI_Controller {
             $result = TRUE;
             $message = $action === 'grant' ? 'Roles granted successfully for all sections' : 'Roles revoked successfully for all sections';
         } else {
-            if ($action === 'grant') {
-                log_message('info', 'edit_user_roles: Attempting grant - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
-                $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
+            // Special handling for global roles
+            if ($role['scope'] === 'global') {
+                if ($action === 'grant') {
+                    // For global roles, grant to section_id = 0 (convention for global)
+                    // But check if user already has it in ANY section
+                    $existing_roles = $this->authorization_model->get_user_roles($user_id, NULL, TRUE);
+                    $has_role = false;
+                    foreach ($existing_roles as $existing_role) {
+                        if ($existing_role['types_roles_id'] == $types_roles_id) {
+                            $has_role = true;
+                            break;
+                        }
+                    }
 
-                if ($result === 'EXISTS') {
-                    $message = 'Role already assigned';
-                    $result = TRUE; // Not an error, just already exists
-                } else if ($result === TRUE) {
-                    $message = 'Role granted successfully';
+                    if ($has_role) {
+                        $result = TRUE;
+                        $message = 'Role already assigned';
+                    } else {
+                        log_message('info', 'edit_user_roles: Granting global role - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id);
+                        $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, 0, $current_user_id, NULL);
+                        $message = $result ? 'Role granted successfully' : 'Error granting role';
+                    }
+                } else if ($action === 'revoke') {
+                    // For global roles, revoke from ALL sections where user has it
+                    log_message('info', 'edit_user_roles: Revoking global role from all sections - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id);
+                    $existing_roles = $this->authorization_model->get_user_roles($user_id, NULL, TRUE);
+                    $revoked_count = 0;
+                    foreach ($existing_roles as $existing_role) {
+                        if ($existing_role['types_roles_id'] == $types_roles_id) {
+                            if ($this->gvv_authorization->revoke_role($user_id, $types_roles_id, $existing_role['section_id'], $current_user_id)) {
+                                $revoked_count++;
+                            }
+                        }
+                    }
+                    $result = $revoked_count > 0;
+                    $message = $result ? "Role revoked successfully ($revoked_count assignment(s))" : 'Role not found or already revoked';
                 } else {
-                    $message = 'Error granting role';
+                    $result = FALSE;
+                    $message = 'Invalid action';
                 }
-            } else if ($action === 'revoke') {
-                log_message('info', 'edit_user_roles: Attempting revoke - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
-                $result = $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section_id, $current_user_id);
-                $message = $result ? 'Role revoked successfully' : 'Role not found or already revoked';
             } else {
-                $result = FALSE;
-                $message = 'Invalid action';
+                // Normal section-scoped role handling
+                if ($action === 'grant') {
+                    log_message('info', 'edit_user_roles: Attempting grant - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
+                    $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $section_id, $current_user_id, NULL);
+
+                    if ($result === 'EXISTS') {
+                        $message = 'Role already assigned';
+                        $result = TRUE; // Not an error, just already exists
+                    } else if ($result === TRUE) {
+                        $message = 'Role granted successfully';
+                    } else {
+                        $message = 'Error granting role';
+                    }
+                } else if ($action === 'revoke') {
+                    log_message('info', 'edit_user_roles: Attempting revoke - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . $section_id . ', current_user_id=' . $current_user_id);
+                    $result = $this->gvv_authorization->revoke_role($user_id, $types_roles_id, $section_id, $current_user_id);
+                    $message = $result ? 'Role revoked successfully' : 'Role not found or already revoked';
+                } else {
+                    $result = FALSE;
+                    $message = 'Invalid action';
+                }
             }
         }
 

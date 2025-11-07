@@ -352,7 +352,8 @@ $(document).ready(function() {
             const roleId = $globalCheckbox.data('role-id').toString();
             console.log("Processing global roleId:", roleId);
 
-            if (userRolesMap[roleId] && userRolesMap[roleId].has('0')) {
+            // Global roles can be assigned with any section_id, so check if the role exists at all
+            if (userRolesMap[roleId] && userRolesMap[roleId].size > 0) {
                 $globalCheckbox.prop('checked', true);
                 console.log("Checked global role", roleId);
             }
