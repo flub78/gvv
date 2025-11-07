@@ -342,7 +342,9 @@ $(document).ready(function() {
             if (!userRolesMap[role.types_roles_id]) {
                 userRolesMap[role.types_roles_id] = new Set();
             }
-            userRolesMap[role.types_roles_id].add(role.section_id.toString());
+            // Handle NULL section_id for global roles
+            const sectionId = role.section_id !== null ? role.section_id.toString() : 'null';
+            userRolesMap[role.types_roles_id].add(sectionId);
         });
         console.log("userRolesMap created:", userRolesMap);
 

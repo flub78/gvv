@@ -238,8 +238,12 @@ class Authorization extends CI_Controller {
         } else {
             // Special handling for global roles
             if ($role['scope'] === 'global') {
+                // For global roles, section_id should be NULL (not 0)
+                // Frontend sends 0, so convert it to NULL
+                $global_section_id = NULL;
+
                 if ($action === 'grant') {
-                    // For global roles, grant to section_id = 0 (convention for global)
+                    // For global roles, grant with section_id = NULL
                     // But check if user already has it in ANY section
                     $existing_roles = $this->authorization_model->get_user_roles($user_id, NULL, TRUE);
                     $has_role = false;
@@ -255,8 +259,16 @@ class Authorization extends CI_Controller {
                         $message = 'Role already assigned';
                     } else {
                         log_message('info', 'edit_user_roles: Granting global role - user_id=' . $user_id . ', types_roles_id=' . $types_roles_id);
-                        $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, 0, $current_user_id, NULL);
-                        $message = $result ? 'Role granted successfully' : 'Error granting role';
+                        $result = $this->gvv_authorization->grant_role($user_id, $types_roles_id, $global_section_id, $current_user_id, NULL);
+
+                        if ($result === 'EXISTS') {
+                            $message = 'Role already assigned';
+                            $result = TRUE;
+                        } else if ($result === TRUE) {
+                            $message = 'Role granted successfully';
+                        } else {
+                            $message = 'Error granting role';
+                        }
                     }
                 } else if ($action === 'revoke') {
                     // For global roles, revoke from ALL sections where user has it

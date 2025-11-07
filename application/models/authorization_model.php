@@ -31,9 +31,11 @@ class Authorization_model extends CI_Model {
         if ($section_id !== NULL) {
             // Get roles for specific section
             if ($include_global) {
-                // Include both section-specific roles and global roles (section_id = 0)
-                // Use where_in for CodeIgniter 2.x compatibility
-                $this->db->where_in('urps.section_id', array($section_id, 0));
+                // Include both section-specific roles and global roles (section_id IS NULL)
+                $this->db->group_start();
+                $this->db->where('urps.section_id', $section_id);
+                $this->db->or_where('urps.section_id IS NULL');
+                $this->db->group_end();
             } else {
                 $this->db->where('urps.section_id', $section_id);
             }

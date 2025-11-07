@@ -230,8 +230,9 @@ class Gvv_Authorization {
         $result = $this->CI->db->insert('user_roles_per_section', $data);
 
         if (!$result) {
-            $error = $this->CI->db->error();
-            log_message('error', 'grant_role: Database insert FAILED. Error code=' . $error['code'] . ', message=' . $error['message']);
+            $error_num = $this->CI->db->_error_number();
+            $error_msg = $this->CI->db->_error_message();
+            log_message('error', 'grant_role: Database insert FAILED. Error code=' . $error_num . ', message=' . $error_msg);
             return FALSE;
         }
 
