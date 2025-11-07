@@ -170,7 +170,13 @@ $lang['email_lists_select_list_placeholder'] = 'Select a list';
 // Import tab file upload functionality
 $lang['email_lists_delete_via_tabs_hint'] = 'To delete addresses, use the icons in the source tabs';
 $lang['email_lists_email'] = 'Email';
-$lang['email_lists_bulk_import_hint'] = 'To import multiple addresses at once, use the "Import Files" tab';
+// Manual tab - external addresses (v1.4)
+$lang['email_lists_external_emails_label'] = 'Enter one or more email addresses';
+$lang['email_lists_external_emails_help'] = 'Enter one address per line. You can add a name after the address.';
+$lang['email_lists_no_valid_emails'] = 'No valid email addresses found';
+$lang['email_lists_all_already_added'] = 'All these addresses are already in the list';
+$lang['email_lists_emails_failed'] = 'addresses failed';
+$lang['email_lists_all_failed'] = 'All addresses failed';
 $lang['email_lists_import_files'] = 'Import Files';
 $lang['email_lists_import_files_help'] = 'Import email addresses from text or CSV files';
 $lang['email_lists_choose_file'] = 'Choose File';

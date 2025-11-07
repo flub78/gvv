@@ -98,33 +98,27 @@ if (ENVIRONMENT === 'development') {
             <?= $this->lang->line("email_lists_external_help") ?>
         </p>
 
-        <!-- Add external email form (v1.3: one at a time only) -->
-        <div class="row mb-3">
-            <div class="col-md-5">
-                <input type="email"
-                       class="form-control"
-                       id="external_email"
-                       placeholder="<?= $this->lang->line("email_lists_external_email") ?>">
-            </div>
-            <div class="col-md-5">
-                <input type="text"
-                       class="form-control"
-                       id="external_name"
-                       placeholder="<?= $this->lang->line("email_lists_external_name") ?>">
-            </div>
-            <div class="col-md-2">
-                <button type="button"
-                        class="btn btn-primary w-100"
-                        onclick="addExternalEmail()">
-                    <i class="bi bi-plus-circle"></i>
-                    <?= $this->lang->line("email_lists_add_external") ?>
-                </button>
+        <!-- Add external email form (v1.4: multiple emails via textarea) -->
+        <div class="mb-3">
+            <label for="external_emails_textarea" class="form-label">
+                <?= $this->lang->line("email_lists_external_emails_label") ?>
+            </label>
+            <textarea class="form-control"
+                      id="external_emails_textarea"
+                      rows="5"
+                      placeholder="exemple@domaine.com&#10;jean@exemple.fr, paul@exemple.fr Jean et Paul Dupont&#10;contact@societe.com; info@societe.com Société XYZ"></textarea>
+            <div class="form-text">
+                <?= $this->lang->line("email_lists_external_emails_help") ?>
             </div>
         </div>
-        <p class="text-muted small">
-            <i class="bi bi-info-circle"></i>
-            <?= $this->lang->line("email_lists_bulk_import_hint") ?>
-        </p>
+        <div class="mb-3">
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="addExternalEmails()">
+                <i class="bi bi-plus-circle"></i>
+                <?= $this->lang->line("email_lists_add_external") ?>
+            </button>
+        </div>
 
         <!-- External emails list -->
         <div id="external_emails_list">
@@ -272,31 +266,16 @@ window.removeManualMember = function(button) {
     });
 }
 
-// Add external email (v1.3: one at a time only)
-window.addExternalEmail = function() {
-    const emailInput = document.getElementById('external_email');
-    const nameInput = document.getElementById('external_name');
-    const email = emailInput.value.trim();
-    const name = nameInput.value.trim();
+// Add external emails (v1.4: multiple emails per line, CSV support)
+window.addExternalEmails = function() {
+    const textarea = document.getElementById('external_emails_textarea');
+    const content = textarea.value.trim();
 
-    if (!email) {
-        return; // No popup needed, just don't add anything
+    if (!content) {
+        return; // Nothing to add
     }
 
-    // Basic email validation
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        alert('<?= $this->lang->line("email_lists_invalid_email") ?>');
-        return;
-    }
-
-    // Check if already added
-    const listDiv = document.getElementById('external_emails_list');
-    const existingEmails = Array.from(listDiv.querySelectorAll('code')).map(code => code.textContent.toLowerCase());
-    if (existingEmails.includes(email.toLowerCase())) {
-        return; // Already in list, silently ignore
-    }
-
-    // Save to database via AJAX
+    // Get list_id
     const card = document.querySelector('.card[data-list-id]');
     const listId = card.dataset.listId;
 
@@ -305,43 +284,107 @@ window.addExternalEmail = function() {
         return;
     }
 
-    const url = '<?= controller_url($controller) ?>/add_external_ajax';
-    console.log('AJAX URL:', url);
-    console.log('list_id:', listId, 'email:', email, 'name:', name);
+    // Parse lines
+    const lines = content.split('\n');
+    const emailsToAdd = [];
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-            'list_id': listId,
-            'email': email,
-            'name': name
-        })
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.text(); // Get as text first to see what we're getting
-    })
-    .then(text => {
-        console.log('Response text:', text);
-        const data = JSON.parse(text); // Then parse it
-        if (data.success) {
-            // Add to DOM display
-            addExternalEmailToList(email, name);
+    for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
 
-            // Reset inputs
-            emailInput.value = '';
-            nameInput.value = '';
-            emailInput.focus();
-        } else {
-            alert('Error: ' + (data.message || 'Failed to add email'));
+        // Extract ALL emails from the line
+        const emailRegex = /([^\s@,;]+@[^\s@,;]+\.[^\s@,;]+)/g;
+        const emails = [];
+        let match;
+
+        while ((match = emailRegex.exec(line)) !== null) {
+            emails.push(match[1]);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Network error occurred');
+
+        if (emails.length > 0) {
+            // Get name: everything that's NOT an email address
+            let name = line;
+            emails.forEach(email => {
+                name = name.replace(email, '');
+            });
+            // Clean up separators and whitespace
+            name = name.replace(/[,;]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+            // Add all emails from this line with the same name
+            emails.forEach(email => {
+                emailsToAdd.push({ email: email, name: name });
+            });
+        }
+    }
+
+    if (emailsToAdd.length === 0) {
+        alert('<?= $this->lang->line("email_lists_no_valid_emails") ?>');
+        return;
+    }
+
+    // Check for duplicates
+    const listDiv = document.getElementById('external_emails_list');
+    const existingEmails = Array.from(listDiv.querySelectorAll('code')).map(code => code.textContent.toLowerCase());
+
+    const newEmails = emailsToAdd.filter(item => !existingEmails.includes(item.email.toLowerCase()));
+
+    if (newEmails.length === 0) {
+        alert('<?= $this->lang->line("email_lists_all_already_added") ?>');
+        return;
+    }
+
+    // Save all emails to database via AJAX
+    const url = '<?= controller_url($controller) ?>/add_external_ajax';
+    const promises = [];
+
+    for (let item of newEmails) {
+        const promise = fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'list_id': listId,
+                'email': item.email,
+                'name': item.name
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add to DOM display
+                addExternalEmailToList(item.email, item.name);
+                return { success: true, email: item.email };
+            } else {
+                return { success: false, email: item.email, error: data.message };
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            return { success: false, email: item.email, error: 'Network error' };
+        });
+
+        promises.push(promise);
+    }
+
+    // Wait for all to complete
+    Promise.all(promises).then(results => {
+        const successCount = results.filter(r => r.success).length;
+        const failCount = results.filter(r => !r.success).length;
+
+        if (successCount > 0) {
+            // Clear textarea
+            textarea.value = '';
+
+            // Show success message
+            let message = successCount + ' <?= $this->lang->line("email_lists_emails_added") ?>';
+            if (failCount > 0) {
+                message += ', ' + failCount + ' <?= $this->lang->line("email_lists_emails_failed") ?>';
+            }
+            alert(message);
+        } else if (failCount > 0) {
+            alert('<?= $this->lang->line("email_lists_all_failed") ?>');
+        }
     });
 }
 

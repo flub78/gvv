@@ -162,8 +162,13 @@ $lang['email_lists_delete_via_tabs_hint'] = 'Pour supprimer des adresses, utilis
 $lang['email_lists_email'] = 'Email';
 $lang['email_lists_name'] = 'Nom';
 
-// Manual tab - external addresses (v1.3)
-$lang['email_lists_bulk_import_hint'] = 'Pour importer plusieurs adresses à la fois, utilisez l\'onglet "Import de fichiers"';
+// Manual tab - external addresses (v1.4)
+$lang['email_lists_external_emails_label'] = 'Saisissez une ou plusieurs adresses email';
+$lang['email_lists_external_emails_help'] = 'Saisissez une adresse par ligne. Vous pouvez ajouter un nom après l\'adresse.';
+$lang['email_lists_no_valid_emails'] = 'Aucune adresse email valide trouvée';
+$lang['email_lists_all_already_added'] = 'Toutes ces adresses sont déjà dans la liste';
+$lang['email_lists_emails_failed'] = 'adresses en échec';
+$lang['email_lists_all_failed'] = 'Toutes les adresses ont échoué';
 
 // Import tab (v1.3 - file upload)
 $lang['email_lists_import_files'] = 'Import de fichiers';

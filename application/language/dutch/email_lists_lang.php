@@ -170,7 +170,13 @@ $lang['email_lists_select_list_placeholder'] = 'Selecteer een lijst';
 // Import tab file upload functionality  
 $lang['email_lists_delete_via_tabs_hint'] = 'Om adressen te verwijderen, gebruik de pictogrammen in de brontabbladen';
 $lang['email_lists_email'] = 'E-mail';
-$lang['email_lists_bulk_import_hint'] = 'Om meerdere adressen tegelijk te importeren, gebruik het "Bestanden importeren" tabblad';
+// Manual tab - external addresses (v1.4)
+$lang['email_lists_external_emails_label'] = 'Voer één of meerdere e-mailadressen in';
+$lang['email_lists_external_emails_help'] = 'Voer één adres per regel in. U kunt een naam toevoegen na het adres.';
+$lang['email_lists_no_valid_emails'] = 'Geen geldige e-mailadressen gevonden';
+$lang['email_lists_all_already_added'] = 'Al deze adressen staan al in de lijst';
+$lang['email_lists_emails_failed'] = 'adressen mislukt';
+$lang['email_lists_all_failed'] = 'Alle adressen zijn mislukt';
 $lang['email_lists_import_files'] = 'Bestanden importeren';
 $lang['email_lists_import_files_help'] = 'Importeer e-mailadressen uit tekst- of CSV-bestanden';
 $lang['email_lists_choose_file'] = 'Bestand kiezen';
