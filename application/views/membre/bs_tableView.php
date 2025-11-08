@@ -113,7 +113,7 @@ if ($this->session->flashdata('error')) {
                                     foreach ($sections as $section) {
                                         $section_id = $section['id'];
                                         $is_checked = in_array($section_id, $selected_sections) ? 'checked' : '';
-                                        echo '<div class="form-check form-check-inline">';
+                                        echo '<div class="form-check form-check-inline" style="border: 1px solid #adb5bd; border-radius: 4px; padding: 6px 10px 6px 30px; margin-right: 8px;">';
                                         echo '<input class="form-check-input" type="checkbox" name="filter_sections[]" id="section_' . $section_id . '" value="' . $section_id . '" ' . $is_checked . '>';
                                         echo '<label class="form-check-label" for="section_' . $section_id . '">';
                                         echo '<span class="badge rounded-pill" style="background-color: ' . $section['couleur'] . '; color: black; border: 1px solid black;">';

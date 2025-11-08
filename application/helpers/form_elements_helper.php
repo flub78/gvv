@@ -123,16 +123,13 @@ if (! function_exists('enumerate_radio_fields')) {
             $attrs['id'] = $val;
             $attrs['value'] = $key;
             $attrs['checked'] = ($key == $value);
-            /*
-            array (
-                    'name' => $name,
-                    'id' => $val,
-                    'value' => $key,
-                    'checked' => ($key == $value)
-            )
-            */
-            $res .= nbs() . $val . nbs() . form_radio($attrs);
-            $res .= nbs();
+            $attrs['class'] = 'form-check-input';
+
+            // Wrap in bordered container
+            $res .= '<span class="form-check form-check-inline" style="border: 1px solid #adb5bd; border-radius: 4px; padding: 6px 10px 6px 30px; margin-right: 8px;">';
+            $res .= form_radio($attrs);
+            $res .= '<label class="form-check-label" for="' . htmlspecialchars($val) . '">' . $val . '</label>';
+            $res .= '</span>';
         }
         return $res;
     }
