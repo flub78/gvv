@@ -159,21 +159,6 @@ if ($this->session->flashdata('success')) {
                         <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> <?= $this->lang->line("gvv_button_cancel") ?>
                         </a>
-                        <!-- DEBUG button -->
-                        <button type="button" class="btn btn-warning" onclick="
-                            var form = document.getElementById('email_list_form');
-                            var formData = new FormData(form);
-                            var data = {};
-                            for(var pair of formData.entries()) {
-                                data[pair[0]] = pair[1];
-                            }
-                            console.log('Form action:', form.action);
-                            console.log('Form method:', form.method);
-                            console.log('Form data:', data);
-                            alert('Form action: ' + form.action + '\nData keys: ' + Object.keys(data).join(', '));
-                        ">
-                            DEBUG
-                        </button>
                     </div>
                 </div>
             </div>
