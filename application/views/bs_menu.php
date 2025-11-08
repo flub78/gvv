@@ -102,6 +102,8 @@ $section_count = $CI->sections_model->safe_count_all();
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("email_lists/addresses") ?>"><i class="fas fa-paper-plane text-info"></i> <?= translation("Envoi email") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>
@@ -166,8 +168,6 @@ $section_count = $CI->sections_model->safe_count_all();
             <li><a class="dropdown-item" href="<?= controller_url("membre/page") ?>"><i class="fas fa-users text-primary"></i> <?= translation("gvv_menu_membres") ?></a></li>
             <?php if (has_role('ca')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("licences/per_year") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_menu_membres_licences") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("email_lists/addresses") ?>"><i class="fas fa-paper-plane text-info"></i> <?= translation("Envoi email") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>

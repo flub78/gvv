@@ -25,6 +25,11 @@
 
 * [] gestion des droits multi sections (wip)
 * [] Gestionnaire de liste d'adresse email. (wip)
+  * [] import de fichiers
+  * [] quelques colonnes inutiles à supprimer
+  * [] tester export CSV/PDF
+  * [x] La gestion des listes devrait passer de membre à gestion
+  * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 

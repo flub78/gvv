@@ -452,7 +452,7 @@ function refreshListPreview() {
                 html += '</tr></thead>';
                 html += '<tbody>';
 
-                data.emails.slice(0, 20).forEach(function(item) {
+                data.emails.forEach(function(item) {
                     const email = typeof item === 'string' ? item : item.email;
                     const name = typeof item === 'object' && item.name ? item.name : '';
 
@@ -464,10 +464,6 @@ function refreshListPreview() {
 
                 html += '</tbody>';
                 html += '</table>';
-
-                if (data.emails.length > 20) {
-                    html += '<p class="text-muted fst-italic small mt-2">... <?= $this->lang->line("gvv_str_and") ?> ' + (data.emails.length - 20) + ' <?= $this->lang->line("gvv_str_others") ?></p>';
-                }
 
                 previewDiv.innerHTML = html;
             } else {
