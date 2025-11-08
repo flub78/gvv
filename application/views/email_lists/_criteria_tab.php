@@ -144,6 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Find all section checkboxes for this role
             document.querySelectorAll('.section-checkbox[data-role-id="' + roleId + '"]').forEach(function(sectionBox) {
                 sectionBox.checked = isChecked;
+                
+                // Trigger change event to update email preview
+                // This ensures handleRoleChange() is called in form.php
+                sectionBox.dispatchEvent(new Event('change', { bubbles: true }));
             });
         });
     });
