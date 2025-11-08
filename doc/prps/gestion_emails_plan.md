@@ -97,6 +97,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 ## Table des matières
 
 - [Implementation Plan - Gestion des Adresses Email](#implementation-plan---gestion-des-adresses-email)
+  - [Changements v1.4 (2025-11-05)](#changements-v14-2025-11-05)
   - [Changements v1.3 (2025-11-03)](#changements-v13-2025-11-03)
   - [Table des matières](#table-des-matières)
   - [Phase 1: Fondations - 🟢 24/24 (Semaine 1) - TERMINÉ](#phase-1-fondations----2424-semaine-1---terminé)
@@ -109,17 +110,17 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
     - [2.2 Méthodes model pour chargement données ✅ (déjà implémenté Phase 1)](#22-méthodes-model-pour-chargement-données--déjà-implémenté-phase-1)
     - [2.3 Gestion table email\_list\_roles ✅ (déjà implémenté Phase 1)](#23-gestion-table-email_list_roles--déjà-implémenté-phase-1)
     - [2.4 Tests et optimisation ✅](#24-tests-et-optimisation-)
-  - [Phase 3: Sélection manuelle et import - 🟢 17/17 (Semaine 3) - TERMINÉ](#phase-3-sélection-manuelle-et-import----1717-semaine-3---terminé)
+  - [Phase 3: Sélection manuelle et import - 🟢 29/29 (Semaine 3) - TERMINÉ](#phase-3-sélection-manuelle-et-import----2929-semaine-3---terminé)
     - [3.1 Sélection manuelle de membres internes ✅](#31-sélection-manuelle-de-membres-internes-)
     - [3.2 Gestion emails externes ✅](#32-gestion-emails-externes-)
     - [3.3 Import fichier texte ✅](#33-import-fichier-texte-)
     - [3.4 Import fichier CSV ✅](#34-import-fichier-csv-)
     - [3.5 Gestion doublons ✅](#35-gestion-doublons-)
     - [3.6 Tests ✅](#36-tests-)
-    - [3.7 Gestion fichiers uploadés (v1.3) - ⚪ 0/12](#37-gestion-fichiers-uploadés-v13----012)
-      - [3.7.1 Migration base de données](#371-migration-base-de-données)
-      - [3.7.2 Méthodes model pour upload](#372-méthodes-model-pour-upload)
-      - [3.7.3 Gestion système de fichiers](#373-gestion-système-de-fichiers)
+    - [3.7 Gestion fichiers uploadés (v1.3) - 🟢 12/12 - TERMINÉ](#37-gestion-fichiers-uploadés-v13----1212---terminé)
+      - [3.7.1 Migration base de données ✅](#371-migration-base-de-données-)
+      - [3.7.2 Méthodes model pour upload ✅](#372-méthodes-model-pour-upload-)
+      - [3.7.3 Gestion système de fichiers ✅](#373-gestion-système-de-fichiers-)
   - [Phase 4: Export et utilisation - 🟢 20/20 (Semaine 4) - TERMINÉ](#phase-4-export-et-utilisation----2020-semaine-4---terminé)
     - [4.1 Export presse-papier ✅](#41-export-presse-papier-)
     - [4.2 Export fichiers TXT/Markdown ✅](#42-export-fichiers-txtmarkdown-)
@@ -127,13 +128,13 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
     - [4.4 Génération mailto ✅](#44-génération-mailto-)
     - [4.5 Mémorisation préférences ✅](#45-mémorisation-préférences-)
     - [4.6 Tests ✅](#46-tests-)
-  - [Phase 5: Controller et UI - 🔵 18/22 (Semaine 5) - EN COURS (révisions v1.3)](#phase-5-controller-et-ui----1822-semaine-5---en-cours-révisions-v13)
-    - [5.1 Controller ✅ (11/11 tâches)](#51-controller--1111-tâches)
-    - [5.2 Views ⚪ (9/9 tâches - À RÉVISER pour v1.3)](#52-views--99-tâches---à-réviser-pour-v13)
-      - [Vue `form.php` - Preview panel (à droite)](#vue-formphp---preview-panel-à-droite)
-      - [Vue `_criteria_tab.php` - Onglet 1](#vue-_criteria_tabphp---onglet-1)
-      - [Vue `_manual_tab.php` - Onglet 2 (déjà implémenté à vérifier)](#vue-_manual_tabphp---onglet-2-déjà-implémenté-à-vérifier)
-      - [Vue `_import_tab.php` - Onglet 3](#vue-_import_tabphp---onglet-3)
+  - [Phase 5: Controller et UI - 🔵 22/25 (Semaine 5) - EN COURS (révisions v1.4)](#phase-5-controller-et-ui----2225-semaine-5---en-cours-révisions-v14)
+    - [5.1 Controller ✅ (13/14 tâches - À réviser pour workflow v1.4)](#51-controller--1314-tâches---à-réviser-pour-workflow-v14)
+    - [5.2 Views ✅ (12/12 tâches - Révisions v1.4 effectuées)](#52-views--1212-tâches---révisions-v14-effectuées)
+      - [Vue `form.php` - Preview panel ✅](#vue-formphp---preview-panel-)
+      - [Vue `_criteria_tab.php` - Onglet 1 ✅](#vue-_criteria_tabphp---onglet-1-)
+      - [Vue `_manual_tab.php` - Onglet 2 ✅](#vue-_manual_tabphp---onglet-2-)
+      - [Vue `_import_tab.php` - Onglet 3 ✅](#vue-_import_tabphp---onglet-3-)
     - [5.3 UI sélection par rôles (déplacé de Phase 2.4) ✅ (5/5 tâches)](#53-ui-sélection-par-rôles-déplacé-de-phase-24--55-tâches)
     - [5.4 Metadata et navigation ✅ (2/2 tâches)](#54-metadata-et-navigation--22-tâches)
     - [5.5 Tests ⚪ (0/1 tâche)](#55-tests--01-tâche)
@@ -148,9 +149,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
     - [7.4 Validation couverture](#74-validation-couverture)
   - [Phase 8: Déploiement - ⚪ 0/9 (Semaine 8)](#phase-8-déploiement----09-semaine-8)
     - [8.1 Pré-déploiement](#81-pré-déploiement)
-    - [8.2 Documentation déploiement](#82-documentation-déploiement)
-    - [8.3 Formation et production](#83-formation-et-production)
-  - [~~Phase 9: Système de codage couleur~~ - SUPPRIMÉE v1.3](#phase-9-système-de-codage-couleur---supprimée-v13)
+    - [8.2 Formation et production](#82-formation-et-production)
   - [Notes et blocages](#notes-et-blocages)
 
 ---
@@ -337,7 +336,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 
 ## Phase 5: Controller et UI - 🔵 22/25 (Semaine 5) - EN COURS (révisions v1.4)
 
-### 5.1 Controller ⚪ (13/14 tâches - À réviser pour workflow v1.4)
+### 5.1 Controller ✅ (13/14 tâches - À réviser pour workflow v1.4)
 - [x] Créer `application/controllers/email_lists.php` - 587 lignes
 - [x] Action `index()` - liste des listes - ligne 57
 - [x] Action `create()` - formulaire création - ligne 75 - **À RÉVISER: partie inférieure désactivée**
@@ -353,11 +352,11 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Action AJAX `upload_file($id)` - upload fichier externe (v1.3) - ligne 506
 - [x] Action AJAX `delete_file($id)` - suppression fichier + adresses (v1.3) - ligne 539
 
-### 5.2 Views ⚪ (9/12 tâches - Révisions v1.4 à faire)
+### 5.2 Views ✅ (12/12 tâches - Révisions v1.4 effectuées)
 - [x] `index.php` - tableau listes (nom, nb destinataires, modifiée, actions)
-- [ ] **v1.4** `form.php` - Séparation en deux parties distinctes avec titres séparés
-- [ ] **v1.4** Partie supérieure: métadonnées (nom, description, type, visibilité) + boutons Enregistrer/Annuler
-- [ ] **v1.4** Partie inférieure: titre "Ajout et suppression d'adresses email" + onglets + preview (désactivée si pas d'email_list_id)
+- [x] **v1.4** `form.php` - Séparation en deux parties distinctes avec titres séparés
+- [x] **v1.4** Partie supérieure: métadonnées (nom, description, type, visibilité) + boutons Enregistrer/Annuler
+- [x] **v1.4** Partie inférieure: titre "Ajout et suppression d'adresses email" + onglets + preview (désactivée si pas d'email_list_id)
 - [x] `form.php` - Preview simplifiée: tableau Email|Nom, totaux par source, sans icônes delete ✅
 - [x] Split-panel: tabs gauche (col-lg-8) + preview droite (col-lg-4)
 - [x] Preview panel - tableau simple Email|Nom + totaux (critères/manuels/externes) ✅
@@ -428,7 +427,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 ### 6.3 Diagrammes et prototypes
 - [ ] Générer diagrammes PlantUML (email_lists_er.puml, email_export_sequence.puml)
 - [ ] Créer images des diagrammes pour GitHub
-- [ ] Prototype HTML interactif pour démonstration
+- [x] Prototype HTML interactif pour démonstration
 
 ---
 
@@ -464,37 +463,12 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 ## Phase 8: Déploiement - ⚪ 0/9 (Semaine 8)
 
 ### 8.1 Pré-déploiement
-- [ ] Analyser données existantes (ancien système email)
-- [ ] Script migration si nécessaire
-- [ ] Tests migration sur copie base
-- [ ] Déployer sur environnement de test
 - [ ] Validation toutes fonctionnalités
 
-### 8.2 Documentation déploiement
-- [ ] Procédure de déploiement
-- [ ] Checklist pré-déploiement
-- [ ] Plan de rollback
-
-### 8.3 Formation et production
+### 8.2 Formation et production
 - [ ] Formation secrétaires
 - [ ] Déploiement production
 - [ ] Monitoring initial
-
----
-
-## ~~Phase 9: Système de codage couleur~~ - SUPPRIMÉE v1.3
-
-**Raison de la suppression:** Avec la nouvelle UX v1.3 où la suppression se fait directement dans les onglets sources (et non via la preview), le système de pastilles colorées n'est plus nécessaire. L'interface est simplifiée avec des checkboxes standards.
-
-**Tâches économisées:** 15 tâches supprimées | Estimation réduite de 1 semaine
-
-**Anciennes tâches (référence):**
-- ~~Extension table types_roles pour couleurs~~ (3 tâches)
-- ~~Attribution automatique couleurs~~ (3 tâches)
-- ~~Enrichissement résolution avec métadonnées~~ (3 tâches)
-- ~~Controller AJAX pour UI couleur~~ (2 tâches)
-- ~~Interface avec système de couleur~~ (3 tâches)
-- ~~Tests système couleur~~ (3 tâches)
 
 ---
 
@@ -807,4 +781,4 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 
 ---
 
-**Dernière mise à jour:** 2025-11-05
+**Dernière mise à jour:** 2025-11-08

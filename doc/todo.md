@@ -24,16 +24,21 @@
     
 
 * [] gestion des droits multi sections (wip)
+  * [] quelques colonnes inutiles à supprimer
+  * [] donner les droits dans les controllers
+  
 * [] Gestionnaire de liste d'adresse email. (wip)
   * [] import de fichiers
-  * [] quelques colonnes inutiles à supprimer
-  * [] tester export CSV/PDF
+  * [x] tester export TXT/MD
+  * [] ajouter toutes les adresses email d'un membre dans la liste d'email
   * [x] La gestion des listes devrait passer de membre à gestion
   * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant?
+
+* [] Corriger la gestion des licences et cotisations
 
 * [] Import des informations planeur dans les vols de découverte
   
@@ -53,9 +58,6 @@
 
 * [] Gestion des fiches de progressions                       (PRD à rédiger)
 
-* [~] Désactiver la capacité d'envoyer des emails et remplacer la par la capacité de sélectionner les adresses emails.
-  * [x] MVP
-  il faut pouvoir sélectionner par section. Ca ne pourra être vraiment opérationnel que quand les rôles par section seront en place. Pour l'instant on a pas vraiment l'information si un membre est instructeur ULM ou qu'il est encore actif dans une section.
 
 ## Dette technique
 
@@ -64,8 +66,10 @@
 * [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues et refactoring
-* [] Cleanup warning in development mode
 * [] Check translations completeness
+* [] Corriger les tests qui ne passent pas
+* [] Redéployer un serveur CI/CD fonctionnel
+* [] Définir une charte graphique et l'appliquer partout
 
 ## Idées et suggestions
 

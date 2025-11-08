@@ -231,9 +231,7 @@ La fenêtre de création/modification est séparée en deux parties:
 #### 4.4.1 Formats supportés
 - **Texte brut (.txt):** une adresse par ligne, optionnellement suivie d'un nom
 - **CSV (.csv):** colonnes configurables (nom, prénom, email, etc.)
-- **Stockage permanent:** Fichiers uploadés conservés dans `/uploads/email_lists/[list_id]/[fichier].csv`
-- **Stockage temporaire:** En mode création, fichiers stockés dans `/uploads/email_lists/tmp/[session_id]/` puis déplacés lors de la sauvegarde
-- **Nettoyage automatique:** Fichiers temporaires de plus de 2 jours supprimés automatiquement
+- **Stockage:** Fichiers uploadés conservés dans `/uploads/email_lists/[list_id]/[fichier].csv`
 - **Traçabilité:** Chaque adresse importée est liée au fichier source
 - **Validation:** Format validé lors de l'upload avec rapport d'erreurs détaillé
 - **Suppression en cascade:** Suppression d'un fichier supprime toutes ses adresses
