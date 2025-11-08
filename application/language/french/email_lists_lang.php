@@ -18,11 +18,12 @@ $lang['email_lists_recipient_count'] = 'Destinataires';
 $lang['email_lists_create'] = 'Nouvelle liste';
 $lang['email_lists_edit'] = 'Modifier la liste';
 $lang['email_lists_view'] = 'Voir la liste';
+$lang['email_lists_use'] = 'Utiliser cette liste';
 $lang['email_lists_delete'] = 'Supprimer';
 $lang['email_lists_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer la liste {name} ?';
 $lang['email_lists_export'] = 'Exporter';
 $lang['email_lists_copy'] = 'Copier';
-$lang['email_lists_back'] = 'Retour à la liste';
+$lang['email_lists_back'] = 'Retour aux listes';
 
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Par critères';

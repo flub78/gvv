@@ -37,6 +37,11 @@ $list_id = $is_modification ? $email_list_id : 0;
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3><?= $is_creation ? $this->lang->line('email_lists_create') : $this->lang->line('email_lists_edit') ?></h3>
         <div>
+            <?php if ($is_modification): ?>
+            <a href="<?= controller_url($controller) ?>/view/<?= $email_list_id ?>" class="btn btn-info">
+                <i class="bi bi-eye"></i> <?= $this->lang->line("email_lists_use") ?>
+            </a>
+            <?php endif; ?>
             <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> <?= $this->lang->line("email_lists_back") ?>
             </a>

@@ -18,11 +18,12 @@ $lang['email_lists_recipient_count'] = 'Ontvangers';
 $lang['email_lists_create'] = 'Nieuwe Lijst';
 $lang['email_lists_edit'] = 'Lijst Bewerken';
 $lang['email_lists_view'] = 'Lijst Bekijken';
+$lang['email_lists_use'] = 'Deze Lijst Gebruiken';
 $lang['email_lists_delete'] = 'Verwijderen';
 $lang['email_lists_delete_confirm'] = 'Weet u zeker dat u de lijst {name} wilt verwijderen?';
 $lang['email_lists_export'] = 'Exporteren';
 $lang['email_lists_copy'] = 'Kopiëren';
-$lang['email_lists_back'] = 'Terug naar Lijst';
+$lang['email_lists_back'] = 'Terug naar Lijsten';
 
 // Tabs
 $lang['email_lists_tab_criteria'] = 'Op Criteria';

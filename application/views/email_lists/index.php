@@ -57,6 +57,9 @@ if ($this->session->flashdata('error')) {
         <a href="<?= controller_url($controller) ?>/create" class="btn btn-primary">
             <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("email_lists_create") ?>
         </a>
+        <a href="<?= controller_url($controller) ?>/addresses" class="btn btn-info ms-2">
+            <i class="fas fa-paper-plane" aria-hidden="true"></i> <?= translation("Envoi email") ?>
+        </a>
     </div>
 
     <!-- Lists table -->
