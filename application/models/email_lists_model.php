@@ -851,8 +851,10 @@ class Email_lists_model extends CI_Model {
 
         $all_emails = array();
         $member_names = array(); // Map email -> name
+        $email_sources = array(); // Map email -> source (role name, manual, external)
         $external_emails_set = array(); // Set of external emails
         $external_with_names = array(); // Map email -> name for external
+        $manual_emails_set = array(); // Set of manual emails
 
         // 1. Resolve members by roles (table email_list_roles)
         $roles = $this->get_list_roles($list_id);
@@ -872,6 +874,8 @@ class Email_lists_model extends CI_Model {
                     if (!empty($name)) {
                         $member_names[$email_lower] = $name;
                     }
+                    // Store role name as source
+                    $email_sources[$email_lower] = $role['role_name'];
                 }
             }
         }
@@ -882,10 +886,15 @@ class Email_lists_model extends CI_Model {
             if (!empty($member['email'])) {
                 $email_lower = strtolower(trim($member['email']));
                 $all_emails[] = $email_lower;
+                $manual_emails_set[$email_lower] = true; // Mark as manual
                 // Store name from members
                 $name = trim($member['mnom'] . ' ' . $member['mprenom']);
                 if (!empty($name)) {
                     $member_names[$email_lower] = $name;
+                }
+                // Only set source if not already set by role
+                if (!isset($email_sources[$email_lower])) {
+                    $email_sources[$email_lower] = 'membre';
                 }
             }
         }
@@ -901,6 +910,8 @@ class Email_lists_model extends CI_Model {
                 if (!empty($ext['name'])) {
                     $external_with_names[$email_lower] = $ext['name'];
                 }
+                // Set source as externe
+                $email_sources[$email_lower] = 'externe';
             }
         }
 
@@ -926,11 +937,11 @@ class Email_lists_model extends CI_Model {
                 $item['name'] = $member_names[$email];
             }
 
-            // Set source
-            if (isset($external_emails_set[$email])) {
-                $item['source'] = 'external';
+            // Set source from our tracking
+            if (isset($email_sources[$email])) {
+                $item['source'] = $email_sources[$email];
             } else {
-                $item['source'] = 'member';
+                $item['source'] = 'unknown'; // Fallback, should not happen
             }
 
             $emails_with_metadata[] = $item;
