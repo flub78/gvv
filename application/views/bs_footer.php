@@ -126,6 +126,26 @@
             }]
         });
 
+        // DataTable pour balance hiérarchique: recherche SANS pagination
+        $('.balance_searchable_datatable').dataTable({
+            "bFilter": true,
+            "bPaginate": false,  // PAS de pagination
+            "bStateSave": false,
+            "bSort": false,
+            "bInfo": false,      // Pas d'info "Affichage de 1 à 100 sur 200"
+            "bAutoWidth": true,
+            "bJQueryUI": true,
+            "ordering": false,
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage,
+            "columnDefs": [{
+                "orderable": false,
+                "targets": "_all"
+            }]
+        });
+
         // to replace the select by an input that select values in the dropdown
         $('.big_select').select2({
             placeholder: 'Filtre...',

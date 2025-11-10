@@ -406,7 +406,8 @@ $this->lang->load('comptes');
 			captureOriginalAccordionStates();
 			
 			searchInput.addEventListener('input', function(e) {
-				var searchTerm = e.target.value.toLowerCase().trim();
+				var originalValue = e.target.value.trim();
+				var searchTerm = originalValue.toLowerCase();
 				var accordionItems = document.querySelectorAll('#balanceAccordion .accordion-item');
 
 				// Si la recherche est vide, restaurer l'état original
@@ -420,6 +421,8 @@ $this->lang->load('comptes');
 					return;
 				}
 
+				var visibleCount = 0;
+
 				accordionItems.forEach(function(item) {
 					var shouldShow = false;
 					var foundInChildren = false;
@@ -431,32 +434,85 @@ $this->lang->load('comptes');
 						var cells = dataRow.querySelectorAll('td');
 						var headerTextContent = '';
 						cells.forEach(function(cell) {
-							headerTextContent += cell.textContent.toLowerCase() + ' ';
+							headerTextContent += (cell.textContent || cell.innerText || '').toLowerCase() + ' ';
 						});
+						
+						// Nettoyer les espaces multiples et caractères spéciaux
+						headerTextContent = headerTextContent.replace(/\s+/g, ' ').trim();
 						
 						// Vérifier si le terme de recherche est dans le header
 						if (headerTextContent.indexOf(searchTerm) !== -1) {
 							shouldShow = true;
+							console.log('Recherche accordéon - Match dans header:', {
+								searchTerm: originalValue,
+								headerContent: headerTextContent.substring(0, 50),
+								accordionElement: item.id || 'sans ID'
+							});
 						}
 					}
 					
 					// Si pas trouvé dans le header, rechercher dans les comptes enfants (accordion body)
 					if (!shouldShow && searchTerm !== '') {
-						var accordionBody = item.querySelector('.accordion-body table tbody');
+						// Rechercher dans l'accordion-body, même si l'accordéon est fermé
+						// Utiliser le sélecteur correct avec le wrapper balance-datatable-wrapper
+						var accordionBody = item.querySelector('.accordion-collapse .accordion-body .balance-datatable-wrapper table tbody');
+						
+						// Fallback: essayer aussi sans .accordion-collapse
+						if (!accordionBody) {
+							accordionBody = item.querySelector('.accordion-body .balance-datatable-wrapper table tbody');
+						}
+						
+						// Fallback ultime: essayer directement table tbody dans accordion-body
+						if (!accordionBody) {
+							accordionBody = item.querySelector('.accordion-body table tbody');
+						}
+						
 						if (accordionBody) {
 							var childRows = accordionBody.querySelectorAll('tr');
-							childRows.forEach(function(childRow) {
-								var childCells = childRow.querySelectorAll('td');
-								var childTextContent = '';
-								childCells.forEach(function(cell) {
-									childTextContent += cell.textContent.toLowerCase() + ' ';
+							var matchingChildren = [];
+							
+							// Vérifier qu'on a bien trouvé des lignes
+							if (childRows.length > 0) {
+								childRows.forEach(function(childRow) {
+									var childCells = childRow.querySelectorAll('td');
+									var childTextContent = '';
+									childCells.forEach(function(cell) {
+										childTextContent += (cell.textContent || cell.innerText || '').toLowerCase() + ' ';
+									});
+									
+									// Nettoyer les espaces multiples et caractères spéciaux
+									childTextContent = childTextContent.replace(/\s+/g, ' ').trim();
+									
+									// Si trouvé dans un compte enfant, afficher l'accordéon
+									if (childTextContent.indexOf(searchTerm) !== -1) {
+										shouldShow = true;
+										foundInChildren = true;
+										matchingChildren.push(childTextContent.substring(0, 30));
+									}
 								});
-								
-								// Si trouvé dans un compte enfant, afficher l'accordéon
-								if (childTextContent.indexOf(searchTerm) !== -1) {
-									shouldShow = true;
-									foundInChildren = true;
-								}
+							} else {
+								// Logging pour debug si aucune ligne trouvée
+								console.warn('Accordéon search - Aucune ligne enfant trouvée:', {
+									accordionElement: item.id || 'sans ID',
+									accordionBody: !!accordionBody,
+									searchTerm: originalValue
+								});
+							}
+							
+							if (foundInChildren) {
+								console.log('Recherche accordéon - Match dans enfants:', {
+									searchTerm: originalValue,
+									matchingChildren: matchingChildren,
+									accordionElement: item.id || 'sans ID',
+									totalChildren: childRows.length
+								});
+							}
+						} else {
+							// Logging pour debug si accordion-body pas trouvé
+							console.warn('Accordéon search - accordion-body non trouvé:', {
+								accordionElement: item.id || 'sans ID',
+								searchTerm: originalValue,
+								itemHTML: item.outerHTML.substring(0, 200) + '...'
 							});
 						}
 					}
@@ -464,6 +520,7 @@ $this->lang->load('comptes');
 					// Afficher ou masquer l'accordéon selon le résultat de la recherche
 					if (shouldShow) {
 						item.style.display = '';
+						visibleCount++;
 						
 						// Si trouvé dans les comptes enfants, développer l'accordéon et appliquer la recherche DataTable
 						if (foundInChildren && searchTerm !== '') {
@@ -544,8 +601,10 @@ $this->lang->load('comptes');
 		var button = accordionItem.querySelector('.accordion-button');
 		
 		if (collapseElement && button) {
-			// Développer l'accordéon si pas déjà ouvert
-			if (!collapseElement.classList.contains('show')) {
+			var wasAlreadyExpanded = collapseElement.classList.contains('show');
+			
+			if (!wasAlreadyExpanded) {
+				// Développer l'accordéon s'il n'était pas déjà ouvert
 				collapseElement.classList.add('collapsing');
 				collapseElement.classList.add('show');
 				button.classList.remove('collapsed');
@@ -555,12 +614,18 @@ $this->lang->load('comptes');
 				setTimeout(function() {
 					collapseElement.classList.remove('collapsing');
 				}, 350);
+				
+				// Attendre que l'accordéon soit complètement ouvert puis appliquer la recherche
+				setTimeout(function() {
+					applyDataTableSearch(accordionItem, searchTerm);
+				}, 450); // Un peu plus de temps pour s'assurer que tout est prêt
+			} else {
+				// L'accordéon était déjà ouvert, appliquer la recherche immédiatement
+				// mais avec un petit délai pour s'assurer que les DataTables sont initialisées
+				setTimeout(function() {
+					applyDataTableSearch(accordionItem, searchTerm);
+				}, 100);
 			}
-			
-			// Attendre que l'accordéon soit complètement ouvert puis appliquer la recherche DataTable
-			setTimeout(function() {
-				applyDataTableSearch(accordionItem, searchTerm);
-			}, 400);
 		}
 	}
 
@@ -571,29 +636,44 @@ $this->lang->load('comptes');
 		if (dataTable) {
 			var tableId = dataTable.getAttribute('id');
 			
-			// Si c'est une DataTable initialisée (searchable_nosort_datatable)
-			if (dataTable.classList.contains('searchable_nosort_datatable') && typeof $ !== 'undefined' && $.fn.DataTable) {
-				try {
-					var dt = $('#' + tableId).DataTable();
-					// Appliquer la recherche avec le terme original (pas en minuscules)
-					var originalSearchTerm = document.getElementById('accordion-search').value.trim();
-					dt.search(originalSearchTerm).draw();
-				} catch (e) {
-					// Si la DataTable n'est pas encore initialisée, essayer plus tard
-					setTimeout(function() {
-						try {
+			// Obtenir le terme de recherche original (avec la casse originale)
+			var originalSearchTerm = document.getElementById('accordion-search').value.trim();
+			
+			// Fonction helper pour appliquer la recherche DataTable
+			var applyDataTableSearchInternal = function() {
+				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined' && $.fn.DataTable) {
+					try {
+						// Vérifier si la DataTable est initialisée
+						if ($.fn.DataTable.isDataTable('#' + tableId)) {
 							var dt = $('#' + tableId).DataTable();
-							var originalSearchTerm = document.getElementById('accordion-search').value.trim();
+							// Appliquer la recherche avec le terme original (DataTable gère la casse automatiquement)
 							dt.search(originalSearchTerm).draw();
-						} catch (e2) {
-							// Fallback: utiliser la recherche manuelle pour les tables simples
-							applyManualTableFilter(dataTable, searchTerm);
+							return true; // Succès
+						} else {
+							// DataTable pas encore initialisée
+							return false;
 						}
-					}, 500);
+					} catch (e) {
+						console.warn('Erreur DataTable pour ' + tableId + ':', e);
+						return false;
+					}
 				}
-			} else {
-				// Pour les tables simples (sans DataTable), appliquer un filtre manuel
-				applyManualTableFilter(dataTable, searchTerm);
+				return false; // Pas de DataTable
+			};
+			
+			// Essayer d'appliquer la recherche DataTable
+			var success = applyDataTableSearchInternal();
+			
+			if (!success) {
+				// Première tentative échouée, essayer après un délai
+				setTimeout(function() {
+					var secondAttempt = applyDataTableSearchInternal();
+					if (!secondAttempt) {
+						// Fallback définitif: utiliser la recherche manuelle
+						console.log('Fallback vers recherche manuelle pour table:', tableId);
+						applyManualTableFilter(dataTable, originalSearchTerm);
+					}
+				}, 300);
 			}
 		}
 	}
@@ -604,17 +684,28 @@ $this->lang->load('comptes');
 		if (dataTable) {
 			var tableId = dataTable.getAttribute('id');
 			
-			// Si c'est une DataTable initialisée
-			if (dataTable.classList.contains('searchable_nosort_datatable') && typeof $ !== 'undefined' && $.fn.DataTable) {
-				try {
-					var dt = $('#' + tableId).DataTable();
-					dt.search('').draw();
-				} catch (e) {
-					// DataTable pas encore initialisée ou erreur, effacer le filtre manuel
-					clearManualTableFilter(dataTable);
+			// Fonction helper pour effacer la recherche DataTable
+			var clearDataTableSearchInternal = function() {
+				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined' && $.fn.DataTable) {
+					try {
+						// Vérifier si la DataTable est initialisée
+						if ($.fn.DataTable.isDataTable('#' + tableId)) {
+							var dt = $('#' + tableId).DataTable();
+							dt.search('').draw();
+							return true; // Succès
+						}
+					} catch (e) {
+						console.warn('Erreur lors de l\'effacement DataTable pour ' + tableId + ':', e);
+					}
 				}
-			} else {
-				// Pour les tables simples, effacer le filtre manuel
+				return false; // Pas de DataTable ou échec
+			};
+			
+			// Essayer d'effacer la recherche DataTable
+			var success = clearDataTableSearchInternal();
+			
+			if (!success) {
+				// Fallback: effacer le filtre manuel
 				clearManualTableFilter(dataTable);
 			}
 		}
@@ -625,13 +716,29 @@ $this->lang->load('comptes');
 		var tbody = table.querySelector('tbody');
 		if (tbody) {
 			var rows = tbody.querySelectorAll('tr');
+			var searchTermLower = searchTerm.toLowerCase().trim();
+			var visibleCount = 0;
+			
 			rows.forEach(function(row) {
-				var rowText = row.textContent.toLowerCase();
-				if (rowText.indexOf(searchTerm) !== -1) {
+				// Utiliser textContent et innerText pour plus de robustesse
+				var rowText = (row.textContent || row.innerText || '').toLowerCase();
+				// Nettoyer les espaces multiples et caractères spéciaux
+				rowText = rowText.replace(/\s+/g, ' ').trim();
+				
+				if (searchTermLower === '' || rowText.indexOf(searchTermLower) !== -1) {
 					row.style.display = '';
+					visibleCount++;
 				} else {
 					row.style.display = 'none';
 				}
+			});
+			
+			// Log pour debug
+			console.log('Filtre manuel appliqué:', {
+				table: table.getAttribute('id') || 'table sans ID',
+				searchTerm: searchTermLower,
+				totalRows: rows.length,
+				visibleRows: visibleCount
 			});
 		}
 	}

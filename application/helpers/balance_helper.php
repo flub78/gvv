@@ -74,12 +74,12 @@ if (!function_exists('balance_detail_datatable')) {
         $unique_id = 'datatable_' . str_replace('.', '_', $codec);
 
         // Déterminer la classe CSS en fonction du nombre de lignes
-        // Plus de 12 lignes: utiliser searchable_nosort_datatable (avec pagination et recherche)
+        // Plus de 12 lignes: utiliser balance_searchable_datatable (avec recherche SANS pagination)
         // 12 lignes ou moins: utiliser table simple sans DataTables
         $row_count = count($details);
         $table_class = 'table table-striped table-hover table-sm';
         if ($row_count > 12) {
-            $table_class .= ' searchable_nosort_datatable';
+            $table_class .= ' balance_searchable_datatable';
         }
 
         $html = '<div class="balance-datatable-wrapper">';
