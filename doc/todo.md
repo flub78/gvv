@@ -22,7 +22,9 @@
     * [ ] migrate them
     * [ ] Implement missing playwright tests according to the test plan
     
-
+* [] Création d'une vue planche ULM ()
+  
+  
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
   * [] donner les droits dans les controllers
@@ -70,6 +72,7 @@
 * [] Corriger les tests qui ne passent pas
 * [] Redéployer un serveur CI/CD fonctionnel
 * [] Définir une charte graphique et l'appliquer partout
+* [] Améliorer les vues saisies des vols (avion, planeur)
 
 ## Idées et suggestions
 

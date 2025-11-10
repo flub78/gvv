@@ -308,7 +308,86 @@ L'application est utilisée à la fois sur smartphone et PC (responsive). Le tab
 4. **Organisation par workflow** : Regroupement des fonctions selon les tâches métier
 5. **Persistance de l'état** : Mémorisation des volets ouverts (déjà implémenté)
 
-### 4.2. Architecture Proposée
+### 4.2. Critères de Répartition Dashboard vs Menu
+
+**Objectif** : Éliminer la confusion entre ce qui va dans le Dashboard et ce qui va dans le Menu
+
+#### Dashboard (Navigation Primaire - 70% du trafic visé)
+
+**Critères d'inclusion :**
+
+| Critère | Description | Exemples |
+|---------|-------------|----------|
+| **Fréquence ÉLEVÉE** | Actions quotidiennes ou plusieurs fois par semaine | Planche auto, Saisie vols, Écritures comptables courantes |
+| **Workflows métier** | Tâches récurrentes organisées par rôle | Planchiste → Saisie, Trésorier → Écritures, CA → Gestion membres |
+| **Mobile-friendly** | Doit être facilement accessible sur smartphone | Maximum 1-2 clics, pas de menus complexes |
+| **Actions prioritaires** | Placées en haut de chaque volet par ordre de fréquence | Écritures quotidiennes avant écritures exceptionnelles |
+
+**Ce qui va dans le Dashboard :**
+- ✅ Saisie quotidienne (vols, écritures comptables)
+- ✅ Consultations fréquentes (ma facture, carnets de vol, balance)
+- ✅ Gestion courante (membres, machines, configuration)
+- ✅ Workflows complets (du début à la fin dans un même volet)
+
+**Ce qui ne va PAS dans le Dashboard :**
+- ❌ Fonctions avancées utilisées rarement
+- ❌ Rapports complexes nécessitant analyse
+- ❌ Fonctions spécialisées (HEVA, DGAC)
+- ❌ Statistiques détaillées (âge pilotes, historique multi-années)
+
+---
+
+#### Menu (Navigation Secondaire - 30% du trafic visé)
+
+**Critères d'inclusion :**
+
+| Critère | Description | Exemples |
+|---------|-------------|----------|
+| **Fréquence FAIBLE** | Actions occasionnelles (mensuel, trimestriel, annuel) | Stats âge pilotes, Rapport DGAC, HEVA |
+| **Fonctions avancées** | Nécessitent expertise ou analyse approfondie | Formation par pilote, Stats FAI, Pompes |
+| **PC privilégié** | Meilleur usage sur grand écran | Rapports multi-colonnes, exports complexes |
+| **Découvrabilité** | Redondance acceptable pour faciliter apprentissage | Carnets vol, Balance (aussi dans Dashboard) |
+
+**Ce qui va dans le Menu :**
+- ✅ Statistiques avancées et rapports détaillés
+- ✅ Fonctions spécialisées (HEVA fédération, DGAC, FFVV)
+- ✅ Consultation approfondie (formation FAI, stats par pilote)
+- ✅ Redondance découvrabilité (quelques fonctions Dashboard)
+
+**Taux de redondance cible : 20-30%** (vs 60% actuellement)
+
+---
+
+#### Matrice de Décision
+
+**Question à se poser pour chaque fonctionnalité :**
+
+```
+Est-ce utilisé quotidiennement ou plusieurs fois/semaine ?
+├─ OUI → Dashboard (volet selon rôle + position selon fréquence)
+└─ NON → Est-ce une fonction avancée/spécialisée ?
+    ├─ OUI → Menu uniquement
+    └─ NON → Est-ce utile pour découvrabilité ?
+        ├─ OUI → Redondance Menu + Dashboard
+        └─ NON → Menu uniquement
+```
+
+**Exemples concrets :**
+
+| Fonctionnalité | Fréquence | Dashboard | Menu | Logique |
+|----------------|-----------|-----------|------|---------|
+| Planche auto | Quotidienne | ✅ Position 1 | ✅ | Redondance justifiée (très fréquent) |
+| Saisie recettes | Quotidienne | ✅ Position 1 | ❌ | Dashboard suffisant |
+| Balance générale | Hebdomadaire | ✅ | ✅ | Redondance justifiée (consultation importante) |
+| Stats âge pilotes | Trimestrielle | ❌ | ✅ | Menu uniquement (occasionnel) |
+| Formation FAI | Annuelle | ❌ | ✅ | Menu uniquement (spécialisé) |
+| HEVA fédération | Mensuelle | ❌ | ✅ | Menu uniquement (complexe) |
+| Dashboard comptable | Hebdomadaire | ✅ | ✅ | Redondance justifiée (vue synthétique) |
+| Rapport DGAC | Annuelle | ❌ | ✅ | Menu uniquement (administratif) |
+
+---
+
+### 4.3. Architecture Proposée
 
 #### A. Tableau de Bord Principal (navigation par défaut)
 
