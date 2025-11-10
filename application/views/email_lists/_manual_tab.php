@@ -32,7 +32,7 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
         <!-- Add member selector -->
         <div class="row mb-3">
             <div class="col-md-8">
-                <select class="form-select" id="member_selector">
+                <select class="form-select big_select" id="member_selector">
                     <option value=""><?= $this->lang->line("email_lists_select_member") ?></option>
                     <?php if (isset($available_members) && is_array($available_members)): ?>
                         <?php foreach ($available_members as $member_id => $member_name): ?>

@@ -49,7 +49,7 @@ echo heading("mail_addresses_title", 3);
     <div class="form-group row">
         <label for="selection" class="col-sm-3 col-form-label"><?= $this->lang->line('email_lists_select_list') ?>:</label>
         <div class="col-sm-6">
-            <select name="selection" id="selection" class="form-control">
+            <select name="selection" id="selection" class="form-control big_select">
                 <option value="" <?= (!isset($selected_list) || $selected_list === '') ? 'selected' : '' ?>><?= $this->lang->line('email_lists_select_list_placeholder') ?></option>
                 <?php if (isset($selection)): ?>
                     <?php foreach ($selection as $key => $label): ?>
