@@ -297,6 +297,62 @@ if (! function_exists('decimal_to_hm')) {
  * @param unknown_type $pattern
  * @param unknown_type $nb
  */
+if (! function_exists('clean_currency_input')) {
+    /**
+     * Nettoie une saisie de montant en supprimant les caractères de formatage
+     * tout en préservant les nombres décimaux
+     * 
+     * Gère les cas de copier-coller depuis des PDFs avec formatage
+     * 
+     * @param string $value La valeur à nettoyer
+     * @return string La valeur nettoyée
+     */
+    function clean_currency_input($value) {
+        if ($value === '' || $value === null) {
+            return $value;
+        }
+        
+        // Supprime les espaces (normaux, insécables, de diverses largeurs)
+        $cleaned = preg_replace('/\s+/u', '', $value);
+        
+        // Supprime les caractères de devise (€, $, £, ¥, etc.)
+        $cleaned = preg_replace('/[€$£¥₹₽]/u', '', $cleaned);
+        
+        // Supprime les caractères non numériques sauf les points et virgules
+        $cleaned = preg_replace('/[^0-9.,]/', '', $cleaned);
+        
+        // Si vide après nettoyage, retourne la valeur d'origine
+        if (empty($cleaned)) {
+            return $value;
+        }
+        
+        // Gestion des séparateurs décimaux
+        if (preg_match('/^[\d.,]+$/', $cleaned)) {
+            // Trouve la position du dernier point ou virgule
+            $lastCommaPos = strrpos($cleaned, ',');
+            $lastDotPos = strrpos($cleaned, '.');
+            
+            $lastSeparatorPos = max($lastCommaPos, $lastDotPos);
+            
+            if ($lastSeparatorPos !== false) {
+                // Vérifie si c'est probablement un séparateur décimal (1-3 chiffres après)
+                $afterSeparator = substr($cleaned, $lastSeparatorPos + 1);
+                if (strlen($afterSeparator) <= 3 && ctype_digit($afterSeparator)) {
+                    // Supprime tous les points/virgules sauf le dernier (séparateur décimal)
+                    $beforeSeparator = substr($cleaned, 0, $lastSeparatorPos);
+                    $beforeSeparator = str_replace(['.', ','], '', $beforeSeparator);
+                    $cleaned = $beforeSeparator . '.' . $afterSeparator;
+                } else {
+                    // Pas de séparateur décimal valide, garde tous les chiffres
+                    $cleaned = str_replace(['.', ','], '', $cleaned);
+                }
+            }
+        }
+        
+        return $cleaned;
+    }
+}
+
 if (! function_exists('line_of')) {
     function line_of($pattern, $nb = 1) {
         $txt = "";

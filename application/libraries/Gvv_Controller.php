@@ -286,14 +286,10 @@ class Gvv_Controller extends CI_Controller {
      */
     function valid_numeric($str) {
         if ($str == "") return TRUE;
-        // Remplacer les virgules par des points pour la validation
-        $normalized = str_replace(',', '.', $str);
-        // Vérifier si la valeur est numérique
-        if (is_numeric($normalized)) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+        
+        // At this point, decimal fields should already be cleaned by formValidation
+        // We just need to verify the value is numeric
+        return is_numeric($str);
     }
 
     /**
@@ -491,8 +487,21 @@ class Gvv_Controller extends CI_Controller {
 
             $table = $this->gvv_model->table();
             $fields_list = $this->gvvmetadata->fields_list($table);
+            
+            // Pre-process decimal fields to clean currency formatting before validation
+            $this->load->helper('validation');
             foreach ($fields_list as $field) {
-                $this->data[$field] = $this->input->post($field);
+                $field_type = $this->gvvmetadata->field_type($table, $field);
+                $value = $this->input->post($field);
+                
+                // Clean currency input for decimal fields before validation
+                if ($field_type == 'decimal' && $value !== '' && $value !== null) {
+                    $cleaned_value = clean_currency_input($value);
+                    $_POST[$field] = $cleaned_value; // Update $_POST for validation
+                    $this->data[$field] = $cleaned_value;
+                } else {
+                    $this->data[$field] = $value;
+                }
             }
 
             $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);

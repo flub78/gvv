@@ -2055,6 +2055,7 @@ abstract class Metadata {
             return str_replace(":", ".", $value);
         } elseif ("decimal" == $type) {
             if ($value == "") return 0;
+            // Decimal fields are now pre-cleaned in formValidation, just normalize decimal separator
             return str_replace(',', '.', $value);
         } elseif ("time" == $type) {
             if (!$value && $may_be_null) {

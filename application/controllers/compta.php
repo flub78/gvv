@@ -283,8 +283,21 @@ class Compta extends Gvv_Controller {
 
         $table = $this->gvv_model->table();
         $fields_list = $this->gvvmetadata->fields_list($table);
+        
+        // Pre-process decimal fields to clean currency formatting before validation
+        $this->load->helper('validation');
         foreach ($fields_list as $field) {
-            $this->data[$field] = $this->input->post($field);
+            $field_type = $this->gvvmetadata->field_type($table, $field);
+            $value = $this->input->post($field);
+            
+            // Clean currency input for decimal fields before validation
+            if ($field_type == 'decimal' && $value !== '' && $value !== null) {
+                $cleaned_value = clean_currency_input($value);
+                $_POST[$field] = $cleaned_value; // Update $_POST for validation
+                $this->data[$field] = $cleaned_value;
+            } else {
+                $this->data[$field] = $value;
+            }
         }
         // 'annee_exercise'
         if (!isset($this->data['annee_exercise']) || empty($this->data['annee_exercise'])) {
