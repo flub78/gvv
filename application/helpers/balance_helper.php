@@ -29,9 +29,14 @@ if (!defined('BASEPATH'))
  * @return string Le HTML du titre d'accordéon
  */
 if (!function_exists('balance_accordion_header')) {
-    function balance_accordion_header($row, $codec, $gvvmetadata) {
+    function balance_accordion_header($row, $gvvmetadata) {
         $solde_debit = isset($row['solde_debit']) && $row['solde_debit'] ? euro($row['solde_debit']) : '';
         $solde_credit = isset($row['solde_credit']) && $row['solde_credit'] ? euro($row['solde_credit']) : '';
+        
+        // Si les deux soldes sont à zéro, afficher "0,00 €" dans la colonne crédit pour cohérence
+        if (!$solde_debit && !$solde_credit) {
+            $solde_credit = '0,00&nbsp;€';
+        }
 
         $html = '<table class="table table-sm mb-0">';
         $html .= '<thead class="table-light">';
@@ -112,8 +117,17 @@ if (!function_exists('balance_detail_datatable')) {
             // Lien vers les opérations du compte (journal)
             $html .= '<td><a href="' . site_url('compta/journal_compte/' . $row['id']) . '">' . htmlspecialchars($row['nom']) . '</a></td>';
             $html .= '<td>' . (isset($row['section_name']) ? htmlspecialchars($row['section_name']) : '') . '</td>';
-            $html .= '<td class="text-end">' . (isset($row['solde_debit']) && $row['solde_debit'] ? euro($row['solde_debit']) : '') . '</td>';
-            $html .= '<td class="text-end">' . (isset($row['solde_credit']) && $row['solde_credit'] ? euro($row['solde_credit']) : '') . '</td>';
+            // Logique originale : afficher seulement le solde non-nul
+            $solde_debit_display = (isset($row['solde_debit']) && $row['solde_debit']) ? euro($row['solde_debit']) : '';
+            $solde_credit_display = (isset($row['solde_credit']) && $row['solde_credit']) ? euro($row['solde_credit']) : '';
+            
+            // Si les deux soldes sont à zéro, afficher "0,00 €" dans la colonne crédit pour cohérence
+            if (!$solde_debit_display && !$solde_credit_display) {
+                $solde_credit_display = '0,00&nbsp;€';
+            }
+            
+            $html .= '<td class="text-end">' . $solde_debit_display . '</td>';
+            $html .= '<td class="text-end">' . $solde_credit_display . '</td>';
             $html .= '</tr>';
         }
 
@@ -154,7 +168,7 @@ if (!function_exists('balance_accordion_item')) {
         $html = '<div class="accordion-item">';
         $html .= '<h2 class="accordion-header" id="' . $heading_id . '">';
         $html .= '<button class="' . $button_class . '" type="button" data-bs-toggle="collapse" data-bs-target="#' . $collapse_id . '" aria-expanded="' . $aria_expanded . '" aria-controls="' . $collapse_id . '">';
-        $html .= balance_accordion_header($general_row, $codec, $gvvmetadata);
+        $html .= balance_accordion_header($general_row, $gvvmetadata);
         $html .= '</button>';
         $html .= '</h2>';
         $html .= '<div id="' . $collapse_id . '" class="' . $collapse_class . '" aria-labelledby="' . $heading_id . '" data-bs-parent="#balanceAccordion">';
