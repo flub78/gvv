@@ -31,10 +31,45 @@ echo '<div id="body" class="body container-fluid">';
 
 echo heading("Licences", 3);
 
-// echo year_selector($controller, $year, $year_selector);
+// Sélecteur de type de licence
 echo licence_selector($controller, $type);
-echo br(2)
-;
+
+// Sliders pour la plage d'années
+?>
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Plage d'années</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="year_min_slider" class="form-label">
+                            Année de début: <span id="year_min_value"><?php echo $year_min; ?></span>
+                        </label>
+                        <input type="range" class="form-range" id="year_min_slider"
+                               min="<?php echo $min_year_data; ?>"
+                               max="<?php echo $current_year; ?>"
+                               value="<?php echo $year_min; ?>"
+                               step="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="year_max_slider" class="form-label">
+                            Année de fin: <span id="year_max_value"><?php echo $year_max; ?></span>
+                        </label>
+                        <input type="range" class="form-range" id="year_max_slider"
+                               min="<?php echo $min_year_data; ?>"
+                               max="<?php echo $current_year; ?>"
+                               value="<?php echo $year_max; ?>"
+                               step="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php
+
+echo br(1);
 $table = new DataTable(array(
 	'title' => "",
 	'values' => $table,
@@ -45,9 +80,130 @@ $table = new DataTable(array(
 
 $table->display();
 
+// Afficher la ligne de total en dehors du DataTable
+echo '<div class="row mt-2">';
+echo '<div class="col-md-12">';
+echo '<table class="table table-bordered table-sm" id="total-table">';
+echo '<thead class="table-secondary">';
+echo '<tr id="total-row">';
+$col_index = 0;
+foreach ($total as $value) {
+    echo '<th class="text-center" data-col-index="' . $col_index . '">' . $value . '</th>';
+    $col_index++;
+}
+echo '</tr>';
+echo '</thead>';
+echo '</table>';
+echo '</div>';
+echo '</div>';
+
 ?>
 <script>
 $(document).ready(function() {
+    var yearMinSlider = $('#year_min_slider');
+    var yearMaxSlider = $('#year_max_slider');
+    var yearMinValue = $('#year_min_value');
+    var yearMaxValue = $('#year_max_value');
+    var updateTimeout = null;
+
+    // Mettre à jour l'affichage des valeurs
+    function updateYearDisplay() {
+        var minVal = parseInt(yearMinSlider.val());
+        var maxVal = parseInt(yearMaxSlider.val());
+
+        // Empêcher le croisement
+        if (minVal > maxVal) {
+            yearMinSlider.val(maxVal);
+            minVal = maxVal;
+        }
+
+        yearMinValue.text(minVal);
+        yearMaxValue.text(maxVal);
+    }
+
+    // Gérer les changements de slider avec debounce
+    function handleSliderChange() {
+        updateYearDisplay();
+
+        // Annuler le timeout précédent
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+
+        // Attendre 500ms après le dernier changement avant de recharger
+        updateTimeout = setTimeout(function() {
+            var minVal = parseInt(yearMinSlider.val());
+            var maxVal = parseInt(yearMaxSlider.val());
+
+            // Envoyer la requête AJAX pour mettre à jour la plage
+            $.ajax({
+                url: '<?php echo base_url(); ?>licences/set_year_range/' + minVal + '/' + maxVal,
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Recharger la page pour afficher la nouvelle plage
+                        window.location.reload();
+                    } else {
+                        console.error('Erreur lors de la mise à jour de la plage d\'années');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erreur AJAX:', error);
+                }
+            });
+        }, 500);
+    }
+
+    // Écouter les changements sur les sliders
+    yearMinSlider.on('input', updateYearDisplay);
+    yearMaxSlider.on('input', updateYearDisplay);
+    yearMinSlider.on('change', handleSliderChange);
+    yearMaxSlider.on('change', handleSliderChange);
+
+    // Fonction pour mettre à jour les totaux
+    function updateTotals() {
+        // Pour chaque colonne d'année
+        $('#total-row th[data-col-index]').each(function() {
+            var colIndex = parseInt($(this).data('col-index'));
+
+            // La première colonne est "Total", on la saute
+            if (colIndex === 0) {
+                return;
+            }
+
+            // Compter les checkboxes cochées dans cette colonne
+            var year = $(this).data('year');
+            var count = 0;
+
+            // Trouver toutes les checkboxes pour cette année
+            $('.licence-checkbox').each(function() {
+                var checkboxYear = $(this).data('year');
+                if (checkboxYear && parseInt(checkboxYear) === year && $(this).is(':checked')) {
+                    count++;
+                }
+            });
+
+            // Mettre à jour le total affiché
+            $(this).text(count);
+        });
+    }
+
+    // Stocker l'année dans chaque cellule de total pour faciliter le comptage
+    $('#total-row th[data-col-index]').each(function(index) {
+        if (index > 0) { // Ignorer la première cellule "Total"
+            // Récupérer l'année depuis l'en-tête du DataTable
+            var yearHeader = $('.datatable thead th').eq(index);
+            var year = yearHeader.text().trim();
+            if (year && !isNaN(year)) {
+                $(this).attr('data-year', year);
+            }
+        }
+    });
+
     // Gestionnaire pour les changements de checkboxes
     $('.licence-checkbox').on('change', function() {
         var checkbox = $(this);
@@ -84,6 +240,8 @@ $(document).ready(function() {
                 // Vérifier si l'opération a réussi
                 if (response.success) {
                     // Succès silencieux - pas de message
+                    // Mettre à jour les totaux
+                    updateTotals();
                 } else {
                     console.error('Licence error:', response.error);
                     alert('Erreur: ' + response.error);

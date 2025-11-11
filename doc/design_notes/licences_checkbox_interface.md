@@ -170,6 +170,36 @@ L'interface fonctionne maintenant correctement :
 2. **Décocher une checkbox** → supprime la licence de la base de données
 3. **Erreur de base de données** → popup d'erreur affichée et checkbox décochée
 4. **Feedback visuel** → checkbox désactivée pendant le traitement AJAX
+5. **Mise à jour des totaux** → les totaux se mettent à jour automatiquement après chaque changement
+
+### Mise à Jour Dynamique des Totaux
+
+Lorsqu'une checkbox est cochée ou décochée, le JavaScript met automatiquement à jour la ligne de totaux :
+
+**Fonctionnement** :
+1. Chaque cellule de la ligne de total possède un attribut `data-year` correspondant à l'année
+2. La fonction `updateTotals()` compte toutes les checkboxes cochées pour chaque année
+3. Les totaux sont recalculés et affichés immédiatement après succès de l'AJAX
+
+**Code JavaScript** :
+```javascript
+function updateTotals() {
+    $('#total-row th[data-col-index]').each(function() {
+        var year = $(this).data('year');
+        var count = 0;
+
+        $('.licence-checkbox').each(function() {
+            if (parseInt($(this).data('year')) === year && $(this).is(':checked')) {
+                count++;
+            }
+        });
+
+        $(this).text(count);
+    });
+}
+```
+
+Appelée dans le callback `success` de l'AJAX après modification d'une licence.
 
 ## Test Manuel Recommandé
 

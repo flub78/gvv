@@ -55,7 +55,32 @@ class Licences extends Gvv_Controller {
         $data ['year_selector'] = $this->gvv_model->getYearSelector("date");
         $data ['type'] = $this->session->userdata('licence_type');
 
-        $data ['table'] = $this->gvv_model->per_year($data ['type']);
+        // Gestion de la plage d'années
+        $current_year = (int)date("Y");
+        $min_year_data = $this->gvv_model->get_min_year();
+        
+        // Initialiser les valeurs par défaut si pas encore définies
+        if (!$this->session->userdata('licence_year_min')) {
+            $this->session->set_userdata('licence_year_min', $current_year - 5);
+        }
+        if (!$this->session->userdata('licence_year_max')) {
+            $this->session->set_userdata('licence_year_max', $current_year);
+        }
+
+        $year_min = (int)$this->session->userdata('licence_year_min');
+        $year_max = (int)$this->session->userdata('licence_year_max');
+
+        // Passer les données à la vue
+        $data['year_min'] = $year_min;
+        $data['year_max'] = $year_max;
+        $data['min_year_data'] = $min_year_data;
+        $data['current_year'] = $current_year;
+
+        // Récupérer les données et le total séparément
+        $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max);
+        $data['table'] = $result['data'];
+        $data['total'] = $result['total'];
+
         load_last_view('licences/TablePerYear', $data);
     }
 
@@ -191,6 +216,47 @@ class Licences extends Gvv_Controller {
     public function switch_to($type) {
         $this->session->set_userdata('licence_type', $type);
         redirect(controller_url("licences/per_year"));
+    }
+
+
+    /**
+     * Met à jour la plage d'années pour l'affichage
+     *
+     * @param int $year_min Année de début
+     * @param int $year_max Année de fin
+     */
+    public function set_year_range($year_min, $year_max) {
+        $year_min = (int)$year_min;
+        $year_max = (int)$year_max;
+
+        // Validation : ne pas permettre le croisement
+        if ($year_min > $year_max) {
+            $temp = $year_min;
+            $year_min = $year_max;
+            $year_max = $temp;
+        }
+
+        $this->session->set_userdata('licence_year_min', $year_min);
+        $this->session->set_userdata('licence_year_max', $year_max);
+
+        // Si c'est une requête AJAX, retourner JSON
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        if ($is_ajax) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                'success' => true,
+                'year_min' => $year_min,
+                'year_max' => $year_max
+            ));
+            exit();
+        } else {
+            redirect(controller_url("licences/per_year"));
+        }
     }
 
     /**
