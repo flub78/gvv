@@ -8,7 +8,7 @@
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [] Les membres du CA ne peuvent pas modifier les droits
-* [] Des cas de double facturation avion
+* [] Le rechargement d'un vol avion ne recharge pas les heures de début et de fin (uniquement en production)
 
 ## Reste à faire
 

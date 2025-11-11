@@ -36,6 +36,7 @@ $(document).ready(function () {
         "bJQueryUI": true,
         "bAutoWidth": true,
         "sPaginationType": "full_numbers",
+        // "sDom": 'lfptip',
         "aoColumns": [
             { "bSortable": false },       // edit
             { "bSortable": false },        // delete
