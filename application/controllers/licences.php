@@ -28,6 +28,7 @@ class Licences extends Gvv_Controller {
     protected $controller = 'licences';
     protected $model = 'licences_model';
     protected $modification_level = 'ca'; // Legacy authorization for non-migrated users
+    protected $use_new_auth = FALSE; // Use legacy authorization system
     protected $rules = array ();
 
 
@@ -66,14 +67,60 @@ class Licences extends Gvv_Controller {
      * @param unknown_type $type
      */
     public function set($pilote, $year, $type = 0) {
+        // Détection AJAX - vérifier le header directement car is_ajax_request() peut échouer
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        log_message('debug', "Licences::set - pilote=$pilote, year=$year, type=$type, ajax=" . ($is_ajax ? 'YES' : 'NO'));
+
         $row = array (
                 'pilote' => $pilote,
                 'year' => $year,
                 'type' => $type,
-                'date' => "$year-01-01"
+                'date' => "$year-01-01",
+                'comment' => ''  // Valeur par défaut pour le champ comment
         );
-        $this->gvv_model->create($row);
-        $this->per_year();
+
+        // Activer le mode strict des erreurs DB pour cette opération
+        $this->db->db_debug = FALSE;
+
+        $result = $this->gvv_model->create($row);
+
+        // Vérifier s'il y a une erreur de base de données (CodeIgniter 2.x)
+        $db_error_msg = $this->db->_error_message();
+        $db_error_num = $this->db->_error_number();
+
+        if (!empty($db_error_msg) || !empty($db_error_num)) {
+            $error_text = "Error #$db_error_num: $db_error_msg";
+            log_message('error', "Database error creating licence: " . $error_text);
+
+            if ($is_ajax) {
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => false,
+                    'error' => 'Erreur de base de données: ' . $db_error_msg
+                ));
+                exit();
+            } else {
+                show_error('Erreur lors de la création de la licence: ' . $error_text);
+            }
+        }
+
+        // Si c'est une requête AJAX, retourner JSON
+        if ($is_ajax) {
+            // Nettoyer tout output précédent
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => true, 'data' => $row));
+            exit(); // Important : arrêter l'exécution pour éviter tout output supplémentaire
+        } else {
+            $this->per_year();
+        }
     }
 
     /**
@@ -84,12 +131,56 @@ class Licences extends Gvv_Controller {
      * @param unknown_type $type
      */
     public function switch_it($pilote, $year, $type = 0) {
-        $this->gvv_model->delete(array (
+        // Détection AJAX - vérifier le header directement car is_ajax_request() peut échouer
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        log_message('debug', "Licences::switch_it - pilote=$pilote, year=$year, type=$type, ajax=" . ($is_ajax ? 'YES' : 'NO'));
+
+        // Activer le mode strict des erreurs DB pour cette opération
+        $this->db->db_debug = FALSE;
+
+        $result = $this->gvv_model->delete(array (
                 'pilote' => $pilote,
                 'year' => $year,
                 'type' => $type
         ));
-        $this->per_year();
+
+        // Vérifier s'il y a une erreur de base de données (CodeIgniter 2.x)
+        $db_error_msg = $this->db->_error_message();
+        $db_error_num = $this->db->_error_number();
+
+        if (!empty($db_error_msg) || !empty($db_error_num)) {
+            $error_text = "Error #$db_error_num: $db_error_msg";
+            log_message('error', "Database error deleting licence: " . $error_text);
+
+            if ($is_ajax) {
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                header('Content-Type: application/json');
+                echo json_encode(array(
+                    'success' => false,
+                    'error' => 'Erreur de base de données: ' . $db_error_msg
+                ));
+                exit();
+            } else {
+                show_error('Erreur lors de la suppression de la licence: ' . $error_text);
+            }
+        }
+
+        // Si c'est une requête AJAX, retourner JSON
+        if ($is_ajax) {
+            // Nettoyer tout output précédent
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => true));
+            exit(); // Important : arrêter l'exécution pour éviter tout output supplémentaire
+        } else {
+            $this->per_year();
+        }
     }
 
     /**

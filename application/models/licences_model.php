@@ -78,20 +78,20 @@ class Licences_model extends Common_Model {
             $pilote_line[$mlogin] = $line;
             $results[$line][$col++] = anchor(controller_url("event/page/$mlogin"), $pilote['mnom'] . ' ' . $pilote['mprenom']);
             for ($year = $min; $year <= $max; $year++) {
-                $url = controller_url("licences/set/$mlogin/$year/$type");
-                $box = anchor($url, '-');
-                $results[$line][$col++] = $box;
+                // Checkbox non cochée par défaut
+                $checkbox = '<input type="checkbox" class="licence-checkbox" data-pilote="' . $mlogin . '" data-year="' . $year . '" data-type="' . $type . '">';
+                $results[$line][$col++] = $checkbox;
             }
         }
 
         foreach ($selection as $licence) {
             $pilote = $licence['pilote'];
             $year = $licence['year'];
-            $url = controller_url("licences/switch_it/$pilote/$year/$type");
-            $box = anchor($url, $year);
+            // Checkbox cochée pour les licences existantes
+            $checkbox = '<input type="checkbox" class="licence-checkbox" data-pilote="' . $pilote . '" data-year="' . $year . '" data-type="' . $type . '" checked>';
             $col = $year - $min +1;
             if ( array_key_exists($pilote, $pilote_line) ) {
-            	$results[$pilote_line[$pilote]][$col] = $box;
+            	$results[$pilote_line[$pilote]][$col] = $checkbox;
             	$total_annuel[$col] += 1;
             }
         }
