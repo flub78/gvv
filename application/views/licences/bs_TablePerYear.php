@@ -34,71 +34,78 @@ echo heading("Licences", 3);
 // Sélecteur de type de licence
 echo licence_selector($controller, $type);
 
-// Sliders pour la plage d'années et filtre des membres
+// Filtres dans un accordion Bootstrap
 ?>
-<div class="row mb-3">
+<div class="row mb-3 mt-3">
     <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Filtres</h5>
+        <div class="accordion" id="filtersAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFilters">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="true" aria-controls="collapseFilters">
+                        Filtres
+                    </button>
+                </h2>
+                <div id="collapseFilters" class="accordion-collapse collapse show" aria-labelledby="headingFilters" data-bs-parent="#filtersAccordion">
+                    <div class="accordion-body">
+                        <!-- Filtre statut des membres -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Membres:</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="member_status" id="status_all"
+                                           value="all" <?php echo ($member_status === 'all') ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="status_all">Tous</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="member_status" id="status_inactive"
+                                           value="inactive" <?php echo ($member_status === 'inactive') ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="status_inactive">Non actif</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="member_status" id="status_active"
+                                           value="active" <?php echo ($member_status === 'active') ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="status_active">Actif</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="section_selector" class="form-label">Section:</label>
+                                <select class="form-select" id="section_selector" name="section_id">
+                                    <option value="all" <?php echo ($section_id === 'all') ? 'selected' : ''; ?>>Toutes les sections</option>
+                                    <?php foreach ($sections as $section): ?>
+                                        <option value="<?php echo $section['id']; ?>" <?php echo ($section_id == $section['id']) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($section['nom']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
 
-                <!-- Filtre statut des membres -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Membres:</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="member_status" id="status_all"
-                                   value="all" <?php echo ($member_status === 'all') ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="status_all">Tous</label>
+                        <!-- Sliders pour la plage d'années -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Plage d'années</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="year_min_slider" class="form-label">
+                                    Année de début: <span id="year_min_value"><?php echo $year_min; ?></span>
+                                </label>
+                                <input type="range" class="form-range" id="year_min_slider"
+                                       min="<?php echo $min_year_data; ?>"
+                                       max="<?php echo $current_year; ?>"
+                                       value="<?php echo $year_min; ?>"
+                                       step="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="year_max_slider" class="form-label">
+                                    Année de fin: <span id="year_max_value"><?php echo $year_max; ?></span>
+                                </label>
+                                <input type="range" class="form-range" id="year_max_slider"
+                                       min="<?php echo $min_year_data; ?>"
+                                       max="<?php echo $current_year; ?>"
+                                       value="<?php echo $year_max; ?>"
+                                       step="1">
+                            </div>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="member_status" id="status_inactive"
-                                   value="inactive" <?php echo ($member_status === 'inactive') ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="status_inactive">Non actif</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="member_status" id="status_active"
-                                   value="active" <?php echo ($member_status === 'active') ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="status_active">Actif</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="section_selector" class="form-label">Section:</label>
-                        <select class="form-select" id="section_selector" name="section_id">
-                            <option value="all" <?php echo ($section_id === 'all') ? 'selected' : ''; ?>>Toutes les sections</option>
-                            <?php foreach ($sections as $section): ?>
-                                <option value="<?php echo $section['id']; ?>" <?php echo ($section_id == $section['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($section['nom']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Sliders pour la plage d'années -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <h6>Plage d'années</h6>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="year_min_slider" class="form-label">
-                            Année de début: <span id="year_min_value"><?php echo $year_min; ?></span>
-                        </label>
-                        <input type="range" class="form-range" id="year_min_slider"
-                               min="<?php echo $min_year_data; ?>"
-                               max="<?php echo $current_year; ?>"
-                               value="<?php echo $year_min; ?>"
-                               step="1">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="year_max_slider" class="form-label">
-                            Année de fin: <span id="year_max_value"><?php echo $year_max; ?></span>
-                        </label>
-                        <input type="range" class="form-range" id="year_max_slider"
-                               min="<?php echo $min_year_data; ?>"
-                               max="<?php echo $current_year; ?>"
-                               value="<?php echo $year_max; ?>"
-                               step="1">
                     </div>
                 </div>
             </div>
