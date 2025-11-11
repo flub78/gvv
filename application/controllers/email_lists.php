@@ -757,8 +757,13 @@ class Email_lists extends Gvv_Controller
                     // Get users for this role/section
                     $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member);
                     foreach ($users as $user) {
+                        // Add primary email
                         if (!empty($user['email'])) {
                             $all_emails[] = strtolower(trim($user['email']));
+                        }
+                        // Add parent email if present
+                        if (!empty($user['memailparent'])) {
+                            $all_emails[] = strtolower(trim($user['memailparent']));
                         }
                     }
                 }
@@ -773,13 +778,27 @@ class Email_lists extends Gvv_Controller
             $this->load->model('membres_model');
             foreach ($manual_members as $membre_id) {
                 $membre = $this->membres_model->get_by_id('mlogin', $membre_id);
-                if ($membre && !empty($membre['memail'])) {
-                    $email_lower = strtolower(trim($membre['memail']));
-                    $all_emails[] = $email_lower;
-                    // Store name
+                if ($membre) {
                     $name = trim($membre['mnom'] . ' ' . $membre['mprenom']);
-                    if (!empty($name)) {
-                        $member_names[$email_lower] = $name;
+
+                    // Add primary email
+                    if (!empty($membre['memail'])) {
+                        $email_lower = strtolower(trim($membre['memail']));
+                        $all_emails[] = $email_lower;
+                        // Store name
+                        if (!empty($name)) {
+                            $member_names[$email_lower] = $name;
+                        }
+                    }
+
+                    // Add parent email if present
+                    if (!empty($membre['memailparent'])) {
+                        $parent_email_lower = strtolower(trim($membre['memailparent']));
+                        $all_emails[] = $parent_email_lower;
+                        // Store name with (parent) suffix
+                        if (!empty($name)) {
+                            $member_names[$parent_email_lower] = $name . ' (parent)';
+                        }
                     }
                 }
             }

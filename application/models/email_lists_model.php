@@ -338,7 +338,7 @@ class Email_lists_model extends CI_Model {
      * @return array Array of users with email addresses
      */
     public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active') {
-        $this->db->select('m.memail as email, m.mnom, m.mprenom, m.mlogin, m.actif');
+        $this->db->select('m.memail as email, m.memailparent, m.mnom, m.mprenom, m.mlogin, m.actif');
         $this->db->from('user_roles_per_section urps');
         $this->db->join('users u', 'urps.user_id = u.id', 'inner');
         $this->db->join('membres m', 'u.username = m.mlogin', 'inner');
@@ -425,7 +425,7 @@ class Email_lists_model extends CI_Model {
      * @return array Array of members with email addresses
      */
     public function get_manual_members($list_id) {
-        $this->db->select('elm.id, elm.membre_id, m.memail as email, m.mnom, m.mprenom, m.actif');
+        $this->db->select('elm.id, elm.membre_id, m.memail as email, m.memailparent, m.mnom, m.mprenom, m.actif');
         $this->db->from('email_list_members elm');
         $this->db->join('membres m', 'elm.membre_id = m.mlogin', 'inner');
         $this->db->where('elm.email_list_id', $list_id);
@@ -799,12 +799,30 @@ class Email_lists_model extends CI_Model {
                 $role['section_id'],
                 $list['active_member']
             );
-            $emails = array_merge($emails, $role_members);
+            foreach ($role_members as $member) {
+                // Add primary email
+                if (!empty($member['email'])) {
+                    $emails[] = array('email' => $member['email']);
+                }
+                // Add parent email if present
+                if (!empty($member['memailparent'])) {
+                    $emails[] = array('email' => $member['memailparent']);
+                }
+            }
         }
 
         // 2. Add manually selected members (table email_list_members)
         $manual_members = $this->get_manual_members($list_id);
-        $emails = array_merge($emails, $manual_members);
+        foreach ($manual_members as $member) {
+            // Add primary email
+            if (!empty($member['email'])) {
+                $emails[] = array('email' => $member['email']);
+            }
+            // Add parent email if present
+            if (!empty($member['memailparent'])) {
+                $emails[] = array('email' => $member['memailparent']);
+            }
+        }
 
         // 3. Add external emails (table email_list_external)
         $external_emails = $this->get_external_emails($list_id);
@@ -866,16 +884,30 @@ class Email_lists_model extends CI_Model {
                 $list['active_member']
             );
             foreach ($role_members as $user) {
+                $name = trim($user['mnom'] . ' ' . $user['mprenom']);
+                
+                // Add primary email
                 if (!empty($user['email'])) {
                     $email_lower = strtolower(trim($user['email']));
                     $all_emails[] = $email_lower;
                     // Store name from members
-                    $name = trim($user['mnom'] . ' ' . $user['mprenom']);
                     if (!empty($name)) {
                         $member_names[$email_lower] = $name;
                     }
                     // Store role name as source
                     $email_sources[$email_lower] = $role['role_name'];
+                }
+                
+                // Add parent email
+                if (!empty($user['memailparent'])) {
+                    $parent_email_lower = strtolower(trim($user['memailparent']));
+                    $all_emails[] = $parent_email_lower;
+                    // Store name from members (parent email linked to same member)
+                    if (!empty($name)) {
+                        $member_names[$parent_email_lower] = $name . ' (parent)';
+                    }
+                    // Store role name as source
+                    $email_sources[$parent_email_lower] = $role['role_name'];
                 }
             }
         }
@@ -883,18 +915,35 @@ class Email_lists_model extends CI_Model {
         // 2. Add manually selected members (table email_list_members)
         $manual_members = $this->get_manual_members($list_id);
         foreach ($manual_members as $member) {
+            $name = trim($member['mnom'] . ' ' . $member['mprenom']);
+            
+            // Add primary email
             if (!empty($member['email'])) {
                 $email_lower = strtolower(trim($member['email']));
                 $all_emails[] = $email_lower;
                 $manual_emails_set[$email_lower] = true; // Mark as manual
                 // Store name from members
-                $name = trim($member['mnom'] . ' ' . $member['mprenom']);
                 if (!empty($name)) {
                     $member_names[$email_lower] = $name;
                 }
                 // Only set source if not already set by role
                 if (!isset($email_sources[$email_lower])) {
                     $email_sources[$email_lower] = 'membre';
+                }
+            }
+            
+            // Add parent email
+            if (!empty($member['memailparent'])) {
+                $parent_email_lower = strtolower(trim($member['memailparent']));
+                $all_emails[] = $parent_email_lower;
+                $manual_emails_set[$parent_email_lower] = true; // Mark as manual
+                // Store name from members (parent email linked to same member)
+                if (!empty($name)) {
+                    $member_names[$parent_email_lower] = $name . ' (parent)';
+                }
+                // Only set source if not already set by role
+                if (!isset($email_sources[$parent_email_lower])) {
+                    $email_sources[$parent_email_lower] = 'membre';
                 }
             }
         }

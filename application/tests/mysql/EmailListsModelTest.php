@@ -2,6 +2,18 @@
 
 use PHPUnit\Framework\TestCase;
 
+
+/**
+ * Test that parent emails (memailparent) are included in email lists
+ * when members are selected through roles or manual selection.
+ *
+ * Requirements:
+ * - When a member with memailparent is selected by role, both memail and memailparent should be in the list
+ * - When a member with memailparent is manually selected, both emails should be in the list
+ * - Parent emails should be deduplicated properly
+ * - When member/role is removed, both emails should be removed
+ */
+
 /**
  * MySQL integration tests for Email_lists_model
  *
@@ -16,7 +28,7 @@ class EmailListsModelTest extends TestCase
     protected $CI;
     protected $model;
     protected $test_list_id;
-    protected $test_user_id = 1; // Assuming user ID 1 exists
+    protected $test_user_id = null;
 
     protected function setUp(): void
     {
@@ -27,6 +39,15 @@ class EmailListsModelTest extends TestCase
         $this->CI->load->database();
         $this->CI->load->model('email_lists_model');
         $this->model = $this->CI->email_lists_model;
+
+        // Get a real user ID from the database
+        $result = $this->CI->db->query("SELECT id FROM users LIMIT 1");
+        $user = $result->row_array();
+        if ($user) {
+            $this->test_user_id = $user['id'];
+        } else {
+            $this->test_user_id = 1; // Fallback
+        }
 
         // Clean up any test data from previous runs
         $this->cleanupTestData();
@@ -41,8 +62,8 @@ class EmailListsModelTest extends TestCase
     protected function cleanupTestData()
     {
         // Delete test lists (cascades to roles, members, external)
-        $this->CI->db->where('name LIKE', 'TEST_%');
-        $this->CI->db->delete('email_lists');
+        // Use query() instead of where() to handle LIKE properly
+        $this->CI->db->query("DELETE FROM email_lists WHERE name LIKE 'TEST_%'");
     }
 
     // ========================================================================
@@ -528,5 +549,201 @@ class EmailListsModelTest extends TestCase
             $this->assertArrayHasKey('id', $section);
             $this->assertArrayHasKey('nom', $section);
         }
+    }
+
+    // ========================================================================
+    // Parent Email Tests (memailparent)
+    // ========================================================================
+
+    public function testParentEmail_IncludedInRoleSelection()
+    {
+        // Find a member with a parent email or create test data
+        $result = $this->CI->db->query(
+            "SELECT mlogin, memail, memailparent FROM membres
+             WHERE memailparent IS NOT NULL AND memailparent != '' AND actif = 1
+             LIMIT 1"
+        );
+        $membre_with_parent = $result->row_array();
+
+        if (empty($membre_with_parent)) {
+            $this->markTestSkipped('No active member with parent email found in database');
+        }
+
+        // Get roles and sections for this member
+        $user_query = $this->CI->db->select('u.id, urps.types_roles_id, urps.section_id')
+            ->from('users u')
+            ->join('user_roles_per_section urps', 'u.id = urps.user_id', 'inner')
+            ->where('u.username', $membre_with_parent['mlogin'])
+            ->where('urps.revoked_at IS NULL')
+            ->limit(1)
+            ->get();
+
+        if ($user_query->num_rows() == 0) {
+            $this->markTestSkipped('No role assignment found for member with parent email');
+        }
+
+        $user_role = $user_query->row_array();
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_ParentEmailRole',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Add the role to the list
+        $this->model->add_role_to_list($list_id, $user_role['types_roles_id'], $user_role['section_id']);
+
+        // Resolve the list
+        $emails = $this->model->textual_list($list_id);
+
+        // Both primary and parent email should be in the list
+        $primary_email_found = false;
+        $parent_email_found = false;
+
+        foreach ($emails as $email) {
+            if (strcasecmp($email, $membre_with_parent['memail']) === 0) {
+                $primary_email_found = true;
+            }
+            if (strcasecmp($email, $membre_with_parent['memailparent']) === 0) {
+                $parent_email_found = true;
+            }
+        }
+
+        $this->assertTrue($primary_email_found, 'Primary email should be in the list');
+        $this->assertTrue($parent_email_found, 'Parent email should be in the list when member is selected by role');
+    }
+
+    public function testParentEmail_IncludedInManualSelection()
+    {
+        // Find a member with a parent email
+        $result = $this->CI->db->query(
+            "SELECT mlogin, memail, memailparent FROM membres
+             WHERE memailparent IS NOT NULL AND memailparent != '' AND actif = 1
+             LIMIT 1"
+        );
+        $membre_with_parent = $result->row_array();
+
+        if (empty($membre_with_parent)) {
+            $this->markTestSkipped('No active member with parent email found in database');
+        }
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_ParentEmailManual',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Manually add the member
+        $this->model->add_manual_member($list_id, $membre_with_parent['mlogin']);
+
+        // Resolve the list
+        $emails = $this->model->textual_list($list_id);
+
+        // Both primary and parent email should be in the list
+        $primary_email_found = false;
+        $parent_email_found = false;
+
+        foreach ($emails as $email) {
+            if (strcasecmp($email, $membre_with_parent['memail']) === 0) {
+                $primary_email_found = true;
+            }
+            if (strcasecmp($email, $membre_with_parent['memailparent']) === 0) {
+                $parent_email_found = true;
+            }
+        }
+
+        $this->assertTrue($primary_email_found, 'Primary email should be in the list');
+        $this->assertTrue($parent_email_found, 'Parent email should be in the list when member is manually selected');
+    }
+
+    public function testParentEmail_DeduplicationWorks()
+    {
+        // Find a member with a parent email
+        $result = $this->CI->db->query(
+            "SELECT mlogin, memail, memailparent FROM membres
+             WHERE memailparent IS NOT NULL AND memailparent != '' AND actif = 1
+             LIMIT 1"
+        );
+        $membre_with_parent = $result->row_array();
+
+        if (empty($membre_with_parent)) {
+            $this->markTestSkipped('No active member with parent email found in database');
+        }
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_ParentEmailDedup',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Add member manually
+        $this->model->add_manual_member($list_id, $membre_with_parent['mlogin']);
+
+        // Also add parent email as external (should be deduplicated)
+        $this->model->add_external_email($list_id, $membre_with_parent['memailparent']);
+
+        // Resolve the list
+        $emails = $this->model->textual_list($list_id);
+
+        // Count occurrences of parent email
+        $parent_count = 0;
+        foreach ($emails as $email) {
+            if (strcasecmp($email, $membre_with_parent['memailparent']) === 0) {
+                $parent_count++;
+            }
+        }
+
+        // Parent email should appear exactly once (deduplicated)
+        $this->assertEquals(1, $parent_count, 'Parent email should be deduplicated when added from multiple sources');
+    }
+
+    public function testParentEmail_IncludedInDetailedList()
+    {
+        // Find a member with a parent email
+        $result = $this->CI->db->query(
+            "SELECT mlogin, memail, memailparent, mnom, mprenom FROM membres
+             WHERE memailparent IS NOT NULL AND memailparent != '' AND actif = 1
+             LIMIT 1"
+        );
+        $membre_with_parent = $result->row_array();
+
+        if (empty($membre_with_parent)) {
+            $this->markTestSkipped('No active member with parent email found in database');
+        }
+
+        // Create a test list
+        $list_id = $this->model->create_list(array(
+            'name' => 'TEST_ParentEmailDetailed',
+            'created_by' => $this->test_user_id
+        ));
+        $this->test_list_id = $list_id;
+
+        // Manually add the member
+        $this->model->add_manual_member($list_id, $membre_with_parent['mlogin']);
+
+        // Get detailed list
+        $detailed = $this->model->detailed_list($list_id);
+
+        // Find both emails in the detailed list
+        $primary_found = false;
+        $parent_found = false;
+
+        foreach ($detailed as $item) {
+            if (strcasecmp($item['email'], $membre_with_parent['memail']) === 0) {
+                $primary_found = true;
+                $this->assertEquals('membre', $item['source']);
+            }
+            if (strcasecmp($item['email'], $membre_with_parent['memailparent']) === 0) {
+                $parent_found = true;
+                $this->assertEquals('membre', $item['source']);
+                $this->assertStringContainsString('parent', strtolower($item['name']));
+            }
+        }
+
+        $this->assertTrue($primary_found, 'Primary email should be in detailed list');
+        $this->assertTrue($parent_found, 'Parent email should be in detailed list');
     }
 }

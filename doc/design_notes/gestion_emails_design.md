@@ -38,14 +38,15 @@
       - [Table: `email_list_external`](#table-email_list_external)
     - [2.2 Diagramme ER](#22-diagramme-er)
     - [2.3 Types de source d'adresse](#23-types-de-source-dadresse)
-    - [2.4 Extension de la table `types_roles` pour les couleurs](#24-extension-de-la-table-types_roles-pour-les-couleurs)
+    - [2.4 Gestion des fichiers uploadés](#24-gestion-des-fichiers-uploadés)
+    - [2.5 Extension future (réservée)](#25-extension-future-réservée)
   - [3. Composants applicatifs](#3-composants-applicatifs)
     - [3.1 Controller: `application/controllers/email_lists.php`](#31-controller-applicationcontrollersemail_listsphp)
     - [3.2 Model: `application/models/email_lists_model.php`](#32-model-applicationmodelsemail_lists_modelphp)
     - [3.3 Helper: `application/helpers/email_helper.php`](#33-helper-applicationhelpersemail_helperphp)
     - [3.4 Views](#34-views)
     - [3.5 JavaScript: `assets/js/email_lists.js`](#35-javascript-assetsjsemail_listsjs)
-  - [4. Système de codage couleur (PRD 4.2.4)](#4-système-de-codage-couleur-prd-424)
+  - [4. Système de codage couleur ~~(SUPPRIMÉ v1.3)~~](#4-système-de-codage-couleur-supprimé-v13)
     - [4.1 Vue d'ensemble](#41-vue-densemble)
     - [4.2 Application des couleurs](#42-application-des-couleurs)
     - [4.3 Attribution des couleurs de rôle](#43-attribution-des-couleurs-de-rôle)
@@ -53,7 +54,7 @@
     - [4.5 Responsabilités par composant](#45-responsabilités-par-composant)
   - [5. Metadata (Gvvmetadata.php)](#5-metadata-gvvmetadataphp)
   - [5. Flux de données](#5-flux-de-données)
-    - [5.1 Création d'une liste par critères](#51-création-dune-liste-par-critères)
+    - [5.1 Création d'une liste - Workflow v1.4](#51-création-dune-liste---workflow-v14)
     - [5.2 Export vers fichier TXT](#52-export-vers-fichier-txt)
     - [5.3 Résolution complète avec dédoublonnage](#53-résolution-complète-avec-dédoublonnage)
   - [6. Décisions d'architecture](#6-décisions-darchitecture)
@@ -258,21 +259,10 @@ Une liste contient:
 
 **Stockage physique:**
 - **Répertoire permanent:** `/uploads/email_lists/[list_id]/`
-- **Répertoire temporaire:** `/uploads/email_lists/tmp/[session_id]/` (mode création)
 - **Nommage:** `[timestamp]_[original_filename]` pour éviter collisions
 - **Permissions:** 644 (lecture seule après création)
 - **Formats acceptés:** `.txt`, `.csv`
 
-**Workflow d'import (mode création - avant sauvegarde liste):**
-1. Upload fichier → validation format
-2. Stockage temporaire dans `/uploads/email_lists/tmp/[session_id]/`
-3. Parse contenu → extraction email + nom
-4. Validation adresses → rapport d'erreurs
-5. Adresses stockées en session ou variable temporaire
-6. À la sauvegarde de la liste:
-   - Création du `list_id`
-   - Déplacement des fichiers de `tmp/[session_id]/` vers `[list_id]/`
-   - Insertion en base avec `source_file = nom_fichier` et `email_list_id`
 
 **Workflow d'import (mode édition - liste existante):**
 1. Upload fichier → validation format
