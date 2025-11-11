@@ -34,14 +34,52 @@ echo heading("Licences", 3);
 // Sélecteur de type de licence
 echo licence_selector($controller, $type);
 
-// Sliders pour la plage d'années
+// Sliders pour la plage d'années et filtre des membres
 ?>
 <div class="row mb-3">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Plage d'années</h5>
+                <h5 class="card-title">Filtres</h5>
+
+                <!-- Filtre statut des membres -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Membres:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="member_status" id="status_all"
+                                   value="all" <?php echo ($member_status === 'all') ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="status_all">Tous</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="member_status" id="status_inactive"
+                                   value="inactive" <?php echo ($member_status === 'inactive') ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="status_inactive">Non actif</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="member_status" id="status_active"
+                                   value="active" <?php echo ($member_status === 'active') ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="status_active">Actif</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="section_selector" class="form-label">Section:</label>
+                        <select class="form-select" id="section_selector" name="section_id">
+                            <option value="all" <?php echo ($section_id === 'all') ? 'selected' : ''; ?>>Toutes les sections</option>
+                            <?php foreach ($sections as $section): ?>
+                                <option value="<?php echo $section['id']; ?>" <?php echo ($section_id == $section['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($section['nom']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sliders pour la plage d'années -->
                 <div class="row">
+                    <div class="col-md-12">
+                        <h6>Plage d'années</h6>
+                    </div>
                     <div class="col-md-6">
                         <label for="year_min_slider" class="form-label">
                             Année de début: <span id="year_min_value"><?php echo $year_min; ?></span>
@@ -163,6 +201,58 @@ $(document).ready(function() {
     yearMaxSlider.on('input', updateYearDisplay);
     yearMinSlider.on('change', handleSliderChange);
     yearMaxSlider.on('change', handleSliderChange);
+
+    // Gestionnaire pour les changements de statut de membre
+    $('input[name="member_status"]').on('change', function() {
+        var status = $(this).val();
+
+        // Envoyer la requête AJAX pour mettre à jour le statut
+        $.ajax({
+            url: '<?php echo base_url(); ?>licences/set_member_status/' + status,
+            type: 'GET',
+            dataType: 'json',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Recharger la page pour afficher les nouveaux membres
+                    window.location.reload();
+                } else {
+                    console.error('Erreur lors de la mise à jour du statut');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erreur AJAX:', error);
+            }
+        });
+    });
+
+    // Gestionnaire pour les changements de section
+    $('#section_selector').on('change', function() {
+        var sectionId = $(this).val();
+
+        // Envoyer la requête AJAX pour mettre à jour la section
+        $.ajax({
+            url: '<?php echo base_url(); ?>licences/set_section/' + sectionId,
+            type: 'GET',
+            dataType: 'json',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Recharger la page pour afficher les membres de la section
+                    window.location.reload();
+                } else {
+                    console.error('Erreur lors de la mise à jour de la section');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erreur AJAX:', error);
+            }
+        });
+    });
 
     // Fonction pour mettre à jour les totaux
     function updateTotals() {

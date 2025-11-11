@@ -31,16 +31,33 @@ class Licences_model extends Common_Model {
      * @param int $type Type de licence
      * @param int|null $year_min Année de début (null = auto)
      * @param int|null $year_max Année de fin (null = auto)
+     * @param string $member_status Status des membres ('all', 'active', 'inactive')
+     * @param int|null $section_id ID de la section (null = toutes les sections)
      * @return array Array avec 'data' (lignes de la table) et 'total' (ligne de total)
      */
-    public function per_year($type, $year_min = null, $year_max = null) {
+    public function per_year($type, $year_min = null, $year_max = null, $member_status = 'active', $section_id = null) {
 
-        // Liste de pilotes actifs.
-        $select = 'mlogin, mnom, mprenom, m25ans';
-        $actifs = $this->db->select($select)->from("membres,licences")
-        ->where("membres.mlogin = licences.pilote")
-        ->group_by("membres.mlogin")
-        ->order_by("mnom, mprenom")->get()->result_array();
+        // Liste de pilotes selon le statut demandé
+        $this->db->distinct();
+        $this->db->select('membres.mlogin, membres.mnom, membres.mprenom, membres.m25ans, membres.actif');
+        $this->db->from("membres");
+
+        // Si un filtre de section est appliqué, joindre avec la table comptes
+        if ($section_id !== null && $section_id !== 'all') {
+            $this->db->join("comptes", "membres.mlogin = comptes.pilote", "inner");
+            $this->db->where('comptes.club', $section_id);
+            $this->db->where('comptes.codec', '411');
+        }
+
+        // Filtrer selon le statut des membres
+        if ($member_status === 'active') {
+            $this->db->where('membres.actif', 1);
+        } elseif ($member_status === 'inactive') {
+            $this->db->where('membres.actif', 0);
+        }
+        // Si 'all', pas de filtre sur actif
+
+        $actifs = $this->db->order_by("membres.mnom, membres.mprenom")->get()->result_array();
 
         // extraction des licences
         $selection = $this->select_columns('id, pilote, type, year, date, comment', 1000000, 0, array (

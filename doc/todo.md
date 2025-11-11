@@ -42,7 +42,7 @@
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
-* [] Corriger la gestion des licences et cotisations
+
 
 * [] Import des informations planeur dans les vols de découverte
   
@@ -190,4 +190,7 @@
 * [x] Support du markdown
 * [x] Images de configuration
 * [x] Vérifier les photos des membres sur le site déployé
-
+* [x] Amélioration de la gestion des licences
+  * [x] Vérifier la création et la mise à jour des licences
+  * [x] Ajouter des tests pour la gestion des licences
+  * [x] Améliorer l'interface utilisateur pour la gestion des licences

@@ -58,7 +58,7 @@ class Licences extends Gvv_Controller {
         // Gestion de la plage d'années
         $current_year = (int)date("Y");
         $min_year_data = $this->gvv_model->get_min_year();
-        
+
         // Initialiser les valeurs par défaut si pas encore définies
         if (!$this->session->userdata('licence_year_min')) {
             $this->session->set_userdata('licence_year_min', $current_year - 5);
@@ -66,18 +66,33 @@ class Licences extends Gvv_Controller {
         if (!$this->session->userdata('licence_year_max')) {
             $this->session->set_userdata('licence_year_max', $current_year);
         }
+        if (!$this->session->userdata('licence_member_status')) {
+            $this->session->set_userdata('licence_member_status', 'active');
+        }
+        if (!$this->session->userdata('licence_section_id')) {
+            $this->session->set_userdata('licence_section_id', 'all');
+        }
 
         $year_min = (int)$this->session->userdata('licence_year_min');
         $year_max = (int)$this->session->userdata('licence_year_max');
+        $member_status = $this->session->userdata('licence_member_status');
+        $section_id = $this->session->userdata('licence_section_id');
+
+        // Charger la liste des sections
+        $this->load->model('sections_model');
+        $sections = $this->sections_model->section_list();
 
         // Passer les données à la vue
         $data['year_min'] = $year_min;
         $data['year_max'] = $year_max;
         $data['min_year_data'] = $min_year_data;
         $data['current_year'] = $current_year;
+        $data['member_status'] = $member_status;
+        $data['section_id'] = $section_id;
+        $data['sections'] = $sections;
 
         // Récupérer les données et le total séparément
-        $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max);
+        $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max, $member_status, $section_id);
         $data['table'] = $result['data'];
         $data['total'] = $result['total'];
 
@@ -252,6 +267,71 @@ class Licences extends Gvv_Controller {
                 'success' => true,
                 'year_min' => $year_min,
                 'year_max' => $year_max
+            ));
+            exit();
+        } else {
+            redirect(controller_url("licences/per_year"));
+        }
+    }
+
+    /**
+     * Met à jour le statut des membres à afficher
+     *
+     * @param string $status Statut ('all', 'active', 'inactive')
+     */
+    public function set_member_status($status) {
+        // Validation : seulement les valeurs autorisées
+        $allowed = array('all', 'active', 'inactive');
+        if (!in_array($status, $allowed)) {
+            $status = 'active';
+        }
+
+        $this->session->set_userdata('licence_member_status', $status);
+
+        // Si c'est une requête AJAX, retourner JSON
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        if ($is_ajax) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                'success' => true,
+                'member_status' => $status
+            ));
+            exit();
+        } else {
+            redirect(controller_url("licences/per_year"));
+        }
+    }
+
+    /**
+     * Met à jour la section à afficher
+     *
+     * @param string $section_id ID de la section ou 'all'
+     */
+    public function set_section($section_id) {
+        // Validation : 'all' ou un ID numérique
+        if ($section_id !== 'all' && !is_numeric($section_id)) {
+            $section_id = 'all';
+        }
+
+        $this->session->set_userdata('licence_section_id', $section_id);
+
+        // Si c'est une requête AJAX, retourner JSON
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        if ($is_ajax) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array(
+                'success' => true,
+                'section_id' => $section_id
             ));
             exit();
         } else {
