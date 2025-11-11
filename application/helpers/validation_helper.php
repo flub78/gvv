@@ -317,6 +317,9 @@ if (! function_exists('clean_currency_input')) {
         
         // Supprime les caractères de devise (€, $, £, ¥, etc.)
         $cleaned = preg_replace('/[€$£¥₹₽]/u', '', $cleaned);
+
+        // remplace ':' par '.' pour les cas où l'utilisateur utilise ce séparateur
+        $cleaned = str_replace(':', '.', $cleaned);
         
         // Supprime les caractères non numériques sauf les points et virgules
         $cleaned = preg_replace('/[^0-9.,]/', '', $cleaned);

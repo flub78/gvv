@@ -8,6 +8,7 @@
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [] Les membres du CA ne peuvent pas modifier les droits
+* [] Des cas de double facturation avion
 
 ## Reste à faire
 
@@ -25,7 +26,6 @@
     
 * [] Création d'une vue planche ULM ()
   
-  
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
   * [] donner les droits dans les controllers
@@ -40,7 +40,7 @@
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
-* [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant?
+* [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Corriger la gestion des licences et cotisations
 
@@ -69,7 +69,7 @@
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 * [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
-* [] IA revues et refactoring
+* [] IA revues de code et refactoring
 * [] Check translations completeness
 * [] Corriger les tests qui ne passent pas
 * [] Redéployer un serveur CI/CD fonctionnel
