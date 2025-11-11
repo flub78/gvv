@@ -572,18 +572,12 @@ class Email_lists_model extends CI_Model {
             return $result;
         }
 
-        // Parse based on extension
-        if ($ext === 'txt') {
-            $parsed = parse_text_emails($content);
-        } else {
-            // CSV with auto-detection of columns
-            $config = array(
-                'email_column' => 0,  // Will be auto-detected
-                'name_column' => 1,
-                'has_header' => TRUE
-            );
-            $parsed = parse_csv_emails($content, $config);
-        }
+        // Use unified parser - it will auto-detect format (CSV vs plain text)
+        $options = array(
+            'allow_csv' => true,
+            'delimiter' => null  // Auto-detect
+        );
+        $parsed = parse_email_string($content, $options);
 
         // Generate unique filename for storage
         $unique_filename = date('YmdHis') . '_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $file['name']);
@@ -594,10 +588,18 @@ class Email_lists_model extends CI_Model {
 
         foreach ($parsed as $item) {
             if (empty($item['error'])) {
+                // Use display_name for CSV (firstname + lastname), otherwise use name
+                $name = '';
+                if (isset($item['display_name']) && !empty($item['display_name'])) {
+                    $name = $item['display_name'];
+                } elseif (isset($item['name']) && !empty($item['name'])) {
+                    $name = $item['name'];
+                }
+
                 $data = array(
                     'email_list_id' => $list_id,
                     'external_email' => normalize_email($item['email']),
-                    'external_name' => isset($item['name']) ? $item['name'] : NULL,
+                    'external_name' => $name,
                     'source_file' => $unique_filename
                 );
 

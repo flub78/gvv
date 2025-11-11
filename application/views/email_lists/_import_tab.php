@@ -39,45 +39,40 @@ if ($list_id && isset($list['id'])) {
             <?= $this->lang->line("email_lists_import_files_help") ?>
         </p>
 
-        <!-- File upload form (simple form submission) -->
+        <!-- File upload (NOT a form - handled by JavaScript to avoid nesting) -->
         <div class="mb-4">
-            <form action="<?= controller_url($controller) ?>/upload_file/<?= $list_id ?>" 
-                  method="post" 
-                  enctype="multipart/form-data"
-                  <?= !$list_id ? 'style="opacity:0.5;pointer-events:none;"' : '' ?>>
-                
-                <label for="file_upload" class="form-label">
-                    <?= $this->lang->line("email_lists_choose_file") ?>
-                </label>
-                
-                <div class="input-group">
-                    <input type="file"
-                           class="form-control"
-                           id="file_upload"
-                           name="uploaded_file"
-                           accept=".txt,.csv"
-                           <?= !$list_id ? 'disabled' : '' ?>>
-                    <button type="submit"
-                            class="btn btn-primary"
-                            id="upload_button"
-                            <?= !$list_id ? 'disabled' : '' ?>>
-                        <i class="bi bi-cloud-upload"></i>
-                        <?= $this->lang->line("email_lists_upload_button") ?>
-                    </button>
+            <label for="file_upload" class="form-label">
+                <?= $this->lang->line("email_lists_choose_file") ?>
+            </label>
+
+            <div class="input-group">
+                <input type="file"
+                       class="form-control"
+                       id="file_upload"
+                       name="uploaded_file"
+                       accept=".txt,.csv"
+                       <?= !$list_id ? 'disabled' : '' ?>>
+                <button type="button"
+                        class="btn btn-primary"
+                        id="upload_button"
+                        onclick="uploadEmailFile(<?= $list_id ?>)"
+                        <?= !$list_id ? 'disabled' : '' ?>>
+                    <i class="bi bi-cloud-upload"></i>
+                    <?= $this->lang->line("email_lists_upload_button") ?>
+                </button>
+            </div>
+
+            <?php if (!$list_id): ?>
+                <div class="alert alert-warning mt-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <?= $this->lang->line("email_lists_save_before_upload") ?>
                 </div>
-                
-                <?php if (!$list_id): ?>
-                    <div class="alert alert-warning mt-2">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <?= $this->lang->line("email_lists_save_before_upload") ?>
-                    </div>
-                <?php endif; ?>
-                
-                <small class="text-muted">
-                    <i class="bi bi-info-circle"></i>
-                    <?= $this->lang->line("email_lists_accepted_formats") ?>: .txt, .csv
-                </small>
-            </form>
+            <?php endif; ?>
+
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                <?= $this->lang->line("email_lists_accepted_formats") ?>: .txt, .csv
+            </small>
         </div>
 
         <!-- Upload progress/status -->
@@ -115,17 +110,12 @@ if ($list_id && isset($list['id'])) {
                                     </span>
                                 </p>
                             </div>
-                            <form method="post" 
-                                  action="<?= controller_url($controller) ?>/delete_file/<?= $list_id ?>"
-                                  style="display: inline-block;"
-                                  onsubmit="return confirm('<?= $this->lang->line("email_lists_confirm_delete_file") ?>');">
-                                <input type="hidden" name="filename" value="<?= htmlspecialchars($file['filename']) ?>">
-                                <button type="submit"
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="<?= $this->lang->line("email_lists_delete_file") ?>">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="<?= $this->lang->line("email_lists_delete_file") ?>"
+                                    onclick="deleteEmailFile(<?= $list_id ?>, '<?= htmlspecialchars($file['filename'], ENT_QUOTES) ?>')">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -136,27 +126,56 @@ if ($list_id && isset($list['id'])) {
 </div>
 
 <script>
-// Make file upload required only when clicking the upload button
-document.addEventListener('DOMContentLoaded', function() {
-    var uploadButton = document.getElementById('upload_button');
+/**
+ * Upload email file
+ * Creates a temporary form and submits it to avoid form nesting issues
+ */
+function uploadEmailFile(listId) {
     var fileInput = document.getElementById('file_upload');
-    
-    if (uploadButton && fileInput) {
-        // Make file required when clicking upload button
-        uploadButton.addEventListener('click', function(e) {
-            fileInput.setAttribute('required', 'required');
-        });
-        
-        // Remove required when submitting the main form (not the upload)
-        var mainForm = document.getElementById('email_list_form');
-        if (mainForm) {
-            mainForm.addEventListener('submit', function(e) {
-                // Only remove required if we're not uploading
-                if (!e.submitter || e.submitter.id !== 'upload_button') {
-                    fileInput.removeAttribute('required');
-                }
-            });
-        }
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert('<?= $this->lang->line("email_lists_choose_file") ?>');
+        return;
     }
-});
+
+    // Create a temporary form element
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '<?= controller_url($controller) ?>/upload_file/' + listId;
+    form.enctype = 'multipart/form-data';
+    form.style.display = 'none';
+
+    // Move the file input to the new form (this preserves the file selection)
+    form.appendChild(fileInput);
+
+    // Add form to body and submit
+    document.body.appendChild(form);
+    form.submit();
+}
+
+/**
+ * Delete email file
+ * Creates a temporary form and submits it to avoid form nesting issues
+ */
+function deleteEmailFile(listId, filename) {
+    if (!confirm('<?= $this->lang->line("email_lists_confirm_delete_file") ?>')) {
+        return;
+    }
+
+    // Create a temporary form
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '<?= controller_url($controller) ?>/delete_file/' + listId;
+
+    // Add filename as hidden input
+    var filenameInput = document.createElement('input');
+    filenameInput.type = 'hidden';
+    filenameInput.name = 'filename';
+    filenameInput.value = filename;
+    form.appendChild(filenameInput);
+
+    // Add form to body and submit
+    document.body.appendChild(form);
+    form.submit();
+}
 </script>

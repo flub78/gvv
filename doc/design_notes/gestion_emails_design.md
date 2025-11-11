@@ -264,13 +264,15 @@ Une liste contient:
 - **Formats acceptés:** `.txt`, `.csv`
 
 
-**Workflow d'import (mode édition - liste existante):**
+**Workflow d'import (mode édition uniquement - liste existante):**
 1. Upload fichier → validation format
-2. Stockage direct dans `/uploads/email_lists/[list_id]/`
+2. Stockage direct et permanent dans `/uploads/email_lists/[list_id]/`
 3. Parse contenu → extraction email + nom
 4. Validation adresses → rapport d'erreurs
 5. Insertion immédiate en base avec `source_file = nom_fichier`
 6. Conservation du fichier pour traçabilité
+
+**Note:** L'upload de fichiers n'est disponible qu'en mode modification (après création de la liste). Pas de stockage temporaire.
 
 **Workflow de suppression:**
 1. Utilisateur clique sur icône poubelle du fichier
@@ -278,10 +280,6 @@ Une liste contient:
 3. Suppression de toutes les lignes `email_list_external` WHERE `source_file = nom_fichier`
 4. Suppression du fichier physique
 5. Mise à jour de la preview en temps réel
-
-**Nettoyage automatique:**
-- Job périodique (cron) supprime les fichiers dans `/uploads/email_lists/tmp/` datant de plus de 2 jours
-- Évite l'accumulation de fichiers orphelins si l'utilisateur abandonne la création
 
 **Avantages:**
 - Traçabilité complète (quel fichier a ajouté quelle adresse)
@@ -408,6 +406,10 @@ class Email_lists_model extends CI_Model {
     public function update_list($id, $data)
     public function delete_list($id)
     public function get_user_lists($user_id)
+
+    // Note: get_users_by_role_and_section() et get_manual_members()
+    // retournent membres.memail ET membres.memailparent
+    // Les deux adresses sont ajoutées à la liste si memailparent est défini
 
     // Gestion des rôles (table email_list_roles)
     public function add_role_to_list($list_id, $types_roles_id, $section_id)

@@ -25,6 +25,12 @@ if (!function_exists('validate_email')) {
         if (empty($email)) {
             return FALSE;
         }
+
+        // Handle "Name <email@example.com>" format
+        if (preg_match('/<(.+)>/', $email, $matches)) {
+            $email = trim($matches[1]);
+        }
+
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== FALSE;
     }
 }
@@ -221,6 +227,79 @@ if (!function_exists('generate_mailto')) {
 }
 
 /**
+ * Parse email string - Universal parser for all email input formats
+ * Handles:
+ * - Simple emails: test@example.com
+ * - Named emails: John Doe <john@example.com>
+ * - CSV format: email,name or email;name
+ * - Multiple emails per line (comma or semicolon separated)
+ * - Multiple lines
+ *
+ * @param string $content Text content with emails
+ * @param array $options Options:
+ *   - 'allow_csv' => bool - Try to detect and parse as CSV (default: true)
+ *   - 'delimiter' => string - CSV delimiter if known (default: auto-detect)
+ * @return array Array of parsed emails with metadata (email, name, valid, error, line)
+ */
+if (!function_exists('parse_email_string')) {
+    function parse_email_string($content, $options = array()) {
+        if (empty($content)) {
+            return array();
+        }
+
+        $allow_csv = isset($options['allow_csv']) ? $options['allow_csv'] : true;
+        $delimiter = isset($options['delimiter']) ? $options['delimiter'] : null;
+
+        // Detect if content looks like CSV
+        // CSV detection: line must have delimiter but NOT be in "Name <email>" format
+        $is_csv = false;
+        if ($allow_csv) {
+            $first_lines = array_slice(explode("\n", $content), 0, 5);
+            $csv_count = 0;
+            $total_lines = 0;
+
+            foreach ($first_lines as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+                $total_lines++;
+
+                // Check if line has delimiter AND is not "Name <email>" format
+                if ((strpos($line, ',') !== false || strpos($line, ';') !== false) &&
+                    !preg_match('/^[^<>]+<[^>]+>$/', $line)) {
+                    $csv_count++;
+                }
+            }
+
+            // If more than 60% of lines look like CSV, treat as CSV
+            if ($total_lines > 0 && ($csv_count / $total_lines) > 0.6) {
+                $is_csv = true;
+            }
+        }
+
+        // If CSV detected, use CSV parser
+        if ($is_csv) {
+            // Auto-detect delimiter
+            if ($delimiter === null) {
+                $first_line = trim(explode("\n", $content)[0]);
+                $delimiter = (substr_count($first_line, ';') > substr_count($first_line, ',')) ? ';' : ',';
+            }
+
+            $config = array(
+                'delimiter' => $delimiter,
+                'has_header' => false,
+                'email_col' => 0,
+                'name_col' => 1
+            );
+
+            return parse_csv_emails($content, $config);
+        }
+
+        // Otherwise use text parser
+        return parse_text_emails($content);
+    }
+}
+
+/**
  * Parse text file content for emails (one per line)
  *
  * @param string $content Text content
@@ -236,21 +315,50 @@ if (!function_exists('parse_text_emails')) {
         $result = array();
 
         foreach ($lines as $line_number => $line) {
-            $email = trim($line);
+            $line = trim($line);
 
-            if (empty($email)) {
+            if (empty($line)) {
                 continue;
             }
 
-            $valid = validate_email($email);
+            // Check if line contains multiple emails separated by comma or semicolon
+            // But NOT if it's in "Name <email>" format
+            $emails_in_line = array($line);
+            if (!preg_match('/^[^<>]+<[^>]+>$/', $line)) {
+                // Split by comma or semicolon if not in Name<email> format
+                if (strpos($line, ',') !== false) {
+                    $emails_in_line = explode(',', $line);
+                } elseif (strpos($line, ';') !== false) {
+                    $emails_in_line = explode(';', $line);
+                }
+            }
 
-            $result[] = array(
-                'email' => $email,
-                'normalized' => normalize_email($email),
-                'valid' => $valid,
-                'error' => $valid ? '' : 'Invalid email format',
-                'line' => $line_number + 1
-            );
+            foreach ($emails_in_line as $email_part) {
+                $email_part = trim($email_part);
+                if (empty($email_part)) {
+                    continue;
+                }
+
+                $name = '';
+                $email = $email_part;
+
+                // Handle "Name <email@example.com>" format
+                if (preg_match('/^(.+?)\s*<(.+?)>$/', $email_part, $matches)) {
+                    $name = trim($matches[1]);
+                    $email = trim($matches[2]);
+                }
+
+                $valid = validate_email($email);
+
+                $result[] = array(
+                    'email' => $email,
+                    'name' => $name,
+                    'normalized' => normalize_email($email),
+                    'valid' => $valid,
+                    'error' => $valid ? '' : 'Invalid email format: "' . $email_part . '"',
+                    'line' => $line_number + 1
+                );
+            }
         }
 
         return $result;
@@ -315,7 +423,7 @@ if (!function_exists('parse_csv_emails')) {
                 'firstname' => $firstname,
                 'display_name' => $display_name,
                 'valid' => $valid,
-                'error' => $valid ? '' : 'Invalid email format',
+                'error' => $valid ? '' : 'Invalid email format: "' . $email . '" (line ' . ($i + 1) . ')',
                 'line' => $i + 1
             );
         }

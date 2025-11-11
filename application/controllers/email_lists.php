@@ -879,30 +879,56 @@ class Email_lists extends Gvv_Controller
     public function upload_file($id = NULL)
     {
         if (empty($id) || !$this->email_lists_model->get_list($id)) {
-            $this->session->set_flashdata('error', 'Invalid list ID');
-            redirect('email_lists/view/' . $id);
+            $this->session->set_flashdata('error', $this->lang->line('email_lists_upload_error_invalid_id'));
+            redirect('email_lists/edit/' . $id);
             return;
         }
 
         // Check file upload
         if (!isset($_FILES['uploaded_file']) || $_FILES['uploaded_file']['error'] !== UPLOAD_ERR_OK) {
-            $this->session->set_flashdata('error', 'No file uploaded or upload error');
-            redirect('email_lists/view/' . $id);
+            $error_msg = $this->lang->line('email_lists_upload_error_no_file');
+            if (isset($_FILES['uploaded_file']['error'])) {
+                $error_msg .= ' (code: ' . $_FILES['uploaded_file']['error'] . ')';
+            }
+            $this->session->set_flashdata('error', $error_msg);
+            redirect('email_lists/edit/' . $id);
             return;
         }
 
         // Use model to handle upload
         $result = $this->email_lists_model->upload_external_file($id, $_FILES['uploaded_file']);
 
-        // Form submission - redirect with message
+        // Verify upload actually worked
         if ($result['success']) {
-            $this->session->set_flashdata('success', 
-                'File uploaded successfully. ' . $result['valid_count'] . ' addresses imported.');
+            // Double-check file exists
+            $file_path = FCPATH . 'uploads/email_lists/' . $id . '/' . $result['filename'];
+            $file_exists = file_exists($file_path);
+
+            // Double-check database entries
+            $this->db->where('email_list_id', $id);
+            $this->db->where('source_file', $result['filename']);
+            $db_count = $this->db->count_all_results('email_list_external');
+
+            log_message('info', "EMAIL_LISTS: Upload verification - file_exists={$file_exists}, db_count={$db_count}, valid_count={$result['valid_count']}");
+
+            if (!$file_exists) {
+                $this->session->set_flashdata('error',
+                    $this->lang->line('email_lists_upload_error') . ': ' .
+                    $this->lang->line('email_lists_upload_error_file_not_saved'));
+            } elseif ($db_count == 0) {
+                $this->session->set_flashdata('error',
+                    $this->lang->line('email_lists_upload_error') . ': ' .
+                    $this->lang->line('email_lists_upload_error_no_addresses'));
+            } else {
+                $msg = str_replace('{count}', $result['valid_count'],
+                    $this->lang->line('email_lists_upload_success'));
+                $this->session->set_flashdata('success', $msg);
+            }
         } else {
-            $this->session->set_flashdata('error', 
-                'Upload error: ' . implode(', ', $result['errors']));
+            $this->session->set_flashdata('error',
+                $this->lang->line('email_lists_upload_error') . ': ' . implode(', ', $result['errors']));
         }
-        redirect('email_lists/view/' . $id);
+        redirect('email_lists/edit/' . $id);
     }
 
     /**

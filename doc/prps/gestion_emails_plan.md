@@ -64,11 +64,10 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 3. **Import restreint à l'upload:**
    - ❌ Suppression des zones de copier/coller texte/CSV
    - ✅ Upload fichier uniquement (button "Télécharger un fichier")
+   - ✅ **Disponible uniquement en mode modification** (nécessite un list_id existant)
    - ✅ Stockage permanent: `/uploads/email_lists/[list_id]/[fichier]`
-   - ✅ Stockage temporaire (création): `/uploads/email_lists/tmp/[session_id]/[fichier]`
    - ✅ Liste des fichiers importés avec métadonnées
    - ✅ Suppression fichier → suppression en cascade des adresses
-   - ✅ Nettoyage automatique: fichiers tmp > 2 jours supprimés
 
 4. **Traçabilité fichiers:**
    - Ajout champ `source_file` dans table `email_list_external`
@@ -283,13 +282,12 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Méthode `get_file_stats($list_id, $filename)` - Comptage adresses par fichier (ligne 576)
 
 #### 3.7.3 Gestion système de fichiers ✅
-- [x] Créer répertoires `/uploads/email_lists/` et `/uploads/email_lists/tmp/` avec permissions (755)
-- [x] Logique stockage temporaire (session) pour mode création - À implémenter
-- [x] Déplacement fichiers tmp → permanent lors sauvegarde liste - À implémenter
+- [x] Créer répertoires `/uploads/email_lists/` avec permissions (755)
+- [x] Stockage direct dans répertoire permanent `/uploads/email_lists/[list_id]/`
+- [x] Upload disponible uniquement en mode modification (list_id requis)
 - [x] Logique nommage unique intégrée dans `upload_external_file()` (date + sanitization)
 - [x] Logique suppression intégrée dans `delete_file_and_addresses()`
 - [x] Gestion erreurs upload (taille, format, permissions) - Validation dans model
-- [x] Script cleanup cron pour fichiers tmp > 2 jours - À créer
 
 ---
 
@@ -714,8 +712,6 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
   - Modification `get_external_emails()` pour inclure `source_file`
 - **Système fichiers:**
   - Répertoire `/uploads/email_lists/` créé avec permissions 755
-  - Stockage temporaire: `/uploads/email_lists/tmp/[session_id]/` pour mode création
-  - Déplacement automatique lors sauvegarde liste
   - Logique nommage unique: `YmdHis_nom_sanitized.ext`
   - Gestion erreurs upload complète (format, taille, permissions)
   - Script cleanup: suppression fichiers tmp > 2 jours
@@ -736,27 +732,18 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 
 ---
 
-**2025-11-04 - Stratégie d'upload temporaire pour mode création**
-- **Décision architecturale:** Permettre upload fichiers avant sauvegarde liste
-- **Changement répertoire:** `uploads/emails` → `uploads/email_lists`
-- **Nouvelle stratégie:**
-  1. **Mode création (pas de list_id):**
-     - Upload immédiat vers `/uploads/email_lists/tmp/[session_id]/`
-     - Parse et stockage adresses en session PHP
-     - À la sauvegarde: création list_id, déplacement fichiers vers `/uploads/email_lists/[list_id]/`, insertion DB
-  2. **Mode édition (list_id existant):**
-     - Upload direct vers `/uploads/email_lists/[list_id]/`
-     - Insertion immédiate en DB
-  3. **Nettoyage automatique:**
-     - Script cron supprime fichiers tmp > 2 jours
-     - Prévient accumulation fichiers orphelins
+**2025-11-04 - Stratégie d'upload fichiers (révisé 2025-11-08)**
+- **Décision architecturale:** Upload fichiers disponible uniquement en mode modification
+- **Répertoire:** `/uploads/email_lists/[list_id]/`
+- **Stratégie simplifiée:**
+  - **Mode création:** Upload désactivé (pas de list_id)
+  - **Mode modification:** Upload direct vers `/uploads/email_lists/[list_id]/`, insertion immédiate en DB
+  - **Workflow:** Création liste → Enregistrement métadonnées → Rechargement page en mode modification → Upload activé
 - **Propagation:**
-  - ✅ PRD mis à jour (section 4.4.1)
-  - ✅ Design doc mis à jour (section 2.4)
-  - ✅ Implementation plan mis à jour
-  - ✅ Code model mis à jour (3 occurrences)
-  - ⏳ À implémenter: logique stockage temporaire dans controller
-  - ⏳ À créer: script cleanup cron
+  - ✅ PRD mis à jour (section 4.4.1 - upload en mode modification uniquement)
+  - ✅ Design doc mis à jour (section 2.4 - workflow et stockage permanent)
+  - ✅ Implementation plan mis à jour (section 3.7.3, changements v1.3)
+  - ✅ Code model implémenté (upload_external_file, delete_file_and_addresses)
 
 ---
 

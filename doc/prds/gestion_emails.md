@@ -108,6 +108,7 @@ Le système doit permettre la sélection selon:
 - **Statut:** membre actif, inactif
 - **Combinaisons** On doit pouvoir sélectionner plusieurs groupes (les trésorier ULM et avion, mais pas planeur)
 - **Extensibilité:** Le système doit supporter automatiquement les nouveaux rôles ajoutés au système d'autorisations
+- **Adresses email des parents:** Lorsqu'un membre possède une adresse email parente (`membres.memailparent`), celle-ci est automatiquement incluse dans la liste
 
 #### 4.1.2 Interface de sélection
 - Interface visuelle similaire au mécanisme d'attribution des droits utilisateur
@@ -193,7 +194,8 @@ La fenêtre de création/modification est séparée en deux parties:
 
 5. **Onglet "Import de fichiers":**
    - Bouton "Télécharger un fichier" (formats: CSV, TXT)
-   - Fichiers stockés dans `/uploads/emails_lists/` avec nommage unique
+   - Fichiers stockés dans `/uploads/email_lists/[list_id]/` avec nommage unique
+   - **Disponible uniquement en mode modification** (nécessite un list_id existant)
    - Liste des fichiers importés sous le bouton, avec:
      - Nom du fichier
      - Date d'import
@@ -232,6 +234,8 @@ La fenêtre de création/modification est séparée en deux parties:
 - **Texte brut (.txt):** une adresse par ligne, optionnellement suivie d'un nom
 - **CSV (.csv):** colonnes configurables (nom, prénom, email, etc.)
 - **Stockage:** Fichiers uploadés conservés dans `/uploads/email_lists/[list_id]/[fichier].csv`
+  - Upload direct vers le répertoire permanent (pas de stockage temporaire)
+  - Nécessite que la liste soit créée au préalable (list_id connu)
 - **Traçabilité:** Chaque adresse importée est liée au fichier source
 - **Validation:** Format validé lors de l'upload avec rapport d'erreurs détaillé
 - **Suppression en cascade:** Suppression d'un fichier supprime toutes ses adresses

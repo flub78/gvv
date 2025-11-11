@@ -7,6 +7,7 @@
   
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
+* [] Les membres du CA ne peuvent pas modifier les droits
 
 ## Reste à faire
 
