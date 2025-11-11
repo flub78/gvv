@@ -951,7 +951,7 @@ class Email_lists extends Gvv_Controller
             } else {
                 // Form submission - redirect with error
                 $this->session->set_flashdata('error', 'Invalid list ID');
-                redirect('email_lists/view/' . $id);
+                redirect('email_lists/edit/' . $id);
                 return;
             }
         }
@@ -980,7 +980,7 @@ class Email_lists extends Gvv_Controller
             } else {
                 // Form submission - redirect with error
                 $this->session->set_flashdata('error', 'Filename required');
-                redirect('email_lists/view/' . $id);
+                redirect('email_lists/edit/' . $id);
                 return;
             }
         }
@@ -995,13 +995,13 @@ class Email_lists extends Gvv_Controller
         } else {
             // Form submission - redirect with message
             if ($result['success']) {
-                $this->session->set_flashdata('success', 
+                $this->session->set_flashdata('success',
                     'File deleted successfully. ' . $result['deleted_count'] . ' addresses removed.');
             } else {
-                $this->session->set_flashdata('error', 
+                $this->session->set_flashdata('error',
                     'Delete error: ' . implode(', ', $result['errors']));
             }
-            redirect('email_lists/view/' . $id);
+            redirect('email_lists/edit/' . $id);
         }
     }
 

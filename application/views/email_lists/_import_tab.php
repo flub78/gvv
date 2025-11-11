@@ -115,6 +115,7 @@ if ($list_id && isset($list['id'])) {
                                     title="<?= $this->lang->line("email_lists_delete_file") ?>"
                                     onclick="deleteEmailFile(<?= $list_id ?>, '<?= htmlspecialchars($file['filename'], ENT_QUOTES) ?>')">
                                 <i class="bi bi-trash"></i>
+                                <?= $this->lang->line("email_lists_delete") ?>
                             </button>
                         </div>
                     </div>

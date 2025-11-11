@@ -31,11 +31,12 @@
   * [] donner les droits dans les controllers
   
 * [] Gestionnaire de liste d'adresse email. (wip)
-  * [] import de fichiers
+  * [x] import de fichiers
   * [x] tester export TXT/MD
-  * [] ajouter toutes les adresses email d'un membre dans la liste d'email
+  * [x] ajouter toutes les adresses email d'un membre dans la liste d'email
   * [x] La gestion des listes devrait passer de membre à gestion
   * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
+  * [ ] Tester le découpage
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 

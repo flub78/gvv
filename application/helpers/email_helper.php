@@ -251,28 +251,59 @@ if (!function_exists('parse_email_string')) {
         $delimiter = isset($options['delimiter']) ? $options['delimiter'] : null;
 
         // Detect if content looks like CSV
-        // CSV detection: line must have delimiter but NOT be in "Name <email>" format
+        // CSV detection: Multiple lines with pattern "email,name" or "email;name"
+        // NOT: Single line with comma-separated emails like "a@x.com, b@y.com, c@z.com"
         $is_csv = false;
         if ($allow_csv) {
-            $first_lines = array_slice(explode("\n", $content), 0, 5);
-            $csv_count = 0;
-            $total_lines = 0;
-
-            foreach ($first_lines as $line) {
-                $line = trim($line);
-                if (empty($line)) continue;
-                $total_lines++;
-
-                // Check if line has delimiter AND is not "Name <email>" format
-                if ((strpos($line, ',') !== false || strpos($line, ';') !== false) &&
-                    !preg_match('/^[^<>]+<[^>]+>$/', $line)) {
-                    $csv_count++;
+            $lines = explode("\n", $content);
+            $non_empty_lines = array();
+            foreach ($lines as $line) {
+                if (trim($line) !== '') {
+                    $non_empty_lines[] = trim($line);
                 }
             }
+            $total_lines = count($non_empty_lines);
 
-            // If more than 60% of lines look like CSV, treat as CSV
-            if ($total_lines > 0 && ($csv_count / $total_lines) > 0.6) {
-                $is_csv = true;
+            // If single line, check if it's a list of comma-separated emails (not CSV)
+            if ($total_lines === 1) {
+                $line = $non_empty_lines[0];
+                $delimiter = (strpos($line, ';') !== false) ? ';' : ',';
+                $parts = explode($delimiter, $line);
+
+                // If all parts look like emails, it's NOT CSV, it's a plain email list
+                $email_count = 0;
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if (filter_var($part, FILTER_VALIDATE_EMAIL) !== FALSE ||
+                        preg_match('/<(.+)>/', $part, $matches) && filter_var($matches[1], FILTER_VALIDATE_EMAIL)) {
+                        $email_count++;
+                    }
+                }
+
+                // If more than 50% of parts are valid emails, treat as email list, not CSV
+                if ($email_count > count($parts) * 0.5) {
+                    $is_csv = false;
+                } else {
+                    $is_csv = true; // Looks like CSV: email,name format
+                }
+            } else {
+                // Multiple lines - use original detection logic
+                $first_lines = array_slice($non_empty_lines, 0, 5);
+                $csv_count = 0;
+
+                foreach ($first_lines as $line) {
+                    $line = trim($line);
+                    // Check if line has delimiter AND is not "Name <email>" format
+                    if ((strpos($line, ',') !== false || strpos($line, ';') !== false) &&
+                        !preg_match('/^[^<>]+<[^>]+>$/', $line)) {
+                        $csv_count++;
+                    }
+                }
+
+                // If more than 60% of lines look like CSV, treat as CSV
+                if (count($first_lines) > 0 && ($csv_count / count($first_lines)) > 0.6) {
+                    $is_csv = true;
+                }
             }
         }
 

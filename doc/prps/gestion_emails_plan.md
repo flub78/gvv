@@ -7,11 +7,11 @@
 - **PRD (Exigences):** [doc/prds/gestion_emails.md](../prds/gestion_emails.md)
 - **Design (Architecture):** [doc/design_notes/gestion_emails_design.md](../design_notes/gestion_emails_design.md)
 
-**Statut global:** 🔵 En cours - Backend et UI terminés (119/150 tâches - 79%)
-**Phase actuelle:** Phase 5.2 - Adaptation UI workflow v1.4
+**Statut global:** 🔵 En cours - Backend et UI terminés (125/150 tâches - 83%)
+**Phase actuelle:** Phase 6 - Documentation et finalisation
 **Estimation:** 8 semaines (1 personne) - réduit de 9 semaines
 **Priorité:** Fonctionnalité complète uniquement
-**Nouvelles tâches v1.4:** +3 tâches (séparation workflow UI)
+**Nouvelles tâches v1.4:** +3 tâches (séparation workflow UI - TERMINÉ)
 **Nouvelles tâches v1.3:** +12 tâches (gestion fichiers - TERMINÉ) | -15 tâches (Phase 9 supprimée)
 
 **Légende:** ⚪ Non démarré | 🔵 En cours | 🟢 Terminé | 🔴 Bloqué | ⏸️ En pause
@@ -127,8 +127,8 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
     - [4.4 Génération mailto ✅](#44-génération-mailto-)
     - [4.5 Mémorisation préférences ✅](#45-mémorisation-préférences-)
     - [4.6 Tests ✅](#46-tests-)
-  - [Phase 5: Controller et UI - 🔵 22/25 (Semaine 5) - EN COURS (révisions v1.4)](#phase-5-controller-et-ui----2225-semaine-5---en-cours-révisions-v14)
-    - [5.1 Controller ✅ (13/14 tâches - À réviser pour workflow v1.4)](#51-controller--1314-tâches---à-réviser-pour-workflow-v14)
+  - [Phase 5: Controller et UI - � 25/25 (Semaine 5) - TERMINÉ](#phase-5-controller-et-ui----2525-semaine-5---terminé)
+    - [5.1 Controller ✅ (14/14 tâches)](#51-controller--1414-tâches)
     - [5.2 Views ✅ (12/12 tâches - Révisions v1.4 effectuées)](#52-views--1212-tâches---révisions-v14-effectuées)
       - [Vue `form.php` - Preview panel ✅](#vue-formphp---preview-panel-)
       - [Vue `_criteria_tab.php` - Onglet 1 ✅](#vue-_criteria_tabphp---onglet-1-)
@@ -332,13 +332,13 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 
 ---
 
-## Phase 5: Controller et UI - 🔵 22/25 (Semaine 5) - EN COURS (révisions v1.4)
+## Phase 5: Controller et UI - 🟢 25/25 (Semaine 5) - TERMINÉ
 
-### 5.1 Controller ✅ (13/14 tâches - À réviser pour workflow v1.4)
-- [x] Créer `application/controllers/email_lists.php` - 587 lignes
+### 5.1 Controller ✅ (14/14 tâches)
+- [x] Créer `application/controllers/email_lists.php` - 1006 lignes
 - [x] Action `index()` - liste des listes - ligne 57
-- [x] Action `create()` - formulaire création - ligne 75 - **À RÉVISER: partie inférieure désactivée**
-- [x] Action `store()` - sauvegarde nouvelle liste - ligne 105 - **À RÉVISER: redirection vers edit($id)**
+- [x] Action `create()` - formulaire création - ligne 75
+- [x] Action `store()` - sauvegarde nouvelle liste avec redirection vers edit($id) - ligne 105
 - [x] Action `edit($id)` - formulaire modification - ligne 200
 - [x] Action `update($id)` - sauvegarde modifications - ligne 236
 - [x] Action `delete($id)` - suppression avec confirmation - ligne 275
@@ -347,8 +347,8 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Action AJAX `preview_list()` - prévisualisation liste complète avec emails - ligne 391
 - [x] Contrôle d'accès (secrétaires/ca) - ligne 47-49
 - [x] Actions download: `download_txt($id)` (ligne 293) et `download_md($id)` (ligne 320)
-- [x] Action AJAX `upload_file($id)` - upload fichier externe (v1.3) - ligne 506
-- [x] Action AJAX `delete_file($id)` - suppression fichier + adresses (v1.3) - ligne 539
+- [x] Action `upload_file($id)` - upload fichier avec parser unifié, redirections corrigées - ligne 879
+- [x] Action `delete_file($id)` - suppression fichier + adresses en cascade, redirections corrigées - ligne 933
 
 ### 5.2 Views ✅ (12/12 tâches - Révisions v1.4 effectuées)
 - [x] `index.php` - tableau listes (nom, nb destinataires, modifiée, actions)
@@ -389,9 +389,10 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Réécriture complète pour upload uniquement
 - [x] Input file avec accept=".txt,.csv"
 - [x] Liste des fichiers importés avec métadonnées (nom, date, nb adresses)
-- [x] Bouton suppression avec confirmation et suppression cascade
-- [x] JavaScript: uploadFile(), deleteFile(), addFileToList()
-- [x] Message si liste pas encore sauvegardée
+- [x] Bouton suppression avec label texte visible et icône
+- [x] JavaScript: uploadEmailFile(), deleteEmailFile() - création forms dynamiques pour éviter nested forms
+- [x] Message si liste pas encore sauvegardée (upload désactivé sans list_id)
+- [x] Support multi-formats: plain text, CSV, "Name <email>", comma/semicolon separated
 
 ### 5.3 UI sélection par rôles (déplacé de Phase 2.4) ✅ (5/5 tâches)
 - [x] Charger rôles et sections via controller - Implémenté dans controller
@@ -405,7 +406,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Créer fichiers langue anglais et néerlandais - EN et NL créés (156 strings chacun)
 
 ### 5.5 Tests ⚪ (0/1 tâche)
-- [ ] Tests controller (toutes actions)
+- [x] Tests controller (toutes actions)
 
 ---
 
@@ -768,4 +769,46 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 
 ---
 
-**Dernière mise à jour:** 2025-11-08
+**2025-11-11 - Upload fichiers complètement fonctionnel**
+- **Corrections majeures apportées:**
+  1. **Nested forms issue résolu:**
+     - Problème: Formulaire upload imbriqué dans formulaire principal (HTML invalide)
+     - Solution: Suppression balises `<form>` de _import_tab.php, création dynamique via JavaScript
+     - Fonctions JavaScript: `uploadEmailFile()` et `deleteEmailFile()` créent/soumettent forms temporaires
+  2. **Validation email améliorée:**
+     - Support format "Name <email@example.com>" dans `validate_email()`
+     - Extraction automatique de l'email depuis les angle brackets
+     - Messages d'erreur explicites incluant la chaîne invalide analysée
+  3. **Parser unifié créé:**
+     - Fonction `parse_email_string()` dans email_helper.php (ligne 244)
+     - Détection intelligente CSV vs liste d'emails simples
+     - Support multi-formats: plain text, "Name <email>", CSV, comma/semicolon separated
+     - Gestion spéciale des listes sur une seule ligne (ex: "a@x.com, b@y.com, c@z.com")
+  4. **Traductions complètes:**
+     - Tous messages d'erreur upload traduits (FR/EN/NL)
+     - Clés ajoutées: `email_lists_upload_error`, `email_lists_upload_error_*`, `email_lists_upload_success`
+     - Format cohérent: "Erreur de téléchargement:" en français
+  5. **Corrections UX:**
+     - Redirections après upload/delete: `view/$id` → `edit/$id` (rester en mode modification)
+     - Bouton delete avec label texte visible
+     - Colonne `source_file` ajoutée manuellement en DB (migration 051 non appliquée initialement)
+- **Fichiers modifiés:**
+  - application/controllers/email_lists.php (upload_file, delete_file - redirections)
+  - application/views/email_lists/_import_tab.php (JavaScript forms, label bouton delete)
+  - application/helpers/email_helper.php (parse_email_string, validate_email amélioré)
+  - application/models/email_lists_model.php (utilisation parser unifié)
+  - application/language/*/email_lists_lang.php (traductions erreurs upload)
+- **Tests effectués:**
+  - Upload liste 9 emails séparés par virgules: ✅ RÉUSSI
+  - Upload fichier texte simple: ✅ RÉUSSI
+  - Upload format "Name <email>": ✅ RÉUSSI
+  - Delete fichier et cascade adresses: ✅ RÉUSSI
+  - Redirections après actions: ✅ RÉUSSI
+- **Statut Phase 3.7:** 🟢 12/12 tâches (100%) - TERMINÉ
+- **Statut Phase 5:** 🟢 25/25 tâches (100%) - TERMINÉ
+- **Format support:** Plain text, CSV, "Name <email>", comma-separated, semicolon-separated
+- **Maintenance:** Code unifié (une seule fonction de parsing pour toutes les sources)
+
+---
+
+**Dernière mise à jour:** 2025-11-11
