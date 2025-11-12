@@ -80,6 +80,8 @@ $lang['email_lists_mailto_save_prefs'] = 'Sauvegarder les préférences';
 $lang['email_lists_chunk_size'] = 'Taille des parties';
 $lang['email_lists_chunk_part'] = 'Partie';
 $lang['email_lists_chunk_of'] = 'sur';
+$lang['email_lists_full_list'] = 'liste complète';
+$lang['email_lists_part'] = 'Partie';
 
 // Messages
 $lang['email_lists_create_success'] = 'Liste créée avec succès';

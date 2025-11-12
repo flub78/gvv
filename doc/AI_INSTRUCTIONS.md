@@ -44,8 +44,12 @@ This sets PHP 7.4 as the active version. The project **requires PHP 7.4 specific
 firefox build/coverage/index.html
 
 # End to end tests
-cd playwright; npx playwright test --reporter=line   
+cd playwright; npx playwright test --reporter=line
 ```
+### Local test server
+
+It is installed at http://gvv.net/
+Do not use localhost, it is not configured. 
 
 ### PHP Validation
 

@@ -80,6 +80,8 @@ $lang['email_lists_mailto_save_prefs'] = 'Voorkeuren Opslaan';
 $lang['email_lists_chunk_size'] = 'Deelgrootte';
 $lang['email_lists_chunk_part'] = 'Deel';
 $lang['email_lists_chunk_of'] = 'van';
+$lang['email_lists_full_list'] = 'volledige lijst';
+$lang['email_lists_part'] = 'Deel';
 
 // Messages
 $lang['email_lists_create_success'] = 'Lijst succesvol aangemaakt';

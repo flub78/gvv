@@ -38,10 +38,11 @@
   * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
   * [ ] Tester le découpage
 
+* [] Gestion des visites médicales
+
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
-
 
 
 * [] Import des informations planeur dans les vols de découverte

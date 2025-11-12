@@ -10,6 +10,40 @@ $email_addresses = array_column($emails, 'email');
 $email_list_json = json_encode($email_addresses);
 ?>
 
+<!-- Chunking options -->
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="card-title">
+            <i class="bi bi-scissors"></i>
+            <?= $this->lang->line("email_lists_chunk_emails") ?>
+        </h6>
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <label for="chunk_size" class="form-label">
+                    <?= $this->lang->line("email_lists_chunk_size") ?>:
+                </label>
+                <input type="number"
+                       class="form-control form-control-sm"
+                       id="chunk_size"
+                       value="20"
+                       min="1"
+                       max="<?= count($email_addresses) ?>"
+                       onchange="updateChunkDisplay()">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label for="chunk_part" class="form-label">
+                    <?= $this->lang->line("email_lists_chunk_part") ?>:
+                </label>
+                <select class="form-select form-select-sm" id="chunk_part"></select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label">&nbsp;</label>
+                <div id="chunk_info" class="text-muted small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- Clipboard copy -->
     <div class="col-md-6 mb-3">
@@ -58,40 +92,6 @@ $email_list_json = json_encode($email_addresses);
                         <?= $this->lang->line("email_lists_export_md") ?>
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Chunking options -->
-<div class="card mb-3">
-    <div class="card-body">
-        <h6 class="card-title">
-            <i class="bi bi-scissors"></i>
-            <?= $this->lang->line("email_lists_chunk_emails") ?>
-        </h6>
-        <div class="row">
-            <div class="col-md-4 mb-2">
-                <label for="chunk_size" class="form-label">
-                    <?= $this->lang->line("email_lists_chunk_size") ?>:
-                </label>
-                <input type="number"
-                       class="form-control form-control-sm"
-                       id="chunk_size"
-                       value="20"
-                       min="1"
-                       max="<?= count($email_addresses) ?>"
-                       onchange="updateChunkDisplay()">
-            </div>
-            <div class="col-md-4 mb-2">
-                <label for="chunk_part" class="form-label">
-                    <?= $this->lang->line("email_lists_chunk_part") ?>:
-                </label>
-                <select class="form-select form-select-sm" id="chunk_part"></select>
-            </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label">&nbsp;</label>
-                <div id="chunk_info" class="text-muted small"></div>
             </div>
         </div>
     </div>
@@ -172,13 +172,28 @@ $email_list_json = json_encode($email_addresses);
 </div>
 
 <script>
-// Initialize email list from PHP
-var emailListFull = <?= $email_list_json ?>;
-
 // Load saved mailto preferences on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadMailtoPreferences();
     updateChunkDisplay();
+
+    // Add event listeners for chunk controls
+    const chunkSizeInput = document.getElementById('chunk_size');
+    const chunkPartSelect = document.getElementById('chunk_part');
+
+    if (chunkSizeInput) {
+        chunkSizeInput.addEventListener('change', function() {
+            updateChunkDisplay();
+            updateEmailDisplay();
+        });
+    }
+
+    if (chunkPartSelect) {
+        chunkPartSelect.addEventListener('change', function() {
+            updateChunkInfo();
+            updateEmailDisplay();
+        });
+    }
 });
 
 // Copy emails to clipboard
@@ -203,23 +218,26 @@ function copyEmailsToClipboard() {
 function getCurrentEmailChunk() {
     const chunkSizeInput = document.getElementById('chunk_size');
     const chunkPartInput = document.getElementById('chunk_part');
-    
+
     if (!chunkSizeInput || !chunkPartInput || !emailListFull) {
         // Fallback to full list if chunk controls not available
         return emailListFull || [];
     }
-    
-    const chunkSize = parseInt(chunkSizeInput.value);
-    const chunkPart = parseInt(chunkPartInput.value);
 
-    if (!chunkSize || chunkSize >= emailListFull.length) {
+    const chunkPart = chunkPartInput.value;
+
+    // If empty value (default option), return full list
+    if (!chunkPart || chunkPart === '') {
         return emailListFull;
     }
 
+    const chunkSize = parseInt(chunkSizeInput.value);
+    const partNumber = parseInt(chunkPart);
+
     // Calculate start and end indices for the selected chunk part
-    const startIndex = (chunkPart - 1) * chunkSize;
+    const startIndex = (partNumber - 1) * chunkSize;
     const endIndex = Math.min(startIndex + chunkSize, emailListFull.length);
-    
+
     return emailListFull.slice(startIndex, endIndex);
 }
 
@@ -228,25 +246,38 @@ function updateChunkDisplay() {
     if (!emailListFull || emailListFull.length === 0) {
         return;
     }
-    
+
     const chunkSizeInput = document.getElementById('chunk_size');
     const partSelect = document.getElementById('chunk_part');
-    
+
     if (!chunkSizeInput || !partSelect) {
         return;
     }
-    
+
     const chunkSize = parseInt(chunkSizeInput.value) || 20;
     const totalEmails = emailListFull.length;
-    const numParts = Math.ceil(totalEmails / chunkSize);
 
     // Update part selector
     partSelect.innerHTML = '';
-    for (let i = 1; i <= numParts; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.text = i + ' / ' + numParts;
-        partSelect.appendChild(option);
+
+    // Add default empty option (full list)
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.text = '-- (<?= $this->lang->line("email_lists_full_list") ?>)';
+    partSelect.appendChild(emptyOption);
+
+    // Only show parts if chunk size is smaller than total emails
+    if (chunkSize < totalEmails) {
+        const numParts = Math.ceil(totalEmails / chunkSize);
+
+        for (let i = 1; i <= numParts; i++) {
+            const start = (i - 1) * chunkSize + 1;
+            const end = Math.min(i * chunkSize, totalEmails);
+            const option = document.createElement('option');
+            option.value = i;
+            option.text = '<?= $this->lang->line("email_lists_part") ?> ' + i + ' (' + start + '-' + end + ')';
+            partSelect.appendChild(option);
+        }
     }
 
     // Update info
@@ -258,25 +289,117 @@ function updateChunkInfo() {
     if (!emailListFull || emailListFull.length === 0) {
         return;
     }
-    
+
     const chunkSizeInput = document.getElementById('chunk_size');
     const chunkPartInput = document.getElementById('chunk_part');
     const chunkInfoElement = document.getElementById('chunk_info');
-    
+
     if (!chunkSizeInput || !chunkPartInput || !chunkInfoElement) {
         return;
     }
-    
-    const chunkSize = parseInt(chunkSizeInput.value) || 20;
-    const chunkPart = parseInt(chunkPartInput.value) || 1;
+
+    const chunkPart = chunkPartInput.value;
     const totalEmails = emailListFull.length;
 
-    const start = (chunkPart - 1) * chunkSize + 1;
-    const end = Math.min(chunkPart * chunkSize, totalEmails);
+    // If empty value (default option), show full list info
+    if (!chunkPart || chunkPart === '') {
+        chunkInfoElement.innerHTML =
+            '<?= $this->lang->line("email_lists_showing") ?> 1-' + totalEmails +
+            ' <?= $this->lang->line("gvv_str_of") ?> ' + totalEmails;
+        return;
+    }
+
+    const chunkSize = parseInt(chunkSizeInput.value) || 20;
+    const partNumber = parseInt(chunkPart);
+
+    const start = (partNumber - 1) * chunkSize + 1;
+    const end = Math.min(partNumber * chunkSize, totalEmails);
 
     chunkInfoElement.innerHTML =
         '<?= $this->lang->line("email_lists_showing") ?> ' + start + '-' + end +
         ' <?= $this->lang->line("gvv_str_of") ?> ' + totalEmails;
+}
+
+// Update email display based on selected chunk
+function updateEmailDisplay() {
+    if (!emailListFull || emailListFull.length === 0) {
+        return;
+    }
+
+    const emailDisplayContainer = document.getElementById('email_list_display');
+    if (!emailDisplayContainer) {
+        return;
+    }
+
+    // Get indices for current chunk
+    const chunkPartInput = document.getElementById('chunk_part');
+    const chunkSizeInput = document.getElementById('chunk_size');
+
+    if (!chunkPartInput || !chunkSizeInput) {
+        return;
+    }
+
+    const chunkPart = chunkPartInput.value;
+
+    let startIndex = 0;
+    let endIndex = emailListFull.length;
+
+    // If a specific part is selected, calculate range
+    if (chunkPart && chunkPart !== '') {
+        const chunkSize = parseInt(chunkSizeInput.value);
+        const partNumber = parseInt(chunkPart);
+        startIndex = (partNumber - 1) * chunkSize;
+        endIndex = Math.min(startIndex + chunkSize, emailListFull.length);
+    }
+
+    // Get the full email data for the chunk
+    const currentEmailData = typeof emailDataFull !== 'undefined' ?
+                            emailDataFull.slice(startIndex, endIndex) :
+                            emailListFull.slice(startIndex, endIndex).map(function(email) {
+                                return { email: email, name: '', source: '' };
+                            });
+
+    // Update recipient count badge
+    const recipientBadge = document.getElementById('recipient_count_badge');
+    if (recipientBadge) {
+        const currentCount = endIndex - startIndex;
+        const totalCount = emailListFull.length;
+        if (currentCount < totalCount) {
+            recipientBadge.textContent = currentCount + ' / ' + totalCount;
+        } else {
+            recipientBadge.textContent = totalCount;
+        }
+    }
+
+    // Rebuild the email list display
+    emailDisplayContainer.innerHTML = '';
+
+    currentEmailData.forEach(function(emailData) {
+        const emailDiv = document.createElement('div');
+        emailDiv.className = 'mb-1';
+
+        let html = '<i class="bi bi-envelope"></i> <code>' +
+                   htmlEscape(emailData.email) + '</code>';
+
+        if (emailData.name) {
+            html += ' - <span class="text-muted">' + htmlEscape(emailData.name) + '</span>';
+        }
+
+        if (emailData.source) {
+            html += ' <span class="badge bg-secondary ms-2">' +
+                    htmlEscape(emailData.source) + '</span>';
+        }
+
+        emailDiv.innerHTML = html;
+        emailDisplayContainer.appendChild(emailDiv);
+    });
+}
+
+// Helper function to escape HTML
+function htmlEscape(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Open mailto link

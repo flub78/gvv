@@ -107,7 +107,7 @@ if ($this->session->flashdata('success')) {
             <h5 class="mb-0">
                 <i class="bi bi-people"></i>
                 <?= $this->lang->line("email_lists_recipients") ?>
-                <span class="badge bg-primary"><?= count($emails) ?></span>
+                <span class="badge bg-primary" id="recipient_count_badge"><?= count($emails) ?></span>
             </h5>
         </div>
         <div class="card-body">
@@ -116,13 +116,21 @@ if ($this->session->flashdata('success')) {
                     <i class="bi bi-exclamation-triangle"></i> <?= $this->lang->line("email_lists_no_recipients") ?>
                 </div>
             <?php else: ?>
+                <!-- Initialize JavaScript variables first -->
+                <script>
+                // Initialize with full email data (including name and source)
+                var emailDataFull = <?= json_encode($emails) ?>;
+                // Simple email list for mailto/clipboard
+                var emailListFull = <?= json_encode(array_column($emails, 'email')) ?>;
+                </script>
+
                 <!-- Export section -->
                 <?php $this->load->view('email_lists/_export_section'); ?>
 
                 <!-- Email list display -->
                 <div class="mt-4">
                     <h6><?= $this->lang->line("email_lists_email_addresses") ?>:</h6>
-                    <div class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+                    <div id="email_list_display" class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
                         <?php foreach ($emails as $email): ?>
                             <div class="mb-1">
                                 <i class="bi bi-envelope"></i>
@@ -250,7 +258,3 @@ if ($this->session->flashdata('success')) {
 
 <!-- Load JavaScript for export functionality -->
 <script src="<?= base_url('assets/javascript/email_lists.js') ?>"></script>
-<script>
-// Initialize with email data
-var emailListFull = <?= json_encode(array_column($emails, 'email')) ?>;
-</script>
