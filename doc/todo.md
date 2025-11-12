@@ -7,8 +7,8 @@
   
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [] Les membres du CA ne peuvent pas modifier les droits
-* [] Le rechargement d'un vol avion ne recharge pas les heures de début et de fin (uniquement en production)
+* [] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
+
 
 ## Reste à faire
 
@@ -29,14 +29,6 @@
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
   * [] donner les droits dans les controllers
-  
-* [] Gestionnaire de liste d'adresse email. (wip)
-  * [x] import de fichiers
-  * [x] tester export TXT/MD
-  * [x] ajouter toutes les adresses email d'un membre dans la liste d'email
-  * [x] La gestion des listes devrait passer de membre à gestion
-  * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
-  * [ ] Tester le découpage
 
 * [] Gestion des visites médicales
 
@@ -195,3 +187,12 @@
   * [x] Vérifier la création et la mise à jour des licences
   * [x] Ajouter des tests pour la gestion des licences
   * [x] Améliorer l'interface utilisateur pour la gestion des licences
+* [x] Le rechargement d'un vol avion ne recharge pas les heures de début et de fin (faux positif du à une corruption des heurs de début et de fin qui c'étaient retrouvées hors norme)
+
+* [x] Gestionnaire de liste d'adresse email.
+  * [x] import de fichiers
+  * [x] tester export TXT/MD
+  * [x] ajouter toutes les adresses email d'un membre dans la liste d'email
+  * [x] La gestion des listes devrait passer de membre à gestion
+  * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
+  * [x] Tester le découpage

@@ -37,6 +37,7 @@ entity email_list_external {
   * email_list_id : INT [FK]
   * external_email : VARCHAR(255)
   external_name : VARCHAR(100)
+  source_file : VARCHAR(255)
   * added_at : DATETIME
 }
 
@@ -100,6 +101,10 @@ end note
 note right of email_list_external
   **Adresses externes**
   Adresses email brutes
+
+  **source_file**: nom du fichier
+  source pour traçabilité (NULL si
+  ajout manuel)
 end note
 
 note right of email_lists
