@@ -157,12 +157,12 @@
     };
 
     /**
-     * Update chunk display when user changes chunk size or part number
+     * DEPRECATED - Old version of updateChunkDisplay
+     * Now defined in _export_section.php
      *
-     * @param {Array} emails - Full email list
-     * @param {number} chunkSize - Size of each chunk
-     * @param {number} partNumber - Current part number (1-based)
+     * @deprecated Use the version in _export_section.php instead
      */
+    /*
     window.updateChunkDisplay = function(emails, chunkSize, partNumber) {
         var chunks = chunkEmails(emails, chunkSize);
         var totalParts = chunks.length;
@@ -199,6 +199,7 @@
 
         return currentChunk;
     };
+    */
 
     // ========================================================================
     // mailto: URL Generation
@@ -307,7 +308,7 @@
     window.loadMailtoPreferences = function() {
         try {
             var stored = localStorage.getItem('gvv_mailto_prefs');
-            if (stored) {
+            if (stored && stored !== 'undefined' && stored !== 'null') {
                 return JSON.parse(stored);
             }
         } catch (e) {

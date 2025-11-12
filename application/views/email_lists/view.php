@@ -258,3 +258,21 @@ if ($this->session->flashdata('success')) {
 
 <!-- Load JavaScript for export functionality -->
 <script src="<?= base_url('assets/javascript/email_lists.js') ?>"></script>
+<script>
+// Initialize email chunking after all HTML is loaded
+(function() {
+    function init() {
+        if (typeof initializeEmailChunking === 'function') {
+            initializeEmailChunking();
+        }
+    }
+
+    // If DOM is already loaded, initialize immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // DOM already loaded, initialize now
+        init();
+    }
+})();
+</script>

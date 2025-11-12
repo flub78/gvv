@@ -172,8 +172,8 @@ $email_list_json = json_encode($email_addresses);
 </div>
 
 <script>
-// Load saved mailto preferences on page load
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize chunk display (called from view.php after email_list_display is loaded)
+function initializeEmailChunking() {
     loadMailtoPreferences();
     updateChunkDisplay();
 
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateEmailDisplay();
         });
     }
-});
+}
 
 // Copy emails to clipboard
 function copyEmailsToClipboard() {
@@ -453,14 +453,28 @@ function saveMailtoPreferences() {
 
 // Load mailto preferences
 function loadMailtoPreferences() {
-    const prefs = localStorage.getItem('email_lists_mailto_prefs');
-    if (prefs) {
-        const p = JSON.parse(prefs);
-        if (p.field) document.getElementById('mailto_field').value = p.field;
-        if (p.subject) document.getElementById('mailto_subject').value = p.subject;
-        if (p.replyTo) document.getElementById('mailto_reply_to').value = p.replyTo;
-        if (p.chunkSize) document.getElementById('chunk_size').value = p.chunkSize;
-        if (p.separator) document.getElementById('separator').value = p.separator;
+    try {
+        const prefs = localStorage.getItem('email_lists_mailto_prefs');
+        if (prefs && prefs !== 'undefined' && prefs !== 'null') {
+            const p = JSON.parse(prefs);
+            if (p.field && document.getElementById('mailto_field')) {
+                document.getElementById('mailto_field').value = p.field;
+            }
+            if (p.subject && document.getElementById('mailto_subject')) {
+                document.getElementById('mailto_subject').value = p.subject;
+            }
+            if (p.replyTo && document.getElementById('mailto_reply_to')) {
+                document.getElementById('mailto_reply_to').value = p.replyTo;
+            }
+            if (p.chunkSize && document.getElementById('chunk_size')) {
+                document.getElementById('chunk_size').value = p.chunkSize;
+            }
+            if (p.separator && document.getElementById('separator')) {
+                document.getElementById('separator').value = p.separator;
+            }
+        }
+    } catch (e) {
+        console.error('Error loading mailto preferences:', e);
     }
 }
 
