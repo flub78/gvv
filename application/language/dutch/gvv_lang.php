@@ -108,6 +108,8 @@ $lang['role_bureau'] = "Bureau";
 $lang['role_tresorier'] = "Penningmeester";
 $lang['role_super_tresorier'] = "Super-penningmeester";
 $lang['role_club_admin'] = "Club beheerder";
+$lang['role_mecano'] = "Monteur";
+$lang['role_instructor'] = "Instructeur";
 
 $lang['role_user_desc'] = "Kan inloggen en eigen gegevens bekijken";
 $lang['role_auto_planchiste_desc'] = "Kan eigen vluchten aanmaken, wijzigen en verwijderen";
@@ -433,6 +435,17 @@ $lang['authorization_select_section'] = "Selecteer een sectie";
 $lang['authorization_username'] = "Gebruikersnaam";
 $lang['authorization_user_roles_list'] = "Lijst met gebruikersrollen";
 $lang['authorization_yes'] = "Ja";
+$lang['authorization_create_role'] = "Rol aanmaken";
+$lang['authorization_edit_role'] = "Rol bewerken";
+$lang['authorization_save'] = "Opslaan";
+$lang['authorization_delete'] = "Verwijderen";
+$lang['authorization_edit'] = "Bewerken";
+$lang['authorization_role_in_use'] = "Deze rol is toegewezen aan gebruikers en kan niet worden verwijderd";
+$lang['authorization_role_name_help'] = "Unieke naam om de rol te identificeren (bijv: training-manager)";
+$lang['authorization_scope_help'] = "Globaal: van toepassing op alle secties. Sectie: beperkt tot een specifieke sectie";
+$lang['authorization_translation_key_help'] = "Optionele vertalingssleutel voor meertalige weergave";
+$lang['authorization_system_role_help'] = "Systeemrollen kunnen niet worden verwijderd";
+$lang['authorization_is_system_role'] = "Systeemrol";
 
 // Migratiedashboard (Fase 6)
 $lang['migration_dashboard_title'] = 'Migratie van autorisatiesysteem';

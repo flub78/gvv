@@ -114,6 +114,8 @@ $lang['role_bureau'] = "Committee";
 $lang['role_tresorier'] = "Treasurer";
 $lang['role_super_tresorier'] = "Super Treasurer";
 $lang['role_club_admin'] = "Club Administrator";
+$lang['role_mecano'] = "Mechanic";
+$lang['role_instructor'] = "Instructor";
 
 $lang['role_user_desc'] = "Can login and view own data";
 $lang['role_auto_planchiste_desc'] = "Can create, modify and delete own flights";
@@ -433,6 +435,17 @@ $lang['authorization_select_section'] = "Select a section";
 $lang['authorization_username'] = "Username";
 $lang['authorization_user_roles_list'] = "User roles list";
 $lang['authorization_yes'] = "Yes";
+$lang['authorization_create_role'] = "Create role";
+$lang['authorization_edit_role'] = "Edit role";
+$lang['authorization_save'] = "Save";
+$lang['authorization_delete'] = "Delete";
+$lang['authorization_edit'] = "Edit";
+$lang['authorization_role_in_use'] = "This role is assigned to users and cannot be deleted";
+$lang['authorization_role_name_help'] = "Unique name to identify the role (eg: training-manager)";
+$lang['authorization_scope_help'] = "Global: applies to all sections. Section: limited to a specific section";
+$lang['authorization_translation_key_help'] = "Optional translation key for multilingual display";
+$lang['authorization_system_role_help'] = "System roles cannot be deleted";
+$lang['authorization_is_system_role'] = "System role";
 
 // Migration Dashboard (Phase 6)
 $lang['migration_dashboard_title'] = 'Authorization System Migration';

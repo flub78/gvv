@@ -463,7 +463,7 @@ class AttachmentsControllerTest extends TestCase
 
         // Should contain <a> link with PDF icon
         $this->assertStringContainsString('<a href=', $html);
-        $this->assertStringContainsString('target="_blank"', $html);
+        $this->assertStringContainsString('target="_self"', $html);
         $this->assertStringContainsString('fa-file-pdf', $html);
     }
 

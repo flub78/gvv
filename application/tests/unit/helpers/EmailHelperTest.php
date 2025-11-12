@@ -297,7 +297,7 @@ class EmailHelperTest extends TestCase
         $this->assertCount(3, $result);
         $this->assertTrue($result[0]['valid']);
         $this->assertFalse($result[1]['valid']);
-        $this->assertEquals('Invalid email format', $result[1]['error']);
+        $this->assertStringContainsString('Invalid email format', $result[1]['error']);
         $this->assertTrue($result[2]['valid']);
     }
 

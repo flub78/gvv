@@ -59,7 +59,7 @@ Email Helper
  [x] GenerateMailto EmptyEmails ReturnsBasicMailto
  [x] GenerateMailto TooLong ReturnsFalse
  [x] ParseTextEmails ValidEmails
- [ ] ParseTextEmails MixedValidAndInvalid
+ [x] ParseTextEmails MixedValidAndInvalid
  [x] ParseTextEmails SkipsEmptyLines
  [x] ParseTextEmails EmptyContent ReturnsEmpty
  [x] ParseCsvEmails BasicParsing
@@ -176,8 +176,8 @@ Language Completeness
  [x] Reference language directory exists
  [x] English has all language files
  [x] Dutch has all language files
- [ ] English has all translation keys
- [ ] Dutch has all translation keys
+ [x] English has all translation keys
+ [x] Dutch has all translation keys
  [x] Reference language has translation files
 
 Comptes Controller

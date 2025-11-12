@@ -10,6 +10,7 @@ $lang['auth_login_username_not_exist'] = "Gebruikersnaam bestaat niet.";
 
 $lang['auth_username_or_email_not_exist'] = "Gebruikersnaam of e-mailadres bestaat niet.";
 $lang['auth_not_activated'] = "Uw account werd nog niet geactiveerd, gelieve uw mailbox te controleren.";
+$lang['auth_no_user_role'] = "U heeft geen toestemming om in te loggen op deze sectie.";
 $lang['auth_request_sent'] = "Uw aanvraag voor wijzigen wachtwoord werd reeds gestuurd, gelieve uw mailbox te controleren..";
 $lang['auth_incorrect_old_password'] = "Het oude wachtwoord is foutief.";
 $lang['auth_incorrect_password'] = "Uw wachtwoord is foutief.";

@@ -36,7 +36,7 @@ Attachments Controller
  [x] Spaces in filename replaced with underscores
  [x] Directory created with correct permissions
  [x] Attachment helper generates image tag for jpeg
- [ ] Attachment helper generates link for pdf
+ [x] Attachment helper generates link for pdf
  [x] Edit attachment replaces old file
  [x] Edit attachment handles missing old file
  [x] Replace image with pdf
@@ -176,13 +176,13 @@ My Html Helper Integration
  [x] Html link
  [x] Html script
  [x] Attachment empty
- [ ] Attachment returns link
+ [x] Attachment returns link
  [x] Attachment pdf
  [x] Attachment csv
- [ ] Attachment processes files
- [ ] Attachment with various extensions
+ [x] Attachment processes files
+ [x] Attachment with various extensions
  [x] Attachment avif
- [ ] Attachment valid html structure
+ [x] Attachment valid html structure
  [x] Cur page u r l http
  [x] Cur page u r l https
  [x] Cur page u r l custom port

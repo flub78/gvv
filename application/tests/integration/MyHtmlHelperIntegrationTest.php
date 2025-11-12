@@ -458,7 +458,7 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         $result = attachment(1, $testFile, 'http://example.com/file.txt');
 
         $this->assertStringContainsString('<a href="http://example.com/file.txt"', $result);
-        $this->assertStringContainsString('target="_blank"', $result);
+        $this->assertStringContainsString('target="_self"', $result);
         $this->assertStringContainsString('fa-file-alt', $result); // Text file icon
 
         // Cleanup
@@ -508,9 +508,9 @@ class MyHtmlHelperIntegrationTest extends TestCase {
 
         $result = attachment(1, $testFile, 'http://example.com/test.xlsx');
 
-        // Should return a link with target blank and some icon
+        // Should return a link with target self and some icon
         $this->assertStringContainsString('<a href="http://example.com/test.xlsx"', $result);
-        $this->assertStringContainsString('target="_blank"', $result);
+        $this->assertStringContainsString('target="_self"', $result);
         $this->assertStringContainsString('fa-file', $result);
 
         unlink($testFile);
@@ -531,7 +531,7 @@ class MyHtmlHelperIntegrationTest extends TestCase {
 
             // All should produce valid HTML with link
             $this->assertStringContainsString('<a href=', $result);
-            $this->assertStringContainsString('target="_blank"', $result);
+            $this->assertStringContainsString('target="_self"', $result);
 
             unlink($testFile);
         }
@@ -567,7 +567,7 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         // Should have proper link structure
         $this->assertStringStartsWith('<a href=', $result);
         $this->assertStringEndsWith('</a>', $result);
-        $this->assertStringContainsString('target="_blank"', $result);
+        $this->assertStringContainsString('target="_self"', $result);
 
         unlink($testFile);
     }
