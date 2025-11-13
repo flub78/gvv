@@ -127,8 +127,9 @@ class Comptes_model extends Common_Model {
     // warning_list_of
     public function list_of_account($where = array(), $order = "") {
 
-        $this->db->select('*')
+        $this->db->select('comptes.*, sections.nom as section_name')
             ->from($this->table)
+            ->join('sections', 'comptes.club = sections.id', 'left')
             ->where($where)
             ->where('masked', 0);  // Exclude masked accounts
             
@@ -139,7 +140,7 @@ class Comptes_model extends Common_Model {
 
         $section = $this->sections_model->section();
         if ($section) {
-            $this->db->where('club', $section['id']);
+            $this->db->where('comptes.club', $section['id']);
         }
         $result = $this->db->get();
 

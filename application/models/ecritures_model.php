@@ -1292,6 +1292,7 @@ array (size=2)
     function resultat_table($resultat, $links, $tab, $decimal_sep = '', $target = 'html') {
         $CI = &get_instance();
         $CI->lang->load('comptes');
+        $CI->lang->load('sections'); // Charger les traductions des sections
 
         $tbl = array();
         $year = $resultat['years'][1];
@@ -1299,16 +1300,18 @@ array (size=2)
         $tbl[0] = array(
             $this->lang->line("gvv_vue_comptes_short_field_codec"),
             $this->lang->line("comptes_label_expenses"),
+            $this->lang->line("gvv_sections_element"), // Traduction pour Section
             $year,
             $previous_year,
             $tab,
             $this->lang->line("gvv_vue_comptes_short_field_codec"),
             $this->lang->line("comptes_label_earnings"),
+            $this->lang->line("gvv_sections_element"), // Traduction pour Section
             $year,
             $previous_year
         );
         $line = 1;
-        $offset = 6;
+        $offset = 7; // Décalé de 6 à 7 car on a ajouté une colonne
         $charges = $resultat['comptes_depenses'];
         $produits = $resultat['comptes_recettes'];
         for ($i = 0; $i < max(count($charges), count($produits)); $i++) {
@@ -1317,43 +1320,49 @@ array (size=2)
                 $code = $charges[$i]['codec'];
                 $nom = $charges[$i]['nom'];
                 $compte = $charges[$i]['id'];
+                $section_name = isset($charges[$i]['section_name']) ? $charges[$i]['section_name'] : '';
 
                 $tbl[$line][0] = ($links) ? anchor(controller_url("comptes/page/$code"), $code) : $code;
                 $tbl[$line][1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl[$line][2] = $section_name; // Nouvelle colonne Section
 
                 $montant = isset($resultat['montants'][$year]['depenses'][$compte]) ? $resultat['montants'][$year]['depenses'][$compte] : '';
-                $tbl[$line][2] = euro($montant, $decimal_sep, $target);
+                $tbl[$line][3] = euro($montant, $decimal_sep, $target);
 
                 $montant = isset($resultat['montants'][$previous_year]['depenses'][$compte]) ? $resultat['montants'][$previous_year]['depenses'][$compte] : '';
-                $tbl[$line][3] = euro($montant, $decimal_sep, $target);
+                $tbl[$line][4] = euro($montant, $decimal_sep, $target);
             } else {
                 $tbl[$line][0] = '';
                 $tbl[$line][1] = '';
                 $tbl[$line][2] = '';
                 $tbl[$line][3] = '';
+                $tbl[$line][4] = '';
             }
 
-            $tbl[$line][4] = $tab;
+            $tbl[$line][5] = $tab;
 
             // Recettes
             if (isset($produits[$i]['nom'])) {
                 $code = $produits[$i]['codec'];
                 $nom = $produits[$i]['nom'];
                 $compte = $produits[$i]['id'];
+                $section_name = isset($produits[$i]['section_name']) ? $produits[$i]['section_name'] : '';
 
                 $tbl[$line][$offset + 0] = ($links) ? anchor(controller_url("comptes/page/$code"), $code) : $code;
                 $tbl[$line][$offset + 1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl[$line][$offset + 2] = $section_name; // Nouvelle colonne Section
 
                 $montant = isset($resultat['montants'][$year]['recettes'][$compte]) ? $resultat['montants'][$year]['recettes'][$compte] : '';
-                $tbl[$line][$offset + 2] = euro($montant, $decimal_sep, $target);
+                $tbl[$line][$offset + 3] = euro($montant, $decimal_sep, $target);
 
                 $montant = isset($resultat['montants'][$previous_year]['recettes'][$compte]) ? $resultat['montants'][$previous_year]['recettes'][$compte] : '';
-                $tbl[$line][$offset + 3] = euro($montant, $decimal_sep, $target);
+                $tbl[$line][$offset + 4] = euro($montant, $decimal_sep, $target);
             } else {
                 $tbl[$line][$offset + 0] = '';
                 $tbl[$line][$offset + 1] = '';
                 $tbl[$line][$offset + 2] = '';
                 $tbl[$line][$offset + 3] = '';
+                $tbl[$line][$offset + 4] = '';
             }
 
             $line++;
@@ -1368,7 +1377,9 @@ array (size=2)
             $tab,
             $tab,
             $tab,
-            $tab
+            $tab,
+            $tab,
+            $tab  // Deux colonnes supplémentaires pour les sections
         );
 
         // Totaux
@@ -1379,11 +1390,13 @@ array (size=2)
         $tbl[] = array(
             $tab,
             $this->lang->line("comptes_label_total_expenses"),
+            $tab, // Colonne Section vide pour les totaux
             euro($solde_charges, $decimal_sep, $target),
             euro($solde_charges_prec, $decimal_sep, $target),
             $tab,
             $tab,
             $this->lang->line("comptes_label_total_incomes"),
+            $tab, // Colonne Section vide pour les totaux
             euro($solde_produits, $decimal_sep, $target),
             euro($solde_produits_prec, $decimal_sep, $target)
         );
@@ -1407,11 +1420,13 @@ array (size=2)
         $tbl[] = array(
             $tab,
             $this->lang->line("comptes_label_total_benefices"),
+            $tab, // Colonne Section vide
             $benefice,
             $benefice_prec,
             $tab,
             $tab,
             $this->lang->line("comptes_label_total_pertes"),
+            $tab, // Colonne Section vide
             $perte,
             $perte_prec
         );
