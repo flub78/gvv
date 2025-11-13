@@ -1408,13 +1408,13 @@ class Comptes extends Gvv_Controller {
             $solde_credit = isset($row['solde_credit']) ? $row['solde_credit'] : '';
             
             if ($solde_debit !== '' && is_numeric($solde_debit)) {
-                $table_row[] = number_format((float) $solde_debit, 2, ",", " ");
+                $table_row[] = euro($solde_debit, ',', 'pdf');
             } else {
                 $table_row[] = '';
             }
             
             if ($solde_credit !== '' && is_numeric($solde_credit)) {
-                $table_row[] = number_format((float) $solde_credit, 2, ",", " ");
+                $table_row[] = euro($solde_credit, ',', 'pdf');
             } else {
                 $table_row[] = '';
             }
