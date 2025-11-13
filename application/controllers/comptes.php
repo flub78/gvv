@@ -1419,13 +1419,17 @@ class Comptes extends Gvv_Controller {
                 $table_row[] = '';
             }
             
-            // Utiliser une couleur de fond différente pour les entêtes de codec (is_general = true)
-            $is_header = isset($row['is_general']) && $row['is_general'];
-            if ($is_header) {
-                $pdf->SetFillColor(240, 248, 255); // Bleu très clair pour les entêtes de codec
-                $pdf->row($widths, $height, $align, $table_row, 'LRTB', TRUE);
+            // Utiliser seulement la couleur de texte puisque les couleurs de fond ne fonctionnent pas
+            $is_general_header = isset($row['is_general']) && $row['is_general'];
+            
+            if ($is_general_header) {
+                // Têtes de section : texte bleu sombre
+                $pdf->SetTextColor(0, 0, 139); // Bleu sombre (DarkBlue)
+                $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
+                $pdf->SetTextColor(0, 0, 0); // Remettre le texte en noir
             } else {
-                $pdf->SetFillColor(255, 255, 255); // Blanc pour les comptes détaillés
+                // Lignes de détail : texte noir normal
+                $pdf->SetTextColor(0, 0, 0); // Texte noir
                 $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
             }
         }
