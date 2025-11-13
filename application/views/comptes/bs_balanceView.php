@@ -299,8 +299,8 @@ $this->lang->load('comptes');
 		<?php
 		$index = 0;
 		foreach ($result_general as $general_row):
-			$codec = $general_row['codec'];
-			$details = isset($details_by_codec[$codec]) ? $details_by_codec[$codec] : array();
+			$row_codec = $general_row['codec'];
+			$details = isset($details_by_codec[$row_codec]) ? $details_by_codec[$row_codec] : array();
 			echo balance_accordion_item($general_row, $details, $index, $this->gvvmetadata, $controller, $has_modification_rights, $section, $start_expanded);
 			$index++;
 		endforeach;
@@ -310,10 +310,10 @@ $this->lang->load('comptes');
 	<?php
 	$csv_url = "$controller/balance_hierarchical_csv";
 	$pdf_url = "$controller/balance_hierarchical_pdf";
-	if (isset($codec)) {
+	if (!empty($codec)) {
 		$csv_url .= "/$codec";
 		$pdf_url .= "/$codec";
-		if (isset($codec2)) {
+		if (!empty($codec2)) {
 			$csv_url .= "/$codec2";
 			$pdf_url .= "/$codec2";
 		}
