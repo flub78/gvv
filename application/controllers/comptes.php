@@ -1380,7 +1380,7 @@ class Comptes extends Gvv_Controller {
         
         // Définir les colonnes et leurs largeurs
         $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
-        $widths = array(12, 45, 20, 25, 25);
+        $widths = array(12, 100, 20, 25, 25);
         $align = array('L', 'L', 'L', 'R', 'R');
         $height = 8;
         
