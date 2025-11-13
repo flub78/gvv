@@ -970,6 +970,7 @@ class Comptes extends Gvv_Controller {
             $merged_result[] = array(
                 'codec' => $general_row['codec'],
                 'nom' => $general_row['nom'],
+                'section_name' => '',
                 'solde_debit' => isset($general_row['solde_debit']) ? $general_row['solde_debit'] : '',
                 'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : '',
                 'is_general' => true
@@ -981,6 +982,7 @@ class Comptes extends Gvv_Controller {
                     $merged_result[] = array(
                         'codec' => '  ' . $detail_row['codec'],
                         'nom' => '  ' . $detail_row['nom'],
+                        'section_name' => $detail_row['section_name'],
                         'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
                         'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : '',
                         'is_general' => false
@@ -993,12 +995,8 @@ class Comptes extends Gvv_Controller {
         $pdf = new Pdf();
         $pdf->AddPage();
         
-        $fields = array('codec', 'nom', 'solde_debit', 'solde_credit');
-        $this->gvvmetadata->pdf_table("vue_comptes", $merged_result, $pdf, array(
-            'title' => $titre,
-            'width' => array(12, 50, 30, 30),
-            'fields' => $fields
-        ));
+        // Générer un PDF personnalisé avec couleurs différentes pour les entêtes
+        $this->pdf_table_hierarchical_balance($merged_result, $pdf, $titre);
         
         $pdf->Output();
     }
@@ -1367,6 +1365,72 @@ class Comptes extends Gvv_Controller {
         }
         return load_last_view($this->controller . "/cloture", $this->data, $this->unit_test);
     }
+
+    /**
+     * Génère un tableau PDF personnalisé pour la balance hiérarchique
+     * avec couleur de fond différente pour les entêtes de codec
+     *
+     * @param array $data Les données à afficher
+     * @param object $pdf L'objet PDF
+     * @param string $title Le titre du tableau
+     */
+    private function pdf_table_hierarchical_balance($data, $pdf, $title) {
+        // Titre
+        $pdf->title($title);
+        
+        // Définir les colonnes et leurs largeurs
+        $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
+        $widths = array(12, 45, 20, 25, 25);
+        $align = array('L', 'L', 'L', 'R', 'R');
+        $height = 8;
+        
+        // En-tête du tableau
+        $header_row = array();
+        foreach ($fields as $field) {
+            $header_row[] = $this->gvvmetadata->field_name('vue_comptes', $field);
+        }
+        
+        // Définir la couleur de fond pour les entêtes
+        $pdf->SetFillColor(220, 220, 220); // Gris clair
+        $pdf->row($widths, $height, $align, $header_row, 'LRTB', TRUE);
+        
+        // Corps du tableau
+        foreach ($data as $row) {
+            $table_row = array();
+            
+            // Formatage manuel des champs
+            $table_row[] = isset($row['codec']) ? $row['codec'] : '';
+            $table_row[] = isset($row['nom']) ? $row['nom'] : '';
+            $table_row[] = isset($row['section_name']) ? $row['section_name'] : '';
+            
+            // Formatage des montants (logique similaire à array_field pour currency)
+            $solde_debit = isset($row['solde_debit']) ? $row['solde_debit'] : '';
+            $solde_credit = isset($row['solde_credit']) ? $row['solde_credit'] : '';
+            
+            if ($solde_debit !== '' && is_numeric($solde_debit)) {
+                $table_row[] = number_format((float) $solde_debit, 2, ",", " ");
+            } else {
+                $table_row[] = '';
+            }
+            
+            if ($solde_credit !== '' && is_numeric($solde_credit)) {
+                $table_row[] = number_format((float) $solde_credit, 2, ",", " ");
+            } else {
+                $table_row[] = '';
+            }
+            
+            // Utiliser une couleur de fond différente pour les entêtes de codec (is_general = true)
+            $is_header = isset($row['is_general']) && $row['is_general'];
+            if ($is_header) {
+                $pdf->SetFillColor(240, 248, 255); // Bleu très clair pour les entêtes de codec
+                $pdf->row($widths, $height, $align, $table_row, 'LRTB', TRUE);
+            } else {
+                $pdf->SetFillColor(255, 255, 255); // Blanc pour les comptes détaillés
+                $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
+            }
+        }
+    }
+
     /**
      * Test unitaire
      */
