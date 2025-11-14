@@ -91,12 +91,12 @@ if (!function_exists('balance_detail_datatable')) {
         $html .= '<table id="' . $unique_id . '" class="' . $table_class . '">';
         $html .= '<thead>';
         $html .= '<tr>';
-        $html .= '<th>' . $CI->lang->line('gvv_str_actions') . '</th>';
-        $html .= '<th>' . $gvvmetadata->label('vue_comptes', 'codec') . '</th>';
-        $html .= '<th>' . $gvvmetadata->label('vue_comptes', 'nom') . '</th>';
-        $html .= '<th>' . $gvvmetadata->label('vue_comptes', 'section_name') . '</th>';
-        $html .= '<th class="text-end">' . $gvvmetadata->label('vue_comptes', 'solde_debit') . '</th>';
-        $html .= '<th class="text-end">' . $gvvmetadata->label('vue_comptes', 'solde_credit') . '</th>';
+        $html .= '<th style="width: 10%">' . $CI->lang->line('gvv_str_actions') . '</th>';
+        $html .= '<th style="width: 10%">' . $gvvmetadata->label('vue_comptes', 'codec') . '</th>';
+        $html .= '<th style="width: 30%">' . $gvvmetadata->label('vue_comptes', 'nom') . '</th>';
+        $html .= '<th style="width: 20%">' . $gvvmetadata->label('vue_comptes', 'section_name') . '</th>';
+        $html .= '<th style="width: 15%" class="text-end">' . $gvvmetadata->label('vue_comptes', 'solde_debit') . '</th>';
+        $html .= '<th style="width: 15%" class="text-end">' . $gvvmetadata->label('vue_comptes', 'solde_credit') . '</th>';
         $html .= '</tr>';
         $html .= '</thead>';
         $html .= '<tbody>';
