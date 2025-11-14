@@ -195,13 +195,53 @@ class Document {
 
         $this->CI->session->set_userdata('balance_date', $balance_date);
 
-        $result = $this->CI->comptes_model->select_page_general(array(), $balance_date);
+        // Use hierarchical balance like balance_hierarchical_pdf
+        $filter_solde = false;  // No filter for the global report
+        $filter_masked = false;
+        $selection = array();
 
-        $fields = array('codec', 'nom', 'solde_debit', 'solde_credit');
-        $this->CI->gvvmetadata->pdf_table("vue_comptes", $result, $this->pdf, array(
-            'width' => array(12, 50, 30, 30),
-            'fields' => $fields
-        ));
+        $result_general = $this->CI->comptes_model->select_page_general($selection, $balance_date, $filter_solde, $filter_masked);
+        $result_detail = $this->CI->comptes_model->select_page($selection, $balance_date, $filter_solde, $filter_masked);
+
+        // Group detail rows by codec
+        $details_by_codec = array();
+        foreach ($result_detail as $row) {
+            $codec_key = $row['codec'];
+            if (!isset($details_by_codec[$codec_key])) {
+                $details_by_codec[$codec_key] = array();
+            }
+            $details_by_codec[$codec_key][] = $row;
+        }
+
+        // Merge general and detail rows
+        $merged_result = array();
+        foreach ($result_general as $general_row) {
+            $merged_result[] = array(
+                'codec' => $general_row['codec'],
+                'nom' => $general_row['nom'],
+                'section_name' => '',
+                'solde_debit' => isset($general_row['solde_debit']) ? $general_row['solde_debit'] : '',
+                'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : '',
+                'is_general' => true
+            );
+
+            $codec_key = $general_row['codec'];
+            if (isset($details_by_codec[$codec_key])) {
+                foreach ($details_by_codec[$codec_key] as $detail_row) {
+                    $merged_result[] = array(
+                        'codec' => '  ' . $detail_row['codec'],
+                        'nom' => '  ' . $detail_row['nom'],
+                        'section_name' => $detail_row['section_name'],
+                        'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
+                        'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : '',
+                        'is_general' => false
+                    );
+                }
+            }
+        }
+
+        // Generate hierarchical balance table
+        $this->pdf_table_hierarchical_balance($merged_result, $this->pdf);
     }
 
     /**
@@ -400,6 +440,7 @@ class Document {
 
         $title = $this->title('gvv_comptes_title_bilan', $year);
 
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
         $this->pdf->title($title, 1);
 
@@ -442,6 +483,79 @@ class Document {
         );
 
         $this->pdf->table($width, 8, $align, $data, $border);
+    }
+
+    /**
+     * Génère un tableau PDF personnalisé pour la balance hiérarchique
+     * avec couleur de fond différente pour les entêtes de codec
+     *
+     * @param array $data Les données à afficher
+     * @param object $pdf L'objet PDF
+     */
+    private function pdf_table_hierarchical_balance($data, $pdf) {
+        // Définir les colonnes et leurs largeurs
+        $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
+        $widths = array(12, 100, 20, 25, 25);
+        $align = array('L', 'L', 'L', 'R', 'R');
+        $height = 8;
+
+        // En-tête du tableau
+        $header_row = array();
+        foreach ($fields as $field) {
+            $header_row[] = $this->CI->gvvmetadata->field_name('vue_comptes', $field);
+        }
+
+        // Définir la couleur de fond pour les en-têtes du tableau
+        $pdf->SetFillColor(220, 220, 220); // Gris clair
+        $pdf->row($widths, $height, $align, $header_row, 'LRTB', TRUE);
+
+        // Corps du tableau
+        foreach ($data as $row) {
+            $table_row = array();
+
+            // Formatage manuel des champs
+            $table_row[] = isset($row['codec']) ? $row['codec'] : '';
+            $table_row[] = isset($row['nom']) ? $row['nom'] : '';
+            $table_row[] = isset($row['section_name']) ? $row['section_name'] : '';
+
+            // Formatage des montants (logique similaire à array_field pour currency)
+            $solde_debit = isset($row['solde_debit']) ? $row['solde_debit'] : '';
+            $solde_credit = isset($row['solde_credit']) ? $row['solde_credit'] : '';
+
+            if ($solde_debit !== '' && is_numeric($solde_debit)) {
+                $table_row[] = euro($solde_debit, ',', 'pdf');
+            } else {
+                $table_row[] = '';
+            }
+
+            if ($solde_credit !== '' && is_numeric($solde_credit)) {
+                $table_row[] = euro($solde_credit, ',', 'pdf');
+            } else {
+                $table_row[] = '';
+            }
+
+            // Apply bold and blue text for general account headers
+            $is_general_header = isset($row['is_general']) && $row['is_general'];
+
+            if ($is_general_header) {
+                // Wrap all fields in bold tags
+                for ($i = 0; $i < count($table_row); $i++) {
+                    $table_row[$i] = '<b>' . $table_row[$i] . '</b>';
+                }
+
+                // General account headers: blue text in bold
+                $pdf->SetTextColor(0, 0, 139); // Dark blue text
+                $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
+                $pdf->SetTextColor(0, 0, 0); // Reset to black
+            } else {
+                // Detail rows: normal black text
+                $pdf->SetTextColor(0, 0, 0); // Black text
+                $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
+            }
+        }
+
+        // Reset colors to default
+        $pdf->SetTextColor(0, 0, 0);
     }
 
     function generate() {
