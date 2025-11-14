@@ -25,7 +25,6 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 $CI = &get_instance();
-$CI->load->library('Fpdf');
 
 class Document {
     protected $pdf;
@@ -72,10 +71,6 @@ class Document {
         return $title;
     }
 
-    /**
-     * Génération de la page résultats
-     * @param unknown_type $year
-     */
     function pagesResultats($year) {
 
         $title = $this->title("gvv_comptes_title_resultat", $year);
@@ -87,28 +82,45 @@ class Document {
         $tab = $this->CI->ecritures_model->resultat_table($resultat, false, '', ',', 'pdf');
 
         $w = array(
-            12,
-            48,
-            16,
-            16,
-            10,
-            12,
-            48,
-            16,
-            16
+            7,   // Code expenses
+            37,  // Label expenses (increased from 36)
+            10,  // Section expenses
+            20,  // Year amount expenses - fits "99 999,99 €"
+            20,  // Previous year expenses - same width as current year
+            2,   // Separator (reduced from 4 - minimal spacing)
+            7,   // Code earnings
+            37,  // Label earnings (increased from 36)
+            10,  // Section earnings
+            20,  // Year amount earnings - same width as expenses
+            20   // Previous year earnings - same width as current year
         );
         $align = array(
-            'R',
-            'L',
-            'R',
-            'R',
-            'C',
-            'R',
-            'L',
-            'R',
-            'R'
+            'R',  // Code expenses
+            'L',  // Label expenses
+            'L',  // Section expenses
+            'R',  // Year amount expenses
+            'R',  // Previous year expenses
+            'C',  // Separator
+            'R',  // Code earnings
+            'L',  // Label earnings
+            'L',  // Section earnings
+            'R',  // Year amount earnings
+            'R'   // Previous year earnings
         );
-        $this->pdf->table($w, 8, $align, $tab);
+        $border = array(
+            'LRTB',  // Code expenses
+            'LRTB',  // Label expenses
+            'LRTB',  // Section expenses
+            'LRTB',  // Year amount expenses
+            'LRTB',  // Previous year expenses
+            'LR',    // Separator - only left/right borders (no top/bottom)
+            'LRTB',  // Code earnings
+            'LRTB',  // Label earnings
+            'LRTB',  // Section earnings
+            'LRTB',  // Year amount earnings
+            'LRTB'   // Previous year earnings
+        );
+        $this->pdf->table($w, 5, $align, $tab, $border);  // Pass custom border array
     }
 
     /**

@@ -261,7 +261,7 @@ if (! function_exists('euro')) {
             $symbol = '&nbsp;€';
         } elseif ($target == 'pdf') {
             $thousand_sep = ' ';
-            $symbol = ' EUR';  // Utiliser EUR en texte pour éviter les problèmes d'encodage
+            $symbol = ' €';  // tFPDF supports UTF-8, can use € symbol
         } else {
             $thousand_sep = ' ';
             $symbol = '';

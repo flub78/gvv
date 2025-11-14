@@ -39,6 +39,13 @@ class PDF extends tFPDF {
      */
     function __construct($orientation = "P", $unit = "mm", $format = "A4") {
         parent::__construct($orientation, $unit, $format);
+
+        // Add DejaVu fonts for UTF-8 support
+        $this->AddFont('DejaVu', '', 'DejaVuSans.ttf', true);
+        $this->AddFont('DejaVu', 'B', 'DejaVuSans-Bold.ttf', true);
+        $this->AddFont('DejaVu', 'I', 'DejaVuSans-Oblique.ttf', true);
+        $this->AddFont('DejaVu', 'BI', 'DejaVuSans-BoldOblique.ttf', true);
+
         $CI = &get_instance();
         $nom_club = $CI->config->item('nom_club');
         $this->SetTitle($nom_club);
@@ -53,54 +60,47 @@ class PDF extends tFPDF {
         $this->title = $str;
     }
 
-    /**
-     * Display a row
-     */
     public function row($w, $height, $align, $row, $border = 'LRTB', $fill = FALSE, $link = '') {
-
-        // Check the number of real lines
-        $col = 0;
-        $ln = 1;
-        foreach ($row as $field) {
-            $width = $w[$col++]; // colomn width
-            $sw = $this->GetStringWidth($field); // string width
-            $ratio = 1 + (int) ($sw / $width); // Compute number of line required
-            if ($ratio > $ln) {
-                $ln = $ratio;
-            }
-        }
 
         $col = 0;
         foreach ($row as $field) {
 
             /*
-             * Problem:
-             *
-             * When some lines require at least three lines, single cells have the right height,
-             * but multicell that do not require three lines are too small.
+             * Truncate text if it's too long to fit in the cell
+             * Add ellipsis (...) to indicate truncation
+             * Account for the width of the ellipsis when truncating
              */
-            $algn = ($ln == 1) ? $align[$col] : 'L';
-            $algn = $align[$col];
-            if ($this->GetStringWidth($field) <= $w[$col]) {
-                parent::Cell($w[$col], $height * $ln, $field, $border, 0, $algn);
-            } else {
-
-                // fill with spaces to force the correc size
-                while ($this->GetStringWidth($field) <= $w[$col] * ($ln - 1)) {
-                    $field .= ' ';
+            $field_str = (string)$field;
+            
+            // Only truncate if the text doesn't fit in the column
+            if ($this->GetStringWidth($field_str) > $w[$col]) {
+                $ellipsis_width = $this->GetStringWidth('...');
+                
+                // Truncate until the text + ellipsis fits within the column width
+                while ($this->GetStringWidth($field_str) > $w[$col] - $ellipsis_width && strlen($field_str) > 0) {
+                    $field_str = substr($field_str, 0, -1);
                 }
-
-                $x = $this->GetX();
-                $y = $this->GetY();
-                $this->MultiCell($w[$col], $height, $field, $border, $algn);
-                $this->SetXY($x + $w[$col], $y);
+                
+                // Cut two more characters to add spacing before the border
+                if (strlen($field_str) > 2) {
+                    $field_str = substr($field_str, 0, -2);
+                }
+                
+                // Add ellipsis since we truncated
+                $field_str .= '...';
             }
+
+            $algn = $align[$col];
+
+            // Support per-column border specification
+            $cell_border = is_array($border) ? $border[$col] : $border;
+
+            // Always use Cell for single-line content to avoid overflow
+            parent::Cell($w[$col], $height, $field_str, $cell_border, 0, $algn);
+
             $col++;
         }
         $this->Ln();
-        if ($ln > 1) {
-            $this->SetXY($this->GetX(), $this->GetY() + ($ln - 2) * $height);
-        }
     }
 
     /**
@@ -127,9 +127,9 @@ class PDF extends tFPDF {
             return;
         $size = $this->GetFontSize();
         $style = $this->GetFontStyle();
-        $this->SetFont('Arial', 'B', 9);
+        $this->SetFont('DejaVu', 'B', 6);  // Reduced to 6pt for more compact layout
         $this->row($this->width, $this->height, $this->align, $this->table_header_line, $this->border, $this->fill, $this->link);
-        $this->SetFont('Arial', $style, $size);
+        $this->SetFont('DejaVu', $style, $size);
     }
 
     /**
@@ -143,6 +143,9 @@ class PDF extends tFPDF {
      *            Cell (float w [, float h [, string txt [, mixed border [, int ln [, string align [, boolean fill [, mixed link]]]]]]])
      */
     public function table($w, $height, $align, $data, $border = 'LRTB', $fill = FALSE, $link = '') {
+        // Set smaller font for table content to fit narrower columns
+        $this->SetFont('DejaVu', '', 6);  // Reduced to 6pt for more compact layout
+
         $line = 0;
         foreach ($data as $row) {
             if ($line == 0) {
@@ -226,8 +229,8 @@ class PDF extends tFPDF {
         if (file_exists($logofile)) {
             $this->Image($logofile, 10, 6, 30);
         }
-        // Police Arial gras 15
-        $this->SetFont('Arial', 'B', 12);
+        // Police DejaVu gras 12 (UTF-8 support)
+        $this->SetFont('DejaVu', 'B', 12);
 
         // Calcul de la largeur du titre et positionnement
         $w = $this->GetStringWidth($this->title) + 6;
@@ -238,7 +241,7 @@ class PDF extends tFPDF {
         $this->Cell($w, 10, $this->title, 1, 0, 'C');
 
         // Date
-        $this->SetFont('Arial', '', 10);
+        $this->SetFont('DejaVu', '', 10);
         $this->Cell(70 - $w / 2);
         $this->cell(0, 0, date("d/m/Y", time()));
 
@@ -251,8 +254,8 @@ class PDF extends tFPDF {
     function Footer() {
         // Positionnement à 1,5 cm du bas
         $this->SetY(-15);
-        // Police Arial italique 8
-        $this->SetFont('Arial', 'I', 8);
+        // Police DejaVu italique 8
+        $this->SetFont('DejaVu', 'I', 8);
         // Numéro de page
         $this->Cell(0, 10, 'Page ' . $this->PageNo() . '/{nb}', 0, 0, 'C');
     }
@@ -269,9 +272,9 @@ class PDF extends tFPDF {
 
     // Crée un titre hiérarchique
     function title($title, $level = 1) {
-        $this->SetFont('Arial', 'B', 13 - $level);
+        $this->SetFont('DejaVu', 'B', 13 - $level);
         $this->printl($title);
-        $this->SetFont('Arial', '', 8);
+        $this->SetFont('DejaVu', '', 8);
         $this->Ln();
     }
 }
