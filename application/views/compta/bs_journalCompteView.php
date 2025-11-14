@@ -233,9 +233,12 @@ $attrs = array(
 );
 
 if ($count > 400) {
+    // Use CodeIgniter pagination for large tables
     $attrs['count'] = $count;
     $attrs['first'] = $premier;
+    $attrs['class'] .= " table-striped table-hover";
 } else {
+    // Use DataTables for small tables
     if ($has_modification_rights && $section) {
         $attrs['class'] .= " datedtable";
     } else {
@@ -243,30 +246,158 @@ if ($count > 400) {
     }
 }
 
-// echo "rights=$has_modification_rights" . br(); 
+// echo "rights=$has_modification_rights" . br();
 echo '<div class="mt-3">';
 echo $this->gvvmetadata->table("vue_journal", $attrs, "");
 echo '</div>';
 
-// Solde final
-if ($solde_fin < 0) {
-    $solde_deb = euro(abs($solde_fin));
-    $solde_cred = "";
-} else {
-    $solde_deb = "";
-    $solde_cred = euro($solde_fin);
+// Add custom CSS for CodeIgniter pagination and table styling
+echo '<style>
+/* Style action buttons - Edit icon blue, Delete icon red */
+.sql_table .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
 }
 
+.sql_table .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.sql_table .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.sql_table .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Links to accounts - simple blue links without button styling */
+.sql_table tbody td a:not(.btn) {
+    color: #007bff;
+    text-decoration: none;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline !important;
+}
+
+.sql_table tbody td a:not(.btn):hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+';
+
+// Add pagination styling only for tables > 400 entries
+if ($count > 400) {
+    echo '
+    /* Style CodeIgniter pagination to look like DataTables with gradient gray band */
+
+    /* Pagination container - gray gradient background exactly like DataTables */
+    #body > div > table:not(.sql_table) {
+        width: 100%;
+        background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+        border: 1px solid #aaa;
+        border-top: 1px solid #aaa;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+    }
+
+    #body > div > table:not(.sql_table) tbody {
+        width: 100%;
+    }
+
+    #body > div > table:not(.sql_table) tr {
+        width: 100%;
+    }
+
+    #body > div > table:not(.sql_table) td {
+        padding: 12px 10px;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+    }
+
+    /* Container for pagination elements - info left, navigation right */
+    #body > div > table:not(.sql_table) td {
+        display: block;
+        text-align: left;
+        font-size: 13px;
+        color: #333;
+    }
+
+    /* Float navigation elements to the right */
+    #body > div > table:not(.sql_table) td > a,
+    #body > div > table:not(.sql_table) td > strong {
+        float: right;
+    }
+
+    /* Clear floats */
+    #body > div > table:not(.sql_table) td::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    /* Pagination links - exactly like DataTables */
+    #body > div > table:not(.sql_table) td > a,
+    #body > div > table:not(.sql_table) td > strong {
+        display: inline-block;
+        padding: 3px 10px;
+        margin: 0 1px;
+        border: 1px solid #b0b0b0;
+        background: linear-gradient(to bottom, #ffffff 0%, #f9f9f9 50%, #ededed 100%);
+        color: #333;
+        text-decoration: none;
+        border-radius: 2px;
+        font-weight: normal;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    /* Current page - highlighted exactly like DataTables */
+    #body > div > table:not(.sql_table) td > strong {
+        background: linear-gradient(to bottom, #5f9dd8 0%, #4a8ec6 50%, #3875b0 100%);
+        color: white;
+        border-color: #3875b0;
+        font-weight: bold;
+    }
+
+    /* Hover effect - exactly like DataTables */
+    #body > div > table:not(.sql_table) td > a:hover {
+        background: linear-gradient(to bottom, #fefefe 0%, #f4f4f4 50%, #e0e0e0 100%);
+        border-color: #999;
+    }
+
+    /* Style the per-page selector */
+    #per_page {
+        padding: 5px 10px;
+        border: 1px solid #aaa;
+        border-radius: 3px;
+        background: #fff;
+        margin-right: 10px;
+    }
+    ';
+}
+
+echo '</style>';
 ?>
+
 <div class="me-3 mb-2 d-md-flex flex-row">
     <div class="me-3 mb-2"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin  " ?></div>
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
-        <input type="text" name="current_debit" value="<?= $solde_deb ?>" readonly="readonly" />
+        <input type="text" name="current_debit" value="<?= $solde_fin < 0 ? euro(abs($solde_fin)) : '' ?>" readonly="readonly" />
     </div>
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
-        <input type="text" name="current_credit" value="<?= $solde_cred ?>" readonly="readonly" />
+        <input type="text" name="current_credit" value="<?= $solde_fin >= 0 ? euro($solde_fin) : '' ?>" readonly="readonly" />
     </div>
 </div>
 

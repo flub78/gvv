@@ -498,10 +498,11 @@ abstract class Metadata {
 
         if (!$datatable && $count) {
             $res .= "<table><tr><td>" . "Afficher par page: " . form_dropdown('perpage', array(
-                25 => 25,
+                10 => 10,
                 50 => 50,
                 100 => 100,
-                500 => 500
+                500 => 500,
+                1000 => 1000
             ), $per_page, "id='per_page' onchange=per_page();") . nbs(4) . $pagination . "</td></tr></table>";
         }
 
