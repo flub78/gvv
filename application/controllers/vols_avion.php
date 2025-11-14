@@ -509,8 +509,10 @@ class Vols_avion extends Gvv_Controller {
         $this->load->library('Pdf');
         $pdf = new Pdf();
 
+        $titre = $this->lang->line("gvv_vols_avion_title_list") . " $year";
+        $pdf->set_title($titre);
         $pdf->AddPage('L');
-        $pdf->title($this->lang->line("gvv_vols_avion_title_list") . " $year", 1);
+        $pdf->title($titre, 1);
 
         $tab = array();
 

@@ -589,8 +589,19 @@ class Comptes extends Gvv_Controller {
         if ($mode == "csv") {
             $this->csv_resultat();
         } else {
-            redirect(controller_url("rapports/pdf_resultats"));
+            $this->pdf_resultat();
         }
+    }
+
+    /**
+     * Export des résultats en PDF (page unique)
+     */
+    function pdf_resultat() {
+        $year = $this->session->userdata('year');
+
+        $this->load->library('Document', array('year' => $year));
+        $this->document->pagesResultats($year);
+        $this->document->generate();
     }
 
     /**
@@ -1126,8 +1137,19 @@ class Comptes extends Gvv_Controller {
         if ($mode == "csv") {
             $this->bilan_csv();
         } else {
-            redirect(controller_url("rapports/bilan"));
+            $this->bilan_pdf();
         }
+    }
+
+    /**
+     * Export du bilan en PDF (page unique)
+     */
+    function bilan_pdf() {
+        $year = $this->session->userdata('year');
+
+        $this->load->library('Document', array('year' => $year));
+        $this->document->pagesBilan($year);
+        $this->document->generate();
     }
 
     /*

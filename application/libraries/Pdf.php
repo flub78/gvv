@@ -34,9 +34,6 @@ class PDF extends tFPDF {
     protected $fill;
     protected $link;
 
-    /**
-     * Constructor
-     */
     function __construct($orientation = "P", $unit = "mm", $format = "A4") {
         parent::__construct($orientation, $unit, $format);
 
@@ -49,7 +46,7 @@ class PDF extends tFPDF {
         $CI = &get_instance();
         $nom_club = $CI->config->item('nom_club');
         $this->SetTitle($nom_club);
-        $this->set_title($nom_club);
+        // Don't set $this->title here - it should be set by each document
         $this->AliasNbPages();
     }
 
@@ -240,29 +237,30 @@ class PDF extends tFPDF {
     function Header() {
         $CI = &get_instance();
 
-        // Logo
+        // Logo on the left
         $logofile = $CI->config->item('logo_club');
         if (file_exists($logofile)) {
             $this->Image($logofile, 10, 6, 30);
         }
         
-        // Association name and document title on the left (after logo area)
         $nom_club = $CI->config->item('nom_club');
         
-        // Line 1: Association name (e.g., "GVV test local") - BOLD
-        $this->SetFont('DejaVu', 'B', 9);
+        // First line: Association name (centered) and date (right)
+        $this->SetFont('DejaVu', 'B', 11);
         $this->SetXY(45, 6);
-        $this->Cell(120, 4, $nom_club, 0, 0, 'L');
+        $this->Cell(120, 5, $nom_club, 0, 0, 'C');
         
-        // Line 2: Document title (e.g., "Balance des comptes, Date=31/12/2025") - BOLD
-        $this->SetFont('DejaVu', 'B', 8);
-        $this->SetXY(45, 11);
-        $this->Cell(120, 4, $this->title, 0, 0, 'L');
-        
-        // Publication date on the right
+        // Date on the right
         $this->SetFont('DejaVu', '', 9);
-        $this->SetXY(170, 8);
-        $this->Cell(0, 4, date("d/m/Y", time()), 0, 0, 'R');
+        $this->SetXY(170, 6);
+        $this->Cell(30, 5, date("d/m/Y", time()), 0, 0, 'R');
+        
+        // Second line: Document title (centered)
+        if (!empty($this->title)) {
+            $this->SetFont('DejaVu', '', 9);
+            $this->SetXY(45, 12);
+            $this->Cell(120, 5, $this->title, 0, 0, 'C');
+        }
 
         // Saut de ligne
         $this->Ln(20);

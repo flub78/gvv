@@ -166,6 +166,9 @@ class Planeur extends Gvv_Controller {
             return;
         }
 
+        // Load language file
+        $this->lang->load('planeur');
+
         // Build selection from current filters
         $selection = $this->selection();
         $rows = $this->gvv_model->select_page(10000, 0, $selection);
@@ -184,6 +187,7 @@ class Planeur extends Gvv_Controller {
         // PDF
         $this->load->library('Pdf');
         $pdf = new Pdf();
+        $pdf->set_title($title);
         $pdf->AddPage('L');
         $width = array(30, 45, 35, 25, 20, 20, 20, 20, 15, 30);
         $this->gvvmetadata->pdf_table('vue_planeurs', $rows, $pdf, array(

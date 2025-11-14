@@ -54,7 +54,7 @@ class Document {
         $this->pdf = new Pdf();
         $nom_club = $this->CI->config->item('nom_club');
         $this->pdf->SetTitle($nom_club);
-        $this->pdf->set_title($nom_club);
+        // Don't set $this->pdf->title here - each page method should set its own title
         $this->pdf->AliasNbPages();
     }
 
@@ -75,6 +75,7 @@ class Document {
 
         $title = $this->title("gvv_comptes_title_resultat", $year);
 
+        $this->pdf->set_title($title);
         $this->pdf->AddPage();
         $this->pdf->title($title, 2);
 
@@ -128,9 +129,9 @@ class Document {
      * @param unknown_type $year
      */
     function pagesResultatsCategorie($year) {
-        $this->pdf->AddPage();
-
         $title = $this->title("gvv_comptes_title_resultat", $year) . " par catégorie";
+        $this->pdf->set_title($title);
+        $this->pdf->AddPage();
         $this->pdf->title($title, 2);
 
         $results = $this->CI->ecritures_model->select_categorie('code1 >= "6" and code1 < "7"');
@@ -187,8 +188,9 @@ class Document {
 
         $title = $this->title("gvv_comptes_title_balance", $balance_date);
 
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
-        
+
         $this->pdf->title($title, 1);
 
         $this->CI->session->set_userdata('balance_date', $balance_date);
@@ -208,8 +210,10 @@ class Document {
      */
     function pagesLicences($year) {
 
+        $title = $this->CI->lang->line("gvv_achats_title_year") . "Licenciés $year";
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
-        $this->pdf->title($this->CI->lang->line("gvv_achats_title_year") . "Licenciés $year", 1);
+        $this->pdf->title($title, 1);
 
         $this->CI->load->model('membres_model');
         $this->CI->membres_model->select_licences();
@@ -302,6 +306,7 @@ class Document {
 
         $title = $this->title("gvv_comptes_title_journaux", $year);
 
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
         for ($i = 0; $i < 5; $i++) {
             $this->pdf->Ln();
@@ -336,6 +341,7 @@ class Document {
         }
         $title .= " " . $year;
 
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
         for ($i = 0; $i < 5; $i++) {
             $this->pdf->Ln();
@@ -358,8 +364,10 @@ class Document {
 
         $this->CI->lang->load('achats');
 
+        $title = $this->title("gvv_achats_title_year", $year);
+        $this->pdf->set_title($title);
         $this->pdf->AddPage('P');
-        $this->pdf->title($this->title("gvv_achats_title_year", $year), 1);
+        $this->pdf->title($title, 1);
         // $this->pdf->AddPage('P');
 
         // Fetch the data
