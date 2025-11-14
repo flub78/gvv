@@ -66,11 +66,15 @@ class PDF extends tFPDF {
         foreach ($row as $field) {
 
             /*
-             * Truncate text if it's too long to fit in the cell
-             * Add ellipsis (...) to indicate truncation
-             * Account for the width of the ellipsis when truncating
+             * Check if text should be bold (wrapped in <b> tags)
+             * and remove the tags before processing
              */
             $field_str = (string)$field;
+            $is_bold = false;
+            if (preg_match('/<b>(.*?)<\/b>/', $field_str, $matches)) {
+                $is_bold = true;
+                $field_str = $matches[1];
+            }
             
             // Only truncate if the text doesn't fit in the column
             if ($this->GetStringWidth($field_str) > $w[$col]) {
@@ -95,8 +99,20 @@ class PDF extends tFPDF {
             // Support per-column border specification
             $cell_border = is_array($border) ? $border[$col] : $border;
 
+            // Apply bold font if needed
+            if ($is_bold) {
+                $current_style = $this->FontStyle;
+                $current_size = $this->FontSizePt;
+                $this->SetFont('DejaVu', 'B', $current_size);
+            }
+
             // Always use Cell for single-line content to avoid overflow
             parent::Cell($w[$col], $height, $field_str, $cell_border, 0, $algn);
+
+            // Restore original font if we changed it
+            if ($is_bold) {
+                $this->SetFont('DejaVu', $current_style, $current_size);
+            }
 
             $col++;
         }

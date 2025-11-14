@@ -1390,7 +1390,7 @@ class Comptes extends Gvv_Controller {
             $header_row[] = $this->gvvmetadata->field_name('vue_comptes', $field);
         }
         
-        // Définir la couleur de fond pour les entêtes
+        // Définir la couleur de fond pour les en-têtes du tableau
         $pdf->SetFillColor(220, 220, 220); // Gris clair
         $pdf->row($widths, $height, $align, $header_row, 'LRTB', TRUE);
         
@@ -1419,20 +1419,28 @@ class Comptes extends Gvv_Controller {
                 $table_row[] = '';
             }
             
-            // Utiliser seulement la couleur de texte puisque les couleurs de fond ne fonctionnent pas
+            // Apply bold and blue text for general account headers
             $is_general_header = isset($row['is_general']) && $row['is_general'];
             
             if ($is_general_header) {
-                // Têtes de section : texte bleu sombre
-                $pdf->SetTextColor(0, 0, 139); // Bleu sombre (DarkBlue)
+                // Wrap all fields in bold tags
+                for ($i = 0; $i < count($table_row); $i++) {
+                    $table_row[$i] = '<b>' . $table_row[$i] . '</b>';
+                }
+                
+                // General account headers: blue text in bold
+                $pdf->SetTextColor(0, 0, 139); // Dark blue text
                 $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
-                $pdf->SetTextColor(0, 0, 0); // Remettre le texte en noir
+                $pdf->SetTextColor(0, 0, 0); // Reset to black
             } else {
-                // Lignes de détail : texte noir normal
-                $pdf->SetTextColor(0, 0, 0); // Texte noir
+                // Detail rows: normal black text
+                $pdf->SetTextColor(0, 0, 0); // Black text
                 $pdf->row($widths, $height, $align, $table_row, 'LRTB', FALSE);
             }
         }
+        
+        // Reset colors to default
+        $pdf->SetTextColor(0, 0, 0);
     }
 
     /**

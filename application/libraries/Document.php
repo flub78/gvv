@@ -397,18 +397,18 @@ class Document {
 
         $bilan = $this->CI->comptes_model->select_all_for_bilan($year);
         $bilan_prec = $this->CI->comptes_model->select_all_for_bilan($year - 1);
-        $data = bilan_table($bilan, $bilan_prec, false);
+        $data = bilan_table($bilan, $bilan_prec, false, 'pdf');
 
         $width = array(
-            39,
-            19,
-            19,
-            19,
-            19,
-            2,
-            39,
-            19,
-            19
+            35,  // Actif column (reduced from 39)
+            20,  // Valeur brute (increased from 19)
+            21,  // Amortissement (increased from 19)
+            19,  // Valeur nette year
+            19,  // Valeur nette year-1
+            2,   // Separator
+            39,  // Passif column
+            19,  // Year
+            19   // Year-1
         );
         $align = array(
             'L',
@@ -421,8 +421,19 @@ class Document {
             'R',
             'R'
         );
+        $border = array(
+            'LRTB',  // Actif column
+            'LRTB',  // Valeur brute
+            'LRTB',  // Amortissement
+            'LRTB',  // Valeur nette year
+            'LRTB',  // Valeur nette year-1
+            'LR',    // Separator - only left/right (no top/bottom)
+            'LRTB',  // Passif column
+            'LRTB',  // Year
+            'LRTB'   // Year-1
+        );
 
-        $this->pdf->table($width, 8, $align, $data);
+        $this->pdf->table($width, 8, $align, $data, $border);
     }
 
     function generate() {

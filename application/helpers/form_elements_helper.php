@@ -379,6 +379,21 @@ if (! function_exists('highlight')) {
     }
 }
 
+if (! function_exists('bold_pdf')) {
+    /**
+     * Wraps text with bold markers for PDF rendering
+     *
+     * @param string $str The text to format
+     * @param string $format The output format ('pdf', 'html', 'csv')
+     * @return string The formatted text
+     */
+    function bold_pdf($str, $format) {
+        if ($format !== 'pdf')
+            return $str;
+        return '<b>' . $str . '</b>';
+    }
+}
+
 if (! function_exists('bilan_table')) {
     /**
      * Transforme les données du bilan en table qui puisse être affiché ou exporté
@@ -387,14 +402,16 @@ if (! function_exists('bilan_table')) {
      * @param $bilan_prec
      * @param boolean $html
      */
-    function bilan_table($bilan, $bilan_prec, $html) {
+    function bilan_table($bilan, $bilan_prec, $html, $output_format = null) {
         $CI = &get_instance();
         $CI->lang->load('comptes');
         // $CI->lang->line('')
 
         $tab = ($html) ? nbs(6) : "";
         $sep = ($html) ? '.' : ',';
-        $output_format = ($html) ? "html" : "csv";
+        if ($output_format === null) {
+            $output_format = ($html) ? "html" : "csv";
+        }
 
         $year = $bilan['year'];
         $table = array();          // resultat
@@ -417,12 +434,12 @@ if (! function_exists('bilan_table')) {
             $tab,
             $tab,
             $tab,
-            highlight($year, $html),
-            highlight($year - 1, $html),
+            bold_pdf(highlight($year, $html), $output_format),
+            bold_pdf(highlight($year - 1, $html), $output_format),
             $tab,
             $tab,
-            highlight($year, $html),
-            highlight($year - 1, $html)
+            bold_pdf(highlight($year, $html), $output_format),
+            bold_pdf(highlight($year - 1, $html), $output_format)
         );
 
         // immo ligne 1
@@ -583,15 +600,15 @@ if (! function_exists('bilan_table')) {
         );
 
         $table[] = array(
-            $CI->lang->line('comptes_bilan_total_actif'),
+            bold_pdf($CI->lang->line('comptes_bilan_total_actif'), $output_format),
             $tab,
             $tab,
-            euro($bilan['total_actif'], $sep, $output_format),
-            euro($bilan_prec['total_actif'], $sep, $output_format),
+            bold_pdf(euro($bilan['total_actif'], $sep, $output_format), $output_format),
+            bold_pdf(euro($bilan_prec['total_actif'], $sep, $output_format), $output_format),
             $tab,
-            $CI->lang->line('comptes_bilan_total_passif'),
-            euro($bilan['total_passif'], $sep, $output_format),
-            euro($bilan_prec['total_passif'], $sep, $output_format)
+            bold_pdf($CI->lang->line('comptes_bilan_total_passif'), $output_format),
+            bold_pdf(euro($bilan['total_passif'], $sep, $output_format), $output_format),
+            bold_pdf(euro($bilan_prec['total_passif'], $sep, $output_format), $output_format)
         );
         return $table;
     }
