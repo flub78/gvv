@@ -92,7 +92,7 @@ Validation Helper
  [x] French date compare
  [x] Minute to time
  [x] Decimal to time
- [x] Euro
+ [ ] Euro
  [x] Email validation
 
 Authorization_model

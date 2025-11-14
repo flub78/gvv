@@ -19,8 +19,12 @@ if (! defined('BASEPATH'))
     exit('No direct script access allowed');
 
 $CI = &get_instance();
-$CI->load->library('Fpdf');
-class PDF extends FPDF {
+// Define font path for tFPDF before loading the library
+if (!defined('FPDF_FONTPATH')) {
+    define('FPDF_FONTPATH', APPPATH . 'libraries/font_fpdf/');
+}
+require_once(APPPATH . 'libraries/tfpdf.php');
+class PDF extends tFPDF {
     protected $table_header = FALSE;
     protected $table_header_line;
     protected $width;
