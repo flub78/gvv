@@ -1039,7 +1039,8 @@ abstract class Metadata {
 
             foreach ($fields as $field) {
                 $value = isset($row[$field]) ? $row[$field] : '';
-                $line[] = $this->array_field($table, $field, $value, $row, "csv");
+                $mode = isset($attrs['mode']) ? $attrs['mode'] : 'pdf';
+                $line[] = $this->array_field($table, $field, $value, $row, $mode);
             }
             $tab[] = $line;
         }
@@ -1109,7 +1110,8 @@ abstract class Metadata {
 
             foreach ($fields as $field) {
                 $value = isset($row[$field]) ? $row[$field] : '';
-                $line[] = $this->array_field($table, $field, $value, $row, "csv");
+                $mode = isset($attrs['mode']) ? $attrs['mode'] : 'pdf';
+                $line[] = $this->array_field($table, $field, $value, $row, $mode);
             }
             $tab[] = $line;
         }
@@ -1137,7 +1139,7 @@ abstract class Metadata {
         // gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
 
         // Special handling for description field in vue_journal to add attachment paperclip icon
-        if ($table == 'vue_journal' && $field == 'description' && $mode != 'csv') {
+        if ($table == 'vue_journal' && $field == 'description' && $mode != 'csv' && $mode != 'pdf') {
             // Get attachment count for this ecriture
             $ecriture_id = isset($row['id']) ? $row['id'] : '';
             if ($ecriture_id) {
@@ -1171,7 +1173,7 @@ abstract class Metadata {
         }
 
         if ($subtype == 'boolean') {
-            if ($mode == 'csv')
+            if ($mode == 'csv' || $mode == 'pdf')
                 return $value;
             return ($value) ? img(theme() . "/images/tick.png") : '';
         } elseif ('currency' == $subtype) {
@@ -1181,7 +1183,8 @@ abstract class Metadata {
             if ($mode == 'csv') {
                 return number_format((float) $value, 2, ",", "");
             }
-            return euro($value);
+            $target = ($mode == 'pdf') ? 'pdf' : 'html';
+            return euro($value, ',', $target);
             // return sprintf("%6.2f", $value);
 
         } elseif ('minute' == $subtype) {
@@ -1219,7 +1222,7 @@ abstract class Metadata {
             } else {
                 $label = $value;
             }
-            if ($mode == 'csv')
+            if ($mode == 'csv' || $mode == 'pdf')
                 return $label;
             $url = controller_url($action . "/$value");
             return anchor($url, $label);

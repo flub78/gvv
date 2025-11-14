@@ -1075,8 +1075,8 @@ class Compta extends Gvv_Controller {
         } else {
             $this->load->library('Pdf');
             $pdf = new Pdf();
+            $pdf->set_title($title);
             $pdf->AddPage('L');
-            $pdf->title($title, 1);
 
             $attrs = array(
                 'fields' => array(
@@ -1091,15 +1091,15 @@ class Compta extends Gvv_Controller {
                     'montant'
                 ),
                 'width' => array(
-                    10,
-                    17,
-                    12,
-                    40,
-                    12,
-                    40,
-                    80,
-                    40,
-                    16
+                    10,   // id
+                    17,   // date_op
+                    12,   // code1
+                    38,   // compte1 (reduced from 40)
+                    12,   // code2
+                    38,   // compte2 (reduced from 40)
+                    75,   // description (reduced from 80)
+                    35,   // num_cheque (reduced from 40)
+                    24    // montant (increased from 16 to fit "99 999,99 €")
                 ),
                 'mode' => "pdf"
             );
