@@ -993,8 +993,9 @@ class Comptes extends Gvv_Controller {
 
         $this->load->library('Pdf');
         $pdf = new Pdf();
+        $pdf->set_title($titre);  // Set title before adding first page
         $pdf->AddPage();
-        
+
         // Générer un PDF personnalisé avec couleurs différentes pour les entêtes
         $this->pdf_table_hierarchical_balance($merged_result, $pdf, $titre);
         
@@ -1375,8 +1376,8 @@ class Comptes extends Gvv_Controller {
      * @param string $title Le titre du tableau
      */
     private function pdf_table_hierarchical_balance($data, $pdf, $title) {
-        // Titre
-        $pdf->title($title);
+        // Set title for header display on all pages
+        $pdf->set_title($title);
         
         // Définir les colonnes et leurs largeurs
         $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');

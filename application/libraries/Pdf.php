@@ -245,21 +245,24 @@ class PDF extends tFPDF {
         if (file_exists($logofile)) {
             $this->Image($logofile, 10, 6, 30);
         }
-        // Police DejaVu gras 12 (UTF-8 support)
-        $this->SetFont('DejaVu', 'B', 12);
-
-        // Calcul de la largeur du titre et positionnement
-        $w = $this->GetStringWidth($this->title) + 6;
-
-        // Décalage à droite
-        $this->Cell(100 - $w / 2);
-        // Titre
-        $this->Cell($w, 10, $this->title, 1, 0, 'C');
-
-        // Date
-        $this->SetFont('DejaVu', '', 10);
-        $this->Cell(70 - $w / 2);
-        $this->cell(0, 0, date("d/m/Y", time()));
+        
+        // Association name and document title on the left (after logo area)
+        $nom_club = $CI->config->item('nom_club');
+        
+        // Line 1: Association name (e.g., "GVV test local") - BOLD
+        $this->SetFont('DejaVu', 'B', 9);
+        $this->SetXY(45, 6);
+        $this->Cell(120, 4, $nom_club, 0, 0, 'L');
+        
+        // Line 2: Document title (e.g., "Balance des comptes, Date=31/12/2025") - BOLD
+        $this->SetFont('DejaVu', 'B', 8);
+        $this->SetXY(45, 11);
+        $this->Cell(120, 4, $this->title, 0, 0, 'L');
+        
+        // Publication date on the right
+        $this->SetFont('DejaVu', '', 9);
+        $this->SetXY(170, 8);
+        $this->Cell(0, 4, date("d/m/Y", time()), 0, 0, 'R');
 
         // Saut de ligne
         $this->Ln(20);
