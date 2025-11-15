@@ -2,12 +2,11 @@
 
 ## Objectif
 
-Permettre la facturation automatique et récurrente de prestations à périodicité fixe (mensuelle, trimestrielle, annuelle) telles que les locations de places de hangar, abonnements, ou autres services récurrents.
+Permettre la facturation automatique et récurrente de prestations à périodicité fixe (mensuelle, trimestrielle, annuelle) telles que les locations de places de hangar, ou autres services récurrents.
 
 ## Contexte
 
 Actuellement, GVV permet de facturer ponctuellement des produits tarifés via la table `achats`. Pour les prestations récurrentes (locations de hangar, abonnements), les trésoriers doivent :
-- Créer manuellement les factures chaque mois/trimestre
 - Se souvenir de qui doit être facturé et à quelle échéance
 - Risquer des oublis ou des erreurs de calendrier
 
@@ -24,7 +23,7 @@ Ce PRD propose un système de **contrats/abonnements** avec facturation automati
 
 ### Cas d'Usage Typiques
 
-1. **Location de place de hangar** : 150€/mois, facturé le 1er de chaque mois
+1. **Location de place de hangar** : 50€/mois, facturé le 1er de chaque mois
 
 ### Gestion des Contrats
 
@@ -141,57 +140,20 @@ Pour un contrat donné :
 - **Membre désactivé** : Le contrat continue sauf suspension/résiliation manuelle
 - **Modification de périodicité** : Recalcul de la prochaine date de facturation
 - **Double facturation** : Mécanisme de protection basé sur période déjà facturée
+- **Indexation automatique des tarifs** : Les tarifs facturés le seront en fonction des tarifs en vigueur au moment de la facturation, les trésoriers ont la possibilité de modifier les tarifs.
 
-## Modèle de Données
-
-### Nouvelle table `contrats_recurrents`
-
-Champs :
-- `id` : identifiant
-- `membre` : référence membre (varchar)
-- `produit` : référence produit dans `tarifs` (varchar)
-- `periodicite` : enum('mensuel', 'trimestriel', 'annuel')
-- `date_debut` : date de début du contrat
-- `date_fin` : date de fin (nullable)
-- `jour_facturation` : jour du mois (1-31)
-- `mois_debut_trimestre` : pour trimestriel (1-12, nullable)
-- `mois_annuel` : pour annuel (1-12, nullable)
-- `montant` : montant à facturer
-- `compte_recette` : compte de recette
-- `statut` : enum('actif', 'suspendu', 'resilie')
-- `date_prochaine_facturation` : date calculée
-- `notes` : texte libre
-- `saisie_par` : opérateur
-- `date_creation` : timestamp
-- `date_modification` : timestamp
-- `club` : gestion multi-club
-
-### Nouvelle table `contrats_factures`
-
-Historique des factures générées :
-- `id` : identifiant
-- `contrat_id` : référence contrat
-- `achat_id` : référence dans table `achats`
-- `ecriture_id` : référence dans table `ecritures`
-- `periode_debut` : date début période facturée
-- `periode_fin` : date fin période facturée
-- `montant` : montant facturé
-- `date_generation` : timestamp génération
-- `statut` : enum('generee', 'annulee')
 
 ## Hors Périmètre
 
 - **Paiement automatique** : Le système génère les factures, le paiement reste manuel
-- **Relances automatiques** : À traiter dans un PRD séparé
-- **Gestion des impayés** : Utiliser les mécanismes existants de suivi des comptes pilotes
+- **Relances automatiques** : non prévu
 - **Modification en masse** : Chaque contrat est géré individuellement
-- **Indexation automatique des tarifs** : Les montants restent fixes sauf modification manuelle
 
 ## Bénéfices Attendus
 
 - **Gain de temps** : Élimination de la saisie manuelle mensuelle/trimestrielle
 - **Fiabilité** : Aucun oubli de facturation
-- **Traçabilité** : Historique complet des facturations par contrat
+- **Traçabilité** : Historique complet des facturations par membre
 - **Prévisibilité** : Vue claire des prochaines facturations à venir
 - **Flexibilité** : Gestion fine du cycle de vie des contrats
 
@@ -201,10 +163,3 @@ Historique des factures générées :
 - Nécessite configuration d'une tâche cron sur le serveur
 - Compatible avec le système de facturation existant (table `achats`)
 
-## Évolutions Futures Possibles
-
-- Import/export en masse de contrats
-- Templates de contrats prédéfinis
-- Système de relances automatiques pour impayés
-- Génération de rapports prévisionnels (CA récurrent attendu)
-- Indexation automatique selon inflation
