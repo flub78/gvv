@@ -845,9 +845,13 @@ class Comptes extends Gvv_Controller {
                 'solde_debit' => isset($general_row['solde_debit']) ? $general_row['solde_debit'] : '',
                 'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : ''
             );
-            
+
             $codec_key = $general_row['codec'];
             if (isset($details_by_codec[$codec_key])) {
+                $total_solde_debit = 0;
+                $total_solde_credit = 0;
+                $detail_count = count($details_by_codec[$codec_key]);
+
                 foreach ($details_by_codec[$codec_key] as $detail_row) {
                     $merged_result[] = array(
                         'codec' => '  ' . $detail_row['codec'],
@@ -855,6 +859,25 @@ class Comptes extends Gvv_Controller {
                         'section_name' => $detail_row['section_name'],
                         'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
                         'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : ''
+                    );
+
+                    // Calcul des totaux
+                    if (isset($detail_row['solde_debit']) && $detail_row['solde_debit']) {
+                        $total_solde_debit += $detail_row['solde_debit'];
+                    }
+                    if (isset($detail_row['solde_credit']) && $detail_row['solde_credit']) {
+                        $total_solde_credit += $detail_row['solde_credit'];
+                    }
+                }
+
+                // Ajouter la ligne de total si plus d'un compte dans le groupe
+                if ($detail_count > 1) {
+                    $merged_result[] = array(
+                        'codec' => '',
+                        'nom' => '',
+                        'section_name' => 'Total',
+                        'solde_debit' => $total_solde_debit ? $total_solde_debit : '',
+                        'solde_credit' => $total_solde_credit ? $total_solde_credit : ''
                     );
                 }
             }
@@ -986,9 +1009,13 @@ class Comptes extends Gvv_Controller {
                 'solde_credit' => isset($general_row['solde_credit']) ? $general_row['solde_credit'] : '',
                 'is_general' => true
             );
-            
+
             $codec_key = $general_row['codec'];
             if (isset($details_by_codec[$codec_key])) {
+                $total_solde_debit = 0;
+                $total_solde_credit = 0;
+                $detail_count = count($details_by_codec[$codec_key]);
+
                 foreach ($details_by_codec[$codec_key] as $detail_row) {
                     $merged_result[] = array(
                         'codec' => '  ' . $detail_row['codec'],
@@ -997,6 +1024,27 @@ class Comptes extends Gvv_Controller {
                         'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
                         'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : '',
                         'is_general' => false
+                    );
+
+                    // Calcul des totaux
+                    if (isset($detail_row['solde_debit']) && $detail_row['solde_debit']) {
+                        $total_solde_debit += $detail_row['solde_debit'];
+                    }
+                    if (isset($detail_row['solde_credit']) && $detail_row['solde_credit']) {
+                        $total_solde_credit += $detail_row['solde_credit'];
+                    }
+                }
+
+                // Ajouter la ligne de total si plus d'un compte dans le groupe
+                if ($detail_count > 1) {
+                    $merged_result[] = array(
+                        'codec' => '',
+                        'nom' => '',
+                        'section_name' => 'Total',
+                        'solde_debit' => $total_solde_debit ? $total_solde_debit : '',
+                        'solde_credit' => $total_solde_credit ? $total_solde_credit : '',
+                        'is_general' => false,
+                        'is_total' => true
                     );
                 }
             }
