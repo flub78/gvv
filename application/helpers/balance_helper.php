@@ -101,6 +101,10 @@ if (!function_exists('balance_detail_datatable')) {
         $html .= '</thead>';
         $html .= '<tbody>';
 
+        // Calcul des totaux
+        $total_solde_debit = 0;
+        $total_solde_credit = 0;
+
         foreach ($details as $row) {
             $html .= '<tr>';
             $html .= '<td>';
@@ -120,19 +124,44 @@ if (!function_exists('balance_detail_datatable')) {
             // Logique originale : afficher seulement le solde non-nul
             $solde_debit_display = (isset($row['solde_debit']) && $row['solde_debit']) ? euro($row['solde_debit']) : '';
             $solde_credit_display = (isset($row['solde_credit']) && $row['solde_credit']) ? euro($row['solde_credit']) : '';
-            
+
             // Si les deux soldes sont à zéro, afficher "0,00 €" dans la colonne crédit pour cohérence
             if (!$solde_debit_display && !$solde_credit_display) {
                 $solde_credit_display = '0,00&nbsp;€';
             }
-            
+
             $html .= '<td class="text-end">' . $solde_debit_display . '</td>';
             $html .= '<td class="text-end">' . $solde_credit_display . '</td>';
             $html .= '</tr>';
+
+            // Cumul des totaux
+            if (isset($row['solde_debit']) && $row['solde_debit']) {
+                $total_solde_debit += $row['solde_debit'];
+            }
+            if (isset($row['solde_credit']) && $row['solde_credit']) {
+                $total_solde_credit += $row['solde_credit'];
+            }
         }
 
         $html .= '</tbody>';
         $html .= '</table>';
+
+        // Ajouter la ligne de total si plus d'un compte dans le groupe
+        if ($row_count > 1) {
+            $html .= '<table class="table table-sm mb-0" style="border-top: 2px solid #0d6efd;">';
+            $html .= '<tbody>';
+            $html .= '<tr>';
+            $html .= '<td style="width: 10%"></td>'; // Actions
+            $html .= '<td style="width: 10%"></td>'; // Codec
+            $html .= '<td style="width: 30%"></td>'; // Nom
+            $html .= '<td style="width: 20%" class="text-end"><strong>Total</strong></td>'; // Section
+            $html .= '<td style="width: 15%" class="text-end"><strong>' . ($total_solde_debit ? euro($total_solde_debit) : '') . '</strong></td>';
+            $html .= '<td style="width: 15%" class="text-end"><strong>' . ($total_solde_credit ? euro($total_solde_credit) : '') . '</strong></td>';
+            $html .= '</tr>';
+            $html .= '</tbody>';
+            $html .= '</table>';
+        }
+
         $html .= '</div>'; // Fermeture du wrapper
 
         return $html;
