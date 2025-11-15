@@ -65,7 +65,7 @@
 * [] Redéployer un serveur CI/CD fonctionnel
 * [] Définir une charte graphique et l'appliquer partout
 * [] Améliorer les vues saisies des vols (avion, planeur)
-* [] basculer à tfpdf pour les exports PDF
+* [x] basculer à tfpdf pour les exports PDF
 
 ## Idées et suggestions
 
