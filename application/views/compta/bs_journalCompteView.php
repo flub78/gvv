@@ -247,6 +247,7 @@ if ($count > 400) {
 }
 
 // echo "rights=$has_modification_rights" . br();
+
 echo '<div class="mt-3">';
 echo $this->gvvmetadata->table("vue_journal", $attrs, "");
 echo '</div>';
@@ -324,7 +325,7 @@ if ($count > 400) {
         text-align: left;
     }
 
-    /* Container for pagination elements - info left, navigation right */
+    /* Container for pagination elements - search left, navigation right */
     #body > div > table:not(.sql_table) td {
         display: block;
         text-align: left;
@@ -336,6 +337,33 @@ if ($count > 400) {
     #body > div > table:not(.sql_table) td > a,
     #body > div > table:not(.sql_table) td > strong {
         float: right;
+    }
+
+    /* Style search box in pagination bar - floats right, before navigation */
+    .pagination-search-box {
+        float: right;
+        margin-left: 15px;
+        margin-right: 5px;
+    }
+
+    .pagination-search-box label {
+        font-weight: normal;
+        white-space: nowrap;
+        color: #333;
+        font-size: 13px;
+        margin: 0;
+        line-height: 24px;
+    }
+
+    .pagination-search-box input {
+        margin-left: 0.5em;
+        display: inline-block;
+        width: 180px;
+        border: 1px solid #aaa;
+        border-radius: 3px;
+        padding: 3px 5px;
+        background-color: white;
+        font-size: 12px;
     }
 
     /* Clear floats */
@@ -478,6 +506,47 @@ echo '</div>';
 <script language="JavaScript">
     <!--
     $(document).ready(function() {
+
+        // Add table search functionality for CodeIgniter pagination mode (> 400 entries)
+        <?php if ($count > 400): ?>
+        // Create and inject search box into pagination bar
+        var searchBoxHtml = '<div class="pagination-search-box">' +
+            '<label>Recherche: <input type="search" id="tableSearch" class="form-control form-control-sm" placeholder="" aria-controls="dataTable"></label>' +
+            '</div>';
+
+        // Find the FIRST pagination bar (top one) and insert search box just before "Dernier" button
+        var $paginationTable = $('#body > div > table:not(.sql_table)').first();
+        var $paginationCell = $paginationTable.find('td');
+        if ($paginationCell.length > 0) {
+            // Find the last pagination link in the first bar (because float:right reverses visual order)
+            // Insert after the last link so it appears visually just before "Dernier"
+            var $lastLink = $paginationCell.find('a, strong').last();
+            if ($lastLink.length > 0) {
+                $(searchBoxHtml).insertAfter($lastLink);
+            } else {
+                // Fallback if no links found
+                $(searchBoxHtml).appendTo($paginationCell);
+            }
+        }
+
+        // Attach search functionality
+        $('#tableSearch').on('keyup', function() {
+            var searchTerm = $(this).val().toLowerCase();
+
+            // Find the main data table
+            $('.sql_table tbody tr').each(function() {
+                var $row = $(this);
+                var rowText = $row.text().toLowerCase();
+
+                // Show/hide row based on search match
+                if (rowText.indexOf(searchTerm) === -1) {
+                    $row.hide();
+                } else {
+                    $row.show();
+                }
+            });
+        });
+        <?php endif; ?>
 
         jQuery.extend(jQuery.fn.dataTableExt.oSort, {
             "date-uk-pre": function(a) {
