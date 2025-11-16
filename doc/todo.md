@@ -66,6 +66,7 @@
 * [] Définir une charte graphique et l'appliquer partout
 * [] Améliorer les vues saisies des vols (avion, planeur)
 * [x] basculer à tfpdf pour les exports PDF
+* [ ] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
 
 ## Idées et suggestions
 
