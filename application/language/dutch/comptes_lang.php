@@ -70,6 +70,7 @@ $lang['comptes_bilan_total'] = "Totaal";
 $lang['comptes_bilan_total_actif'] = "Totaal activa";
 $lang['comptes_bilan_total_passif'] = "Totaal passiva";
 $lang['comptes_bilan_resultat'] = "Resultaat";
+$lang['comptes_bilan_resultat_avant_repartition'] = "Resultaat voor verdeling";
 
 $lang['comptes_button_cloture'] = "Sluiting boekjaar";
 

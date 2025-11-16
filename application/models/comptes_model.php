@@ -693,8 +693,14 @@ class Comptes_model extends Common_Model {
         $header_count = 1;
 
         $resultat = [];
-        // todo aller chercher la liste des titres dans les sections
-        $resultat[] = ['', 'Avion', 'Général', 'Planeur', 'ULM', 'Total Club'];
+        
+        // Construction de l'en-tête avec les vrais noms des sections depuis la base de données
+        $title = [''];
+        foreach ($sections as $section) {
+            $title[] = $section['nom'];
+        }
+        $title[] = "Total Club";
+        $resultat[] = $title;
         $resultat[] = $this->compute_total(["Total des recettes"], $produits);
         $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
 

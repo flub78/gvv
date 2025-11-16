@@ -488,7 +488,7 @@ class Comptes extends Gvv_Controller {
         $csv_data = array_merge($csv_data, $data['produits']);
 
         $csv_data[] = [];
-        $csv_data[] = ["Résultat avant répartition"];
+        $csv_data[] = [$this->lang->line("comptes_bilan_resultat_avant_repartition")];
         $csv_data = array_merge($csv_data, $data['resultat']);
 
         $csv_data[] = [];
@@ -570,7 +570,7 @@ class Comptes extends Gvv_Controller {
         // Produits
         $render_section("Produits par sections", isset($data['produits']) ? $data['produits'] : array(), 2);
         // Résultat
-        $render_section("Résultat avant répartition", isset($data['resultat']) ? $data['resultat'] : array(), 1);
+        $render_section($this->lang->line("comptes_bilan_resultat_avant_repartition"), isset($data['resultat']) ? $data['resultat'] : array(), 1);
         // Actifs financiers
         $render_section("Actifs financiers", isset($data['disponible']) ? $data['disponible'] : array(), 1);
         // Dettes

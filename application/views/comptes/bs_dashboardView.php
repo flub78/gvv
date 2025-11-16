@@ -113,7 +113,7 @@ $url = controller_url($controller);
 
 
 
-    <h3><?= "Résultat avant répartition" ?></h3>
+    <h3><?= $this->lang->line("comptes_bilan_resultat_avant_repartition") ?></h3>
 
     <?php
     $table = new DataTable(array(

@@ -71,6 +71,7 @@ $lang['comptes_bilan_total'] = "Total";
 $lang['comptes_bilan_total_actif'] = "Total actif";
 $lang['comptes_bilan_total_passif'] = "Total passif";
 $lang['comptes_bilan_resultat'] = "Résultat";
+$lang['comptes_bilan_resultat_avant_repartition'] = "Résultat avant répartition";
 $lang['comptes_bilan_prets'] = "Prêts";
 
 

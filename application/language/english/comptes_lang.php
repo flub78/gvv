@@ -70,6 +70,7 @@ $lang['comptes_bilan_total'] = "Total";
 $lang['comptes_bilan_total_actif'] = "Total financial assets";
 $lang['comptes_bilan_total_passif'] = "Total liabilities";
 $lang['comptes_bilan_resultat'] = "Budget year's results";
+$lang['comptes_bilan_resultat_avant_repartition'] = "Results before distribution";
 
 $lang['comptes_button_cloture'] = "End or year operations";
 
