@@ -204,6 +204,11 @@ class Achats_model extends Common_Model {
         }
         $data['prix'] = $product_info['prix'];
 
+        // Use product description if data description is not set
+        if (!isset($data['description']) || $data['description'] === '') {
+            $data['description'] = $product_info['description'];
+        }
+
         $this->db->trans_start();
 
         if (isset($data['format'])) {
@@ -268,6 +273,11 @@ class Achats_model extends Common_Model {
             throw new Exception("Le produit \"$produit\", référencé par la facturation, n'existe pas dans les tarifs au " . $data['date']);
         }
         $data['prix'] = $product_info['prix'];
+
+        // Use product description if data description is not set
+        if (!isset($data['description']) || $data['description'] === '') {
+            $data['description'] = $product_info['description'];
+        }
 
         $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
