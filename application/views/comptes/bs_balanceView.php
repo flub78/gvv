@@ -521,15 +521,11 @@ $this->lang->load('comptes');
 					if (shouldShow) {
 						item.style.display = '';
 						visibleCount++;
-						
-						// Si trouvé dans les comptes enfants, développer l'accordéon et appliquer la recherche DataTable
-						if (foundInChildren && searchTerm !== '') {
+
+						// Développer l'accordéon et appliquer la recherche DataTable
+						// (que ce soit un match dans le header ou dans les enfants)
+						if (searchTerm !== '') {
 							expandAccordionAndApplyDataTableSearch(item, searchTerm);
-						} else {
-							// Pour les matches dans le header, juste appliquer le filtre DataTable si l'accordéon est ouvert
-							if (isAccordionExpanded(item)) {
-								applyDataTableSearch(item, searchTerm);
-							}
 						}
 					} else {
 						item.style.display = 'none';
