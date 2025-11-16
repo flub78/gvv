@@ -122,10 +122,10 @@ class ValidationHelperTest extends TestCase
         
         // Test with different separators
         $this->assertEquals("123.45&nbsp;€", euro(123.45, '.'));
-        
-        // Test PDF target (no HTML entities)
-        $this->assertEquals("123,45", euro(123.45, ',', 'pdf'));
-        
+
+        // Test PDF target (no HTML entities, plain space separator, with € symbol)
+        $this->assertEquals("123,45 €", euro(123.45, ',', 'pdf'));
+
         // Test CSV target (no HTML entities, no symbol)
         $this->assertEquals("123,45", euro(123.45, ',', 'csv'));
     }
