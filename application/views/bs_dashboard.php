@@ -884,6 +884,17 @@ $this->lang->load('welcome');
                         </a>
                     </div>
                 </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-bolt text-danger"></i>
+                        <div class="card-title">Opérations One-Shot</div>
+                        <div class="card-text text-muted">Scripts ponctuels</div>
+                        <a href="<?= controller_url('oneshot') ?>" class="btn btn-danger btn-sm">
+                           Accéder
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         </div>

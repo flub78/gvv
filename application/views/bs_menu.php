@@ -350,6 +350,7 @@ $section_count = $CI->sections_model->safe_count_all();
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
               <li><a class="dropdown-item" href="https://legacy.datatables.net/api.html"><i class="fas fa-file-alt text-info"></i> Datatable 1.9.4</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('oneshot') ?>"><i class="fas fa-bolt text-danger"></i> Opérations One-Shot</a></li>
             </ul>
           </li>
         <?php endif; ?>

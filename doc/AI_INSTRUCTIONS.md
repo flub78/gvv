@@ -189,6 +189,7 @@ Following `doc/development/workflow.md`:
 20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission
 21. **Plantuml**: when generating diagrams, usually for design notes, manage them into separate files .puml, put them into a subdirectory named diagrams, generate the images and put a link in the design document. The images must appears embedded in the document on github.
 22. **Implementation completion**: When you are working on a whole feature (PRP), before to claim completion, run a phpunit smoke test and a playwright smoke test demonstrating that you can access the feature. In case of failure, enable the development mode in index.php, reproduce the error and fix it. Keep the tests in the test suite for future regression testing. Create a test to run the migrations if any and verify that the database schema is correct then rollback the database.
+23. **Test users**: on the development platform, use the test users defined in the bin/create_test_users.sql script to do testing. If the users are not defined ask the permission to run the script.
 
 ---
 

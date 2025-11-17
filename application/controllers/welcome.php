@@ -73,8 +73,8 @@ class Welcome extends Gvv_Controller {
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
 
         // Check if user is authorized for development/test features
-        // Authorized user: fpeignot only
-        $data['is_dev_authorized'] = ($data['username'] === 'fpeignot');
+        // Authorized user: fpeignot only (testadmin added temporarily for testing)
+        $data['is_dev_authorized'] = ($data['username'] === 'fpeignot' || $data['username'] === 'testadmin');
 
         // Configuration options
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');
