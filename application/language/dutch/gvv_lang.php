@@ -50,6 +50,7 @@ $lang['gvv_menu_accounting_journal'] = "Journaal";
 $lang['gvv_menu_accounting_balance'] = "Balans";
 $lang['gvv_menu_accounting_balance_hierarchical'] = "Hiërarchische balans";
 $lang['gvv_menu_accounting_pilot_balance'] = "Balans piloten";
+$lang['gvv_menu_accounting_banking_accounts'] = "Bankrekeningen";
 $lang['gvv_menu_accounting_results'] = "Resultaten";
 $lang['gvv_menu_accounting_bilan'] = "Jaarrekening";
 $lang['gvv_menu_accounting_sales'] = "Verkoop";

@@ -56,6 +56,7 @@ $lang['gvv_menu_accounting_journal'] = "Journal entries";
 $lang['gvv_menu_accounting_balance'] = "Balance";
 $lang['gvv_menu_accounting_balance_hierarchical'] = "Hierarchical balance";
 $lang['gvv_menu_accounting_pilot_balance'] = "Pilot balance";
+$lang['gvv_menu_accounting_banking_accounts'] = "Banking accounts";
 $lang['gvv_menu_accounting_results'] = "Results";
 $lang['gvv_menu_accounting_bilan'] = "End of year statement";
 $lang['gvv_menu_accounting_sales'] = "Sales";
