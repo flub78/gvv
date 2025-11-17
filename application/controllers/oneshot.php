@@ -73,6 +73,145 @@ class Oneshot extends CI_Controller {
     }
 
     /**
+     * Traiter une cotisation : modifier l'écriture et créer une licence
+     * URL: /oneshot/process_cotisation (POST)
+     */
+    function process_cotisation() {
+        // Vérifier que c'est une requête POST
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée', 405);
+            return;
+        }
+
+        $ecriture_id = $this->input->post('ecriture_id');
+        if (!$ecriture_id) {
+            $this->session->set_flashdata('error', 'ID d\'écriture manquant');
+            redirect('oneshot/cotisations');
+            return;
+        }
+
+        // Charger l'écriture
+        $this->db->select('ecritures.*, c1.codec as compte1_codec, c2.codec as compte2_codec');
+        $this->db->from('ecritures');
+        $this->db->join('comptes as c1', 'ecritures.compte1 = c1.id', 'left');
+        $this->db->join('comptes as c2', 'ecritures.compte2 = c2.id', 'left');
+        $this->db->where('ecritures.id', $ecriture_id);
+        $query = $this->db->get();
+        $ecriture = $query->row_array();
+
+        if (!$ecriture) {
+            $this->session->set_flashdata('error', 'Écriture non trouvée');
+            redirect('oneshot/cotisations');
+            return;
+        }
+
+        // Charger tous les comptes 411
+        $this->db->select('id, nom, pilote');
+        $this->db->from('comptes');
+        $this->db->where('codec', '411');
+        $this->db->where('club', 4);
+        $query_comptes = $this->db->get();
+        $comptes_411 = $query_comptes->result_array();
+
+        // Trouver le compte 411 correspondant
+        $matched_compte = $this->trouver_compte_411($ecriture['description'], $comptes_411);
+        if (!$matched_compte) {
+            $this->session->set_flashdata('error', 'Aucun compte 411 correspondant trouvé');
+            redirect('oneshot/cotisations');
+            return;
+        }
+
+        // Vérifier que le pilote existe dans le compte 411
+        if (empty($matched_compte['pilote'])) {
+            $this->session->set_flashdata('error', 'Le compte 411 n\'a pas de pilote associé');
+            redirect('oneshot/cotisations');
+            return;
+        }
+
+        // Déterminer quel compte est 708 (ou 766)
+        $compte_cotisation_id = null;
+        $compte_411_position = null; // 1 ou 2
+
+        if ($ecriture['compte1_codec'] == '708' || $ecriture['compte1_codec'] == '766') {
+            $compte_cotisation_id = $ecriture['compte1'];
+            $compte_411_position = 1;
+        } elseif ($ecriture['compte2_codec'] == '708' || $ecriture['compte2_codec'] == '766') {
+            $compte_cotisation_id = $ecriture['compte2'];
+            $compte_411_position = 2;
+        }
+
+        if (!$compte_cotisation_id) {
+            $this->session->set_flashdata('error', 'Aucun compte 708 ou 766 trouvé dans cette écriture');
+            redirect('oneshot/cotisations');
+            return;
+        }
+
+        // Extraire l'année de la description (chercher un pattern 20XX)
+        $year = $ecriture['annee_exercise']; // valeur par défaut
+        if (preg_match('/\b(202[0-9])\b/', $ecriture['description'], $matches)) {
+            $year = intval($matches[1]);
+        }
+
+        // Commencer une transaction
+        $this->db->trans_start();
+
+        try {
+            // 1. Modifier l'écriture actuelle : remplacer le compte 766 par le compte 411
+            $update_data = array();
+            if ($compte_411_position == 1) {
+                $update_data['compte1'] = $matched_compte['id'];
+            } else {
+                $update_data['compte2'] = $matched_compte['id'];
+            }
+            $this->db->where('id', $ecriture_id);
+            $this->db->update('ecritures', $update_data);
+
+            // 2. Créer une nouvelle écriture avec compte1=411, compte2=708/766
+            $new_ecriture = array(
+                'annee_exercise' => $ecriture['annee_exercise'],
+                'date_creation' => date('Y-m-d'),
+                'date_op' => $ecriture['date_op'],
+                'compte1' => $matched_compte['id'],
+                'compte2' => $compte_cotisation_id,
+                'montant' => $ecriture['montant'],
+                'description' => $ecriture['description'],
+                'type' => $ecriture['type'],
+                'num_cheque' => $ecriture['num_cheque'],
+                'saisie_par' => $this->dx_auth->get_username(),
+                'gel' => 0,
+                'club' => $ecriture['club'],
+                'categorie' => $ecriture['categorie']
+            );
+            $this->db->insert('ecritures', $new_ecriture);
+
+            // 3. Créer une licence
+            $licence_data = array(
+                'pilote' => $matched_compte['pilote'],
+                'type' => 0,
+                'year' => $year,
+                'date' => date('Y-m-d'),
+                'comment' => 'Cotisation traitée automatiquement depuis écriture #' . $ecriture_id
+            );
+            $this->db->insert('licences', $licence_data);
+
+            // Valider la transaction
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === FALSE) {
+                $this->session->set_flashdata('error', 'Erreur lors du traitement de la cotisation');
+            } else {
+                $this->session->set_flashdata('success', 'Cotisation traitée avec succès pour ' . $matched_compte['nom'] . ' (année ' . $year . ')');
+            }
+
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', 'Erreur: ' . $e->getMessage());
+        }
+
+        redirect('oneshot/cotisations');
+    }
+
+    /**
      * Affiche les pilotes avec compte 411 dans sections 1/2/3 mais sans compte dans section 4
      * URL: /oneshot/comptes_manquants
      *
@@ -394,6 +533,19 @@ class Oneshot extends CI_Controller {
     private function afficher_ecritures_entre_comptes($compte_id1, $compte_id2, $titre) {
         echo "<h1>" . htmlspecialchars($titre) . "</h1>";
         echo "<p>Utilisateur connecté: " . htmlspecialchars($this->dx_auth->get_username()) . "</p>";
+
+        // Afficher les messages de succès ou d'erreur
+        if ($this->session->flashdata('success')) {
+            echo "<div style='padding: 10px; margin: 10px 0; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 4px;'>";
+            echo htmlspecialchars($this->session->flashdata('success'));
+            echo "</div>";
+        }
+        if ($this->session->flashdata('error')) {
+            echo "<div style='padding: 10px; margin: 10px 0; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-radius: 4px;'>";
+            echo htmlspecialchars($this->session->flashdata('error'));
+            echo "</div>";
+        }
+
         echo "<hr>";
 
         // Récupérer les écritures où compte1 = $compte_id1 et compte2 = $compte_id2 (ou inversement)
@@ -420,7 +572,23 @@ class Oneshot extends CI_Controller {
         $query_comptes = $this->db->get();
         $comptes_411 = $query_comptes->result_array();
 
+        // Compter les entrées correspondantes et non-correspondantes
+        $nb_matches = 0;
+        $nb_non_matches = 0;
+        foreach ($ecritures as $ecriture) {
+            $matched_compte = $this->trouver_compte_411($ecriture['description'], $comptes_411);
+            if ($matched_compte) {
+                $nb_matches++;
+            } else {
+                $nb_non_matches++;
+            }
+        }
+
         echo "<h2>Nombre d'écritures trouvées: " . count($ecritures) . "</h2>";
+        echo "<p style='font-size: 1.1em;'>";
+        echo "<strong style='color: green;'>Correspondances trouvées: " . $nb_matches . "</strong> | ";
+        echo "<strong style='color: red;'>Non trouvées: " . $nb_non_matches . "</strong>";
+        echo "</p>";
         echo "<hr>";
 
         if (count($ecritures) > 0) {
@@ -436,6 +604,7 @@ class Oneshot extends CI_Controller {
             echo "<th>Référence</th>";
             echo "<th>Gel</th>";
             echo "<th>Compte 411 correspondant</th>";
+            echo "<th>Action</th>";
             echo "</tr>";
             echo "</thead>";
             echo "<tbody>";
@@ -462,6 +631,18 @@ class Oneshot extends CI_Controller {
                     echo "<td style='color: red; font-weight: bold;'>Non trouvé - Pattern: " . htmlspecialchars($pattern) . "</td>";
                 }
 
+                // Afficher le bouton d'action
+                echo "<td>";
+                if ($matched_compte) {
+                    echo "<form method='post' action='" . base_url() . "index.php/oneshot/process_cotisation' style='margin: 0;'>";
+                    echo "<input type='hidden' name='ecriture_id' value='" . $ecriture['id'] . "'>";
+                    echo "<button type='submit' style='padding: 5px 10px; background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 3px;'>Traiter</button>";
+                    echo "</form>";
+                } else {
+                    echo "-";
+                }
+                echo "</td>";
+
                 echo "</tr>";
 
                 $total_montant += $ecriture['montant'];
@@ -470,7 +651,7 @@ class Oneshot extends CI_Controller {
             echo "<tr style='background-color: #f0f0f0; font-weight: bold;'>";
             echo "<td colspan='5' style='text-align: right;'>TOTAL:</td>";
             echo "<td style='text-align: right;'>" . number_format($total_montant, 2, ',', ' ') . " €</td>";
-            echo "<td colspan='3'></td>";
+            echo "<td colspan='4'></td>";
             echo "</tr>";
 
             echo "</tbody>";
@@ -492,32 +673,145 @@ class Oneshot extends CI_Controller {
      * @return array|null Compte trouvé ou null
      */
     private function trouver_compte_411($description, $comptes_411) {
-        // Extraire le pattern de recherche (nom/prénom) en minuscules
-        $pattern = $this->extraire_pattern_recherche($description);
+        // Extraire le pattern de recherche AVANT normalisation pour détecter le nom de famille
+        $pattern_original = $this->extraire_pattern_recherche($description, false);
+        if (empty($pattern_original)) {
+            return null;
+        }
+
+        // Détecter le nom de famille (mot en MAJUSCULES avec au moins 2 caractères)
+        $pattern_original_clean = preg_replace('/[^\w\s]/u', ' ', $pattern_original);
+        $pattern_original_clean = preg_replace('/\s+/', ' ', $pattern_original_clean);
+        $pattern_original_clean = trim($pattern_original_clean);
+        $original_words = preg_split('/\s+/', $pattern_original_clean);
+
+        $nom_famille_index = -1;
+        for ($i = 0; $i < count($original_words); $i++) {
+            $word = $original_words[$i];
+            // Nom de famille = mot en MAJUSCULES avec au moins 2 caractères
+            if (strlen($word) >= 2 && $word === mb_strtoupper($word, 'UTF-8') && ctype_alpha($word)) {
+                $nom_famille_index = $i;
+                break;
+            }
+        }
+
+        // Extraire le pattern normalisé (minuscules, sans accents)
+        $pattern = $this->extraire_pattern_recherche($description, true);
         if (empty($pattern)) {
             return null;
         }
 
+        // Supprimer la ponctuation du pattern (points, virgules, points d'interrogation, etc.)
+        $pattern = preg_replace('/[^\w\s]/u', ' ', $pattern);
+        $pattern = preg_replace('/\s+/', ' ', $pattern);
+        $pattern = trim($pattern);
+
         // Découper le pattern en mots
         $pattern_words = preg_split('/\s+/', $pattern);
+        if (empty($pattern_words)) {
+            return null;
+        }
+
+        // Identifier le mot qui correspond au nom de famille dans le pattern normalisé
+        $nom_famille_word = ($nom_famille_index >= 0 && $nom_famille_index < count($pattern_words))
+            ? $pattern_words[$nom_famille_index]
+            : null;
 
         // Chercher une correspondance dans les comptes 411
         foreach ($comptes_411 as $compte) {
-            // Normaliser le nom du compte (minuscules + sans accents)
+            // Normaliser le nom du compte (minuscules + sans accents + sans ponctuation)
             $nom_normalized = mb_strtolower($compte['nom'], 'UTF-8');
             $nom_normalized = $this->remove_accents($nom_normalized);
+            $nom_normalized = preg_replace('/[^\w\s]/u', ' ', $nom_normalized);
+            $nom_normalized = preg_replace('/\s+/', ' ', $nom_normalized);
+            $nom_normalized = trim($nom_normalized);
 
-            // Vérifier si tous les mots du pattern sont dans le nom du compte
-            $all_words_found = true;
-            foreach ($pattern_words as $word) {
-                if (!empty($word) && strpos($nom_normalized, $word) === false) {
-                    $all_words_found = false;
-                    break;
+            // Stratégie de matching flexible (ordre agnostique + fuzzy):
+            // - Le nom de famille (détecté en MAJUSCULES) DOIT correspondre
+            // - Au moins un prénom doit correspondre
+            // - Utiliser fuzzy matching pour gérer les variations d'orthographe
+
+            $compte_words = preg_split('/\s+/', $nom_normalized);
+
+            // Vérifier d'abord le nom de famille s'il a été détecté
+            $nom_famille_matched = false;
+            if ($nom_famille_word) {
+                // Vérifier correspondance exacte
+                if (strpos($nom_normalized, $nom_famille_word) !== false) {
+                    $nom_famille_matched = true;
+                } else {
+                    // Vérifier avec fuzzy matching
+                    foreach ($compte_words as $compte_word) {
+                        if (empty($compte_word)) {
+                            continue;
+                        }
+                        $distance = levenshtein($nom_famille_word, $compte_word);
+                        if ($distance <= 1 && strlen($nom_famille_word) >= 3 && strlen($compte_word) >= 3) {
+                            $nom_famille_matched = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Si le nom de famille ne correspond pas, ce n'est pas la bonne personne
+                if (!$nom_famille_matched) {
+                    continue;
                 }
             }
 
-            if ($all_words_found) {
-                return $compte;
+            // Compter combien d'autres mots (prénoms) correspondent
+            $prenoms_found = 0;
+            foreach ($pattern_words as $idx => $pattern_word) {
+                // Ignorer le nom de famille déjà vérifié
+                if ($nom_famille_word && $idx === $nom_famille_index) {
+                    continue;
+                }
+
+                if (empty($pattern_word)) {
+                    continue;
+                }
+
+                $word_matched = false;
+
+                // Vérifier correspondance exacte
+                if (strpos($nom_normalized, $pattern_word) !== false) {
+                    $word_matched = true;
+                } else {
+                    // Vérifier avec fuzzy matching
+                    foreach ($compte_words as $compte_word) {
+                        if (empty($compte_word)) {
+                            continue;
+                        }
+                        $distance = levenshtein($pattern_word, $compte_word);
+                        if ($distance <= 1 && strlen($pattern_word) >= 3 && strlen($compte_word) >= 3) {
+                            $word_matched = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($word_matched) {
+                    $prenoms_found++;
+                }
+            }
+
+            // Décision de matching:
+            // - Si nom de famille détecté: il doit matcher + au moins un prénom
+            // - Sinon: au moins N-1 mots doivent matcher (ancien comportement)
+            if ($nom_famille_word) {
+                // Nom de famille obligatoire + au moins un prénom
+                if ($nom_famille_matched && $prenoms_found >= 1) {
+                    return $compte;
+                }
+            } else {
+                // Pas de nom de famille détecté: utiliser l'ancienne logique
+                $total_matched = $prenoms_found;
+                $pattern_count = count($pattern_words);
+                $min_required = ($pattern_count == 2) ? 2 : max(1, $pattern_count - 1);
+
+                if ($total_matched >= $min_required) {
+                    return $compte;
+                }
             }
         }
 
@@ -528,27 +822,39 @@ class Oneshot extends CI_Controller {
      * Extraire le pattern de recherche de la description
      *
      * @param string $description Description de l'écriture
+     * @param bool $normalize Si true, convertit en minuscules et supprime les accents
      * @return string Pattern de recherche
      */
-    private function extraire_pattern_recherche($description) {
+    private function extraire_pattern_recherche($description, $normalize = true) {
         // 1. Supprimer "Cotisation" ou "Cotisations"
         $pattern = preg_replace('/cotisations?/i', '', $description);
 
         // 2. Supprimer l'année (4 chiffres)
         $pattern = preg_replace('/\b\d{4}\b/', '', $pattern);
 
-        // 3. Supprimer "payé le ..." ou "payée le ..." jusqu'à la fin
+        // 3. Supprimer le contenu entre parenthèses
+        $pattern = preg_replace('/\([^)]*\)/', '', $pattern);
+
+        // 4. Supprimer "payé le ..." ou "payée le ..." jusqu'à la fin
         $pattern = preg_replace('/payée?\s+le\s+.*/i', '', $pattern);
 
-        // 4. Nettoyer les espaces multiples et trim
+        // 5. Supprimer les titres de civilité (Mr, Mme, M., Mlle, etc.)
+        $pattern = preg_replace('/\b(mr|mme|m\.|mlle|monsieur|madame|mademoiselle)\b\.?/i', '', $pattern);
+
+        // 6. Nettoyer les espaces multiples et trim
         $pattern = preg_replace('/\s+/', ' ', $pattern);
         $pattern = trim($pattern);
 
-        // 5. Convertir en minuscules
-        $pattern = mb_strtolower($pattern, 'UTF-8');
+        // 7. Normaliser si demandé
+        if ($normalize) {
+            // Convertir en minuscules
+            $pattern = mb_strtolower($pattern, 'UTF-8');
 
-        // 6. Normaliser les accents
-        return $this->remove_accents($pattern);
+            // Normaliser les accents
+            $pattern = $this->remove_accents($pattern);
+        }
+
+        return $pattern;
     }
 
     /**
