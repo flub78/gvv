@@ -9,9 +9,7 @@
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
 * [] 512 > 400 passer aux datatable
-* [] Cotisations utiliser la date la plus avancée (2026)
 * [] Le mécanisme de pilotes qui volent sur le compte d'autres pilote ne fonctionne pas avec les sections. La recherche du compte cible ne prend pas les sections en compte.
-* [] Balance filtrage, quand on filtre sur plusieurs comptes il faudrait mettre à jour les totaux.
 * [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
 
 ## Reste à faire
@@ -205,3 +203,5 @@
   * choisir un compte dans une section http://gvv.net/compta/journal_compte/37
   * changer de section
   * rappeler l'URL
+* [x] Balance, mise à jour des sous-totaux en cas de filtrage.
+* [] Cotisations permettre de voir les cotisations de l'année prochaine (2026)

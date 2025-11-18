@@ -167,6 +167,19 @@ class Licences_model extends Common_Model {
     }
 
     /**
+     * Retourne l'année maximum présente dans la table licences
+     * @return int Année maximum ou année courante + 1 si pas de données
+     */
+    public function get_max_year() {
+        $this->db->select_max('year');
+        $this->db->from('licences');
+        $result = $this->db->get()->row_array();
+
+        $max_year = isset($result['year']) && !empty($result['year']) ? $result['year'] : (date("Y") + 1);
+        return (int)$max_year;
+    }
+
+    /**
      * Vérifie si une cotisation existe déjà pour un pilote et une année donnée
      * @param string $pilote Login du pilote
      * @param int $year Année de cotisation

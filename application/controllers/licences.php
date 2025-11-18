@@ -58,13 +58,16 @@ class Licences extends Gvv_Controller {
         // Gestion de la plage d'années
         $current_year = (int)date("Y");
         $min_year_data = $this->gvv_model->get_min_year();
+        $max_year_data = $this->gvv_model->get_max_year();
 
         // Initialiser les valeurs par défaut si pas encore définies
-        if (!$this->session->userdata('licence_year_min')) {
-            $this->session->set_userdata('licence_year_min', $current_year - 5);
-        }
         if (!$this->session->userdata('licence_year_max')) {
-            $this->session->set_userdata('licence_year_max', $current_year);
+            // Utiliser l'année max de la base de données
+            $this->session->set_userdata('licence_year_max', $max_year_data);
+        }
+        if (!$this->session->userdata('licence_year_min')) {
+            // Année de début = année de fin - 5
+            $this->session->set_userdata('licence_year_min', $max_year_data - 5);
         }
         if (!$this->session->userdata('licence_member_status')) {
             $this->session->set_userdata('licence_member_status', 'active');
@@ -86,6 +89,7 @@ class Licences extends Gvv_Controller {
         $data['year_min'] = $year_min;
         $data['year_max'] = $year_max;
         $data['min_year_data'] = $min_year_data;
+        $data['max_year_data'] = $max_year_data;
         $data['current_year'] = $current_year;
         $data['member_status'] = $member_status;
         $data['section_id'] = $section_id;

@@ -91,7 +91,7 @@ echo licence_selector($controller, $type);
                                 </label>
                                 <input type="range" class="form-range" id="year_min_slider"
                                        min="<?php echo $min_year_data; ?>"
-                                       max="<?php echo $current_year; ?>"
+                                       max="<?php echo $max_year_data; ?>"
                                        value="<?php echo $year_min; ?>"
                                        step="1">
                             </div>
@@ -101,7 +101,7 @@ echo licence_selector($controller, $type);
                                 </label>
                                 <input type="range" class="form-range" id="year_max_slider"
                                        min="<?php echo $min_year_data; ?>"
-                                       max="<?php echo $current_year; ?>"
+                                       max="<?php echo $max_year_data; ?>"
                                        value="<?php echo $year_max; ?>"
                                        step="1">
                             </div>
