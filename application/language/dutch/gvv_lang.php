@@ -60,6 +60,7 @@ $lang['gvv_menu_entries'] = "Boekingen";
 $lang['gvv_menu_entries_income'] = "Inkomsten";
 $lang['gvv_menu_entries_pilot_payment'] = "Betalingen piloot";
 $lang['gvv_menu_entries_pilot_billing'] = "Afrekening piloot";
+$lang['gvv_menu_entries_membership_fee'] = "Contributie invoer";
 $lang['gvv_menu_entries_supplier_credit'] = "Leverancierskrediet";
 $lang['gvv_menu_entries_expense'] = "Uitgaven";
 $lang['gvv_menu_entries_expense_paid'] = "Uitgaven betaald piloot";

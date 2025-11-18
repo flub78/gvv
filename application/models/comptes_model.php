@@ -1045,7 +1045,7 @@ class Comptes_model extends Common_Model {
 
     /**
      * Override parent selector_with_null to exclude masked accounts
-     * 
+     *
      * @param array $where Additional where conditions
      * @param bool $filter_section Filter by section
      * @return array Selector array with null option, excluding masked accounts
@@ -1053,9 +1053,55 @@ class Comptes_model extends Common_Model {
     public function selector_with_null($where = array(), $filter_section = FALSE) {
         // Add condition to exclude masked accounts
         $where['masked'] = 0;
-        
+
         // Call parent selector_with_null with updated where clause
         return parent::selector_with_null($where, $filter_section);
+    }
+
+    /**
+     * Retourne un sélecteur de comptes pilotes (411) avec pilote associé
+     *
+     * @param bool $filter_section Filter by section
+     * @return array Selector array for pilot accounts (411) with associated pilot
+     */
+    public function selector_comptes_411($filter_section = TRUE) {
+        $where = array(
+            'codec' => '411',
+            'pilote !=' => NULL,
+            'pilote !=' => ''
+        );
+
+        return $this->selector_with_null($where, $filter_section);
+    }
+
+    /**
+     * Retourne un sélecteur de comptes banque (512)
+     *
+     * @param bool $filter_section Filter by section
+     * @return array Selector array for bank accounts (512)
+     */
+    public function selector_comptes_512($filter_section = TRUE) {
+        $where = array(
+            'codec >=' => '512',
+            'codec <' => '513'
+        );
+
+        return $this->selector_with_null($where, $filter_section);
+    }
+
+    /**
+     * Retourne un sélecteur de comptes recette cotisation (700-708)
+     *
+     * @param bool $filter_section Filter by section
+     * @return array Selector array for membership revenue accounts (700-708)
+     */
+    public function selector_comptes_700($filter_section = TRUE) {
+        $where = array(
+            'codec >=' => '700',
+            'codec <' => '709'
+        );
+
+        return $this->selector_with_null($where, $filter_section);
     }
 }
 

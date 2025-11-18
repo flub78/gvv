@@ -786,11 +786,248 @@ class Compta extends Gvv_Controller {
      * Reversement section
      */
     function reversement_section() {
-        $this->ecriture("gvv_compta_title_reversement_section", 
+        $this->ecriture("gvv_compta_title_reversement_section",
         ["codec" => "181"],
         ["codec" => "512"]);
     }
-   
+
+    /**
+     * Saisie simplifiée de cotisation
+     * Permet d'enregistrer le paiement d'une cotisation et de générer automatiquement
+     * les écritures comptables associées en une seule opération
+     */
+    function saisie_cotisation() {
+        // Charger les modèles nécessaires
+        $this->load->model('comptes_model');
+        $this->load->model('licences_model');
+        $this->load->model('membres_model');
+
+        // Préparer les données du formulaire
+        $this->data['controller'] = 'compta';
+        $this->data['action'] = 'saisie_cotisation';
+        $this->data['title'] = $this->lang->line('gvv_compta_title_saisie_cotisation');
+
+        // Initialiser les valeurs par défaut
+        $this->data['date_op'] = $this->input->post('date_op') ?: date('d/m/Y');
+        $this->data['annee_cotisation'] = $this->input->post('annee_cotisation') ?: date('Y');
+        $this->data['pilote'] = $this->input->post('pilote') ?: '';
+        $this->data['compte_banque'] = $this->input->post('compte_banque') ?: '';
+        $this->data['compte_pilote'] = $this->input->post('compte_pilote') ?: '';
+        $this->data['compte_recette'] = $this->input->post('compte_recette') ?: '';
+        $this->data['montant'] = $this->input->post('montant') ?: '';
+        $this->data['description'] = $this->input->post('description') ?: '';
+        $this->data['num_cheque'] = $this->input->post('num_cheque') ?: '';
+        $this->data['type'] = $this->input->post('type') ?: 0;
+
+        // Préparer les sélecteurs
+        $this->data['pilote_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
+        $this->data['compte_banque_selector'] = $this->comptes_model->selector_comptes_512();
+        $this->data['compte_pilote_selector'] = $this->comptes_model->selector_comptes_411();
+        $this->data['compte_recette_selector'] = $this->comptes_model->selector_comptes_700();
+
+        // Sélecteur de type de paiement
+        $this->data['type_paiement_selector'] = array(
+            '' => '-- Sélectionner --',
+            'cheque' => 'Chèque',
+            'virement' => 'Virement',
+            'espece' => 'Espèces',
+            'cb' => 'Carte bancaire',
+            'prelevement' => 'Prélèvement'
+        );
+
+        // Charger la vue
+        load_last_view('compta/bs_saisie_cotisation_formView', $this->data);
+    }
+
+    /**
+     * Validation du formulaire de saisie de cotisation
+     */
+    public function formValidation_saisie_cotisation() {
+        // Charger les modèles nécessaires
+        $this->load->model('comptes_model');
+        $this->load->model('licences_model');
+        $this->load->model('ecritures_model');
+        $this->load->model('membres_model');
+
+        // Définir les règles de validation
+        $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
+
+        $this->form_validation->set_rules('pilote', 'Membre', 'required');
+        $this->form_validation->set_rules('date_op', 'Date opération', 'required');
+        $this->form_validation->set_rules('annee_cotisation', 'Année de cotisation', 'required|integer');
+        $this->form_validation->set_rules('compte_banque', 'Compte banque', 'required');
+        $this->form_validation->set_rules('compte_pilote', 'Compte pilote', 'required');
+        $this->form_validation->set_rules('compte_recette', 'Compte recette', 'required');
+        $this->form_validation->set_rules('montant', 'Montant', 'required|numeric|greater_than[0]');
+        $this->form_validation->set_rules('description', 'Libellé', 'required');
+        $this->form_validation->set_rules('num_cheque', 'Numéro de pièce', 'required');
+        $this->form_validation->set_rules('type', 'Type de paiement', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            // Validation échouée, réafficher le formulaire avec les erreurs
+            $this->saisie_cotisation();
+            return;
+        }
+
+        // Récupérer les données validées
+        $pilote = $this->input->post('pilote');
+        $date_op = $this->input->post('date_op');
+        $annee_cotisation = $this->input->post('annee_cotisation');
+        $compte_banque = $this->input->post('compte_banque');
+        $compte_pilote = $this->input->post('compte_pilote');
+        $compte_recette = $this->input->post('compte_recette');
+        $montant = $this->input->post('montant');
+        $description = $this->input->post('description');
+        $num_cheque = $this->input->post('num_cheque');
+        $type = $this->input->post('type');
+
+        // Convertir la date du format d/m/Y vers Y-m-d
+        $date_parts = explode('/', $date_op);
+        if (count($date_parts) == 3) {
+            $date_op_sql = $date_parts[2] . '-' . $date_parts[1] . '-' . $date_parts[0];
+        } else {
+            $date_op_sql = date('Y-m-d');
+        }
+
+        // Vérifier qu'il n'y a pas de double cotisation
+        if ($this->licences_model->check_cotisation_exists($pilote, $annee_cotisation)) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_compta_error_double_cotisation'));
+            $this->saisie_cotisation();
+            return;
+        }
+
+        // Traiter la cotisation
+        $result = $this->process_saisie_cotisation(
+            $pilote,
+            $date_op_sql,
+            $annee_cotisation,
+            $compte_banque,
+            $compte_pilote,
+            $compte_recette,
+            $montant,
+            $description,
+            $num_cheque,
+            $type
+        );
+
+        if ($result) {
+            $this->session->set_flashdata('success', $this->lang->line('gvv_compta_success_cotisation'));
+        } else {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_compta_error_cotisation'));
+        }
+
+        redirect('compta/saisie_cotisation');
+    }
+
+    /**
+     * Traite la saisie de cotisation en créant les écritures et la licence
+     *
+     * @return bool True si succès, false sinon
+     */
+    private function process_saisie_cotisation(
+        $pilote,
+        $date_op,
+        $annee_cotisation,
+        $compte_banque,
+        $compte_pilote,
+        $compte_recette,
+        $montant,
+        $description,
+        $num_cheque,
+        $type
+    ) {
+        // Démarrer une transaction
+        $this->db->trans_start();
+
+        try {
+            $club_id = $this->gvv_model->club();
+            $username = $this->dx_auth->get_username();
+            $annee_exercise = date('Y');
+
+            // 1. Créer l'écriture encaissement (512 → 411)
+            $ecriture_encaissement = array(
+                'annee_exercise' => $annee_exercise,
+                'date_creation' => date('Y-m-d'),
+                'date_op' => $date_op,
+                'compte1' => $compte_banque,
+                'compte2' => $compte_pilote,
+                'montant' => $montant,
+                'description' => $description,
+                'type' => $type,
+                'num_cheque' => $num_cheque,
+                'saisie_par' => $username,
+                'gel' => 0,
+                'club' => $club_id,
+                'categorie' => 0
+            );
+            $this->load->model('ecritures_model');
+            $ecriture_id_1 = $this->ecritures_model->create_ecriture($ecriture_encaissement);
+
+            if (!$ecriture_id_1) {
+                throw new Exception('Erreur lors de la création de l\'écriture encaissement');
+            }
+
+            // 2. Créer l'écriture facturation (411 → 700)
+            $ecriture_facturation = array(
+                'annee_exercise' => $annee_exercise,
+                'date_creation' => date('Y-m-d'),
+                'date_op' => $date_op,
+                'compte1' => $compte_pilote,
+                'compte2' => $compte_recette,
+                'montant' => $montant,
+                'description' => $description,
+                'type' => $type,
+                'num_cheque' => $num_cheque,
+                'saisie_par' => $username,
+                'gel' => 0,
+                'club' => $club_id,
+                'categorie' => 0
+            );
+            $ecriture_id_2 = $this->ecritures_model->create_ecriture($ecriture_facturation);
+
+            if (!$ecriture_id_2) {
+                throw new Exception('Erreur lors de la création de l\'écriture facturation');
+            }
+
+            // 3. Créer la licence
+            $licence_id = $this->licences_model->create_cotisation(
+                $pilote,
+                0, // Type 0 = cotisation simple
+                $annee_cotisation,
+                $date_op,
+                'Cotisation enregistrée via saisie simplifiée'
+            );
+
+            if (!$licence_id) {
+                throw new Exception('Erreur lors de la création de la licence');
+            }
+
+            // 4. Gérer les attachements (si présents)
+            $session_id = $this->session->userdata('session_id');
+            if ($session_id) {
+                // Lier les attachments aux deux écritures
+                $this->process_pending_attachments('ecritures', $ecriture_id_1, $session_id);
+                $this->process_pending_attachments('ecritures', $ecriture_id_2, $session_id);
+            }
+
+            // Compléter la transaction
+            $this->db->trans_complete();
+
+            // Vérifier le statut de la transaction
+            if ($this->db->trans_status() === FALSE) {
+                return false;
+            }
+
+            return true;
+
+        } catch (Exception $e) {
+            // En cas d'erreur, rollback automatique
+            $this->db->trans_rollback();
+            log_message('error', 'Erreur process_saisie_cotisation: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 
     /**
      * journal

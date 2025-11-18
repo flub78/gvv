@@ -161,9 +161,51 @@ class Licences_model extends Common_Model {
         $this->db->select_min('year');
         $this->db->from('licences');
         $result = $this->db->get()->row_array();
-        
+
         $min_year = isset($result['year']) && !empty($result['year']) ? $result['year'] : (date("Y") - 5);
         return (int)$min_year;
+    }
+
+    /**
+     * Vérifie si une cotisation existe déjà pour un pilote et une année donnée
+     * @param string $pilote Login du pilote
+     * @param int $year Année de cotisation
+     * @return bool True si une cotisation existe, false sinon
+     */
+    public function check_cotisation_exists($pilote, $year) {
+        $this->db->where('pilote', $pilote);
+        $this->db->where('year', $year);
+        $this->db->where('type', 0); // Type 0 = cotisation simple
+        $query = $this->db->get($this->table);
+
+        return $query->num_rows() > 0;
+    }
+
+    /**
+     * Crée une nouvelle cotisation (licence)
+     * @param string $pilote Login du pilote
+     * @param int $type Type de licence (0 = cotisation simple)
+     * @param int $year Année de cotisation
+     * @param string $date Date de souscription (format Y-m-d)
+     * @param string $comment Commentaire
+     * @return int ID de la licence créée, ou false en cas d'erreur
+     */
+    public function create_cotisation($pilote, $type, $year, $date, $comment) {
+        $data = array(
+            'pilote' => $pilote,
+            'type' => $type,
+            'year' => $year,
+            'date' => $date,
+            'comment' => $comment
+        );
+
+        $this->db->insert($this->table, $data);
+
+        if ($this->db->affected_rows() > 0) {
+            return $this->db->insert_id();
+        }
+
+        return false;
     }
 
 }

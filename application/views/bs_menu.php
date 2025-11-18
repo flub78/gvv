@@ -285,6 +285,7 @@ $section_count = $CI->sections_model->safe_count_all();
               <li><a class="dropdown-item" href="<?= controller_url("compta/recettes") ?>"><i class="fas fa-arrow-circle-down text-success"></i> <?= translation("gvv_menu_entries_income") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/reglement_pilote") ?>"><i class="fas fa-hand-holding-usd text-success"></i> <?= translation("gvv_menu_entries_pilot_payment") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><i class="fas fa-file-invoice text-info"></i> <?= translation("gvv_menu_entries_pilot_billing") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/saisie_cotisation") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_membership_fee") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><i class="fas fa-receipt text-success"></i> <?= translation("gvv_menu_entries_supplier_credit") ?></a></li>
 
               <li>

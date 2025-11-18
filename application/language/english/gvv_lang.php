@@ -66,6 +66,7 @@ $lang['gvv_menu_entries'] = "Entries";
 $lang['gvv_menu_entries_income'] = "Income";
 $lang['gvv_menu_entries_pilot_payment'] = "Pilot payment";
 $lang['gvv_menu_entries_pilot_billing'] = "Pilot manual billing";
+$lang['gvv_menu_entries_membership_fee'] = "Membership fee entry";
 $lang['gvv_menu_entries_supplier_credit'] = "Supplier credit registration";
 $lang['gvv_menu_entries_expense'] = "Expenses";
 $lang['gvv_menu_entries_expense_paid'] = "Expense paid by a pilot";

@@ -78,6 +78,7 @@ $lang['gvv_menu_entries'] = "Ecritures";
 $lang['gvv_menu_entries_income'] = "Recettes";
 $lang['gvv_menu_entries_pilot_payment'] = "Règlement par pilote";
 $lang['gvv_menu_entries_pilot_billing'] = "Facturation manuelle d'un pilote";
+$lang['gvv_menu_entries_membership_fee'] = "Saisie cotisation";
 $lang['gvv_menu_entries_supplier_credit'] = "Enregistrement avoir fournisseur";
 $lang['gvv_menu_entries_expense'] = "Dépenses";
 $lang['gvv_menu_entries_expense_paid'] = "Dépenses payées par un pilote";
