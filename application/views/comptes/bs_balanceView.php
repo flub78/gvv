@@ -666,6 +666,12 @@ $this->lang->load('comptes');
 							var dt = $('#' + tableId).DataTable();
 							// Appliquer la recherche avec le terme original (DataTable gère la casse automatiquement)
 							dt.search(originalSearchTerm).draw();
+							// Recalculer les totaux immédiatement après le draw
+							setTimeout(function() {
+								if (typeof recalculateGroupTotals === 'function') {
+									recalculateGroupTotals('#' + tableId);
+								}
+							}, 100);
 							return true; // Succès
 						} else {
 							// DataTable pas encore initialisée
@@ -710,6 +716,12 @@ $this->lang->load('comptes');
 						if ($.fn.DataTable.isDataTable('#' + tableId)) {
 							var dt = $('#' + tableId).DataTable();
 							dt.search('').draw();
+							// Recalculer les totaux immédiatement après le draw
+							setTimeout(function() {
+								if (typeof recalculateGroupTotals === 'function') {
+									recalculateGroupTotals('#' + tableId);
+								}
+							}, 100);
 							return true; // Succès
 						}
 					} catch (e) {
@@ -736,13 +748,13 @@ $this->lang->load('comptes');
 			var rows = tbody.querySelectorAll('tr');
 			var searchTermLower = searchTerm.toLowerCase().trim();
 			var visibleCount = 0;
-			
+
 			rows.forEach(function(row) {
 				// Utiliser textContent et innerText pour plus de robustesse
 				var rowText = (row.textContent || row.innerText || '').toLowerCase();
 				// Nettoyer les espaces multiples et caractères spéciaux
 				rowText = rowText.replace(/\s+/g, ' ').trim();
-				
+
 				if (searchTermLower === '' || rowText.indexOf(searchTermLower) !== -1) {
 					row.style.display = '';
 					visibleCount++;
@@ -750,7 +762,7 @@ $this->lang->load('comptes');
 					row.style.display = 'none';
 				}
 			});
-			
+
 			// Log pour debug
 			console.log('Filtre manuel appliqué:', {
 				table: table.getAttribute('id') || 'table sans ID',
@@ -758,6 +770,91 @@ $this->lang->load('comptes');
 				totalRows: rows.length,
 				visibleRows: visibleCount
 			});
+
+			// Recalculer les totaux pour les lignes visibles
+			recalculateManualTableTotals(table);
+		}
+	}
+
+	// Fonction pour recalculer les totaux d'une table avec filtre manuel
+	function recalculateManualTableTotals(table) {
+		console.log('recalculateManualTableTotals appelée pour:', table);
+
+		// Trouver le wrapper qui contient la table et la ligne de total
+		var wrapper = table.closest('.balance-datatable-wrapper');
+		if (!wrapper) {
+			console.warn('Wrapper non trouvé pour la table manuelle');
+			return;
+		}
+
+		// Trouver la ligne de total (dans la table séparée après la datatable)
+		// La table des totaux est la dernière table.table-sm dans le wrapper et n'a pas de thead
+		var allTables = wrapper.querySelectorAll('table.table-sm');
+		var totalTable = null;
+
+		// Chercher la table sans thead (c'est la table des totaux)
+		for (var i = 0; i < allTables.length; i++) {
+			if (!allTables[i].querySelector('thead')) {
+				totalTable = allTables[i];
+				break;
+			}
+		}
+
+		if (!totalTable) {
+			console.log('Pas de table de totaux trouvée (groupe avec une seule ligne)');
+			return;
+		}
+
+		var totalRow = totalTable.querySelector('tbody tr');
+		if (!totalRow) {
+			console.log('Pas de ligne de total dans la table de totaux');
+			return;
+		}
+
+		console.log('Table de totaux trouvée:', totalTable);
+
+		var totalSoldeDebit = 0;
+		var totalSoldeCredit = 0;
+
+		// Parcourir les lignes VISIBLES du tbody
+		var tbody = table.querySelector('tbody');
+		if (tbody) {
+			var rows = tbody.querySelectorAll('tr');
+			var visibleCount = 0;
+
+			rows.forEach(function(row) {
+				// Ignorer les lignes masquées
+				if (row.style.display === 'none') {
+					return;
+				}
+
+				visibleCount++;
+				var cells = row.querySelectorAll('td');
+				// Les colonnes sont: Actions (0), Codec (1), Nom (2), Section (3), Solde Débit (4), Solde Crédit (5)
+				var soldeDebitCell = cells[4];
+				var soldeCreditCell = cells[5];
+
+				if (soldeDebitCell && soldeCreditCell) {
+					var soldeDebit = parseEuroValue(soldeDebitCell.textContent || soldeDebitCell.innerText || '');
+					var soldeCredit = parseEuroValue(soldeCreditCell.textContent || soldeCreditCell.innerText || '');
+
+					console.log('Ligne:', (cells[2] ? (cells[2].textContent || cells[2].innerText) : ''), '- Débit:', soldeDebit, '- Crédit:', soldeCredit);
+
+					totalSoldeDebit += soldeDebit;
+					totalSoldeCredit += soldeCredit;
+				}
+			});
+
+			console.log('Lignes visibles:', visibleCount, '- Total Débit:', totalSoldeDebit, '- Total Crédit:', totalSoldeCredit);
+		}
+
+		// Mettre à jour la ligne de total
+		// Structure de la ligne de total: Actions (0), Codec (1), Nom (2), Section/Label (3), Solde Débit (4), Solde Crédit (5)
+		var totalCells = totalRow.querySelectorAll('td');
+		if (totalCells.length >= 6) {
+			totalCells[4].innerHTML = '<strong>' + formatEuro(totalSoldeDebit) + '</strong>';
+			totalCells[5].innerHTML = '<strong>' + formatEuro(totalSoldeCredit) + '</strong>';
+			console.log('Totaux mis à jour (manuel)');
 		}
 	}
 
@@ -769,6 +866,8 @@ $this->lang->load('comptes');
 			rows.forEach(function(row) {
 				row.style.display = '';
 			});
+			// Recalculer les totaux après avoir effacé le filtre
+			recalculateManualTableTotals(table);
 		}
 	}
 
@@ -786,6 +885,12 @@ $this->lang->load('comptes');
 		// Ajouter des listeners pour capturer les changements d'état manuels
 		addAccordionStateChangeListeners();
 	}
+
+	// Initialiser le recalcul des totaux APRÈS que tout soit chargé (y compris le footer avec les DataTables)
+	$(window).on('load', function() {
+		console.log('Window load - initialisation du recalcul des totaux');
+		initializeDataTableTotalsRecalculation();
+	});
 
 	// Fonction pour ajouter des listeners aux changements d'état des accordéons
 	function addAccordionStateChangeListeners() {
@@ -830,6 +935,155 @@ $this->lang->load('comptes');
 		for (var accordionId in originalAccordionStates) {
 			originalAccordionStates[accordionId].isExpanded = isExpanded;
 		}
+	}
+
+	// Fonction pour parser une valeur monétaire en nombre
+	function parseEuroValue(euroString) {
+		if (!euroString || euroString.trim() === '') {
+			return 0;
+		}
+		// Supprimer les espaces, le symbole €, et remplacer la virgule par un point
+		var cleanValue = euroString.replace(/\s/g, '').replace('€', '').replace(',', '.');
+		var numValue = parseFloat(cleanValue);
+		return isNaN(numValue) ? 0 : numValue;
+	}
+
+	// Fonction pour formater un nombre en euros
+	function formatEuro(value) {
+		if (value === 0) {
+			return '';
+		}
+		// Formater avec 2 décimales et remplacer le point par une virgule
+		var formatted = value.toFixed(2).replace('.', ',');
+		return formatted + '&nbsp;€';
+	}
+
+	// Fonction pour recalculer les totaux d'un groupe basé sur les lignes visibles
+	function recalculateGroupTotals(dataTable) {
+		console.log('recalculateGroupTotals appelée pour:', dataTable);
+
+		// Trouver le wrapper qui contient la table et la ligne de total
+		var wrapper = $(dataTable).closest('.balance-datatable-wrapper');
+		if (!wrapper.length) {
+			console.warn('Wrapper non trouvé pour:', dataTable);
+			return;
+		}
+
+		// Trouver la ligne de total (dans la table séparée après la datatable)
+		// La table des totaux est celle sans thead
+		var allTables = wrapper.find('table.table-sm');
+		var totalTable = null;
+
+		allTables.each(function() {
+			if (!$(this).find('thead').length) {
+				totalTable = $(this);
+				return false; // break
+			}
+		});
+
+		if (!totalTable) {
+			console.log('Pas de table de totaux trouvée (groupe avec une seule ligne)');
+			return;
+		}
+
+		var totalRow = totalTable.find('tbody tr');
+		if (!totalRow.length) {
+			console.log('Pas de ligne de total dans la table de totaux');
+			return;
+		}
+
+		console.log('Table de totaux trouvée:', totalTable[0]);
+
+		var totalSoldeDebit = 0;
+		var totalSoldeCredit = 0;
+
+		// Parcourir les lignes visibles de la DataTable
+		var dt = $(dataTable).DataTable();
+		var visibleRows = dt.rows({ filter: 'applied' }).nodes();
+
+		console.log('Nombre de lignes visibles:', visibleRows.length);
+
+		$(visibleRows).each(function() {
+			var cells = $(this).find('td');
+			// Les colonnes sont: Actions (0), Codec (1), Nom (2), Section (3), Solde Débit (4), Solde Crédit (5)
+			var soldeDebitCell = cells.eq(4);
+			var soldeCreditCell = cells.eq(5);
+
+			var soldeDebit = parseEuroValue(soldeDebitCell.text());
+			var soldeCredit = parseEuroValue(soldeCreditCell.text());
+
+			console.log('Ligne:', cells.eq(2).text(), '- Débit:', soldeDebit, '- Crédit:', soldeCredit);
+
+			totalSoldeDebit += soldeDebit;
+			totalSoldeCredit += soldeCredit;
+		});
+
+		console.log('Total Débit:', totalSoldeDebit, '- Total Crédit:', totalSoldeCredit);
+
+		// Mettre à jour la ligne de total
+		// Structure de la ligne de total: Actions (0), Codec (1), Nom (2), Section/Label (3), Solde Débit (4), Solde Crédit (5)
+		var totalCells = totalRow.find('td');
+		totalCells.eq(4).html('<strong>' + formatEuro(totalSoldeDebit) + '</strong>');
+		totalCells.eq(5).html('<strong>' + formatEuro(totalSoldeCredit) + '</strong>');
+
+		console.log('Totaux mis à jour');
+	}
+
+	// Fonction pour initialiser le recalcul des totaux sur toutes les DataTables
+	function initializeDataTableTotalsRecalculation() {
+		console.log('Initialisation du recalcul des totaux...');
+
+		// Fonction pour attacher les listeners
+		var attachListeners = function() {
+			var attachedCount = 0;
+			// Trouver toutes les DataTables dans les accordéons
+			var tables = $('#balanceAccordion .balance_searchable_datatable');
+			console.log('Nombre de tables balance_searchable_datatable trouvées:', tables.length);
+
+			tables.each(function() {
+				var tableId = $(this).attr('id');
+				console.log('Vérification de la table:', tableId);
+
+				// Vérifier si la DataTable est initialisée
+				if ($.fn.DataTable.isDataTable('#' + tableId)) {
+					console.log('DataTable initialisée pour:', tableId);
+					var dt = $('#' + tableId).DataTable();
+
+					// Attacher un listener sur l'événement draw
+					dt.on('draw', function() {
+						console.log('Événement draw déclenché pour:', tableId);
+						recalculateGroupTotals('#' + tableId);
+					});
+					attachedCount++;
+				} else {
+					console.log('DataTable NON initialisée pour:', tableId);
+				}
+			});
+			console.log('Nombre de listeners attachés:', attachedCount);
+			return attachedCount;
+		};
+
+		// Essayer d'attacher les listeners avec retry
+		var tryAttach = function(attempt) {
+			console.log('Tentative d\'attachement des listeners, essai:', attempt);
+			if (attempt > 5) {
+				console.warn('Abandon après 5 tentatives');
+				return; // Abandonner après 5 tentatives
+			}
+
+			setTimeout(function() {
+				var count = attachListeners();
+				if (count === 0) {
+					// Aucun listener attaché, réessayer
+					console.log('Aucun listener attaché, nouvelle tentative...');
+					tryAttach(attempt + 1);
+				} else {
+					console.log('Initialisation terminée avec succès!');
+				}
+			}, 200 * attempt); // Délai croissant: 200ms, 400ms, 600ms, 800ms, 1000ms
+		};
+
+		tryAttach(1);
 	}
 	</script>
 

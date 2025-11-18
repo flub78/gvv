@@ -12,6 +12,7 @@
 * [] Cotisations utiliser la date la plus avancée (2026)
 * [] Le mécanisme de pilotes qui volent sur le compte d'autres pilote ne fonctionne pas avec les sections. La recherche du compte cible ne prend pas les sections en compte.
 * [] Balance filtrage, quand on filtre sur plusieurs comptes il faudrait mettre à jour les totaux.
+* [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
 
 ## Reste à faire
 
