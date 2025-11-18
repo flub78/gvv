@@ -182,7 +182,7 @@ $(document).ready(function() {
 
             // Envoyer la requête AJAX pour mettre à jour la plage
             $.ajax({
-                url: '<?php echo base_url(); ?>licences/set_year_range/' + minVal + '/' + maxVal,
+                url: '<?php echo site_url('licences/set_year_range'); ?>/' + minVal + '/' + maxVal,
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function(xhr) {
@@ -215,7 +215,7 @@ $(document).ready(function() {
 
         // Envoyer la requête AJAX pour mettre à jour le statut
         $.ajax({
-            url: '<?php echo base_url(); ?>licences/set_member_status/' + status,
+            url: '<?php echo site_url('licences/set_member_status'); ?>/' + status,
             type: 'GET',
             dataType: 'json',
             beforeSend: function(xhr) {
@@ -241,7 +241,7 @@ $(document).ready(function() {
 
         // Envoyer la requête AJAX pour mettre à jour la section
         $.ajax({
-            url: '<?php echo base_url(); ?>licences/set_section/' + sectionId,
+            url: '<?php echo site_url('licences/set_section'); ?>/' + sectionId,
             type: 'GET',
             dataType: 'json',
             beforeSend: function(xhr) {
@@ -316,10 +316,10 @@ $(document).ready(function() {
         var url;
         if (isChecked) {
             // Cocher = créer la licence
-            url = '<?php echo base_url(); ?>licences/set/' + pilote + '/' + year + '/' + type;
+            url = '<?php echo site_url('licences/set'); ?>/' + pilote + '/' + year + '/' + type;
         } else {
             // Décocher = supprimer la licence
-            url = '<?php echo base_url(); ?>licences/switch_it/' + pilote + '/' + year + '/' + type;
+            url = '<?php echo site_url('licences/switch_it'); ?>/' + pilote + '/' + year + '/' + type;
         }
 
         // Envoyer la requête AJAX
