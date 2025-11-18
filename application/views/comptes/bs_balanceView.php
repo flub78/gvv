@@ -659,13 +659,23 @@ $this->lang->load('comptes');
 			
 			// Fonction helper pour appliquer la recherche DataTable
 			var applyDataTableSearchInternal = function() {
-				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined' && $.fn.DataTable) {
+				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined') {
 					try {
-						// Vérifier si la DataTable est initialisée
-						if ($.fn.DataTable.isDataTable('#' + tableId)) {
-							var dt = $('#' + tableId).DataTable();
-							// Appliquer la recherche avec le terme original (DataTable gère la casse automatiquement)
-							dt.search(originalSearchTerm).draw();
+						// Vérifier si la DataTable est initialisée (compatible ancienne/nouvelle API)
+						var isDataTable = false;
+						if ($.fn.DataTable && $.fn.DataTable.isDataTable) {
+							isDataTable = $.fn.DataTable.isDataTable('#' + tableId);
+						} else if ($.fn.dataTable && $.fn.dataTable.fnIsDataTable) {
+							isDataTable = $.fn.dataTable.fnIsDataTable(dataTable);
+						} else if ($(dataTable).hasClass('dataTable')) {
+							isDataTable = true;
+						}
+
+						if (isDataTable) {
+							// Utiliser l'ancienne API pour être compatible
+							var dt = $('#' + tableId).dataTable();
+							// Appliquer la recherche
+							dt.fnFilter(originalSearchTerm);
 							// Recalculer les totaux immédiatement après le draw
 							setTimeout(function() {
 								if (typeof recalculateGroupTotals === 'function') {
@@ -710,12 +720,22 @@ $this->lang->load('comptes');
 			
 			// Fonction helper pour effacer la recherche DataTable
 			var clearDataTableSearchInternal = function() {
-				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined' && $.fn.DataTable) {
+				if ((dataTable.classList.contains('searchable_nosort_datatable') || dataTable.classList.contains('balance_searchable_datatable')) && typeof $ !== 'undefined') {
 					try {
-						// Vérifier si la DataTable est initialisée
-						if ($.fn.DataTable.isDataTable('#' + tableId)) {
-							var dt = $('#' + tableId).DataTable();
-							dt.search('').draw();
+						// Vérifier si la DataTable est initialisée (compatible ancienne/nouvelle API)
+						var isDataTable = false;
+						if ($.fn.DataTable && $.fn.DataTable.isDataTable) {
+							isDataTable = $.fn.DataTable.isDataTable('#' + tableId);
+						} else if ($.fn.dataTable && $.fn.dataTable.fnIsDataTable) {
+							isDataTable = $.fn.dataTable.fnIsDataTable(dataTable);
+						} else if ($(dataTable).hasClass('dataTable')) {
+							isDataTable = true;
+						}
+
+						if (isDataTable) {
+							// Utiliser l'ancienne API pour être compatible
+							var dt = $('#' + tableId).dataTable();
+							dt.fnFilter('');
 							// Recalculer les totaux immédiatement après le draw
 							setTimeout(function() {
 								if (typeof recalculateGroupTotals === 'function') {
@@ -997,25 +1017,36 @@ $this->lang->load('comptes');
 		var totalSoldeDebit = 0;
 		var totalSoldeCredit = 0;
 
-		// Parcourir les lignes visibles de la DataTable
-		var dt = $(dataTable).DataTable();
-		var visibleRows = dt.rows({ filter: 'applied' }).nodes();
+		// Parcourir les lignes visibles de la DataTable (compatible ancienne API)
+		var dt = $(dataTable).dataTable();
+
+		// Avec l'ancienne API, on doit parcourir directement les lignes du tbody
+		var tbody = $(dataTable).find('tbody');
+		var visibleRows = tbody.find('tr:visible');
 
 		console.log('Nombre de lignes visibles:', visibleRows.length);
 
-		$(visibleRows).each(function() {
+		visibleRows.each(function() {
 			var cells = $(this).find('td');
+
+			// Ignorer la ligne "Aucun élément à afficher"
+			if (cells.length === 1 && cells.eq(0).hasClass('dataTables_empty')) {
+				return;
+			}
+
 			// Les colonnes sont: Actions (0), Codec (1), Nom (2), Section (3), Solde Débit (4), Solde Crédit (5)
 			var soldeDebitCell = cells.eq(4);
 			var soldeCreditCell = cells.eq(5);
 
-			var soldeDebit = parseEuroValue(soldeDebitCell.text());
-			var soldeCredit = parseEuroValue(soldeCreditCell.text());
+			if (soldeDebitCell.length && soldeCreditCell.length) {
+				var soldeDebit = parseEuroValue(soldeDebitCell.text());
+				var soldeCredit = parseEuroValue(soldeCreditCell.text());
 
-			console.log('Ligne:', cells.eq(2).text(), '- Débit:', soldeDebit, '- Crédit:', soldeCredit);
+				console.log('Ligne:', cells.eq(2).text(), '- Débit:', soldeDebit, '- Crédit:', soldeCredit);
 
-			totalSoldeDebit += soldeDebit;
-			totalSoldeCredit += soldeCredit;
+				totalSoldeDebit += soldeDebit;
+				totalSoldeCredit += soldeCredit;
+			}
 		});
 
 		console.log('Total Débit:', totalSoldeDebit, '- Total Crédit:', totalSoldeCredit);
@@ -1044,17 +1075,40 @@ $this->lang->load('comptes');
 				var tableId = $(this).attr('id');
 				console.log('Vérification de la table:', tableId);
 
-				// Vérifier si la DataTable est initialisée
-				if ($.fn.DataTable.isDataTable('#' + tableId)) {
-					console.log('DataTable initialisée pour:', tableId);
-					var dt = $('#' + tableId).DataTable();
+				// Vérifier si la DataTable est initialisée (compatible avec ancienne et nouvelle API)
+				var isDataTable = false;
+				try {
+					// Nouvelle API
+					if ($.fn.DataTable && $.fn.DataTable.isDataTable) {
+						isDataTable = $.fn.DataTable.isDataTable('#' + tableId);
+					}
+					// Ancienne API (fallback)
+					if (!isDataTable && $.fn.dataTable && $.fn.dataTable.fnIsDataTable) {
+						isDataTable = $.fn.dataTable.fnIsDataTable(document.getElementById(tableId));
+					}
+					// Vérifier si l'élément a déjà les classes DataTable
+					if (!isDataTable && $(this).hasClass('dataTable')) {
+						isDataTable = true;
+					}
+				} catch (e) {
+					console.warn('Erreur lors de la vérification DataTable pour ' + tableId + ':', e);
+				}
 
-					// Attacher un listener sur l'événement draw
-					dt.on('draw', function() {
-						console.log('Événement draw déclenché pour:', tableId);
-						recalculateGroupTotals('#' + tableId);
-					});
-					attachedCount++;
+				if (isDataTable) {
+					console.log('DataTable initialisée pour:', tableId);
+					try {
+						// Obtenir l'instance DataTable (compatible ancienne/nouvelle API)
+						var dt = $('#' + tableId).dataTable();
+
+						// Attacher un listener sur l'événement draw avec jQuery
+						$('#' + tableId).on('draw.dt', function() {
+							console.log('Événement draw déclenché pour:', tableId);
+							recalculateGroupTotals('#' + tableId);
+						});
+						attachedCount++;
+					} catch (e) {
+						console.warn('Erreur lors de l\'attachement du listener pour ' + tableId + ':', e);
+					}
 				} else {
 					console.log('DataTable NON initialisée pour:', tableId);
 				}
