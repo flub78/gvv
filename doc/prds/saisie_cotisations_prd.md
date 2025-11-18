@@ -19,8 +19,7 @@ Les trésoriers souhaitent une interface unique pour réaliser ces deux opérati
 **Écran de saisie unique "Enregistrement Cotisation"** permettant de:
 - Sélectionner le membre concerné
 - Sélectionner l'année/période de cotisation
-- Sélectionner le type de cotisation (produit tarifé)
-- Indiquer le nombre de cotisations (1 par défaut)
+- Saisir le montant de la cotisation
 - Saisir le libellé de l'opération
 - Saisir le numéro de pièce comptable
 - Ajouter des justificatifs (fichiers attachés)
@@ -36,7 +35,6 @@ Lors de la validation, le système doit automatiquement:
 
 ### Contraintes
 
-- Le montant payé doit correspondre au tarif de la cotisation en vigueur
 - L'opération doit être atomique (tout ou rien)
 - Les écritures comptables doivent être tracées avec référence au paiement
 - Accessible uniquement aux trésoriers et administrateurs
@@ -52,11 +50,9 @@ Lors de la validation, le système doit automatiquement:
 
 ## Cas Limites
 
-- **Adaptation aux réductions familiales**: pour éviter de complexifier le système il sera on créera un produit "unité de cotisation" à 1 € et le trésorier pourra ainsi appliquer les réductions en ajustant le nombre de cotisations saisies.
+- **Adaptation aux réductions familiales**: Le trésorier saisit directement le montant effectif de la cotisation, en appliquant les réductions familiales éventuelles.
 
-Ce champ ne doit pas servir pour vendre deux cotisations à un membre. Le système vérifiera que le membre n'est pas déjà inscrit pour la période. Si un membre paye une cotisation pour deux personnes, le trésorier devra faire deux saisies distinctes et demander deux paiements distincts au membre (ou reverser lui même d'un compte pilote sur un autre).
-
-- **Membre déjà inscrit pour la période**: Afficher avertissement, permettre la validation (renouvellement anticipé)
+- **Membre déjà inscrit pour la période**: Le système vérifiera que le membre n'est pas déjà inscrit pour la période. La double cotisation est un cas d'erreur qui bloque la validation.
 
 Ce mécanisme permettra gérer le nombre d'adhérents pour la période. Il ne permettra pas de savoir si les membres sont à jour de leur assurance pour les différentes activités.
 
@@ -68,15 +64,14 @@ Un nouvel écran accessible depuis le menu "Comptes" ou "Membres" comprenant:
 
 **Section "Membre et Cotisation"**:
 - Sélecteur de membre
-- Sélecteur de type de cotisation (avec affichage automatique du tarif en vigueur)
 - Sélecteur de période/année de cotisation
-- Affichage du montant à payer
 
 **Section "Paiement"** (champs standards d'écriture comptable):
 - Date de l'opération (par défaut: date du jour, modifiable)
-- Nombre de cotisations (champ numérique, par défaut 1)
+- Montant de la cotisation (champ numérique)
 - Numéro de pièce comptable (champ texte)
 - Libellé (champ texte, pré-rempli avec suggestion, modifiable)
+- Mode de paiement (sélecteur)
 
 **Section "Justificatifs"** (optionnelle):
 - Bouton "Ajouter un justificatif"

@@ -20,6 +20,7 @@ $lang['gvv_compta_title_retrait'] = "Retrait de liquide";
 $lang['gvv_compta_title_remb_capital'] = "Remboursement de capital d'emprunt";
 $lang['gvv_compta_title_encaissement_section'] = "Encaissement pour une section";
 $lang['gvv_compta_title_reversement_section'] = "Reversement section";
+$lang['gvv_compta_title_saisie_cotisation'] = "Enregistrement Cotisation";
 $lang['gvv_comptes_title_journal'] = "Grand journal";
 $lang['gvv_comptes_title_error'] = "Erreur";
 $lang['gvv_comptes_error_no_account'] = "Il n'y a pas de compte associé à l'identifiant de connexion";
@@ -98,6 +99,15 @@ $lang['gvv_compta_label_debitor'] = 'débiteur';
 $lang['gvv_compta_label_creditor'] = 'créditeur';
 $lang['gvv_compta_label_balance_at'] = 'Solde au';
 $lang['gvv_compta_label_section'] = 'Section';
+$lang['gvv_compta_label_compte_banque'] = 'Compte banque (512)';
+$lang['gvv_compta_label_compte_pilote'] = 'Compte pilote (411)';
+$lang['gvv_compta_label_compte_recette'] = 'Compte recette cotisation (700)';
+$lang['gvv_compta_label_annee_cotisation'] = 'Année de cotisation';
+$lang['gvv_compta_label_montant'] = 'Montant de la cotisation';
+$lang['gvv_compta_label_pilote'] = 'Membre';
+$lang['gvv_compta_error_double_cotisation'] = 'Ce membre a déjà une cotisation pour cette année';
+$lang['gvv_compta_success_cotisation'] = 'Cotisation enregistrée avec succès';
+$lang['gvv_compta_error_cotisation'] = 'Erreur lors de l\'enregistrement de la cotisation';
 
 
 $lang['gvv_compta_purchase_headers'] =  array("Date", "Produit", "Quantité", "Commentaire", "");

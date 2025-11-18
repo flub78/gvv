@@ -20,6 +20,7 @@ $lang['gvv_compta_title_retrait'] = "Cash withdrawal";
 $lang['gvv_compta_title_remb_capital'] = "Loan capital repayment";
 $lang['gvv_compta_title_encaissement_section'] = "Collection for a section";
 $lang['gvv_compta_title_reversement_section'] = "Section reversal";
+$lang['gvv_compta_title_saisie_cotisation'] = "Membership Fee Entry";
 $lang['gvv_comptes_title_journal'] = "Extensive booking journal";
 $lang['gvv_comptes_title_error'] = "Error";
 $lang['gvv_comptes_error_no_account'] = "The logged user has no billing account: ";
@@ -99,6 +100,15 @@ $lang['gvv_compta_label_debitor'] = 'debitor';
 $lang['gvv_compta_label_creditor'] = 'creditor';
 $lang['gvv_compta_label_balance_at'] = 'Balance on';
 $lang['gvv_compta_label_section'] = 'Section';
+$lang['gvv_compta_label_compte_banque'] = 'Bank account (512)';
+$lang['gvv_compta_label_compte_pilote'] = 'Pilot account (411)';
+$lang['gvv_compta_label_compte_recette'] = 'Membership revenue account (700)';
+$lang['gvv_compta_label_annee_cotisation'] = 'Membership year';
+$lang['gvv_compta_label_montant'] = 'Membership fee amount';
+$lang['gvv_compta_label_pilote'] = 'Member';
+$lang['gvv_compta_error_double_cotisation'] = 'This member already has a membership for this year';
+$lang['gvv_compta_success_cotisation'] = 'Membership fee successfully recorded';
+$lang['gvv_compta_error_cotisation'] = 'Error while recording membership fee';
 
 $lang['gvv_compta_purchase_headers'] =  array("Date", "Product", "Quantity", "Comment", "");
 

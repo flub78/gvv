@@ -20,6 +20,7 @@ $lang['gvv_compta_title_retrait'] = "Vloeistofonttrekking";
 $lang['gvv_compta_title_remb_capital'] = "Terugbetaling leningkapitaal";
 $lang['gvv_compta_title_encaissement_section'] = "Inning voor een sectie";
 $lang['gvv_compta_title_reversement_section'] = "Sectie omkering";
+$lang['gvv_compta_title_saisie_cotisation'] = "Contributie Registratie";
 $lang['gvv_comptes_title_journal'] = "Uitgebreid journaal boekingen";
 $lang['gvv_comptes_title_error'] = "Fout";
 $lang['gvv_comptes_error_no_account'] = "De gebruiker heeft rekening gekoppeld aan zijn account";
@@ -98,6 +99,15 @@ $lang['gvv_compta_label_debitor'] = 'Debiteur';
 $lang['gvv_compta_label_creditor'] = 'Crediteur';
 $lang['gvv_compta_label_balance_at'] = 'Saldo op';
 $lang['gvv_compta_label_section'] = 'Sectie';
+$lang['gvv_compta_label_compte_banque'] = 'Bankrekening (512)';
+$lang['gvv_compta_label_compte_pilote'] = 'Pilootrekening (411)';
+$lang['gvv_compta_label_compte_recette'] = 'Contributie-ontvangsten rekening (700)';
+$lang['gvv_compta_label_annee_cotisation'] = 'Contributiejaar';
+$lang['gvv_compta_label_montant'] = 'Contributiebedrag';
+$lang['gvv_compta_label_pilote'] = 'Lid';
+$lang['gvv_compta_error_double_cotisation'] = 'Dit lid heeft al een contributie voor dit jaar';
+$lang['gvv_compta_success_cotisation'] = 'Contributie succesvol geregistreerd';
+$lang['gvv_compta_error_cotisation'] = 'Fout bij het registreren van de contributie';
 
 $lang['gvv_compta_purchase_headers'] =  array("Datum", "Product", "Aantal", "Opmerking", "");
 
