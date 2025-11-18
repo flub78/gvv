@@ -49,6 +49,7 @@ class Compta extends Gvv_Controller {
         $this->load->model('categorie_model');
         $this->load->model('attachments_model');
         $this->lang->load('compta');
+        $this->lang->load('comptes');
         $this->lang->load('attachments');
     }
 
@@ -1497,13 +1498,14 @@ class Compta extends Gvv_Controller {
 
         // if no account is found
         if (count($data) == 0) {
-            // better to return to comptes/general (balance)
-            redirect("comptes/general");
+            $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+            redirect("comptes/balance");
         }
 
         // or it is not an account of the current section
         if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
-            redirect("comptes/general");
+            $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+            redirect("comptes/balance");
         }
 
         $this->journal_data($data, $compte, $premier, $message);

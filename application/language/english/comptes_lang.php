@@ -132,3 +132,6 @@ $lang['comptes_bilan_prets'] = "Loans";
 $lang['gvv_comptes_title_hierarchical_balance'] = "Hierarchical Balance";
 $lang['gvv_comptes_expand_all'] = "Expand All";
 $lang['gvv_comptes_collapse_all'] = "Collapse All";
+
+// Error messages
+$lang['gvv_comptes_error_account_not_found'] = "The account does not exist or does not belong to this section";

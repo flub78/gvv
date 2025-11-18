@@ -132,3 +132,6 @@ $lang['comptes_bilan_prets'] = "Leningen";
 $lang['gvv_comptes_title_hierarchical_balance'] = "Hiërarchische balans";
 $lang['gvv_comptes_expand_all'] = "Alles uitvouwen";
 $lang['gvv_comptes_collapse_all'] = "Alles inklappen";
+
+// Error messages
+$lang['gvv_comptes_error_account_not_found'] = "De rekening bestaat niet of behoort niet tot deze sectie";

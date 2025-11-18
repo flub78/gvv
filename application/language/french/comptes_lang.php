@@ -132,3 +132,6 @@ $lang['gvv_comptes_can_mask'] = "Le solde est à 0, le compte peut être masqué
 $lang['gvv_comptes_title_hierarchical_balance'] = "Balance des comptes";
 $lang['gvv_comptes_expand_all'] = "Tout développer";
 $lang['gvv_comptes_collapse_all'] = "Tout réduire";
+
+// Error messages
+$lang['gvv_comptes_error_account_not_found'] = "Le compte n'existe pas ou n'appartient pas à cette section";

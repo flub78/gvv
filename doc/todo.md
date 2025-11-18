@@ -8,7 +8,10 @@
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
-
+* [] 512 > 400 passer aux datatable
+* [] Cotisations utiliser la date la plus avancée (2026)
+* [] Le mécanisme de pilotes qui volent sur le compte d'autres pilote ne fonctionne pas avec les sections. La recherche du compte cible ne prend pas les sections en compte.
+* [] Balance filtrage, quand on filtre sur plusieurs comptes il faudrait mettre à jour les totaux.
 
 ## Reste à faire
 
@@ -196,3 +199,8 @@
   * [x] La gestion des listes devrait passer de membre à gestion
   * [x] Prévisualisation, il y a un ascenseur, pas de raison de limiter la liste à 20 éléments
   * [x] Tester le découpage
+
+* [x] quand on essaye de visualiser un compte d'une autre section on arrive sur la vieille page de la balance.
+  * choisir un compte dans une section http://gvv.net/compta/journal_compte/37
+  * changer de section
+  * rappeler l'URL
