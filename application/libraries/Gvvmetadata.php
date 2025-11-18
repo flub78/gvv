@@ -331,8 +331,11 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['inscription_date']['Type'] = 'date';
                 $this->field['membres']['validation_date']['Type'] = 'date';
 
-                $this->field['membres']['compte']['Subtype'] = 'selector';
-                $this->field['membres']['compte']['Selector'] = 'compte_pilote_selector';
+                // membre_payeur: Member who should be charged for this member's flights
+                $this->field['membres']['membre_payeur']['Subtype'] = 'selector';
+                $this->field['membres']['membre_payeur']['Selector'] = 'membre_payeur_selector';
+                $this->field['membres']['membre_payeur']['Title'] = 'Membre payeur';
+
                 $this->field['membres']['comment']['Title'] = 'Information supplémentaire';
 
                 $this->field['membres']['inst_glider']['Subtype'] = 'selector';

@@ -429,18 +429,19 @@ class Membre extends Gvv_Controller {
         if ($this->dx_auth->is_role('ca', true, true)) {
             $this->data['pilote_selector'] = $this->membres_model->selector();
         }
-        $compte_selector = $this->comptes_model->selector_with_null(array(
-            'codec' => 411
-        ));
-        $this->gvvmetadata->set_selector('compte_pilote_selector', $compte_selector);
+
+        // Set up member selector for membre_payeur field
+        // This allows selecting which member's account should be charged
+        $membre_payeur_selector = $this->membres_model->selector_with_null(array('actif' => 1));
+        $this->gvvmetadata->set_selector('membre_payeur_selector', $membre_payeur_selector);
+
         if ($action != CREATION)
             $this->data['compte_pilote'] = $this->comptes_model->compte_pilote_id($this->data['mlogin']);
 
         $this->data['cp'] = sprintf("%05d", $this->data['cp']);
-        if ($this->data['compte']) {
-            $this->load->model('comptes_model');
-            $compte_info = $this->comptes_model->get_by_id('id', $this->data['compte']);
-            $this->data['compte_ticket'] = $compte_info['pilote'];
+        // For compte_ticket, use membre_payeur if set, otherwise use member's own login
+        if (isset($this->data['membre_payeur']) && $this->data['membre_payeur']) {
+            $this->data['compte_ticket'] = $this->data['membre_payeur'];
         } else {
             $this->data['compte_ticket'] = $this->data['mlogin'];
         }

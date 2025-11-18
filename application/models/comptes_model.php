@@ -388,30 +388,65 @@ class Comptes_model extends Common_Model {
      */
     public function compte_pilote($pilote) {
         $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
+        $section = $this->sections_model->section();
 
-        if ($info_pilote['compte']) {
-            $compte_id = $info_pilote['compte'];
-            $compte= $this->comptes_model->get_by_id('id', $compte_id);
-            return $compte;
+        // Si un membre_payeur est défini, chercher son compte dans la section courante
+        if ($info_pilote && isset($info_pilote['membre_payeur']) && $info_pilote['membre_payeur']) {
+            $membre_payeur = $info_pilote['membre_payeur'];
+
+            // Chercher le compte 411 de ce membre dans la section courante
+            $this->db
+                ->select('id, nom, debit, credit, actif, club, pilote')
+                ->from($this->table)
+                ->where(array(
+                    'pilote' => $membre_payeur,
+                    'codec' => '411'
+                ));
+
+            // Filtrer par section si une section est active
+            if ($section) {
+                $this->db->where('comptes.club', $section['id']);
+            }
+
+            $result = $this->db->get();
+
+            if ($result && $result->num_rows() > 0) {
+                return $result->row_array();
+            } else {
+                // Aucun compte trouvé pour le membre payeur dans la section courante
+                if ($section) {
+                    gvv_error("Aucun compte 411 trouvé pour le membre payeur '$membre_payeur' dans la section " . $section['nom']);
+                } else {
+                    gvv_error("Aucun compte 411 trouvé pour le membre payeur '$membre_payeur' (aucune section active)");
+                }
+                return null;
+            }
         }
 
-        $section = $this->gvv_model->section();
-
+        // Pas de membre_payeur défini, chercher le compte du pilote lui-même
         $this->db
-            ->select('id, nom, debit, credit, actif')
+            ->select('id, nom, debit, credit, actif, club, pilote')
             ->from($this->table)
-            ->where(array('pilote' => $pilote));
+            ->where(array(
+                'pilote' => $pilote,
+                'codec' => '411'
+            ));
 
-        if ($this->section) {
+        // Filtrer par section si une section est active
+        if ($section) {
             $this->db->where('comptes.club', $section['id']);
         }
 
         $result = $this->db->get();
 
-        if ($result) {
-            return $result->result_array()[0];
+        if ($result && $result->num_rows() > 0) {
+            return $result->row_array();
         } else {
-            gvv_error("Erreur lors de la recherche du compte du pilote $pilote");
+            if ($section) {
+                gvv_error("Aucun compte 411 trouvé pour le pilote $pilote dans la section " . $section['nom']);
+            } else {
+                gvv_error("Aucun compte 411 trouvé pour le pilote $pilote (aucune section active)");
+            }
             return null;
         }
     }

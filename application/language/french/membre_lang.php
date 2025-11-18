@@ -63,6 +63,7 @@ $lang['gvv_membres_field_country'] = "Pays";
 $lang['gvv_membres_field_profession'] = "Profession";
 $lang['gvv_membres_field_mdaten'] = "Date de naissance";
 $lang['gvv_membres_field_compte'] = "Compte pilote";
+$lang['gvv_membres_field_membre_payeur'] = "Membre payeur";
 $lang['gvv_membres_field_mbranum'] = "PPL";
 $lang['gvv_membres_field_mbradat'] = "Date du PPL";
 $lang['gvv_membres_field_mbraval'] = "Validité du PPL";

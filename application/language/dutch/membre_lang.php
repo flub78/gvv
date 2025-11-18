@@ -64,6 +64,7 @@ $lang['gvv_membres_field_country'] = "Land";
 $lang['gvv_membres_field_profession'] = "Beroep";
 $lang['gvv_membres_field_mdaten'] = "Geboortedatum";
 $lang['gvv_membres_field_compte'] = "Rekening piloot";
+$lang['gvv_membres_field_membre_payeur'] = "Betalend lid";
 $lang['gvv_membres_field_mbranum'] = "N° PPL";
 $lang['gvv_membres_field_mbradat'] = "Datum PPL";
 $lang['gvv_membres_field_mbraval'] = "Geldigheid PPL";

@@ -221,6 +221,46 @@ class Achats extends Gvv_Controller {
     }
 
     /**
+     * Override parent's validationOkPage to redirect to membre_payeur's account if set
+     *
+     * @param array $processed_data Data from the purchase
+     * @param string $button Button that was clicked
+     */
+    function validationOkPage($processed_data, $button) {
+        if ($button == $this->lang->line("gvv_button_create_and_continue")) {
+            // Display the form again
+            redirect($this->controller . "/create");
+            return;
+        }
+
+        // Get the pilot who made the purchase
+        $pilote = $processed_data['pilote'];
+
+        // Load membres model to check for membre_payeur
+        $this->load->model('membres_model');
+        $membre_info = $this->membres_model->get_by_id('mlogin', $pilote);
+
+        // Check if this member has a membre_payeur set
+        $target_pilote = $pilote; // Default to the pilot themselves
+        if ($membre_info && isset($membre_info['membre_payeur']) && $membre_info['membre_payeur']) {
+            // Redirect to the membre_payeur's account instead
+            $target_pilote = $membre_info['membre_payeur'];
+        }
+
+        // Get the compte for the target pilot
+        $this->load->model('comptes_model');
+        $compte_id = $this->comptes_model->compte_pilote_id($target_pilote);
+
+        if ($compte_id) {
+            // Redirect to the account page where the purchase will be visible
+            redirect("compta/view/" . $compte_id);
+        } else {
+            // Fallback to normal behavior
+            $this->pop_return_url();
+        }
+    }
+
+    /**
      *
      * Supprime un élèment
      *

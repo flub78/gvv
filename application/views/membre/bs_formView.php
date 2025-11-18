@@ -304,13 +304,13 @@ if ($has_modification_rights) {
     echo form_fieldset($this->lang->line("membre_fieldset_billing"));
     echo '<div class="row g-3">';
     echo '<div class="col-md-6">';
-    echo '<label for="compte" class="form-label" title="Compte sur lequel sera débité les vols si ce n\'est pas celui du pilote">' . $this->lang->line("gvv_membres_field_compte") . '</label>';
-    echo $this->gvvmetadata->input_field("membres", 'compte', $compte);
+    echo '<label for="membre_payeur" class="form-label" title="Membre dont le compte sera débité pour les vols de ce pilote (laisser vide pour utiliser le compte du pilote)">' . $this->lang->line("gvv_membres_field_membre_payeur") . '</label>';
+    echo $this->gvvmetadata->input_field("membres", 'membre_payeur', $membre_payeur);
     echo '</div>';
     echo '</div>';
     echo form_fieldset_close();
 } else {
-    echo form_hidden('compte', $compte);
+    echo form_hidden('membre_payeur', $membre_payeur);
 
 // Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
 if (isset($kid) && isset($$kid)) {
