@@ -20,7 +20,7 @@ $lang['gvv_menu_admin_system'] = "Système";
 
 $lang['gvv_menu_membres'] = "Membres";
 $lang['gvv_menu_membres_list'] = "Liste";
-$lang['gvv_menu_membres_licences'] = "Licences";
+$lang['gvv_menu_membres_licences'] = "Cotisations";
 $lang['gvv_menu_membres_fiches'] = "Fiches";
 $lang['gvv_menu_membres_password'] = "Mot de passe";
 $lang['gvv_menu_membres_email'] = "Courriel";

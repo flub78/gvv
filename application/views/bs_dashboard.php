@@ -673,6 +673,15 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-id-card text-success"></i>
+                        <div class="card-title">Cotisations</div>
+                        <div class="card-text text-muted">Par année</div>
+                        <a href="<?= controller_url('licences/per_year') ?>" class="btn btn-success btn-sm">Voir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-envelope text-warning"></i>
                         <div class="card-title">Liste de diffusion</div>
                         <div class="card-text text-muted">Emails</div>
