@@ -1,9 +1,3 @@
-Compta Saisie Cotisation
- [ ] Validation rejects empty fields
- [x] Validation rejects invalid montant
- [x] Validation rejects double cotisation
- [x] Process saisie cotisation creates two ecritures
- [x] Process saisie cotisation creates licence
- [x] Transaction rollback on error
- [x] Date format conversion
+Ecritures Model Datatable
+ [ ] Get datatable data method exists
 

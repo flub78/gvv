@@ -8,7 +8,6 @@
 * [] **Déconnexion intempestive**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
-* [] 512 > 400 passer aux datatable
 * [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
 
 
@@ -208,3 +207,4 @@
 * [x] Le mécanisme de pilotes qui volent sur le compte d'autres pilote ne fonctionne pas avec les sections. La recherche du compte cible ne prend pas les sections en compte.
 * [x] retour à la balance hiérarchique après la suppression d'un compte
 * [x] suppression de compte depuis la balance,il manque le message de confirmation
+* [x] Comptes > 400 lignes, passer aux datatable serveur side.

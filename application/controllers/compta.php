@@ -1751,6 +1751,213 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * AJAX endpoint for DataTables server-side processing (older format)
+     */
+    function datatable_journal_compte($compte = '') {
+        // Clear any previous output buffer to prevent contamination
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        // Set JSON content type early
+        $this->output->set_content_type('application/json');
+        
+        // Check authentication
+        if (!$this->dx_auth->is_logged_in()) {
+            $this->output->set_output(json_encode(['error' => 'Not authenticated']));
+            return;
+        }
+
+        $data = $this->comptes_model->get_by_id('id', $compte);
+
+        // Check account exists and user has access
+        if (count($data) == 0) {
+            $this->output->set_output(json_encode(['error' => 'Account not found: ' . $compte]));
+            return;
+        }
+        
+        if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
+            $this->output->set_output(json_encode(['error' => 'Access denied to account: ' . $compte]));
+            return;
+        }
+
+        try {
+            // Get DataTables parameters in older format (GET params)
+            $sEcho = isset($_GET['sEcho']) ? intval($_GET['sEcho']) : 1;
+            $iDisplayStart = isset($_GET['iDisplayStart']) ? intval($_GET['iDisplayStart']) : 0;
+            $iDisplayLength = isset($_GET['iDisplayLength']) ? intval($_GET['iDisplayLength']) : 100;
+            
+            // Handle search parameter - clean it properly
+            $sSearch = isset($_GET['sSearch']) ? trim($_GET['sSearch']) : '';
+            
+            // Debug search specifically
+            if (!empty($sSearch)) {
+                log_message('debug', "DataTables: Search request with term: '$sSearch'");
+            }
+
+            // Build SQL query with filters
+            $this->load->model('ecritures_model');
+            
+            // Get total count without search filter
+            $total_count = $this->gvv_model->count_account($compte);
+            
+            // Get filtered data using our method
+            $result = $this->ecritures_model->get_datatable_data([
+                'compte' => $compte,
+                'start' => $iDisplayStart,
+                'length' => $iDisplayLength,
+                'search' => $sSearch,
+                'order_column' => 'date_op', // Default for now
+                'order_direction' => 'DESC'
+            ]);
+
+            $filtered_count = $result['filtered_count'];
+            $ecritures = $result['data'];
+            
+            // Add debugging
+            log_message('debug', "DataTables: Model returned filtered_count=$filtered_count, data rows=" . count($ecritures));
+            if (count($ecritures) > 0) {
+                log_message('debug', "DataTables: First row keys: " . implode(', ', array_keys($ecritures[0])));
+            }
+
+            // Check permissions for actions
+            $section = $this->gvv_model->section();
+            $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+
+            // Format data for older DataTables format
+            $aaData = [];
+            foreach ($ecritures as $ecriture) {
+                $row = [];
+                
+                // Actions column first
+                if ($has_modification_rights && $section) {
+                    $actions = '';
+                    $actions .= '<a href="' . site_url("compta/edit/{$ecriture['id']}") . '" class="btn btn-sm btn-primary" title="Modifier"><i class="fas fa-edit"></i></a> ';
+                    $actions .= '<a href="' . site_url("compta/delete/{$ecriture['id']}") . '" class="btn btn-sm btn-danger" title="Supprimer" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer cette écriture ?\')"><i class="fas fa-trash"></i></a>';
+                    $row[] = $actions;
+                }
+                
+                // Add basic data validation and fallbacks
+                $row[] = date_db2ht($ecriture['date_op']); 
+                
+                // Make "Autre compte" a clickable link to the other account's journal
+                $autre_compte_nom = isset($ecriture['autre_nom_compte']) ? $ecriture['autre_nom_compte'] : '';
+                $autre_compte_id = isset($ecriture['autre_compte']) ? $ecriture['autre_compte'] : '';
+                if (!empty($autre_compte_id) && !empty($autre_compte_nom)) {
+                    $autre_compte_link = '<a href="' . site_url("compta/journal_compte/$autre_compte_id") . '">' . htmlspecialchars($autre_compte_nom) . '</a>';
+                    $row[] = $autre_compte_link;
+                } else {
+                    $row[] = $autre_compte_nom;
+                }
+                
+                $row[] = isset($ecriture['description']) ? $ecriture['description'] : '';
+                $row[] = isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : '';
+                $row[] = isset($ecriture['prix']) ? $ecriture['prix'] : '';
+                $row[] = isset($ecriture['quantite']) ? $ecriture['quantite'] : '';
+                $row[] = isset($ecriture['debit']) ? $ecriture['debit'] : '';
+                $row[] = isset($ecriture['credit']) ? $ecriture['credit'] : '';
+                $row[] = isset($ecriture['solde']) ? number_format($ecriture['solde'], 2) : '';
+                $row[] = isset($ecriture['gel']) ? $ecriture['gel'] : '';
+                
+                $aaData[] = $row;
+            }
+
+            // Log some debug info
+            log_message('debug', "DataTables: Found " . count($ecritures) . " rows, formatted " . count($aaData) . " rows");
+            if (count($aaData) > 0) {
+                log_message('debug', "DataTables: First row: " . json_encode($aaData[0]));
+            }
+
+            // Use older DataTables response format
+            $output = [
+                'sEcho' => $sEcho,
+                'iTotalRecords' => intval($total_count),
+                'iTotalDisplayRecords' => intval($filtered_count),
+                'aaData' => $aaData
+            ];
+
+            // Ensure clean JSON output
+            $json = json_encode($output);
+            if ($json === false) {
+                throw new Exception('JSON encoding failed: ' . json_last_error_msg());
+            }
+            
+            $this->output->set_output($json);
+            
+        } catch (Exception $e) {
+            log_message('error', 'DataTables AJAX error: ' . $e->getMessage());
+            // Return valid JSON even for errors
+            $error_output = [
+                'sEcho' => isset($sEcho) ? $sEcho : 1,
+                'iTotalRecords' => 0,
+                'iTotalDisplayRecords' => 0,
+                'aaData' => [],
+                'error' => $e->getMessage()
+            ];
+            $this->output->set_output(json_encode($error_output));
+        }
+    }
+
+    /**
+     * Debug endpoint to test datatable data retrieval
+     */
+    function debug_datatable($compte = '775') {
+        // Log that we reached this method
+        log_message('debug', 'DEBUG_DATATABLE: Method called with compte: ' . $compte);
+        
+        // Set JSON content type
+        $this->output->set_content_type('application/json');
+        
+        // Skip authentication for debugging
+        // if (!$this->dx_auth->is_logged_in()) {
+        //     $this->output->set_output(json_encode(['error' => 'Not authenticated']));
+        //     return;
+        // }
+        
+        try {
+            log_message('debug', 'DEBUG_DATATABLE: Loading ecritures_model');
+            $this->load->model('ecritures_model');
+            
+            // Test if the method exists
+            if (!method_exists($this->ecritures_model, 'get_datatable_data')) {
+                log_message('debug', 'DEBUG_DATATABLE: Method does not exist');
+                $this->output->set_output(json_encode(['error' => 'Method get_datatable_data does not exist']));
+                return;
+            }
+            
+            log_message('debug', 'DEBUG_DATATABLE: Calling get_datatable_data');
+            
+            // Test simple parameters
+            $result = $this->ecritures_model->get_datatable_data([
+                'compte' => $compte,
+                'start' => 0,
+                'length' => 5,
+                'search' => '',
+                'order_column' => 'date_op',
+                'order_direction' => 'DESC'
+            ]);
+            
+            log_message('debug', 'DEBUG_DATATABLE: Method completed successfully');
+            
+            $response = [
+                'debug' => true,
+                'compte' => $compte,
+                'result_structure' => array_keys($result),
+                'data_count' => count($result['data']),
+                'filtered_count' => $result['filtered_count'],
+                'first_row' => isset($result['data'][0]) ? $result['data'][0] : null,
+                'sql_last_query' => $this->db->last_query()
+            ];
+            
+            $this->output->set_output(json_encode($response, JSON_PRETTY_PRINT));
+            
+        } catch (Exception $e) {
+            log_message('error', 'DEBUG_DATATABLE: Exception: ' . $e->getMessage());
+            $this->output->set_output(json_encode(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]));
+        }
+    }
+
+    /**
      *
      * Visualisation d'un compte alias pour journal
      *

@@ -221,38 +221,35 @@ $fields = array('date_op', 'autre_compte', 'description', 'num_cheque', 'prix', 
 $fields[] = 'solde';
 $fields[] = 'gel';
 
-// Lignes d'écriture
-$attrs = array(
-    'controller' => $controller,
-    'fields' =>     $fields,
-    'actions' => array('edit', 'delete'),
-    'page' => "journal_compte/$compte",
-    'uri_segment' => 4,
-    'mode' => ($has_modification_rights && $section) ? "rw" : "ro",
-    'class' => "sql_table table"
-);
-
-if ($count > 400) {
-    // Use CodeIgniter pagination for large tables
-    $attrs['count'] = $count;
-    $attrs['first'] = $premier;
-    $attrs['class'] .= " table-striped table-hover";
-} else {
-    // Use DataTables for small tables
-    if ($has_modification_rights && $section) {
-        $attrs['class'] .= " datedtable";
-    } else {
-        $attrs['class'] .= " datedtable_ro";
-    }
-}
-
-// echo "rights=$has_modification_rights" . br();
-
+// Always use DataTables with server-side processing for all table sizes
 echo '<div class="mt-3">';
-echo $this->gvvmetadata->table("vue_journal", $attrs, "");
+
+// Create table structure directly for server-side DataTables
+echo '<table id="journal-table" class="sql_table table table-striped table-hover">';
+echo '<thead>';
+echo '<tr>';
+if ($has_modification_rights && $section) {
+    echo '<th>Actions</th>';
+}
+echo '<th>Date</th>';
+echo '<th>Autre compte</th>';
+echo '<th>Description</th>';
+echo '<th>N° chèque</th>';
+echo '<th>Prix</th>';
+echo '<th>Quantité</th>';
+echo '<th>Débit</th>';
+echo '<th>Crédit</th>';
+echo '<th>Solde</th>';
+echo '<th>Gel</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
+echo '</tbody>';
+echo '</table>';
+
 echo '</div>';
 
-// Add custom CSS for CodeIgniter pagination and table styling
+// Add custom CSS for action buttons styling
 echo '<style>
 /* Style action buttons - Edit icon blue, Delete icon red */
 .sql_table .btn-primary {
@@ -292,132 +289,10 @@ echo '<style>
     color: #0056b3;
     text-decoration: underline;
 }
-';
-
-// Add pagination styling only for tables > 400 entries
-if ($count > 400) {
-    echo '
-    /* Style CodeIgniter pagination to look like DataTables with gradient gray band */
-
-    /* Pagination container - gray gradient background exactly like DataTables */
-    #body > div > table:not(.sql_table) {
-        width: 100%;
-        background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
-        border: 1px solid #aaa;
-        border-top: 1px solid #aaa;
-        margin-top: 0;
-        margin-bottom: 20px;
-        border-collapse: collapse;
-    }
-
-    #body > div > table:not(.sql_table) tbody {
-        width: 100%;
-    }
-
-    #body > div > table:not(.sql_table) tr {
-        width: 100%;
-    }
-
-    #body > div > table:not(.sql_table) td {
-        padding: 12px 10px;
-        background: transparent;
-        width: 100%;
-        text-align: left;
-    }
-
-    /* Container for pagination elements - search left, navigation right */
-    #body > div > table:not(.sql_table) td {
-        display: block;
-        text-align: left;
-        font-size: 13px;
-        color: #333;
-    }
-
-    /* Float navigation elements to the right */
-    #body > div > table:not(.sql_table) td > a,
-    #body > div > table:not(.sql_table) td > strong {
-        float: right;
-    }
-
-    /* Style search box in pagination bar - floats right, before navigation */
-    .pagination-search-box {
-        float: right;
-        margin-left: 15px;
-        margin-right: 5px;
-    }
-
-    .pagination-search-box label {
-        font-weight: normal;
-        white-space: nowrap;
-        color: #333;
-        font-size: 13px;
-        margin: 0;
-        line-height: 24px;
-    }
-
-    .pagination-search-box input {
-        margin-left: 0.5em;
-        display: inline-block;
-        width: 180px;
-        border: 1px solid #aaa;
-        border-radius: 3px;
-        padding: 3px 5px;
-        background-color: white;
-        font-size: 12px;
-    }
-
-    /* Clear floats */
-    #body > div > table:not(.sql_table) td::after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    /* Pagination links - exactly like DataTables */
-    #body > div > table:not(.sql_table) td > a,
-    #body > div > table:not(.sql_table) td > strong {
-        display: inline-block;
-        padding: 3px 10px;
-        margin: 0 1px;
-        border: 1px solid #b0b0b0;
-        background: linear-gradient(to bottom, #ffffff 0%, #f9f9f9 50%, #ededed 100%);
-        color: #333;
-        text-decoration: none;
-        border-radius: 2px;
-        font-weight: normal;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    /* Current page - highlighted exactly like DataTables */
-    #body > div > table:not(.sql_table) td > strong {
-        background: linear-gradient(to bottom, #5f9dd8 0%, #4a8ec6 50%, #3875b0 100%);
-        color: white;
-        border-color: #3875b0;
-        font-weight: bold;
-    }
-
-    /* Hover effect - exactly like DataTables */
-    #body > div > table:not(.sql_table) td > a:hover {
-        background: linear-gradient(to bottom, #fefefe 0%, #f4f4f4 50%, #e0e0e0 100%);
-        border-color: #999;
-    }
-
-    /* Style the per-page selector */
-    #per_page {
-        padding: 5px 10px;
-        border: 1px solid #aaa;
-        border-radius: 3px;
-        background: #fff;
-        margin-right: 10px;
-    }
-    ';
-}
-
-echo '</style>';
+</style>';
 ?>
 
-<div class="me-3 mb-2 d-md-flex flex-row">
+<div class="mt-4 me-3 mb-2 d-md-flex flex-row">
     <div class="me-3 mb-2"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin  " ?></div>
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
@@ -506,48 +381,6 @@ echo '</div>';
 <script language="JavaScript">
     <!--
     $(document).ready(function() {
-
-        // Add table search functionality for CodeIgniter pagination mode (> 400 entries)
-        <?php if ($count > 400): ?>
-        // Create and inject search box into pagination bar
-        var searchBoxHtml = '<div class="pagination-search-box">' +
-            '<label>Recherche: <input type="search" id="tableSearch" class="form-control form-control-sm" placeholder="" aria-controls="dataTable"></label>' +
-            '</div>';
-
-        // Find the FIRST pagination bar (top one) and insert search box just before "Dernier" button
-        var $paginationTable = $('#body > div > table:not(.sql_table)').first();
-        var $paginationCell = $paginationTable.find('td');
-        if ($paginationCell.length > 0) {
-            // Find the last pagination link in the first bar (because float:right reverses visual order)
-            // Insert after the last link so it appears visually just before "Dernier"
-            var $lastLink = $paginationCell.find('a, strong').last();
-            if ($lastLink.length > 0) {
-                $(searchBoxHtml).insertAfter($lastLink);
-            } else {
-                // Fallback if no links found
-                $(searchBoxHtml).appendTo($paginationCell);
-            }
-        }
-
-        // Attach search functionality
-        $('#tableSearch').on('keyup', function() {
-            var searchTerm = $(this).val().toLowerCase();
-
-            // Find the main data table
-            $('.sql_table tbody tr').each(function() {
-                var $row = $(this);
-                var rowText = $row.text().toLowerCase();
-
-                // Show/hide row based on search match
-                if (rowText.indexOf(searchTerm) === -1) {
-                    $row.hide();
-                } else {
-                    $row.show();
-                }
-            });
-        });
-        <?php endif; ?>
-
         jQuery.extend(jQuery.fn.dataTableExt.oSort, {
             "date-uk-pre": function(a) {
                 var ukDatea = a.split('/');
@@ -572,7 +405,11 @@ echo '</div>';
             }
         );
 
-        $('.datedtable').dataTable({
+        // Initialize DataTables with server-side processing using older syntax
+        $('#journal-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": "<?= site_url('compta/datatable_journal_compte/' . $compte) ?>",
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
@@ -582,96 +419,22 @@ echo '</div>';
             "bJQueryUI": true,
             "bAutoWidth": true,
             "sPaginationType": "full_numbers",
-            "aoColumns": [{
-                    "sType": "date-fr"
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                }
+            "aoColumns": [
+                <?php if ($has_modification_rights && $section): ?>
+                { "bSortable": false },                // Actions
+                <?php endif; ?>
+                { "sType": "date-fr" },                // Date
+                { "bSortable": true },                 // Autre compte
+                { "bSortable": true },                 // Description
+                { "bSortable": true },                 // N° chèque
+                { "bSortable": true },                 // Prix
+                { "bSortable": false },                // Quantité
+                { "bSortable": false },                // Débit
+                { "bSortable": false },                // Crédit
+                { "bSortable": false },                // Solde
+                { "bSortable": false }                 // Gel
             ],
             "oLanguage": olanguage,
-
-            // Add the page length menu options
-            "aLengthMenu": [
-                [10, 25, 50, 100, 500, 1000, -1],
-                [10, 25, 50, 100, 500, 1000, "Tous les"]
-            ]
-        });
-
-        $('.datedtable_ro').dataTable({
-            "bFilter": true,
-            "bPaginate": true,
-            "iDisplayLength": 100,
-            "bSort": true,
-            "bInfo": true,
-            "bJQueryUI": true,
-            "bStateSave": false,
-            "bAutoWidth": true,
-            "sPaginationType": "full_numbers",
-            "aoColumns": [{
-                    "sType": "date-fr"
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": true
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                },
-                {
-                    "bSortable": false
-                }
-            ],
-            "oLanguage": olanguage,
-
-            // Add the page length menu options
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
                 [10, 25, 50, 100, 500, 1000, "Tous les"]

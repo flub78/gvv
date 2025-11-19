@@ -1812,6 +1812,167 @@ array (size=2)
 
         return $this->get_to_array($db_res);
     }
+
+    /**
+     * Get data for DataTables server-side processing
+     * 
+     * @param array $params Parameters: compte, start, length, search, order_column, order_direction
+     * @return array Array with 'data' and 'filtered_count' keys
+     */
+    function get_datatable_data($params) {
+        $compte = $params['compte'];
+        $start = intval($params['start']);
+        $length = intval($params['length']);
+        $search = $params['search'];
+        $order_column = $params['order_column'];
+        $order_direction = strtoupper($params['order_direction']);
+
+        // Validate order direction
+        if (!in_array($order_direction, ['ASC', 'DESC'])) {
+            $order_direction = 'DESC';
+        }
+
+        // Use the same query structure as select_journal but with modifications for DataTables
+        $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
+        
+        if ($compte != '') {
+            $where .= $this->_filtrage_compte($compte);
+            $individual = TRUE;
+        } else {
+            $individual = FALSE;
+        }
+
+        $filtrage = $this->filtrage('', $individual);
+
+        $select = "ecritures.id, ecritures.annee_exercise, date_op, ";
+        $select .= "montant, ecritures.description, num_cheque, quantite, achat, prix, gel, ecritures.club as club";
+        $select .= ", ecritures.compte1, compte1.nom as nom_compte1, compte1.codec as code1";
+        $select .= ", ecritures.compte2, compte2.nom as nom_compte2, compte2.codec as code2";
+
+        $from = 'ecritures, comptes as compte1, comptes as compte2';
+
+        // Build base query
+        $this->db->select($select)->from($from)->where($where, NULL)->where($filtrage);
+
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+
+        // Apply search filter
+        if (!empty($search)) {
+            // Use older CI syntax for grouped WHERE conditions
+            $search_where = "(compte1.nom LIKE '%" . $this->db->escape_like_str($search) . "%' OR " .
+                           "compte2.nom LIKE '%" . $this->db->escape_like_str($search) . "%' OR " .
+                           "ecritures.description LIKE '%" . $this->db->escape_like_str($search) . "%' OR " .
+                           "ecritures.num_cheque LIKE '%" . $this->db->escape_like_str($search) . "%')";
+            $this->db->where($search_where, NULL, FALSE);
+        }
+
+        // Get total count without pagination
+        $count_query = clone $this->db;
+        $filtered_count = $count_query->count_all_results();
+
+        // Apply ordering
+        $order_by = 'date_op, ecritures.id'; // Default ordering like in select_journal
+        if ($order_column == 'date_op') {
+            $order_by = "date_op $order_direction, ecritures.id $order_direction";
+        } else if ($order_column == 'description') {
+            $order_by = "ecritures.description $order_direction";
+        } else if ($order_column == 'autre_compte') {
+            // For autre_compte, we need complex ordering since it depends on which account we're viewing
+            $order_by = "IF(ecritures.compte1 = $compte, compte2.nom, compte1.nom) $order_direction";
+        }
+
+        $this->db->order_by($order_by);
+
+        // Apply pagination
+        if ($length > 0) {
+            $this->db->limit($length, $start);
+        }
+
+        $db_res = $this->db->get();
+        $result = $this->get_to_array($db_res);
+
+        // Process the results the same way as select_journal does
+        $solde = "";
+        if ($compte != '') {
+            $cnt = 0;
+            foreach ($result as $line => $row) {
+                $cnt++;
+                if ($cnt == 1) {
+                    // première ligne de résultat, on initialise le solde
+                    $solde = $this->solde_compte($compte, $row['date_op'], '<');
+                    $solde += $this->solde_jour($compte, $row['date_op'], $row['id']);
+                }
+                
+                if ($row['compte1'] == $compte) {
+                    $result[$line]['autre_code'] = $row['code2'];
+                    $result[$line]['autre_compte'] = $row['compte2'];
+                    $result[$line]['autre_nom_compte'] = $row['nom_compte2'];
+                    $result[$line]['debit'] = $row['montant'];
+                    $result[$line]['credit'] = '';
+                    $solde -= $row['montant'];
+                    $result[$line]['solde'] = $solde;
+                } else {
+                    $result[$line]['autre_code'] = $row['code1'];
+                    $result[$line]['autre_compte'] = $row['compte1'];
+                    $result[$line]['autre_nom_compte'] = $row['nom_compte1'];
+                    $result[$line]['debit'] = '';
+                    $result[$line]['credit'] = $row['montant'];
+                    $solde += $row['montant'];
+                    $result[$line]['solde'] = $solde;
+                }
+                
+                if ($row['prix'] < 0) {
+                    $result[$line]['prix'] = '';
+                }
+            }
+        }
+
+        return [
+            'data' => $result,
+            'filtered_count' => $filtered_count
+        ];
+    }
+
+    /**
+     * Apply session-based filters to current query
+     * For use with the ecritures table (not vue_journal)
+     */
+    private function _apply_session_filters() {
+        $filter_date = $this->session->userdata('filter_date');
+        $date_end = $this->session->userdata('date_end');
+        $montant_min = $this->session->userdata('montant_min');
+        $montant_max = $this->session->userdata('montant_max');
+        $filter_checked = $this->session->userdata('filter_checked');
+        $filter_debit = $this->session->userdata('filter_debit');
+
+        if ($filter_date) {
+            $this->db->where("ecritures.date_op >= STR_TO_DATE('$filter_date', '%d/%m/%Y')");
+        }
+
+        if ($date_end) {
+            $this->db->where("ecritures.date_op <= STR_TO_DATE('$date_end', '%d/%m/%Y')");
+        }
+
+        if (is_numeric($montant_min) && $montant_min > 0) {
+            $this->db->where("ecritures.montant >= $montant_min");
+        }
+
+        if (is_numeric($montant_max) && $montant_max > 0) {
+            $this->db->where("ecritures.montant <= $montant_max");
+        }
+
+        if ($filter_checked === '1') { // Verified only
+            $this->db->where('ecritures.verifie', 1);
+        } else if ($filter_checked === '2') { // Unverified only
+            $this->db->where('ecritures.verifie', 0);
+        }
+
+        // Filter by debit/credit is more complex since it depends on which account we're viewing
+        // For now, we'll skip this filter in the DataTable implementation
+        // TODO: Implement debit/credit filter properly
+    }
 }
 
 /* End of file */
