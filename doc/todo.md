@@ -10,6 +10,8 @@
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
 * [] 512 > 400 passer aux datatable
 * [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
+* [] retour à la balance hiérarchique après la suppression d'un compte
+* [] suppression de compte,il manque le message de confirmation
 
 ## Reste à faire
 

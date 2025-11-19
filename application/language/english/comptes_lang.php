@@ -48,6 +48,7 @@ $lang['comptes_label_total_pertes'] = "Losses";
 $lang['comptes_label_total_benefices'] = "Profits";
 
 $lang['comptes_warning'] = "Accounts containing entries cannot be deleted";
+$lang['comptes_confirm_delete_account'] = "Are you sure you want to delete the account";
 
 $lang['comptes_bilan_actif'] = "Financial assets";
 $lang['comptes_bilan_valeur_brute'] = "Gross value";

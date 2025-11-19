@@ -48,6 +48,7 @@ $lang['comptes_label_total_pertes'] = "Totaal verliezen";
 $lang['comptes_label_total_benefices'] = "Totaal winsten";
 
 $lang['comptes_warning'] = "Het is niet mogelijk rekeningen te verwijderen waarop reeds verwerkingen zijn gebeurd.";
+$lang['comptes_confirm_delete_account'] = "Weet u zeker dat u de rekening wilt verwijderen";
 
 $lang['comptes_bilan_actif'] = "Actief";
 $lang['comptes_bilan_valeur_brute'] = "Brutto waarde";

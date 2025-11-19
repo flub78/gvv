@@ -112,7 +112,10 @@ if (!function_exists('balance_detail_datatable')) {
                 $html .= '<a href="' . site_url($controller . '/edit/' . $row['id']) . '" class="btn btn-sm btn-primary" title="' . htmlspecialchars($CI->lang->line('gvv_button_edit')) . '">';
                 $html .= '<i class="fas fa-edit" aria-hidden="true"></i>';
                 $html .= '</a> ';
-                $html .= '<a href="' . site_url($controller . '/delete/' . $row['id']) . '" class="btn btn-sm btn-danger" title="' . htmlspecialchars($CI->lang->line('gvv_button_delete')) . '" onclick="return confirm(\'' . htmlspecialchars($CI->lang->line('gvv_str_confirm_delete')) . '\')">';
+                // Load comptes language file for confirmation message
+                $CI->lang->load('comptes');
+                $confirm_msg = $CI->lang->line('comptes_confirm_delete_account') . ' ' . htmlspecialchars($row['nom'], ENT_QUOTES) . ' ?';
+                $html .= '<a href="' . site_url($controller . '/delete/' . $row['id']) . '" class="btn btn-sm btn-danger" title="' . htmlspecialchars($CI->lang->line('gvv_button_delete')) . '" onclick="return confirm(\'' . $confirm_msg . '\')">';
                 $html .= '<i class="fas fa-trash" aria-hidden="true"></i>';
                 $html .= '</a>';
             }

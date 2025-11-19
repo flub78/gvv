@@ -49,6 +49,7 @@ $lang['comptes_label_total_pertes'] = "Pertes";
 $lang['comptes_label_total_benefices'] = "Profits";
 
 $lang['comptes_warning'] = "Il n'est pas possible de supprimer des comptes sur lesquels des écritures ont été passées";
+$lang['comptes_confirm_delete_account'] = "Êtes-vous sûr de vouloir supprimer le compte";
 
 $lang['comptes_bilan_actif'] = "Actif";
 $lang['comptes_bilan_valeur_brute'] = "Valeur brute";
