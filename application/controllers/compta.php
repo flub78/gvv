@@ -42,7 +42,10 @@ class Compta extends Gvv_Controller {
         parent::__construct();
         // Check if user is logged in or not
         if (!$this->dx_auth->is_logged_in()) {
-            redirect("auth/login");
+            // For AJAX requests, don't redirect - let the method handle it
+            if (!$this->input->is_ajax_request()) {
+                redirect("auth/login");
+            }
         }
         $this->load->model('comptes_model');
         $this->load->model('tarifs_model');
@@ -410,10 +413,28 @@ class Compta extends Gvv_Controller {
      * Returns JSON response with temp file info
      */
     public function upload_temp_attachment() {
+        // Clean any output buffer that might contain HTML/errors
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
         // Always set JSON content type first
         $this->output->set_content_type('application/json');
 
+        // Log entry for debugging
+        log_message('debug', 'upload_temp_attachment called - User logged in: ' . ($this->dx_auth->is_logged_in() ? 'yes' : 'no'));
+
         try {
+            // Check authentication FIRST (before constructor redirect can trigger)
+            if (!$this->dx_auth->is_logged_in()) {
+                log_message('error', 'upload_temp_attachment: User not logged in');
+                $this->output->set_output(json_encode([
+                    'success' => false,
+                    'error' => 'Session expirée. Veuillez vous reconnecter.'
+                ]));
+                return;
+            }
+
             if (!$this->input->is_ajax_request()) {
                 $this->output->set_output(json_encode([
                     'success' => false,
@@ -1068,6 +1089,7 @@ class Compta extends Gvv_Controller {
 
     /**
      * Gère l'upload des fichiers joints lors de la soumission du formulaire
+     * Utilise la bibliothèque CodeIgniter Upload (comme dans attachments.php)
      *
      * @param string $referenced_table Table de référence (ex: 'ecritures')
      * @param int $referenced_id ID de l'enregistrement
@@ -1084,8 +1106,8 @@ class Compta extends Gvv_Controller {
         }
         $section_name = $this->sanitize_filename($section_name);
 
-        // Créer le répertoire de destination
-        $upload_dir = './uploads/attachments/' . $year . '/';
+        // Créer le répertoire de destination (avec section pour cohérence)
+        $upload_dir = './uploads/attachments/' . $year . '/' . $section_name . '/';
         if (!file_exists($upload_dir)) {
             mkdir($upload_dir, 0777, true);
             chmod($upload_dir, 0777);
@@ -1100,26 +1122,62 @@ class Compta extends Gvv_Controller {
                 // Générer un nom de fichier unique
                 $original_name = $files['name'][$i];
                 $storage_file = rand(100000, 999999) . '_' . $this->sanitize_filename($original_name);
-                $file_path = $upload_dir . $storage_file;
 
-                // Déplacer le fichier uploadé
-                if (move_uploaded_file($files['tmp_name'][$i], $file_path)) {
-                    // Enregistrer dans la base de données
+                // Configurer la bibliothèque Upload CI (comme dans attachments.php)
+                $config = [
+                    'upload_path' => $upload_dir,
+                    'allowed_types' => '*',
+                    'max_size' => 20000, // 20MB en kilobytes
+                    'file_name' => $storage_file,
+                    'overwrite' => false
+                ];
+
+                // Initialiser/réinitialiser la bibliothèque upload avec la nouvelle config
+                $this->load->library('upload', $config);
+                $this->upload->initialize($config);
+
+                // Simuler un upload depuis le tableau $_FILES multiple
+                // On doit temporairement remplacer $_FILES pour que do_upload() fonctionne
+                $temp_files = $_FILES;
+                $_FILES['userfile'] = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i]
+                ];
+
+                if ($this->upload->do_upload('userfile')) {
+                    // Upload réussi
+                    $upload_data = $this->upload->data();
+                    $file_path = $upload_dir . $storage_file;
+
+                    // Enregistrer dans la base de données (même structure que attachments)
                     $attachment_data = [
                         'referenced_table' => $referenced_table,
                         'referenced_id' => $referenced_id,
-                        'saisie_par' => $this->dx_auth->get_username(),
-                        'club' => $club_id,
+                        'user_id' => $this->dx_auth->get_username(),
+                        'filename' => $original_name,
                         'description' => '', // Vide par défaut
-                        'file_path' => $file_path
+                        'file' => $file_path,
+                        'club' => $club_id
                     ];
 
-                    $this->attachments_model->create($attachment_data);
+                    $this->db->insert('attachments', $attachment_data);
                     log_message('debug', "Attachment created: $file_path for $referenced_table #$referenced_id");
                 } else {
-                    log_message('error', "Failed to move uploaded file: $original_name");
-                    throw new Exception("Erreur lors de l'upload du fichier: $original_name");
+                    // Erreur d'upload
+                    $error = $this->upload->display_errors('', '');
+                    log_message('error', "Failed to upload file: $original_name - $error");
+
+                    // Restaurer $_FILES et lancer l'exception
+                    $_FILES = $temp_files;
+                    throw new Exception("Erreur lors de l'upload du fichier $original_name: $error");
                 }
+
+                // Restaurer $_FILES
+                $_FILES = $temp_files;
+
             } elseif ($files['error'][$i] != UPLOAD_ERR_NO_FILE) {
                 // Erreur d'upload (sauf si aucun fichier sélectionné)
                 log_message('error', "Upload error for file $i: " . $files['error'][$i]);
