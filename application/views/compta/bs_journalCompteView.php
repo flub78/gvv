@@ -440,6 +440,46 @@ echo '</div>';
                 [10, 25, 50, 100, 500, 1000, "Tous les"]
             ]
         });
+        
+        // Handle gel checkbox clicks
+        $(document).on('change', '.gel-checkbox', function() {
+            var checkbox = $(this);
+            var ecritureId = checkbox.data('ecriture-id');
+            var isChecked = checkbox.is(':checked') ? 1 : 0;
+            
+            // Disable checkbox during AJAX request
+            checkbox.prop('disabled', true);
+            
+            $.ajax({
+                url: '<?= site_url("compta/toggle_gel") ?>',
+                type: 'POST',
+                data: {
+                    id: ecritureId,
+                    gel: isChecked
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Success - checkbox state already reflects the change
+                        console.log('Gel status updated successfully');
+                    } else {
+                        // Error - revert checkbox state
+                        checkbox.prop('checked', !isChecked);
+                        alert('Erreur lors de la mise à jour: ' + (response.message || 'Erreur inconnue'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Network error - revert checkbox state
+                    checkbox.prop('checked', !isChecked);
+                    alert('Erreur de communication avec le serveur');
+                    console.error('AJAX error:', error);
+                },
+                complete: function() {
+                    // Re-enable checkbox
+                    checkbox.prop('disabled', false);
+                }
+            });
+        });
     });
 
     //

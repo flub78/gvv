@@ -1857,7 +1857,11 @@ class Compta extends Gvv_Controller {
                 $row[] = isset($ecriture['debit']) ? $ecriture['debit'] : '';
                 $row[] = isset($ecriture['credit']) ? $ecriture['credit'] : '';
                 $row[] = isset($ecriture['solde']) ? number_format($ecriture['solde'], 2) : '';
-                $row[] = isset($ecriture['gel']) ? $ecriture['gel'] : '';
+                
+                // Gel column as checkbox with AJAX functionality
+                $gel_checked = ($ecriture['gel'] == '1') ? 'checked="checked"' : '';
+                $gel_checkbox = '<input type="checkbox" class="gel-checkbox" data-ecriture-id="' . $ecriture['id'] . '" ' . $gel_checked . ' />';
+                $row[] = $gel_checkbox;
                 
                 $aaData[] = $row;
             }
@@ -1895,6 +1899,51 @@ class Compta extends Gvv_Controller {
                 'error' => $e->getMessage()
             ];
             $this->output->set_output(json_encode($error_output));
+        }
+    }
+
+    /**
+     * AJAX endpoint to toggle gel (freeze) status of an ecriture
+     */
+    function toggle_gel() {
+        // Set JSON content type
+        $this->output->set_content_type('application/json');
+        
+        // Check authentication
+        if (!$this->dx_auth->is_logged_in()) {
+            $this->output->set_output(json_encode(['success' => false, 'message' => 'Not authenticated']));
+            return;
+        }
+        
+        // Check if user has modification rights
+        $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        if (!$has_modification_rights) {
+            $this->output->set_output(json_encode(['success' => false, 'message' => 'Insufficient permissions']));
+            return;
+        }
+        
+        // Get POST parameters
+        $id = $this->input->post('id');
+        $gel = $this->input->post('gel');
+        
+        if (!$id || !is_numeric($id)) {
+            $this->output->set_output(json_encode(['success' => false, 'message' => 'Invalid ID']));
+            return;
+        }
+        
+        try {
+            // Load the ecritures model
+            $this->load->model('ecritures_model');
+            
+            // Update the gel status
+            $update_data = ['gel' => intval($gel)];
+            $this->ecritures_model->update('id', $update_data, $id);
+            
+            $this->output->set_output(json_encode(['success' => true, 'message' => 'Status updated']));
+            
+        } catch (Exception $e) {
+            log_message('error', 'Toggle gel error: ' . $e->getMessage());
+            $this->output->set_output(json_encode(['success' => false, 'message' => 'Database error']));
         }
     }
 
