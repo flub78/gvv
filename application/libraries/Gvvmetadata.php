@@ -904,6 +904,7 @@ class GVVMetadata extends Metadata {
                         "ffvv_pwd" => "Mot de passe FFVP",
                         "ffvv_product" => "Produit pour la facturation des licences",
                         "gesasso" => "Export vers Gesasso",
+                        "comptes.cotisations" => "Comptes de recette pour les cotisations",
                 ];
                 $this->field['configuration']['cle']['Attrs'] = array(
                         'class' => "big_select big_select_large"

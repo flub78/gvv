@@ -96,12 +96,22 @@ echo validation_errors();
 
             <div class="mb-3">
                 <label for="compte_pilote" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_pilote') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_pilote', $compte_pilote_selector, $compte_pilote, 'class="form-select big_select" id="compte_pilote"') ?>
+                <div id="compte_pilote_container">
+                    <?= form_dropdown('compte_pilote', $compte_pilote_selector, $compte_pilote, 'class="form-select big_select" id="compte_pilote"') ?>
+                </div>
+                <small class="form-text text-muted" id="compte_pilote_info"></small>
             </div>
 
             <div class="mb-3">
                 <label for="compte_recette" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_recette') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_recette', $compte_recette_selector, $compte_recette, 'class="form-select big_select" id="compte_recette"') ?>
+                <?php if ($single_compte_recette): ?>
+                    <!-- Compte de recette configuré : affichage en lecture seule -->
+                    <input type="text" class="form-control" value="<?= $compte_recette_label ?>" readonly>
+                    <input type="hidden" name="compte_recette" value="<?= $compte_recette ?>">
+                <?php else: ?>
+                    <!-- Plusieurs comptes 700 : affichage du sélecteur -->
+                    <?= form_dropdown('compte_recette', $compte_recette_selector, $compte_recette, 'class="form-select big_select" id="compte_recette"') ?>
+                <?php endif; ?>
             </div>
         </fieldset>
     </div>
@@ -230,6 +240,88 @@ $(document).ready(function() {
     // Mettre à jour le libellé quand l'année change
     $('#annee_cotisation').on('change', function() {
         updateDescriptionIfDefault();
+    });
+
+    // Récupération automatique du compte 411 quand le pilote change
+    // Fonction pour gérer le changement de pilote
+    function handlePiloteChange(piloteId) {
+        console.log('handlePiloteChange appelé avec:', piloteId);
+        
+        if (!piloteId) {
+            // Réafficher le sélecteur si aucun pilote sélectionné
+            var selectorHtml = <?= json_encode(form_dropdown('compte_pilote', $compte_pilote_selector, '', 'class="form-select big_select" id="compte_pilote"')) ?>;
+            $('#compte_pilote_container').html(selectorHtml);
+            $('#compte_pilote_info').text('');
+            // Réinitialiser select2 si utilisé
+            if (typeof $.fn.select2 !== 'undefined') {
+                setTimeout(function() {
+                    $('#compte_pilote').select2({
+                        placeholder: 'Filtre...',
+                        width: '300px',
+                        allowClear: true
+                    });
+                }, 100);
+            }
+            return;
+        }
+
+        // Requête AJAX pour obtenir le compte 411 du pilote
+        console.log('Envoi requête AJAX pour pilote:', piloteId);
+        $.ajax({
+            url: '<?= base_url('compta/ajax_get_compte_pilote') ?>',
+            type: 'POST',
+            dataType: 'json',
+            data: { pilote_id: piloteId },
+            success: function(response) {
+                console.log('Réponse AJAX:', response);
+                if (response.success) {
+                    // Remplacer le sélecteur par un champ en lecture seule
+                    $('#compte_pilote_container').html(
+                        '<input type="text" class="form-control" value="' + response.compte_label + '" readonly>' +
+                        '<input type="hidden" name="compte_pilote" value="' + response.compte_id + '">'
+                    );
+                    $('#compte_pilote_info').text('Compte automatiquement sélectionné').removeClass('text-danger').addClass('text-success');
+                } else {
+                    // Pas de compte trouvé, garder le sélecteur
+                    $('#compte_pilote_info').text(response.message || 'Veuillez sélectionner un compte manuellement').removeClass('text-success').addClass('text-danger');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erreur AJAX:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                $('#compte_pilote_info').text('Erreur lors de la récupération du compte').removeClass('text-success').addClass('text-danger');
+            }
+        });
+    }
+    
+    // IMPORTANT: Attacher l'événement APRÈS que select2 soit initialisé par bs_footer.php
+    // Utiliser un événement window load pour s'assurer que tout est prêt
+    $(window).on('load', function() {
+        console.log('Attachement des événements pilote...');
+        
+        // Détacher d'abord tous les événements existants pour éviter les doublons
+        $('#pilote').off('change.piloteHandler select2:select.piloteHandler select2:clear.piloteHandler');
+        
+        // Attacher avec des namespaces pour pouvoir les détacher facilement
+        $('#pilote').on('select2:select.piloteHandler', function(e) {
+            console.log('select2:select déclenché');
+            var piloteId = $(this).val();
+            handlePiloteChange(piloteId);
+        });
+        
+        $('#pilote').on('change.piloteHandler', function(e) {
+            console.log('change déclenché, valeur:', $(this).val());
+            var piloteId = $(this).val();
+            handlePiloteChange(piloteId);
+        });
+        
+        $('#pilote').on('select2:clear.piloteHandler', function(e) {
+            console.log('select2:clear déclenché');
+            handlePiloteChange(null);
+        });
+        
+        console.log('Événements attachés à #pilote');
     });
 });
 </script>

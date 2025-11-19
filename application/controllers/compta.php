@@ -856,6 +856,7 @@ class Compta extends Gvv_Controller {
         $this->load->model('comptes_model');
         $this->load->model('licences_model');
         $this->load->model('membres_model');
+        $this->load->model('configuration_model');
 
         // Préparer les données du formulaire
         $this->data['controller'] = 'compta';
@@ -895,6 +896,21 @@ class Compta extends Gvv_Controller {
             $this->data['compte_banque'] = $compte_ids[0];
             $this->data['single_compte_banque'] = true;
             $this->data['compte_banque_label'] = $comptes_512_sans_null[$compte_ids[0]];
+        }
+
+        // Vérifier si un compte de recette par défaut est configuré pour les cotisations
+        $compte_cotisation_config = $this->configuration_model->get_param('comptes.cotisations');
+        $this->data['single_compte_recette'] = false;
+        $this->data['compte_recette_label'] = '';
+        
+        if (!empty($compte_cotisation_config)) {
+            // Utiliser le compte configuré
+            $this->data['compte_recette'] = $compte_cotisation_config;
+            $this->data['single_compte_recette'] = true;
+            // Récupérer le libellé du compte
+            if (isset($this->data['compte_recette_selector'][$compte_cotisation_config])) {
+                $this->data['compte_recette_label'] = $this->data['compte_recette_selector'][$compte_cotisation_config];
+            }
         }
 
         // Charger la vue
@@ -1102,6 +1118,53 @@ class Compta extends Gvv_Controller {
             $this->db->trans_rollback();
             log_message('error', 'Erreur process_saisie_cotisation: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Méthode AJAX pour récupérer le compte 411 d'un pilote
+     * Retourne les informations du compte au format JSON
+     */
+    public function ajax_get_compte_pilote() {
+        // Vérifier que l'utilisateur est connecté
+        if (!$this->dx_auth->is_logged_in()) {
+            echo json_encode(['success' => false, 'message' => 'Non autorisé - veuillez vous connecter']);
+            return;
+        }
+
+        $pilote_id = $this->input->post('pilote_id');
+        
+        log_message('debug', "ajax_get_compte_pilote appelé pour pilote_id: $pilote_id");
+        
+        if (empty($pilote_id)) {
+            echo json_encode(['success' => false, 'message' => 'Pilote non spécifié']);
+            return;
+        }
+
+        try {
+            $this->load->model('comptes_model');
+            $compte = $this->comptes_model->compte_pilote($pilote_id);
+            
+            if ($compte) {
+                log_message('debug', "Compte trouvé pour pilote $pilote_id: " . $compte['id']);
+                echo json_encode([
+                    'success' => true,
+                    'compte_id' => $compte['id'],
+                    'compte_label' => $compte['nom']
+                ]);
+            } else {
+                log_message('debug', "Aucun compte 411 trouvé pour pilote $pilote_id");
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Aucun compte 411 trouvé pour ce pilote'
+                ]);
+            }
+        } catch (Exception $e) {
+            log_message('error', 'Erreur ajax_get_compte_pilote: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération du compte'
+            ]);
         }
     }
 
