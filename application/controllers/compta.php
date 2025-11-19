@@ -879,6 +879,24 @@ class Compta extends Gvv_Controller {
         $this->data['compte_pilote_selector'] = $this->comptes_model->selector_comptes_411();
         $this->data['compte_recette_selector'] = $this->comptes_model->selector_comptes_700();
 
+        // Si un seul compte 512 existe, le présélectionner automatiquement et masquer le sélecteur
+        $comptes_512 = $this->data['compte_banque_selector'];
+        // Retirer l'option null pour compter les vrais comptes
+        $comptes_512_sans_null = array_filter($comptes_512, function($key) {
+            return $key !== '';
+        }, ARRAY_FILTER_USE_KEY);
+        
+        $this->data['single_compte_banque'] = false;
+        $this->data['compte_banque_label'] = '';
+        
+        if (count($comptes_512_sans_null) === 1) {
+            // Présélectionner le seul compte disponible
+            $compte_ids = array_keys($comptes_512_sans_null);
+            $this->data['compte_banque'] = $compte_ids[0];
+            $this->data['single_compte_banque'] = true;
+            $this->data['compte_banque_label'] = $comptes_512_sans_null[$compte_ids[0]];
+        }
+
         // Charger la vue
         load_last_view('compta/bs_saisie_cotisation_formView', $this->data);
     }

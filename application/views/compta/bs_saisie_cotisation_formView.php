@@ -84,7 +84,14 @@ echo validation_errors();
 
             <div class="mb-3">
                 <label for="compte_banque" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_banque') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_banque', $compte_banque_selector, $compte_banque, 'class="form-select big_select" id="compte_banque"') ?>
+                <?php if ($single_compte_banque): ?>
+                    <!-- Un seul compte 512 disponible : affichage en lecture seule -->
+                    <input type="text" class="form-control" value="<?= $compte_banque_label ?>" readonly>
+                    <input type="hidden" name="compte_banque" value="<?= $compte_banque ?>">
+                <?php else: ?>
+                    <!-- Plusieurs comptes 512 : affichage du sélecteur -->
+                    <?= form_dropdown('compte_banque', $compte_banque_selector, $compte_banque, 'class="form-select big_select" id="compte_banque"') ?>
+                <?php endif; ?>
             </div>
 
             <div class="mb-3">
