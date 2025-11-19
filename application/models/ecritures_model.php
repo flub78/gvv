@@ -1322,7 +1322,7 @@ array (size=2)
                 $compte = $charges[$i]['id'];
                 $section_name = isset($charges[$i]['section_name']) ? $charges[$i]['section_name'] : '';
 
-                $tbl[$line][0] = ($links) ? anchor(controller_url("comptes/page/$code"), $code) : $code;
+                $tbl[$line][0] = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
                 $tbl[$line][1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
                 $tbl[$line][2] = $section_name; // Nouvelle colonne Section
 
@@ -1348,7 +1348,7 @@ array (size=2)
                 $compte = $produits[$i]['id'];
                 $section_name = isset($produits[$i]['section_name']) ? $produits[$i]['section_name'] : '';
 
-                $tbl[$line][$offset + 0] = ($links) ? anchor(controller_url("comptes/page/$code"), $code) : $code;
+                $tbl[$line][$offset + 0] = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
                 $tbl[$line][$offset + 1] = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
                 $tbl[$line][$offset + 2] = $section_name; // Nouvelle colonne Section
 

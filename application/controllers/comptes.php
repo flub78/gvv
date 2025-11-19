@@ -62,7 +62,7 @@ class Comptes extends Gvv_Controller {
         $count = $this->ecritures_model->count_all($id);
         if ($count) {
             $this->session->set_flashdata('popup', "Suppression $id non authorisée $count lignes dans le compte");
-            redirect($this->controller . "/page");
+            redirect($this->controller . "/balance");
             return;
         } else {
             // détruit en base
@@ -72,7 +72,7 @@ class Comptes extends Gvv_Controller {
             ));
 
             // réaffiche la liste (serait sympa de réafficher la même page)
-            redirect($this->controller . "/page");
+            redirect($this->controller . "/balance");
         }
     }
 
@@ -195,7 +195,7 @@ class Comptes extends Gvv_Controller {
      * pour afficher la somme des créances et des dettes des comptes 400)
      */
     function page($codec = "", $codec2 = "", $detail = 0) {
-        $this->push_return_url("comptes page");
+        $this->push_return_url("comptes balance");
 
         $general = $this->session->userdata('general') && !$codec;
 

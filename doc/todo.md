@@ -10,8 +10,7 @@
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
 * [] 512 > 400 passer aux datatable
 * [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
-* [] retour à la balance hiérarchique après la suppression d'un compte
-* [] suppression de compte,il manque le message de confirmation
+
 
 ## Reste à faire
 
@@ -207,3 +206,5 @@
 * [x] Balance, mise à jour des sous-totaux en cas de filtrage.
 * [x] Cotisations permettre de voir les cotisations de l'année prochaine (2026)
 * [x] Le mécanisme de pilotes qui volent sur le compte d'autres pilote ne fonctionne pas avec les sections. La recherche du compte cible ne prend pas les sections en compte.
+* [x] retour à la balance hiérarchique après la suppression d'un compte
+* [x] suppression de compte depuis la balance,il manque le message de confirmation

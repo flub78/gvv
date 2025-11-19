@@ -135,7 +135,7 @@ $this->lang->load('comptes');
 		$res = array();
 		foreach ($select_result as $row) {
 			//var_dump($row);
-			$row['nom'] = anchor(site_url() . '/comptes/page/' . $row['codec'], $row['nom']);
+			$row['nom'] = anchor(site_url() . '/comptes/balance/' . $row['codec'], $row['nom']);
 			$res[] = $row;
 		}
 		$select_result = $res;

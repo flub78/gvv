@@ -307,9 +307,9 @@ if (! function_exists('result_rows')) {
                 // $table[$i][] = $actif[$i]['code'];
                 if ($with_links) {
                     if ($actif[$i]['nom'] == "Immobilisations corporelles") {
-                        $table[$i][] = anchor(controller_url("comptes/page/2/28"), "Immobilisations corporelles");
+                        $table[$i][] = anchor(controller_url("comptes/balance/2/28"), "Immobilisations corporelles");
                     } else if ($actif[$i]['nom'] == "Comptes financiers") {
-                        $table[$i][] = anchor(controller_url("comptes/page/5/6"), "Comptes de banque et financiers");
+                        $table[$i][] = anchor(controller_url("comptes/balance/5/6"), "Comptes de banque et financiers");
                     } else {
                         $table[$i][] = anchor(controller_url("compta/journal_compte/$compte"), $actif[$i]['nom']);
                     }
@@ -460,24 +460,24 @@ if (! function_exists('bilan_table')) {
         // immos ligne 2
         $imo_label = highlight($CI->lang->line('comptes_bilan_immobilisations_corp'), $html);
         if ($html) {
-            $imo_label = anchor(controller_url("comptes/page/2/28"), $imo_label);
+            $imo_label = anchor(controller_url("comptes/balance/2/28"), $imo_label);
         }
         $fa_label = highlight($CI->lang->line('comptes_bilan_fonds_associatifs'), $html);
         if ($html) {
-            $fa_label = anchor(controller_url("comptes/page/102"), $fa_label);
+            $fa_label = anchor(controller_url("comptes/balance/102"), $fa_label);
         }
         $report_deb_label = $CI->lang->line('comptes_bilan_report_debt');
         if ($html) {
-            $report_deb_label = anchor(controller_url("comptes/page/119"), $report_deb_label);
+            $report_deb_label = anchor(controller_url("comptes/balance/119"), $report_deb_label);
         }
         $report_cred_label = $CI->lang->line('comptes_bilan_report_cred');
         if ($html) {
-            $report_cred_label = anchor(controller_url("comptes/page/110"), $report_cred_label);
+            $report_cred_label = anchor(controller_url("comptes/balance/110"), $report_cred_label);
         }
 
         $amo = euro($bilan['amortissements_corp'], $sep, $output_format);
         if ($html) {
-            $amo = anchor(controller_url("comptes/page/281"), $amo);
+            $amo = anchor(controller_url("comptes/balance/281"), $amo);
         }
         $valeur_nette_immo = euro($bilan['valeur_nette_immo_corp'], $sep, $output_format);
         $table[] = array(
@@ -546,9 +546,9 @@ if (! function_exists('bilan_table')) {
             $tab
         );
 
-        // Ligne Prêts 
+        // Ligne Prêts
         $table[] = array(
-            ($html) ? anchor(controller_url("comptes/page/274"), $CI->lang->line('comptes_bilan_prets')) : $CI->lang->line('comptes_bilan_creances_prets'),
+            ($html) ? anchor(controller_url("comptes/balance/274"), $CI->lang->line('comptes_bilan_prets')) : $CI->lang->line('comptes_bilan_creances_prets'),
             $tab,
             $tab,
             euro($bilan['prets'], $sep, $output_format),
@@ -561,13 +561,13 @@ if (! function_exists('bilan_table')) {
 
         // ligne Créances et dettes de tiers
         $table[] = array(
-            ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_creances_tiers')) : $CI->lang->line('comptes_bilan_creances_tiers'),
+            ($html) ? anchor(controller_url("comptes/balance/4/5/1"), $CI->lang->line('comptes_bilan_creances_tiers')) : $CI->lang->line('comptes_bilan_creances_tiers'),
             $tab,
             $tab,
             euro($bilan['creances_pilotes'], $sep, $output_format),
             euro($bilan_prec['creances_pilotes'], $sep, $output_format),
             $tab,
-            ($html) ? anchor(controller_url("comptes/page/4/5/1"), $CI->lang->line('comptes_bilan_dettes_tiers')) : $CI->lang->line('comptes_bilan_dettes_tiers'),
+            ($html) ? anchor(controller_url("comptes/balance/4/5/1"), $CI->lang->line('comptes_bilan_dettes_tiers')) : $CI->lang->line('comptes_bilan_dettes_tiers'),
             euro($bilan['dettes_pilotes'], $sep, $output_format),
             euro($bilan_prec['dettes_pilotes'], $sep, $output_format)
         );
@@ -579,7 +579,7 @@ if (! function_exists('bilan_table')) {
 
         $rows = result_rows($bilan['dispo'], array(), $bilan_prec['dispo'], array(), $html, $sep);
 
-        $str_loan = ($html) ? anchor(controller_url("comptes/page/16/17/1"), $CI->lang->line('comptes_bilan_dettes_banques')) : $CI->lang->line('comptes_bilan_dettes_banques');
+        $str_loan = ($html) ? anchor(controller_url("comptes/balance/16/17/1"), $CI->lang->line('comptes_bilan_dettes_banques')) : $CI->lang->line('comptes_bilan_dettes_banques');
 
         $rows[0][6] = $str_loan;
         $rows[0][7] = euro($bilan['emprunts'], $sep, $output_format); // "emprunts n";
