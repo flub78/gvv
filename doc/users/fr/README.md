@@ -88,6 +88,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - États financiers (bilan, compte de résultat)
 - Clôture d'exercice et contrôles
 
+#### [10. Gestion des Cotisations](10_gestion_cotisations.md)
+**Suivi et comptabilisation des cotisations**
+- Liste de suivi des adhésions par année
+- Saisie comptable automatisée (triple opération)
+- Sélection automatique des comptes
+- Justificatifs et traçabilité
+
 #### [8. Rapports et Statistiques](08_rapports.md)
 **Analyses et pilotage**
 - Rapports d'activité et performance
@@ -140,9 +147,10 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 **Pour les responsables et trésoriers :**
 
 1. **[📊 Comptabilité](07_comptabilite.md)** - Contrôle financier
-2. **[📈 Rapports](08_rapports.md)** - Analyser les performances
-3. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
-4. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+2. **[💳 Cotisations](10_gestion_cotisations.md)** - Gestion des adhésions
+3. **[📈 Rapports](08_rapports.md)** - Analyser les performances
+4. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
+5. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 
