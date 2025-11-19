@@ -268,7 +268,7 @@ $(document).ready(function() {
         // Requête AJAX pour obtenir le compte 411 du pilote
         console.log('Envoi requête AJAX pour pilote:', piloteId);
         $.ajax({
-            url: '<?= base_url('compta/ajax_get_compte_pilote') ?>',
+            url: '<?= site_url('compta/ajax_get_compte_pilote') ?>',
             type: 'POST',
             dataType: 'json',
             data: { pilote_id: piloteId },
