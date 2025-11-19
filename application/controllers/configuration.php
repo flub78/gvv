@@ -281,15 +281,15 @@ class Configuration extends Gvv_Controller {
     /**
      * Override pre_update to add debugging for file field updates
      */
-    function pre_update($kid, $processed_data) {
-        if (isset($processed_data['file'])) {
-            log_message('info', "Configuration pre_update: file field = {$processed_data['file']}");
+    function pre_update($id, &$data = array()) {
+        if (isset($data['file'])) {
+            log_message('info', "Configuration pre_update: file field = {$data['file']}");
         } else {
             log_message('info', "Configuration pre_update: NO file field in processed_data");
         }
-        log_message('debug', "Configuration pre_update: All data = " . json_encode($processed_data));
+        log_message('debug', "Configuration pre_update: All data = " . json_encode($data));
         
-        parent::pre_update($kid, $processed_data);
+        parent::pre_update($id, $data);
     }
 
     /**
@@ -308,7 +308,7 @@ class Configuration extends Gvv_Controller {
      * check that we are back to the initial number of configuration
      * 
      */
-    public function test_model() {
+    public function test_model($primary_key = null) {
 
         $this->unit->run(true, true, "Testing $this->controller model");
 

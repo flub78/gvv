@@ -1193,8 +1193,13 @@ abstract class Metadata {
         } elseif ('time' == $subtype) {
             return decimal_to_time($value);
         } elseif ('enumerate' == $subtype) {
-            $values = $this->field[$table][$field]['Enumerate'];
-            return (isset($values[$value])) ? $values[$value] : $value;
+            if (isset($this->field[$table][$field]['Enumerate'])) {
+                $values = $this->field[$table][$field]['Enumerate'];
+                return (isset($values[$value])) ? $values[$value] : $value;
+            } else {
+                log_message('error', "MetaData: Missing 'Enumerate' definition for field '$field' in table '$table'");
+                return $value;
+            }
         } elseif ('selector' == $subtype) {
             return $value;
         } elseif ('checkbox' == $subtype) {

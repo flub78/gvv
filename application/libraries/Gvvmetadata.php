@@ -88,6 +88,7 @@ class GVVMetadata extends Metadata {
                 );
 
                 $this->field['comptes']['actif']['Subtype'] = 'enumerate';
+                $this->field['comptes']['actif']['Enumerate'] = $CI->lang->line("gvv_asset_liability");
                 $this->field['comptes']['masked']['Subtype'] = 'checkbox';
                 $this->field['comptes']['masked']['Type'] = 'tinyint';
                 $this->field['comptes']['masked']['Comment'] = $CI->lang->line("gvv_comptes_comment_masked");
