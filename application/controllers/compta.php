@@ -410,21 +410,36 @@ class Compta extends Gvv_Controller {
      * Returns JSON response with temp file info
      */
     public function upload_temp_attachment() {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-            return;
-        }
+        // Always set JSON content type first
+        $this->output->set_content_type('application/json');
 
-        $session_id = $this->session->userdata('session_id');
-        $year = date('Y');
-        $club_id = $this->session->userdata('section');
-        $this->load->model('sections_model');
-        $section_name = $this->sections_model->image($club_id);
+        try {
+            if (!$this->input->is_ajax_request()) {
+                $this->output->set_output(json_encode([
+                    'success' => false,
+                    'error' => 'Invalid request'
+                ]));
+                return;
+            }
 
-        if (empty($section_name)) {
-            $section_name = 'Unknown';
-        }
-        $section_name = $this->sanitize_filename($section_name);
+            $session_id = $this->session->userdata('session_id');
+            if (empty($session_id)) {
+                $this->output->set_output(json_encode([
+                    'success' => false,
+                    'error' => 'Session invalide'
+                ]));
+                return;
+            }
+
+            $year = date('Y');
+            $club_id = $this->session->userdata('section');
+            $this->load->model('sections_model');
+            $section_name = $this->sections_model->image($club_id);
+
+            if (empty($section_name)) {
+                $section_name = 'Unknown';
+            }
+            $section_name = $this->sanitize_filename($section_name);
 
         // Create temp directory
         $temp_dir = './uploads/attachments/temp/' . $session_id . '/';
@@ -477,44 +492,56 @@ class Compta extends Gvv_Controller {
             ];
         }
 
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode($response));
+            $this->output->set_output(json_encode($response));
+
+        } catch (Exception $e) {
+            log_message('error', 'Upload temp attachment error: ' . $e->getMessage());
+            $this->output->set_output(json_encode([
+                'success' => false,
+                'error' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ]));
+        }
     }
 
     /**
      * Remove temp attachment (AJAX)
      */
     public function remove_temp_attachment() {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-            return;
-        }
+        $this->output->set_content_type('application/json');
 
-        $temp_id = $this->input->post('temp_id');
-        $session_id = $this->session->userdata('session_id');
-        $pending_key = 'pending_attachments_' . $session_id;
-        $pending = $this->session->userdata($pending_key) ?: [];
-
-        if (isset($pending[$temp_id])) {
-            // Delete file
-            $file_path = $pending[$temp_id]['temp_path'];
-            if (file_exists($file_path)) {
-                unlink($file_path);
+        try {
+            if (!$this->input->is_ajax_request()) {
+                $this->output->set_output(json_encode(['success' => false, 'error' => 'Invalid request']));
+                return;
             }
 
-            // Remove from session
-            unset($pending[$temp_id]);
-            $this->session->set_userdata($pending_key, $pending);
+            $temp_id = $this->input->post('temp_id');
+            $session_id = $this->session->userdata('session_id');
+            $pending_key = 'pending_attachments_' . $session_id;
+            $pending = $this->session->userdata($pending_key) ?: [];
 
-            $response = ['success' => true];
-        } else {
-            $response = ['success' => false, 'error' => 'File not found'];
+            if (isset($pending[$temp_id])) {
+                // Delete file
+                $file_path = $pending[$temp_id]['temp_path'];
+                if (file_exists($file_path)) {
+                    unlink($file_path);
+                }
+
+                // Remove from session
+                unset($pending[$temp_id]);
+                $this->session->set_userdata($pending_key, $pending);
+
+                $response = ['success' => true];
+            } else {
+                $response = ['success' => false, 'error' => 'File not found'];
+            }
+
+            $this->output->set_output(json_encode($response));
+
+        } catch (Exception $e) {
+            log_message('error', 'Remove temp attachment error: ' . $e->getMessage());
+            $this->output->set_output(json_encode(['success' => false, 'error' => $e->getMessage()]));
         }
-
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode($response));
     }
 
     /**
@@ -522,30 +549,36 @@ class Compta extends Gvv_Controller {
      * PRD CA1.9: Allow user to associate description with attachment
      */
     public function update_temp_attachment_description() {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-            return;
+        $this->output->set_content_type('application/json');
+
+        try {
+            if (!$this->input->is_ajax_request()) {
+                $this->output->set_output(json_encode(['success' => false, 'error' => 'Invalid request']));
+                return;
+            }
+
+            $temp_id = $this->input->post('temp_id');
+            $description = $this->input->post('description');
+            $session_id = $this->session->userdata('session_id');
+            $pending_key = 'pending_attachments_' . $session_id;
+            $pending = $this->session->userdata($pending_key) ?: [];
+
+            if (isset($pending[$temp_id])) {
+                // Update description
+                $pending[$temp_id]['description'] = $description;
+                $this->session->set_userdata($pending_key, $pending);
+
+                $response = ['success' => true];
+            } else {
+                $response = ['success' => false, 'error' => 'File not found'];
+            }
+
+            $this->output->set_output(json_encode($response));
+
+        } catch (Exception $e) {
+            log_message('error', 'Update temp attachment description error: ' . $e->getMessage());
+            $this->output->set_output(json_encode(['success' => false, 'error' => $e->getMessage()]));
         }
-
-        $temp_id = $this->input->post('temp_id');
-        $description = $this->input->post('description');
-        $session_id = $this->session->userdata('session_id');
-        $pending_key = 'pending_attachments_' . $session_id;
-        $pending = $this->session->userdata($pending_key) ?: [];
-
-        if (isset($pending[$temp_id])) {
-            // Update description
-            $pending[$temp_id]['description'] = $description;
-            $this->session->set_userdata($pending_key, $pending);
-
-            $response = ['success' => true];
-        } else {
-            $response = ['success' => false, 'error' => 'File not found'];
-        }
-
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode($response));
     }
 
     /**
@@ -818,23 +851,12 @@ class Compta extends Gvv_Controller {
         $this->data['montant'] = $this->input->post('montant') ?: '';
         $this->data['description'] = $this->input->post('description') ?: '';
         $this->data['num_cheque'] = $this->input->post('num_cheque') ?: '';
-        $this->data['type'] = $this->input->post('type') ?: 0;
 
         // Préparer les sélecteurs
         $this->data['pilote_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
         $this->data['compte_banque_selector'] = $this->comptes_model->selector_comptes_512();
         $this->data['compte_pilote_selector'] = $this->comptes_model->selector_comptes_411();
         $this->data['compte_recette_selector'] = $this->comptes_model->selector_comptes_700();
-
-        // Sélecteur de type de paiement
-        $this->data['type_paiement_selector'] = array(
-            '' => '-- Sélectionner --',
-            'cheque' => 'Chèque',
-            'virement' => 'Virement',
-            'espece' => 'Espèces',
-            'cb' => 'Carte bancaire',
-            'prelevement' => 'Prélèvement'
-        );
 
         // Charger la vue
         load_last_view('compta/bs_saisie_cotisation_formView', $this->data);
@@ -860,9 +882,8 @@ class Compta extends Gvv_Controller {
         $this->form_validation->set_rules('compte_pilote', 'Compte pilote', 'required');
         $this->form_validation->set_rules('compte_recette', 'Compte recette', 'required');
         $this->form_validation->set_rules('montant', 'Montant', 'required|numeric|greater_than[0]');
-        $this->form_validation->set_rules('description', 'Libellé', 'required');
-        $this->form_validation->set_rules('num_cheque', 'Numéro de pièce', 'required');
-        $this->form_validation->set_rules('type', 'Type de paiement', 'required');
+        $this->form_validation->set_rules('description', 'Libellé', 'trim');
+        $this->form_validation->set_rules('num_cheque', 'Numéro de pièce', 'trim');
 
         if ($this->form_validation->run() == FALSE) {
             // Validation échouée, réafficher le formulaire avec les erreurs
@@ -878,9 +899,13 @@ class Compta extends Gvv_Controller {
         $compte_pilote = $this->input->post('compte_pilote');
         $compte_recette = $this->input->post('compte_recette');
         $montant = $this->input->post('montant');
-        $description = $this->input->post('description');
+        $description = trim($this->input->post('description'));
         $num_cheque = $this->input->post('num_cheque');
-        $type = $this->input->post('type');
+
+        // Si le libellé est vide ou correspond au pattern "Cotisation YYYY", utiliser l'année de cotisation
+        if (empty($description) || preg_match('/^Cotisation \d{4}$/', $description)) {
+            $description = 'Cotisation ' . $annee_cotisation;
+        }
 
         // Convertir la date du format d/m/Y vers Y-m-d
         $date_parts = explode('/', $date_op);
@@ -892,7 +917,7 @@ class Compta extends Gvv_Controller {
 
         // Vérifier qu'il n'y a pas de double cotisation
         if ($this->licences_model->check_cotisation_exists($pilote, $annee_cotisation)) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_compta_error_double_cotisation'));
+            $this->data['error_message'] = $this->lang->line('gvv_compta_error_double_cotisation');
             $this->saisie_cotisation();
             return;
         }
@@ -907,17 +932,16 @@ class Compta extends Gvv_Controller {
             $compte_recette,
             $montant,
             $description,
-            $num_cheque,
-            $type
+            $num_cheque
         );
 
         if ($result) {
             $this->session->set_flashdata('success', $this->lang->line('gvv_compta_success_cotisation'));
+            redirect('compta/saisie_cotisation');
         } else {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_compta_error_cotisation'));
+            $this->data['error_message'] = $this->lang->line('gvv_compta_error_cotisation');
+            $this->saisie_cotisation();
         }
-
-        redirect('compta/saisie_cotisation');
     }
 
     /**
@@ -934,16 +958,18 @@ class Compta extends Gvv_Controller {
         $compte_recette,
         $montant,
         $description,
-        $num_cheque,
-        $type
+        $num_cheque
     ) {
         // Démarrer une transaction
         $this->db->trans_start();
 
         try {
-            $club_id = $this->gvv_model->club();
+            $club_id = $this->session->userdata('section');
             $username = $this->dx_auth->get_username();
             $annee_exercise = date('Y');
+
+            log_message('debug', "Process cotisation - club_id: $club_id, username: $username, annee: $annee_exercise");
+            log_message('debug', "Comptes: banque=$compte_banque, pilote=$compte_pilote, recette=$compte_recette");
 
             // 1. Créer l'écriture encaissement (512 → 411)
             $ecriture_encaissement = array(
@@ -954,7 +980,7 @@ class Compta extends Gvv_Controller {
                 'compte2' => $compte_pilote,
                 'montant' => $montant,
                 'description' => $description,
-                'type' => $type,
+                'type' => 0,
                 'num_cheque' => $num_cheque,
                 'saisie_par' => $username,
                 'gel' => 0,
@@ -964,7 +990,10 @@ class Compta extends Gvv_Controller {
             $this->load->model('ecritures_model');
             $ecriture_id_1 = $this->ecritures_model->create_ecriture($ecriture_encaissement);
 
+            log_message('debug', "Ecriture encaissement créée: ID=$ecriture_id_1");
+
             if (!$ecriture_id_1) {
+                log_message('error', 'Échec création écriture encaissement');
                 throw new Exception('Erreur lors de la création de l\'écriture encaissement');
             }
 
@@ -977,7 +1006,7 @@ class Compta extends Gvv_Controller {
                 'compte2' => $compte_recette,
                 'montant' => $montant,
                 'description' => $description,
-                'type' => $type,
+                'type' => 0,
                 'num_cheque' => $num_cheque,
                 'saisie_par' => $username,
                 'gel' => 0,
@@ -986,7 +1015,10 @@ class Compta extends Gvv_Controller {
             );
             $ecriture_id_2 = $this->ecritures_model->create_ecriture($ecriture_facturation);
 
+            log_message('debug', "Ecriture facturation créée: ID=$ecriture_id_2");
+
             if (!$ecriture_id_2) {
+                log_message('error', 'Échec création écriture facturation');
                 throw new Exception('Erreur lors de la création de l\'écriture facturation');
             }
 
@@ -999,26 +1031,31 @@ class Compta extends Gvv_Controller {
                 'Cotisation enregistrée via saisie simplifiée'
             );
 
+            log_message('debug', "Licence créée: ID=$licence_id");
+
             if (!$licence_id) {
+                log_message('error', 'Échec création licence');
                 throw new Exception('Erreur lors de la création de la licence');
             }
 
-            // 4. Gérer les attachements (si présents)
-            $session_id = $this->session->userdata('session_id');
-            if ($session_id) {
-                // Lier les attachments aux deux écritures
-                $this->process_pending_attachments('ecritures', $ecriture_id_1, $session_id);
-                $this->process_pending_attachments('ecritures', $ecriture_id_2, $session_id);
+            // 4. Gérer les pièces jointes (si présentes)
+            // Les justificatifs sont attachés uniquement à l'écriture d'encaissement (512 → 411)
+            if (isset($_FILES['attachment_files']) && !empty($_FILES['attachment_files']['name'][0])) {
+                $this->handle_file_uploads('ecritures', $ecriture_id_1);
             }
 
             // Compléter la transaction
             $this->db->trans_complete();
 
+            log_message('debug', "Transaction complétée, statut: " . ($this->db->trans_status() ? 'SUCCESS' : 'FAILED'));
+
             // Vérifier le statut de la transaction
             if ($this->db->trans_status() === FALSE) {
+                log_message('error', 'Transaction échouée (trans_status = FALSE)');
                 return false;
             }
 
+            log_message('info', "Cotisation enregistrée avec succès - Écritures: $ecriture_id_1, $ecriture_id_2 - Licence: $licence_id");
             return true;
 
         } catch (Exception $e) {
@@ -1029,6 +1066,69 @@ class Compta extends Gvv_Controller {
         }
     }
 
+    /**
+     * Gère l'upload des fichiers joints lors de la soumission du formulaire
+     *
+     * @param string $referenced_table Table de référence (ex: 'ecritures')
+     * @param int $referenced_id ID de l'enregistrement
+     * @return bool True si succès, false sinon
+     */
+    private function handle_file_uploads($referenced_table, $referenced_id) {
+        $year = date('Y');
+        $club_id = $this->session->userdata('section');
+        $this->load->model('sections_model');
+        $section_name = $this->sections_model->image($club_id);
+
+        if (empty($section_name)) {
+            $section_name = 'Unknown';
+        }
+        $section_name = $this->sanitize_filename($section_name);
+
+        // Créer le répertoire de destination
+        $upload_dir = './uploads/attachments/' . $year . '/';
+        if (!file_exists($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+            chmod($upload_dir, 0777);
+        }
+
+        $this->load->model('attachments_model');
+        $files = $_FILES['attachment_files'];
+        $file_count = count($files['name']);
+
+        for ($i = 0; $i < $file_count; $i++) {
+            if ($files['error'][$i] == UPLOAD_ERR_OK) {
+                // Générer un nom de fichier unique
+                $original_name = $files['name'][$i];
+                $storage_file = rand(100000, 999999) . '_' . $this->sanitize_filename($original_name);
+                $file_path = $upload_dir . $storage_file;
+
+                // Déplacer le fichier uploadé
+                if (move_uploaded_file($files['tmp_name'][$i], $file_path)) {
+                    // Enregistrer dans la base de données
+                    $attachment_data = [
+                        'referenced_table' => $referenced_table,
+                        'referenced_id' => $referenced_id,
+                        'saisie_par' => $this->dx_auth->get_username(),
+                        'club' => $club_id,
+                        'description' => '', // Vide par défaut
+                        'file_path' => $file_path
+                    ];
+
+                    $this->attachments_model->create($attachment_data);
+                    log_message('debug', "Attachment created: $file_path for $referenced_table #$referenced_id");
+                } else {
+                    log_message('error', "Failed to move uploaded file: $original_name");
+                    throw new Exception("Erreur lors de l'upload du fichier: $original_name");
+                }
+            } elseif ($files['error'][$i] != UPLOAD_ERR_NO_FILE) {
+                // Erreur d'upload (sauf si aucun fichier sélectionné)
+                log_message('error', "Upload error for file $i: " . $files['error'][$i]);
+                throw new Exception("Erreur lors de l'upload du fichier: " . $files['name'][$i]);
+            }
+        }
+
+        return true;
+    }
 
     /**
      * journal

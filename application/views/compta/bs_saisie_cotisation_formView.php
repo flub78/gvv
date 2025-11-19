@@ -34,21 +34,40 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 ?>
 <h3><?= $title ?></h3>
 
-<div class="d-flex flex-row flex-wrap">
-    <div>
-        <?php
-        echo form_open('compta/formValidation_saisie_cotisation', array('name' => 'saisie_cotisation', 'id' => 'form_saisie_cotisation'));
+<?php
+// Show error message (from direct call or from redirect)
+$error_msg = isset($error_message) ? $error_message : $this->session->flashdata('error');
+if ($error_msg) {
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+    echo '<strong><i class="bi bi-exclamation-triangle"></i></strong> ';
+    echo nl2br(htmlspecialchars($error_msg));
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    echo '</div>';
+}
 
-        echo validation_errors();
-        ?>
+// Show success message (only from redirect)
+if ($this->session->flashdata('success')) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
+    echo nl2br(htmlspecialchars($this->session->flashdata('success')));
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    echo '</div>';
+}
 
-        <!-- Section Membre et Cotisation -->
-        <fieldset class="border p-3 mb-3">
+echo form_open_multipart('compta/formValidation_saisie_cotisation', array('name' => 'saisie_cotisation', 'id' => 'form_saisie_cotisation'));
+
+echo validation_errors();
+?>
+
+<div class="row g-3">
+    <!-- Section Membre et Cotisation -->
+    <div class="col-12 col-lg-6">
+        <fieldset class="border p-3 h-100">
             <legend class="w-auto px-2"><?= $this->lang->line('gvv_compta_label_pilote') ?> & <?= $this->lang->line('gvv_compta_label_annee_cotisation') ?></legend>
 
             <div class="mb-3">
                 <label for="pilote" class="form-label"><?= $this->lang->line('gvv_compta_label_pilote') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('pilote', $pilote_selector, $pilote, 'class="form-select" id="pilote"') ?>
+                <?= form_dropdown('pilote', $pilote_selector, $pilote, 'class="form-select big_select" id="pilote"') ?>
             </div>
 
             <div class="mb-3">
@@ -56,29 +75,33 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
                 <input type="number" class="form-control" id="annee_cotisation" name="annee_cotisation" value="<?= $annee_cotisation ?>" min="2000" max="2100">
             </div>
         </fieldset>
+    </div>
 
-        <!-- Section Comptes -->
-        <fieldset class="border p-3 mb-3">
+    <!-- Section Comptes -->
+    <div class="col-12 col-lg-6">
+        <fieldset class="border p-3 h-100">
             <legend class="w-auto px-2"><?= $this->lang->line('gvv_compta_comptes') ?></legend>
 
             <div class="mb-3">
                 <label for="compte_banque" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_banque') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_banque', $compte_banque_selector, $compte_banque, 'class="form-select" id="compte_banque"') ?>
+                <?= form_dropdown('compte_banque', $compte_banque_selector, $compte_banque, 'class="form-select big_select" id="compte_banque"') ?>
             </div>
 
             <div class="mb-3">
                 <label for="compte_pilote" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_pilote') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_pilote', $compte_pilote_selector, $compte_pilote, 'class="form-select" id="compte_pilote"') ?>
+                <?= form_dropdown('compte_pilote', $compte_pilote_selector, $compte_pilote, 'class="form-select big_select" id="compte_pilote"') ?>
             </div>
 
             <div class="mb-3">
                 <label for="compte_recette" class="form-label"><?= $this->lang->line('gvv_compta_label_compte_recette') ?> <span class="text-danger">*</span></label>
-                <?= form_dropdown('compte_recette', $compte_recette_selector, $compte_recette, 'class="form-select" id="compte_recette"') ?>
+                <?= form_dropdown('compte_recette', $compte_recette_selector, $compte_recette, 'class="form-select big_select" id="compte_recette"') ?>
             </div>
         </fieldset>
+    </div>
 
-        <!-- Section Paiement -->
-        <fieldset class="border p-3 mb-3">
+    <!-- Section Paiement -->
+    <div class="col-12 col-lg-6">
+        <fieldset class="border p-3 h-100">
             <legend class="w-auto px-2">Paiement</legend>
 
             <div class="mb-3">
@@ -92,96 +115,77 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             </div>
 
             <div class="mb-3">
-                <label for="description" class="form-label"><?= $this->lang->line('gvv_ecritures_field_description') ?> <span class="text-danger">*</span></label>
+                <label for="description" class="form-label"><?= $this->lang->line('gvv_ecritures_field_description') ?></label>
                 <input type="text" class="form-control description" id="description" name="description" value="<?= $description ?>">
             </div>
 
             <div class="mb-3">
-                <label for="num_cheque" class="form-label"><?= $this->lang->line('gvv_ecritures_field_num_cheque') ?> <span class="text-danger">*</span></label>
+                <label for="num_cheque" class="form-label"><?= $this->lang->line('gvv_ecritures_field_num_cheque') ?></label>
                 <input type="text" class="form-control num_cheque" id="num_cheque" name="num_cheque" value="<?= $num_cheque ?>">
             </div>
-
-            <div class="mb-3">
-                <label for="type" class="form-label">Mode de paiement <span class="text-danger">*</span></label>
-                <?= form_dropdown('type', $type_paiement_selector, $type, 'class="form-select" id="type"') ?>
-            </div>
         </fieldset>
+    </div>
 
-        <!-- Section Justificatifs (optionnelle) -->
-        <fieldset class="border p-3 mb-3">
+    <!-- Section Justificatifs (optionnelle) -->
+    <div class="col-12 col-lg-6">
+        <fieldset class="border p-3 h-100">
             <legend class="w-auto px-2"><?= $this->lang->line("gvv_attachments_title") ?> <small class="text-muted">(<?= $this->lang->line("gvv_optional") ?>)</small></legend>
 
             <div class="form-group mt-2">
-                <div class="attachment-upload-area" id="attachmentDropZone">
-                    <input type="file" name="attachment_files[]" id="fileInput" multiple
-                           accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.csv,.txt"
-                           style="display:none;">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click();">
-                        <i class="bi bi-paperclip"></i> <?= $this->lang->line("gvv_choose_files") ?>
-                    </button>
-                    <small class="form-text text-muted d-block mt-1">
-                        <?= $this->lang->line("gvv_supported_formats") ?>: PDF, Images, Office, CSV (Max 20MB)
-                    </small>
-                </div>
-                <div id="fileList" class="file-list mt-2">
-                    <!-- JavaScript will populate uploaded files here -->
-                </div>
+                <label for="attachment_files" class="form-label">
+                    <i class="bi bi-paperclip"></i> <?= $this->lang->line("gvv_choose_files") ?>
+                </label>
+                <input type="file" name="attachment_files[]" id="attachment_files" class="form-control" multiple
+                       accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.csv,.txt">
+                <small class="form-text text-muted d-block mt-1">
+                    <?= $this->lang->line("gvv_supported_formats") ?>: PDF, Images, Office, CSV (Max 20MB par fichier)
+                </small>
             </div>
         </fieldset>
-
-        <!-- Boutons de validation -->
-        <div class="mb-3">
-            <button type="submit" id="btnValidate" class="btn btn-primary">
-                <i class="bi bi-check-circle"></i> <?= $this->lang->line("gvv_button_validate") ?>
-            </button>
-            <button type="button" class="btn btn-secondary" onclick="history.back()">
-                <i class="bi bi-x-circle"></i> Annuler
-            </button>
-        </div>
-
-        <?php
-        echo form_close();
-        ?>
     </div>
 </div>
 
+<!-- Boutons de validation -->
+<div class="row mt-3">
+    <div class="col-12">
+        <button type="submit" id="btnValidate" class="btn btn-primary">
+            <i class="bi bi-check-circle"></i> <?= $this->lang->line("gvv_button_validate") ?>
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="history.back()">
+            <i class="bi bi-x-circle"></i> Annuler
+        </button>
+    </div>
+</div>
+
+<?php
+echo form_close();
+?>
+
 <style>
-.file-list {
-    margin-top: 10px;
+/* Ensure big_select (select2) fields maintain consistent width */
+.mb-3 .select2-container {
+    width: 100% !important;
+    display: block;
 }
-.file-item {
-    padding: 8px 12px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    background-color: #fff;
+.mb-3 .select2-container .select2-selection--single {
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
 }
-.file-item-loading {
-    opacity: 0.6;
-    background-color: #f8f9fa;
+.mb-3 .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: calc(1.5em + 0.75rem);
+    padding-left: 0;
 }
-.file-item-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.file-item .filename {
-    flex-grow: 1;
-    font-weight: 500;
-}
-.file-item .filesize {
-    color: #6c757d;
-    font-size: 0.875rem;
-}
-.description-input {
-    width: 100%;
-    font-size: 0.875rem;
+.mb-3 .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(1.5em + 0.75rem);
 }
 </style>
 
 <script>
 $(document).ready(function() {
-    var uploadedFiles = {};
     var formChanged = false;
     var submitSuccess = <?= $this->session->flashdata('success') ? 'true' : 'false' ?>;
 
@@ -199,152 +203,27 @@ $(document).ready(function() {
         }
     });
 
-    // Handle file selection
-    $('#fileInput').on('change', function(e) {
-        var files = e.target.files;
-        for (var i = 0; i < files.length; i++) {
-            uploadFile(files[i]);
+    // Gestion automatique du libellé "Cotisation YYYY"
+    function updateDescriptionIfDefault() {
+        var year = $('#annee_cotisation').val();
+        var description = $('#description').val().trim();
+
+        // Si vide ou déjà "Cotisation YYYY", mettre à jour avec la nouvelle année
+        if (description === '' || /^Cotisation \d{4}$/.test(description)) {
+            $('#description').val('Cotisation ' + year);
         }
-        // Clear input so same file can be re-uploaded if needed
-        $(this).val('');
+    }
+
+    // Initialiser le libellé au chargement si vide
+    if ($('#description').val().trim() === '') {
+        var initialYear = $('#annee_cotisation').val();
+        $('#description').val('Cotisation ' + initialYear);
+    }
+
+    // Mettre à jour le libellé quand l'année change
+    $('#annee_cotisation').on('change', function() {
+        updateDescriptionIfDefault();
     });
-
-    // Upload file via AJAX
-    function uploadFile(file) {
-        var formData = new FormData();
-        formData.append('file', file);
-
-        // Add file to UI immediately with loading state
-        var tempId = 'uploading_' + Date.now();
-        addFileToList(tempId, file.name, 0, true);
-
-        $.ajax({
-            url: '<?= base_url() ?>index.php/compta/upload_temp_attachment',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Update UI with actual temp_id
-                    updateFileInList(tempId, response.file);
-                    uploadedFiles[response.file.temp_id] = response.file;
-                } else {
-                    // Show error
-                    removeFileFromList(tempId);
-                    alert('Upload failed: ' + response.error);
-                }
-            },
-            error: function(xhr, status, error) {
-                removeFileFromList(tempId);
-                alert('Upload failed: ' + error);
-            }
-        });
-    }
-
-    // Add file to list UI
-    function addFileToList(tempId, filename, size, isLoading) {
-        var sizeStr = size > 0 ? ' (' + formatBytes(size) + ')' : '';
-        var loadingClass = isLoading ? 'file-item-loading' : '';
-        var removeBtn = isLoading ? '' :
-            '<a href="#" onclick="removeFile(\'' + tempId + '\'); return false;"><img class="icon" src="<?= base_url() ?>themes/binary-news/images/delete.png" title="<?= $this->lang->line("gvv_confirm_remove_file") ?>" alt=""></a>';
-
-        var descriptionField = isLoading ? '' :
-            '<input type="text" class="form-control form-control-sm description-input mt-2" ' +
-            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
-            'data-temp-id="' + tempId + '" />';
-
-        var html = '<div class="file-item ' + loadingClass + '" id="file_' + tempId + '">' +
-                   '<div class="file-item-header">' +
-                   '<span class="filename">' + filename + '</span>' +
-                   '<span class="filesize">' + sizeStr + '</span> ' +
-                   removeBtn +
-                   '</div>' +
-                   descriptionField +
-                   '</div>';
-
-        $('#fileList').append(html);
-    }
-
-    // Update file in list after upload completes
-    function updateFileInList(oldId, fileInfo) {
-        var $item = $('#file_' + oldId);
-        $item.attr('id', 'file_' + fileInfo.temp_id);
-        $item.removeClass('file-item-loading');
-        $item.find('.filesize').text(' (' + formatBytes(fileInfo.size) + ')');
-
-        $item.find('.file-item-header').append(
-            '<a href="#" onclick="removeFile(\'' + fileInfo.temp_id + '\'); return false;"><img class="icon" src="<?= base_url() ?>themes/binary-news/images/delete.png" title="<?= $this->lang->line("gvv_confirm_remove_file") ?>" alt=""></a>'
-        );
-
-        $item.append(
-            '<input type="text" class="form-control form-control-sm description-input mt-2" ' +
-            'placeholder="<?= $this->lang->line("gvv_attachment_description") ?>" ' +
-            'data-temp-id="' + fileInfo.temp_id + '" />'
-        );
-    }
-
-    // Remove file from list
-    function removeFileFromList(tempId) {
-        $('#file_' + tempId).remove();
-    }
-
-    // Format bytes for display
-    function formatBytes(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    }
-
-    // Handle description changes
-    $(document).on('blur', '.description-input', function() {
-        var tempId = $(this).data('temp-id');
-        var description = $(this).val();
-
-        $.ajax({
-            url: '<?= base_url() ?>index.php/compta/update_temp_attachment_description',
-            type: 'POST',
-            data: {
-                temp_id: tempId,
-                description: description
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (!response.success) {
-                    alert('Failed to update description: ' + (response.error || 'Unknown error'));
-                }
-            },
-            error: function() {
-                console.log('Failed to update description for ' + tempId);
-            }
-        });
-    });
-
-    // Global function for remove button
-    window.removeFile = function(tempId) {
-        if (!confirm('<?= $this->lang->line("gvv_confirm_remove_file") ?>')) {
-            return;
-        }
-
-        $.ajax({
-            url: '<?= base_url() ?>index.php/compta/remove_temp_attachment',
-            type: 'POST',
-            data: { temp_id: tempId },
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    removeFileFromList(tempId);
-                    delete uploadedFiles[tempId];
-                } else {
-                    alert('Failed to remove file: ' + response.error);
-                }
-            },
-            error: function() {
-                alert('Failed to remove file');
-            }
-        });
-    };
 });
 </script>
 

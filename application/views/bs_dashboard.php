@@ -453,6 +453,15 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-coins text-warning"></i>
+                        <div class="card-title">Saisie cotisation</div>
+                        <div class="card-text text-muted">Cotisation membre</div>
+                        <a href="<?= controller_url('compta/saisie_cotisation') ?>" class="btn btn-warning btn-sm">Saisir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-receipt text-success"></i>
                         <div class="card-title">Avoir fournisseur</div>
                         <div class="card-text text-muted">Crédit</div>
