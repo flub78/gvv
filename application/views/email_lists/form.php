@@ -147,10 +147,14 @@ if ($this->session->flashdata('success')) {
                                    id="visible"
                                    name="visible"
                                    value="1"
-                                   <?= set_checkbox('visible', '1', $list['visible'] == 1) ?>>
+                                   <?= set_checkbox('visible', '1', $list['visible'] == 1) ?>
+                                   <?= (!isset($can_edit_visible) || !$can_edit_visible) ? 'disabled' : '' ?>>
                             <label class="form-check-label" for="visible">
                                 <?= $this->lang->line("email_lists_visible") ?>
                             </label>
+                            <div class="form-text">
+                                <?= $this->lang->line("email_lists_visible_help") ?>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -66,11 +66,15 @@ class Email_lists extends Gvv_Controller
 
         // Get all lists (or user's lists depending on permissions)
         $user_id = $this->dx_auth->get_user_id();
-        $data['lists'] = $this->email_lists_model->get_user_lists($user_id);
+        $is_admin = $this->dx_auth->is_role('admin');
+        $data['lists'] = $this->email_lists_model->get_user_lists($user_id, $is_admin);
+        $data['is_admin'] = $is_admin;
 
-        // Add recipient count for each list
+        // Add recipient count and can_edit_visible flag for each list
         foreach ($data['lists'] as &$list) {
             $list['recipient_count'] = $this->email_lists_model->count_members($list['id']);
+            // Admins can edit all lists, users can only edit their own lists
+            $list['can_edit_visible'] = $is_admin || ($list['created_by'] == $user_id);
         }
 
         return load_last_view('email_lists/index', $data, $this->unit_test);
@@ -190,6 +194,11 @@ class Email_lists extends Gvv_Controller
         $data['list'] = $list;
         $data['email_list_id'] = $id; // ID known - address section will be enabled
 
+        // Determine if user can edit visible field (admins or list creator)
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+        $data['can_edit_visible'] = $is_admin || ($list['created_by'] == $user_id);
+
         // Load available roles and sections for criteria tab
         $data['available_roles'] = $this->email_lists_model->get_available_roles();
         $data['available_sections'] = $this->email_lists_model->get_available_sections();
@@ -248,6 +257,13 @@ class Email_lists extends Gvv_Controller
             'active_member' => $this->input->post('active_member'),
             'visible' => $this->input->post('visible') ? 1 : 0
         );
+
+        // Handle visible field: admins can modify all lists, creators can modify their own
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+        if ($is_admin || $list['created_by'] == $user_id) {
+            $list_data['visible'] = $this->input->post('visible') ? 1 : 0;
+        }
 
         $success = $this->email_lists_model->update_list($id, $list_data);
 
@@ -1002,6 +1018,53 @@ class Email_lists extends Gvv_Controller
                     'Delete error: ' . implode(', ', $result['errors']));
             }
             redirect('email_lists/edit/' . $id);
+        }
+    }
+
+    /**
+     * AJAX: Toggle visibility of a list
+     * Admins can toggle any list, users can only toggle their own lists
+     */
+    public function toggle_visible()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+
+        if (empty($list_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing list ID']);
+            return;
+        }
+
+        // Get the list
+        $list = $this->email_lists_model->get_list($list_id);
+        if (!$list) {
+            echo json_encode(['success' => false, 'message' => 'List not found']);
+            return;
+        }
+
+        // Check permissions
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+
+        // Only admin or list creator can toggle visibility
+        if (!$is_admin && $list['created_by'] != $user_id) {
+            echo json_encode(['success' => false, 'message' => 'Permission denied']);
+            return;
+        }
+
+        // Toggle the visible field
+        $new_visible = $list['visible'] ? 0 : 1;
+        $success = $this->email_lists_model->update_list($list_id, ['visible' => $new_visible]);
+
+        if ($success) {
+            echo json_encode([
+                'success' => true,
+                'visible' => $new_visible,
+                'message' => 'Visibility updated successfully'
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update visibility']);
         }
     }
 

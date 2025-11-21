@@ -113,7 +113,7 @@ $this->lang->load('email_lists');
                     </div>
                 </div>
 
-                <!-- Visible -->
+                <!-- Visible (Public/Private) -->
                 <div class="row mb-3">
                     <div class="col-sm-10 offset-sm-2">
                         <div class="form-check">
@@ -126,6 +126,9 @@ $this->lang->load('email_lists');
                             <label class="form-check-label" for="visible">
                                 <?= $this->lang->line("email_lists_visible") ?>
                             </label>
+                            <div class="form-text">
+                                <?= $this->lang->line("email_lists_visible_help") ?>
+                            </div>
                         </div>
                     </div>
                 </div>

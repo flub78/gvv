@@ -76,7 +76,7 @@ if ($this->session->flashdata('error')) {
                         <th><?= $this->lang->line("email_lists_name") ?></th>
                         <th><?= $this->lang->line("email_lists_description") ?></th>
                         <th class="text-center"><?= $this->lang->line("email_lists_recipient_count") ?></th>
-                        <th class="text-center"><?= $this->lang->line("email_lists_visible") ?></th>
+                        <th class="text-center"><?= $this->lang->line("email_lists_visibility") ?></th>
                         <th><?= $this->lang->line("email_lists_updated") ?></th>
                     </tr>
                 </thead>
@@ -116,10 +116,38 @@ if ($this->session->flashdata('error')) {
                             <span class="badge bg-secondary"><?= $list['recipient_count'] ?></span>
                         </td>
                         <td class="text-center">
-                            <?php if ($list['visible']): ?>
-                                <i class="fas fa-eye text-success" aria-hidden="true"></i>
+                            <?php if ($list['can_edit_visible']): ?>
+                                <!-- Editable checkbox for users who can edit -->
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input visibility-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           data-list-id="<?= $list['id'] ?>"
+                                           <?= $list['visible'] ? 'checked' : '' ?>
+                                           title="<?= $list['visible'] ? 'Public' : 'Privé' ?>">
+                                    <label class="form-check-label ms-2">
+                                        <?php if ($list['visible']): ?>
+                                            <span class="badge bg-success visibility-label">
+                                                <i class="fas fa-globe" aria-hidden="true"></i> Public
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark visibility-label">
+                                                <i class="fas fa-lock" aria-hidden="true"></i> Privé
+                                            </span>
+                                        <?php endif; ?>
+                                    </label>
+                                </div>
                             <?php else: ?>
-                                <i class="fas fa-eye-slash text-muted" aria-hidden="true"></i>
+                                <!-- Read-only badge for users who cannot edit -->
+                                <?php if ($list['visible']): ?>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-globe" aria-hidden="true"></i> Public
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-lock" aria-hidden="true"></i> Privé
+                                    </span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -133,3 +161,75 @@ if ($this->session->flashdata('error')) {
     <?php endif; ?>
 
 </div>
+
+<script>
+$(document).ready(function() {
+    // Handle visibility toggle checkbox change
+    $('.visibility-toggle').on('change', function() {
+        const checkbox = $(this);
+        const listId = checkbox.data('list-id');
+        const newVisible = checkbox.is(':checked');
+        const label = checkbox.closest('td').find('.visibility-label');
+
+        // Disable checkbox during AJAX call
+        checkbox.prop('disabled', true);
+
+        $.ajax({
+            url: '<?= controller_url($controller) ?>/toggle_visible',
+            type: 'POST',
+            data: {
+                list_id: listId
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update the badge label
+                    if (response.visible) {
+                        label.removeClass('bg-warning text-dark').addClass('bg-success');
+                        label.html('<i class="fas fa-globe" aria-hidden="true"></i> Public');
+                        checkbox.attr('title', 'Public');
+                    } else {
+                        label.removeClass('bg-success').addClass('bg-warning text-dark');
+                        label.html('<i class="fas fa-lock" aria-hidden="true"></i> Privé');
+                        checkbox.attr('title', 'Privé');
+                    }
+
+                    // Show success message
+                    showAlert('success', response.message || 'Visibilité mise à jour');
+                } else {
+                    // Revert checkbox state
+                    checkbox.prop('checked', !newVisible);
+                    showAlert('danger', response.message || 'Erreur lors de la mise à jour');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Revert checkbox state
+                checkbox.prop('checked', !newVisible);
+                showAlert('danger', 'Erreur serveur: ' + error);
+            },
+            complete: function() {
+                // Re-enable checkbox
+                checkbox.prop('disabled', false);
+            }
+        });
+    });
+
+    // Helper function to show alerts
+    function showAlert(type, message) {
+        const alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+            '<strong><i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-triangle') + '" aria-hidden="true"></i></strong> ' +
+            message +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+            '</div>';
+
+        $('#body h3').after(alertHtml);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut(500, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+});
+</script>

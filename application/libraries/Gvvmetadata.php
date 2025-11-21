@@ -1001,6 +1001,35 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_procedures']['attachments_count']['Name'] = 'Fichiers';
                 $this->field['vue_procedures']['attachments_count']['Type'] = 'int';
 
+                /**
+                 * Email lists
+                 */
+                $this->field['email_lists']['id']['Name'] = 'ID';
+                $this->field['email_lists']['id']['Type'] = 'int';
+                $this->field['email_lists']['name']['Name'] = 'Nom';
+                $this->field['email_lists']['name']['Type'] = 'varchar';
+                $this->field['email_lists']['description']['Name'] = 'Description';
+                $this->field['email_lists']['description']['Type'] = 'text';
+                $this->field['email_lists']['active_member']['Name'] = 'Membres actifs';
+                $this->field['email_lists']['active_member']['Type'] = 'enum';
+                $this->field['email_lists']['active_member']['Subtype'] = 'enumerate';
+                $this->field['email_lists']['active_member']['Enumerate'] = [
+                        'active' => 'Actifs seulement',
+                        'inactive' => 'Inactifs seulement',
+                        'all' => 'Tous'
+                ];
+                $this->field['email_lists']['visible']['Name'] = 'Visible (Public/Privé)';
+                $this->field['email_lists']['visible']['Type'] = 'tinyint';
+                $this->field['email_lists']['visible']['Subtype'] = 'checkbox';
+                $this->field['email_lists']['created_by']['Name'] = 'Créé par';
+                $this->field['email_lists']['created_by']['Type'] = 'int';
+                $this->field['email_lists']['created_at']['Name'] = 'Créé le';
+                $this->field['email_lists']['created_at']['Type'] = 'datetime';
+                $this->field['email_lists']['created_at']['Subtype'] = 'date_time';
+                $this->field['email_lists']['updated_at']['Name'] = 'Modifié le';
+                $this->field['email_lists']['updated_at']['Type'] = 'datetime';
+                $this->field['email_lists']['updated_at']['Subtype'] = 'date_time';
+
                 // $this->dump();
         }
 }

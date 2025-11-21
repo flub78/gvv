@@ -131,13 +131,29 @@ class Email_lists_model extends CI_Model {
     }
 
     /**
-     * Get all email lists
+     * Get email lists visible to a specific user
+     * 
+     * For admins: returns all lists
+     * For non-admins: returns only public lists (visible=1) + private lists (visible=0) they created
      *
+     * @param int $user_id User ID
+     * @param bool $is_admin Whether user is admin
      * @return array Array of lists
      */
-    public function get_user_lists() {
-        $this->db->order_by('created_at', 'DESC');
-        $query = $this->db->get($this->table);
+    public function get_user_lists($user_id, $is_admin = false) {
+        if ($is_admin) {
+            // Admins see all lists
+            $this->db->order_by('created_at', 'DESC');
+            $query = $this->db->get($this->table);
+        } else {
+            // Non-admins see only:
+            // 1. Public lists (visible = 1)
+            // 2. Private lists they created (visible = 0 AND created_by = user_id)
+            $this->db->where("(visible = 1 OR (visible = 0 AND created_by = $user_id))");
+            $this->db->order_by('created_at', 'DESC');
+            $query = $this->db->get($this->table);
+        }
+        
         if ($query === FALSE) {
             return array();
         }
