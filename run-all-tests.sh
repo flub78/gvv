@@ -32,10 +32,33 @@ show_help() {
     echo "  - Unit Tests (30 tests): helpers, models, libraries, i18n, controllers (excl. URL)"
     echo "  - URL Helper Tests (8 tests): URL generation and validation"
     echo "  - Integration Tests (35 tests): database operations, metadata"
-    echo "  - Enhanced Tests (40 tests): CI framework helpers/libraries"
+    echo "  - Enhanced CI Tests (40 tests): CI framework-dependent helpers/libraries"
     echo "  - Controller Tests (6 tests): JSON/HTML/CSV output parsing"
-    echo "  - MySQL Tests (9 tests): real database CRUD"
-    echo "  Total: ~136 tests"
+    echo "  - MySQL Tests (33 tests): real database CRUD"
+    echo "  Total: ~144 tests"
+    echo ""
+    echo "──────────────────────────────────────────────────────────────────"
+    echo "Test Suite Commands :"
+    echo "──────────────────────────────────────────────────────────────────"
+    echo ""
+    echo "# Suite 1/6: Unit Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit.xml --no-coverage"
+    echo ""
+    echo "# Suite 2/6: URL Helper Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit_url_helper.xml --no-coverage"
+    echo ""
+    echo "# Suite 3/6: Integration Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit_integration.xml --no-coverage"
+    echo ""
+    echo "# Suite 4/6: Enhanced CI Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit_enhanced.xml --no-coverage"
+    echo ""
+    echo "# Suite 5/6: Controller Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit_controller.xml --no-coverage"
+    echo ""
+    echo "# Suite 6/6: MySQL Tests"
+    echo "/usr/bin/php7.4 vendor/bin/phpunit --configuration phpunit_mysql.xml --no-coverage"
+    echo ""
     exit 0
 }
 
@@ -128,6 +151,7 @@ run_suite() {
     if [ "$COVERAGE" = true ]; then
         # Run with coverage, save to individual .cov file
         # Note: We still generate temp reports via logging config, but merge later
+        echo "RUNNING: $PHP_BIN vendor/bin/phpunit --configuration \"$config_file\" --coverage-php \"build/coverage-data/${suite_id}.cov\""
         $PHP_BIN vendor/bin/phpunit --configuration "$config_file" \
             --coverage-php "build/coverage-data/${suite_id}.cov" 2>&1 | \
             tee /tmp/phpunit_${suite_id}_output.txt | \
@@ -137,6 +161,7 @@ run_suite() {
         local exit_code=${PIPESTATUS[0]}
     else
         # Run without coverage
+        echo "RUNNING: $PHP_BIN vendor/bin/phpunit --configuration \"$config_file\" --no-coverage"
         $PHP_BIN vendor/bin/phpunit --configuration "$config_file" --no-coverage 2>&1 | \
             tee /tmp/phpunit_${suite_id}_output.txt | \
             grep -v "Xdebug.*Step Debug"
@@ -213,9 +238,9 @@ echo -e "${BLUE}═════════════════════�
 run_suite "Integration Tests" "phpunit_integration.xml" "Real database operations, metadata" "integration"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Test Suite 4/6: Enhanced Tests${NC}"
+echo -e "${BLUE}  Test Suite 4/6: Enhanced CI Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "Enhanced Tests" "phpunit_enhanced.xml" "CI framework helpers and libraries" "enhanced"
+run_suite "Enhanced CI Tests" "phpunit_enhanced.xml" "CI framework-dependent helpers and libraries" "enhanced"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Test Suite 5/6: Controller Tests${NC}"
@@ -225,7 +250,7 @@ run_suite "Controller Tests" "phpunit_controller.xml" "JSON/HTML/CSV output pars
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Test Suite 6/6: MySQL Tests${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-run_suite "MySQL Tests" "phpunit.xml" "Real database CRUD operations" "mysql"
+run_suite "MySQL Tests" "phpunit_mysql.xml" "Real database CRUD operations" "mysql"
 
 # Final summary
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"

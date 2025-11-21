@@ -3,11 +3,10 @@
  * Integration Tests for Procedures_model
  *
  * Tests CRUD operations with real database using transactions for isolation.
+ * Bootstrap is loaded by PHPUnit via phpunit_integration.xml configuration.
  *
  * Run with: ./run-tests.sh integration/ProceduresIntegrationTest
  */
-
-require_once APPPATH . 'tests/integration_bootstrap.php';
 
 class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
 {

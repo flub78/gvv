@@ -1,6 +1,9 @@
 <?php
 
-// Enhanced bootstrap for testing helpers and libraries that need CodeIgniter integration
+// Enhanced CI bootstrap for testing helpers and libraries that need CodeIgniter integration
+// "Enhanced" means this provides an enhanced mock CodeIgniter environment with full CI object,
+// config, loader, and framework functions - as opposed to minimal_bootstrap.php which only
+// loads helpers without the CI framework
 
 // Define constants that CodeIgniter needs
 define('BASEPATH', dirname(__FILE__) . '/../../system/');

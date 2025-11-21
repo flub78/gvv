@@ -18,16 +18,11 @@ class UrlHelperTest extends TestCase
 
     /**
      * Set up before each test
-     * Load CodeIgniter core and helpers needed for URL generation
+     * Note: Bootstrap is loaded by PHPUnit before this method runs
      */
     protected function setUp(): void
     {
-        // Load custom bootstrap if not already loaded
-        if (!function_exists('get_instance')) {
-            require_once dirname(__FILE__) . '/url_helper_bootstrap.php';
-        }
-
-        // Set up mock models for CI instance
+        // Get CodeIgniter instance (already initialized by bootstrap)
         $CI =& get_instance();
 
         // Create mock comptes_model
