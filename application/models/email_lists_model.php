@@ -132,7 +132,7 @@ class Email_lists_model extends CI_Model {
 
     /**
      * Get email lists visible to a specific user
-     * 
+     *
      * For admins: returns all lists
      * For non-admins: returns only public lists (visible=1) + private lists (visible=0) they created
      *
@@ -149,11 +149,14 @@ class Email_lists_model extends CI_Model {
             // Non-admins see only:
             // 1. Public lists (visible = 1)
             // 2. Private lists they created (visible = 0 AND created_by = user_id)
-            $this->db->where("(visible = 1 OR (visible = 0 AND created_by = $user_id))");
-            $this->db->order_by('created_at', 'DESC');
-            $query = $this->db->get($this->table);
+            // Use custom query for CodeIgniter 2.x compatibility with safe casting
+            $safe_user_id = (int)$user_id;
+            $sql = "SELECT * FROM {$this->table}
+                    WHERE (visible = 1 OR (visible = 0 AND created_by = {$safe_user_id}))
+                    ORDER BY created_at DESC";
+            $query = $this->db->query($sql);
         }
-        
+
         if ($query === FALSE) {
             return array();
         }
