@@ -300,7 +300,20 @@ class RealDatabase {
 
         return $this->query($sql);
     }
-    
+
+    public function get_where($table, $where = null, $limit = null, $offset = null) {
+        // Convenience method that combines where() and get()
+        if ($where !== null) {
+            $this->where($where);
+        }
+        if ($offset !== null) {
+            $this->limit($limit, $offset);
+        } elseif ($limit !== null) {
+            $this->limit($limit);
+        }
+        return $this->get($table);
+    }
+
     public function insert($table, $data) {
         $fields = array_keys($data);
         $values = array_values($data);
@@ -330,9 +343,9 @@ class RealDatabase {
         }
         
         $sql = "UPDATE " . $table . " SET " . implode(', ', $set_clauses);
-        
+
         if ($where && !empty($this->where_conditions)) {
-            $sql .= " WHERE " . implode(' AND ', $this->where_conditions);
+            $sql .= " WHERE " . implode(' ', $this->where_conditions);
         }
         
         $this->last_executed_query = $sql;
@@ -342,15 +355,15 @@ class RealDatabase {
         if ($result === false) {
             throw new Exception("Update failed: " . $this->connection->error . " SQL: " . $sql);
         }
-        
-        return $this->affected_rows();
+
+        return TRUE;
     }
     
     public function delete($table, $where = null) {
         $sql = "DELETE FROM " . $table;
-        
+
         if (!empty($this->where_conditions)) {
-            $sql .= " WHERE " . implode(' AND ', $this->where_conditions);
+            $sql .= " WHERE " . implode(' ', $this->where_conditions);
         }
         
         $this->last_executed_query = $sql;
@@ -387,10 +400,10 @@ class RealQueryResult {
     
     public function row_array() {
         if ($this->result === true || $this->result === false) {
-            return [];
+            return null;
         }
-        
-        return $this->result->fetch_assoc() ?: [];
+
+        return $this->result->fetch_assoc();
     }
     
     public function row() {
@@ -782,6 +795,9 @@ if (!function_exists('log_message')) {
 
 // Load the Common_model
 require_once APPPATH . 'models/common_model.php';
+
+// Load the Configuration_model (needed by ConfigurationModelMySqlTest)
+require_once APPPATH . 'models/configuration_model.php';
 
 // Create a mock Common_Model that works with our mock database
 class TestCommonModel {

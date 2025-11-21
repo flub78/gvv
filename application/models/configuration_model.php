@@ -35,7 +35,7 @@ class Configuration_model extends Common_Model {
         if ($key == "")
             return "";
         $vals = $this->get_by_id('id', $key);
-        if (array_key_exists('cle', $vals) && array_key_exists('valeur', $vals)) {
+        if (is_array($vals) && array_key_exists('cle', $vals) && array_key_exists('valeur', $vals)) {
             $description = array_key_exists('description', $vals) ? $vals['description'] : '';
             return $vals['cle'] . " " . $description;
         } else {
@@ -72,7 +72,7 @@ class Configuration_model extends Common_Model {
         // Narrow by section/club if still multiple
         if ($query->num_rows() > 1) {
             $this->db->where('cle', $key);
-            $section = $this->gvv_model->section();
+            $section = $this->section();
             $this->db->where('club', $section['id']);
             $query = $this->db->get($this->table);
         }
@@ -113,7 +113,7 @@ class Configuration_model extends Common_Model {
         // Narrow by section/club if still multiple
         if ($query->num_rows() > 1) {
             $this->db->where('cle', $key);
-            $section = $this->gvv_model->section();
+            $section = $this->section();
             $this->db->where('club', $section['id']);
             $query = $this->db->get($this->table);
         }
@@ -124,7 +124,7 @@ class Configuration_model extends Common_Model {
                 return $row->file;
             }
         }
-        
+
         return null;
     }
 }
