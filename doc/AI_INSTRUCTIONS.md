@@ -16,6 +16,28 @@ This file provides comprehensive guidance for AI assistants (Claude Code, GitHub
 
 ---
 
+## Critical: Code Change Approval Policy
+
+**⚠️ IMPORTANT: Always get explicit approval before implementing code changes.**
+
+When the user asks you to:
+- **"Analyze"** → Provide analysis and findings ONLY, do not change code
+- **"Suggest a fix"** → Describe the problem and propose solution ONLY, do not change code
+- **"Investigate"** → Research and report findings ONLY, do not change code
+- **"Propose"** → Present recommendations ONLY, do not change code
+- **"Review"** → Provide feedback and suggestions ONLY, do not change code
+
+**Only implement code changes when explicitly instructed:**
+- ✅ "Apply the fix"
+- ✅ "Implement this change"
+- ✅ "Make these modifications"
+- ✅ "Fix this issue"
+- ✅ "Update the code"
+
+**If unclear whether to implement, ASK FIRST.** The user wants to review and approve proposed changes before they are applied.
+
+---
+
 ## Critical: Environment Setup
 
 **ALWAYS source the environment setup before running PHP commands:**
@@ -244,6 +266,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 8. **Only build what explicitly asked for** - Never assume, add or change features, infra or logic without a clear request in the PRD or plan to do so.
 9. **No Over-Engineering** - Do not introduce features, logs, collections or automation unless directly specified.
 10. **Do not generate additional documents when not required** - Restrict the documentation to the minimal, a PRD for the feature description and an implementation plan for the design , breakdown into tasks and status progress. Do not generate summaries of implementation, external todo lists or subpart design documents.
+11. **NEVER implement code changes without explicit approval** - When asked to "analyze", "suggest", "investigate", or "propose", provide analysis and recommendations ONLY. Wait for explicit approval (e.g., "apply the fix", "implement this", "make these changes") before modifying any code. If unsure whether to implement, ASK FIRST.
 
 ---
 

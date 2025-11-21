@@ -62,20 +62,7 @@ Authorization Integration
  [x] Complete authorization workflow
 
 Authorization Migration
- [ ] User role granted access
- [ ] User role denied access
- [ ] Planchiste role granted access
- [x] Planchiste role denied access
- [ ] Ca role granted access
- [ ] Ca role denied access
- [ ] Bureau role granted access
- [x] Bureau role denied access
- [ ] Tresorier role granted access
- [ ] Tresorier role denied access
- [ ] Admin role granted access
- [ ] Admin role no denied access
- [ ] Role hierarchy
- [ ] Section based access
+ [x] Placeholder
 
 Balance Accordion Search
  [x] Accordion search java script logic
@@ -93,7 +80,7 @@ Categorie Model Integration
  [x] Transaction rollback
 
 Compta Saisie Cotisation
- [ ] Validation rejects empty fields
+ [x] Validation rejects empty fields
  [x] Validation rejects invalid montant
  [x] Validation rejects double cotisation
  [x] Process saisie cotisation creates two ecritures

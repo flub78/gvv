@@ -8,6 +8,14 @@ define('APPPATH', dirname(__FILE__) . '/../');
 define('FCPATH', dirname(__FILE__) . '/../../');  // Front controller path (project root)
 define('ENVIRONMENT', 'testing');
 
+// Define PHPUNIT constant for constants.php conditional logic
+if (!defined('PHPUNIT_TEST')) {
+    define('PHPUNIT_TEST', 1);
+}
+
+// Load application constants (includes PCHART, file modes, etc.)
+require_once APPPATH . 'config/constants.php';
+
 // Suppress notices for cleaner test output
 error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
 
