@@ -626,7 +626,9 @@ class Email_lists_model extends CI_Model {
                     $valid_count++;
                 } else {
                     $invalid_count++;
-                    $result['errors'][] = 'Failed to insert: ' . $item['email'];
+                    $db_error = $this->db->error();
+                    $result['errors'][] = 'Failed to insert: ' . $item['email'] .
+                        ' - ' . $db_error['message'] . ' (code: ' . $db_error['code'] . ')';
                 }
             } else {
                 $invalid_count++;
