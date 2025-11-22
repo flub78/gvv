@@ -626,9 +626,11 @@ class Email_lists_model extends CI_Model {
                     $valid_count++;
                 } else {
                     $invalid_count++;
-                    $db_error = $this->db->error();
+                    // CodeIgniter 2.x compatible error handling
+                    $error_msg = mysqli_error($this->db->conn_id);
+                    $error_code = mysqli_errno($this->db->conn_id);
                     $result['errors'][] = 'Failed to insert: ' . $item['email'] .
-                        ' - ' . $db_error['message'] . ' (code: ' . $db_error['code'] . ')';
+                        ' - ' . $error_msg . ' (code: ' . $error_code . ')';
                 }
             } else {
                 $invalid_count++;
