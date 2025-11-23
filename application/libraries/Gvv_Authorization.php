@@ -18,7 +18,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * @see /doc/plans/2025_authorization_refactoring_plan.md
  */
-class Gvv_Authorization {
+class Gvv_Authorization
+{
 
     protected $CI;
     protected $use_new_system = FALSE; // Feature flag
@@ -188,10 +189,10 @@ class Gvv_Authorization {
     public function grant_role($user_id, $types_roles_id, $section_id, $granted_by, $notes = NULL)
     {
         // Ensure all IDs are integers, but allow NULL for section_id
-        $user_id = (int)$user_id;
-        $types_roles_id = (int)$types_roles_id;
-        $section_id = ($section_id !== NULL) ? (int)$section_id : NULL;
-        $granted_by = (int)$granted_by;
+        $user_id = (int) $user_id;
+        $types_roles_id = (int) $types_roles_id;
+        $section_id = ($section_id !== NULL) ? (int) $section_id : NULL;
+        $granted_by = (int) $granted_by;
 
         // Log parameters for debugging
         log_message('info', 'grant_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . ($section_id ?? 'NULL') . ', granted_by=' . $granted_by);
@@ -201,13 +202,13 @@ class Gvv_Authorization {
             ->where('user_id', $user_id)
             ->where('types_roles_id', $types_roles_id)
             ->where('revoked_at IS NULL');
-        
+
         if ($section_id === NULL) {
             $this->CI->db->where('section_id IS NULL');
         } else {
             $this->CI->db->where('section_id', $section_id);
         }
-        
+
         $existing = $this->CI->db->get('user_roles_per_section')->row_array();
 
         if ($existing) {
@@ -256,10 +257,10 @@ class Gvv_Authorization {
     public function revoke_role($user_id, $types_roles_id, $section_id, $revoked_by)
     {
         // Ensure all IDs are integers, but allow NULL for section_id
-        $user_id = (int)$user_id;
-        $types_roles_id = (int)$types_roles_id;
-        $section_id = ($section_id !== NULL) ? (int)$section_id : NULL;
-        $revoked_by = (int)$revoked_by;
+        $user_id = (int) $user_id;
+        $types_roles_id = (int) $types_roles_id;
+        $section_id = ($section_id !== NULL) ? (int) $section_id : NULL;
+        $revoked_by = (int) $revoked_by;
 
         log_message('info', 'revoke_role: user_id=' . $user_id . ', types_roles_id=' . $types_roles_id . ', section_id=' . ($section_id ?? 'NULL') . ', revoked_by=' . $revoked_by);
 
@@ -275,8 +276,8 @@ class Gvv_Authorization {
         }
 
         $result = $this->CI->db->update('user_roles_per_section', array(
-                'revoked_at' => date('Y-m-d H:i:s')
-            ));
+            'revoked_at' => date('Y-m-d H:i:s')
+        ));
 
         if ($result) {
             log_message('info', 'revoke_role: SUCCESS - Role revoked from user=' . $user_id);
@@ -487,13 +488,12 @@ class Gvv_Authorization {
     {
         // Check exact match (controller + action)
         if ($action !== NULL) {
-            $exact = $this->CI->db
-                ->where('types_roles_id', $types_roles_id)
-                ->where('controller', $controller)
-                ->where('action', $action)
-                ->where('section_id', $section_id)
-                ->get('role_permissions')
-                ->row_array();
+            $exact = $this->CI->db->get_where('role_permissions', [
+                'types_roles_id' => $types_roles_id,
+                'controller' => $controller,
+                'action' => $action,
+                'section_id' => $section_id
+            ])->row_array();
 
             if ($exact) {
                 return TRUE;
