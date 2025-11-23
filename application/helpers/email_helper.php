@@ -318,8 +318,7 @@ if (!function_exists('parse_email_string')) {
             $config = array(
                 'delimiter' => $delimiter,
                 'has_header' => false,
-                'email_col' => 0,
-                'name_col' => 1
+                'email_col' => -1  // Scan all columns for emails
             );
 
             return parse_csv_emails($content, $config);
@@ -409,7 +408,7 @@ if (!function_exists('parse_csv_emails')) {
             return array();
         }
 
-        $email_col = isset($config['email_col']) ? (int)$config['email_col'] : 0;
+        $email_col = isset($config['email_col']) ? (int)$config['email_col'] : -1; // -1 means scan all columns
         $name_col = isset($config['name_col']) ? (int)$config['name_col'] : -1;
         $firstname_col = isset($config['firstname_col']) ? (int)$config['firstname_col'] : -1;
         $has_header = isset($config['has_header']) ? (bool)$config['has_header'] : TRUE;
@@ -422,41 +421,87 @@ if (!function_exists('parse_csv_emails')) {
         for ($i = $start_line; $i < count($lines); $i++) {
             $row = str_getcsv($lines[$i], $delimiter);
 
-            if (empty($row) || count($row) <= $email_col) {
+            if (empty($row)) {
                 continue;
             }
 
-            $email = trim($row[$email_col]);
+            // If email_col is specified, use only that column
+            if ($email_col >= 0) {
+                if (count($row) <= $email_col) {
+                    continue;
+                }
 
-            if (empty($email)) {
-                continue;
+                $email = trim($row[$email_col]);
+
+                if (empty($email)) {
+                    continue;
+                }
+
+                $name = '';
+                $firstname = '';
+
+                if ($name_col >= 0 && isset($row[$name_col])) {
+                    $name = trim($row[$name_col]);
+                }
+
+                if ($firstname_col >= 0 && isset($row[$firstname_col])) {
+                    $firstname = trim($row[$firstname_col]);
+                }
+
+                $display_name = trim($firstname . ' ' . $name);
+
+                $valid = validate_email($email);
+
+                $result[] = array(
+                    'email' => $email,
+                    'normalized' => normalize_email($email),
+                    'name' => $name,
+                    'firstname' => $firstname,
+                    'display_name' => $display_name,
+                    'valid' => $valid,
+                    'error' => $valid ? '' : 'Invalid email format: "' . $email . '" (line ' . ($i + 1) . ')',
+                    'line' => $i + 1
+                );
+            } else {
+                // Scan all columns for email addresses
+                foreach ($row as $col_index => $cell) {
+                    $cell = trim($cell);
+                    
+                    if (empty($cell)) {
+                        continue;
+                    }
+
+                    // Check if this cell contains a valid email
+                    if (validate_email($cell)) {
+                        // Try to get name from adjacent columns if available
+                        $name = '';
+                        $firstname = '';
+                        $display_name = '';
+
+                        // Try to use firstname (col 0) and name (col 1) if available
+                        if ($col_index > 1) {
+                            if (isset($row[0])) {
+                                $firstname = trim($row[0]);
+                            }
+                            if (isset($row[1])) {
+                                $name = trim($row[1]);
+                            }
+                            $display_name = trim($firstname . ' ' . $name);
+                        }
+
+                        $result[] = array(
+                            'email' => $cell,
+                            'normalized' => normalize_email($cell),
+                            'name' => $name,
+                            'firstname' => $firstname,
+                            'display_name' => $display_name,
+                            'valid' => true,
+                            'error' => '',
+                            'line' => $i + 1
+                        );
+                    }
+                }
             }
-
-            $name = '';
-            $firstname = '';
-
-            if ($name_col >= 0 && isset($row[$name_col])) {
-                $name = trim($row[$name_col]);
-            }
-
-            if ($firstname_col >= 0 && isset($row[$firstname_col])) {
-                $firstname = trim($row[$firstname_col]);
-            }
-
-            $display_name = trim($firstname . ' ' . $name);
-
-            $valid = validate_email($email);
-
-            $result[] = array(
-                'email' => $email,
-                'normalized' => normalize_email($email),
-                'name' => $name,
-                'firstname' => $firstname,
-                'display_name' => $display_name,
-                'valid' => $valid,
-                'error' => $valid ? '' : 'Invalid email format: "' . $email . '" (line ' . ($i + 1) . ')',
-                'line' => $i + 1
-            );
         }
 
         return $result;
