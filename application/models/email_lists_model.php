@@ -11,11 +11,13 @@ if (!defined('BASEPATH'))
  * @package models
  * @see doc/design_notes/gestion_emails_design.md
  */
-class Email_lists_model extends CI_Model {
+class Email_lists_model extends CI_Model
+{
     public $table = 'email_lists';
     protected $primary_key = 'id';
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->load->helper('email');
     }
@@ -25,7 +27,8 @@ class Email_lists_model extends CI_Model {
      *
      * @return string
      */
-    public function primary_key() {
+    public function primary_key()
+    {
         return $this->primary_key;
     }
 
@@ -34,7 +37,8 @@ class Email_lists_model extends CI_Model {
      *
      * @return string
      */
-    public function table() {
+    public function table()
+    {
         return $this->table;
     }
 
@@ -48,7 +52,8 @@ class Email_lists_model extends CI_Model {
      * @param array $data List data (name, description, active_member, visible, created_by)
      * @return int|false New list ID or FALSE on failure
      */
-    public function create_list($data) {
+    public function create_list($data)
+    {
         if (empty($data['name']) || empty($data['created_by'])) {
             return FALSE;
         }
@@ -76,7 +81,8 @@ class Email_lists_model extends CI_Model {
      * @param int $id List ID
      * @return array|null List data or NULL if not found
      */
-    public function get_list($id) {
+    public function get_list($id)
+    {
         $query = $this->db->get_where($this->table, array('id' => $id));
         if ($query === FALSE) {
             return NULL;
@@ -93,7 +99,8 @@ class Email_lists_model extends CI_Model {
      * @param array $data Data to update
      * @return bool TRUE on success, FALSE on failure
      */
-    public function update_list($id, $data) {
+    public function update_list($id, $data)
+    {
         if (empty($id)) {
             return FALSE;
         }
@@ -121,7 +128,8 @@ class Email_lists_model extends CI_Model {
      * @param int $id List ID
      * @return bool TRUE on success, FALSE on failure
      */
-    public function delete_list($id) {
+    public function delete_list($id)
+    {
         if (empty($id)) {
             return FALSE;
         }
@@ -140,22 +148,31 @@ class Email_lists_model extends CI_Model {
      * @param bool $is_admin Whether user is admin
      * @return array Array of lists
      */
-    public function get_user_lists($user_id, $is_admin = false) {
+    public function get_user_lists($user_id, $is_admin = false)
+    {
+        // Use raw SQL query for CodeIgniter 2.x compatibility
+        $safe_user_id = (int) $user_id;
+
         if ($is_admin) {
-            // Admins see all lists
-            $this->db->order_by('created_at', 'DESC');
-            $query = $this->db->get($this->table);
+            // Admins see all lists with owner information
+            $sql = "SELECT el.*, u.username as owner_username, CONCAT(m.mprenom, ' ', m.mnom) as owner_name
+                    FROM {$this->table} el
+                    LEFT JOIN users u ON el.created_by = u.id
+                    LEFT JOIN membres m ON u.username = m.mlogin
+                    ORDER BY el.created_at DESC";
         } else {
             // Non-admins see only:
             // 1. Public lists (visible = 1)
             // 2. Private lists they created (visible = 0 AND created_by = user_id)
-            // Use custom query for CodeIgniter 2.x compatibility with safe casting
-            $safe_user_id = (int)$user_id;
-            $sql = "SELECT * FROM {$this->table}
-                    WHERE (visible = 1 OR (visible = 0 AND created_by = {$safe_user_id}))
-                    ORDER BY created_at DESC";
-            $query = $this->db->query($sql);
+            $sql = "SELECT el.*, u.username as owner_username, CONCAT(m.mprenom, ' ', m.mnom) as owner_name
+                    FROM {$this->table} el
+                    LEFT JOIN users u ON el.created_by = u.id
+                    LEFT JOIN membres m ON u.username = m.mlogin
+                    WHERE (el.visible = 1 OR (el.visible = 0 AND el.created_by = {$safe_user_id}))
+                    ORDER BY el.created_at DESC";
         }
+
+        $query = $this->db->query($sql);
 
         if ($query === FALSE) {
             return array();
@@ -168,7 +185,8 @@ class Email_lists_model extends CI_Model {
      *
      * @return array Array of lists
      */
-    public function get_visible_lists() {
+    public function get_visible_lists()
+    {
         $this->db->where('visible', 1);
         $this->db->order_by('name', 'ASC');
         $query = $this->db->get($this->table);
@@ -185,7 +203,8 @@ class Email_lists_model extends CI_Model {
      * @param int $exclude_id Optional ID to exclude (for updates)
      * @return bool TRUE if name exists, FALSE otherwise
      */
-    public function name_exists($name, $exclude_id = NULL) {
+    public function name_exists($name, $exclude_id = NULL)
+    {
         $this->db->where('name', $name);
         if ($exclude_id) {
             $this->db->where('id !=', $exclude_id);
@@ -211,7 +230,8 @@ class Email_lists_model extends CI_Model {
      * @param string $notes Optional notes
      * @return int|false New role ID or FALSE on failure
      */
-    public function add_role_to_list($list_id, $types_roles_id, $section_id, $granted_by = NULL, $notes = NULL) {
+    public function add_role_to_list($list_id, $types_roles_id, $section_id, $granted_by = NULL, $notes = NULL)
+    {
         if (empty($list_id) || empty($types_roles_id)) {
             return FALSE;
         }
@@ -252,7 +272,8 @@ class Email_lists_model extends CI_Model {
     /**
      * Add role by role_id and section_id (convenience wrapper)
      */
-    public function add_role($list_id, $role_id, $section_id) {
+    public function add_role($list_id, $role_id, $section_id)
+    {
         return $this->add_role_to_list($list_id, $role_id, $section_id);
     }
 
@@ -263,7 +284,8 @@ class Email_lists_model extends CI_Model {
      * @param int $role_id Role entry ID (database row id)
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_role_from_list($list_id, $role_id) {
+    public function remove_role_from_list($list_id, $role_id)
+    {
         if (empty($list_id) || empty($role_id)) {
             return FALSE;
         }
@@ -281,7 +303,8 @@ class Email_lists_model extends CI_Model {
      * @param int|null $section_id Section ID (NULL for "All sections")
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_role($list_id, $types_roles_id, $section_id) {
+    public function remove_role($list_id, $types_roles_id, $section_id)
+    {
         if (empty($list_id) || empty($types_roles_id)) {
             return FALSE;
         }
@@ -302,7 +325,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Array of roles with role and section names
      */
-    public function get_list_roles($list_id) {
+    public function get_list_roles($list_id)
+    {
         $this->db->select('elr.*, tr.nom as role_name, s.nom as section_name');
         $this->db->from('email_list_roles elr');
         $this->db->join('types_roles tr', 'elr.types_roles_id = tr.id', 'left');
@@ -321,7 +345,8 @@ class Email_lists_model extends CI_Model {
      *
      * @return array Array of roles with id, nom, description, scope, translation_key
      */
-    public function get_available_roles() {
+    public function get_available_roles()
+    {
         $this->db->select('id, nom, description, scope, is_system_role, translation_key');
         $this->db->from('types_roles');
         $this->db->order_by('display_order', 'ASC');
@@ -337,7 +362,8 @@ class Email_lists_model extends CI_Model {
      *
      * @return array Array of sections with id, nom, description
      */
-    public function get_available_sections() {
+    public function get_available_sections()
+    {
         $this->db->select('id, nom, description, acronyme, couleur');
         $this->db->from('sections');
         $this->db->order_by('id', 'ASC');
@@ -356,7 +382,8 @@ class Email_lists_model extends CI_Model {
      * @param string $active_member Filter: 'active', 'inactive', 'all'
      * @return array Array of users with email addresses
      */
-    public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active') {
+    public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active')
+    {
         $this->db->select('m.memail as email, m.memailparent, m.mnom, m.mprenom, m.mlogin, m.actif');
         $this->db->from('user_roles_per_section urps');
         $this->db->join('users u', 'urps.user_id = u.id', 'inner');
@@ -390,7 +417,8 @@ class Email_lists_model extends CI_Model {
      * @param string $membre_id Member login (FK to membres.mlogin)
      * @return int|false New member ID or FALSE on failure
      */
-    public function add_manual_member($list_id, $membre_id) {
+    public function add_manual_member($list_id, $membre_id)
+    {
         if (empty($list_id) || empty($membre_id)) {
             return FALSE;
         }
@@ -427,7 +455,8 @@ class Email_lists_model extends CI_Model {
      * @param string $membre_id Member login (FK to membres.mlogin)
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_manual_member($list_id, $membre_id) {
+    public function remove_manual_member($list_id, $membre_id)
+    {
         if (empty($list_id) || empty($membre_id)) {
             return FALSE;
         }
@@ -443,7 +472,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Array of members with email addresses
      */
-    public function get_manual_members($list_id) {
+    public function get_manual_members($list_id)
+    {
         $this->db->select('elm.id, elm.membre_id, m.memail as email, m.memailparent, m.mnom, m.mprenom, m.actif');
         $this->db->from('email_list_members elm');
         $this->db->join('membres m', 'elm.membre_id = m.mlogin', 'inner');
@@ -467,7 +497,8 @@ class Email_lists_model extends CI_Model {
      * @param string $name Optional display name
      * @return int|false New external email ID or FALSE on failure
      */
-    public function add_external_email($list_id, $email, $name = NULL) {
+    public function add_external_email($list_id, $email, $name = NULL)
+    {
         log_message('debug', "EMAIL_LISTS_MODEL add_external_email() called: list_id=$list_id, email=$email, name=$name");
 
         if (empty($list_id)) {
@@ -512,7 +543,8 @@ class Email_lists_model extends CI_Model {
      * @param string $email Email address to remove
      * @return bool TRUE on success, FALSE on failure
      */
-    public function remove_external_email($list_id, $email) {
+    public function remove_external_email($list_id, $email)
+    {
         if (empty($list_id) || empty($email)) {
             return FALSE;
         }
@@ -529,7 +561,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Array of external emails
      */
-    public function get_external_emails($list_id) {
+    public function get_external_emails($list_id)
+    {
         $this->db->select('id, external_email as email, external_name as name');
         $this->db->from('email_list_external');
         $this->db->where('email_list_id', $list_id);
@@ -554,7 +587,8 @@ class Email_lists_model extends CI_Model {
      * @param array $file PHP $_FILES array element
      * @return array Result with 'success', 'filename', 'valid_count', 'errors'
      */
-    public function upload_external_file($list_id, $file) {
+    public function upload_external_file($list_id, $file)
+    {
         $this->load->helper('email_helper');
 
         $result = array(
@@ -641,7 +675,7 @@ class Email_lists_model extends CI_Model {
         // Save physical file if we have valid addresses
         if ($valid_count > 0) {
             $upload_path = FCPATH . 'uploads/email_lists/' . $list_id . '/';
-            
+
             // Create directory if it doesn't exist
             if (!is_dir($upload_path)) {
                 if (!mkdir($upload_path, 0755, TRUE)) {
@@ -660,12 +694,12 @@ class Email_lists_model extends CI_Model {
             if (move_uploaded_file($file['tmp_name'], $target_file)) {
                 $result['success'] = TRUE;
                 $result['filename'] = $unique_filename;
-                
+
                 // Log successful upload
                 log_message('info', "Email file uploaded: list_id={$list_id}, file={$unique_filename}, valid_emails={$valid_count}");
             } else {
                 $result['errors'][] = 'Failed to save file to uploads directory';
-                
+
                 // Cleanup database entries since file save failed
                 $this->db->where('email_list_id', $list_id);
                 $this->db->where('source_file', $unique_filename);
@@ -685,7 +719,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Array of files with metadata (filename, count, added_at)
      */
-    public function get_uploaded_files($list_id) {
+    public function get_uploaded_files($list_id)
+    {
         $this->db->select('source_file as filename, COUNT(*) as address_count, MIN(added_at) as uploaded_at');
         $this->db->from('email_list_external');
         $this->db->where('email_list_id', $list_id);
@@ -707,7 +742,8 @@ class Email_lists_model extends CI_Model {
      * @param string $filename Source filename
      * @return array Result with 'success', 'deleted_count', 'errors'
      */
-    public function delete_file_and_addresses($list_id, $filename) {
+    public function delete_file_and_addresses($list_id, $filename)
+    {
         $result = array(
             'success' => FALSE,
             'deleted_count' => 0,
@@ -760,7 +796,8 @@ class Email_lists_model extends CI_Model {
      * @param string $filename Source filename
      * @return array Statistics (count, uploaded_at, file_size, file_exists)
      */
-    public function get_file_stats($list_id, $filename) {
+    public function get_file_stats($list_id, $filename)
+    {
         // Get count from database
         $this->db->select('COUNT(*) as address_count, MIN(added_at) as uploaded_at');
         $this->db->from('email_list_external');
@@ -778,7 +815,7 @@ class Email_lists_model extends CI_Model {
             );
         }
         $stats = $query->row_array();
-        
+
         // Handle case where no records found
         if ($stats === NULL) {
             $stats = array(
@@ -806,7 +843,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Deduplicated array of email addresses (strings only)
      */
-    public function textual_list($list_id) {
+    public function textual_list($list_id)
+    {
         $list = $this->get_list($list_id);
 
         if (!$list) {
@@ -873,7 +911,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return int Number of unique members
      */
-    public function count_members($list_id) {
+    public function count_members($list_id)
+    {
         $emails = $this->textual_list($list_id);
         return count($emails);
     }
@@ -885,7 +924,8 @@ class Email_lists_model extends CI_Model {
      * @param int $list_id List ID
      * @return array Array of email objects with 'email', 'name', 'source' keys
      */
-    public function detailed_list($list_id) {
+    public function detailed_list($list_id)
+    {
         $list = $this->get_list($list_id);
 
         if (!$list) {
@@ -910,7 +950,7 @@ class Email_lists_model extends CI_Model {
             );
             foreach ($role_members as $user) {
                 $name = trim($user['mnom'] . ' ' . $user['mprenom']);
-                
+
                 // Add primary email
                 if (!empty($user['email'])) {
                     $email_lower = strtolower(trim($user['email']));
@@ -922,7 +962,7 @@ class Email_lists_model extends CI_Model {
                     // Store role name as source
                     $email_sources[$email_lower] = $role['role_name'];
                 }
-                
+
                 // Add parent email
                 if (!empty($user['memailparent'])) {
                     $parent_email_lower = strtolower(trim($user['memailparent']));
@@ -941,7 +981,7 @@ class Email_lists_model extends CI_Model {
         $manual_members = $this->get_manual_members($list_id);
         foreach ($manual_members as $member) {
             $name = trim($member['mnom'] . ' ' . $member['mprenom']);
-            
+
             // Add primary email
             if (!empty($member['email'])) {
                 $email_lower = strtolower(trim($member['email']));
@@ -956,7 +996,7 @@ class Email_lists_model extends CI_Model {
                     $email_sources[$email_lower] = 'membre';
                 }
             }
-            
+
             // Add parent email
             if (!empty($member['memailparent'])) {
                 $parent_email_lower = strtolower(trim($member['memailparent']));
