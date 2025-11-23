@@ -180,9 +180,9 @@ class Email_lists extends Gvv_Controller
         if (!$list) {
             show_404();
         }
-        
+
         log_message('debug', 'EMAIL_LISTS: edit() called for id=' . $id);
-        
+
         // If validation errors exist, show them
         if (validation_errors()) {
             log_message('debug', 'EMAIL_LISTS: edit() has validation errors');
@@ -224,13 +224,13 @@ class Email_lists extends Gvv_Controller
     public function update($id)
     {
         log_message('debug', 'EMAIL_LISTS: update() called with id=' . $id);
-        
+
         $list = $this->email_lists_model->get_list($id);
         if (!$list) {
             log_message('debug', 'EMAIL_LISTS: list not found');
             show_404();
         }
-        
+
         log_message('debug', 'EMAIL_LISTS: list found, name=' . $list['name']);
 
         // Store the list ID for validation callback
@@ -240,14 +240,14 @@ class Email_lists extends Gvv_Controller
         $this->form_validation->set_rules('name', $this->lang->line('email_lists_name'), 'required|max_length[255]|callback_check_name_unique');
         $this->form_validation->set_rules('description', $this->lang->line('email_lists_description'), 'max_length[1000]');
         $this->form_validation->set_rules('active_member', $this->lang->line('email_lists_active_member'), 'required|in_list[active,inactive,all]');
-        
+
         log_message('debug', 'EMAIL_LISTS: validation rules set');
 
         if ($this->form_validation->run() === FALSE) {
             log_message('debug', 'EMAIL_LISTS: validation failed, returning to edit form');
             return $this->edit($id);
         }
-        
+
         log_message('debug', 'EMAIL_LISTS: validation passed');
 
         // Update the list
@@ -350,16 +350,16 @@ class Email_lists extends Gvv_Controller
     public function check_name_unique($name)
     {
         log_message('debug', 'EMAIL_LISTS: check_name_unique called with name=' . $name);
-        
+
         // Check if updating (exclude current list ID)
         $exclude_id = isset($this->_update_list_id) ? $this->_update_list_id : NULL;
-        
+
         log_message('debug', 'EMAIL_LISTS: exclude_id=' . ($exclude_id ? $exclude_id : 'NULL'));
-        
+
         $exists = $this->email_lists_model->name_exists($name, $exclude_id);
-        
+
         log_message('debug', 'EMAIL_LISTS: name_exists returned ' . ($exists ? 'TRUE' : 'FALSE'));
-        
+
         if ($exists) {
             $this->form_validation->set_message('check_name_unique', $this->lang->line('email_lists_name_exists'));
             return FALSE;
@@ -532,8 +532,8 @@ class Email_lists extends Gvv_Controller
             return;
         }
 
-        $role_id = (int)$parts[0];
-        $section_id = (int)$parts[1];
+        $role_id = (int) $parts[0];
+        $section_id = (int) $parts[1];
         $section_id = ($section_id === 0) ? NULL : $section_id;
 
         $result = $this->email_lists_model->add_role($list_id, $role_id, $section_id);
@@ -568,8 +568,8 @@ class Email_lists extends Gvv_Controller
             return;
         }
 
-        $role_id = (int)$parts[0];
-        $section_id = (int)$parts[1];
+        $role_id = (int) $parts[0];
+        $section_id = (int) $parts[1];
         $section_id = ($section_id === 0) ? NULL : $section_id;
 
         $result = $this->email_lists_model->remove_role($list_id, $role_id, $section_id);
@@ -592,10 +592,12 @@ class Email_lists extends Gvv_Controller
         $data['controller'] = $this->controller;
         $data['action'] = 'addresses';
 
-        // Get all visible email lists for selection dropdown
-        $visible_lists = $this->email_lists_model->get_visible_lists();
+        // Get email lists visible to current user (public + their private lists)
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+        $user_lists = $this->email_lists_model->get_user_lists($user_id, $is_admin);
         $data['selection'] = array();
-        foreach ($visible_lists as $list) {
+        foreach ($user_lists as $list) {
             $data['selection'][$list['id']] = $list['name'];
         }
 
@@ -760,109 +762,109 @@ class Email_lists extends Gvv_Controller
             $all_emails = array();
             $criteria_count = 0;
 
-        // Resolve emails from criteria (roles)
-        if (!empty($roles)) {
-            foreach ($roles as $role_value) {
-                // Parse role_id and section_id from value (format: "role_id_section_id")
-                $parts = explode('_', $role_value);
-                if (count($parts) == 2) {
-                    $role_id = (int)$parts[0];
-                    $section_id = (int)$parts[1];
-                    $section_id = ($section_id === 0) ? NULL : $section_id;
+            // Resolve emails from criteria (roles)
+            if (!empty($roles)) {
+                foreach ($roles as $role_value) {
+                    // Parse role_id and section_id from value (format: "role_id_section_id")
+                    $parts = explode('_', $role_value);
+                    if (count($parts) == 2) {
+                        $role_id = (int) $parts[0];
+                        $section_id = (int) $parts[1];
+                        $section_id = ($section_id === 0) ? NULL : $section_id;
 
-                    // Get users for this role/section
-                    $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member);
-                    foreach ($users as $user) {
+                        // Get users for this role/section
+                        $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member);
+                        foreach ($users as $user) {
+                            // Add primary email
+                            if (!empty($user['email'])) {
+                                $all_emails[] = strtolower(trim($user['email']));
+                            }
+                            // Add parent email if present
+                            if (!empty($user['memailparent'])) {
+                                $all_emails[] = strtolower(trim($user['memailparent']));
+                            }
+                        }
+                    }
+                }
+                // Count unique emails from criteria
+                $criteria_count = count(array_unique($all_emails));
+            }
+
+            // Add manual members (store with names)
+            $member_names = array(); // Map email -> name
+            if (!empty($manual_members)) {
+                $this->load->model('membres_model');
+                foreach ($manual_members as $membre_id) {
+                    $membre = $this->membres_model->get_by_id('mlogin', $membre_id);
+                    if ($membre) {
+                        $name = trim($membre['mnom'] . ' ' . $membre['mprenom']);
+
                         // Add primary email
-                        if (!empty($user['email'])) {
-                            $all_emails[] = strtolower(trim($user['email']));
+                        if (!empty($membre['memail'])) {
+                            $email_lower = strtolower(trim($membre['memail']));
+                            $all_emails[] = $email_lower;
+                            // Store name
+                            if (!empty($name)) {
+                                $member_names[$email_lower] = $name;
+                            }
                         }
+
                         // Add parent email if present
-                        if (!empty($user['memailparent'])) {
-                            $all_emails[] = strtolower(trim($user['memailparent']));
+                        if (!empty($membre['memailparent'])) {
+                            $parent_email_lower = strtolower(trim($membre['memailparent']));
+                            $all_emails[] = $parent_email_lower;
+                            // Store name with (parent) suffix
+                            if (!empty($name)) {
+                                $member_names[$parent_email_lower] = $name . ' (parent)';
+                            }
                         }
                     }
                 }
             }
-            // Count unique emails from criteria
-            $criteria_count = count(array_unique($all_emails));
-        }
 
-        // Add manual members (store with names)
-        $member_names = array(); // Map email -> name
-        if (!empty($manual_members)) {
-            $this->load->model('membres_model');
-            foreach ($manual_members as $membre_id) {
-                $membre = $this->membres_model->get_by_id('mlogin', $membre_id);
-                if ($membre) {
-                    $name = trim($membre['mnom'] . ' ' . $membre['mprenom']);
-
-                    // Add primary email
-                    if (!empty($membre['memail'])) {
-                        $email_lower = strtolower(trim($membre['memail']));
+            // Add external emails (store with names)
+            $external_with_names = array();
+            $external_emails_set = array(); // Set of all external emails for quick lookup
+            if (!empty($external_emails)) {
+                foreach ($external_emails as $idx => $email) {
+                    if (!empty($email)) {
+                        $email_lower = strtolower(trim($email));
                         $all_emails[] = $email_lower;
-                        // Store name
+                        $external_emails_set[$email_lower] = true; // Mark as external
+                        // Store name if provided
+                        $name = isset($external_names[$idx]) ? trim($external_names[$idx]) : '';
                         if (!empty($name)) {
-                            $member_names[$email_lower] = $name;
-                        }
-                    }
-
-                    // Add parent email if present
-                    if (!empty($membre['memailparent'])) {
-                        $parent_email_lower = strtolower(trim($membre['memailparent']));
-                        $all_emails[] = $parent_email_lower;
-                        // Store name with (parent) suffix
-                        if (!empty($name)) {
-                            $member_names[$parent_email_lower] = $name . ' (parent)';
+                            $external_with_names[$email_lower] = $name;
                         }
                     }
                 }
             }
-        }
 
-        // Add external emails (store with names)
-        $external_with_names = array();
-        $external_emails_set = array(); // Set of all external emails for quick lookup
-        if (!empty($external_emails)) {
-            foreach ($external_emails as $idx => $email) {
-                if (!empty($email)) {
-                    $email_lower = strtolower(trim($email));
-                    $all_emails[] = $email_lower;
-                    $external_emails_set[$email_lower] = true; // Mark as external
-                    // Store name if provided
-                    $name = isset($external_names[$idx]) ? trim($external_names[$idx]) : '';
-                    if (!empty($name)) {
-                        $external_with_names[$email_lower] = $name;
-                    }
+            // Deduplicate
+            $this->load->helper('email');
+            $unique_emails = deduplicate_emails($all_emails);
+
+            // Build email list with metadata
+            $emails_with_metadata = array();
+            foreach ($unique_emails as $email) {
+                $item = array(
+                    'email' => $email,
+                    'display' => $email,
+                    'is_external' => isset($external_emails_set[$email])
+                );
+
+                // Add name from external emails
+                if (isset($external_with_names[$email])) {
+                    $item['display'] = $email . ' - ' . $external_with_names[$email];
+                    $item['name'] = $external_with_names[$email];
                 }
+                // Add name from members
+                elseif (isset($member_names[$email])) {
+                    $item['name'] = $member_names[$email];
+                }
+
+                $emails_with_metadata[] = $item;
             }
-        }
-
-        // Deduplicate
-        $this->load->helper('email');
-        $unique_emails = deduplicate_emails($all_emails);
-
-        // Build email list with metadata
-        $emails_with_metadata = array();
-        foreach ($unique_emails as $email) {
-            $item = array(
-                'email' => $email,
-                'display' => $email,
-                'is_external' => isset($external_emails_set[$email])
-            );
-
-            // Add name from external emails
-            if (isset($external_with_names[$email])) {
-                $item['display'] = $email . ' - ' . $external_with_names[$email];
-                $item['name'] = $external_with_names[$email];
-            }
-            // Add name from members
-            elseif (isset($member_names[$email])) {
-                $item['name'] = $member_names[$email];
-            }
-
-            $emails_with_metadata[] = $item;
-        }
 
             // Return JSON response
             $this->output
@@ -928,21 +930,30 @@ class Email_lists extends Gvv_Controller
             log_message('info', "EMAIL_LISTS: Upload verification - file_exists={$file_exists}, db_count={$db_count}, valid_count={$result['valid_count']}");
 
             if (!$file_exists) {
-                $this->session->set_flashdata('error',
+                $this->session->set_flashdata(
+                    'error',
                     $this->lang->line('email_lists_upload_error') . ': ' .
-                    $this->lang->line('email_lists_upload_error_file_not_saved'));
+                    $this->lang->line('email_lists_upload_error_file_not_saved')
+                );
             } elseif ($db_count == 0) {
-                $this->session->set_flashdata('error',
+                $this->session->set_flashdata(
+                    'error',
                     $this->lang->line('email_lists_upload_error') . ': ' .
-                    $this->lang->line('email_lists_upload_error_no_addresses'));
+                    $this->lang->line('email_lists_upload_error_no_addresses')
+                );
             } else {
-                $msg = str_replace('{count}', $result['valid_count'],
-                    $this->lang->line('email_lists_upload_success'));
+                $msg = str_replace(
+                    '{count}',
+                    $result['valid_count'],
+                    $this->lang->line('email_lists_upload_success')
+                );
                 $this->session->set_flashdata('success', $msg);
             }
         } else {
-            $this->session->set_flashdata('error',
-                $this->lang->line('email_lists_upload_error') . ': ' . implode(', ', $result['errors']));
+            $this->session->set_flashdata(
+                'error',
+                $this->lang->line('email_lists_upload_error') . ': ' . implode(', ', $result['errors'])
+            );
         }
         redirect('email_lists/edit/' . $id);
     }
@@ -1011,11 +1022,15 @@ class Email_lists extends Gvv_Controller
         } else {
             // Form submission - redirect with message
             if ($result['success']) {
-                $this->session->set_flashdata('success',
-                    'File deleted successfully. ' . $result['deleted_count'] . ' addresses removed.');
+                $this->session->set_flashdata(
+                    'success',
+                    'File deleted successfully. ' . $result['deleted_count'] . ' addresses removed.'
+                );
             } else {
-                $this->session->set_flashdata('error',
-                    'Delete error: ' . implode(', ', $result['errors']));
+                $this->session->set_flashdata(
+                    'error',
+                    'Delete error: ' . implode(', ', $result['errors'])
+                );
             }
             redirect('email_lists/edit/' . $id);
         }
