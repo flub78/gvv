@@ -2337,6 +2337,46 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Échappe un champ pour l'export CSV selon RFC 4180
+     * 
+     * Encadre le champ avec des guillemets doubles si nécessaire :
+     * - Si le champ contient un point-virgule (séparateur)
+     * - Si le champ contient un guillemet double
+     * - Si le champ contient un retour à la ligne
+     * 
+     * Les guillemets doubles dans le champ sont doublés selon la norme.
+     * 
+     * @param string $field Le champ à échapper
+     * @return string Le champ échappé
+     */
+    private function csv_escape($field) {
+        // Si le champ est null ou vide, retourner une chaîne vide
+        if ($field === null || $field === '') {
+            return '';
+        }
+        
+        // Convertir en chaîne si ce n'est pas déjà le cas
+        $field = (string)$field;
+        
+        // Si le champ contient un point-virgule, un guillemet double, ou un retour à la ligne
+        // il doit être encadré de guillemets doubles
+        if (strpos($field, ';') !== false || 
+            strpos($field, '"') !== false || 
+            strpos($field, "\n") !== false || 
+            strpos($field, "\r") !== false) {
+            
+            // Doubler les guillemets doubles existants (RFC 4180)
+            $field = str_replace('"', '""', $field);
+            
+            // Encadrer avec des guillemets doubles
+            return '"' . $field . '"';
+        }
+        
+        // Sinon, retourner le champ tel quel
+        return $field;
+    }
+
+    /**
      * Génère un extrait de compte sous Excel ou PDF
      *
      * @param unknown_type $compte
@@ -2444,10 +2484,12 @@ class Compta extends Gvv_Controller {
             $str .= date_db2ht($row['date_op']) . "; ";
             if ($this->data['codec'] != 411) {
                 $str .= $code . "; ";
-                $str .= $nom_compte . "; ";
+                $str .= $this->csv_escape($nom_compte) . "; ";
             }
-            $str .= $row['description'] . "; ";
-            $str .= $row['num_cheque'] . "; ";
+            // Encadrer les champs texte avec des guillemets doubles selon RFC 4180
+            // pour gérer correctement les point-virgules et autres caractères spéciaux
+            $str .= $this->csv_escape($row['description']) . "; ";
+            $str .= $this->csv_escape($row['num_cheque']) . "; ";
             if ($this->data['codec'] == 411) {
                 $str .= $prix . "; ";
                 $str .= $quantite . "; ";
