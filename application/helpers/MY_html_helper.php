@@ -640,3 +640,32 @@ if (! function_exists('attachment')) {
         return "<a href=\"$url\" target=\"_self\">$inner_html</a>";
     }
 }
+
+if (! function_exists('euros')) {
+    /**
+     * Format a numeric value as euros with French formatting and euro symbol
+     *
+     * @param mixed $value The numeric value to format
+     * @param string $target Output target: 'html' (default), 'pdf', or 'csv'
+     * @return string Formatted string with euro symbol for html/pdf, without for csv
+     */
+    function euros($value, $target = 'html') {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if ($target == 'html') {
+            $thousand_sep = '&nbsp;';
+            $symbol = '&nbsp;€';
+        } elseif ($target == 'pdf') {
+            $thousand_sep = ' ';
+            $symbol = ' €';
+        } else {
+            // csv or other
+            $thousand_sep = ' ';
+            $symbol = '';
+        }
+
+        return number_format((float)$value, 2, ',', $thousand_sep) . $symbol;
+    }
+}

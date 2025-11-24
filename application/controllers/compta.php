@@ -1808,7 +1808,7 @@ class Compta extends Gvv_Controller {
                 'length' => $iDisplayLength,
                 'search' => $sSearch,
                 'order_column' => 'date_op', // Default for now
-                'order_direction' => 'DESC'
+                'order_direction' => 'ASC'  // Chronological order (oldest first) for correct balance display
             ]);
 
             $filtered_count = $result['filtered_count'];
@@ -1852,11 +1852,11 @@ class Compta extends Gvv_Controller {
                 
                 $row[] = isset($ecriture['description']) ? $ecriture['description'] : '';
                 $row[] = isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : '';
-                $row[] = isset($ecriture['prix']) ? $ecriture['prix'] : '';
+                $row[] = isset($ecriture['prix']) ? euros($ecriture['prix']) : '';
                 $row[] = isset($ecriture['quantite']) ? $ecriture['quantite'] : '';
-                $row[] = isset($ecriture['debit']) ? $ecriture['debit'] : '';
-                $row[] = isset($ecriture['credit']) ? $ecriture['credit'] : '';
-                $row[] = isset($ecriture['solde']) ? number_format($ecriture['solde'], 2) : '';
+                $row[] = isset($ecriture['debit']) ? euros($ecriture['debit']) : '';
+                $row[] = isset($ecriture['credit']) ? euros($ecriture['credit']) : '';
+                $row[] = isset($ecriture['solde']) ? euros($ecriture['solde']) : '';
                 
                 // Gel column as checkbox with AJAX functionality
                 $gel_checked = ($ecriture['gel'] == '1') ? 'checked="checked"' : '';
@@ -2245,12 +2245,14 @@ class Compta extends Gvv_Controller {
                 15,
                 16,
                 18,
+                18,
                 18
             );
             $align = array(
                 'L',
                 'L',
                 'L',
+                'R',
                 'R',
                 'R',
                 'R',
@@ -2265,6 +2267,7 @@ class Compta extends Gvv_Controller {
                 70,
                 34,
                 18,
+                18,
                 18
             );
             $align = array(
@@ -2273,6 +2276,7 @@ class Compta extends Gvv_Controller {
                 'L',
                 'L',
                 'L',
+                'R',
                 'R',
                 'R'
             );
@@ -2310,6 +2314,8 @@ class Compta extends Gvv_Controller {
             }
             $data_row[] = $debit;
             $data_row[] = $credit;
+            $solde_formatted = isset($row['solde']) ? euro($row['solde'], $separator, 'pdf') : '';
+            $data_row[] = $solde_formatted;
             $data[] = $data_row;
         }
         $pdf->table($w, $height, $align, $data);
@@ -2448,6 +2454,8 @@ class Compta extends Gvv_Controller {
             }
             $str .= $debit . "; ";
             $str .= $credit . "; ";
+            $solde_formatted = isset($row['solde']) ? number_format($row['solde'], 2, ",", "") : '';
+            $str .= $solde_formatted . "; ";
             $str .= "\n";
         }
 

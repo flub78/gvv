@@ -413,7 +413,7 @@ echo '</div>';
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
-            "bSort": true,
+            "bSort": false,  // Tri désactivé car les soldes doivent rester chronologiques
             "bStateSave": false,
             "bInfo": true,
             "bJQueryUI": true,
@@ -423,11 +423,11 @@ echo '</div>';
                 <?php if ($has_modification_rights && $section): ?>
                 { "bSortable": false },                // Actions
                 <?php endif; ?>
-                { "sType": "date-fr" },                // Date
-                { "bSortable": true },                 // Autre compte
-                { "bSortable": true },                 // Description
-                { "bSortable": true },                 // N° chèque
-                { "bSortable": true },                 // Prix
+                { "sType": "date-fr", "bSortable": false },  // Date - tri désactivé car les soldes doivent rester chronologiques
+                { "bSortable": false },                // Autre compte
+                { "bSortable": false },                // Description
+                { "bSortable": false },                // N° chèque
+                { "bSortable": false },                // Prix
                 { "bSortable": false },                // Quantité
                 { "bSortable": false },                // Débit
                 { "bSortable": false },                // Crédit

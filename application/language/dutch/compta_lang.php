@@ -123,8 +123,8 @@ $lang['gvv_vue_journal_short_field_solde'] = "Saldo";
 $lang['gvv_vue_journal_short_field_gel'] = "Locked";
 $lang['gvv_vue_journal_short_field_section'] = "Sectie";
 
-$lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijving', 'Referentie', 'Debet', 'Credit');
-$lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit');
+$lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijving', 'Referentie', 'Debet', 'Credit', 'Saldo');
+$lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit', 'Saldo');
 
 $lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "Wijziging van een vergrendelde boeking is verboden.";

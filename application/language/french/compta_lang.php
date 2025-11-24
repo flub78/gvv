@@ -124,8 +124,8 @@ $lang['gvv_vue_journal_short_field_solde'] = "Solde";
 $lang['gvv_vue_journal_short_field_gel'] = "Gelé";
 $lang['gvv_vue_journal_short_field_section'] = "Section";
 
-$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 'Référence', 'Débit', 'Crédit');
-$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit');
+$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 'Référence', 'Débit', 'Crédit', 'Solde');
+$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit', 'Solde');
 
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "La modification d'une écriture gelée est interdite.";

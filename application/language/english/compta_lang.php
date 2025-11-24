@@ -125,8 +125,8 @@ $lang['gvv_vue_journal_short_field_gel'] = "Frozen";
 $lang['gvv_vue_journal_short_field_section'] = "Section";
 
 
-$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Account', 'Description', 'Reference', 'Debit', 'Credit');
-$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit');
+$lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Account', 'Description', 'Reference', 'Debit', 'Credit', 'Balance');
+$lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit', 'Balance');
 
 $lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "Modification of a frozen entry is forbidden.";
