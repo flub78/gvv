@@ -2169,7 +2169,7 @@ class Compta extends Gvv_Controller {
 
         $this->load->library('Pdf');
         $pdf = new Pdf();
-        $pdf->AddPage();
+        $pdf->AddPage('L');  // 'L' for Landscape orientation
 
         // Build title with club name and section name if available
         $title = $nom_club;
@@ -2239,14 +2239,14 @@ class Compta extends Gvv_Controller {
         $select_result = $this->data['select_result'];
         if ($this->data['codec'] == 411) {
             $w = array(
-                18,
-                70,
-                34,
-                15,
-                16,
+                20,
+                95,
+                40,
                 18,
                 18,
-                18
+                25,
+                25,
+                29
             );
             $align = array(
                 'L',
@@ -2261,14 +2261,14 @@ class Compta extends Gvv_Controller {
             $data[0] = $this->lang->line("gvv_compta_csv_header_411");
         } else {
             $w = array(
-                18,
-                9,
-                30,
-                70,
-                34,
-                18,
-                18,
-                18
+                20,
+                12,
+                35,
+                95,
+                40,
+                25,
+                25,
+                29
             );
             $align = array(
                 'L',

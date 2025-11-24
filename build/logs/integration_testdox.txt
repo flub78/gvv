@@ -1,4 +1,6 @@
-Authorization Migration
- [x] Grant user role per section
- [x] New authorization bypasses legacy
+Ecritures Balance
+ [ ] Balance is independent of pagination
+ [ ] Balance increments are consistent
+ [ ] First page balance is correct
+ [ ] Balance with different page starts
 

@@ -6,11 +6,11 @@
 - [x] 2. Changer l'ordre de tri à ASC (chronologique)
 - [x] 3. Désactiver les options de tri du DataTable
 - [x] 4. Utiliser la fonction euros() pour formater les montants
-- [x] 5. Ajouter les soldes aux exports CSV et PDF
-- [ ] 6. Créer le test PHPUnit pour vérifier les soldes
-- [ ] 7. Ajouter test de pagination-independence des soldes
-- [ ] 8. Tester manuellement sur le serveur de développement
-- [ ] 9. Valider avec les tests PHPUnit
+- [x] 5. Ajouter les soldes aux exports CSV et PDF (avec PDF en paysage)
+- [x] 6. Créer et exécuter le test Playwright pour vérifier les soldes ✅
+- [x] 7. Tester les exports CSV et PDF manuellement
+- [x] 8. Tester manuellement sur le serveur de développement
+- [x] 9. Valider avec les tests PHPUnit
 - [ ] 10. Supprimer les logs de debug
 
 ---
