@@ -10,18 +10,6 @@ Cette facilité de navigation est assez agréable pour l'utilisateur, elle lui �
 
 Si on prend par exemple la liste des vols avions, à partir d'un vol on peut naviguer vers le pilote et vers l'avion.
 
-La table est généré depuis la vue vols_avion/bs_tabeleView.php par :
-```
-$attrs = array(
-    'controller' => $controller,
-    'actions' => array('edit', 'delete'),
-    'mode' => ($has_modification_rights || $auto_planchiste) ? "rw" : "ro",
-    'class' => $classes
-);
-...
-echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
-```
-
 La méthode table de la classe Metadata va utiliser les liste "fields" passée en paramètre ou les champs par défaut de la table. Dans notre cas on voit que les champs incluent vapilid et vamacid qui sont les champs de la base de données pour identifier le pilote et l'avion.
 
 Pour ces champ, la génération du lien est automatique, une fois le sous-type défini à "key" et l'action à "avion/edit", le lien est généré automatiquement.
