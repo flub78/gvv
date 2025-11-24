@@ -1905,64 +1905,12 @@ array (size=2)
                 $cnt++;
                 if ($cnt == 1) {
                     // première ligne de résultat, on initialise le solde
-                    // Pour la pagination, on doit calculer le solde AVANT cette ligne
-                    // en appliquant les MÊMES filtres que la requête principale
-                    // Note: $has_section and $section_id are already defined at the beginning of the method
-
-                    log_message('debug', "BALANCE CALC: First line ID={$row['id']}, date={$row['date_op']}, compte=$compte");
-                    log_message('debug', "BALANCE CALC: filtrage=" . print_r($filtrage, true));
-                    log_message('debug', "BALANCE CALC: section=" . ($has_section ? $section_id : 'none'));
-
-                    // Build debit query with all filters
-                    // IMPORTANT: Use chronological order (date, id) not just id
-                    // Note: In CodeIgniter 2.x, Query Builder is automatically reset after get()
-                    $this->db->select_sum('montant')
-                        ->from($this->table)
-                        ->where('compte1', $compte);
-
-                    // Filter by chronological order: (date < X) OR (date = X AND id < Y)
-                    // IMPORTANT: Extra parentheses ensure proper operator precedence with other AND conditions
-                    $where_chrono = "((date_op < \"{$row['date_op']}\") OR (date_op = \"{$row['date_op']}\" AND id < {$row['id']}))";
-                    $this->db->where($where_chrono, NULL, FALSE);
-
-                    // Apply same filters as main query
-                    if (!empty($filtrage)) {
-                        $this->db->where($filtrage, NULL, FALSE);
-                    }
-                    if ($has_section) {
-                        $this->db->where('club', $section_id);
-                    }
-
-                    $debit = $this->db->get()->row()->montant;
-                    log_message('debug', "BALANCE CALC DEBIT: " . $this->db->last_query());
-                    log_message('debug', "BALANCE CALC: debit=" . ($debit ? $debit : 0));
-
-                    // Build credit query with all filters
-                    // IMPORTANT: Use chronological order (date, id) not just id
-                    // Note: In CodeIgniter 2.x, Query Builder is automatically reset after get()
-                    $this->db->select_sum('montant')
-                        ->from($this->table)
-                        ->where('compte2', $compte);
-
-                    // Filter by chronological order: (date < X) OR (date = X AND id < Y)
-                    // IMPORTANT: Extra parentheses ensure proper operator precedence with other AND conditions
-                    $where_chrono = "((date_op < \"{$row['date_op']}\") OR (date_op = \"{$row['date_op']}\" AND id < {$row['id']}))";
-                    $this->db->where($where_chrono, NULL, FALSE);
-
-                    // Apply same filters as main query
-                    if (!empty($filtrage)) {
-                        $this->db->where($filtrage, NULL, FALSE);
-                    }
-                    if ($has_section) {
-                        $this->db->where('club', $section_id);
-                    }
-
-                    $credit = $this->db->get()->row()->montant;
-                    log_message('debug', "BALANCE CALC CREDIT: " . $this->db->last_query());
-                    log_message('debug', "BALANCE CALC: credit=" . ($credit ? $credit : 0));
-
-                    $solde = ($credit ? $credit : 0) - ($debit ? $debit : 0);
-                    log_message('debug', "BALANCE CALC: initial solde=$solde");
+                    // Utiliser la même méthode que select_journal: solde_compte avant la date + solde du jour avant l'id
+                    // NOTE IMPORTANTE: contrairement au calcul chrono précédent qui appliquait filtrage et section,
+                    // solde_compte calcule le solde TOTAL du compte (sans filtres de période/section)
+                    // car c'est le vrai solde comptable. Les filtres ne servent qu'à afficher un sous-ensemble d'écritures.
+                    $solde = $this->solde_compte($compte, $row['date_op'], '<');
+                    $solde += $this->solde_jour($compte, $row['date_op'], $row['id']);
                 }
 
                 if ($row['compte1'] == $compte) {
