@@ -5,7 +5,7 @@
 
 # $this->lang->line("")
 $lang['auth_user'] = "Utilisateur";
-$lang['auth_locked'] = "Programme vérouillé pour maintenance, seuls les administrateurs peuvent se connecter.";
+$lang['auth_locked'] = "Programme vérouillé pour maintenance.";
 $lang['auth_come_back'] = "Merci de revenir plus tard.";
 $lang['auth_password_change'] = "Changement de mot de passe";
 

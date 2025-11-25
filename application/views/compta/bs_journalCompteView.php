@@ -289,6 +289,19 @@ echo '<style>
     color: #0056b3;
     text-decoration: underline;
 }
+
+/* Disabled button styles for frozen entries */
+.sql_table .btn.disabled,
+.sql_table .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.sql_table .btn.disabled:hover,
+.sql_table .btn:disabled:hover {
+    opacity: 0.4;
+}
 </style>';
 ?>
 
@@ -462,6 +475,34 @@ echo '</div>';
                     if (response.success) {
                         // Success - checkbox state already reflects the change
                         console.log('Gel status updated successfully');
+
+                        // Find the action buttons for this entry and enable/disable them
+                        var $row = checkbox.closest('tr');
+                        var $editBtn = $row.find('.edit-entry-btn[data-ecriture-id="' + ecritureId + '"]');
+                        var $deleteBtn = $row.find('.delete-entry-btn[data-ecriture-id="' + ecritureId + '"]');
+
+                        if (isChecked) {
+                            // Entry is now frozen - disable buttons
+                            $editBtn.addClass('disabled').attr({
+                                'disabled': true,
+                                'tabindex': '-1',
+                                'aria-disabled': 'true',
+                                'title': 'Écriture gelée'
+                            });
+                            $deleteBtn.addClass('disabled').attr({
+                                'disabled': true,
+                                'tabindex': '-1',
+                                'aria-disabled': 'true',
+                                'title': 'Écriture gelée'
+                            }).off('click');
+                        } else {
+                            // Entry is now unfrozen - enable buttons
+                            $editBtn.removeClass('disabled').removeAttr('disabled tabindex aria-disabled').attr('title', 'Modifier');
+                            $deleteBtn.removeClass('disabled').removeAttr('disabled tabindex aria-disabled').attr('title', 'Supprimer')
+                                .on('click', function() {
+                                    return confirm('Êtes-vous sûr de vouloir supprimer cette écriture ?');
+                                });
+                        }
                     } else {
                         // Error - revert checkbox state
                         checkbox.prop('checked', !isChecked);
