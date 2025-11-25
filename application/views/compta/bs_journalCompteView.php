@@ -427,7 +427,7 @@ echo '</div>';
             "bPaginate": true,
             "iDisplayLength": 100,
             "bSort": false,  // Tri désactivé car les soldes doivent rester chronologiques
-            "bStateSave": false,
+            "bStateSave": true,  // Sauvegarde l'état (pagination, recherche) dans localStorage
             "bInfo": true,
             "bJQueryUI": true,
             "bAutoWidth": true,
