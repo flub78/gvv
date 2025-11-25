@@ -389,7 +389,7 @@ class Membre extends Gvv_Controller {
                 // 'mbrpdat',
                 // 'mbrpval',
                 'licfed',
-                'compte',
+                'membre_payeur',  // FK field must be NULL, not empty string
                 'mdaten'
             )
             // 'dateinstavion',

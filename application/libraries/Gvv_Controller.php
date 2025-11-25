@@ -580,9 +580,31 @@ class Gvv_Controller extends CI_Controller {
                         $initial_id = $this->session->userdata('initial_id');
                         gvv_debug("Warning: Using session fallback for initial_id. This indicates a form without original_id field.");
                     }
-                    
+
                     $this->pre_update($this->kid, $processed_data);
                     $this->gvv_model->update($this->kid, $processed_data, $initial_id);
+
+                    // Check for MySQL errors (similar to CREATE handling)
+                    $code = $this->db->_error_number();
+                    if ($code) {
+                        $msg = $this->db->_error_message();
+
+                        if ($code == 1062) {
+                            $msg = $this->lang->line("gvv_error_duplicate_entry");
+                        } elseif ($code == 1451 || $code == 1452) {
+                            // 1451: Cannot delete or update a parent row
+                            // 1452: Cannot add or update a child row (FK constraint)
+                            $msg = "Erreur: " . $msg . " " . $this->lang->line("gvv_error_foreign_key_constraint");
+                        } else {
+                            $msg = "Erreur: $code " . $msg;
+                        }
+
+                        $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
+                        $this->form_static_element($action);
+                        load_last_view($this->form_view, $this->data);
+                        return;
+                    }
+
                     $this->post_update($processed_data);
                     if ($return_on_success)
                         return;
