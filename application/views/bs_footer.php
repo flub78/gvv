@@ -37,7 +37,7 @@
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
-            "bStateSave": false,
+            "bStateSave": true,  // Sauvegarde l'état (pagination, recherche) dans localStorage
             "bSort": true,
             "bInfo": true,
             "bJQueryUI": true,
@@ -77,7 +77,7 @@
             "scrollY": "500px", // Add this for vertical scrolling
             "scrollCollapse": true, // Add this to collapse when less data
             "iDisplayLength": 100,
-            "bStateSave": false,
+            "bStateSave": true,  // Sauvegarde l'état (recherche, scroll) dans localStorage
             "bSort": true,
             "bInfo": true,
             "bJQueryUI": true,
@@ -105,7 +105,7 @@
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
-            "bStateSave": false,
+            "bStateSave": true,  // Sauvegarde l'état (pagination, recherche) dans localStorage
             "bSort": false,
             "bInfo": true,
             "bAutoWidth": true,
@@ -130,7 +130,7 @@
         $('.balance_searchable_datatable').dataTable({
             "bFilter": true,
             "bPaginate": false,  // PAS de pagination
-            "bStateSave": false,
+            "bStateSave": true,  // Sauvegarde l'état (recherche) dans localStorage
             "bSort": false,
             "bInfo": false,      // Pas d'info "Affichage de 1 à 100 sur 200"
             "bAutoWidth": true,

@@ -299,7 +299,7 @@ if ($this->session->flashdata('error')) {
                 "iDisplayLength": 25,
                 "bSort": true,
                 "bJQueryUI": true,
-                "bStateSave": false,
+                "bStateSave": true,  // Sauvegarde l'état (pagination, recherche, tri) dans localStorage
                 "aaSorting": [
                     [0, "asc"]
                 ],
@@ -360,7 +360,7 @@ if ($this->session->flashdata('error')) {
                 "iDisplayLength": 25,
                 "bSort": true,
                 "bJQueryUI": true,
-                "bStateSave": false,
+                "bStateSave": true,  // Sauvegarde l'état (pagination, recherche, tri) dans localStorage
                 "aaSorting": [
                     [0, "asc"]
                 ],
