@@ -474,6 +474,9 @@ function updateSublistsDisplay()
 2. ✅ **Auto-référence** : `parent_list_id` ≠ `child_list_id`
 3. ✅ **Profondeur** : `child_list_id` ne doit **pas** contenir de sous-listes
 4. ✅ **Doublon** : La paire (parent, child) doit être unique
+5. ✅ **Cohérence de visibilité** :
+   - Une liste **privée** peut contenir des sous-listes **privées** et publiques
+   - Une liste **publique** ne peut contenir que des sous-listes **publiques**
 
 **Messages d'erreur :**
 - "Liste parente introuvable"
@@ -481,6 +484,41 @@ function updateSublistsDisplay()
 - "Une liste ne peut pas se contenir elle-même"
 - "Cette liste contient déjà des sous-listes et ne peut pas être incluse"
 - "Cette sous-liste est déjà incluse"
+- "Impossible d'ajouter une sous-liste privée à une liste publique"
+
+#### Lors du changement de visibilité d'une liste
+
+**Règle :** Une liste ne peut être rendue publique si elle contient des sous-listes privées.
+
+**Scénario :** L'utilisateur tente de rendre publique une liste "Bureau étendu" qui contient 2 sous-listes privées.
+
+**Comportement :**
+```
+┌─────────────────────────────────────────────────────────┐
+│ ⚠️ Changement de visibilité impossible                 │
+│                                                         │
+│ La liste "Bureau étendu" contient des sous-listes      │
+│ privées :                                               │
+│                                                         │
+│  • Instructeurs actifs (privée)                        │
+│  • Trésoriers (privée)                                 │
+│                                                         │
+│ Une liste publique ne peut contenir que des            │
+│ sous-listes publiques.                                  │
+│                                                         │
+│ Options:                                                │
+│  1. Garder la liste privée                             │
+│  2. Rendre publiques la liste et toutes ses            │
+│     sous-listes privées                                 │
+│                                                         │
+│ [Annuler]  [Rendre tout public]                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Bouton "Rendre tout public" :**
+- Rend publique la liste parente
+- Rend publiques toutes les sous-listes privées
+- Affiche un récapitulatif des listes modifiées
 
 #### Lors de la suppression d'une liste
 
@@ -556,6 +594,26 @@ if ($this->email_lists_model->has_sublists($list_id)) {
 - Suppression sécurisée avec traçabilité
 - Les listes parentes restent cohérentes
 
+### 6.4 Scénario 4 : Rendre publique une liste avec sous-listes privées
+
+**Étapes :**
+1. Utilisateur édite la liste "Bureau étendu" (actuellement privée)
+2. Tente de cocher "Liste visible par tous" pour la rendre publique
+3. La liste contient 2 sous-listes privées : "Instructeurs actifs", "Trésoriers"
+4. ⚠️ Popup : "La liste contient des sous-listes privées. Une liste publique ne peut contenir que des sous-listes publiques."
+5. Options :
+   - **Annuler** : Garde la liste privée
+   - **Rendre tout public** : Rend publiques la liste et ses 2 sous-listes privées
+6. Si choix "Rendre tout public" :
+   - "Bureau étendu" devient publique
+   - "Instructeurs actifs" devient publique
+   - "Trésoriers" devient publique
+   - Message : "Liste rendue publique. 2 sous-listes ont également été rendues publiques."
+
+**Résultat :**
+- Cohérence de visibilité garantie
+- Transparence sur les modifications effectuées
+
 ---
 
 ## 7. Limitations et contraintes
@@ -566,7 +624,10 @@ if ($this->email_lists_model->has_sublists($list_id)) {
 
 ### 7.2 Limitations fonctionnelles
 
-1. **Visibilité** : Seules les listes visibles peuvent être incluses (respect du champ `visible`)
+1. **Cohérence de visibilité** :
+   - Une liste **privée** peut contenir des sous-listes **privées** et publiques
+   - Une liste **publique** ne peut contenir que des sous-listes **publiques**
+   - Rendre une liste publique alors qu'elle contient des sous-listes privées nécessite de rendre publiques toutes les sous-listes
 2. **Permissions** : L'utilisateur ne peut inclure que les listes qu'il peut voir (selon `get_user_lists()`)
 3. **Suppression protégée** : ON DELETE RESTRICT empêche la suppression silencieuse
 
@@ -605,6 +666,10 @@ Liste A
 | **TV-2** | Ajouter une liste comme sous-liste d'elle-même | Refusé avec message "auto-référence" |
 | **TV-3** | Ajouter deux fois la même sous-liste | Refusé avec message "déjà incluse" |
 | **TV-4** | Supprimer une liste avec FK RESTRICT | Popup d'avertissement, liste des listes utilisatrices |
+| **TV-5** | Ajouter une sous-liste privée à une liste publique | Refusé avec message "Impossible d'ajouter une sous-liste privée à une liste publique" |
+| **TV-6** | Ajouter une sous-liste publique à une liste privée | Accepté |
+| **TV-7** | Rendre publique une liste contenant des sous-listes privées | Popup d'avertissement avec option "Rendre tout public" |
+| **TV-8** | Utiliser "Rendre tout public" | Liste parente et toutes sous-listes privées deviennent publiques |
 
 
 ---
