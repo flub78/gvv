@@ -238,6 +238,18 @@ if ($this->session->flashdata('success')) {
                             <i class="bi bi-cloud-upload"></i> <?= $this->lang->line("email_lists_import_files") ?>
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="sublists-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#sublists"
+                                type="button"
+                                role="tab"
+                                aria-controls="sublists"
+                                aria-selected="false">
+                            <i class="bi bi-folder-symlink"></i> <?= $this->lang->line("email_lists_tab_sublists") ?>
+                        </button>
+                    </li>
                 </ul>
 
                 <div class="tab-content" id="listTabsContent">
@@ -263,6 +275,14 @@ if ($this->session->flashdata('success')) {
                          role="tabpanel"
                          aria-labelledby="import-tab">
                         <?php $this->load->view('email_lists/_import_tab'); ?>
+                    </div>
+
+                    <!-- Sublists tab -->
+                    <div class="tab-pane fade"
+                         id="sublists"
+                         role="tabpanel"
+                         aria-labelledby="sublists-tab">
+                        <?php $this->load->view('email_lists/_sublists_tab'); ?>
                     </div>
                 </div>
             </div>
@@ -293,6 +313,10 @@ if ($this->session->flashdata('success')) {
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span><?= $this->lang->line("email_lists_external_emails") ?>:</span>
                                 <span class="badge bg-secondary" id="external_count">0</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span><?= $this->lang->line("email_lists_tab_sublists") ?>:</span>
+                                <span class="badge bg-secondary" id="sublists_count">0</span>
                             </div>
                         </div>
 
@@ -391,6 +415,9 @@ function updatePreviewCounts() {
     const externalCount = document.querySelectorAll('#external_emails_list > div').length;
     document.getElementById('external_count').textContent = externalCount;
 
+    // Sublists count will be updated by server response (counts addresses, not sublists)
+    // No client-side counting needed here
+
     // Auto-refresh the full list preview from server
     refreshListPreview();
 }
@@ -445,6 +472,11 @@ function refreshListPreview() {
             // Update criteria count (actual unique recipients from criteria)
             if (data.criteria_count !== undefined) {
                 document.getElementById('criteria_count').textContent = data.criteria_count;
+            }
+
+            // Update sublists count from server
+            if (data.sublists_count !== undefined) {
+                document.getElementById('sublists_count').textContent = data.sublists_count;
             }
 
             // Display email list as simple Email | Name table (v1.3 - no delete buttons)
@@ -580,3 +612,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<?php if ($action === 'update' && !empty($list['id'])): ?>
+<script>
+    // Configuration for sublists JavaScript
+    window.GVV_CONFIG = window.GVV_CONFIG || {};
+    window.GVV_CONFIG.baseUrl = '<?= site_url("email_lists") ?>';
+</script>
+<script src="<?= base_url('assets/js/email_lists_sublists.js') ?>"></script>
+<?php endif; ?>

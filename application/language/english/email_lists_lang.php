@@ -172,6 +172,23 @@ $lang['email_lists_save_first_to_add_addresses'] = 'Please save the list first b
 $lang['email_lists_select_list'] = 'Recipient list';
 $lang['email_lists_select_list_placeholder'] = 'Select a list';
 
+// Sublists (Phase 5)
+$lang['email_lists_tab_sublists'] = 'Sublists';
+$lang['email_lists_sublists_help'] = 'Sublists allow you to include other lists in this list. Addresses will be automatically deduplicated.';
+$lang['email_lists_current_sublists'] = 'Current Sublists';
+$lang['email_lists_available_sublists'] = 'Available Lists';
+$lang['email_lists_no_sublists'] = 'No sublists configured';
+$lang['email_lists_no_available_sublists'] = 'No lists available to add';
+$lang['email_lists_save_first_to_add_sublists'] = 'Please save the list first before you can add sublists';
+$lang['email_lists_add'] = 'Add';
+$lang['email_lists_remove'] = 'Remove';
+$lang['email_lists_recipients'] = 'recipients';
+$lang['email_lists_private'] = 'Private';
+$lang['email_lists_sublist_added'] = 'Sublist added successfully';
+$lang['email_lists_sublist_removed'] = 'Sublist removed successfully';
+$lang['email_lists_sublist_error'] = 'Error during sublist operation';
+$lang['email_lists_cannot_make_public_has_private_sublists'] = 'Cannot make this list public because it contains private sublists';
+
 // Import tab file upload functionality
 $lang['email_lists_delete_via_tabs_hint'] = 'To delete addresses, use the icons in the source tabs';
 $lang['email_lists_email'] = 'Email';

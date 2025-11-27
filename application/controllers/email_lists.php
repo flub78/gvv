@@ -209,6 +209,18 @@ class Email_lists extends Gvv_Controller
         $data['current_external_emails'] = $this->email_lists_model->get_external_emails($id);
         $data['uploaded_files'] = $this->email_lists_model->get_uploaded_files($id);
 
+        // Load sublists data for modification mode
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+        
+        $data['sublists'] = $this->email_lists_model->get_sublists($id);
+        $data['available_sublists'] = $this->email_lists_model->get_available_sublists($user_id, $is_admin, $id, $list['visible']);
+
+        // Add recipient counts for sublists (already included in available_sublists)
+        foreach ($data['sublists'] as &$sublist) {
+            $sublist['recipient_count'] = $this->email_lists_model->count_members($sublist['id']);
+        }
+
         // Load all members for manual selection
         $this->load->model('membres_model');
         $data['available_members'] = $this->membres_model->selector(array('actif' => 1));
@@ -250,19 +262,41 @@ class Email_lists extends Gvv_Controller
 
         log_message('debug', 'EMAIL_LISTS: validation passed');
 
+        // Handle visible field: admins can modify all lists, creators can modify their own
+        $user_id = $this->dx_auth->get_user_id();
+        $is_admin = $this->dx_auth->is_role('admin');
+        
+        $new_visible = $this->input->post('visible') ? 1 : 0;
+        
+        // Check if trying to make list public when it has private sublists
+        if ($new_visible == 1 && $list['visible'] == 0) {
+            // Going from private to public - check sublists
+            $sublists = $this->email_lists_model->get_sublists($id);
+            $private_sublists = array();
+            foreach ($sublists as $sublist) {
+                if ($sublist['visible'] == 0) {
+                    $private_sublists[] = $sublist['name'];
+                }
+            }
+            
+            if (!empty($private_sublists)) {
+                $error_msg = $this->lang->line('email_lists_cannot_make_public_has_private_sublists') . ' : ' . implode(', ', $private_sublists);
+                $this->session->set_flashdata('error', $error_msg);
+                redirect('email_lists/edit/' . $id);
+                return;
+            }
+        }
+
         // Update the list
         $list_data = array(
             'name' => $this->input->post('name'),
             'description' => $this->input->post('description'),
-            'active_member' => $this->input->post('active_member'),
-            'visible' => $this->input->post('visible') ? 1 : 0
+            'active_member' => $this->input->post('active_member')
         );
 
-        // Handle visible field: admins can modify all lists, creators can modify their own
-        $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        // Apply visible field if user has permission
         if ($is_admin || $list['created_by'] == $user_id) {
-            $list_data['visible'] = $this->input->post('visible') ? 1 : 0;
+            $list_data['visible'] = $new_visible;
         }
 
         $success = $this->email_lists_model->update_list($id, $list_data);
@@ -840,6 +874,24 @@ class Email_lists extends Gvv_Controller
                 }
             }
 
+            // Add emails from sublists
+            $sublists_count = 0;
+            $sublists_emails_count = 0;
+            $sublists_emails = array();
+            if ($list_id) {
+                $sublists = $this->email_lists_model->get_sublists($list_id);
+                $sublists_count = count($sublists);
+                foreach ($sublists as $sublist) {
+                    $sublist_emails = $this->email_lists_model->detailed_list($sublist['id']);
+                    foreach ($sublist_emails as $email_data) {
+                        $email_lower = strtolower(trim($email_data['email']));
+                        $all_emails[] = $email_lower;
+                        $sublists_emails[$email_lower] = $sublist['name'];
+                        $sublists_emails_count++;
+                    }
+                }
+            }
+
             // Deduplicate
             $this->load->helper('email');
             $unique_emails = deduplicate_emails($all_emails);
@@ -875,6 +927,7 @@ class Email_lists extends Gvv_Controller
                     'criteria_count' => $criteria_count,
                     'manual_count' => count($manual_members),
                     'external_count' => count($external_emails),
+                    'sublists_count' => $sublists_emails_count,
                     'emails' => array_values($emails_with_metadata)
                 )));
         } catch (Exception $e) {

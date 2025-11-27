@@ -172,6 +172,23 @@ $lang['email_lists_save_first_to_add_addresses'] = 'Sla de lijst eerst op voorda
 $lang['email_lists_select_list'] = 'Ontvangerslijst';
 $lang['email_lists_select_list_placeholder'] = 'Selecteer een lijst';
 
+// Sublists (Phase 5)
+$lang['email_lists_tab_sublists'] = 'Sublijsten';
+$lang['email_lists_sublists_help'] = 'Sublijsten stellen u in staat om andere lijsten in deze lijst op te nemen. Adressen worden automatisch gededupliceerd.';
+$lang['email_lists_current_sublists'] = 'Huidige Sublijsten';
+$lang['email_lists_available_sublists'] = 'Beschikbare Lijsten';
+$lang['email_lists_no_sublists'] = 'Geen sublijsten geconfigureerd';
+$lang['email_lists_no_available_sublists'] = 'Geen lijsten beschikbaar om toe te voegen';
+$lang['email_lists_save_first_to_add_sublists'] = 'Bewaar de lijst eerst voordat u sublijsten kunt toevoegen';
+$lang['email_lists_add'] = 'Toevoegen';
+$lang['email_lists_remove'] = 'Verwijderen';
+$lang['email_lists_recipients'] = 'ontvangers';
+$lang['email_lists_private'] = 'Privé';
+$lang['email_lists_sublist_added'] = 'Sublijst succesvol toegevoegd';
+$lang['email_lists_sublist_removed'] = 'Sublijst succesvol verwijderd';
+$lang['email_lists_sublist_error'] = 'Fout tijdens sublijstoperatie';
+$lang['email_lists_cannot_make_public_has_private_sublists'] = 'Kan deze lijst niet openbaar maken omdat deze privé sublijsten bevat';
+
 // Import tab file upload functionality  
 $lang['email_lists_delete_via_tabs_hint'] = 'Om adressen te verwijderen, gebruik de pictogrammen in de brontabbladen';
 $lang['email_lists_email'] = 'E-mail';

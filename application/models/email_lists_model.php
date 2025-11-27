@@ -1370,7 +1370,7 @@ class Email_lists_model extends CI_Model
      * @param int|null $exclude_list_id List ID to exclude (typically the list being edited)
      * @return array Array of available lists
      */
-    public function get_available_sublists($user_id, $is_admin = FALSE, $exclude_list_id = NULL)
+    public function get_available_sublists($user_id, $is_admin = FALSE, $exclude_list_id = NULL, $parent_visible = NULL)
     {
         // Get all lists visible to the user
         $all_lists = $this->get_user_lists($user_id, $is_admin);
@@ -1385,6 +1385,11 @@ class Email_lists_model extends CI_Model
 
             // Exclude lists that contain sublists (depth = 1 constraint)
             if ($this->has_sublists($list['id'])) {
+                continue;
+            }
+
+            // If parent list is public (visible=1), only show public sublists
+            if ($parent_visible == 1 && $list['visible'] == 0) {
                 continue;
             }
 

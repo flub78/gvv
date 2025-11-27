@@ -225,3 +225,4 @@ $lang['email_lists_private'] = 'Privée';
 $lang['email_lists_sublist_added'] = 'Sous-liste ajoutée avec succès';
 $lang['email_lists_sublist_removed'] = 'Sous-liste retirée avec succès';
 $lang['email_lists_sublist_error'] = 'Erreur lors de l\'opération sur la sous-liste';
+$lang['email_lists_cannot_make_public_has_private_sublists'] = 'Impossible de rendre cette liste publique car elle contient des sous-listes privées';

@@ -62,7 +62,7 @@ $list_id = isset($email_list_id) ? $email_list_id : 0;
                             <?php endif; ?>
                         </div>
                         <button type="button"
-                                class="btn btn-sm btn-danger remove-sublist-btn"
+                                class="btn btn-sm btn-outline-danger remove-sublist-btn"
                                 data-sublist-id="<?= $sublist['id'] ?>"
                                 data-sublist-name="<?= htmlspecialchars($sublist['name']) ?>">
                             <i class="bi bi-trash"></i> <?= $this->lang->line('email_lists_remove') ?>
@@ -108,7 +108,7 @@ $list_id = isset($email_list_id) ? $email_list_id : 0;
                             <?php endif; ?>
                         </div>
                         <button type="button"
-                                class="btn btn-sm btn-success add-sublist-btn"
+                                class="btn btn-sm btn-primary add-sublist-btn"
                                 data-list-id="<?= $avail['id'] ?>"
                                 data-list-name="<?= htmlspecialchars($avail['name']) ?>">
                             <i class="bi bi-plus-circle"></i> <?= $this->lang->line('email_lists_add') ?>
