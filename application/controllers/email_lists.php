@@ -1100,4 +1100,147 @@ class Email_lists extends Gvv_Controller
 
         return $filename ?: 'email_list';
     }
+
+    /**
+     * AJAX: Add a sublist to a parent list
+     * POST params: parent_list_id, child_list_id
+     */
+    public function add_sublist_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $parent_list_id = $this->input->post('parent_list_id');
+        $child_list_id = $this->input->post('child_list_id');
+
+        if (empty($parent_list_id) || empty($child_list_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Verify both lists exist and user has access
+        $parent = $this->email_lists_model->get_list($parent_list_id);
+        $child = $this->email_lists_model->get_list($child_list_id);
+
+        if (!$parent) {
+            echo json_encode(['success' => false, 'message' => 'Parent list not found']);
+            return;
+        }
+
+        if (!$child) {
+            echo json_encode(['success' => false, 'message' => 'Child list not found']);
+            return;
+        }
+
+        // Add the sublist relationship
+        $result = $this->email_lists_model->add_sublist($parent_list_id, $child_list_id);
+
+        if ($result['success']) {
+            echo json_encode(['success' => true, 'message' => 'Sublist added successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => $result['error']]);
+        }
+    }
+
+    /**
+     * AJAX: Remove a sublist from a parent list
+     * POST params: parent_list_id, child_list_id
+     */
+    public function remove_sublist_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $parent_list_id = $this->input->post('parent_list_id');
+        $child_list_id = $this->input->post('child_list_id');
+
+        if (empty($parent_list_id) || empty($child_list_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Remove the sublist relationship
+        $result = $this->email_lists_model->remove_sublist($parent_list_id, $child_list_id);
+
+        if ($result['success']) {
+            echo json_encode(['success' => true, 'message' => 'Sublist removed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => $result['error']]);
+        }
+    }
+
+    /**
+     * AJAX: Get available sublists (lists that can be added as sublists)
+     * GET params: exclude_list_id (the parent list to exclude from results)
+     */
+    public function get_available_sublists_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $exclude_list_id = $this->input->get('exclude_list_id');
+
+        if (empty($exclude_list_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required field: exclude_list_id']);
+            return;
+        }
+
+        // Get available lists
+        $available = $this->email_lists_model->get_available_sublists($exclude_list_id);
+
+        echo json_encode(['success' => true, 'lists' => $available]);
+    }
+
+    /**
+     * AJAX: Check visibility consistency before making a list public
+     * POST params: list_id, new_visibility
+     * Returns: warnings about private sublists if making list public
+     */
+    public function check_visibility_consistency_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+        $new_visibility = $this->input->post('new_visibility');
+
+        if (empty($list_id) || !isset($new_visibility)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            return;
+        }
+
+        // Check for inconsistencies
+        $result = $this->email_lists_model->check_visibility_consistency($list_id, $new_visibility);
+
+        echo json_encode([
+            'success' => true,
+            'consistent' => $result['consistent'],
+            'warnings' => $result['warnings']
+        ]);
+    }
+
+    /**
+     * AJAX: Make a list and all its sublists public
+     * POST params: list_id
+     */
+    public function propagate_visibility_ajax()
+    {
+        header('Content-Type: application/json');
+
+        $list_id = $this->input->post('list_id');
+
+        if (empty($list_id)) {
+            echo json_encode(['success' => false, 'message' => 'Missing required field: list_id']);
+            return;
+        }
+
+        // Propagate visibility to all sublists
+        $result = $this->email_lists_model->propagate_visibility($list_id);
+
+        if ($result['success']) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Visibility propagated successfully',
+                'updated_count' => $result['updated_count']
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => $result['error']]);
+        }
+    }
 }

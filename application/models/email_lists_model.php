@@ -891,10 +891,21 @@ class Email_lists_model extends CI_Model
         $external_emails = $this->get_external_emails($list_id);
         $emails = array_merge($emails, $external_emails);
 
-        // 4. Deduplicate
+        // 4. Add sublists (table email_list_sublists) - Source 4
+        $sublists = $this->get_sublists($list_id);
+        foreach ($sublists as $sublist) {
+            // Recursively get emails from sublist
+            // No risk of infinite recursion due to depth=1 validation in add_sublist()
+            $sublist_emails = $this->textual_list($sublist['id']);
+            foreach ($sublist_emails as $email) {
+                $emails[] = array('email' => $email);
+            }
+        }
+
+        // 5. Deduplicate
         $emails = deduplicate_emails($emails);
 
-        // 5. Extract email strings only
+        // 6. Extract email strings only
         $email_strings = array();
         foreach ($emails as $item) {
             if (isset($item['email']) && !empty($item['email'])) {
@@ -1029,11 +1040,28 @@ class Email_lists_model extends CI_Model
             }
         }
 
-        // 4. Deduplicate
+        // 4. Add sublists (table email_list_sublists) - Source 4
+        $sublists = $this->get_sublists($list_id);
+        foreach ($sublists as $sublist) {
+            // Get emails from sublist (using textual_list for simplicity)
+            // No risk of infinite recursion due to depth=1 validation in add_sublist()
+            $sublist_emails = $this->textual_list($sublist['id']);
+            foreach ($sublist_emails as $email) {
+                $email_lower = strtolower(trim($email));
+                $all_emails[] = $email_lower;
+                // Set source as sublist with list name
+                // Only set if not already set by a more specific source
+                if (!isset($email_sources[$email_lower])) {
+                    $email_sources[$email_lower] = 'sublist:' . $sublist['name'];
+                }
+            }
+        }
+
+        // 5. Deduplicate
         $this->load->helper('email');
         $unique_emails = deduplicate_emails($all_emails);
 
-        // 5. Build email list with metadata
+        // 6. Build email list with metadata
         $emails_with_metadata = array();
         foreach ($unique_emails as $email) {
             $item = array(
@@ -1062,5 +1090,310 @@ class Email_lists_model extends CI_Model
         }
 
         return $emails_with_metadata;
+    }
+
+    // ========================================================================
+    // Sublist Management (Migration 054)
+    // ========================================================================
+
+    /**
+     * Add a sublist to a parent list
+     *
+     * Validates:
+     * - Both lists exist
+     * - No self-reference (parent != child)
+     * - Child list doesn't contain sublists (depth = 1 only)
+     * - No duplicate (parent, child) pair
+     * - Visibility coherence (public list can only contain public sublists)
+     *
+     * @param int $parent_list_id ID of the parent list
+     * @param int $child_list_id ID of the list to include as sublist
+     * @return array ['success' => bool, 'error' => string|null]
+     */
+    public function add_sublist($parent_list_id, $child_list_id)
+    {
+        // Validation 1: Both lists must exist
+        $parent = $this->get_list($parent_list_id);
+        if (!$parent) {
+            return array('success' => FALSE, 'error' => 'Liste parente introuvable');
+        }
+
+        $child = $this->get_list($child_list_id);
+        if (!$child) {
+            return array('success' => FALSE, 'error' => 'Liste enfant introuvable');
+        }
+
+        // Validation 2: No self-reference
+        if ($parent_list_id == $child_list_id) {
+            return array('success' => FALSE, 'error' => 'Une liste ne peut pas se contenir elle-même');
+        }
+
+        // Validation 3: Child must not contain sublists (depth = 1 only)
+        if ($this->has_sublists($child_list_id)) {
+            return array('success' => FALSE, 'error' => 'Cette liste contient déjà des sous-listes et ne peut pas être incluse');
+        }
+
+        // Validation 3b: Parent must not be a sublist elsewhere (depth = 1 only)
+        $parent_lists = $this->get_parent_lists($parent_list_id);
+        if (!empty($parent_lists)) {
+            return array('success' => FALSE, 'error' => 'Cette liste est déjà utilisée comme sous-liste et ne peut pas contenir de sous-listes');
+        }
+
+        // Validation 4: Check for duplicate
+        $existing = $this->db->get_where('email_list_sublists', array(
+            'parent_list_id' => $parent_list_id,
+            'child_list_id' => $child_list_id
+        ));
+        if ($existing->num_rows() > 0) {
+            return array('success' => FALSE, 'error' => 'Cette sous-liste est déjà incluse');
+        }
+
+        // Validation 5: Visibility coherence
+        // Public parent can only contain public children
+        if ($parent['visible'] == 1 && $child['visible'] == 0) {
+            return array('success' => FALSE, 'error' => 'Impossible d\'ajouter une sous-liste privée à une liste publique');
+        }
+
+        // Insert the sublist relationship
+        $data = array(
+            'parent_list_id' => $parent_list_id,
+            'child_list_id' => $child_list_id
+        );
+
+        if ($this->db->insert('email_list_sublists', $data)) {
+            return array('success' => TRUE, 'error' => NULL);
+        }
+
+        return array('success' => FALSE, 'error' => 'Erreur lors de l\'ajout de la sous-liste');
+    }
+
+    /**
+     * Remove a sublist from a parent list
+     *
+     * @param int $parent_list_id ID of the parent list
+     * @param int $child_list_id ID of the sublist to remove
+     * @return array Array with 'success' and 'error' keys
+     */
+    public function remove_sublist($parent_list_id, $child_list_id)
+    {
+        $this->db->where('parent_list_id', $parent_list_id);
+        $this->db->where('child_list_id', $child_list_id);
+        $this->db->delete('email_list_sublists');
+
+        // Always return success - deleting a non-existent relationship is idempotent
+        // Only a true database error would be a problem
+        if ($this->db->_error_message()) {
+            return array('success' => FALSE, 'error' => 'Erreur lors de la suppression de la sous-liste');
+        }
+
+        return array('success' => TRUE, 'error' => NULL);
+    }
+
+    /**
+     * Check if a list can be deleted
+     * A list cannot be deleted if it's used as a sublist in other lists (FK RESTRICT)
+     *
+     * @param int $list_id List ID to check
+     * @return array ['can_delete' => bool, 'parent_lists' => array]
+     */
+    public function can_delete_list($list_id)
+    {
+        if (empty($list_id)) {
+            return array(
+                'can_delete' => FALSE,
+                'parent_lists' => array(),
+                'error' => 'ID de liste invalide'
+            );
+        }
+
+        // Check if this list is used as a sublist
+        $parent_lists = $this->get_parent_lists($list_id);
+
+        if (empty($parent_lists)) {
+            // No parents, can delete freely
+            return array(
+                'can_delete' => TRUE,
+                'parent_lists' => array()
+            );
+        } else {
+            // Has parents, cannot delete directly
+            return array(
+                'can_delete' => FALSE,
+                'parent_lists' => $parent_lists
+            );
+        }
+    }
+
+    /**
+     * Remove a list from all its parent lists, then delete it
+     * This is used when a list is used as a sublist and needs to be deleted
+     *
+     * @param int $list_id List ID to delete
+     * @return array ['success' => bool, 'removed_from_count' => int, 'error' => string|null]
+     */
+    public function remove_from_all_parents_and_delete($list_id)
+    {
+        if (empty($list_id)) {
+            return array(
+                'success' => FALSE,
+                'error' => 'ID de liste invalide',
+                'removed_from_count' => 0
+            );
+        }
+
+        // Get all parent lists
+        $parent_lists = $this->get_parent_lists($list_id);
+        $removed_count = 0;
+
+        // Remove from each parent list
+        foreach ($parent_lists as $parent) {
+            $result = $this->remove_sublist($parent['id'], $list_id);
+            if ($result['success']) {
+                $removed_count++;
+            } else {
+                // If removal fails, return error
+                return array(
+                    'success' => FALSE,
+                    'error' => 'Erreur lors du retrait de la liste parente: ' . $parent['name'],
+                    'removed_from_count' => $removed_count
+                );
+            }
+        }
+
+        // Now delete the list itself
+        $deleted = $this->delete_list($list_id);
+
+        if ($deleted) {
+            return array(
+                'success' => TRUE,
+                'error' => NULL,
+                'removed_from_count' => $removed_count
+            );
+        } else {
+            return array(
+                'success' => FALSE,
+                'error' => 'Erreur lors de la suppression de la liste',
+                'removed_from_count' => $removed_count
+            );
+        }
+    }
+
+    /**
+     * Get all sublists of a parent list
+     *
+     * @param int $parent_list_id ID of the parent list
+     * @return array Array of sublists with metadata (id, name, visible, recipient_count)
+     */
+    public function get_sublists($parent_list_id)
+    {
+        $this->db->select('els.id as sublist_relation_id, el.id, el.name, el.visible, el.description, els.added_at');
+        $this->db->from('email_list_sublists els');
+        $this->db->join('email_lists el', 'els.child_list_id = el.id');
+        $this->db->where('els.parent_list_id', $parent_list_id);
+        $this->db->order_by('els.added_at', 'ASC');
+
+        $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
+
+        $sublists = $query->result_array();
+
+        // Add recipient count for each sublist
+        foreach ($sublists as &$sublist) {
+            $sublist['recipient_count'] = $this->count_members($sublist['id']);
+        }
+
+        return $sublists;
+    }
+
+    /**
+     * Check if a list contains sublists
+     *
+     * @param int $list_id ID of the list
+     * @return bool TRUE if the list contains sublists, FALSE otherwise
+     */
+    public function has_sublists($list_id)
+    {
+        $this->db->select('COUNT(*) as count');
+        $this->db->from('email_list_sublists');
+        $this->db->where('parent_list_id', $list_id);
+        $query = $this->db->get();
+
+        if ($query === FALSE) {
+            return FALSE;
+        }
+
+        $result = $query->row_array();
+        return $result && $result['count'] > 0;
+    }
+
+    /**
+     * Get all parent lists that contain a given list as sublist
+     *
+     * @param int $child_list_id ID of the list
+     * @return array Array of parent lists with metadata
+     */
+    public function get_parent_lists($child_list_id)
+    {
+        $this->db->select('el.id, el.name, el.visible, el.description');
+        $this->db->from('email_list_sublists els');
+        $this->db->join('email_lists el', 'els.parent_list_id = el.id');
+        $this->db->where('els.child_list_id', $child_list_id);
+        $this->db->order_by('el.name', 'ASC');
+
+        $query = $this->db->get();
+        if ($query === FALSE) {
+            return array();
+        }
+
+        $parents = $query->result_array();
+
+        // Add recipient count for each parent list
+        foreach ($parents as &$parent) {
+            $parent['recipient_count'] = $this->count_members($parent['id']);
+        }
+
+        return $parents;
+    }
+
+    /**
+     * Get all lists that can be used as sublists
+     *
+     * A list can be used as sublist if:
+     * - It doesn't contain sublists itself (depth = 1 constraint)
+     * - User has permission to see it
+     * - It's not the list being edited (to avoid self-reference)
+     *
+     * @param int $user_id ID of the user
+     * @param bool $is_admin Whether the user is admin
+     * @param int|null $exclude_list_id List ID to exclude (typically the list being edited)
+     * @return array Array of available lists
+     */
+    public function get_available_sublists($user_id, $is_admin = FALSE, $exclude_list_id = NULL)
+    {
+        // Get all lists visible to the user
+        $all_lists = $this->get_user_lists($user_id, $is_admin);
+
+        $available = array();
+
+        foreach ($all_lists as $list) {
+            // Exclude the list being edited
+            if ($exclude_list_id && $list['id'] == $exclude_list_id) {
+                continue;
+            }
+
+            // Exclude lists that contain sublists (depth = 1 constraint)
+            if ($this->has_sublists($list['id'])) {
+                continue;
+            }
+
+            // Add recipient count
+            $list['recipient_count'] = $this->count_members($list['id']);
+
+            $available[] = $list;
+        }
+
+        return $available;
     }
 }

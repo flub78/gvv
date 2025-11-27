@@ -209,3 +209,19 @@ $lang['email_lists_save_first_to_add_addresses'] = 'Veuillez d\'abord enregistre
 // Addresses view
 $lang['email_lists_select_list'] = 'Liste de destinataires';
 $lang['email_lists_select_list_placeholder'] = 'Sélectionnez une liste';
+
+// Sublists (Phase 5)
+$lang['email_lists_tab_sublists'] = 'Sous-listes';
+$lang['email_lists_sublists_help'] = 'Les sous-listes permettent d\'inclure d\'autres listes dans cette liste. Les adresses seront automatiquement dédoublonnées.';
+$lang['email_lists_current_sublists'] = 'Sous-listes actuelles';
+$lang['email_lists_available_sublists'] = 'Listes disponibles';
+$lang['email_lists_no_sublists'] = 'Aucune sous-liste configurée';
+$lang['email_lists_no_available_sublists'] = 'Aucune liste disponible pour ajout';
+$lang['email_lists_save_first_to_add_sublists'] = 'Veuillez d\'abord enregistrer la liste avant de pouvoir ajouter des sous-listes';
+$lang['email_lists_add'] = 'Ajouter';
+$lang['email_lists_remove'] = 'Retirer';
+$lang['email_lists_recipients'] = 'destinataires';
+$lang['email_lists_private'] = 'Privée';
+$lang['email_lists_sublist_added'] = 'Sous-liste ajoutée avec succès';
+$lang['email_lists_sublist_removed'] = 'Sous-liste retirée avec succès';
+$lang['email_lists_sublist_error'] = 'Erreur lors de l\'opération sur la sous-liste';
