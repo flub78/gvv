@@ -42,6 +42,7 @@ class SmartAdjustor {
         foreach ($sel as $key => $ecriture) {
             // Calcule le coefficient de corrélation entre l'écriture et l'opération
             $correlation = $this->correlation($statement_operation, $key, $ecriture, $operation_type);
+            $statement_operation->set_correlation($key, $correlation, $ecriture);
 
             if ($correlation >= $threshold) {
                 // Si le coefficient de corrélation est supérieur au seuil, on garde l'écriture
