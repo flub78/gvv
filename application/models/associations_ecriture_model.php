@@ -163,11 +163,22 @@ class Associations_ecriture_model extends Common_Model {
         foreach ($rapprochements as &$rapprochement) {
             try {
                 $ecriture = $this->ecritures_model->get_by_id('id', $rapprochement['id_ecriture_gvv']);
+
+                // Check if the ecriture actually exists
+                if (empty($ecriture)) {
+                    // Mark as orphaned - ecriture no longer exists
+                    $rapprochement['ecriture_exists'] = false;
+                    $rapprochement['ecriture'] = null;
+                    gvv_info("Orphaned association found: string_releve={$string_releve}, id_ecriture_gvv={$rapprochement['id_ecriture_gvv']}");
+                } else {
+                    $rapprochement['ecriture_exists'] = true;
+                    $rapprochement['ecriture'] = $ecriture;
+                }
             } catch (Exception $ex) {
-                echo ('Exception in get_by_string_releve: ' . $ex->getMessage());
-                exit;
+                gvv_error('Exception in get_by_string_releve: ' . $ex->getMessage());
+                $rapprochement['ecriture_exists'] = false;
+                $rapprochement['ecriture'] = null;
             }
-            $rapprochement['ecriture'] = $ecriture;
         }
         // gvv_dump($rapprochements);
         return $rapprochements;

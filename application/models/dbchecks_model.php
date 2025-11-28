@@ -484,6 +484,36 @@ class Dbchecks_model extends Common_Model {
         return $res;
     }
 
+    /**
+     * Find orphaned associations_ecriture (associations pointing to deleted ecritures)
+     * 
+     * Retrieves all associations in the associations_ecriture table where the 
+     * referenced id_ecriture_gvv no longer exists in the ecritures table.
+     * Returns data formatted for display in a table with checkboxes for deletion.
+     * 
+     * @return array Array of orphaned associations with checkbox, id, string_releve, and id_ecriture_gvv
+     */
+    public function orphaned_associations() {
+        $query = $this->db->query('SELECT a.id, a.string_releve, a.id_ecriture_gvv
+            FROM associations_ecriture a
+            LEFT JOIN ecritures e ON a.id_ecriture_gvv = e.id
+            WHERE e.id IS NULL
+            ORDER BY a.id');
+
+        $res = [];
+        foreach ($query->result() as $row) {
+            $checkbox = '<input type="checkbox" name="selection[]" value="' . "cbdel_" . $row->id . '">';
+
+            $res[] = [
+                $checkbox,
+                $row->id,
+                $row->string_releve,
+                $row->id_ecriture_gvv
+            ];
+        }
+        return $res;
+    }
+
 
     /*
      * 

@@ -57,11 +57,21 @@ class ReconciliationLine {
             $status .= '<input type="hidden" name="string_releve_' . $line_number . '" value="' . $str_releve . '">';
             
             $html .= '<td>' . $status . '</td>';
-            
-            // Colonne 2: Lien vers l'écriture
+
+            // Colonne 2: Lien vers l'écriture ou message d'erreur si elle n'existe plus
             $id_ecriture_gvv = $this->rapprochements['id_ecriture_gvv'] ?? '';
-            $ecriture_link = anchor_ecriture($id_ecriture_gvv);
-            $html .= '<td>' . $ecriture_link . '</td>';
+
+            // Check if ecriture_exists flag is set and false
+            if (isset($this->rapprochements['ecriture_exists']) && !$this->rapprochements['ecriture_exists']) {
+                // L'écriture n'existe plus - afficher message d'erreur en rouge
+                $id_display = $id_ecriture_gvv ? htmlspecialchars($id_ecriture_gvv) : 'inconnu';
+                $ecriture_display = '<span class="text-danger fw-bold">Rapproché à une écriture qui n\'existe plus (ID: ' . $id_display . ')</span>';
+            } else {
+                // L'écriture existe - afficher le lien normal
+                $ecriture_display = anchor_ecriture($id_ecriture_gvv);
+            }
+
+            $html .= '<td>' . $ecriture_display . '</td>';
             
             // Colonnes 3-5: vides
             $html .= '<td></td>';

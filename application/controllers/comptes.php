@@ -1158,7 +1158,24 @@ class Comptes extends Gvv_Controller {
             }
         }
 
-        // Build summary at the beginning
+        // Build detailed explanation
+        $explanation = "<div class='alert alert-info mb-4'>";
+        $explanation .= "<h5><i class='fas fa-info-circle'></i> Que vérifie cette page ?</h5>";
+        $explanation .= "<p class='mb-2'>Cette page vérifie que les <strong>soldes enregistrés</strong> dans la table <code>comptes</code> correspondent bien à la <strong>somme calculée des écritures</strong> pour chaque compte.</p>";
+        $explanation .= "<p class='mb-2'><strong>Principe :</strong> Dans GVV, chaque compte a deux valeurs de solde :</p>";
+        $explanation .= "<ol class='mb-2'>";
+        $explanation .= "<li><strong>Solde stocké :</strong> Colonnes <code>debit</code> et <code>credit</code> dans la table <code>comptes</code> (optimisation pour performance)</li>";
+        $explanation .= "<li><strong>Solde calculé :</strong> Somme de toutes les écritures dans la table <code>ecritures</code> pour ce compte</li>";
+        $explanation .= "</ol>";
+        $explanation .= "<p class='mb-2'><strong>Processus :</strong></p>";
+        $explanation .= "<ul class='mb-2'>";
+        $explanation .= "<li>Pour chaque compte, compare le solde stocké avec le solde calculé</li>";
+        $explanation .= "<li>Si différence ≥ 0.01€ : corrige automatiquement et affiche l'anomalie</li>";
+        $explanation .= "</ul>";
+        $explanation .= "<p class='mb-0'><strong>Pourquoi ?</strong> L'enregistrement du solde dans les comptes est une optimisation, mais nécessite cette vérification pour garantir la cohérence en cas de problème de transactions.</p>";
+        $explanation .= "</div>";
+
+        // Build summary
         $summary = "<div class='alert alert-" . ($errors > 0 ? "warning" : "success") . " mb-3'>";
         $summary .= "<strong>Résultat :</strong> $cnt comptes vérifiés, $errors erreur(s) trouvée(s)";
         if ($errors > 0) {
@@ -1166,11 +1183,11 @@ class Comptes extends Gvv_Controller {
         }
         $summary .= "</div>";
 
-        // Prepend summary to the message
-        $msg = $summary . $msg;
+        // Combine explanation, summary and details
+        $full_text = $explanation . $summary . $msg;
 
         $data = array(
-            'text' => $msg,
+            'text' => $full_text,
             'title' => "Vérification de la cohérence des comptes"
         );
         load_last_view('message', $data);

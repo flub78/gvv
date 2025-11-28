@@ -229,6 +229,14 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('dbchecks/sections') ?>" class="btn btn-secondary btn-sm">Vérifier</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-link text-warning"></i>
+                        <div class="card-title">Rapprochements</div>
+                        <div class="card-text text-muted">Associations orphelines</div>
+                        <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm">Vérifier</a>
+                    </div>
+                </div>
                 <?php if (isset($is_dev_authorized) && $is_dev_authorized) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">

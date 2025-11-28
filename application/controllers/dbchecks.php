@@ -71,6 +71,20 @@ class Dbchecks extends Gvv_Controller {
         load_last_view('checks/sections', $dt);
     }
 
+    /**
+     * Display orphaned bank reconciliation associations
+     * 
+     * Shows associations in associations_ecriture table that point to 
+     * non-existent ecritures. Allows selection and deletion of these
+     * orphaned associations to maintain database integrity.
+     * 
+     * @return void Loads the associations_orphelines view
+     */
+    function associations_orphelines() {
+        $dt['associations'] = $this->gvv_model->orphaned_associations();
+        load_last_view('checks/associations_orphelines', $dt);
+    }
+
     function delete_ecritures($from) {
         $posts = $this->input->post();
 
@@ -88,6 +102,46 @@ class Dbchecks extends Gvv_Controller {
         }
         $this->session->set_userdata('status', $status);
         redirect("dbchecks/$from");
+    }
+
+    /**
+     * Delete selected orphaned bank reconciliation associations
+     * 
+     * Processes form submission from associations_orphelines view to delete
+     * selected orphaned associations. Provides feedback on deleted associations
+     * and redirects back to the associations_orphelines page.
+     * 
+     * @return void Redirects to associations_orphelines with status message
+     */
+    function delete_associations() {
+        $posts = $this->input->post();
+        $status = "";
+        $cnt = 0;
+
+        if (isset($posts['selection'])) {
+            foreach ($posts['selection'] as $value) {
+                if (strpos($value, 'cbdel_') === 0) {
+                    // Key starts with "cbdel_" - these are the active checkboxes
+                    $id = str_replace("cbdel_", "", $value);
+                    $this->load->model('associations_ecriture_model');
+                    
+                    // Get association details before deletion for status message
+                    $association = $this->associations_ecriture_model->get_by_id('id', $id);
+                    if ($association) {
+                        $this->associations_ecriture_model->delete(['id' => $id]);
+                        $cnt++;
+                        $status .= "Association #{$id} (écriture GVV: {$association['id_ecriture_gvv']}) supprimée<br>";
+                    }
+                }
+            }
+        }
+
+        if ($cnt == 0) {
+            $status = "Aucune association sélectionnée pour suppression.";
+        }
+
+        $this->session->set_userdata('status', $status);
+        redirect("dbchecks/associations_orphelines");
     }
 }
 
