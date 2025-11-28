@@ -204,6 +204,39 @@ class StatementOperation {
             foreach ($this->reconciliated() as $reconciliation) {
                 $html .= $reconciliation->to_HTML();
             }
+
+            // Contrôle de cohérence: vérifier que la somme des montants correspond
+            $sum_ecritures = 0;
+            $has_orphaned = false;
+            foreach ($this->reconciliated() as $reconciliation) {
+                $rapprochement = $reconciliation->rapprochements;
+                if (isset($rapprochement['ecriture_exists']) && $rapprochement['ecriture_exists']) {
+                    // L'écriture existe, ajouter son montant
+                    $sum_ecritures += $rapprochement['ecriture']['montant'];
+                } else {
+                    // Écriture orpheline détectée
+                    $has_orphaned = true;
+                }
+            }
+
+            $operation_amount = $this->amount();
+            $difference = abs($sum_ecritures - $operation_amount);
+
+            // Tolérance de 0.01 € pour les erreurs d'arrondi
+            if ($difference > 0.01) {
+                $html .= '<tr class="table-danger">';
+                $html .= '<td colspan="7" class="text-danger fw-bold">';
+                $html .= '<i class="bi bi-exclamation-triangle-fill"></i> ';
+                $html .= 'ERREUR DE COHÉRENCE : Le montant de l\'opération bancaire (' . euro($operation_amount) . ') ';
+                $html .= 'ne correspond pas à la somme des écritures rapprochées (' . euro($sum_ecritures) . '). ';
+                $html .= 'Différence : ' . euro($difference) . '.';
+                if ($has_orphaned) {
+                    $html .= ' Des écritures rapprochées n\'existent plus dans la comptabilité.';
+                }
+                $html .= ' Veuillez supprimer ce rapprochement et le refaire.';
+                $html .= '</td>';
+                $html .= '</tr>';
+            }
         } elseif ($this->choices_count() == 1) {
             // Une seule proposition unique - afficher avec checkbox et champ caché
             $html .= '<tr class="table-secondary">';
