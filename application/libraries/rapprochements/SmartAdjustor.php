@@ -428,19 +428,72 @@ class SmartAdjustor {
             return 0.96;
         }
 
+        // Vérifier la correspondance de date
+        $statement_date = $statement_operation->value_date(); // Format: YYYY-MM-DD
+        $ecriture_date = null;
+
+        // Extraire la date de l'écriture (format attendu: DD/MM/YYYY au début)
+        if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})/', $ecriture, $date_matches)) {
+            $ecriture_date = $date_matches[3] . '-' . $date_matches[2] . '-' . $date_matches[1];
+        }
+
+        $date_match = ($ecriture_date === $statement_date);
+        $date_mismatch = ($ecriture_date !== null && !$date_match);
+
         // Amélioration: recouper nom/prénom expéditeur vs image
         $sender_tokens   = $this->extract_name_tokens($cmt);
         $ecriture_tokens = $this->extract_name_tokens($ecriture_image);
         $overlap = count(array_intersect($sender_tokens, $ecriture_tokens));
         $foreign_tokens = array_diff($ecriture_tokens, $sender_tokens);
 
+        // Détecter les tokens "étrangers" qui ressemblent à des noms de personnes
+        // Un token ressemble à un nom si: longueur > 3, pas de chiffres, pas dans une liste de mots communs bancaires
+        $banking_keywords = ['cotisation', 'payee', 'recu', 'inst', 'motif', 'date', 'ref'];
+        $foreign_name_tokens = [];
+        foreach ($foreign_tokens as $token) {
+            // Token ressemble à un nom si: longueur > 3, pas de chiffres, pas un mot bancaire commun
+            if (strlen($token) > 3 && !preg_match('/\d/', $token) && !in_array($token, $banking_keywords)) {
+                $foreign_name_tokens[] = $token;
+            }
+        }
+
+        $has_foreign_names = (count($foreign_name_tokens) >= 1); // Au moins un nom étranger
+
+        // Logique améliorée avec prise en compte de la date et des noms étrangers
         if ($overlap >= 2) {
-            // Nom + prénom retrouvés
-            return 0.97;
+            // Au moins 2 tokens en commun
+            $base_score = 0.97;
+
+            // Pénalité forte si l'écriture contient des noms de personnes différents
+            if ($has_foreign_names) {
+                $base_score = 0.15; // Très faible score - probablement une autre personne
+            }
+            // Bonus si la date correspond exactement ET pas de noms étrangers
+            else if ($date_match) {
+                $base_score = 0.99; // Quasi-certitude
+            }
+            // Pénalité si la date ne correspond pas (mais pas de noms étrangers)
+            else if ($date_mismatch) {
+                $base_score = 0.75; // Score réduit - bon type d'opération mais mauvaise date
+            }
+
+            return $base_score;
         }
         if ($overlap === 1) {
-            // Un seul token (nom OU prénom)
-            return 0.88;
+            // Un seul token en commun
+            $base_score = 0.88;
+
+            if ($has_foreign_names) {
+                $base_score = 0.1; // Très faible - noms différents
+            }
+            else if ($date_match) {
+                $base_score = 0.92; // Bon score si date correspond
+            }
+            else if ($date_mismatch) {
+                $base_score = 0.65; // Score réduit
+            }
+
+            return $base_score;
         }
         if ($overlap === 0 && count($sender_tokens) > 0 && count($foreign_tokens) >= 2) {
             // L'image mentionne d'autres personnes -> faible
