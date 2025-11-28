@@ -2342,7 +2342,25 @@ class Compta extends Gvv_Controller {
         }
         $pdf->printl($solde);
 
-        $pdf->Output();
+        // Génération d'un nom de fichier explicite
+        date_default_timezone_set('Europe/Paris');
+        $date_generation = date("Y-m-d");
+        
+        // Formatage des dates de période
+        $date_debut = isset($this->data['date_deb']) ? str_replace('/', '-', $this->data['date_deb']) : '';
+        $date_fin = isset($this->data['date_fin']) ? str_replace('/', '-', $this->data['date_fin']) : '';
+        
+        // Construction du nom de fichier
+        $filename = "extrait_compte_" . $compte;
+        if (!empty($date_debut)) {
+            $filename .= "_" . $date_debut;
+        }
+        if (!empty($date_fin)) {
+            $filename .= "_" . $date_fin;
+        }
+        $filename .= "_" . $date_generation . ".pdf";
+
+        $pdf->Output($filename, 'I');
     }
 
     /**
@@ -2524,9 +2542,23 @@ class Compta extends Gvv_Controller {
 
         // echo $str; return;
 
+        // Génération d'un nom de fichier explicite
         date_default_timezone_set('Europe/Paris');
-        $dt = $compte . '_' . date("Y_m_d");
-        $filename = "gvv_compte_$dt.csv";
+        $date_generation = date("Y-m-d");
+        
+        // Formatage des dates de période
+        $date_debut = isset($this->data['date_deb']) ? str_replace('/', '-', $this->data['date_deb']) : '';
+        $date_fin = isset($this->data['date_fin']) ? str_replace('/', '-', $this->data['date_fin']) : '';
+        
+        // Construction du nom de fichier
+        $filename = "extrait_compte_" . $compte;
+        if (!empty($date_debut)) {
+            $filename .= "_" . $date_debut;
+        }
+        if (!empty($date_fin)) {
+            $filename .= "_" . $date_fin;
+        }
+        $filename .= "_" . $date_generation . ".csv";
 
         // Load the download helper and send the file to your desktop
         $this->load->helper('download');
