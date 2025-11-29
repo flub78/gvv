@@ -180,6 +180,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
 <script src="<?= base_url('assets/javascript/selectall.js'); ?>"></script>
 <script src="<?= base_url('assets/javascript/reconciliate.js'); ?>"></script>
+<script src="<?= base_url('assets/javascript/bank_search.js'); ?>"></script>
 
 <div class="tab-content" id="myTabContent">
     <!-- Onglet Relevé de banque -->
@@ -205,10 +206,20 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         <!-- Boutons de sélection -->
         <?php if ($count_selected): ?>
 
-            <div class="actions mb-3 mt-3">
-                <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
-                <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
-                <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+            <div class="actions mb-3 mt-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
+                    <button type="button" class="btn btn-primary" onclick="selectUniques()">Sélectionnez uniques</button>
+                    <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>
+                </div>
+                <div class="d-flex align-items-center">
+                    <label for="searchReleveBanque" class="form-label me-2 mb-0">Recherche:</label>
+                    <input type="text" class="form-control" id="searchReleveBanque" placeholder="Filtrer les opérations..." style="width: 300px;" onkeyup="filterBankOperations()">
+                    <button type="button" class="btn btn-sm btn-secondary ms-2" onclick="clearBankSearch()" title="Effacer la recherche">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <small id="searchStats" class="text-muted ms-2" style="display: none;"></small>
+                </div>
             </div>
         <?php endif; ?>
         <?php
