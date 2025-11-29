@@ -269,6 +269,15 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         echo '</div>';
         ?>
 
+        <?php
+        // Export buttons for GVV ecritures
+        $bar = array(
+            array('label' => "Excel", 'url' => "rapprochements/export_ecritures/csv", 'role' => 'ca'),
+            array('label' => "Pdf", 'url' => "rapprochements/export_ecritures/pdf", 'role' => 'ca'),
+        );
+        echo button_bar4($bar);
+        ?>
+
         <div class="actions mb-3 mt-3">
             <button type="button" class="btn btn-primary" onclick="selectAll()">Sélectionnez tout</button>
             <button type="button" class="btn btn-primary" onclick="deselectAll()">Dé-sélectionnez tout</button>

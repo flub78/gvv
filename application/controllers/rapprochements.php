@@ -724,12 +724,74 @@ class Rapprochements extends CI_Controller {
     }
 
     /**
+     * Export GVV accounting entries in CSV or PDF format
+     *
+     * Exports the current selection of GVV accounting entries respecting active filters.
+     * Supports both CSV (Excel-compatible) and PDF output formats. Access restricted
+     * to users with 'ca' role.
+     *
+     * @param string $mode Export format: 'csv' or 'pdf' (default: 'csv')
+     * @return void Outputs file for download
+     */
+    public function export_ecritures($mode = 'csv') {
+        // Verify user has appropriate role
+        if (!$this->dx_auth->is_role('ca')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Get current filter settings
+        $startDate = $this->session->userdata('startDate');
+        if (!$startDate) {
+            $startDate = date('Y') . '-01-01';
+        }
+        $endDate = $this->session->userdata('endDate');
+        if (!$endDate) {
+            $endDate = date('Y') . '-12-31';
+        }
+
+        // Get reconciliator to retrieve GVV bank account
+        $reconciliator = $this->get_reconciliator();
+        $gvv_bank = $reconciliator->gvv_bank_account();
+
+        // Get filtered GVV lines (respects current filters)
+        $filtered_lines = $this->get_filtered_gvv_lines($startDate, $endDate, $gvv_bank);
+
+        // Fields to export (matching display columns, excluding checkboxes/actions)
+        $fields = array('id', 'date_op', 'montant', 'description', 'num_cheque', 'compte1', 'compte2');
+        $title = $this->lang->line('gvv_rapprochements_title') . ' - ' . $this->lang->line('gvv_rapprochements_ecritures_gvv');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('ecritures', $filtered_lines, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        // PDF export
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('L'); // Landscape orientation
+
+        // Column widths (total ~270mm for landscape A4)
+        $width = array(15, 25, 25, 100, 30, 37, 38);
+
+        $this->gvvmetadata->pdf_table('ecritures', $filtered_lines, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+
+        $pdf->Output();
+    }
+
+    /**
      * Reconcile a single bank operation with a GVV accounting entry (AJAX)
-     * 
+     *
      * Creates a reconciliation association between a bank statement operation
      * and a GVV accounting entry. Validates inputs and returns JSON response
      * with operation status. Only accessible via AJAX requests.
-     * 
+     *
      * @return void Outputs JSON response with success/error status and message
      */
     public function rapprocher_unique() {
