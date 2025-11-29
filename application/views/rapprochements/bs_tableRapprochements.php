@@ -176,6 +176,13 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     transform: scale(1.05);
     transition: all 0.2s ease;
 }
+
+/* Highlight search terms */
+.highlight {
+    background-color: #ffff00;
+    font-weight: bold;
+    padding: 0 2px;
+}
 </style>
 
 <script src="<?= base_url('assets/javascript/selectall.js'); ?>"></script>

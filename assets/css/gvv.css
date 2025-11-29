@@ -92,3 +92,9 @@
   color: #ccc !important;
   /* color: rgba(252, 0, 0, 0.5) !important; */
 }
+/* Highlight search terms in DataTables and search results */
+.highlight {
+    background-color: #ffff00;
+    font-weight: bold;
+    padding: 0 2px;
+}

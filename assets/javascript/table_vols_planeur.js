@@ -40,7 +40,7 @@ $(document).ready(function () {
         "aoColumns": [
             { "bSortable": false },       // edit
             { "bSortable": false },        // delete
-            { "sType": "date-uk" },      // date "asSorting": [ "desc", "asc" ] 
+            { "sType": "date-uk" },      // date "asSorting": [ "desc", "asc" ]
             { "bSortable": true },       // debut
             { "bSortable": true },       // durée
             { "bSortable": true },        // immat
@@ -50,14 +50,15 @@ $(document).ready(function () {
             { "bSortable": true },       // Rem
             { "bSortable": false },       // Alt
             { "bSortable": false },       // obs
-            { "bSortable": true },        // lieu     
+            { "bSortable": true },        // lieu
             { "bSortable": false },       // Kms
             { "bSortable": false },       // - 25
             { "bSortable": false },       // DC
             { "bSortable": false },       // Prv
             { "bSortable": false }       // cat
         ],
-        "oLanguage": olanguage
+        "oLanguage": olanguage,
+        "fnDrawCallback": highlightSearchCallback
     });
 
     $('.datatable_server_ro').dataTable({

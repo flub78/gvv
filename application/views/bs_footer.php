@@ -53,7 +53,8 @@
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
                 [10, 25, 50, 100, 500, 1000, "Tous les"]
-            ]
+            ],
+            "fnDrawCallback": highlightSearchCallback
         });
 
         // "bFilter": true,
@@ -87,7 +88,8 @@
             "search": {
                 "caseInsensitive": true
             },
-            "oLanguage": olanguage
+            "oLanguage": olanguage,
+            "fnDrawCallback": highlightSearchCallback
         });
 
 
@@ -123,7 +125,8 @@
             "columnDefs": [{
                 "orderable": false,
                 "targets": "_all"
-            }]
+            }],
+            "fnDrawCallback": highlightSearchCallback
         });
 
         // DataTable pour balance hiérarchique: recherche SANS pagination
@@ -143,7 +146,8 @@
             "columnDefs": [{
                 "orderable": false,
                 "targets": "_all"
-            }]
+            }],
+            "fnDrawCallback": highlightSearchCallback
         });
 
         // to replace the select by an input that select values in the dropdown

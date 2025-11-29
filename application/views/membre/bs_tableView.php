@@ -351,6 +351,7 @@ if ($this->session->flashdata('error')) {
                     <?php if ($this->dx_auth->is_role('admin', true, true)): ?>
                     replaceActifWithCheckbox();
                     <?php endif; ?>
+                    highlightSearchCallback.call(this);
                 }
             });
 
@@ -406,6 +407,7 @@ if ($this->session->flashdata('error')) {
                     <?php if ($this->dx_auth->is_role('admin', true, true)): ?>
                     replaceActifWithCheckbox();
                     <?php endif; ?>
+                    highlightSearchCallback.call(this);
                 }
             });
 

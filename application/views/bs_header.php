@@ -107,5 +107,38 @@
 
 	<!-- Version locale -->
 
+	<!-- Global function for highlighting search terms in DataTables -->
+	<script type="text/javascript">
+		// Reusable function for highlighting search terms in DataTables
+		function highlightSearchCallback() {
+			var oSettings = this.fnSettings();
+			var searchTerm = oSettings.oPreviousSearch.sSearch;
+
+			$('tbody td', this).each(function() {
+				var $cell = $(this);
+				// Skip cells with buttons/links to avoid breaking them
+				if ($cell.find('a, button, input').length > 0) {
+					return;
+				}
+
+				// Remove existing highlights first
+				var html = $cell.html();
+				if (html) {
+					html = html.replace(/<span class="highlight">(.*?)<\/span>/gi, '$1');
+					$cell.html(html);
+				}
+
+				// If there's a search term, highlight it
+				if (searchTerm) {
+					var text = $cell.text();
+					var regex = new RegExp('(' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+					var highlighted = text.replace(regex, '<span class="highlight">$1</span>');
+					if (highlighted !== text) {
+						$cell.html(highlighted);
+					}
+				}
+			});
+		}
+	</script>
 
 </head>

@@ -44,16 +44,17 @@ $(document).ready(function () {
             { "bSortable": false },       // durée
             { "bSortable": false },       // att
             { "bSortable": false },       // obs
-            { "bSortable": true },        // lieu     
+            { "bSortable": true },        // lieu
             { "bSortable": false },       // - 25
             { "bSortable": false },       // DC
             { "bSortable": false },       // cat
             { "bSortable": false },       // Prv
-            { "bSortable": false },       // Ess     
+            { "bSortable": false },       // Ess
             { "bSortable": false },       // change
             { "bSortable": false }        // delete
         ],
-        "oLanguage": olanguage
+        "oLanguage": olanguage,
+        "fnDrawCallback": highlightSearchCallback
     });
 
     $('.datedtable_ro').dataTable({
@@ -77,13 +78,14 @@ $(document).ready(function () {
             { "bSortable": false },       // durée
             { "bSortable": false },       // att
             { "bSortable": false },       // obs
-            { "bSortable": true },        // lieu     
+            { "bSortable": true },        // lieu
             { "bSortable": false },       // - 25
             { "bSortable": false },       // DC
             { "bSortable": false },       // cat
             { "bSortable": false },       // Prv
-            { "bSortable": false },       // Ess     
+            { "bSortable": false },       // Ess
         ],
-        "oLanguage": olanguage
+        "oLanguage": olanguage,
+        "fnDrawCallback": highlightSearchCallback
     });
 });

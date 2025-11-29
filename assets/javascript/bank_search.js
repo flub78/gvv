@@ -12,6 +12,78 @@
  */
 
 /**
+ * Remove all highlights from text
+ */
+function removeHighlights(element) {
+    const highlights = element.querySelectorAll('.highlight');
+    highlights.forEach(highlight => {
+        const parent = highlight.parentNode;
+        parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+        parent.normalize(); // Merge adjacent text nodes
+    });
+}
+
+/**
+ * Highlight search term in text
+ */
+function highlightText(element, searchTerm) {
+    // Process all text nodes
+    const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+
+    const nodesToReplace = [];
+    let node;
+
+    while (node = walker.nextNode()) {
+        const parent = node.parentElement;
+
+        // Skip if parent is a script, style, input, button, link, or already highlighted
+        if (!parent ||
+            parent.tagName === 'SCRIPT' ||
+            parent.tagName === 'STYLE' ||
+            parent.tagName === 'INPUT' ||
+            parent.tagName === 'BUTTON' ||
+            parent.tagName === 'A' ||
+            parent.classList.contains('highlight')) {
+            continue;
+        }
+
+        const text = node.nodeValue;
+        const lowerText = text.toLowerCase();
+        const lowerSearchTerm = searchTerm.toLowerCase();
+
+        if (lowerText.includes(lowerSearchTerm)) {
+            nodesToReplace.push(node);
+        }
+    }
+
+    // Replace nodes with highlighted version
+    nodesToReplace.forEach(node => {
+        const text = node.nodeValue;
+        const regex = new RegExp('(' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        const parts = text.split(regex);
+
+        const fragment = document.createDocumentFragment();
+        parts.forEach(part => {
+            if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                const span = document.createElement('span');
+                span.className = 'highlight';
+                span.textContent = part;
+                fragment.appendChild(span);
+            } else if (part) {
+                fragment.appendChild(document.createTextNode(part));
+            }
+        });
+
+        node.parentNode.replaceChild(fragment, node);
+    });
+}
+
+/**
  * Filter bank operations based on search input
  * Shows/hides operation tables based on whether they contain the search term
  */
@@ -22,7 +94,7 @@ function filterBankOperations() {
         return;
     }
 
-    const searchTerm = searchInput.value.toLowerCase().trim();
+    const searchTerm = searchInput.value.trim();
 
     // Get all operation tables
     const operationTables = document.querySelectorAll('table.operations');
@@ -37,6 +109,9 @@ function filterBankOperations() {
 
     // Filter each operation table
     operationTables.forEach(table => {
+        // First, remove any existing highlights
+        removeHighlights(table);
+
         if (searchTerm === '') {
             // Show all if search is empty
             table.style.display = '';
@@ -47,9 +122,12 @@ function filterBankOperations() {
             const normalizedText = tableText.toLowerCase();
 
             // Check if search term is found in the table content
-            if (normalizedText.includes(searchTerm)) {
+            if (normalizedText.includes(searchTerm.toLowerCase())) {
                 table.style.display = '';
                 visibleCount++;
+
+                // Highlight the search term in the table
+                highlightText(table, searchTerm);
             } else {
                 table.style.display = 'none';
                 hiddenCount++;

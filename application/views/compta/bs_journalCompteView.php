@@ -302,6 +302,13 @@ echo '<style>
 .sql_table .btn:disabled:hover {
     opacity: 0.4;
 }
+
+/* Highlight search terms */
+.highlight {
+    background-color: #ffff00;
+    font-weight: bold;
+    padding: 0 2px;
+}
 </style>';
 ?>
 
@@ -451,7 +458,36 @@ echo '</div>';
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
                 [10, 25, 50, 100, 500, 1000, "Tous les"]
-            ]
+            ],
+            "fnDrawCallback": function() {
+                var oSettings = this.fnSettings();
+                var searchTerm = oSettings.oPreviousSearch.sSearch;
+
+                $('tbody td', this).each(function() {
+                    var $cell = $(this);
+                    // Skip cells with buttons/links to avoid breaking them
+                    if ($cell.find('a, button, input').length > 0) {
+                        return;
+                    }
+
+                    // Remove existing highlights first
+                    var html = $cell.html();
+                    if (html) {
+                        html = html.replace(/<span class="highlight">(.*?)<\/span>/gi, '$1');
+                        $cell.html(html);
+                    }
+
+                    // If there's a search term, highlight it
+                    if (searchTerm) {
+                        var text = $cell.text();
+                        var regex = new RegExp('(' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                        var highlighted = text.replace(regex, '<span class="highlight">$1</span>');
+                        if (highlighted !== text) {
+                            $cell.html(highlighted);
+                        }
+                    }
+                });
+            }
         });
         
         // Handle gel checkbox clicks
