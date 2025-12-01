@@ -64,9 +64,25 @@ Valider que les boutons edit/delete se comportent correctement quand une écritu
    - Le formulaire doit s'ouvrir
    - Les champs doivent être en lecture seule (disabled ou readonly)
    - Le bouton de validation/submit doit être désactivé (disabled)
+   - Un message d'alerte doit s'afficher : "La modification d'une écriture gelée est interdite"
+   - La checkbox "Gel" doit être cochée
    - Les données de l'écriture doivent être affichées correctement
 4. Tenter de modifier un champ → doit être impossible
 5. Le bouton de validation ne doit pas être cliquable
+
+### Test 3bis : Dégelage depuis le Formulaire de Visualisation
+
+**Étapes :**
+1. Depuis le formulaire de visualisation (Test 3)
+2. Décocher la checkbox "Gel"
+3. **Vérifications après décochage :**
+   - Un appel AJAX doit être effectué (la checkbox se désactive temporairement)
+   - La page doit se recharger automatiquement
+   - Après rechargement, le formulaire doit être en mode édition :
+     - Champs modifiables
+     - Bouton de validation actif
+     - Pas de message d'alerte
+     - Checkbox "Gel" décochée
 
 ### Test 4 : Formulaire en Mode Édition (Normal)
 
@@ -83,11 +99,13 @@ Valider que les boutons edit/delete se comportent correctement quand une écritu
 ## Résultats Attendus
 
 ### Succès
-- ✅ Le bouton edit change d'icône et de couleur quand gelé
+- ✅ Le bouton edit change d'icône quand gelé (garde la même couleur bleue)
 - ✅ Le bouton de visualisation reste actif même quand gelé
 - ✅ Le bouton delete est désactivé quand gelé
 - ✅ Le formulaire en mode visualisation empêche toute modification
-- ✅ Le dégel restaure les boutons à leur état normal
+- ✅ Le dégel depuis la vue liste restaure les boutons à leur état normal
+- ✅ Le dégel depuis le formulaire recharge la page en mode édition
+- ✅ Le gel depuis le formulaire est empêché (doit se faire depuis la vue liste)
 
 ### Échec
 - ❌ Le bouton edit est désactivé quand gelé (au lieu de rester actif)
@@ -100,9 +118,17 @@ Valider que les boutons edit/delete se comportent correctement quand une écritu
 ### Fichiers Modifiés
 - `application/controllers/compta.php` (lignes 1832-1853) : Génération des boutons avec logique gel/visualisation
 - `application/views/compta/bs_journalCompteView.php` (lignes 520-556) : JavaScript pour changement dynamique des boutons
+- `application/views/compta/bs_formView.php` (lignes 602-657) : JavaScript pour dégelage depuis le formulaire
 
 ### Comportement du Contrôleur
 La fonction `edit()` dans `compta.php` détecte automatiquement si une écriture est gelée et appelle `form_static_element(VISUALISATION)` au lieu de `MODIFICATION`, ce qui désactive le formulaire.
+
+### Dégelage depuis le Formulaire
+Quand l'utilisateur décoche la checkbox "Gel" dans le formulaire de visualisation :
+1. Un appel AJAX est effectué vers `compta/toggle_gel` avec `gel=0`
+2. En cas de succès, la page se recharge automatiquement (`location.reload()`)
+3. Au rechargement, le contrôleur détecte que `gel=0` et charge le formulaire en mode MODIFICATION
+4. Le gel depuis le formulaire (cocher la checkbox) est empêché pour forcer l'utilisation de la vue liste
 
 ### Classes CSS et Icônes
 - Bouton edit normal : `btn-primary`, icône `fa-edit`, titre "Modifier"

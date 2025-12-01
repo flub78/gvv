@@ -598,6 +598,62 @@ function showFormSuccessToast(message) {
         toast.fadeOut(300, function() { $(this).remove(); });
     }, 3000);
 }
+
+// Handle unfreezing an entry from the edit form (VISUALISATION mode only)
+$(document).ready(function() {
+    <?php if ($action == VISUALISATION && isset($id) && $id): ?>
+    // Only in VISUALISATION mode: allow unfreezing by unchecking the gel checkbox
+    var ecritureId = <?= $id ?>;
+    var gelCheckbox = $('input[name="gel"]');
+
+    if (gelCheckbox.length > 0) {
+        // Store initial checked state (should be true in VISUALISATION mode)
+        var wasInitiallyFrozen = gelCheckbox.is(':checked');
+
+        gelCheckbox.on('change', function() {
+            var isNowChecked = $(this).is(':checked');
+
+            // Only handle unchecking a frozen entry (defrost action)
+            if (wasInitiallyFrozen && !isNowChecked) {
+                // Disable checkbox during AJAX request
+                gelCheckbox.prop('disabled', true);
+
+                $.ajax({
+                    url: '<?= site_url("compta/toggle_gel") ?>',
+                    type: 'POST',
+                    data: {
+                        id: ecritureId,
+                        gel: 0  // Unfreeze
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Reload page to switch from VISUALISATION to MODIFICATION mode
+                            location.reload();
+                        } else {
+                            // Error - revert checkbox state
+                            gelCheckbox.prop('checked', true);
+                            gelCheckbox.prop('disabled', false);
+                            alert('Erreur lors du dégel: ' + (response.message || 'Erreur inconnue'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Error - revert checkbox state
+                        gelCheckbox.prop('checked', true);
+                        gelCheckbox.prop('disabled', false);
+                        alert('Erreur lors du dégel: ' + error);
+                    }
+                });
+            }
+        });
+    }
+    <?php endif; ?>
+
+    <?php if ($action == MODIFICATION && isset($id) && $id): ?>
+    // In MODIFICATION mode: normal behavior, allow checking/unchecking gel checkbox
+    // No special handling needed - standard form submission will handle it
+    <?php endif; ?>
+});
 </script>
 
 <script type="text/javascript" src="<?php echo js_url('form_ecriture'); ?>"></script>

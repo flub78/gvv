@@ -606,12 +606,21 @@ class Ecritures_model extends Common_Model {
         $montant = $data['montant'];
         // echo "$compte1 -> $compte2 : $montant<br>";
 
-        if ($data['gel'] == 0) { // Pas gel
+        // Get previous state to check if we're freezing an unfrozen entry
+        $previous = $this->get_by_id('id', $id);
+        $was_frozen = isset($previous['gel']) && $previous['gel'] == 1;
+        $is_frozen = isset($data['gel']) && $data['gel'] == 1;
+
+        // Allow modification if:
+        // - Entry is not frozen (gel == 0)
+        // - OR we're freezing an unfrozen entry (was_frozen == false && is_frozen == true)
+        if ($data['gel'] == 0 || (!$was_frozen && $is_frozen)) {
             $this->db->trans_start();
             $this->comptes_model->maj_comptes($compte1, $compte2, $montant);
             $this->update($id, $data);
             $this->db->trans_complete();
         } else {
+            // Entry was already frozen and we're trying to modify it (not just freezing it)
             if (! $this->session->userdata('popup')) {
                 $this->session->set_flashdata('popup', "Modification impossible, écriture gelée");
             }
