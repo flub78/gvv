@@ -1833,13 +1833,19 @@ class Compta extends Gvv_Controller {
                 if ($has_modification_rights && $section) {
                     $actions = '';
                     $is_frozen = isset($ecriture['gel']) && $ecriture['gel'] == '1';
-                    $disabled_class = $is_frozen ? ' disabled' : '';
-                    $disabled_attr = $is_frozen ? ' disabled tabindex="-1" aria-disabled="true"' : '';
 
-                    // Edit button - disabled if frozen
-                    $actions .= '<a href="' . site_url("compta/edit/{$ecriture['id']}") . '" class="btn btn-sm btn-primary edit-entry-btn' . $disabled_class . '" title="' . ($is_frozen ? 'Écriture gelée' : 'Modifier') . '"' . $disabled_attr . ' data-ecriture-id="' . $ecriture['id'] . '"><i class="fas fa-edit"></i></a> ';
+                    // Edit/View button - shows eye icon when frozen (view mode), edit icon otherwise
+                    if ($is_frozen) {
+                        // View button (eye icon) - active even when frozen, same blue color as edit
+                        $actions .= '<a href="' . site_url("compta/edit/{$ecriture['id']}") . '" class="btn btn-sm btn-primary edit-entry-btn view-mode" title="Visualiser" data-ecriture-id="' . $ecriture['id'] . '" data-frozen="1"><i class="fas fa-eye"></i></a> ';
+                    } else {
+                        // Edit button (edit icon) - normal mode
+                        $actions .= '<a href="' . site_url("compta/edit/{$ecriture['id']}") . '" class="btn btn-sm btn-primary edit-entry-btn" title="Modifier" data-ecriture-id="' . $ecriture['id'] . '" data-frozen="0"><i class="fas fa-edit"></i></a> ';
+                    }
 
                     // Delete button - disabled if frozen
+                    $disabled_class = $is_frozen ? ' disabled' : '';
+                    $disabled_attr = $is_frozen ? ' disabled tabindex="-1" aria-disabled="true"' : '';
                     $delete_onclick = $is_frozen ? '' : ' onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer cette écriture ?\')"';
                     $actions .= '<a href="' . site_url("compta/delete/{$ecriture['id']}") . '" class="btn btn-sm btn-danger delete-entry-btn' . $disabled_class . '" title="' . ($is_frozen ? 'Écriture gelée' : 'Supprimer') . '"' . $disabled_attr . $delete_onclick . ' data-ecriture-id="' . $ecriture['id'] . '"><i class="fas fa-trash"></i></a>';
 

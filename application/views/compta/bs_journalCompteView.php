@@ -518,13 +518,17 @@ echo '</div>';
                         var $deleteBtn = $row.find('.delete-entry-btn[data-ecriture-id="' + ecritureId + '"]');
 
                         if (isChecked) {
-                            // Entry is now frozen - disable buttons
-                            $editBtn.addClass('disabled').attr({
-                                'disabled': true,
-                                'tabindex': '-1',
-                                'aria-disabled': 'true',
-                                'title': 'Écriture gelée'
-                            });
+                            // Entry is now frozen - switch edit button to view mode (eye icon, same blue color)
+                            $editBtn.addClass('view-mode')
+                                .attr({
+                                    'title': 'Visualiser',
+                                    'data-frozen': '1'
+                                })
+                                .find('i')
+                                .removeClass('fa-edit')
+                                .addClass('fa-eye');
+
+                            // Disable delete button
                             $deleteBtn.addClass('disabled').attr({
                                 'disabled': true,
                                 'tabindex': '-1',
@@ -532,8 +536,17 @@ echo '</div>';
                                 'title': 'Écriture gelée'
                             }).off('click');
                         } else {
-                            // Entry is now unfrozen - enable buttons
-                            $editBtn.removeClass('disabled').removeAttr('disabled tabindex aria-disabled').attr('title', 'Modifier');
+                            // Entry is now unfrozen - switch back to edit mode
+                            $editBtn.removeClass('view-mode')
+                                .attr({
+                                    'title': 'Modifier',
+                                    'data-frozen': '0'
+                                })
+                                .find('i')
+                                .removeClass('fa-eye')
+                                .addClass('fa-edit');
+
+                            // Enable delete button
                             $deleteBtn.removeClass('disabled').removeAttr('disabled tabindex aria-disabled').attr('title', 'Supprimer')
                                 .on('click', function() {
                                     return confirm('Êtes-vous sûr de vouloir supprimer cette écriture ?');
