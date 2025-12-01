@@ -1151,7 +1151,7 @@ abstract class Metadata {
 
                 // Build paperclip icon with appropriate color
                 // Gray (muted) for no attachments, bright green for attachments present
-                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-light-muted';
+                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
                 $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
                 
                 $date_op = isset($row['date_op']) ? $row['date_op'] : '';

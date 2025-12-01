@@ -55,6 +55,7 @@
 * [] Gestion des fiches de progressions                       (PRD à rédiger)
 
 
+
 ## Dette technique
 
 * [x] Supprimer les vues non bootstrap
@@ -75,6 +76,8 @@
 * restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
+
+* [] Ajout d'une date de validité aux vols de découvertes. Pour l'instant la date de validité est calculée en ajoutant un an à la date de vente. Il faudrait pouvoir la modifier sans déplacer la date de vente. Si on déplace la date de vente on peut avoir des vols vendus une année qui se retrouvent sur la page de l'année suivante. Ca nous est arrivé une fois.
 
 ## Fait récemment
 
