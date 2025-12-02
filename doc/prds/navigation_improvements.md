@@ -206,7 +206,6 @@ function page($premier = 0, $message = '', $selection = array()) {
 **Why this is fine**:
 - List pages push their URL so edit operations can return
 - Stack cleanup prevents overflow (`clean_old_url_stack()`)
-- 12+ years in production without issues
 - Manual testing confirms correct behavior
 
 **Conclusion**: **NO CHANGE** - Don't fix what isn't broken.
