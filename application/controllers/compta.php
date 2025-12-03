@@ -1792,6 +1792,27 @@ class Compta extends Gvv_Controller {
             return;
         }
 
+        // Authorization check - same logic as select_data()
+        $user = $this->comptes_model->user($compte);
+        $mlogin = $this->dx_auth->get_username();
+        $info_pilote = $this->membres_model->get_by_id('mlogin', $mlogin);
+
+        // Check that the user has the right to display this account
+        $authorized = false;
+        if ($user == $mlogin) {
+            $authorized = true;
+        } else if ($this->dx_auth->is_role('bureau', true, true)) {
+            $authorized = true;
+        } else if ($compte == $info_pilote['compte']) {
+            $authorized = true;
+        }
+
+        if (!$authorized) {
+            log_message('error', "Unauthorized access attempt to datatable_journal_compte by user=$mlogin for compte=$compte");
+            $this->output->set_output(json_encode(['error' => 'Access denied']));
+            return;
+        }
+
         try {
             // Get DataTables parameters in older format (GET params)
             $sEcho = isset($_GET['sEcho']) ? intval($_GET['sEcho']) : 1;
@@ -1921,9 +1942,6 @@ class Compta extends Gvv_Controller {
 
             // Log some debug info
             log_message('debug', "DataTables: Found " . count($ecritures) . " rows, formatted " . count($aaData) . " rows");
-            if (count($aaData) > 0) {
-                log_message('debug', "DataTables: First row: " . json_encode($aaData[0]));
-            }
 
             // Use older DataTables response format
             $output = [
