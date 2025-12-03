@@ -205,7 +205,7 @@ class Vols_decouverte extends Gvv_Controller {
      *            | MODIFICATION | VISUALISATION
      * @see constants.php
      */
-    public function form_static_element($action) {
+    protected function form_static_element($action) {
         $this->data['action'] = $action;
         $this->data['fields'] = $this->fields;
         $this->data['controller'] = $this->controller;
@@ -216,11 +216,11 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['saisie_par'] = $this->dx_auth->get_username();
 
         // Initialize date_vente with current date for new records
-        if ($action == "creation" && empty($this->data['date_vente'])) {
+        if ($action == CREATION && empty($this->data['date_vente'])) {
             $this->data['date_vente'] = date('Y-m-d');
         }
         // Initialize date_validite with current date + 1 year for new records
-        if ($action == "creation" && empty($this->data['date_validite'])) {
+        if ($action == CREATION && empty($this->data['date_validite'])) {
             $this->data['date_validite'] = date('Y-m-d', strtotime('+1 year'));
         }
 
