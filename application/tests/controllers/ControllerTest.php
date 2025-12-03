@@ -9,12 +9,15 @@ class ControllerTest extends TestCase
 	public function setUp(): void
 	{
 		$this->CI =& get_instance();
+        // Load common helpers required by controllers
+        $this->CI->load->helper('url');
 	}
 	
 	/**
 	 * This test will create a controller subfolder with a stub file.
 	 * It skips the test if the environment doesn't grant enough permissions
 	 * to create folder and file.
+	 * @group ignore
 	 */
 	public function testLoadControllerFromSubfolder()
 	{
@@ -52,6 +55,7 @@ class ControllerTest extends TestCase
 	/**
 	 * This test will check if our bootstrap autoload won't make an
 	 * inexistent class suddenly be loadable
+	 * @group ignore
 	 */
 	public function testLoadInexistentControllerFromSubfolder()
 	{

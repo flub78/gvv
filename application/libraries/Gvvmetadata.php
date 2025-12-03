@@ -791,6 +791,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vols_decouverte']['cancelled']['Subtype'] = 'checkbox';
                 $this->field['vols_decouverte']['beneficiaire_email']['Subtype'] = 'email';
 
+                $this->field['vols_decouverte']['date_validite']['Type'] = 'date';
                 $this->field['vols_decouverte']['validite']['Type'] = 'date';
 
 

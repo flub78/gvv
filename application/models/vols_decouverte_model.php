@@ -24,7 +24,7 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $to_select = 'id, date_vente, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix';
+        $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix';
 
         // Prepare filter data for the view
         $year = $this->session->userdata('vd_year') ?: date('Y');
@@ -66,9 +66,10 @@ class Vols_decouverte_model extends Common_Model {
                     case 'todo':
                         $this->db->where('date_vol IS NULL', null);
                         $this->db->where('cancelled', 0);
-                        // Not expired
+                        // Not expired: use date_validite if set, otherwise date_vente + 1 year
+                        $today = date('Y-m-d');
                         $one_year_ago = date('Y-m-d', strtotime('-1 year'));
-                        $this->db->where('date_vente >=', $one_year_ago);
+                        $this->db->where("((date_validite IS NOT NULL AND date_validite >= '$today') OR (date_validite IS NULL AND date_vente >= '$one_year_ago'))", null, false);
                         break;
                     case 'cancelled':
                         $this->db->where('cancelled', 1);
@@ -76,9 +77,10 @@ class Vols_decouverte_model extends Common_Model {
                     case 'expired':
                         $this->db->where('date_vol IS NULL', null);
                         $this->db->where('cancelled', 0);
-                        // Expired (older than 1 year)
+                        // Expired: use date_validite if set, otherwise date_vente + 1 year
+                        $today = date('Y-m-d');
                         $one_year_ago = date('Y-m-d', strtotime('-1 year'));
-                        $this->db->where('date_vente <', $one_year_ago);
+                        $this->db->where("((date_validite IS NOT NULL AND date_validite < '$today') OR (date_validite IS NULL AND date_vente < '$one_year_ago'))", null, false);
                         break;
                 }
             }
@@ -108,9 +110,13 @@ class Vols_decouverte_model extends Common_Model {
                 $select[$i]['product'] = $tarif['description'];
             }
 
-            // Compute validity date (1 year from date_vente)
-            $date_vente = new DateTime($elt['date_vente']);
-            $select[$i]['validite'] = $date_vente->modify('+1 year')->format('Y-m-d');
+            // Use date_validite if set, otherwise compute from date_vente + 1 year
+            if (!empty($elt['date_validite'])) {
+                $select[$i]['validite'] = $elt['date_validite'];
+            } else {
+                $date_vente = new DateTime($elt['date_vente']);
+                $select[$i]['validite'] = $date_vente->modify('+1 year')->format('Y-m-d');
+            }
 
             $i += 1;
         }

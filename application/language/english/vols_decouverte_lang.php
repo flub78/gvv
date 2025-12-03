@@ -10,6 +10,7 @@ $lang['gvv_vols_decouverte_element'] = "Discovery flight";
 
 
 $lang['gvv_vols_decouverte_field_date_vente'] = "Sale date";
+$lang['gvv_vols_decouverte_field_date_validite'] = "Validity date";
 $lang['gvv_vols_decouverte_field_club'] = "Section";
 $lang['gvv_vols_decouverte_field_product'] = "Product";
 $lang['gvv_vols_decouverte_field_beneficiaire'] = "Beneficiary";

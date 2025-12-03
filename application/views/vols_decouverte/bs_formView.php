@@ -54,22 +54,69 @@ if (strpos($url, 'pre_flight')) {
 	$modification_type = 'edit';
 }
 if ($modification_type == 'edit') {
-	echo ($this->gvvmetadata->form('vols_decouverte', array(
-		'date_vente' => $date_vente,
-		'product' => $product,
-		'beneficiaire' => $beneficiaire,
-		'de_la_part' => $de_la_part,
-		'occasion' => $occasion,
-		'beneficiaire_email' => $beneficiaire_email,
-		'urgence' => $urgence,
-		'date_vol' => $date_vol,
-		'pilote' => $pilote,
-		'airplane_immat' => $airplane_immat,
-		'cancelled' => $cancelled,
-		'paiement' => $paiement,
-		'participation' => $participation,
+	?>
+	<!-- Groupe 1: Informations de vente et bénéficiaire -->
+	<div class="card mb-3">
+		<div class="card-header bg-primary text-white">
+			<h5 class="mb-0">Informations de vente</h5>
+		</div>
+		<div class="card-body">
+			<!-- Date de vente et Date de validité sur la même ligne sur écrans larges -->
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label for="date_vente" class="form-label"><?php echo $this->lang->line('gvv_vols_decouverte_field_date_vente'); ?></label>
+					<?php echo $this->gvvmetadata->input_field('vols_decouverte', 'date_vente', $date_vente, 'modification'); ?>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label for="date_validite" class="form-label"><?php echo $this->lang->line('gvv_vols_decouverte_field_date_validite') ?: 'Date de validité'; ?></label>
+					<?php echo $this->gvvmetadata->input_field('vols_decouverte', 'date_validite', $date_validite, 'modification'); ?>
+				</div>
+			</div>
+			<?php
+			echo ($this->gvvmetadata->form('vols_decouverte', array(
+				'product' => $product,
+				'beneficiaire' => $beneficiaire,
+				'de_la_part' => $de_la_part,
+				'occasion' => $occasion,
+				'beneficiaire_email' => $beneficiaire_email,
+			)));
+			?>
+		</div>
+	</div>
 
-	)));
+	<!-- Groupe 2: Contact d'urgence et vol -->
+	<div class="card mb-3">
+		<div class="card-header bg-info text-white">
+			<h5 class="mb-0">Informations de vol</h5>
+		</div>
+		<div class="card-body">
+			<?php
+			echo ($this->gvvmetadata->form('vols_decouverte', array(
+				'urgence' => $urgence,
+				'date_vol' => $date_vol,
+				'pilote' => $pilote,
+				'airplane_immat' => $airplane_immat,
+			)));
+			?>
+		</div>
+	</div>
+
+	<!-- Groupe 3: Paiement et statut -->
+	<div class="card mb-3">
+		<div class="card-header bg-secondary text-white">
+			<h5 class="mb-0">Paiement et statut</h5>
+		</div>
+		<div class="card-body">
+			<?php
+			echo ($this->gvvmetadata->form('vols_decouverte', array(
+				'paiement' => $paiement,
+				'participation' => $participation,
+				'cancelled' => $cancelled,
+			)));
+			?>
+		</div>
+	</div>
+	<?php
 } else {
 
 

@@ -151,15 +151,31 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * Page override to provide filter data to the view
+     * Set year for filtering discovery flights
+     * Allows URLs like: vols_decouverte/set_year/2024
      */
-    public function page($year = null) {
-        // Set year from parameter or session
-        if ($year !== null) {
-            $this->session->set_userdata('vd_year', $year);
+    public function set_year($year = null) {
+        if ($year !== null && is_numeric($year)) {
+            $this->session->set_userdata('vd_year', (int)$year);
         }
+        redirect('vols_decouverte/page');
+    }
+
+    /**
+     * Page override to provide filter data to the view
+     * Signature compatible with parent Gvv_Controller::page()
+     */
+    public function page($premier = 0, $message = '', $selection = array()) {
+        // Check if $premier is being used as $year for backward compatibility
+        // This allows URLs like vols_decouverte/page/2024 to still work
+        if ($premier > 1900 && $premier < 2100) {
+            $this->session->set_userdata('vd_year', (int)$premier);
+            $premier = 0; // Reset to default page number
+        }
+
+        // Get current year from session
         $current_year = $this->session->userdata('vd_year') ?: date('Y');
-        
+
         // Prepare filter data for the view
         $this->data['filter_active'] = $this->session->userdata('vd_filter_active') ?: false;
         $this->data['startDate'] = $this->session->userdata('vd_startDate') ?: '';
@@ -168,16 +184,16 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['year'] = $current_year;
         $this->data['year_selector'] = $this->gvv_model->get_available_years();
         $this->data['controller'] = $this->controller;
-        
+
         // Handle filter error messages
         $filter_error = $this->session->userdata('vd_filter_error');
         if ($filter_error) {
             $this->data['filter_error'] = $filter_error;
             $this->session->unset_userdata('vd_filter_error');
         }
-        
-        // Call parent page method
-        return parent::page();
+
+        // Call parent page method with original parameters
+        return parent::page($premier, $message, $selection);
     }
 
     /**
@@ -189,7 +205,7 @@ class Vols_decouverte extends Gvv_Controller {
      *            | MODIFICATION | VISUALISATION
      * @see constants.php
      */
-    protected function form_static_element($action) {
+    public function form_static_element($action) {
         $this->data['action'] = $action;
         $this->data['fields'] = $this->fields;
         $this->data['controller'] = $this->controller;
@@ -198,6 +214,15 @@ class Vols_decouverte extends Gvv_Controller {
         }
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();
+
+        // Initialize date_vente with current date for new records
+        if ($action == "creation" && empty($this->data['date_vente'])) {
+            $this->data['date_vente'] = date('Y-m-d');
+        }
+        // Initialize date_validite with current date + 1 year for new records
+        if ($action == "creation" && empty($this->data['date_validite'])) {
+            $this->data['date_validite'] = date('Y-m-d', strtotime('+1 year'));
+        }
 
         $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
         $this->gvvmetadata->set_selector('product_selector', $product_selector);
@@ -231,7 +256,12 @@ class Vols_decouverte extends Gvv_Controller {
         $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
         $this->data['description'] = ($tarif['description'] != "") ? $tarif['description'] : $product;
 
-        $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
+        // Check if expired: use date_validite if set, otherwise date_vente + 1 year
+        if (!empty($this->data['date_validite'])) {
+            $this->data['expired'] = strtotime($this->data['date_validite']) < time();
+        } else {
+            $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
+        }
 
         // var_dump($this->data);
 

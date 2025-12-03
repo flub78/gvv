@@ -10,6 +10,7 @@ $lang['gvv_vols_decouverte_element'] = "Ontdekkingsvlucht";
 
 
 $lang['gvv_vols_decouverte_field_date_vente'] = "Verkoopdatum";
+$lang['gvv_vols_decouverte_field_date_validite'] = "Geldigheidsdatum";
 $lang['gvv_vols_decouverte_field_club'] = "Sectie";
 $lang['gvv_vols_decouverte_field_product'] = "Product";
 $lang['gvv_vols_decouverte_field_beneficiaire'] = "Begunstigde";

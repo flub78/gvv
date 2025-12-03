@@ -5,7 +5,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
   
-* [] **Déconnexion intempestive**
+* [] **Déconnexion intempestive**  (plus de plaintes depuis le changement des paramètres de timeout dans le php.ini du serveur)
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
 * [] Vérifier s'il est possible de déclencher des doubles saisies d'écritures dans certains cas
@@ -31,7 +31,6 @@
   * [] quelques colonnes inutiles à supprimer
   * [] donner les droits dans les controllers
 
-
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
@@ -53,7 +52,6 @@
   renouvellement d'assurance, etc.
 
 * [] Gestion des fiches de progressions                       (PRD à rédiger)
-
 
 
 ## Dette technique
@@ -78,6 +76,9 @@
 * Seconde adresse email
 
 * [] Ajout d'une date de validité aux vols de découvertes. Pour l'instant la date de validité est calculée en ajoutant un an à la date de vente. Il faudrait pouvoir la modifier sans déplacer la date de vente. Si on déplace la date de vente on peut avoir des vols vendus une année qui se retrouvent sur la page de l'année suivante. Ca nous est arrivé une fois.
+
+* [] Gérer le contexte des filtres par page.
+* [] Afficher une marque sur les écritures rapprochés.
 
 ## Fait récemment
 

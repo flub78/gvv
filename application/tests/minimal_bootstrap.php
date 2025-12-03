@@ -26,6 +26,10 @@ if (!defined('FILE_READ_MODE')) {
     define('DIR_WRITE_MODE', 0755);
 }
 
+// Define CodeIgniter constants
+define('CREATION', 'creation');
+define('MODIFICATION', 'modification');
+
 // Load the helper functions
 require_once APPPATH . 'helpers/validation_helper.php';
 require_once APPPATH . 'helpers/bitfields_helper.php';
@@ -34,6 +38,7 @@ require_once APPPATH . 'helpers/crypto_helper.php';
 require_once APPPATH . 'helpers/csv_helper.php';
 require_once APPPATH . 'helpers/markdown_helper.php';
 require_once APPPATH . 'helpers/email_helper.php';
+require_once BASEPATH . 'helpers/url_helper.php';
 
 // Load library files for testing
 function load_library($library_name) {
@@ -128,22 +133,45 @@ class MinimalMockLoader {
         return TRUE;
     }
 
-    public function model($model) {
+    public function language($language_file) {
+        // Mock language file loading
+        return TRUE;
+    }
+
+    public function model($model, $name = '') {
         // Handle model names with underscores
         $model_file = APPPATH . 'models/' . $model . '.php';
+        echo "MinimalMockLoader: Trying to load model: $model_file\n"; // Debug statement
         if (!file_exists($model_file)) {
-            $model_file = APPPATH . 'models/' . ucfirst($model) . '.php';
+            $ucfirst_model_file = APPPATH . 'models/' . ucfirst($model) . '.php';
+            echo "MinimalMockLoader: Model file not found, trying with ucfirst: $ucfirst_model_file\n"; // Debug statement
+            $model_file = $ucfirst_model_file;
         }
 
         if (file_exists($model_file)) {
+            echo "MinimalMockLoader: Found model file: $model_file. Requiring once.\n"; // Debug statement
             require_once $model_file;
 
             // Class name should be ucfirst (e.g., Authorization_model)
-            // Property name should be lowercase (e.g., authorization_model)
             $class_name = ucfirst($model);
-            $property_name = $model;
+            // Property name is either the alias or the original model name
+            $property_name = ($name === '') ? $model : $name;
 
+            // Check if class exists before instantiating
+            if (!class_exists($class_name)) {
+                echo "MinimalMockLoader: Error: Class '$class_name' not found in '$model_file' after require_once.\n"; // Debug statement
+                // Fallback to try a different class naming convention if needed
+                $class_name = $model; // Try exact name
+                if (!class_exists($class_name)) {
+                    echo "MinimalMockLoader: Error: Class '$class_name' not found after trying exact model name.\n"; // Debug statement
+                    return FALSE; // Cannot load model
+                }
+            }
+            echo "MinimalMockLoader: Instantiating class '$class_name' as '$property_name'.\n"; // Debug statement
             $this->CI->$property_name = new $class_name();
+        } else {
+            echo "MinimalMockLoader: Error: Model file '$model_file' not found.\n"; // Debug statement
+            return FALSE; // Cannot load model
         }
         return TRUE;
     }
@@ -237,6 +265,15 @@ class MinimalMockInput {
     }
 }
 
+// Mock DB Result class for CI
+class MinimalMockDBResult {
+    public function result_array() { return array(); }
+    public function row_array() { return NULL; }
+    public function num_rows() { return 0; }
+    public function row() { return NULL; }
+    public function result() { return array(); }
+}
+
 // Mock database class for CI
 class MinimalMockDatabase {
     public function select($select) {
@@ -264,11 +301,12 @@ class MinimalMockDatabase {
     }
 
     public function get($table = '', $limit = NULL, $offset = NULL) {
-        $result = new stdClass();
-        $result->result_array = function() { return array(); };
-        $result->row_array = function() { return NULL; };
-        $result->num_rows = function() { return 0; };
-        return $result;
+        return new MinimalMockDBResult();
+    }
+
+    public function query($sql) {
+        // Mock query method
+        return new MinimalMockDBResult();
     }
 
     public function insert($table, $data = NULL) {
@@ -278,30 +316,17 @@ class MinimalMockDatabase {
     public function update($table, $data = NULL, $where = NULL) {
         return TRUE;
     }
-}
 
-// Mock log_message function
-if (!function_exists('log_message')) {
-    function log_message($level, $message) {
-        // Mock log function for tests
-        return TRUE;
+    public function _error_number() {
+        return 0; // Mock no error
+    }
+
+    public function _error_message() {
+        return ''; // Mock empty error message
     }
 }
 
-// Mock get_instance function
-if (!function_exists('get_instance')) {
-    function &get_instance() {
-        static $CI;
-        if (!$CI) {
-            $CI = new stdClass();
-            $CI->load = new MinimalMockLoader($CI);
-            $CI->config = new MinimalMockConfig();
-            $CI->input = new MinimalMockInput();
-            $CI->db = new MinimalMockDatabase();
-        }
-        return $CI;
-    }
-}
+// Mock Lang class for CI
 
 /*
  * This will autoload controllers inside subfolders
