@@ -349,17 +349,18 @@ class Compta extends Gvv_Controller {
                 // Modification
                 $this->change_ecriture($processed_data);
 
-                // If the entry was just frozen (gel checkbox was checked), redirect to journal instead of edit form
-                if (isset($processed_data['gel']) && $processed_data['gel'] == 1) {
-                    // Entry was frozen - redirect to journal to avoid "frozen entry" error message
-                    $compte = isset($processed_data['compte1']) ? $processed_data['compte1'] : '';
-                    if ($compte) {
-                        $this->session->set_flashdata('message', 'Écriture modifiée et gelée avec succès.');
-                        redirect("compta/journal_compte/" . $compte);
-                    }
+                // Redirect to journal of compte1 after successful modification
+                $compte = isset($processed_data['compte1']) ? $processed_data['compte1'] : '';
+                if ($compte) {
+                    $message = isset($processed_data['gel']) && $processed_data['gel'] == 1
+                        ? 'Écriture modifiée et gelée avec succès.'
+                        : 'Écriture modifiée avec succès.';
+                    $this->session->set_flashdata('message', $message);
+                    redirect("compta/journal_compte/" . $compte);
+                } else {
+                    // Fallback if no compte1 found
+                    $this->pop_return_url(1);
                 }
-
-                $this->pop_return_url(1);
             }
         }
         // Display the form again
