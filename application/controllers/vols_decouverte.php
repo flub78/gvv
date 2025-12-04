@@ -313,7 +313,12 @@ class Vols_decouverte extends Gvv_Controller {
         $data['occasion'] = $vd['occasion'];
         $data['de_la_part'] = $vd['de_la_part'];
 
-        $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+        // Use date_validite if defined, otherwise use date_vente + 1 year
+        if (!empty($vd['date_validite'])) {
+            $data['validity'] = date_db2ht($vd['date_validite']);
+        } else {
+            $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+        }
 
         $data[$vd['product']] = true;
 
@@ -343,20 +348,25 @@ class Vols_decouverte extends Gvv_Controller {
         $data['occasion'] = $vd['occasion'];
         $data['de_la_part'] = $vd['de_la_part'];
 
-        $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+        // Use date_validite if defined, otherwise use date_vente + 1 year
+        if (!empty($vd['date_validite'])) {
+            $data['validity'] = date_db2ht($vd['date_validite']);
+        } else {
+            $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+        }
 
         $data[$vd['product']] = true;
 
         $pdf_content = $this->generate_pdf($data, 'S');
 
         // Send email with PDF attachment
-        $this->send_email_with_pdf($vd, $pdf_content, $id);
+        $this->send_email_with_pdf($vd, $pdf_content, $id, $data['validity']);
     }
 
     /**
      * Send email with PDF attachment
      */
-    function send_email_with_pdf($vd, $pdf_content, $id) {
+    function send_email_with_pdf($vd, $pdf_content, $id, $validity_date) {
         $this->load->library('email');
 
         $sender = "info@aeroclub-abbeville.fr";
@@ -397,7 +407,7 @@ class Vols_decouverte extends Gvv_Controller {
 
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
 
-        $message .= "Voici votre bon pour un vol de découverte. Il est valable un an à partir de la date d'achat.<br><br>";
+        $message .= "Voici votre bon pour un vol de découverte. Il est valable jusqu'au <strong>" . $validity_date . "</strong>.<br><br>";
         $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville";
 
         $this->email->message($message);
