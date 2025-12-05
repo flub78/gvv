@@ -74,6 +74,11 @@ if (!class_exists('CI_Controller')) {
         public function __construct() {
             // Mock constructor
         }
+        
+        public function __get($key) {
+            $CI = get_instance();
+            return $CI->$key;
+        }
     }
 }
 
@@ -323,6 +328,43 @@ class MinimalMockDatabase {
 
     public function _error_message() {
         return ''; // Mock empty error message
+    }
+}
+
+// Minimal CI mock class
+class MinimalMockCI {
+    public $config;
+    public $load;
+    public $db;
+    public $session;
+    public $input;
+    
+    public function __construct() {
+        $this->config = new MinimalMockConfig();
+        $this->load = new MinimalMockLoader($this);
+        $this->db = new MinimalMockDatabase();
+        $this->session = new stdClass();
+        $this->input = new MinimalMockInput();
+    }
+}
+
+// Set up the global CI instance
+global $CI;
+$CI = new MinimalMockCI();
+
+// Ensure get_instance() function works
+if (!function_exists('get_instance')) {
+    function &get_instance() {
+        global $CI;
+        return $CI;
+    }
+}
+
+// Mock log_message function
+if (!function_exists('log_message')) {
+    function log_message($level, $message, $php_error = FALSE) {
+        // Mock log function for tests
+        return TRUE;
     }
 }
 

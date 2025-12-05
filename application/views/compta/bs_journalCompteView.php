@@ -426,6 +426,10 @@ echo '</div>';
         );
 
         // Initialize DataTables with server-side processing using older syntax
+        console.log('Initializing DataTables with URL: <?= site_url('compta/datatable_journal_compte/' . $compte) ?>');
+        console.log('has_modification_rights: <?= $has_modification_rights ? "true" : "false" ?>');
+        console.log('section: <?= $section ? "true" : "false" ?>');
+        
         $('#journal-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
@@ -454,6 +458,27 @@ echo '</div>';
                 { "bSortable": false },                // Solde
                 { "bSortable": false }                 // Gel
             ],
+            "fnServerData": function(sSource, aoData, fnCallback) {
+                console.log('DataTables requesting data from:', sSource);
+                console.log('Request parameters:', aoData);
+                
+                $.ajax({
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": sSource,
+                    "data": aoData,
+                    "success": function(json) {
+                        console.log('DataTables received response:', json);
+                        console.log('Number of columns in first row:', json.aaData && json.aaData.length > 0 ? json.aaData[0].length : 'no data');
+                        fnCallback(json);
+                    },
+                    "error": function(xhr, error, thrown) {
+                        console.error('DataTables AJAX error:', error, thrown);
+                        console.error('Response text:', xhr.responseText);
+                        console.error('Status:', xhr.status);
+                    }
+                });
+            },
             "oLanguage": olanguage,
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],

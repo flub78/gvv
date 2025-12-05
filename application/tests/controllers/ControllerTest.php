@@ -8,7 +8,7 @@ class ControllerTest extends TestCase
 	
 	public function setUp(): void
 	{
-		$this->CI =& get_instance();
+		$this->CI = get_instance();
         // Load common helpers required by controllers
         $this->CI->load->helper('url');
 	}
