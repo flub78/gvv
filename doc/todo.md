@@ -75,8 +75,6 @@
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
 
-* [] Ajout d'une date de validité aux vols de découvertes. Pour l'instant la date de validité est calculée en ajoutant un an à la date de vente. Il faudrait pouvoir la modifier sans déplacer la date de vente. Si on déplace la date de vente on peut avoir des vols vendus une année qui se retrouvent sur la page de l'année suivante. Ca nous est arrivé une fois.
-
 * [] Gérer le contexte des filtres par page.
 * [] Afficher une marque sur les écritures rapprochés.
 
@@ -212,3 +210,4 @@
 * [x] retour à la balance hiérarchique après la suppression d'un compte
 * [x] suppression de compte depuis la balance,il manque le message de confirmation
 * [x] Comptes > 400 lignes, passer aux datatable serveur side.
+* [x] Ajout d'une date de validité aux vols de découvertes. 
