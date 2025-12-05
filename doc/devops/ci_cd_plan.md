@@ -35,30 +35,73 @@
 
 **Bénéfice immédiat** : Détection automatique des régressions PHP à chaque commit
 
-### Étape 1.1 : Configuration Jenkins pour PHPUnit
-**Durée estimée** : 2-3h
+**Stratégie** : Deux jobs Jenkins séparés pour optimiser le feedback
+- **Job 1 (Tests)** : Rapide, sans couverture → feedback immédiat en cas d'échec
+- **Job 2 (Coverage)** : Plus lent, avec couverture → s'exécute uniquement si tests OK
+- **Avantage** : Ne pas perdre de temps sur la couverture si les tests échouent
+
+### Étape 1.1a : Job Jenkins PHPUnit (tests seuls)
+**Durée estimée** : 1-2h
 **Prérequis** : Accès Jenkins, dépôt Git accessible depuis Jenkins
 
 **Actions** :
-- [ ] Créer nouveau job Jenkins "GVV-PHPUnit"
+- [ ] Créer job Jenkins "GVV-PHPUnit-Tests"
 - [ ] Configurer Source Code Management (Git) avec l'URL du dépôt
 - [ ] Configurer Build Triggers → Poll SCM
   - Schedule : `H * * * *` (vérifie toutes les heures)
   - Note : Délai de détection jusqu'à 1h après un commit
-- [ ] Ajouter les commandes de build :
+- [ ] Ajouter les commandes de build (tests SANS couverture - rapide) :
   ```bash
   source setenv.sh
-  ./run-all-tests.sh --coverage
+  ./run-all-tests.sh
   ```
 - [ ] Installer/configurer plugin JUnit pour publier résultats
-- [ ] Installer/configurer plugin Cobertura ou HTML Publisher pour couverture
 - [ ] Archiver les artefacts (rapports de tests)
 
 **Validation** :
 ```bash
 # Test manuel du job
 # Vérifier que les résultats apparaissent dans Jenkins
+# Vérifier que le job est rapide (quelques minutes max)
+```
+
+**Livrables** :
+- Job Jenkins fonctionnel
+- Rapports de tests visibles dans l'interface
+- Feedback rapide sur les échecs de tests
+
+---
+
+### Étape 1.1b : Job Jenkins Couverture (si tests OK)
+**Durée estimée** : 1h
+**Prérequis** : Étape 1.1a terminée
+
+**Actions** :
+- [ ] Créer job Jenkins "GVV-PHPUnit-Coverage"
+- [ ] Configurer Source Code Management (Git) - même config que 1.1a
+- [ ] Configurer Build Triggers → Build after other projects are built
+  - Projet : "GVV-PHPUnit-Tests"
+  - Trigger : "Trigger only if build is stable" (uniquement si tests OK)
+- [ ] Ajouter les commandes de build (tests AVEC couverture - plus lent) :
+  ```bash
+  source setenv.sh
+  ./run-all-tests.sh --coverage
+  ```
+- [ ] Installer/configurer plugin Cobertura ou HTML Publisher pour couverture
+- [ ] Archiver les artefacts (rapports de couverture)
+
+**Validation** :
+```bash
+# Faire un commit qui passe les tests
+git push
+# Vérifier que job Tests s'exécute
+# Vérifier que job Coverage se déclenche automatiquement après
 # Vérifier le rapport de couverture accessible
+
+# Faire un commit qui casse un test
+git push
+# Vérifier que job Tests échoue
+# Vérifier que job Coverage ne se déclenche PAS
 ```
 
 **Note sur le polling** :
@@ -69,20 +112,21 @@ Le polling horaire (`H * * * *`) a été choisi pour sa simplicité :
 - Alternative : Webhook GitHub si délai instantané nécessaire (nécessite Jenkins accessible publiquement)
 
 **Livrables** :
-- Job Jenkins fonctionnel
-- Rapports de tests visibles dans l'interface
-- Rapport de couverture de code
+- Job Jenkins couverture fonctionnel
+- Rapport de couverture de code précis
+- Pipeline Tests → Coverage automatisé
 
 ---
 
 ### Étape 1.2 : Notifications d'échec
 **Durée estimée** : 30min
-**Prérequis** : Étape 1.1 terminée
+**Prérequis** : Étape 1.1a terminée (notifications sur job Tests)
 
 **Actions** :
-- [ ] Configurer notifications email dans Jenkins
+- [ ] Configurer notifications email dans Jenkins pour "GVV-PHPUnit-Tests"
   - Destinataire : adresse du développeur
   - Déclencher sur : échec, régression, récupération
+- [ ] Optionnel : Configurer notifications pour "GVV-PHPUnit-Coverage" (dégradation couverture)
 - [ ] OU configurer webhook Slack/Discord (alternatif)
   - Créer webhook entrant
   - Ajouter notification post-build Jenkins
@@ -92,18 +136,21 @@ Le polling horaire (`H * * * *`) a été choisi pour sa simplicité :
 # Introduire un test qui échoue
 git commit -m "test: force failure"
 git push
-# Vérifier réception de la notification
+# Vérifier réception de la notification (job Tests)
 git revert HEAD && git push
 ```
 
 **Livrables** :
-- Notification fonctionnelle en cas d'échec
+- Notification fonctionnelle en cas d'échec de tests
 - Documentation de la configuration
 
 ---
 
 ### ✅ État après Phase 1
-**Amélioration** : Vous êtes averti automatiquement si un commit casse les tests PHP, sans action manuelle.
+**Amélioration** :
+- Vous êtes averti automatiquement si un commit casse les tests PHP (feedback rapide)
+- La couverture est calculée automatiquement uniquement quand les tests passent (gain de temps)
+- Rapports de tests et couverture accessibles dans Jenkins
 
 ---
 
@@ -257,7 +304,7 @@ curl http://test.gvv.example.com/
 
 ### Étape 3.3 : Pipeline PHPUnit → Déploiement (optionnel)
 **Durée estimée** : 1h
-**Prérequis** : Étapes 1.1 et 3.2 terminées
+**Prérequis** : Étapes 1.1a et 3.2 terminées
 
 **Actions** :
 - [ ] Créer pipeline Jenkins ou configurer downstream job
@@ -335,9 +382,27 @@ git push
   ```groovy
   pipeline {
     stages {
-      stage('PHPUnit') { ... }
-      stage('Deploy to Test') { ... }
-      stage('Playwright E2E') { ... }
+      stage('PHPUnit Tests') {
+        // Déclenche job GVV-PHPUnit-Tests
+      }
+      stage('PHPUnit Coverage') {
+        when {
+          expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+        }
+        // Déclenche job GVV-PHPUnit-Coverage
+      }
+      stage('Deploy to Test') {
+        when {
+          expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+        }
+        // Déclenche job GVV-Deploy-Test
+      }
+      stage('Playwright E2E') {
+        when {
+          expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+        }
+        // Déclenche job GVV-Playwright-E2E
+      }
     }
     post {
       failure { ... notify ... }
@@ -345,18 +410,22 @@ git push
     }
   }
   ```
-- [ ] Paralléliser si possible (analyse statique + PHPUnit)
-- [ ] Configurer timeout raisonnable (15-20min max)
+- [ ] Paralléliser si possible (analyse statique peut s'exécuter en parallèle des tests)
+- [ ] Configurer timeout raisonnable (20-25min max avec couverture)
 - [ ] Ajouter possibilité de rejouer uniquement Playwright si échec
 
 **Validation** :
 ```bash
-# Faire un commit
+# Faire un commit qui passe les tests
 git push
 # Vérifier pipeline complet s'exécute
-# Vérifier ordre : PHPUnit → Deploy → Playwright
+# Vérifier ordre : PHPUnit Tests → Coverage → Deploy → Playwright
 # Vérifier notifications à chaque étape
-# Tester avec un commit qui casse les tests
+
+# Faire un commit qui casse les tests
+git push
+# Vérifier que le pipeline s'arrête après PHPUnit Tests
+# Vérifier que Coverage, Deploy et Playwright ne s'exécutent PAS
 ```
 
 **Livrables** :
@@ -367,7 +436,11 @@ git push
 ---
 
 ### ✅ État après Phase 4
-**Amélioration** : Tests complets automatiques (unitaires + intégration + E2E) à chaque commit, avec déploiement automatique sur serveur de test.
+**Amélioration** :
+- Pipeline CI/CD complet : Tests → Coverage → Déploiement → E2E
+- Optimisation : couverture et déploiement uniquement si tests passent
+- Feedback rapide en cas d'échec (arrêt du pipeline)
+- Serveur de test toujours à jour avec code validé par tous les tests
 
 ---
 
@@ -521,10 +594,11 @@ jobs:
 ## Priorisation recommandée
 
 ### Sprint 1 : Valeur immédiate (3-4h)
-1. ✅ Phase 1.1 : Jenkins + PHPUnit (2-3h)
-2. ✅ Phase 1.2 : Notifications (30min)
+1. ✅ Phase 1.1a : Job Jenkins PHPUnit tests seuls (1-2h)
+2. ✅ Phase 1.1b : Job Jenkins Couverture conditionnelle (1h)
+3. ✅ Phase 1.2 : Notifications (30min)
 
-**Livrable** : Tests automatiques à chaque commit
+**Livrable** : Tests automatiques à chaque commit + couverture calculée si tests OK
 
 ---
 
