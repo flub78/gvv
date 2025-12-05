@@ -30,8 +30,13 @@ class Vols_decouverte_model extends Common_Model {
         $year = $this->session->userdata('vd_year') ?: date('Y');
         $filter_active = $this->session->userdata('vd_filter_active') ?: false;
 
-        $startDate  = $year . '-01-01';
-        $endDate    = $year . '-12-31';
+        $startDate  = '';
+        $endDate    = '';
+        
+        if ($year) {
+            $startDate  = $year . '-01-01';
+            $endDate    = $year . '-12-31';
+        }
 
         if ($filter_active) {
             $startDate = $this->session->userdata('vd_startDate') ?: $startDate;
@@ -48,9 +53,13 @@ class Vols_decouverte_model extends Common_Model {
             $this->db->where('club', $section['id']);
         }
 
-        // by default filter by dates
-        $this->db->where('date_vente >=', $startDate);
-        $this->db->where('date_vente <=', $endDate);
+        // by default filter by dates - only add if dates are not empty
+        if (!empty($startDate)) {
+            $this->db->where('date_vente >=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $this->db->where('date_vente <=', $endDate);
+        }
 
         // Apply session filters
         if ($filter_active) {

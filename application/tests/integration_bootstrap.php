@@ -184,17 +184,23 @@ class RealDatabase {
                 $is_first = false;
             }
         } else {
-            // Check if key already contains IS NULL, IS NOT NULL, or other operators
-            if (stripos($key, ' IS NULL') !== FALSE || stripos($key, ' IS NOT NULL') !== FALSE ||
-                stripos($key, '>=') !== FALSE || stripos($key, '<=') !== FALSE ||
-                stripos($key, '!=') !== FALSE || stripos($key, '>') !== FALSE ||
-                stripos($key, '<') !== FALSE) {
+            // Check if key already contains IS NULL or IS NOT NULL (complete conditions)
+            if (stripos($key, ' IS NULL') !== FALSE || stripos($key, ' IS NOT NULL') !== FALSE) {
                 // Key already has the full condition
                 $this->where_conditions[] = $key;
             } elseif ($value === NULL) {
                 $this->where_conditions[] = $key . " IS NULL";
             } else {
-                $this->where_conditions[] = $key . " = '" . $this->escape_str($value) . "'";
+                // Check if key contains comparison operators
+                if (stripos($key, '>=') !== FALSE || stripos($key, '<=') !== FALSE ||
+                    stripos($key, '!=') !== FALSE || stripos($key, '>') !== FALSE ||
+                    stripos($key, '<') !== FALSE) {
+                    // Key has operator, append value
+                    $this->where_conditions[] = $key . " '" . $this->escape_str($value) . "'";
+                } else {
+                    // No operator, use =
+                    $this->where_conditions[] = $key . " = '" . $this->escape_str($value) . "'";
+                }
             }
         }
         return $this;
@@ -245,7 +251,12 @@ class RealDatabase {
     }
 
     public function order_by($field, $direction = 'ASC') {
-        $this->order_by_clause = " ORDER BY " . $field . " " . strtoupper($direction);
+        // Check if field already contains direction (e.g., 'date_vente desc')
+        if (stripos($field, ' ASC') !== false || stripos($field, ' DESC') !== false) {
+            $this->order_by_clause = " ORDER BY " . $field;
+        } else {
+            $this->order_by_clause = " ORDER BY " . $field . " " . strtoupper($direction);
+        }
         return $this;
     }
 
@@ -414,6 +425,21 @@ class RealDatabase {
         
         $row = $result->row();
         return (int) $row->numrows;
+    }
+    
+    /**
+     * Reset query builder state
+     * This is called after get() to prevent WHERE clause pollution
+     */
+    public function reset_query() {
+        $this->where_conditions = [];
+        $this->select_fields = '*';
+        $this->limit_clause = '';
+        $this->order_by_clause = '';
+        $this->join_clauses = [];
+        $this->from_table = '';
+        $this->from_alias = '';
+        return $this;
     }
 }
 
@@ -619,6 +645,16 @@ class MockSession {
             $this->userdata = array_merge($this->userdata, $key);
         } else {
             $this->userdata[$key] = $value;
+        }
+    }
+    
+    public function unset_userdata($key) {
+        if (is_array($key)) {
+            foreach ($key as $k) {
+                unset($this->userdata[$k]);
+            }
+        } else {
+            unset($this->userdata[$key]);
         }
     }
 }

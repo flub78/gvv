@@ -37,6 +37,9 @@ class Common_Model extends CI_Model {
         } else {
             $this->section = $section_query->row_array();
         }
+        
+        // Reset query builder to prevent WHERE clause pollution in subsequent queries
+        $this->db->reset_query();
     }
 
     /**

@@ -34,9 +34,15 @@ class VolsDecouverteDateValiditeTest extends TestCase
         $this->CI->load->model('vols_decouverte_model');
         $this->model = $this->CI->vols_decouverte_model;
 
-        // Initialize session for testing - set year only, don't set empty filter dates
-        $this->CI->session->set_userdata('vd_year', date('Y'));
+        // Reset session to default section 1 to avoid pollution from other tests
+        $this->CI->session->set_userdata('section', 1);
+        
+        // Initialize session for testing with proper date range
+        $current_year = date('Y');
+        $this->CI->session->set_userdata('vd_year', $current_year);
         $this->CI->session->set_userdata('vd_filter_active', false);
+        $this->CI->session->set_userdata('vd_startDate', $current_year . '-01-01');
+        $this->CI->session->set_userdata('vd_endDate', $current_year . '-12-31');
 
         // Clean up any test data
         $this->cleanupTestData();
@@ -45,6 +51,9 @@ class VolsDecouverteDateValiditeTest extends TestCase
     public function tearDown(): void
     {
         $this->cleanupTestData();
+        
+        // Clean up session state to avoid polluting other tests
+        $this->CI->session->unset_userdata(['vd_year', 'vd_filter_active', 'vd_startDate', 'vd_endDate', 'vd_filter_type']);
     }
 
     private function cleanupTestData()
@@ -84,10 +93,12 @@ class VolsDecouverteDateValiditeTest extends TestCase
      */
     public function testValidityCalculationWithNullDateValidite()
     {
+        $current_year = date('Y');
+        
         // Create a test discovery flight without date_validite
         $test_data = [
             'id' => 990001,
-            'date_vente' => '2024-06-15',
+            'date_vente' => $current_year . '-06-15',
             'date_validite' => null,
             'club' => 1,
             'product' => 'TEST_PRODUCT',
@@ -104,14 +115,14 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $test_record = null;
         foreach ($results as $record) {
-            if ($record['id'] == 990001) {
+            if (isset($record['id']) && $record['id'] == 990001) {
                 $test_record = $record;
                 break;
             }
         }
 
         $this->assertNotNull($test_record, 'Test record should be found');
-        $this->assertEquals('2025-06-15', $test_record['validite'], 'Validite should be date_vente + 1 year');
+        $this->assertEquals(($current_year + 1) . '-06-15', $test_record['validite'], 'Validite should be date_vente + 1 year');
     }
 
     /**
@@ -119,11 +130,12 @@ class VolsDecouverteDateValiditeTest extends TestCase
      */
     public function testValidityUsesDateValiditeWhenSet()
     {
+        $current_year = date('Y');
         // Create a test discovery flight with explicit date_validite
         $test_data = [
             'id' => 990002,
-            'date_vente' => '2024-06-15',
-            'date_validite' => '2025-12-31', // Different from date_vente + 1 year
+            'date_vente' => $current_year . '-06-15',
+            'date_validite' => ($current_year + 1) . '-12-31', // Different from date_vente + 1 year
             'club' => 1,
             'product' => 'TEST_PRODUCT',
             'saisie_par' => 'test_user',
@@ -146,7 +158,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         }
 
         $this->assertNotNull($test_record, 'Test record should be found');
-        $this->assertEquals('2025-12-31', $test_record['validite'], 'Validite should use date_validite');
+        $this->assertEquals(($current_year + 1) . '-12-31', $test_record['validite'], 'Validite should use date_validite');
     }
 
     /**
@@ -156,11 +168,12 @@ class VolsDecouverteDateValiditeTest extends TestCase
     {
         $today = date('Y-m-d');
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $current_year = date('Y');
 
         // Create a test flight that should appear in 'todo' filter
         $test_data = [
             'id' => 990003,
-            'date_vente' => '2023-01-01', // Old date
+            'date_vente' => $current_year . '-01-01', // Current year
             'date_validite' => $tomorrow, // Still valid
             'club' => 1,
             'product' => 'TEST_PRODUCT',
@@ -202,11 +215,12 @@ class VolsDecouverteDateValiditeTest extends TestCase
     public function testFilterExpiredWithDateValidite()
     {
         $yesterday = date('Y-m-d', strtotime('-1 day'));
+        $current_year = date('Y');
 
         // Create a test flight that should appear in 'expired' filter
         $test_data = [
             'id' => 990004,
-            'date_vente' => '2024-01-01',
+            'date_vente' => $current_year . '-01-01',
             'date_validite' => $yesterday, // Expired
             'club' => 1,
             'product' => 'TEST_PRODUCT',
@@ -248,7 +262,8 @@ class VolsDecouverteDateValiditeTest extends TestCase
     public function testBackwardCompatibilityWithNullDateValidite()
     {
         // This test ensures that flights created before the migration still work
-        $old_date = date('Y-m-d', strtotime('-6 months'));
+        $current_year = date('Y');
+        $old_date = $current_year . '-' . date('m-d', strtotime('-6 months'));
 
         $test_data = [
             'id' => 990005,
