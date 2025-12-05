@@ -22,6 +22,7 @@ class SmartStubStatementOperation
     public function nature() { return $this->nature; }
     public function interbank_label() { return $this->interbank_label; }
     public function comments() { return $this->comments; }
+    public function value_date() { return '2025-01-15'; } // Mock date in YYYY-MM-DD format
 }
 
 /**

@@ -265,9 +265,9 @@ Procedures Integration
  [x] Select page with filters
 
 Smart Adjustor Correlation Integration
- [ ] Correlation for frison against all images
- [ ] Correlation for bleuse against all images
- [ ] Correlation for lobry against all images
+ [x] Correlation for frison against all images
+ [x] Correlation for bleuse against all images
+ [x] Correlation for lobry against all images
  [x] Correlation for prelevement against all images
  [x] Correlation for frais bancaire against all images
  [x] Correlation for virement emis against all images

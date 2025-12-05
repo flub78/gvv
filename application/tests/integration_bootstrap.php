@@ -376,6 +376,45 @@ class RealDatabase {
         
         return $this->affected_rows() > 0;
     }
+    
+    public function count_all_results($table = '') {
+        if ($table != '') {
+            $this->from($table);
+        }
+        
+        // Build SELECT COUNT(*) AS numrows query using current where conditions
+        $table_name = $this->from_table;
+        $table_alias = $this->from_alias ? ' ' . $this->from_alias : '';
+        
+        $sql = "SELECT COUNT(*) AS numrows FROM " . $table_name . $table_alias;
+        
+        foreach ($this->join_clauses as $join) {
+            $sql .= " " . $join;
+        }
+        
+        if (!empty($this->where_conditions)) {
+            $sql .= " WHERE " . implode(' ', $this->where_conditions);
+        }
+        
+        $this->last_executed_query = $sql;
+        
+        // Reset query builder state
+        $this->where_conditions = [];
+        $this->select_fields = '*';
+        $this->limit_clause = '';
+        $this->order_by_clause = '';
+        $this->join_clauses = [];
+        $this->from_table = '';
+        $this->from_alias = '';
+        
+        $result = $this->query($sql);
+        if ($result->num_rows() == 0) {
+            return 0;
+        }
+        
+        $row = $result->row();
+        return (int) $row->numrows;
+    }
 }
 
 // Query result wrapper for real database
