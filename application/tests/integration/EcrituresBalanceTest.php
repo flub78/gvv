@@ -168,7 +168,7 @@ class EcrituresBalanceTest extends TestCase {
      * Each line's balance should equal previous balance +/- operation
      */
     public function test_balance_increments_are_consistent() {
-        // Find a compte with at least 20 ecritures
+        // Find a compte with at least 100 ecritures
         $year = date('Y');
         $section = $this->CI->session->userdata('section');
 
@@ -176,7 +176,7 @@ class EcrituresBalanceTest extends TestCase {
                   FROM ecritures
                   WHERE YEAR(date_op) = '$year' AND club = $section
                   GROUP BY compte1
-                  HAVING cnt >= 20
+                  HAVING cnt >= 100
                   LIMIT 1";
         $result = $this->CI->db->query($query)->row_array();
 
@@ -186,6 +186,7 @@ class EcrituresBalanceTest extends TestCase {
         }
         
         $compte_to_test = $result['id'];
+        echo "\nTesting balance increments for compte $compte_to_test\n";
 
         // Get a page of data
         $result = $this->CI->ecritures_model->get_datatable_data([
