@@ -30,10 +30,10 @@ class FlightDataExportsTest extends BaseExportTest
         $duration_matches = preg_match_all('/\d{1,2}:\d{2}/', $response['content']);
         $this->assertGreaterThan(0, $duration_matches, 'CSV should contain flight durations');
         
-        echo "\n=== GLIDER FLIGHTS CSV TEST ===\n";
-        echo "Flight records: " . (count($csvData) - 1) . "\n";
-        echo "Duration entries found: $duration_matches\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("GLIDER FLIGHTS CSV TEST");
+        TestLogger::info("Flight records: " . (count($csvData) - 1) . "\n");
+        TestLogger::info("Duration entries found: $duration_matches");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -50,9 +50,9 @@ class FlightDataExportsTest extends BaseExportTest
         
         $this->validatePdfContentFromText($response['content'], $expectedTerms, $expectedStructure);
         
-        echo "\n=== GLIDER FLIGHTS PDF TEST ===\n";
-        echo "Glider flights PDF export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("GLIDER FLIGHTS PDF TEST");
+        TestLogger::info("Glider flights PDF export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -69,9 +69,9 @@ class FlightDataExportsTest extends BaseExportTest
         
         $this->validateCsvStructure($response['content'], $expectedHeaders, $requiredTerms);
         
-        echo "\n=== AIRPLANE FLIGHTS CSV TEST ===\n";
-        echo "Airplane flights CSV export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("AIRPLANE FLIGHTS CSV TEST");
+        TestLogger::info("Airplane flights CSV export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -86,9 +86,9 @@ class FlightDataExportsTest extends BaseExportTest
         $expectedTerms = ['Carnet de vol', 'Date', 'Pilote', 'Machine'];
         $this->validatePdfContentFromText($response['content'], $expectedTerms);
         
-        echo "\n=== AIRPLANE FLIGHTS PDF TEST ===\n";
-        echo "Airplane flights PDF export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("AIRPLANE FLIGHTS PDF TEST");
+        TestLogger::info("Airplane flights PDF export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -103,9 +103,9 @@ class FlightDataExportsTest extends BaseExportTest
         $expectedTerms = ['Statistiques', 'machines', '2015', 'Machine', 'Heures'];
         $this->validatePdfContentFromText($response['content'], $expectedTerms);
         
-        echo "\n=== MACHINE STATISTICS PDF TEST ===\n";
-        echo "Machine statistics PDF export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("MACHINE STATISTICS PDF TEST");
+        TestLogger::info("Machine statistics PDF export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -120,9 +120,9 @@ class FlightDataExportsTest extends BaseExportTest
         $expectedTerms = ['Statistiques', 'mensuelles', '2015', 'Mois', 'Heures'];
         $this->validatePdfContentFromText($response['content'], $expectedTerms);
         
-        echo "\n=== MONTHLY STATISTICS PDF TEST ===\n";
-        echo "Monthly statistics PDF export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("MONTHLY STATISTICS PDF TEST");
+        TestLogger::info("Monthly statistics PDF export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -137,9 +137,9 @@ class FlightDataExportsTest extends BaseExportTest
         $expectedHeaders = ['Date', 'Pilote', 'Passager', 'Machine', 'Durée'];
         $this->validateCsvStructure($response['content'], $expectedHeaders);
         
-        echo "\n=== DISCOVERY FLIGHTS CSV TEST ===\n";
-        echo "Discovery flights CSV export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("DISCOVERY FLIGHTS CSV TEST");
+        TestLogger::info("Discovery flights CSV export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -162,9 +162,9 @@ class FlightDataExportsTest extends BaseExportTest
             false // Don't require monetary amounts for flight data
         );
         
-        echo "\n=== FLIGHT DATA CONSISTENCY TEST ===\n";
-        echo "Flight CSV and PDF content consistency validated\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("FLIGHT DATA CONSISTENCY TEST");
+        TestLogger::info("Flight CSV and PDF content consistency validated");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -184,9 +184,9 @@ class FlightDataExportsTest extends BaseExportTest
             $this->checkExportAccess($url, 'pilote');
         }
         
-        echo "\n=== FLIGHT DATA ACCESS CONTROL TEST ===\n";
-        echo "Access control validated for " . count($exportUrls) . " endpoints\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("FLIGHT DATA ACCESS CONTROL TEST");
+        TestLogger::info("Access control validated for " . count($exportUrls) . " endpoints\n");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -221,9 +221,9 @@ class FlightDataExportsTest extends BaseExportTest
             }
         }
         
-        echo "\n=== FLIGHT DATA INTEGRITY TEST ===\n";
-        echo "Flight data integrity validated for " . (count($csvData) - 1) . " records\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("FLIGHT DATA INTEGRITY TEST");
+        TestLogger::info("Flight data integrity validated for " . (count($csvData) - 1) . " records\n");
+        TestLogger::section("TEST PASSED");
     }
 
     /**

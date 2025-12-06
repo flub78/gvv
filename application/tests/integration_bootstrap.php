@@ -972,3 +972,8 @@ if (isset($temp_db_config_created) && $temp_db_config_created) {
         }
     });
 }
+
+// Initialize test logger
+require_once APPPATH . 'tests/integration/TestLogger.php';
+TestLogger::init('integration_tests');
+TestLogger::cleanup(10); // Keep only last 10 log files

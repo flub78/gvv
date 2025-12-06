@@ -67,14 +67,14 @@ class BalanceAccordionSearchTest extends TestCase
         $this->assertStringContainsString('addAccordionStateChangeListeners', $view_content,
             'Should add listeners for manual state changes');
         
-        echo "\n=== ACCORDION SEARCH ENHANCEMENT VALIDATION ===\n";
-        echo "View file exists and contains enhanced search logic\n";
-        echo "Auto-expand functionality: PRESENT\n";
-        echo "DataTable search integration: PRESENT\n";
-        echo "Manual filter fallback: PRESENT\n";
-        echo "State management and restoration: PRESENT\n";
-        echo "Manual state change tracking: PRESENT\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("ACCORDION SEARCH ENHANCEMENT VALIDATION");
+        TestLogger::info("View file exists and contains enhanced search logic");
+        TestLogger::info("Auto-expand functionality: PRESENT");
+        TestLogger::info("DataTable search integration: PRESENT");
+        TestLogger::info("Manual filter fallback: PRESENT");
+        TestLogger::info("State management and restoration: PRESENT");
+        TestLogger::info("Manual state change tracking: PRESENT");
+        TestLogger::section("TEST PASSED");
     }
     
     /**
@@ -136,12 +136,12 @@ class BalanceAccordionSearchTest extends TestCase
         $shouldShow = $header_matches || $found_in_children;
         $this->assertTrue($shouldShow, 'Accordion group should be visible when child accounts match');
         
-        echo "\n=== SEARCH LOGIC SIMULATION TEST ===\n";
-        echo "Search term: '$search_term'\n";
-        echo "Header matches: " . ($header_matches ? 'YES' : 'NO') . "\n";
-        echo "Child accounts match: " . ($found_in_children ? 'YES' : 'NO') . "\n";
-        echo "Group should be visible: " . ($shouldShow ? 'YES' : 'NO') . "\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("SEARCH LOGIC SIMULATION TEST");
+        TestLogger::info("Search term: '$search_term'");
+        TestLogger::info("Header matches: " . ($header_matches ? 'YES' : 'NO') . "\n");
+        TestLogger::info("Child accounts match: " . ($found_in_children ? 'YES' : 'NO') . "\n");
+        TestLogger::info("Group should be visible: " . ($shouldShow ? 'YES' : 'NO') . "\n");
+        TestLogger::section("TEST PASSED");
     }
     
     /**
@@ -167,11 +167,11 @@ class BalanceAccordionSearchTest extends TestCase
         $should_clear = $empty_search === '';
         $this->assertTrue($should_clear, 'DataTable search should be cleared when main search is empty');
         
-        echo "\n=== AUTO-EXPAND AND DATATABLE SEARCH TEST ===\n";
-        echo "Auto-expand when match in children: " . ($should_expand ? 'YES' : 'NO') . "\n";
-        echo "DataTable search applied: " . ($search_applied_to_datatable ? 'YES' : 'NO') . "\n";
-        echo "Clear on empty search: " . ($should_clear ? 'YES' : 'NO') . "\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("AUTO-EXPAND AND DATATABLE SEARCH TEST");
+        TestLogger::info("Auto-expand when match in children: " . ($should_expand ? 'YES' : 'NO') . "\n");
+        TestLogger::info("DataTable search applied: " . ($search_applied_to_datatable ? 'YES' : 'NO') . "\n");
+        TestLogger::info("Clear on empty search: " . ($should_clear ? 'YES' : 'NO') . "\n");
+        TestLogger::section("TEST PASSED");
     }
     /**
      * Test the state restoration functionality when search is cleared
@@ -212,12 +212,12 @@ class BalanceAccordionSearchTest extends TestCase
         $datatable_filters_cleared = true;
         $this->assertTrue($datatable_filters_cleared, 'DataTable filters should be cleared when search is cleared');
         
-        echo "\n=== ACCORDION STATE RESTORATION TEST ===\n";
-        echo "State tracking for collapsed accordions: PASSED\n";
-        echo "State tracking for expanded accordions: PASSED\n";
-        echo "Auto-expanded restoration: PASSED\n";
-        echo "Filter clearing: PASSED\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("ACCORDION STATE RESTORATION TEST");
+        TestLogger::info("State tracking for collapsed accordions: PASSED");
+        TestLogger::info("State tracking for expanded accordions: PASSED");
+        TestLogger::info("Auto-expanded restoration: PASSED");
+        TestLogger::info("Filter clearing: PASSED");
+        TestLogger::section("TEST PASSED");
     }
     /**
      * Test edge cases for the search functionality
@@ -245,10 +245,10 @@ class BalanceAccordionSearchTest extends TestCase
             $this->assertTrue($matches, "Search should work with partial matches: '$partial'");
         }
         
-        echo "\n=== SEARCH EDGE CASES TEST ===\n";
-        echo "Empty search handling: PASSED\n";
-        echo "Case insensitive search: PASSED\n";
-        echo "Partial matches: PASSED\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("SEARCH EDGE CASES TEST");
+        TestLogger::info("Empty search handling: PASSED");
+        TestLogger::info("Case insensitive search: PASSED");
+        TestLogger::info("Partial matches: PASSED");
+        TestLogger::section("TEST PASSED");
     }
 }

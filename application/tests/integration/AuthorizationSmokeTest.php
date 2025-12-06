@@ -546,12 +546,12 @@ class AuthorizationSmokeTest extends TestCase
     {
         // Phase 1: Legacy system
         $this->test_phase = 'legacy';
-        echo "\n  LEGACY PHASE: " . ($description ?: $test_method) . "\n";
+        TestLogger::info("\n  LEGACY PHASE: " . ($description ?: $test_method) . "\n");
         $this->$test_method();
         
         // Phase 2: V2 system  
         $this->test_phase = 'v2';
-        echo "  V2 PHASE: " . ($description ?: $test_method) . "\n";
+        TestLogger::info("  V2 PHASE: " . ($description ?: $test_method) . "\n");
         $this->$test_method();
     }
 

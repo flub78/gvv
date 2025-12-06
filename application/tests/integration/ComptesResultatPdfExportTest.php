@@ -135,12 +135,12 @@ class ComptesResultatPdfExportTest extends TestCase
         $this->assertTrue($has_profit_loss, 
             'Content should contain profit/loss information');
         
-        echo "\n=== FINANCIAL DATA VALIDATION ===\n";
-        echo "Content length: " . strlen($text_content) . " characters\n";
-        echo "Monetary amounts found: $monetary_amounts\n";
-        echo "Year references found: $year_matches\n";
-        echo "Contains profit/loss section: " . ($has_profit_loss ? 'YES' : 'NO') . "\n";
-        echo "=== VALIDATION SUCCESSFUL ===\n";
+        TestLogger::section("FINANCIAL DATA VALIDATION");
+        TestLogger::info("Content length: " . strlen($text_content) . " characters\n");
+        TestLogger::info("Monetary amounts found: $monetary_amounts");
+        TestLogger::info("Year references found: $year_matches");
+        TestLogger::info("Contains profit/loss section: " . ($has_profit_loss ? 'YES' : 'NO') . "\n");
+        TestLogger::section("VALIDATION SUCCESSFUL");
         
         return $text_content; // Return for further testing
     }
@@ -199,12 +199,12 @@ class ComptesResultatPdfExportTest extends TestCase
         $this->assertGreaterThan(100, strlen($pdf_text), 'PDF should contain substantial content');
         $this->assertGreaterThan(100, strlen($csv_content), 'CSV should contain substantial content');
         
-        echo "\n=== PDF-CSV CONSISTENCY VALIDATION ===\n";
-        echo "PDF text length: " . strlen($pdf_text) . " characters\n";
-        echo "CSV content length: " . strlen($csv_content) . " characters\n";
-        echo "PDF monetary amounts: $pdf_amounts\n";
-        echo "CSV monetary amounts: $csv_amounts\n";
-        echo "=== CONSISTENCY CHECK PASSED ===\n";
+        TestLogger::section("PDF-CSV CONSISTENCY VALIDATION");
+        TestLogger::info("PDF text length: " . strlen($pdf_text) . " characters\n");
+        TestLogger::info("CSV content length: " . strlen($csv_content) . " characters\n");
+        TestLogger::info("PDF monetary amounts: $pdf_amounts");
+        TestLogger::info("CSV monetary amounts: $csv_amounts");
+        TestLogger::section("CONSISTENCY CHECK PASSED");
     }
 
     /**
@@ -258,12 +258,12 @@ class ComptesResultatPdfExportTest extends TestCase
         $this->assertStringContainsString('1500,00', $table_text, 'Table should contain amounts');
         $this->assertStringContainsString('Total', $table_text, 'Table should contain totals');
         
-        echo "\n=== DATA CONSISTENCY VALIDATION ===\n";
-        echo "Simulated resultat data structure: VALID\n";
-        echo "Simulated table rows: " . count($simulated_table_data) . "\n";
-        echo "Table columns: " . count($simulated_table_data[0]) . "\n";
-        echo "Both PDF and CSV use same data sources: CONFIRMED\n";
-        echo "=== CONSISTENCY CHECK PASSED ===\n";
+        TestLogger::section("DATA CONSISTENCY VALIDATION");
+        TestLogger::info("Simulated resultat data structure: VALID");
+        TestLogger::info("Simulated table rows: " . count($simulated_table_data) . "\n");
+        TestLogger::info("Table columns: " . count($simulated_table_data[0]) . "\n");
+        TestLogger::info("Both PDF and CSV use same data sources: CONFIRMED");
+        TestLogger::section("CONSISTENCY CHECK PASSED");
     }
 
     // ========== HELPER METHODS ==========

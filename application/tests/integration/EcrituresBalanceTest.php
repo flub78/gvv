@@ -67,7 +67,7 @@ class EcrituresBalanceTest extends TestCase {
         $compte_with_many_ecritures = $result['id'];
         $total_count = $this->CI->ecritures_model->count_account($compte_with_many_ecritures);
 
-        echo "\nTesting with compte $compte_with_many_ecritures having $total_count ecritures\n";
+        TestLogger::info("\nTesting with compte $compte_with_many_ecritures having $total_count ecritures");
 
         // Choose target positions that will be on different pages with different pagination
         // Position 14 (15th ecriture, 0-indexed):
@@ -122,9 +122,9 @@ class EcrituresBalanceTest extends TestCase {
         $this->assertEquals($ecriture_10['id'], $ecriture_25['id'],
             "Should be the same ecriture ID at global position $target_position");
 
-        echo "Testing ecriture ID {$ecriture_10['id']} at global position $target_position:\n";
-        echo "  - With 10/page (page 2): solde = {$ecriture_10['solde']}\n";
-        echo "  - With 25/page (page 1): solde = {$ecriture_25['solde']}\n";
+        TestLogger::info("Testing ecriture ID {$ecriture_10['id']} at global position $target_position:");
+        TestLogger::info("  - With 10/page (page 2): solde = {$ecriture_10['solde']}");
+        TestLogger::info("  - With 25/page (page 1): solde = {$ecriture_25['solde']}");
 
         // CRITICAL: The balance must be identical
         $this->assertEquals($ecriture_10['solde'], $ecriture_25['solde'],
@@ -153,9 +153,9 @@ class EcrituresBalanceTest extends TestCase {
                 $this->assertEquals($ecriture_10_p3['id'], $ecriture_25_2['id'],
                     "Should be the same ecriture at position $target_position_2");
                     
-                echo "Testing ecriture ID {$ecriture_10_p3['id']} at global position $target_position_2:\n";
-                echo "  - With 10/page (page 3): solde = {$ecriture_10_p3['solde']}\n";
-                echo "  - With 25/page (page 1): solde = {$ecriture_25_2['solde']}\n";
+                TestLogger::info("Testing ecriture ID {$ecriture_10_p3['id']} at global position $target_position_2:");
+                TestLogger::info("  - With 10/page (page 3): solde = {$ecriture_10_p3['solde']}");
+                TestLogger::info("  - With 25/page (page 1): solde = {$ecriture_25_2['solde']}");
 
                 $this->assertEquals($ecriture_10_p3['solde'], $ecriture_25_2['solde'],
                     "Balance for ecriture {$ecriture_10_p3['id']} must be identical regardless of pagination");
@@ -186,7 +186,7 @@ class EcrituresBalanceTest extends TestCase {
         }
         
         $compte_to_test = $result['id'];
-        echo "\nTesting balance increments for compte $compte_to_test\n";
+        TestLogger::info("\nTesting balance increments for compte $compte_to_test");
 
         // Get a page of data
         $result = $this->CI->ecritures_model->get_datatable_data([
@@ -202,7 +202,7 @@ class EcrituresBalanceTest extends TestCase {
         $this->assertGreaterThan(1, count($result['data']), "Should have at least 2 rows to test increments");
 
         $data = $result['data'];
-        echo "\nTesting balance increments for compte $compte_to_test:\n";
+        TestLogger::info("\nTesting balance increments for compte $compte_to_test:");
 
         // Check that each balance increment matches the operation
         for ($i = 1; $i < count($data); $i++) {
@@ -223,7 +223,7 @@ class EcrituresBalanceTest extends TestCase {
 
             $expected_solde = $prev_solde + $operation;
 
-            echo "  Line " . ($i + 1) . " (ID {$curr['id']}): prev={$prev_solde}, op={$operation}, curr={$curr_solde}, expected={$expected_solde}\n";
+            TestLogger::info("  Line " . ($i + 1) . " (ID {$curr['id']}): prev={$prev_solde}, op={$operation}, curr={$curr_solde}, expected={$expected_solde}\n");
 
             $this->assertEquals($expected_solde, $curr_solde, 0.01,
                 "Balance increment error at line " . ($i + 1) . " (ID {$curr['id']}). " .
@@ -270,9 +270,9 @@ class EcrituresBalanceTest extends TestCase {
         $first_row = $result['data'][0];
         $first_solde = floatval($first_row['solde']);
 
-        echo "\nTesting first page balance for compte $compte_to_test:\n";
-        echo "  First row ID: {$first_row['id']}, Date: {$first_row['date_op']}\n";
-        echo "  First row balance: {$first_solde}\n";
+        TestLogger::info("\nTesting first page balance for compte $compte_to_test:");
+        TestLogger::info("  First row ID: {$first_row['id']}, Date: {$first_row['date_op']}");
+        TestLogger::info("  First row balance: {$first_solde}");
 
         // Calculate expected initial balance independently
         // It should be the balance of all ecritures before this one
@@ -301,7 +301,7 @@ class EcrituresBalanceTest extends TestCase {
             $expected_initial += floatval($first_row['credit']);
         }
 
-        echo "  Expected balance (independently calculated): {$expected_initial}\n";
+        TestLogger::info("  Expected balance (independently calculated): {$expected_initial}");
 
         $this->assertEquals($expected_initial, $first_solde, 0.01,
             "First row balance should match independently calculated value");
@@ -330,7 +330,7 @@ class EcrituresBalanceTest extends TestCase {
         
         $compte_to_test = $result['id'];
 
-        echo "\nTesting balance with different page starts for compte $compte_to_test:\n";
+        TestLogger::info("\nTesting balance with different page starts for compte $compte_to_test:");
 
         // Get overlapping pages and verify the overlapping ecriture has same balance
         // Page 1: start=0, length=15 (ecritures 0-14)
@@ -372,7 +372,7 @@ class EcrituresBalanceTest extends TestCase {
                 $this->assertEquals($e1['id'], $e2['id'],
                     "Overlapping ecritures should have same ID at global position " . (10 + $i));
 
-                echo "  Position " . (10 + $i) . " (ID {$e1['id']}): page1 solde={$e1['solde']}, page2 solde={$e2['solde']}\n";
+                TestLogger::info("  Position " . (10 + $i) . " (ID {$e1['id']}): page1 solde={$e1['solde']}, page2 solde={$e2['solde']}\n");
 
                 $this->assertEquals($e1['solde'], $e2['solde'], 0.01,
                     "Overlapping ecriture ID {$e1['id']} must have identical balance. " .

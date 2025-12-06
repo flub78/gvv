@@ -271,7 +271,7 @@ class AttachmentStorageFeatureTest extends TestCase
 
         // PRD AC2.7: Real smartphone photos compress well (80-90%)
         // PNG test images with noise patterns compress less (we're testing functionality, not specific ratios)
-        echo "  Note: Compression ratio depends on image content (noise vs real photos)\n";
+        TestLogger::info("Note: Compression ratio depends on image content (noise vs real photos)");
 
         // VERIFY: Image dimensions reduced to max 1600x1200 (PRD AC2.2)
         $image_info = getimagesize($stored_file);
@@ -281,11 +281,10 @@ class AttachmentStorageFeatureTest extends TestCase
         $this->assertLessThanOrEqual(1600, $width, 'Width should be <= 1600px (PRD AC2.6)');
         $this->assertLessThanOrEqual(1200, $height, 'Height should be <= 1200px (PRD AC2.6)');
 
-        echo "\n";
-        echo "Image Compression Test Results:\n";
-        echo "  Original: {$original_size_mb}MB ({$image_info[0]}x{$image_info[1]})\n";
-        echo "  Compressed: {$compressed_size_mb}MB ({$width}x{$height})\n";
-        echo "  Reduction: {$compression_percent}%\n";
+        TestLogger::section("Image Compression Test Results");
+        TestLogger::info("Original: {$original_size_mb}MB ({$image_info[0]}x{$image_info[1]})");
+        TestLogger::info("Compressed: {$compressed_size_mb}MB ({$width}x{$height})");
+        TestLogger::info("Reduction: {$compression_percent}%");
     }
 
     /**
@@ -437,11 +436,10 @@ class AttachmentStorageFeatureTest extends TestCase
             ->row_array();
         $this->assertEmpty($ecriture, 'Accounting line must be deleted');
 
-        echo "\n";
-        echo "Cascade Deletion Test Results:\n";
-        echo "  Deleted 1 accounting line\n";
-        echo "  Cascaded deletion of " . count($attachment_ids) . " attachments\n";
-        echo "  Recovered storage from " . count($file_paths) . " files\n";
+        TestLogger::section("Cascade Deletion Test Results");
+        TestLogger::info("Deleted 1 accounting line");
+        TestLogger::info("Cascaded deletion of " . count($attachment_ids) . " attachments");
+        TestLogger::info("Recovered storage from " . count($file_paths) . " files");
     }
 
     // ========== HELPER METHODS ==========

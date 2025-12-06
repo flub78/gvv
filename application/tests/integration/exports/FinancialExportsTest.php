@@ -31,11 +31,11 @@ class FinancialExportsTest extends BaseExportTest
         $monetary_amounts = preg_match_all('/\d{1,6}[,\.]\d{2}/', $response['content']);
         $this->assertGreaterThan(0, $monetary_amounts, 'CSV should contain monetary amounts');
         
-        echo "\n=== INCOME STATEMENT CSV TEST ===\n";
-        echo "CSV rows: " . count($csvData) . "\n";
-        echo "Monetary amounts found: $monetary_amounts\n";
-        echo "Content length: " . strlen($response['content']) . " characters\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("INCOME STATEMENT CSV TEST");
+        TestLogger::info("CSV rows: " . count($csvData) . "\n");
+        TestLogger::info("Monetary amounts found: $monetary_amounts");
+        TestLogger::info("Content length: " . strlen($response['content']) . " characters\n");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -54,9 +54,9 @@ class FinancialExportsTest extends BaseExportTest
         // Since this is simulated content, we validate it directly
         $this->validatePdfContentFromText($response['content'], $expectedTerms, $expectedStructure);
         
-        echo "\n=== INCOME STATEMENT PDF TEST ===\n";
-        echo "PDF content length: " . strlen($response['content']) . " characters\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("INCOME STATEMENT PDF TEST");
+        TestLogger::info("PDF content length: " . strlen($response['content']) . " characters\n");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -73,9 +73,9 @@ class FinancialExportsTest extends BaseExportTest
         
         $this->validateCsvStructure($response['content'], $expectedHeaders, $requiredTerms);
         
-        echo "\n=== DASHBOARD CSV TEST ===\n";
-        echo "Dashboard CSV export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("DASHBOARD CSV TEST");
+        TestLogger::info("Dashboard CSV export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -90,9 +90,9 @@ class FinancialExportsTest extends BaseExportTest
         $expectedTerms = ['Code', 'Libellé', 'Total'];
         $this->validatePdfContentFromText($response['content'], $expectedTerms);
         
-        echo "\n=== DASHBOARD PDF TEST ===\n";
-        echo "Dashboard PDF export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("DASHBOARD PDF TEST");
+        TestLogger::info("Dashboard PDF export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -109,9 +109,9 @@ class FinancialExportsTest extends BaseExportTest
         
         $this->validateCsvStructure($response['content'], $expectedHeaders, $requiredTerms);
         
-        echo "\n=== BALANCE SHEET CSV TEST ===\n";
-        echo "Balance sheet CSV export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("BALANCE SHEET CSV TEST");
+        TestLogger::info("Balance sheet CSV export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -126,9 +126,9 @@ class FinancialExportsTest extends BaseExportTest
         $expectedHeaders = ['Code', 'Libellé', 'Débit', 'Crédit', 'Solde'];
         $this->validateCsvStructure($response['content'], $expectedHeaders);
         
-        echo "\n=== ACCOUNT BALANCE CSV TEST ===\n";
-        echo "Account balance CSV export validated successfully\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("ACCOUNT BALANCE CSV TEST");
+        TestLogger::info("Account balance CSV export validated successfully");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -150,9 +150,9 @@ class FinancialExportsTest extends BaseExportTest
             $comparisonFields
         );
         
-        echo "\n=== FINANCIAL EXPORT CONSISTENCY TEST ===\n";
-        echo "CSV and PDF content consistency validated\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("FINANCIAL EXPORT CONSISTENCY TEST");
+        TestLogger::info("CSV and PDF content consistency validated");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
@@ -174,9 +174,9 @@ class FinancialExportsTest extends BaseExportTest
             $this->checkExportAccess($url, 'ca');
         }
         
-        echo "\n=== FINANCIAL EXPORT ACCESS CONTROL TEST ===\n";
-        echo "Access control validated for " . count($exportUrls) . " endpoints\n";
-        echo "=== TEST PASSED ===\n";
+        TestLogger::section("FINANCIAL EXPORT ACCESS CONTROL TEST");
+        TestLogger::info("Access control validated for " . count($exportUrls) . " endpoints\n");
+        TestLogger::section("TEST PASSED");
     }
 
     /**
