@@ -13,7 +13,8 @@ Avant de commencer, vérifier que :
 
 - [x] Jenkins est accessible et vous avez les droits administrateur
 - [x] PHP 7.4 est installé sur l'agent Jenkins 
-PHP Version 7.4.33
+  * PHP Version 7.4.33 sur le serveur de test
+  * PHP 8.1.18 sur le serveur jenkins...gvv (mais nous forcerons 7.4 pour les tests)
 - [x] Le dépôt Git GVV est accessible depuis Jenkins
 - [x] Les credentials Git sont configurés dans Jenkins (si dépôt privé)
 - [x] Vous avez une adresse email pour les notifications
@@ -156,8 +157,8 @@ alias php=/usr/bin/php7.4
 
 #### 7.1 Publier les résultats JUnit
 
-- [ ] Ajouter **Publish JUnit test result report**
-- [ ] Test report XMLs : `build/logs/*.xml`
+- [x] Ajouter **Publish JUnit test result report**
+- [x] Test report XMLs : `build/logs/*.xml`
   - Cocher ☑ **Retain long standard output/error**
   - Cocher ☑ **Do not fail the build on empty test results**
 
