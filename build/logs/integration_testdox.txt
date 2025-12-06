@@ -257,9 +257,9 @@ Procedures Integration
  [x] Create procedure duplicate name
  [x] Update procedure
  [x] Delete procedure
- [ ] Select page with sections
+ [x] Select page with sections
  [x] Get procedures by status
- [ ] Get procedures by section
+ [x] Get procedures by section
  [x] Markdown content get save
  [x] Select page pagination
  [x] Select page with filters
@@ -274,11 +274,11 @@ Smart Adjustor Correlation Integration
 
 Vols Decouverte Date Validite
  [x] Date validite column exists
- [ ] Validity calculation with null date validite
- [ ] Validity uses date validite when set
- [ ] Filter todo with date validite
- [ ] Filter expired with date validite
- [ ] Backward compatibility with null date validite
+ [x] Validity calculation with null date validite
+ [x] Validity uses date validite when set
+ [x] Filter todo with date validite
+ [x] Filter expired with date validite
+ [x] Backward compatibility with null date validite
 
 Financial Exports
  [x] Income statement csv export

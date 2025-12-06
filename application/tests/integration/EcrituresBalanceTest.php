@@ -17,19 +17,22 @@ class EcrituresBalanceTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         $this->CI =& get_instance();
+
+        // Configure session BEFORE loading models so they pick up the correct context
+        // Use section from session or default to 1
+        $this->CI->session->set_userdata('section', 1);
+
+        // Ensure year is set for filtrage
+        $this->CI->session->set_userdata('year', date('Y'));
+
+        // Disable additional filtering to see all ecritures for the year
+        $this->CI->session->set_userdata('filter_active', false);
+        $this->CI->session->set_userdata('filter_date', '');
+        $this->CI->session->set_userdata('date_end', '');
+
+        // Load models AFTER session configuration
         $this->CI->load->model('ecritures_model');
         $this->CI->load->model('comptes_model');
-        
-        // Ensure we're testing with a valid section context
-        if (!$this->CI->session->userdata('section_id')) {
-            // Use section_id from session or default to 1
-            $this->CI->session->set_userdata('section_id', 1);
-        }
-        
-        // Ensure year is set
-        if (!$this->CI->session->userdata('year')) {
-            $this->CI->session->set_userdata('year', date('Y'));
-        }
     }
 
     /**
@@ -44,11 +47,15 @@ class EcrituresBalanceTest extends TestCase {
      */
     public function test_balance_is_independent_of_pagination() {
         // Find a compte with many ecritures (at least 30 for meaningful test)
-        // Use a direct SQL query to find suitable test compte
-        $query = "SELECT compte1 as id, COUNT(*) as cnt 
-                  FROM ecritures 
-                  GROUP BY compte1 
-                  HAVING cnt >= 30 
+        // Filter by current year and section to match what get_datatable_data will return
+        $year = date('Y');
+        $section = $this->CI->session->userdata('section');
+
+        $query = "SELECT compte1 as id, COUNT(*) as cnt
+                  FROM ecritures
+                  WHERE YEAR(date_op) = '$year' AND club = $section
+                  GROUP BY compte1
+                  HAVING cnt >= 30
                   LIMIT 1";
         $result = $this->CI->db->query($query)->row_array();
         
@@ -162,10 +169,14 @@ class EcrituresBalanceTest extends TestCase {
      */
     public function test_balance_increments_are_consistent() {
         // Find a compte with at least 20 ecritures
-        $query = "SELECT compte1 as id, COUNT(*) as cnt 
-                  FROM ecritures 
-                  GROUP BY compte1 
-                  HAVING cnt >= 20 
+        $year = date('Y');
+        $section = $this->CI->session->userdata('section');
+
+        $query = "SELECT compte1 as id, COUNT(*) as cnt
+                  FROM ecritures
+                  WHERE YEAR(date_op) = '$year' AND club = $section
+                  GROUP BY compte1
+                  HAVING cnt >= 20
                   LIMIT 1";
         $result = $this->CI->db->query($query)->row_array();
 
@@ -225,10 +236,14 @@ class EcrituresBalanceTest extends TestCase {
      */
     public function test_first_page_balance_is_correct() {
         // Find a compte with ecritures
-        $query = "SELECT compte1 as id, COUNT(*) as cnt 
-                  FROM ecritures 
-                  GROUP BY compte1 
-                  HAVING cnt >= 10 
+        $year = date('Y');
+        $section = $this->CI->session->userdata('section');
+
+        $query = "SELECT compte1 as id, COUNT(*) as cnt
+                  FROM ecritures
+                  WHERE YEAR(date_op) = '$year' AND club = $section
+                  GROUP BY compte1
+                  HAVING cnt >= 10
                   LIMIT 1";
         $result = $this->CI->db->query($query)->row_array();
 
@@ -296,10 +311,14 @@ class EcrituresBalanceTest extends TestCase {
      */
     public function test_balance_with_different_page_starts() {
         // Find a compte with many ecritures
-        $query = "SELECT compte1 as id, COUNT(*) as cnt 
-                  FROM ecritures 
-                  GROUP BY compte1 
-                  HAVING cnt >= 25 
+        $year = date('Y');
+        $section = $this->CI->session->userdata('section');
+
+        $query = "SELECT compte1 as id, COUNT(*) as cnt
+                  FROM ecritures
+                  WHERE YEAR(date_op) = '$year' AND club = $section
+                  GROUP BY compte1
+                  HAVING cnt >= 25
                   LIMIT 1";
         $result = $this->CI->db->query($query)->row_array();
 

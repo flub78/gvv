@@ -38,6 +38,14 @@ class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
         $section = $this->CI->db->select('id')->from('sections')->limit(1)->get()->row_array();
         $this->test_section_id = $section ? $section['id'] : null;
 
+        // Set the session to use this section for testing
+        if ($this->test_section_id) {
+            $this->CI->session->set_userdata('section', $this->test_section_id);
+            // Reload the model to pick up the session change
+            $this->CI->load->model('procedures_model', '', TRUE);
+            $this->model = $this->CI->procedures_model;
+        }
+
         // Get a test user ID
         $user = $this->CI->db->select('id')->from('users')->limit(1)->get()->row_array();
         $this->test_user_id = $user ? $user['id'] : null;

@@ -94,10 +94,9 @@ class VolsDecouverteDateValiditeTest extends TestCase
     public function testValidityCalculationWithNullDateValidite()
     {
         $current_year = date('Y');
-        
+
         // Create a test discovery flight without date_validite
         $test_data = [
-            'id' => 990001,
             'date_vente' => $current_year . '-06-15',
             'date_validite' => null,
             'club' => 1,
@@ -107,7 +106,10 @@ class VolsDecouverteDateValiditeTest extends TestCase
         ];
 
         $this->CI->db->insert('vols_decouverte', $test_data);
-        $this->test_ids[] = 990001;
+        $this->assertTrue($this->CI->db->affected_rows() > 0, 'Insert should succeed');
+
+        $insert_id = $this->CI->db->insert_id();
+        $this->test_ids[] = $insert_id;
 
         // Retrieve via select_page which calculates validite
         $results = $this->model->select_page();
@@ -115,7 +117,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $test_record = null;
         foreach ($results as $record) {
-            if (isset($record['id']) && $record['id'] == 990001) {
+            if (isset($record['id']) && $record['id'] == $insert_id) {
                 $test_record = $record;
                 break;
             }
@@ -133,7 +135,6 @@ class VolsDecouverteDateValiditeTest extends TestCase
         $current_year = date('Y');
         // Create a test discovery flight with explicit date_validite
         $test_data = [
-            'id' => 990002,
             'date_vente' => $current_year . '-06-15',
             'date_validite' => ($current_year + 1) . '-12-31', // Different from date_vente + 1 year
             'club' => 1,
@@ -143,7 +144,10 @@ class VolsDecouverteDateValiditeTest extends TestCase
         ];
 
         $this->CI->db->insert('vols_decouverte', $test_data);
-        $this->test_ids[] = 990002;
+        $this->assertTrue($this->CI->db->affected_rows() > 0, 'Insert should succeed');
+
+        $insert_id = $this->CI->db->insert_id();
+        $this->test_ids[] = $insert_id;
 
         // Retrieve via select_page
         $results = $this->model->select_page();
@@ -151,7 +155,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $test_record = null;
         foreach ($results as $record) {
-            if ($record['id'] == 990002) {
+            if ($record['id'] == $insert_id) {
                 $test_record = $record;
                 break;
             }
@@ -172,7 +176,6 @@ class VolsDecouverteDateValiditeTest extends TestCase
 
         // Create a test flight that should appear in 'todo' filter
         $test_data = [
-            'id' => 990003,
             'date_vente' => $current_year . '-01-01', // Current year
             'date_validite' => $tomorrow, // Still valid
             'club' => 1,
@@ -183,7 +186,10 @@ class VolsDecouverteDateValiditeTest extends TestCase
         ];
 
         $this->CI->db->insert('vols_decouverte', $test_data);
-        $this->test_ids[] = 990003;
+        $this->assertTrue($this->CI->db->affected_rows() > 0, 'Insert should succeed');
+
+        $insert_id = $this->CI->db->insert_id();
+        $this->test_ids[] = $insert_id;
 
         // Set filter to 'todo'
         $this->CI->session->set_userdata('vd_filter_active', true);
@@ -196,7 +202,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $found = false;
         foreach ($results as $record) {
-            if ($record['id'] == 990003) {
+            if ($record['id'] == $insert_id) {
                 $found = true;
                 break;
             }
@@ -219,7 +225,6 @@ class VolsDecouverteDateValiditeTest extends TestCase
 
         // Create a test flight that should appear in 'expired' filter
         $test_data = [
-            'id' => 990004,
             'date_vente' => $current_year . '-01-01',
             'date_validite' => $yesterday, // Expired
             'club' => 1,
@@ -230,7 +235,10 @@ class VolsDecouverteDateValiditeTest extends TestCase
         ];
 
         $this->CI->db->insert('vols_decouverte', $test_data);
-        $this->test_ids[] = 990004;
+        $this->assertTrue($this->CI->db->affected_rows() > 0, 'Insert should succeed');
+
+        $insert_id = $this->CI->db->insert_id();
+        $this->test_ids[] = $insert_id;
 
         // Set filter to 'expired'
         $this->CI->session->set_userdata('vd_filter_active', true);
@@ -243,7 +251,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $found = false;
         foreach ($results as $record) {
-            if ($record['id'] == 990004) {
+            if ($record['id'] == $insert_id) {
                 $found = true;
                 break;
             }
@@ -266,7 +274,6 @@ class VolsDecouverteDateValiditeTest extends TestCase
         $old_date = $current_year . '-' . date('m-d', strtotime('-6 months'));
 
         $test_data = [
-            'id' => 990005,
             'date_vente' => $old_date,
             'date_validite' => null, // As it would be for old records
             'club' => 1,
@@ -276,7 +283,10 @@ class VolsDecouverteDateValiditeTest extends TestCase
         ];
 
         $this->CI->db->insert('vols_decouverte', $test_data);
-        $this->test_ids[] = 990005;
+        $this->assertTrue($this->CI->db->affected_rows() > 0, 'Insert should succeed');
+
+        $insert_id = $this->CI->db->insert_id();
+        $this->test_ids[] = $insert_id;
 
         // Retrieve via select_page
         $results = $this->model->select_page();
@@ -284,7 +294,7 @@ class VolsDecouverteDateValiditeTest extends TestCase
         // Find our test record
         $test_record = null;
         foreach ($results as $record) {
-            if ($record['id'] == 990005) {
+            if ($record['id'] == $insert_id) {
                 $test_record = $record;
                 break;
             }
