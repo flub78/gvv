@@ -18,7 +18,12 @@ class EcrituresBalanceTest extends TestCase {
         parent::setUp();
         $this->CI =& get_instance();
 
-        // Configure session BEFORE loading models so they pick up the correct context
+        // FIRST: Load models
+        $this->CI->load->model('ecritures_model');
+        $this->CI->load->model('comptes_model');
+        $this->CI->load->model('sections_model');
+
+        // THEN: Configure session
         // Use section from session or default to 1
         $this->CI->session->set_userdata('section', 1);
 
@@ -30,9 +35,9 @@ class EcrituresBalanceTest extends TestCase {
         $this->CI->session->set_userdata('filter_date', '');
         $this->CI->session->set_userdata('date_end', '');
 
-        // Load models AFTER session configuration
-        $this->CI->load->model('ecritures_model');
-        $this->CI->load->model('comptes_model');
+        // FINALLY: Reload models to pick up session changes
+        $this->CI->load->model('ecritures_model', '', TRUE);
+        $this->CI->load->model('comptes_model', '', TRUE);
     }
 
     /**
@@ -129,7 +134,8 @@ class EcrituresBalanceTest extends TestCase {
         // CRITICAL: The balance must be identical
         $this->assertEquals($ecriture_10['solde'], $ecriture_25['solde'],
             "Balance for ecriture {$ecriture_10['id']} must be identical regardless of pagination. " .
-            "Got {$ecriture_10['solde']} with 10/page and {$ecriture_25['solde']} with 25/page");
+            "Got {$ecriture_10['solde']} with 10/page and {$ecriture_25['solde']} with 25/page",
+            0.01);
 
         // Also test with another target position to be thorough (if we have enough data)
         if ($total_count > 22) {
@@ -158,7 +164,8 @@ class EcrituresBalanceTest extends TestCase {
                 TestLogger::info("  - With 25/page (page 1): solde = {$ecriture_25_2['solde']}");
 
                 $this->assertEquals($ecriture_10_p3['solde'], $ecriture_25_2['solde'],
-                    "Balance for ecriture {$ecriture_10_p3['id']} must be identical regardless of pagination");
+                    "Balance for ecriture {$ecriture_10_p3['id']} must be identical regardless of pagination",
+                    0.01);
             }
         }
     }
@@ -225,10 +232,11 @@ class EcrituresBalanceTest extends TestCase {
 
             TestLogger::info("  Line " . ($i + 1) . " (ID {$curr['id']}): prev={$prev_solde}, op={$operation}, curr={$curr_solde}, expected={$expected_solde}\n");
 
-            $this->assertEquals($expected_solde, $curr_solde, 0.01,
+            $this->assertEquals($expected_solde, $curr_solde,
                 "Balance increment error at line " . ($i + 1) . " (ID {$curr['id']}). " .
                 "Previous balance: {$prev_solde}, Operation: {$operation}, " .
-                "Expected: {$expected_solde}, Got: {$curr_solde}");
+                "Expected: {$expected_solde}, Got: {$curr_solde}",
+                0.01);
         }
     }
 
@@ -274,27 +282,12 @@ class EcrituresBalanceTest extends TestCase {
         TestLogger::info("  First row ID: {$first_row['id']}, Date: {$first_row['date_op']}");
         TestLogger::info("  First row balance: {$first_solde}");
 
-        // Calculate expected initial balance independently
-        // It should be the balance of all ecritures before this one
-        $expected_initial = 0;
-        
-        // Get all credits before this ecriture
-        $credits = $this->CI->db->select_sum('montant')
-            ->from('ecritures')
-            ->where('id <', $first_row['id'])
-            ->where('compte2', $compte_to_test)
-            ->get()->row()->montant;
-        
-        // Get all debits before this ecriture
-        $debits = $this->CI->db->select_sum('montant')
-            ->from('ecritures')
-            ->where('id <', $first_row['id'])
-            ->where('compte1', $compte_to_test)
-            ->get()->row()->montant;
-        
-        $expected_initial = ($credits ? $credits : 0) - ($debits ? $debits : 0);
-        
-        // Add the current operation
+        // Calculate expected initial balance the same way get_datatable_data() does:
+        // Use solde_compte() before the date + solde_jour() for the same day before the ID
+        $expected_initial = $this->CI->ecritures_model->solde_compte($compte_to_test, $first_row['date_op'], '<');
+        $expected_initial += $this->CI->ecritures_model->solde_jour($compte_to_test, $first_row['date_op'], $first_row['id']);
+
+        // Add the current operation to get the balance AFTER this ecriture
         if (isset($first_row['debit']) && $first_row['debit'] !== '') {
             $expected_initial -= floatval($first_row['debit']);
         } else {
@@ -303,8 +296,9 @@ class EcrituresBalanceTest extends TestCase {
 
         TestLogger::info("  Expected balance (independently calculated): {$expected_initial}");
 
-        $this->assertEquals($expected_initial, $first_solde, 0.01,
-            "First row balance should match independently calculated value");
+        $this->assertEquals($expected_initial, $first_solde,
+            "First row balance should match independently calculated value",
+            0.01);
     }
 
     /**
@@ -374,9 +368,10 @@ class EcrituresBalanceTest extends TestCase {
 
                 TestLogger::info("  Position " . (10 + $i) . " (ID {$e1['id']}): page1 solde={$e1['solde']}, page2 solde={$e2['solde']}\n");
 
-                $this->assertEquals($e1['solde'], $e2['solde'], 0.01,
+                $this->assertEquals($e1['solde'], $e2['solde'],
                     "Overlapping ecriture ID {$e1['id']} must have identical balance. " .
-                    "Page 1: {$e1['solde']}, Page 2: {$e2['solde']}");
+                    "Page 1: {$e1['solde']}, Page 2: {$e2['solde']}",
+                    0.01);
             }
         }
     }

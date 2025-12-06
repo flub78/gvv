@@ -140,6 +140,15 @@ class RealDatabase {
         return $this;
     }
 
+    public function select_sum($field, $alias = '') {
+        if ($alias == '') {
+            $this->select_fields = "SUM(" . $field . ") as " . $field;
+        } else {
+            $this->select_fields = "SUM(" . $field . ") as " . $alias;
+        }
+        return $this;
+    }
+
     public function from($table) {
         // Handle table aliases like "user_roles_per_section urps"
         if (strpos($table, ' ') !== false) {
@@ -189,7 +198,18 @@ class RealDatabase {
                 // Key already has the full condition
                 $this->where_conditions[] = $key;
             } elseif ($value === NULL) {
-                $this->where_conditions[] = $key . " IS NULL";
+                // When value is NULL, check if key is a complete SQL condition
+                // (contains =, <, >, etc.) - if so, add as-is (for raw WHERE clauses)
+                if (stripos($key, '=') !== FALSE || stripos($key, '<') !== FALSE ||
+                    stripos($key, '>') !== FALSE || stripos($key, '!=') !== FALSE ||
+                    stripos($key, ' and ') !== FALSE || stripos($key, ' AND ') !== FALSE ||
+                    stripos($key, ' or ') !== FALSE || stripos($key, ' OR ') !== FALSE) {
+                    // This is a raw SQL condition, add as-is
+                    $this->where_conditions[] = $key;
+                } else {
+                    // This is a field name, add IS NULL
+                    $this->where_conditions[] = $key . " IS NULL";
+                }
             } else {
                 // Check if key contains comparison operators
                 if (stripos($key, '>=') !== FALSE || stripos($key, '<=') !== FALSE ||
@@ -826,6 +846,9 @@ if (!class_exists('CI_Model')) {
 
 // Load log_helper for gvv_debug, gvv_info, gvv_error functions
 require_once APPPATH . 'helpers/log_helper.php';
+
+// Load validation_helper for date_ht2db() function used by ecritures_model
+require_once APPPATH . 'helpers/validation_helper.php';
 
 // Add log_message function for log_helper
 if (!function_exists('log_message')) {
