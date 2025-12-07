@@ -22,10 +22,10 @@ test.describe('Journal Compte Server-side DataTables', () => {
   });
 
   test('DataTables loads correctly with server-side processing', async ({ page }) => {
-    // Navigate to comptabilité section
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page instead of clicking dropdown menu
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     // Find and click on first account link to open journal
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
@@ -45,10 +45,10 @@ test.describe('Journal Compte Server-side DataTables', () => {
   });
 
   test('Search functionality works across all data (server-side)', async ({ page }) => {
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -77,10 +77,10 @@ test.describe('Journal Compte Server-side DataTables', () => {
   });
 
   test('Pagination works correctly', async ({ page }) => {
-    // Navigate to comptabilité and find an account with multiple pages
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -112,10 +112,10 @@ test.describe('Journal Compte Server-side DataTables', () => {
   });
 
   test('Column sorting works correctly', async ({ page }) => {
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -143,10 +143,10 @@ test.describe('Journal Compte Server-side DataTables', () => {
   });
 
   test('Page length selector works', async ({ page }) => {
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -169,21 +169,21 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('No JavaScript errors during operation', async ({ page }) => {
     const jsErrors = [];
-    
+
     page.on('console', msg => {
       if (msg.type() === 'error') {
         jsErrors.push(msg.text());
       }
     });
-    
+
     page.on('pageerror', error => {
       jsErrors.push(error.message);
     });
-    
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -215,10 +215,10 @@ test.describe('Regression tests for existing functionality', () => {
   });
 
   test('Edit and delete buttons still work', async ({ page }) => {
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');
@@ -248,10 +248,10 @@ test.describe('Regression tests for existing functionality', () => {
   });
 
   test('Filters still work with server-side processing', async ({ page }) => {
-    // Navigate to comptabilité and open an account
-    await page.click('text=Comptabilité');
+    // PHASE 1 FIX: Navigate directly to balance page
+    await page.goto('http://gvv.net/comptes/balance');
     await page.waitForLoadState('networkidle');
-    
+
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
     await accountLink.click();
     await page.waitForLoadState('networkidle');

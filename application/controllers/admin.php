@@ -1327,4 +1327,192 @@ class Admin extends CI_Controller {
         load_last_view('admin/bs_extraction_results', $data);
     }
 
+    /**
+     * Generate encrypted test database
+     * Creates anonymized backup, adds test users, and encrypts the result
+     * Only callable by authorized user (fpeignot)
+     */
+    public function generate_test_database() {
+        // Security check: only for authorized user (fpeignot only)
+        if ($this->dx_auth->get_username() !== 'fpeignot') {
+            show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
+            return;
+        }
+
+        // Load database config
+        require(APPPATH . 'config/database.php');
+        $db_config = $db['default'];
+
+        $results = array();
+        $errors = array();
+        $temp_files = array();
+
+        try {
+            // Step 1: Create database backup before anonymization
+            log_message('info', 'Step 1: Creating pre-anonymization backup');
+            $backup_file = sys_get_temp_dir() . '/gvv_pre_anon_' . time() . '.sql';
+            $temp_files[] = $backup_file;
+
+            $cmd = sprintf(
+                'mysqldump --single-transaction --skip-lock-tables -h%s -u%s -p%s %s > %s 2>&1',
+                escapeshellarg($db_config['hostname']),
+                escapeshellarg($db_config['username']),
+                escapeshellarg($db_config['password']),
+                escapeshellarg($db_config['database']),
+                escapeshellarg($backup_file)
+            );
+
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0) {
+                throw new Exception("Échec de la sauvegarde pré-anonymisation: " . implode("\n", $output));
+            }
+            $results[] = array('step' => 'Sauvegarde initiale', 'status' => 'OK', 'details' => filesize($backup_file) . ' bytes');
+
+            // Step 2: Anonymize data using existing method
+            log_message('info', 'Step 2: Anonymizing data');
+            ob_start();
+            $with_number = $this->input->post('with_number') == '1';
+            
+            $membres_updated = $this->_anonymize_membres($with_number);
+            $users_updated = $this->_anonymize_users();
+            $vd_updated = $this->_anonymize_vols_decouverte($with_number);
+            
+            ob_end_clean();
+            
+            $total_anonymized = $membres_updated + $users_updated + $vd_updated;
+            $results[] = array('step' => 'Anonymisation', 'status' => 'OK', 'details' => "$total_anonymized enregistrements anonymisés");
+
+            // Step 3: Add test users
+            log_message('info', 'Step 3: Adding test users');
+            $test_users_script = FCPATH . 'bin/create_test_users.sh';
+            
+            if (file_exists($test_users_script)) {
+                $env_vars = sprintf(
+                    'MYSQL_HOST=%s MYSQL_USER=%s MYSQL_PASSWORD=%s MYSQL_DATABASE=%s',
+                    escapeshellarg($db_config['hostname']),
+                    escapeshellarg($db_config['username']),
+                    escapeshellarg($db_config['password']),
+                    escapeshellarg($db_config['database'])
+                );
+                
+                exec("$env_vars bash $test_users_script 2>&1", $output, $return_code);
+                if ($return_code === 0) {
+                    $results[] = array('step' => 'Utilisateurs de test', 'status' => 'OK', 'details' => '6 utilisateurs créés');
+                } else {
+                    $results[] = array('step' => 'Utilisateurs de test', 'status' => 'WARNING', 'details' => 'Script échoué: ' . implode("\n", $output));
+                }
+            } else {
+                $results[] = array('step' => 'Utilisateurs de test', 'status' => 'SKIPPED', 'details' => 'Script non trouvé');
+            }
+
+            // Step 4: Create anonymized dump
+            log_message('info', 'Step 4: Creating anonymized dump');
+            $anon_file = sys_get_temp_dir() . '/gvv_test_migration_55.sql';
+            $temp_files[] = $anon_file;
+
+            $cmd = sprintf(
+                'mysqldump --single-transaction --skip-lock-tables -h%s -u%s -p%s %s > %s 2>&1',
+                escapeshellarg($db_config['hostname']),
+                escapeshellarg($db_config['username']),
+                escapeshellarg($db_config['password']),
+                escapeshellarg($db_config['database']),
+                escapeshellarg($anon_file)
+            );
+
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0) {
+                throw new Exception("Échec du dump anonymisé: " . implode("\n", $output));
+            }
+            $results[] = array('step' => 'Dump anonymisé', 'status' => 'OK', 'details' => filesize($anon_file) . ' bytes');
+
+            // Step 5: Encrypt the dump
+            log_message('info', 'Step 5: Encrypting dump');
+            
+            // Get passphrase from environment or POST
+            $passphrase = getenv('GVV_TEST_DB_PASSPHRASE');
+            if (empty($passphrase)) {
+                $passphrase = $this->input->post('passphrase');
+            }
+
+            if (empty($passphrase)) {
+                throw new Exception("Passphrase non fournie. Définissez GVV_TEST_DB_PASSPHRASE ou utilisez le formulaire.");
+            }
+
+            $install_dir = FCPATH . 'install';
+            if (!is_dir($install_dir)) {
+                mkdir($install_dir, 0755, true);
+            }
+
+            $encrypted_file = $install_dir . '/base_de_test.sql.gpg';
+            $passphrase_file = sys_get_temp_dir() . '/gvv_passphrase_' . time() . '.txt';
+            file_put_contents($passphrase_file, $passphrase);
+            $temp_files[] = $passphrase_file;
+
+            $cmd = sprintf(
+                'gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase-file %s --output %s %s 2>&1',
+                escapeshellarg($passphrase_file),
+                escapeshellarg($encrypted_file),
+                escapeshellarg($anon_file)
+            );
+
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0) {
+                throw new Exception("Échec du chiffrement: " . implode("\n", $output));
+            }
+            $results[] = array('step' => 'Chiffrement GPG', 'status' => 'OK', 'details' => filesize($encrypted_file) . ' bytes');
+
+            // Also create a ZIP version for backward compatibility
+            $zip_file = $install_dir . '/base_de_test.zip';
+            $zip = new ZipArchive();
+            if ($zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+                $zip->addFile($anon_file, 'base_de_test.sql');
+                $zip->close();
+                $results[] = array('step' => 'Archive ZIP', 'status' => 'OK', 'details' => filesize($zip_file) . ' bytes (non chiffré)');
+            }
+
+            // Step 6: Restore original database
+            log_message('info', 'Step 6: Restoring original database');
+            $cmd = sprintf(
+                'mysql -h%s -u%s -p%s %s < %s 2>&1',
+                escapeshellarg($db_config['hostname']),
+                escapeshellarg($db_config['username']),
+                escapeshellarg($db_config['password']),
+                escapeshellarg($db_config['database']),
+                escapeshellarg($backup_file)
+            );
+
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0) {
+                throw new Exception("CRITIQUE: Échec de la restauration. Base en état anonymisé! Erreur: " . implode("\n", $output));
+            }
+            $results[] = array('step' => 'Restauration base', 'status' => 'OK', 'details' => 'Base restaurée à l\'état initial');
+
+            $success_message = "Base de test générée avec succès dans install/base_de_test.sql.gpg";
+
+        } catch (Exception $e) {
+            log_message('error', 'Test database generation failed: ' . $e->getMessage());
+            $errors[] = $e->getMessage();
+            $success_message = null;
+        } finally {
+            // Cleanup temp files
+            foreach ($temp_files as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+        }
+
+        // Prepare view data
+        $data = array(
+            'title' => 'Génération de la base de test',
+            'results' => $results,
+            'errors' => $errors,
+            'message' => $success_message,
+            'show_form' => empty($success_message) && empty($errors),
+            'passphrase_required' => empty(getenv('GVV_TEST_DB_PASSPHRASE'))
+        );
+
+        load_last_view('admin/bs_test_database_generation', $data);
+    }
+
 }

@@ -38,3 +38,8 @@ build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
 build/logs/integration_testdox.txt
 build/coverage-data/*
+
+# Test database files (only .gpg should be committed)
+install/base_de_test.sql
+install/base_de_test.zip
+playwright/test-data/fixtures.json

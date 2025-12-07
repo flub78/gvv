@@ -144,6 +144,54 @@ class BasePage {
       }
     }
   }
+
+  /**
+   * Open a Bootstrap dropdown menu and click an item
+   * PHASE 1 FIX: Helper to handle Bootstrap 5 dropdown menus
+   * @param {string} menuText - Text of the main menu button/link
+   * @param {string} itemText - Text of the dropdown item to click (optional)
+   * @returns {boolean} true if dropdown was opened successfully
+   */
+  async openDropdownMenu(menuText, itemText = null) {
+    try {
+      // Find the menu toggle button/link
+      const menuToggle = this.page.locator(`a.nav-link:has-text("${menuText}"), button:has-text("${menuText}")`).first();
+
+      // Check if it's visible
+      const isVisible = await menuToggle.isVisible({ timeout: 5000 }).catch(() => false);
+      if (!isVisible) {
+        console.log(`Menu "${menuText}" not visible, cannot open dropdown`);
+        return false;
+      }
+
+      // Hover over the menu to trigger dropdown (Bootstrap 5 typically uses hover or click)
+      await menuToggle.hover();
+      await this.page.waitForTimeout(300);
+
+      // Try to click if it's a clickable dropdown
+      const hasDropdown = await menuToggle.evaluate(el =>
+        el.classList.contains('dropdown-toggle') ||
+        el.getAttribute('data-bs-toggle') === 'dropdown'
+      );
+
+      if (hasDropdown) {
+        await menuToggle.click();
+        await this.page.waitForTimeout(300);
+      }
+
+      // If itemText provided, click the dropdown item
+      if (itemText) {
+        const dropdownItem = this.page.locator(`a.dropdown-item:has-text("${itemText}")`).first();
+        await dropdownItem.waitFor({ state: 'visible', timeout: 5000 });
+        await dropdownItem.click();
+      }
+
+      return true;
+    } catch (error) {
+      console.log(`Failed to open dropdown menu "${menuText}": ${error.message}`);
+      return false;
+    }
+  }
 }
 
 module.exports = BasePage;

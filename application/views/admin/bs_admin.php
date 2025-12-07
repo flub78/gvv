@@ -166,6 +166,14 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">Extraire</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-success">
+                        <i class="fas fa-file-archive text-success"></i>
+                        <div class="card-title">Générer base de test</div>
+                        <div class="card-text text-muted">Chiffrée pour CI/CD</div>
+                        <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm">Générer</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

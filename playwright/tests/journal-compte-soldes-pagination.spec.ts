@@ -23,10 +23,10 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
     });
 
     test('Les soldes sont indépendants de la taille de la pagination', async ({ page }) => {
-        // Naviguer vers la comptabilité
-        await page.click('text=Comptabilité');
+        // PHASE 1 FIX: Navigate directly to balance page
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
-        
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
         const accountLink = await page.locator('table a[href*="journal_compte"]').first();
         await accountLink.click();
@@ -114,10 +114,10 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
     });
 
     test('Les incréments de solde sont cohérents', async ({ page }) => {
-        // Naviguer vers la comptabilité
-        await page.click('text=Comptabilité');
+        // PHASE 1 FIX: Navigate directly to balance page
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
-        
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
         const accountLink = await page.locator('table a[href*="journal_compte"]').first();
         await accountLink.click();
@@ -169,10 +169,10 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
     });
 
     test('Les exports CSV contiennent les soldes', async ({ page, context }) => {
-        // Naviguer vers la comptabilité
-        await page.click('text=Comptabilité');
+        // PHASE 1 FIX: Navigate directly to balance page
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
-        
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
         const accountLink = await page.locator('table a[href*="journal_compte"]').first();
         await accountLink.click();
@@ -227,10 +227,10 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
     });
 
     test('Les exports PDF sont générés en paysage', async ({ page }) => {
-        // Naviguer vers la comptabilité
-        await page.click('text=Comptabilité');
+        // PHASE 1 FIX: Navigate directly to balance page
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
-        
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
         const accountLink = await page.locator('table a[href*="journal_compte"]').first();
         await accountLink.click();
