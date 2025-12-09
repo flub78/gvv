@@ -35,8 +35,19 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 ?>
 <h3><?= $title ?></h3>
 
+<?php if (isset($ran_mode_enabled) && $ran_mode_enabled): ?>
+<div class="alert alert-danger border border-danger" role="alert">
+    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> MODE RAN ACTIVÉ</h5>
+    <p class="mb-0">
+        <strong>Attention:</strong> Mode de saisie rétrospective avec compensation automatique.
+        Les écritures passées en 2024 seront automatiquement compensées pour préserver les soldes 2025.
+        Le contrôle de date de gel est désactivé.
+    </p>
+</div>
+<?php endif; ?>
+
 <div class="d-flex flex-row flex-wrap">
-    <div>
+    <div <?php if (isset($ran_mode_enabled) && $ran_mode_enabled && $action == CREATION) echo 'style="background-color: #ffe6e6; padding: 20px; border-radius: 5px;"'; ?>>
         <?php
         if (isset($message)) {
             echo p($message) . br();

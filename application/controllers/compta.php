@@ -323,7 +323,54 @@ class Compta extends Gvv_Controller {
 
             if ($action == CREATION) {
                 unset($processed_data['id']);
-                $id = $this->gvv_model->create_ecriture($processed_data);
+
+                // Check if RAN mode is enabled and date is in 2024
+                $this->config->load('program');
+                $ran_mode_enabled = $this->config->item('ran_mode_enabled');
+                $date_op = $processed_data['date_op'];
+                $use_ran_mode = $ran_mode_enabled && $date_op >= '2024-01-01' && $date_op < '2025-01-01';
+
+                if ($use_ran_mode) {
+                    // RAN mode: use retrospective entry with automatic compensation
+                    $this->load->model('ecritures_model');
+                    $result = $this->ecritures_model->saisir_ecriture_retrospective($processed_data);
+
+                    if ($result === FALSE) {
+                        // Error during RAN entry creation
+                        $this->data['errors'] = "ERREUR: Impossible de créer l'écriture rétrospective. Vérifier les logs.";
+                        $this->form_static_element($action);
+                        load_last_view($this->form_view, $this->data);
+                        return;
+                    }
+
+                    $id = $result['id_principale'];
+                    $compensations = $result['compensations'];
+
+                    // Build detailed success message
+                    $this->load->model('comptes_model');
+                    $image = $this->gvv_model->image($id);
+                    $msg = "Écriture rétrospective $image créée avec succès en mode RAN.<br><br>";
+                    $msg .= "<strong>Écritures passées:</strong><ul>";
+                    $msg .= "<li>Écriture principale: $image (ID: $id)</li>";
+                    foreach ($compensations as $comp_id) {
+                        $comp_image = $this->gvv_model->image($comp_id);
+                        $msg .= "<li>Écriture de compensation: $comp_image (ID: $comp_id)</li>";
+                    }
+                    $msg .= "</ul>";
+                } else {
+                    // Normal mode: standard entry creation
+                    $id = $this->gvv_model->create_ecriture($processed_data);
+
+                    if (!$id) {
+                        $this->data['errors'] = "ERREUR: Impossible de créer l'écriture.";
+                        $this->form_static_element($action);
+                        load_last_view($this->form_view, $this->data);
+                        return;
+                    }
+
+                    $image = $this->gvv_model->image($id);
+                    $msg = "Ecriture $image créée avec succés.";
+                }
 
                 // Process pending attachments only if record was successfully created
                 if ($id) {
@@ -333,8 +380,6 @@ class Compta extends Gvv_Controller {
 
                 if ($button != "Créer") {
                     // Créer et continuer, on reste sur la page de création
-                    $image = $this->gvv_model->image($id);
-                    $msg = "Ecriture $image créée avec succés.";
                     $this->data['message'] = '<div class="text-success">' . $msg . '</div>';
                     // Display the form again
                     $this->form_static_element($action);
@@ -391,6 +436,11 @@ class Compta extends Gvv_Controller {
         // Pass selection filters to view for hidden fields
         $this->data['emploi_selection'] = $emploi_selection;
         $this->data['resource_selection'] = $resource_selection;
+
+        // RAN mode detection
+        $this->config->load('program');
+        $ran_mode_enabled = $this->config->item('ran_mode_enabled');
+        $this->data['ran_mode_enabled'] = $ran_mode_enabled;
 
         $compte1_selector = $this->comptes_model->selector_with_null($emploi_selection, TRUE);
         $this->gvvmetadata->set_selector('compte1_selector', $compte1_selector);

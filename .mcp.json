@@ -15,6 +15,7 @@
             ]
         },
         "filesystem": {
+            "type": "stdio",
             "command": "npx",
             "args": [
                 "-y",
@@ -23,6 +24,7 @@
             ]
         },
         "mysql": {
+            "type": "stdio",
             "command": "npx",
             "args": [
                 "-y",
@@ -36,6 +38,7 @@
             }
         },
         "playwright": {
+            "type": "stdio",
             "command": "npx",
             "args": [
                 "-y",

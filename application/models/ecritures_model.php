@@ -1990,6 +1990,253 @@ array (size=2)
         // For now, we'll skip this filter in the DataTable implementation
         // TODO: Implement debit/credit filter properly
     }
+
+    // ========================================================================
+    // MODE RAN (Retrospective Adjustment Nullification)
+    // Fonctions pour la ventilation rétrospective avec compensation automatique
+    // ========================================================================
+
+    /**
+     * Identifier les comptes nécessitant une compensation
+     *
+     * Retourne les comptes qui ont une écriture d'initialisation avec le compte 102
+     * et leur impact (débit - crédit) dans l'écriture en cours
+     *
+     * @param int $compte1 ID du premier compte (débit)
+     * @param int $compte2 ID du deuxième compte (crédit)
+     * @param float $montant Montant de l'écriture
+     * @param int $section_id ID de la section
+     * @return array Tableau associatif [compte_id => montant_impact]
+     */
+    public function identifier_comptes_a_compenser($compte1, $compte2, $montant, $section_id) {
+        $comptes = array();
+
+        // Vérifier compte1 (débit) - impact négatif sur le solde
+        if ($this->is_account_initialized($compte1)) {
+            $comptes[$compte1] = -$montant;  // Débit = diminution du solde
+        }
+
+        // Vérifier compte2 (crédit) - impact positif sur le solde
+        if ($this->is_account_initialized($compte2)) {
+            $comptes[$compte2] = $montant;   // Crédit = augmentation du solde
+        }
+
+        gvv_debug("RAN: Comptes à compenser - compte1=$compte1 (impact=-$montant), compte2=$compte2 (impact=+$montant)");
+        gvv_debug("RAN: Comptes identifiés: " . var_export($comptes, true));
+
+        return $comptes;
+    }
+
+    /**
+     * Passer une écriture de compensation pour annuler l'impact sur un compte
+     *
+     * Si l'impact est négatif (compte débité), on crédite le compte et débite 102
+     * Si l'impact est positif (compte crédité), on débite le compte et crédite 102
+     *
+     * @param string $date Date de l'écriture (format DB: YYYY-MM-DD)
+     * @param int $compte_id ID du compte à compenser
+     * @param float $impact Montant de l'impact (négatif=débit, positif=crédit)
+     * @param int $section_id ID de la section
+     * @param int $id_ecriture_ref ID de l'écriture principale (pour traçabilité)
+     * @return int ID de l'écriture de compensation créée
+     */
+    public function passer_ecriture_compensation($date, $compte_id, $impact, $section_id, $id_ecriture_ref) {
+        // Trouver le compte 102 correspondant à la section
+        $compte_102 = $this->db
+            ->select('id')
+            ->from('comptes')
+            ->where('codec', '102')
+            ->where('club', $section_id)
+            ->get()
+            ->row();
+
+        if (!$compte_102) {
+            throw new Exception("RAN: Compte 102 non trouvé pour la section $section_id");
+        }
+
+        $compte_102_id = $compte_102->id;
+
+        // Déterminer la direction de la compensation
+        if ($impact < 0) {
+            // Le compte a été débité, on le crédite pour compenser
+            // Débit 102, Crédit compte
+            $compte1 = $compte_102_id;
+            $compte2 = $compte_id;
+            $montant = abs($impact);
+        } else {
+            // Le compte a été crédité, on le débite pour compenser
+            // Débit compte, Crédit 102
+            $compte1 = $compte_id;
+            $compte2 = $compte_102_id;
+            $montant = abs($impact);
+        }
+
+        // Préparer les données de l'écriture de compensation
+        $data = array(
+            'annee_exercise' => date('Y', strtotime($date)),
+            'date_creation' => date('Y-m-d'),
+            'date_op' => $date,
+            'compte1' => $compte1,
+            'compte2' => $compte2,
+            'montant' => $montant,
+            'description' => 'Ajustement rétrospectif pour compenser l\'écriture',
+            'num_cheque' => "REF:$id_ecriture_ref",  // Référence à l'écriture principale
+            'saisie_par' => $this->session->userdata('user'),
+            'gel' => 0,
+            'club' => $section_id
+        );
+
+        gvv_debug("RAN: Création écriture compensation - compte1=$compte1, compte2=$compte2, montant=$montant");
+
+        // Créer l'écriture de compensation
+        $id_compensation = $this->create_ecriture($data);
+
+        gvv_info("RAN: Écriture de compensation $id_compensation créée pour l'écriture $id_ecriture_ref");
+
+        return $id_compensation;
+    }
+
+    /**
+     * Récupérer les soldes de tous les comptes au 01/01/2025 pour une section
+     *
+     * @param int $section_id ID de la section
+     * @return array Tableau associatif [compte_id => solde]
+     */
+    public function get_soldes_au_01_01_2025($section_id) {
+        $date = '2025-01-01';
+
+        // Obtenir la liste de tous les comptes de la section
+        $comptes = $this->db
+            ->select('id')
+            ->from('comptes')
+            ->where('club', $section_id)
+            ->get()
+            ->result_array();
+
+        $soldes = array();
+        foreach ($comptes as $compte) {
+            $compte_id = $compte['id'];
+            $solde = $this->solde_compte($compte_id, $date, '<=');
+            $soldes[$compte_id] = $solde;
+        }
+
+        gvv_debug("RAN: Soldes au $date pour section $section_id: " . count($soldes) . " comptes");
+
+        return $soldes;
+    }
+
+    /**
+     * Vérifier si deux tableaux de soldes sont identiques (à 0.01€ près)
+     *
+     * @param array $soldes_avant Soldes avant l'opération
+     * @param array $soldes_apres Soldes après l'opération
+     * @return bool True si identiques, False sinon
+     */
+    public function soldes_identiques($soldes_avant, $soldes_apres) {
+        // Vérifier que tous les comptes existent dans les deux tableaux
+        $comptes = array_unique(array_merge(array_keys($soldes_avant), array_keys($soldes_apres)));
+
+        foreach ($comptes as $compte_id) {
+            $avant = isset($soldes_avant[$compte_id]) ? $soldes_avant[$compte_id] : 0;
+            $apres = isset($soldes_apres[$compte_id]) ? $soldes_apres[$compte_id] : 0;
+
+            if (abs($apres - $avant) > 0.01) {
+                gvv_error("RAN: Solde modifié pour compte $compte_id: avant=$avant, après=$apres");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Saisir une écriture rétrospective avec compensation automatique (Mode RAN)
+     *
+     * Transaction atomique qui :
+     * 1. Enregistre l'écriture principale en 2024
+     * 2. Identifie les comptes ayant une initialisation avec 102
+     * 3. Crée automatiquement les écritures de compensation
+     * 4. Vérifie que les soldes au 01/01/2025 restent inchangés
+     *
+     * @param array $data Données de l'écriture (format standard create_ecriture)
+     * @return array ['id_principale' => int, 'compensations' => array of ids] ou FALSE en cas d'erreur
+     */
+    public function saisir_ecriture_retrospective($data) {
+        $date = $data['date_op'];
+        $compte1 = $data['compte1'];
+        $compte2 = $data['compte2'];
+        $montant = $data['montant'];
+        $section_id = $data['club'];
+
+        // Validation : uniquement 2024
+        if ($date < '2024-01-01' || $date >= '2025-01-01') {
+            gvv_error("RAN: Date invalide ($date). Mode RAN uniquement pour l'année 2024");
+            $this->session->set_flashdata('error', "Mode RAN: uniquement année 2024");
+            return FALSE;
+        }
+
+        $this->db->trans_start();
+
+        try {
+            // ÉTAPE 1 : Récupérer les soldes actuels au 01/01/2025
+            $soldes_avant = $this->get_soldes_au_01_01_2025($section_id);
+            gvv_debug("RAN: Soldes avant: " . count($soldes_avant) . " comptes");
+
+            // ÉTAPE 2 : Passer l'écriture 2024 normalement
+            $id_ecriture = $this->create_ecriture($data);
+            if (!$id_ecriture) {
+                throw new Exception("RAN: Échec de la création de l'écriture principale");
+            }
+            gvv_info("RAN: Écriture principale créée (ID: $id_ecriture)");
+
+            // ÉTAPE 3 : Identifier les comptes concernés (ayant une initialisation avec 102)
+            $comptes_a_compenser = $this->identifier_comptes_a_compenser($compte1, $compte2, $montant, $section_id);
+            gvv_debug("RAN: " . count($comptes_a_compenser) . " comptes à compenser");
+
+            // ÉTAPE 4 : Pour chaque compte, passer les écritures de compensation
+            $compensations = array();
+            foreach ($comptes_a_compenser as $compte_id => $impact) {
+                $id_compensation = $this->passer_ecriture_compensation(
+                    $date,
+                    $compte_id,
+                    $impact,
+                    $section_id,
+                    $id_ecriture
+                );
+                $compensations[] = $id_compensation;
+            }
+
+            // ÉTAPE 5 : Vérifier la cohérence des soldes finaux
+            $soldes_apres = $this->get_soldes_au_01_01_2025($section_id);
+            gvv_debug("RAN: Soldes après: " . count($soldes_apres) . " comptes");
+
+            if (!$this->soldes_identiques($soldes_avant, $soldes_apres)) {
+                throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !");
+            }
+
+            gvv_info("RAN: Vérification réussie - Soldes 01/01/2025 inchangés");
+
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === FALSE) {
+                gvv_error("RAN: Transaction échouée");
+                return FALSE;
+            }
+
+            gvv_info("RAN: Transaction complétée avec succès - Écriture $id_ecriture avec " . count($compensations) . " compensations");
+
+            return array(
+                'id_principale' => $id_ecriture,
+                'compensations' => $compensations
+            );
+
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            gvv_error("RAN: Erreur - " . $e->getMessage());
+            $this->session->set_flashdata('error', "Mode RAN: " . $e->getMessage());
+            return FALSE;
+        }
+    }
 }
 
 /* End of file */
