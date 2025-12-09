@@ -40,8 +40,8 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
     <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> MODE RAN ACTIVÉ</h5>
     <p class="mb-0">
         <strong>Attention:</strong> Mode de saisie rétrospective avec compensation automatique.
-        Les écritures passées en 2024 seront automatiquement compensées pour préserver les soldes 2025.
-        Le contrôle de date de gel est désactivé.
+        Les écritures passées sont automatiquement compensées pour préserver les soldes finaux.
+        Le contrôle de date de gel est désactivé. Ne pas utiliser pour passer des écritures ordinaires.
     </p>
 </div>
 <?php endif; ?>

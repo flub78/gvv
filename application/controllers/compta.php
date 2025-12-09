@@ -324,9 +324,9 @@ class Compta extends Gvv_Controller {
             if ($action == CREATION) {
                 unset($processed_data['id']);
 
-                // Check if RAN mode is enabled and date is in 2024
+                // Check if RAN mode is enabled and date is in 2024 (admin only)
                 $this->config->load('program');
-                $ran_mode_enabled = $this->config->item('ran_mode_enabled');
+                $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
                 $date_op = $processed_data['date_op'];
                 $use_ran_mode = $ran_mode_enabled && $date_op >= '2024-01-01' && $date_op < '2025-01-01';
 
@@ -437,9 +437,9 @@ class Compta extends Gvv_Controller {
         $this->data['emploi_selection'] = $emploi_selection;
         $this->data['resource_selection'] = $resource_selection;
 
-        // RAN mode detection
+        // RAN mode detection (config + admin rights required)
         $this->config->load('program');
-        $ran_mode_enabled = $this->config->item('ran_mode_enabled');
+        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
         $this->data['ran_mode_enabled'] = $ran_mode_enabled;
 
         $compte1_selector = $this->comptes_model->selector_with_null($emploi_selection, TRUE);

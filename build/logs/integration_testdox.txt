@@ -264,6 +264,14 @@ Procedures Integration
  [x] Select page pagination
  [x] Select page with filters
 
+Ran Mode
+ [ ] Identifier comptes a compenser avec compte initialise
+ [ ] Identifier comptes a compenser avec compte initialise credite
+ [ ] Identifier comptes a compenser deux comptes initialises
+ [ ] Identifier comptes a compenser aucun compte initialise
+ [ ] Passer ecriture compensation impact negatif
+ [ ] Passer ecriture compensation impact positif
+
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
  [x] Correlation for bleuse against all images

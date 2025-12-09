@@ -717,9 +717,10 @@ Pour chaque nouvelle section (Avion, ULM, Services Généraux) :
 #### 2.3 Interface utilisateur
 
 - [x] Modification du formulaire de saisie d'écriture existant
-  - [x] Ajout du fond rouge quand `ran_mode_enabled = true`
-  - [x] Ajout du bandeau d'avertissement
+  - [x] Ajout du fond rouge quand `ran_mode_enabled = true` ET utilisateur admin
+  - [x] Ajout du bandeau d'avertissement (admin uniquement)
   - [x] Contrôle de date de gel non applicable en mode RAN (validation désactivée pour 2024)
+  - [x] Restriction d'accès: RAN mode visible uniquement pour les admins via `$this->dx_auth->is_role('admin')`
 - [x] Message de succès détaillé après saisie
   - [x] Lister l'écriture principale
   - [x] Lister toutes les écritures de compensation créées
@@ -737,6 +738,7 @@ Pour chaque nouvelle section (Avion, ULM, Services Généraux) :
 
 - [ ] Test de l'identification des comptes à compenser
 - [ ] Test de la création des écritures de compensation
+
 - [ ] Test des contrôles de cohérence
 - [ ] Test de la suppression d'une écriture rétrospective
 
