@@ -1,6 +1,6 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+require_once(__DIR__ . '/TransactionalTestCase.php');
 
 /**
  * Controller test for membership fee entry (saisie_cotisation) functionality
@@ -15,13 +15,8 @@ use PHPUnit\Framework\TestCase;
  * - Database connection configured
  * - InnoDB tables (for transaction support)
  */
-class ComptaSaisieCotisationTest extends TestCase
+class ComptaSaisieCotisationTest extends TransactionalTestCase
 {
-    /**
-     * @var CI_Controller
-     */
-    private $CI;
-
     /**
      * @var Compta
      */
@@ -52,18 +47,6 @@ class ComptaSaisieCotisationTest extends TestCase
         if (!$this->CI->db->conn_id) {
             $this->markTestSkipped('Database connection not available');
         }
-    }
-
-    /**
-     * Clean up after each test - rollback transaction
-     */
-    public function tearDown(): void
-    {
-        // Rollback transaction to restore database state
-        $this->CI->db->trans_rollback();
-
-        // Reset created IDs array
-        $this->created_ids = [];
     }
 
     /**

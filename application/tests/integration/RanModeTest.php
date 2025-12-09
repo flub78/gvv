@@ -8,9 +8,9 @@
  * - Cohérence des soldes après compensation
  */
 
-use PHPUnit\Framework\TestCase;
+require_once(__DIR__ . '/TransactionalTestCase.php');
 
-class RanModeTest extends TestCase {
+class RanModeTest extends TransactionalTestCase {
 
     protected $CI;
     protected $test_section_id;
@@ -28,6 +28,10 @@ class RanModeTest extends TestCase {
             $this->markTestSkipped('RAN mode is not enabled in config/program.php');
             return;
         }
+
+        // Start database transaction to prevent data loss
+        $this->CI->db->trans_start();
+        TestLogger::info("After trans_start in setUp: _trans_depth = " . $this->CI->db->_trans_depth);
 
         // Load required models
         $this->CI->load->model('ecritures_model');
@@ -303,8 +307,7 @@ class RanModeTest extends TestCase {
         TestLogger::info("Écriture compensation créée: ID=$id_compensation");
         TestLogger::info("Comptes: 102 (débit) → {$this->test_compte_init_id} (crédit)");
 
-        // Cleanup
-        $this->CI->db->delete('ecritures', array('id' => $id_compensation));
+        // Cleanup handled by transaction rollback in tearDown()
     }
 
     public function test_passer_ecriture_compensation_impact_positif() {
@@ -344,7 +347,6 @@ class RanModeTest extends TestCase {
         TestLogger::info("Écriture compensation créée: ID=$id_compensation");
         TestLogger::info("Comptes: {$this->test_compte_init_id} (débit) → 102 (crédit)");
 
-        // Cleanup
-        $this->CI->db->delete('ecritures', array('id' => $id_compensation));
+        // Cleanup handled by transaction rollback in tearDown()
     }
 }

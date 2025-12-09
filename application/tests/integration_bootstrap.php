@@ -50,6 +50,8 @@ $db_config = [
 class RealDatabase {
     private $connection;
     private $transaction_started = false;
+    public $_trans_depth = 0;  // Public property for CodeIgniter compatibility
+    public $_trans_status = TRUE;  // Transaction status flag
     
     public $conn_id;
     
@@ -70,12 +72,32 @@ class RealDatabase {
     }
     
     public function trans_start() {
+        // Mimic CodeIgniter's nested transaction handling
+        if ($this->_trans_depth > 0) {
+            $this->_trans_depth++;
+            return true;
+        }
+        
         $this->connection->autocommit(FALSE);
+        $this->connection->query('START TRANSACTION');
         $this->transaction_started = true;
+        $this->_trans_depth = 1;
+        $this->_trans_status = TRUE;
         return true;
     }
     
+    public function trans_status() {
+        // Return the transaction status flag
+        return $this->_trans_status;
+    }
+    
     public function trans_rollback() {
+        // When in nested transaction, just mark as failed
+        if ($this->_trans_depth > 0) {
+            $this->_trans_status = FALSE;
+            return TRUE;
+        }
+        
         if ($this->transaction_started) {
             $this->connection->rollback();
             $this->connection->autocommit(TRUE);
@@ -85,10 +107,30 @@ class RealDatabase {
     }
     
     public function trans_complete() {
+        // Check if transaction was marked as failed BEFORE checking depth
+        if ($this->_trans_status === FALSE) {
+            // Rollback even in nested transaction
+            if ($this->transaction_started) {
+                $this->connection->rollback();
+                $this->connection->autocommit(TRUE);
+                $this->transaction_started = false;
+            }
+            $this->_trans_depth = 0;
+            $this->_trans_status = TRUE;  // Reset for next transaction
+            return FALSE;
+        }
+        
+        // Mimic CodeIgniter's nested transaction handling
+        if ($this->_trans_depth > 1) {
+            $this->_trans_depth--;
+            return true;
+        }
+        
         if ($this->transaction_started) {
             $this->connection->commit();
             $this->connection->autocommit(TRUE);
             $this->transaction_started = false;
+            $this->_trans_depth = 0;
         }
         return true;
     }
@@ -471,6 +513,22 @@ class RealQueryResult {
         $this->result = $result;
     }
     
+    public function result() {
+        if ($this->result === true || $this->result === false) {
+            return [];
+        }
+        
+        $rows = [];
+        // Reset result pointer if possible
+        if (method_exists($this->result, 'data_seek')) {
+            $this->result->data_seek(0);
+        }
+        while ($row = $this->result->fetch_assoc()) {
+            $rows[] = (object) $row;
+        }
+        return $rows;
+    }
+    
     public function result_array() {
         if ($this->result === true || $this->result === false) {
             return [];
@@ -593,8 +651,9 @@ class MockLoader {
     }
 
     public function config($config, $use_sections = FALSE, $fail_gracefully = FALSE) {
-        // Mock config file loading
-        return true;
+        // Delegate to MockConfig to actually load the config file
+        $CI =& get_instance();
+        return $CI->config->load($config, $use_sections, $fail_gracefully);
     }
 
     public function language($file, $idiom = '', $return = FALSE, $add_suffix = TRUE, $alt_path = '') {
@@ -695,6 +754,7 @@ class MockConfig {
         // Load the actual config file
         $config_file = APPPATH . 'config/' . $file . '.php';
         if (file_exists($config_file)) {
+            $config = array(); // Initialize to capture config from included file
             include($config_file);
             if (isset($config) && is_array($config)) {
                 if ($use_sections) {

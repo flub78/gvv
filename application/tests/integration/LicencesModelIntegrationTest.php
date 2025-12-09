@@ -1,6 +1,6 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+require_once(__DIR__ . '/TransactionalTestCase.php');
 
 /**
  * Integration test for Licences_model membership fee methods
@@ -14,13 +14,8 @@ use PHPUnit\Framework\TestCase;
  * - Database connection configured
  * - InnoDB tables (for transaction support)
  */
-class LicencesModelIntegrationTest extends TestCase
+class LicencesModelIntegrationTest extends TransactionalTestCase
 {
-    /**
-     * @var CI_Controller
-     */
-    private $CI;
-
     /**
      * @var Licences_model
      */
@@ -50,18 +45,6 @@ class LicencesModelIntegrationTest extends TestCase
         if (!$this->CI->db->conn_id) {
             $this->markTestSkipped('Database connection not available');
         }
-    }
-
-    /**
-     * Clean up after each test - rollback transaction
-     */
-    public function tearDown(): void
-    {
-        // Rollback transaction to restore database state
-        $this->CI->db->trans_rollback();
-
-        // Reset created IDs array
-        $this->created_ids = [];
     }
 
     /**

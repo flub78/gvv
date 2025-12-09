@@ -265,12 +265,12 @@ Procedures Integration
  [x] Select page with filters
 
 Ran Mode
- [ ] Identifier comptes a compenser avec compte initialise
- [ ] Identifier comptes a compenser avec compte initialise credite
- [ ] Identifier comptes a compenser deux comptes initialises
- [ ] Identifier comptes a compenser aucun compte initialise
- [ ] Passer ecriture compensation impact negatif
- [ ] Passer ecriture compensation impact positif
+ [x] Identifier comptes a compenser avec compte initialise
+ [x] Identifier comptes a compenser avec compte initialise credite
+ [x] Identifier comptes a compenser deux comptes initialises
+ [x] Identifier comptes a compenser aucun compte initialise
+ [x] Passer ecriture compensation impact negatif
+ [x] Passer ecriture compensation impact positif
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images

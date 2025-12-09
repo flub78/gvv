@@ -1,6 +1,6 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+require_once __DIR__ . '/../integration/TransactionalTestCase.php';
 
 /**
  * MySQL Integration Test for Configuration_model
@@ -10,20 +10,15 @@ use PHPUnit\Framework\TestCase;
  * transactions to restore the database to its initial state after each test.
  *
  * Requirements:
- * - MySQL database connection (configured in mysql_bootstrap.php)
+ * - MySQL database connection (configured in integration_bootstrap.php)
  * - InnoDB tables (for transaction support)
- * - Database credentials set in mysql_bootstrap.php
+ * - Database credentials set in integration_bootstrap.php
  *
  * Usage:
- * phpunit --bootstrap application/tests/mysql_bootstrap.php application/tests/integration/ConfigurationModelMySqlTest.php
+ * phpunit --bootstrap application/tests/integration_bootstrap.php --configuration phpunit_mysql.xml
  */
-class ConfigurationModelMySqlTest extends TestCase
+class ConfigurationModelMySqlTest extends TransactionalTestCase
 {
-    /**
-     * @var CI_Controller
-     */
-    private $CI;
-
     /**
      * @var Configuration_model
      */
@@ -39,14 +34,10 @@ class ConfigurationModelMySqlTest extends TestCase
      */
     public function setUp(): void
     {
-        // Get CodeIgniter instance
-        $this->CI =& get_instance();
+        parent::setUp(); // Initializes $this->CI and starts transaction
 
         // Create Configuration_model instance
         $this->configuration_model = new Configuration_model();
-
-        // Start transaction for test isolation
-        $this->CI->db->trans_start();
 
         // Verify database connection
         if (!$this->CI->db->conn_id) {
@@ -59,11 +50,10 @@ class ConfigurationModelMySqlTest extends TestCase
      */
     public function tearDown(): void
     {
-        // Rollback transaction to restore database state
-        $this->CI->db->trans_rollback();
-
         // Reset created IDs array
         $this->created_ids = [];
+        
+        parent::tearDown(); // Forces _trans_depth = 0 and rolls back transaction
     }
 
     /**
