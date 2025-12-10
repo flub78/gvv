@@ -203,6 +203,10 @@ class Gvv_Controller extends CI_Controller {
 
     /**
      * Validation des dates postérieures à la date de gel
+     *
+     * En mode RAN (Retrospective Adjustment Nullification), le contrôle de date de gel
+     * est désactivé pour les administrateurs afin de permettre la saisie d'écritures
+     * rétrospectives en 2024.
      */
     function valid_activity_date($date) {
 
@@ -222,6 +226,15 @@ class Gvv_Controller extends CI_Controller {
         if (! $this->valid_date($date)) {
             gvv_debug("non valide date " . $date);
             return false;
+        }
+
+        // Mode RAN: désactiver le contrôle de date de gel pour les admins
+        $this->config->load('program');
+        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
+
+        if ($ran_mode_enabled) {
+            gvv_debug("Mode RAN actif: contrôle de date de gel désactivé pour admin");
+            return true;
         }
 
         $date_gel = $this->clotures_model->freeze_date(true);
