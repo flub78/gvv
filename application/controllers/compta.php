@@ -337,7 +337,17 @@ class Compta extends Gvv_Controller {
 
                     if ($result === FALSE) {
                         // Error during RAN entry creation
-                        $this->data['errors'] = "ERREUR: Impossible de créer l'écriture rétrospective. Vérifier les logs.";
+                        // Récupérer le message d'erreur détaillé de la session temporaire
+                        $error_message = $this->session->userdata('ran_error');
+                        // Supprimer immédiatement la variable de session pour éviter qu'elle persiste
+                        $this->session->unset_userdata('ran_error');
+
+                        if (empty($error_message)) {
+                            $error_message = "Impossible de créer l'écriture rétrospective. Vérifier les logs.";
+                        }
+
+                        // Afficher le message détaillé dans le formulaire (pas de flashdata)
+                        $this->data['errors'] = "<strong>ERREUR Mode RAN:</strong><br><pre>" . htmlspecialchars($error_message) . "</pre>";
                         $this->form_static_element($action);
                         load_last_view($this->form_view, $this->data);
                         return;

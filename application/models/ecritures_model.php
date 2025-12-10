@@ -2130,7 +2130,7 @@ array (size=2)
      *
      * @param array $soldes_avant Soldes avant l'opération
      * @param array $soldes_apres Soldes après l'opération
-     * @return bool True si identiques, False sinon
+     * @return bool|string True si identiques, message d'erreur détaillé sinon
      */
     public function soldes_identiques($soldes_avant, $soldes_apres) {
         // Vérifier que tous les comptes existent dans les deux tableaux
@@ -2141,8 +2141,19 @@ array (size=2)
             $apres = isset($soldes_apres[$compte_id]) ? $soldes_apres[$compte_id] : 0;
 
             if (abs($apres - $avant) > 0.01) {
-                gvv_error("RAN: Solde modifié pour compte $compte_id: avant=$avant, après=$apres");
-                return false;
+                // Récupérer les informations du compte pour un message d'erreur détaillé
+                $compte = $this->comptes_model->get_by_id('id', $compte_id);
+                $compte_nom = isset($compte['nom']) ? $compte['nom'] : "Compte inconnu";
+                $compte_code = isset($compte['codec']) ? $compte['codec'] : "?";
+
+                $difference = $apres - $avant;
+                $message = "Mode RAN: Solde modifié pour le compte $compte_code - $compte_nom (ID: $compte_id)\n" .
+                          "Solde avant: " . number_format($avant, 2, ',', ' ') . " €\n" .
+                          "Solde après: " . number_format($apres, 2, ',', ' ') . " €\n" .
+                          "Différence: " . number_format($difference, 2, ',', ' ') . " €";
+
+                gvv_error("RAN: $message");
+                return $message;
             }
         }
 
@@ -2171,7 +2182,7 @@ array (size=2)
         // Validation : uniquement 2024
         if ($date < '2024-01-01' || $date >= '2025-01-01') {
             gvv_error("RAN: Date invalide ($date). Mode RAN uniquement pour l'année 2024");
-            $this->session->set_flashdata('error', "Mode RAN: uniquement année 2024");
+            $this->session->set_userdata('ran_error', "Mode RAN: uniquement année 2024");
             return FALSE;
         }
 
@@ -2210,8 +2221,10 @@ array (size=2)
             $soldes_apres = $this->get_soldes_au_01_01_2025($section_id);
             gvv_debug("RAN: Soldes après: " . count($soldes_apres) . " comptes");
 
-            if (!$this->soldes_identiques($soldes_avant, $soldes_apres)) {
-                throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !");
+            $verification = $this->soldes_identiques($soldes_avant, $soldes_apres);
+            if ($verification !== true) {
+                // $verification contient le message d'erreur détaillé
+                throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !\n\n" . $verification);
             }
 
             gvv_info("RAN: Vérification réussie - Soldes 01/01/2025 inchangés");
@@ -2233,7 +2246,9 @@ array (size=2)
         } catch (Exception $e) {
             $this->db->trans_rollback();
             gvv_error("RAN: Erreur - " . $e->getMessage());
-            $this->session->set_flashdata('error', "Mode RAN: " . $e->getMessage());
+            // Stocker l'erreur dans une variable de session temporaire (pas flashdata)
+            // pour qu'elle soit accessible immédiatement dans le contrôleur
+            $this->session->set_userdata('ran_error', "Mode RAN: " . $e->getMessage());
             return FALSE;
         }
     }
