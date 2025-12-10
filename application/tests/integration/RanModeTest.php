@@ -349,4 +349,121 @@ class RanModeTest extends TransactionalTestCase {
 
         // Cleanup handled by transaction rollback in tearDown()
     }
+
+    /**
+     * Test: Les écritures impliquant un compte 102 ne sont pas compensées
+     *
+     * Contrainte: En mode RAN, si au moins un des comptes de l'écriture est un compte 102,
+     * aucune compensation n'est générée. Dans ce cas, le mode RAN sert uniquement à
+     * désactiver le contrôle de la date de gel.
+     */
+    public function test_ecriture_avec_compte_102_non_compensee() {
+        TestLogger::info("\nTest: Écriture avec compte 102 - pas de compensation");
+
+        // Préparer une écriture impliquant le compte 102 et un compte initialisé
+        $data = array(
+            'annee_exercise' => 2024,
+            'date_creation' => date('Y-m-d'),
+            'date_op' => '2024-06-15',
+            'compte1' => $this->test_compte_102_id,  // Compte 102
+            'compte2' => $this->test_compte_init_id,  // Compte initialisé
+            'montant' => 100.00,
+            'description' => 'Test écriture avec compte 102',
+            'saisie_par' => 'phpunit_test_user',
+            'gel' => 0,
+            'club' => $this->test_section_id
+        );
+
+        TestLogger::info("Compte1 (102): {$this->test_compte_102_id}");
+        TestLogger::info("Compte2 (initialisé): {$this->test_compte_init_id}");
+
+        // Appeler la fonction d'identification des comptes à compenser
+        $comptes_a_compenser = $this->CI->ecritures_model->identifier_comptes_a_compenser(
+            $data['compte1'],
+            $data['compte2'],
+            $data['montant'],
+            $this->test_section_id
+        );
+
+        // Vérifier qu'aucun compte n'est à compenser
+        $this->assertEmpty($comptes_a_compenser,
+            "Les écritures impliquant un compte 102 ne doivent pas être compensées");
+
+        TestLogger::info("✓ Aucune compensation générée (comportement attendu)");
+
+        // Test inverse : écriture avec compte 102 en deuxième position
+        $comptes_a_compenser2 = $this->CI->ecritures_model->identifier_comptes_a_compenser(
+            $this->test_compte_init_id,  // Compte initialisé
+            $this->test_compte_102_id,   // Compte 102
+            $data['montant'],
+            $this->test_section_id
+        );
+
+        $this->assertEmpty($comptes_a_compenser2,
+            "Les écritures impliquant un compte 102 (position 2) ne doivent pas être compensées");
+
+        TestLogger::info("✓ Aucune compensation générée pour compte 102 en position 2 (comportement attendu)");
+    }
+
+    /**
+     * Test intégration complète : saisir_ecriture_retrospective avec compte 102
+     *
+     * Vérifie que lorsqu'une écriture implique un compte 102, la fonction
+     * saisir_ecriture_retrospective enregistre l'écriture sans générer de compensations
+     */
+    public function test_saisir_ecriture_retrospective_avec_compte_102() {
+        TestLogger::info("\nTest: saisir_ecriture_retrospective avec compte 102");
+
+        // Compter les écritures avant
+        $count_before = $this->CI->db
+            ->from('ecritures')
+            ->where('club', $this->test_section_id)
+            ->where('date_op >=', '2024-01-01')
+            ->where('date_op <', '2025-01-01')
+            ->count_all_results();
+
+        // Préparer une écriture impliquant le compte 102
+        $data = array(
+            'annee_exercise' => 2024,
+            'date_creation' => date('Y-m-d'),
+            'date_op' => '2024-06-15',
+            'compte1' => $this->test_compte_102_id,  // Compte 102
+            'compte2' => $this->test_compte_init_id,  // Compte initialisé
+            'montant' => 150.00,
+            'description' => 'Test intégration RAN avec compte 102',
+            'saisie_par' => 'phpunit_test_user',
+            'gel' => 0,
+            'club' => $this->test_section_id
+        );
+
+        TestLogger::info("Écriture: compte 102 ({$this->test_compte_102_id}) → compte init ({$this->test_compte_init_id}), montant: 150 €");
+
+        // Saisir l'écriture rétrospective
+        $result = $this->CI->ecritures_model->saisir_ecriture_retrospective($data);
+
+        // Vérifier que l'écriture a été créée avec succès
+        $this->assertNotFalse($result, "L'écriture rétrospective doit être créée");
+        $this->assertIsArray($result, "Le résultat doit être un tableau");
+        $this->assertArrayHasKey('id_principale', $result, "Le résultat doit contenir l'ID de l'écriture principale");
+        $this->assertArrayHasKey('compensations', $result, "Le résultat doit contenir la liste des compensations");
+
+        // Vérifier qu'AUCUNE compensation n'a été générée
+        $this->assertEmpty($result['compensations'],
+            "Aucune compensation ne doit être générée pour une écriture impliquant le compte 102");
+
+        // Vérifier qu'une seule écriture a été créée (pas de compensations)
+        $count_after = $this->CI->db
+            ->from('ecritures')
+            ->where('club', $this->test_section_id)
+            ->where('date_op >=', '2024-01-01')
+            ->where('date_op <', '2025-01-01')
+            ->count_all_results();
+
+        $this->assertEquals($count_before + 1, $count_after,
+            "Une seule écriture doit être créée (pas de compensations)");
+
+        TestLogger::info("✓ Écriture principale créée (ID: {$result['id_principale']})");
+        TestLogger::info("✓ Aucune compensation générée (comportement attendu pour compte 102)");
+        TestLogger::info("✓ Total écritures créées: 1 (principale uniquement)");
+    }
 }

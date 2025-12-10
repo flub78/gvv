@@ -2002,6 +2002,9 @@ array (size=2)
      * Retourne les comptes qui ont une écriture d'initialisation avec le compte 102
      * et leur impact (débit - crédit) dans l'écriture en cours
      *
+     * CONTRAINTE: Les écritures impliquant au moins un compte 102 ne sont pas compensées.
+     * Dans ce cas, le mode RAN sert uniquement à désactiver le contrôle de la date de gel.
+     *
      * @param int $compte1 ID du premier compte (débit)
      * @param int $compte2 ID du deuxième compte (crédit)
      * @param float $montant Montant de l'écriture
@@ -2010,6 +2013,18 @@ array (size=2)
      */
     public function identifier_comptes_a_compenser($compte1, $compte2, $montant, $section_id) {
         $comptes = array();
+
+        // Vérifier si l'un des comptes est un compte 102
+        $info_compte1 = $this->comptes_model->get_by_id('id', $compte1);
+        $info_compte2 = $this->comptes_model->get_by_id('id', $compte2);
+        $is_compte1_102 = isset($info_compte1['codec']) && $info_compte1['codec'] == '102';
+        $is_compte2_102 = isset($info_compte2['codec']) && $info_compte2['codec'] == '102';
+
+        // Si au moins un des comptes est 102, pas de compensation
+        if ($is_compte1_102 || $is_compte2_102) {
+            gvv_info("RAN: Écriture impliquant le compte 102 détectée - pas de compensation automatique");
+            return $comptes;  // Retourne un tableau vide
+        }
 
         // Vérifier compte1 (débit) - impact négatif sur le solde
         if ($this->is_account_initialized($compte1)) {
@@ -2141,6 +2156,7 @@ array (size=2)
      */
     public function get_comptes_initialises($section_id) {
         // Récupérer tous les comptes de la section qui ont une écriture avec le compte 102
+        $section_id = (int)$section_id;  // Sécurité: conversion en entier
         $query = "SELECT DISTINCT c.id
                   FROM comptes c
                   JOIN ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id)
@@ -2148,10 +2164,10 @@ array (size=2)
                       (e.compte1 = c102.id AND c102.codec = '102') OR
                       (e.compte2 = c102.id AND c102.codec = '102')
                   )
-                  WHERE c.club = ?
+                  WHERE c.club = $section_id
                   AND c.codec != '102'";
 
-        $result = $this->db->query($query, array($section_id));
+        $result = $this->db->query($query);
         $comptes = array();
         foreach ($result->result_array() as $row) {
             $comptes[] = $row['id'];

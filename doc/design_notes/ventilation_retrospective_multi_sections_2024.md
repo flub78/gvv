@@ -190,6 +190,33 @@ Cette approche est **comptablement correcte** car :
 ✅ La traçabilité est assurée par le référencement des écritures (champ Numéro pièce)
 ✅ Les écritures de compensation sont clairement identifiables
 
+### 3.5 Cas particulier : Écritures impliquant le compte 102
+
+**CONTRAINTE** : Les écritures pour lesquelles **au moins un des comptes est un compte 102** ne sont **pas compensées**.
+
+**Justification** :
+- Le compte 102 (RAN) est lui-même le compte de compensation
+- Compenser une écriture impliquant le compte 102 créerait une redondance inutile
+- Ces écritures sont généralement des écritures d'ouverture ou d'ajustement déjà équilibrées
+
+**Comportement** :
+- L'écriture est enregistrée normalement en 2024
+- Aucune écriture de compensation n'est générée
+- Le mode RAN sert uniquement à **désactiver le contrôle de la date de gel**
+
+**Exemple** :
+```
+Écriture saisie en mode RAN (2024) :
+Date : 15/01/2024
+Débit  : 102 RAN Avion           1 000 €
+Crédit : 512 Banque Avion        1 000 €
+Libellé : "Ajustement initialisation"
+
+→ Aucune compensation générée
+→ Écriture enregistrée telle quelle
+→ Le mode RAN a permis de passer cette écriture malgré la période gelée
+```
+
 ---
 
 ## 4. Architecture Technique : "Mode RAN" (Retrospective Adjustment Nullification)
@@ -239,6 +266,7 @@ Lorsque `ran_mode_enabled = true` ET que l'utilisateur est administrateur :
 3. **Compensation automatique** :
    - Pour chaque compte référencé dans l'écriture qui possède au moins une écriture d'initialisation avec le compte 102 de la section courante
    - Des écritures de compensation sont automatiquement générées pour préserver les soldes finaux
+   - **CONTRAINTE IMPORTANTE** : Les écritures pour lesquelles au moins un des comptes est un compte 102 ne sont pas compensées. Dans ce cas, le mode RAN sert uniquement à désactiver le contrôle de la date de gel.
 
 ### 4.3 Justification du mode spécial
 
@@ -279,6 +307,7 @@ function saisir_ecriture_retrospective($date, $ecritures, $section) {
         $id_ecriture = $this->comptabilite->passer_ecriture($date, $ecritures);
 
         // ÉTAPE 3 : Identifier les comptes concernés (ayant une initialisation avec 102)
+        // IMPORTANT: Les écritures impliquant le compte 102 ne sont pas compensées
         $comptes_a_compenser = $this->identifier_comptes_a_compenser($ecritures, $section);
 
         // ÉTAPE 4 : Pour chaque compte, passer les écritures de compensation

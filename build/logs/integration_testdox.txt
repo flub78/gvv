@@ -271,6 +271,8 @@ Ran Mode
  [x] Identifier comptes a compenser aucun compte initialise
  [x] Passer ecriture compensation impact negatif
  [x] Passer ecriture compensation impact positif
+ [x] Ecriture avec compte 102 non compensee
+ [x] Saisir ecriture retrospective avec compte 102
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
