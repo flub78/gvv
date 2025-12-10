@@ -125,14 +125,14 @@ Après cette écriture, les soldes au 01/01/2025 seraient modifiés :
   Date : 15/12/2024
   Débit  : 102 RAN Avion           100 €
   Crédit : 512 Banque Avion        100 €
-  Libellé : "Ajustement rétrospectif pour compenser l'écriture"
+  Libellé : "Ajustement rétrospectif Banque Avion Client Dupont"
   Numéro pièce : [ID de l'écriture ÉTAPE 1]
 
 ÉTAPE 3 - Écriture de compensation pour le compte 411 :
   Date : 15/12/2024
   Débit  : 411 Client Dupont       100 €
   Crédit : 102 RAN Avion           100 €
-  Libellé : "Ajustement rétrospectif pour compenser l'écriture"
+  Libellé : "Ajustement rétrospectif Banque Avion Client Dupont"
   Numéro pièce : [ID de l'écriture ÉTAPE 1]
 ```
 
@@ -162,14 +162,14 @@ TRANSACTION ATOMIQUE :
   Date : 31/12/2024
   Débit  : 102 - RAN Avion           15 000 €
   Crédit : 606 - Fournitures         15 000 €
-  Libellé : "Ajustement rétrospectif pour compenser l'écriture"
+  Libellé : "Ajustement rétrospectif Fournitures Banque Avion"
   Numéro pièce : [ID de l'écriture ÉTAPE 1]
 
 ÉTAPE 3 - Compensation compte 512 :
   Date : 31/12/2024
   Débit  : 512 - Banque Avion        15 000 €
   Crédit : 102 - RAN Avion           15 000 €
-  Libellé : "Ajustement rétrospectif pour compenser l'écriture"
+  Libellé : "Ajustement rétrospectif Fournitures Banque Avion"
   Numéro pièce : [ID de l'écriture ÉTAPE 1]
 ```
 
@@ -350,14 +350,14 @@ private function passer_ecriture_compensation($date, $compte, $montant, $section
             'compte' => ($montant > 0) ? '102' : $compte,
             'debit'  => abs($montant),
             'credit' => 0,
-            'libelle' => 'Ajustement rétrospectif pour compenser l\'écriture',
+            'libelle' => 'Ajustement rétrospectif ' . $nom_compte1 . ' ' . $nom_compte2,
             'numero_piece' => $id_ecriture_ref
         ],
         [
             'compte' => ($montant > 0) ? $compte : '102',
             'debit'  => 0,
             'credit' => abs($montant),
-            'libelle' => 'Ajustement rétrospectif pour compenser l\'écriture',
+            'libelle' => 'Ajustement rétrospectif ' . $nom_compte1 . ' ' . $nom_compte2,
             'numero_piece' => $id_ecriture_ref
         ]
     ];
@@ -425,7 +425,7 @@ private function valider_periode($date) {
 La traçabilité est assurée par les mécanismes suivants :
 
 1. **Champ Numéro de pièce comptable** : Toutes les écritures de compensation référencent l'ID de l'écriture principale
-2. **Libellés explicites** : *"Ajustement rétrospectif pour compenser l'écriture"*
+2. **Libellés explicites** : *"Ajustement rétrospectif {nom_compte1} {nom_compte2}"* (affiche les noms des comptes de l'écriture à compenser)
 3. **Requêtes SQL** : Possibilité de retrouver toutes les écritures de compensation via le numéro de pièce
 
 **Exemple de requête de traçabilité :**
@@ -511,14 +511,14 @@ Compensation 1 (ID: 12459)
 Date : 15/12/2024
   102 - RAN Avion              Débit : 100,00 €
   512 - Banque Avion           Crédit : 100,00 €
-  Libellé : Ajustement rétrospectif pour compenser l'écriture
+  Libellé : Ajustement rétrospectif Banque Avion Client Dupont
   Référence : 12458
 
 Compensation 2 (ID: 12460)
 Date : 15/12/2024
   411 - Client Dupont          Débit : 100,00 €
   102 - RAN Avion              Crédit : 100,00 €
-  Libellé : Ajustement rétrospectif pour compenser l'écriture
+  Libellé : Ajustement rétrospectif Banque Avion Client Dupont
   Référence : 12458
 
 ─────────────────────────────────────────────────────────────

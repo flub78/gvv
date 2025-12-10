@@ -2056,6 +2056,13 @@ array (size=2)
 
         $compte_102_id = $compte_102->id;
 
+        // Récupérer l'écriture initiale pour construire un libellé explicite
+        $ecriture_initiale = $this->get_by_id('id', $id_ecriture_ref);
+        $info_compte_init1 = $this->comptes_model->get_by_id('id', $ecriture_initiale['compte1']);
+        $info_compte_init2 = $this->comptes_model->get_by_id('id', $ecriture_initiale['compte2']);
+        $nom_compte_init1 = isset($info_compte_init1['nom']) ? $info_compte_init1['nom'] : "Compte " . $ecriture_initiale['compte1'];
+        $nom_compte_init2 = isset($info_compte_init2['nom']) ? $info_compte_init2['nom'] : "Compte " . $ecriture_initiale['compte2'];
+
         // Déterminer la direction de la compensation
         if ($impact < 0) {
             // Le compte a été débité, on le crédite pour compenser
@@ -2079,8 +2086,8 @@ array (size=2)
             'compte1' => $compte1,
             'compte2' => $compte2,
             'montant' => $montant,
-            'description' => 'Ajustement rétrospectif pour compenser l\'écriture',
-            'num_cheque' => "REF:$id_ecriture_ref",  // Référence à l'écriture principale
+            'description' => "Ajustement rétrospectif $nom_compte_init1 $nom_compte_init2",
+            'num_cheque' => "Ecriture: $id_ecriture_ref",  // Référence à l'écriture principale
             'saisie_par' => $this->session->userdata('user'),
             'gel' => 0,
             'club' => $section_id
@@ -2126,17 +2133,51 @@ array (size=2)
     }
 
     /**
+     * Récupérer la liste des IDs des comptes initialisés avec le compte 102
+     * pour une section donnée (en excluant le compte 102 lui-même)
+     *
+     * @param int $section_id ID de la section
+     * @return array Liste des IDs de comptes
+     */
+    public function get_comptes_initialises($section_id) {
+        // Récupérer tous les comptes de la section qui ont une écriture avec le compte 102
+        $query = "SELECT DISTINCT c.id
+                  FROM comptes c
+                  JOIN ecritures e ON (e.compte1 = c.id OR e.compte2 = c.id)
+                  JOIN comptes c102 ON (
+                      (e.compte1 = c102.id AND c102.codec = '102') OR
+                      (e.compte2 = c102.id AND c102.codec = '102')
+                  )
+                  WHERE c.club = ?
+                  AND c.codec != '102'";
+
+        $result = $this->db->query($query, array($section_id));
+        $comptes = array();
+        foreach ($result->result_array() as $row) {
+            $comptes[] = $row['id'];
+        }
+
+        gvv_debug("RAN: Comptes initialisés avec 102 pour section $section_id: " . count($comptes) . " comptes");
+
+        return $comptes;
+    }
+
+    /**
      * Vérifier si deux tableaux de soldes sont identiques (à 0.01€ près)
+     *
+     * Seuls les comptes spécifiés dans $comptes_a_verifier sont vérifiés.
+     * Cela permet de vérifier uniquement les comptes initialisés avec le compte 102,
+     * car ce sont les seuls qui doivent rester stables au 01/01/2025.
      *
      * @param array $soldes_avant Soldes avant l'opération
      * @param array $soldes_apres Soldes après l'opération
+     * @param array $comptes_a_verifier Liste des IDs de comptes à vérifier
      * @return bool|string True si identiques, message d'erreur détaillé sinon
      */
-    public function soldes_identiques($soldes_avant, $soldes_apres) {
-        // Vérifier que tous les comptes existent dans les deux tableaux
-        $comptes = array_unique(array_merge(array_keys($soldes_avant), array_keys($soldes_apres)));
+    public function soldes_identiques($soldes_avant, $soldes_apres, $comptes_a_verifier) {
+        gvv_debug("RAN: Vérification de " . count($comptes_a_verifier) . " comptes initialisés");
 
-        foreach ($comptes as $compte_id) {
+        foreach ($comptes_a_verifier as $compte_id) {
             $avant = isset($soldes_avant[$compte_id]) ? $soldes_avant[$compte_id] : 0;
             $apres = isset($soldes_apres[$compte_id]) ? $soldes_apres[$compte_id] : 0;
 
@@ -2221,7 +2262,10 @@ array (size=2)
             $soldes_apres = $this->get_soldes_au_01_01_2025($section_id);
             gvv_debug("RAN: Soldes après: " . count($soldes_apres) . " comptes");
 
-            $verification = $this->soldes_identiques($soldes_avant, $soldes_apres);
+            // Récupérer la liste des comptes initialisés avec 102 (ce sont les seuls à vérifier)
+            $comptes_a_verifier = $this->get_comptes_initialises($section_id);
+
+            $verification = $this->soldes_identiques($soldes_avant, $soldes_apres, $comptes_a_verifier);
             if ($verification !== true) {
                 // $verification contient le message d'erreur détaillé
                 throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !\n\n" . $verification);

@@ -296,7 +296,7 @@ class RanModeTest extends TransactionalTestCase {
         $this->assertNotNull($compensation, "L'écriture de compensation doit exister en base");
         $this->assertEquals($date, $compensation->date_op, "La date doit correspondre");
         $this->assertEquals(abs($impact), $compensation->montant, "Le montant doit être en valeur absolue");
-        $this->assertEquals("REF:$id_ecriture_ref", $compensation->num_cheque, "La référence doit être stockée");
+        $this->assertEquals("Ecriture: $id_ecriture_ref", $compensation->num_cheque, "La référence doit être stockée");
 
         // Vérifier que c'est une compensation: 102 débité, compte crédité (impact négatif)
         $this->assertEquals($this->test_compte_102_id, $compensation->compte1,
