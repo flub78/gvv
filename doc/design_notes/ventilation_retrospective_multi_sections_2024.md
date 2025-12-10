@@ -203,6 +203,7 @@ Cette approche est **comptablement correcte** car :
 - L'écriture est enregistrée normalement en 2024
 - Aucune écriture de compensation n'est générée
 - Le mode RAN sert uniquement à **désactiver le contrôle de la date de gel**
+- **La vérification de la persistance des soldes est ignorée** (car il est normal que les soldes changent sans compensation)
 
 **Exemple** :
 ```
@@ -326,10 +327,14 @@ function saisir_ecriture_retrospective($date, $ecritures, $section) {
         }
 
         // ÉTAPE 5 : Vérifier la cohérence des soldes finaux
-        $soldes_apres = $this->get_soldes_au_01_01_2025($section);
+        // IMPORTANT : Si aucune compensation générée (écriture avec compte 102),
+        // la vérification des soldes est ignorée car il est normal qu'ils changent
+        if (count($comptes_a_compenser) > 0) {
+            $soldes_apres = $this->get_soldes_au_01_01_2025($section);
 
-        if (!$this->soldes_identiques($soldes_avant, $soldes_apres)) {
-            throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés !");
+            if (!$this->soldes_identiques($soldes_avant, $soldes_apres)) {
+                throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés !");
+            }
         }
 
         DB::commit();

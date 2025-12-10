@@ -451,6 +451,9 @@ class RanModeTest extends TransactionalTestCase {
         $this->assertEmpty($result['compensations'],
             "Aucune compensation ne doit être générée pour une écriture impliquant le compte 102");
 
+        // Note: La vérification de la persistance des soldes est ignorée pour les écritures
+        // avec compte 102 car il est normal que les soldes changent sans compensation
+
         // Vérifier qu'une seule écriture a été créée (pas de compensations)
         $count_after = $this->CI->db
             ->from('ecritures')
@@ -465,5 +468,64 @@ class RanModeTest extends TransactionalTestCase {
         TestLogger::info("✓ Écriture principale créée (ID: {$result['id_principale']})");
         TestLogger::info("✓ Aucune compensation générée (comportement attendu pour compte 102)");
         TestLogger::info("✓ Total écritures créées: 1 (principale uniquement)");
+    }
+
+    /**
+     * Test: Écriture avec compte 102 modifiant un solde ne génère pas d'erreur
+     *
+     * Ce test vérifie qu'une écriture impliquant le compte 102 peut modifier
+     * les soldes sans générer d'erreur de vérification, car dans ce cas la
+     * vérification de persistance des soldes est ignorée.
+     */
+    public function test_ecriture_avec_compte_102_modifie_solde_sans_erreur() {
+        TestLogger::info("\nTest: Écriture avec compte 102 modifie solde - pas d'erreur");
+
+        // Trouver un compte de charges (6xx) ou de produits (7xx)
+        $compte_charges = $this->CI->db
+            ->select('id, codec, nom')
+            ->from('comptes')
+            ->where('club', $this->test_section_id)
+            ->where("(codec LIKE '6%' OR codec LIKE '7%')", NULL, FALSE)  // Compte de charges ou produits
+            ->where('id !=', $this->test_compte_102_id)
+            ->limit(1)
+            ->get()
+            ->row();
+
+        if (!$compte_charges) {
+            $this->markTestSkipped("Aucun compte de charges/produits trouvé pour ce test");
+            return;
+        }
+
+        TestLogger::info("Compte de charges/produits: {$compte_charges->codec} - {$compte_charges->nom} (ID: {$compte_charges->id})");
+
+        // Préparer une écriture qui va modifier le solde du compte de charges
+        $data = array(
+            'annee_exercise' => 2024,
+            'date_creation' => date('Y-m-d'),
+            'date_op' => '2024-12-31',
+            'compte1' => $compte_charges->id,       // Compte de produits (débit)
+            'compte2' => $this->test_compte_102_id, // Compte 102 (crédit)
+            'montant' => 2000.00,
+            'description' => 'Test modification solde avec compte 102',
+            'saisie_par' => 'phpunit_test_user',
+            'gel' => 0,
+            'club' => $this->test_section_id
+        );
+
+        TestLogger::info("Écriture: compte {$compte_charges->codec} → compte 102, montant: 2000 €");
+        TestLogger::info("Cette écriture va modifier le solde du compte {$compte_charges->codec}");
+
+        // Saisir l'écriture rétrospective - ne doit PAS générer d'erreur de solde
+        $result = $this->CI->ecritures_model->saisir_ecriture_retrospective($data);
+
+        // Vérifier que l'écriture a été créée avec succès malgré la modification de solde
+        $this->assertNotFalse($result, "L'écriture doit être créée même si elle modifie un solde");
+        $this->assertIsArray($result, "Le résultat doit être un tableau");
+        $this->assertArrayHasKey('id_principale', $result);
+        $this->assertEmpty($result['compensations'], "Pas de compensation pour écriture avec compte 102");
+
+        TestLogger::info("✓ Écriture créée avec succès (ID: {$result['id_principale']})");
+        TestLogger::info("✓ Aucune erreur de vérification de solde (comportement attendu)");
+        TestLogger::info("✓ La vérification des soldes a été ignorée car écriture implique compte 102");
     }
 }

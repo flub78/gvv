@@ -2275,19 +2275,25 @@ array (size=2)
             }
 
             // ÉTAPE 5 : Vérifier la cohérence des soldes finaux
-            $soldes_apres = $this->get_soldes_au_01_01_2025($section_id);
-            gvv_debug("RAN: Soldes après: " . count($soldes_apres) . " comptes");
+            // IMPORTANT : Si aucune compensation n'a été générée (écriture avec compte 102),
+            // il est normal que les soldes changent, donc on ne vérifie pas
+            if (count($compensations) > 0) {
+                $soldes_apres = $this->get_soldes_au_01_01_2025($section_id);
+                gvv_debug("RAN: Soldes après: " . count($soldes_apres) . " comptes");
 
-            // Récupérer la liste des comptes initialisés avec 102 (ce sont les seuls à vérifier)
-            $comptes_a_verifier = $this->get_comptes_initialises($section_id);
+                // Récupérer la liste des comptes initialisés avec 102 (ce sont les seuls à vérifier)
+                $comptes_a_verifier = $this->get_comptes_initialises($section_id);
 
-            $verification = $this->soldes_identiques($soldes_avant, $soldes_apres, $comptes_a_verifier);
-            if ($verification !== true) {
-                // $verification contient le message d'erreur détaillé
-                throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !\n\n" . $verification);
+                $verification = $this->soldes_identiques($soldes_avant, $soldes_apres, $comptes_a_verifier);
+                if ($verification !== true) {
+                    // $verification contient le message d'erreur détaillé
+                    throw new Exception("ERREUR CRITIQUE: Soldes 01/01/2025 modifiés après compensation !\n\n" . $verification);
+                }
+
+                gvv_info("RAN: Vérification réussie - Soldes 01/01/2025 inchangés");
+            } else {
+                gvv_info("RAN: Pas de compensation (écriture avec compte 102) - vérification des soldes ignorée");
             }
-
-            gvv_info("RAN: Vérification réussie - Soldes 01/01/2025 inchangés");
 
             $this->db->trans_complete();
 

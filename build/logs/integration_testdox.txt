@@ -273,6 +273,7 @@ Ran Mode
  [x] Passer ecriture compensation impact positif
  [x] Ecriture avec compte 102 non compensee
  [x] Saisir ecriture retrospective avec compte 102
+ [x] Ecriture avec compte 102 modifie solde sans erreur
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
