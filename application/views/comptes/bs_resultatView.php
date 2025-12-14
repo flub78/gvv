@@ -55,15 +55,17 @@ if ($section) {
 		'count' => '',
 		'first' => '',
 		'align' => array(
-			'left',
-			'left',
-			'right',
-			'right',
-			'center',
-			'right',
-			'left',
-			'right',
-			'right'
+			'left',		// Code
+			'left',		// Charges
+			'center',	// Section
+			'right',	// N-1
+			'right',	// N
+			'right',	// Ecart
+			'left',		// Code
+			'left',		// Produits
+			'center',	// Section
+			'right',	// N-1
+			'right'		// N
 		)
 	));
 
