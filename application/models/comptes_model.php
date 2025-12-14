@@ -626,7 +626,7 @@ class Comptes_model extends Common_Model {
      * @param float $factor Multiplication factor for balance values (default: 1)
      * @return array Table of account data with sections and totals
      */
-    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true) {
+    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
 
         $table = [];
         $title = ["Code", "Comptes"];
@@ -647,7 +647,7 @@ class Comptes_model extends Common_Model {
 
         $sections = $this->sections_model->section_list();
         foreach ($sections as $section) {
-            $title[] = $section['nom'];
+            $title[] = $section['acronyme'];
         }
         $title[] = "Total Club";
         $table[] = $title;
@@ -732,7 +732,7 @@ class Comptes_model extends Common_Model {
         // Construction de l'en-tête avec les vrais noms des sections depuis la base de données
         $title = [''];
         foreach ($sections as $section) {
-            $title[] = $section['nom'];
+            $title[] = $section['acronyme'];
         }
         $title[] = "Total Club";
         $resultat[] = $title;
@@ -845,7 +845,7 @@ class Comptes_model extends Common_Model {
 
         foreach ($sections as $section) {
             // Les colonnes de section
-            $title[] = $section['nom'];
+            $title[] = $section['acronyme'];
 
             $solde_banque = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id'])) * -1;
             $banques[] = $this->format_currency($solde_banque, false);
