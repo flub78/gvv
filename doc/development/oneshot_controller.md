@@ -38,6 +38,16 @@ Affiche les écritures entre les comptes 775 et 766 (dans les deux sens).
 
 Affiche les écritures entre les comptes 776 et 766 (dans les deux sens).
 
+### 3. `regulariser_initialisations_2024()`
+
+**URL:** `http://gvv.net/index.php/oneshot/regulariser_initialisations_2024`
+
+Prévisualise puis exécute la régularisation des écritures d'initialisation 2024 (ULM/Avion/Services généraux) impliquant 102 contre comptes de charges/produits :
+- remplace 102 par 512 (30/12/2024),
+- passe une compensation 512/102 (30/12/2024) pour neutraliser la banque,
+- clôture le compte 6xx/7xx contre 102 (31/12/2024),
+- supprime l'écriture initiale.
+
 ## Affichage
 
 Pour chaque méthode, l'affichage comprend:

@@ -56,10 +56,437 @@ class Oneshot extends CI_Controller {
         echo "<li><a href='" . base_url() . "index.php/oneshot/cotisations'>cotisations</a> - Écritures de cotisations (775-766)</li>";
         echo "<li><a href='" . base_url() . "index.php/oneshot/comptes_manquants'>comptes_manquants</a> - Pilotes avec compte 411 section 1/2/3 mais sans compte section 4</li>";
         echo "<li><a href='" . base_url() . "index.php/oneshot/creer_comptes_section4'>creer_comptes_section4</a> - Créer les comptes 411 manquants en section 4</li>";
+        echo "<li><a href='" . base_url() . "index.php/oneshot/regulariser_initialisations_2024'>regulariser_initialisations_2024</a> - Régulariser les écritures d'initialisation 2024 (ULM/Avion/CG)</li>";
         echo "</ul>";
 
         echo "<hr>";
         echo "<p><a href='" . base_url() . "'>Retour à l'accueil</a></p>";
+    }
+
+    /**
+     * Régulariser les écritures d'initialisation 2024 (sections 2,3,4)
+     * - Remplacer 102 par 512 (30/12/2024)
+     * - Passer compensation 512/102 (30/12/2024)
+     * - Clôturer le compte 6xx/7xx contre 102 (31/12/2024)
+     * - Supprimer l'écriture initiale
+     */
+    public function regulariser_initialisations_2024() {
+        echo "<h1>Régularisation des écritures d'initialisation 2024 (sections ULM/Avion/CG)</h1>";
+        echo "<p>Utilisateur connecté: " . htmlspecialchars($this->dx_auth->get_username()) . "</p>";
+        echo "<hr>";
+
+        $mode_exec = $this->input->post('executer') === 'oui';
+
+        if ($mode_exec) {
+            $this->executer_regularisation_initialisations_2024();
+        } else {
+            $this->previsualiser_regularisation_initialisations_2024();
+        }
+
+        echo "<hr>";
+        echo "<p><a href='" . base_url() . "index.php/oneshot'>Retour à la liste des opérations</a></p>";
+        echo "<p><a href='" . base_url() . "'>Retour à l'accueil</a></p>";
+    }
+
+    /**
+     * Prévisualisation : lister les écritures candidates et afficher totaux / comptes 512
+     */
+    private function previsualiser_regularisation_initialisations_2024() {
+        $sections = array(2 => 'ULM', 3 => 'Avion', 4 => 'Services généraux');
+        $ecritures = $this->charger_ecritures_initiales_2024();
+
+        if (count($ecritures) === 0) {
+            echo "<p><strong>Aucune écriture d'initialisation 2024 trouvée pour les sections 2/3/4.</strong></p>";
+            return;
+        }
+
+        // Comptes 512 par section
+        $comptes_512 = array();
+        foreach ($sections as $club_id => $label) {
+            $comptes_512[$club_id] = $this->get_compte_512($club_id);
+        }
+
+        // Regrouper par section
+        $par_section = array();
+        foreach ($ecritures as $e) {
+            $club = (int)$e['club'];
+            if (!isset($par_section[$club])) {
+                $par_section[$club] = array('label' => $sections[$club], 'items' => array(), 'total' => 0);
+            }
+            $par_section[$club]['items'][] = $e;
+            $par_section[$club]['total'] += (float)$e['montant'];
+        }
+
+        echo "<form method='post' action='" . base_url() . "index.php/oneshot/regulariser_initialisations_2024'>";
+
+        foreach ($par_section as $club => $data) {
+            echo "<h2>Section " . htmlspecialchars($data['label']) . " (club " . (int)$club . ")</h2>";
+            $compte512 = $comptes_512[$club];
+            if ($compte512) {
+                echo "<p>Compte 512 détecté: ID " . (int)$compte512['id'] . " - " . htmlspecialchars($compte512['nom']) . "</p>";
+            } else {
+                echo "<p style='color:red;font-weight:bold;'>Aucun compte 512 trouvé pour cette section - exécution impossible.</p>";
+            }
+
+            echo "<p>Total montant: " . number_format($data['total'], 2, ',', ' ') . " € - " . count($data['items']) . " écritures</p>";
+
+            echo "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; margin-bottom: 10px;'>";
+            echo "<thead><tr style='background:#f0f0f0;'><th>ID</th><th>Date op</th><th>Compte1</th><th>Compte2</th><th>Description</th><th>Montant</th></tr></thead><tbody>";
+            foreach ($data['items'] as $e) {
+                echo "<tr>";
+                echo "<td>" . (int)$e['id'] . "</td>";
+                echo "<td>" . htmlspecialchars($e['date_op']) . "</td>";
+                echo "<td>" . htmlspecialchars($e['compte1_codec']) . " - " . htmlspecialchars($e['compte1_nom']) . "</td>";
+                echo "<td>" . htmlspecialchars($e['compte2_codec']) . " - " . htmlspecialchars($e['compte2_nom']) . "</td>";
+                echo "<td>" . htmlspecialchars($e['description']) . "</td>";
+                echo "<td style='text-align:right;'>" . number_format($e['montant'], 2, ',', ' ') . " €</td>";
+                echo "</tr>";
+                echo "<input type='hidden' name='ecritures_ids[]' value='" . (int)$e['id'] . "'>";
+            }
+            echo "</tbody></table>";
+        }
+
+        $manquants = array();
+        foreach ($sections as $club_id => $label) {
+            if (!$comptes_512[$club_id]) {
+                $manquants[] = $label;
+            }
+        }
+
+        if (count($manquants) > 0) {
+            echo "<p style='color:red;font-weight:bold;'>Exécution désactivée : compte 512 manquant pour " . implode(', ', $manquants) . "</p>";
+        } else {
+            echo "<p style='font-weight:bold; color:red;'>Cette opération va créer des écritures (30/12/2024 et 31/12/2024) et supprimer les écritures initiales. Confirmer ?</p>";
+            echo "<button type='submit' name='executer' value='oui' style='background:#28a745;color:#fff;padding:8px 14px;border:none;cursor:pointer;'>OUI - Exécuter</button>";
+        }
+
+        echo "</form>";
+    }
+
+    /**
+     * Exécuter la régularisation : créer E1/E2/E3 puis supprimer l'initiale
+     */
+    private function executer_regularisation_initialisations_2024() {
+        $ids = $this->input->post('ecritures_ids');
+        if (empty($ids) || !is_array($ids)) {
+            echo "<p style='color:red;'>Aucune écriture sélectionnée.</p>";
+            return;
+        }
+
+        $ecritures = $this->charger_ecritures_initiales_2024($ids);
+        if (count($ecritures) === 0) {
+            echo "<p style='color:red;'>Aucune écriture éligible trouvée.</p>";
+            return;
+        }
+
+        $sections = array(2 => 'ULM', 3 => 'Avion', 4 => 'Services généraux');
+        $comptes_512 = array();
+        $comptes_102 = array();
+        foreach ($sections as $club_id => $label) {
+            $comptes_512[$club_id] = $this->get_compte_512($club_id);
+            $comptes_102[$club_id] = $this->get_compte_102($club_id);
+        }
+
+        $resultats = array();
+        $succes = 0;
+        $echecs = 0;
+
+        foreach ($ecritures as $ecriture) {
+            $club = (int)$ecriture['club'];
+            if (!isset($comptes_512[$club]) || !$comptes_512[$club]) {
+                $resultats[] = array('id' => $ecriture['id'], 'status' => 'KO', 'message' => 'Compte 512 manquant');
+                $echecs++;
+                continue;
+            }
+            if (!isset($comptes_102[$club]) || !$comptes_102[$club]) {
+                $resultats[] = array('id' => $ecriture['id'], 'status' => 'KO', 'message' => 'Compte 102 manquant');
+                $echecs++;
+                continue;
+            }
+
+            try {
+                gvv_info("Oneshot: Traitement écriture " . $ecriture['id']);
+                $detail = $this->traiter_ecriture_initialisation($ecriture, $comptes_512[$club]['id'], $comptes_102[$club]['id']);
+                $resultats[] = array('id' => $ecriture['id'], 'status' => 'OK', 'message' => $detail);
+                $succes++;
+            } catch (Exception $ex) {
+                gvv_error("Oneshot: Exception écriture " . $ecriture['id'] . " - " . $ex->getMessage());
+                $resultats[] = array('id' => $ecriture['id'], 'status' => 'KO', 'message' => $ex->getMessage());
+                $echecs++;
+            }
+        }
+
+        echo "<h2>Résultats</h2>";
+        echo "<p>Succès: $succes | Échecs: $echecs</p>";
+
+        echo "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;'>";
+        echo "<thead><tr style='background:#f0f0f0;'><th>ID initiale</th><th>Statut</th><th>Détails</th></tr></thead><tbody>";
+        foreach ($resultats as $r) {
+            $color = ($r['status'] === 'OK') ? 'green' : 'red';
+            echo "<tr>";
+            echo "<td>" . (int)$r['id'] . "</td>";
+            echo "<td style='color:" . $color . ";font-weight:bold;'>" . htmlspecialchars($r['status']) . "</td>";
+            echo "<td>" . htmlspecialchars($r['message']) . "</td>";
+            echo "</tr>";
+        }
+        echo "</tbody></table>";
+    }
+
+    /**
+     * Charger les écritures initiales 2024, optionnellement filtrées par IDs
+     */
+    private function charger_ecritures_initiales_2024($ids = null) {
+        $this->db->select('e.*, c1.nom as compte1_nom, c1.codec as compte1_codec, c2.nom as compte2_nom, c2.codec as compte2_codec');
+        $this->db->from('ecritures e');
+        $this->db->join('comptes as c1', 'e.compte1 = c1.id', 'left');
+        $this->db->join('comptes as c2', 'e.compte2 = c2.id', 'left');
+        $this->db->where('e.date_op', '2024-12-31');
+        $this->db->where('e.date_creation >=', '2025-12-01');
+        $this->db->where('e.date_creation <', '2026-01-01');
+        $this->db->where_in('e.club', array(2, 3, 4));
+        $this->db->where("(c1.codec = '102' OR c2.codec = '102')", null, false);
+        $this->db->where("(c1.codec LIKE '6%' OR c1.codec LIKE '7%' OR c2.codec LIKE '6%' OR c2.codec LIKE '7%')", null, false);
+        if ($ids && is_array($ids)) {
+            $ids_int = array_map('intval', $ids);
+            $this->db->where_in('e.id', $ids_int);
+        }
+        $this->db->order_by('e.id', 'ASC');
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Traitement d'une écriture : E1/E2/E3 + suppression de l'initiale
+     * E3 clôture vers 120 (déficit) ou 129 (bénéfice) selon le type de compte 6xx/7xx
+     */
+    private function traiter_ecriture_initialisation($ecriture, $compte_512_id, $compte_102_id) {
+        $is_c1_102 = ($ecriture['compte1_codec'] === '102');
+        $compte_resultat_id = $is_c1_102 ? $ecriture['compte2'] : $ecriture['compte1'];
+        $compte_resultat_codec = $is_c1_102 ? $ecriture['compte2_codec'] : $ecriture['compte1_codec'];
+        $club = (int)$ecriture['club'];
+
+        $username = $this->dx_auth->get_username();
+        $today = date('Y-m-d');
+
+        gvv_info("Oneshot: Début traitement écriture " . $ecriture['id'] . " (montant=" . $ecriture['montant'] . ")");
+
+        // Déterminer le compte de résultat (120 ou 129) selon le type de compte
+        // Compte 6xx (charges) -> 120 (déficit)
+        // Compte 7xx (produits) -> 129 (bénéfice)
+        $compte_resultat_final_id = null;
+        if (substr($compte_resultat_codec, 0, 1) === '6') {
+            // Charges -> déficit (120)
+            $compte_resultat_final = $this->get_compte_by_codec('120', $club);
+            if (!$compte_resultat_final) {
+                throw new Exception("Compte 120 (déficit) non trouvé pour section " . $club);
+            }
+            $compte_resultat_final_id = $compte_resultat_final['id'];
+            gvv_debug("Oneshot: Charge détectée -> utilisation compte 120 (déficit) ID=" . $compte_resultat_final_id);
+        } else if (substr($compte_resultat_codec, 0, 1) === '7') {
+            // Produits -> bénéfice (129)
+            $compte_resultat_final = $this->get_compte_by_codec('129', $club);
+            if (!$compte_resultat_final) {
+                throw new Exception("Compte 129 (bénéfice) non trouvé pour section " . $club);
+            }
+            $compte_resultat_final_id = $compte_resultat_final['id'];
+            gvv_debug("Oneshot: Produit détecté -> utilisation compte 129 (bénéfice) ID=" . $compte_resultat_final_id);
+        } else {
+            throw new Exception("Compte de résultat invalide: " . $compte_resultat_codec);
+        }
+
+        // Préparer les champs communs
+        $base = array(
+            'annee_exercise' => 2024,
+            'date_creation' => $today,
+            'saisie_par' => $username,
+            'gel' => 0,
+            'club' => $ecriture['club'],
+            'categorie' => isset($ecriture['categorie']) ? $ecriture['categorie'] : null,
+            'type' => isset($ecriture['type']) ? $ecriture['type'] : null,
+            'num_cheque' => isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : null,
+            'achat' => isset($ecriture['achat']) ? $ecriture['achat'] : null,
+            'quantite' => isset($ecriture['quantite']) ? $ecriture['quantite'] : null,
+            'prix' => isset($ecriture['prix']) ? $ecriture['prix'] : null
+        );
+
+        $this->db->trans_begin();
+        gvv_debug("Oneshot: Transaction BEGIN");
+
+        try {
+            // E1 : remplace 102 par 512 (30/12/2024)
+            $e1 = $base;
+            $e1['date_op'] = '2024-12-30';
+            $e1['description'] = '[Régul 2024] Simulation 512 - Ecriture ' . $ecriture['id'];
+            $e1['montant'] = $ecriture['montant'];
+            if ($is_c1_102) {
+                $e1['compte1'] = $compte_512_id;
+                $e1['compte2'] = $compte_resultat_id;
+            } else {
+                $e1['compte1'] = $compte_resultat_id;
+                $e1['compte2'] = $compte_512_id;
+            }
+            gvv_debug("Oneshot: Création E1 - compte1=" . $e1['compte1'] . " compte2=" . $e1['compte2'] . " montant=" . $e1['montant']);
+            $id_e1 = $this->create_ecriture_raw($e1);
+            if (!$id_e1) {
+                throw new Exception("E1: create_ecriture_raw retourné FALSE ou 0");
+            }
+            gvv_info("Oneshot: E1 créée ID=" . $id_e1);
+
+            // E2 : compensation 512/102 (30/12/2024)
+            $e2 = $base;
+            $e2['date_op'] = '2024-12-30';
+            $e2['description'] = '[Régul 2024] Comp 512/102 - Ecriture ' . $ecriture['id'];
+            $e2['montant'] = $ecriture['montant'];
+            if ($is_c1_102) {
+                // 512 a été débité, on le crédite : débit 102 / crédit 512
+                $e2['compte1'] = $compte_102_id;
+                $e2['compte2'] = $compte_512_id;
+            } else {
+                // 512 a été crédité, on le débite : débit 512 / crédit 102
+                $e2['compte1'] = $compte_512_id;
+                $e2['compte2'] = $compte_102_id;
+            }
+            gvv_debug("Oneshot: Création E2 - compte1=" . $e2['compte1'] . " compte2=" . $e2['compte2'] . " montant=" . $e2['montant']);
+            $id_e2 = $this->create_ecriture_raw($e2);
+            if (!$id_e2) {
+                throw new Exception("E2: create_ecriture_raw retourné FALSE ou 0");
+            }
+            gvv_info("Oneshot: E2 créée ID=" . $id_e2);
+
+            // E3 : clôture du compte de résultat vers 120 ou 129 (31/12/2024)
+            $e3 = $base;
+            $e3['date_op'] = '2024-12-31';
+            $e3['description'] = '[Régul 2024] Clôture ' . $compte_resultat_codec;
+            $e3['montant'] = $ecriture['montant'];
+            if ($is_c1_102) {
+                // Compte résultat crédité en E1 -> on le débite contre 120/129
+                $e3['compte1'] = $compte_resultat_id;
+                $e3['compte2'] = $compte_resultat_final_id;
+            } else {
+                // Compte résultat débité en E1 -> on le crédite contre 120/129
+                $e3['compte1'] = $compte_resultat_final_id;
+                $e3['compte2'] = $compte_resultat_id;
+            }
+            gvv_debug("Oneshot: Création E3 - compte1=" . $e3['compte1'] . " compte2=" . $e3['compte2'] . " montant=" . $e3['montant']);
+            $id_e3 = $this->create_ecriture_raw($e3);
+            if (!$id_e3) {
+                throw new Exception("E3: create_ecriture_raw retourné FALSE ou 0");
+            }
+            gvv_info("Oneshot: E3 créée ID=" . $id_e3);
+
+            // Supprimer l'écriture initiale et annuler son impact
+            gvv_debug("Oneshot: Suppression écriture initiale " . $ecriture['id']);
+            $this->supprimer_ecriture_initiale($ecriture);
+            gvv_info("Oneshot: Écriture initiale " . $ecriture['id'] . " supprimée");
+
+            // Vérifier le statut avant le commit
+            if ($this->db->trans_status() === FALSE) {
+                $error_num = $this->db->_error_number();
+                $error_msg = $this->db->_error_message();
+                throw new Exception("Transaction en erreur avant commit - DB Error #" . $error_num . ": " . $error_msg);
+            }
+
+            $this->db->trans_commit();
+            gvv_info("Oneshot: Transaction COMMIT pour écriture " . $ecriture['id']);
+
+            return 'E1=' . $id_e1 . ', E2=' . $id_e2 . ', E3=' . $id_e3 . ' supprimé=' . $ecriture['id'];
+
+        } catch (Exception $ex) {
+            gvv_error("Oneshot: Exception - " . $ex->getMessage());
+            $error_num = $this->db->_error_number();
+            $error_msg = $this->db->_error_message();
+            if ($error_num || $error_msg) {
+                gvv_error("Oneshot: DB Error #" . $error_num . ": " . $error_msg);
+            }
+            $this->db->trans_rollback();
+            gvv_info("Oneshot: Transaction ROLLBACK");
+            throw $ex;
+        }
+    }
+
+    /**
+     * Création d'une écriture sans transaction imbriquée
+     */
+    private function create_ecriture_raw($data) {
+        $compte1 = $data['compte1'];
+        $compte2 = $data['compte2'];
+        $montant = $data['montant'];
+
+        try {
+            gvv_debug("Oneshot: maj_comptes compte1=" . $compte1 . " compte2=" . $compte2 . " montant=" . $montant);
+            $this->comptes_model->maj_comptes($compte1, $compte2, $montant);
+            
+            gvv_debug("Oneshot: insert ecritures - " . var_export($data, true));
+            $result = $this->db->insert('ecritures', $data);
+            
+            if (!$result) {
+                $error_num = $this->db->_error_number();
+                $error_msg = $this->db->_error_message();
+                throw new Exception("DB insert failed - #" . $error_num . ": " . $error_msg . " SQL: " . $this->db->last_query());
+            }
+            
+            $insert_id = $this->db->insert_id();
+            gvv_info("Oneshot: insert successful, ID=" . $insert_id);
+            return $insert_id;
+        } catch (Exception $ex) {
+            gvv_error("Oneshot: create_ecriture_raw error - " . $ex->getMessage());
+            throw $ex;
+        }
+    }
+
+    /**
+     * Suppression de l'écriture initiale en annulant son impact
+     */
+    private function supprimer_ecriture_initiale($ecriture) {
+        try {
+            gvv_debug("Oneshot: maj_comptes (reversal) compte1=" . $ecriture['compte1'] . " compte2=" . $ecriture['compte2'] . " montant=-" . $ecriture['montant']);
+            $this->comptes_model->maj_comptes($ecriture['compte1'], $ecriture['compte2'], -$ecriture['montant']);
+            
+            gvv_debug("Oneshot: delete ecritures ID=" . $ecriture['id']);
+            $result = $this->db->delete('ecritures', array('id' => $ecriture['id']));
+            if ($result === FALSE) {
+                $error_num = $this->db->_error_number();
+                $error_msg = $this->db->_error_message();
+                throw new Exception("DB delete failed - #" . $error_num . ": " . $error_msg);
+            }
+            gvv_info("Oneshot: delete successful");
+            
+            // Nettoyer les rapprochements éventuels
+            gvv_debug("Oneshot: delete rapprochements pour écriture " . $ecriture['id']);
+            $this->load->model('associations_ecriture_model');
+            $this->associations_ecriture_model->delete_rapprochements($ecriture['id']);
+        } catch (Exception $ex) {
+            gvv_error("Oneshot: supprimer_ecriture_initiale error - " . $ex->getMessage());
+            throw $ex;
+        }
+    }
+
+    /**
+     * Trouver un compte par codec et section
+     */
+    private function get_compte_by_codec($codec, $club_id) {
+        return $this->db
+            ->select('id, nom')
+            ->from('comptes')
+            ->where('codec', $codec)
+            ->where('club', (int)$club_id)
+            ->get()
+            ->row_array();
+    }
+
+    /**
+     * Trouver le compte 512 d'une section
+     */
+    private function get_compte_512($club_id) {
+        return $this->get_compte_by_codec('512', $club_id);
+    }
+
+    /**
+     * Trouver le compte 102 d'une section
+     */
+    private function get_compte_102($club_id) {
+        return $this->get_compte_by_codec('102', $club_id);
     }
 
     /**
