@@ -42,7 +42,7 @@ $lang['comptes_label_balance'] = "Balance";
 $lang['comptes_label_soldes'] = "Soldes";
 $lang['comptes_label_date'] = "Date";
 $lang['comptes_label_class'] = "Classe";
-$lang['comptes_label_to'] = "jusqus'à";
+$lang['comptes_label_to'] = "jusqu'à";
 $lang['comptes_label_expenses'] = "Charges";
 $lang['comptes_label_earnings'] = "Produits";
 $lang['comptes_label_total_incomes'] = "Total produits";
@@ -87,15 +87,15 @@ $lang['comptes_table_header'] = array(
 	'Débit',
 	'Crédit',
 	'Solde débiteur',
-	'Solde Créditeur',
+	'Solde créditeur',
 	''
 );
 
 $lang['comptes_list_header'] = array(
 	'Codec',
 	'Nom',
-	'Debit',
-	'Credit',
+	'Débit',
+	'Crédit',
 	'Solde débiteur',
 	'Solde créditeur'
 );
