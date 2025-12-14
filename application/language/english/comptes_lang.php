@@ -1,4 +1,6 @@
 <?php
+// Header used on closure page (4 columns only)
+$lang['comptes_cloture_list_header'] = array('<strong>Code</strong>', '<strong>Name</strong>', '<strong>Debit balance</strong>', '<strong>Credit balance</strong>');
 /*
  * GVV English translation
 */

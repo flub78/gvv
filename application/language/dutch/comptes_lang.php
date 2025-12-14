@@ -1,4 +1,6 @@
 <?php
+// Kopteksten voor afsluitingspagina (slechts 4 kolommen)
+$lang['comptes_cloture_list_header'] = array('<strong>Code</strong>', '<strong>Naam</strong>', '<strong>Debetsaldo</strong>', '<strong>Creditsaldo</strong>');
 /*
  * GVV Nederlandse vertaling
  */

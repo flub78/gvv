@@ -1,4 +1,6 @@
 <?php
+// Header used on clôture page (4 columns only)
+$lang['comptes_cloture_list_header'] = array('<strong>Codec</strong>', '<strong>Nom</strong>', '<strong>Solde débiteur</strong>', '<strong>Solde créditeur</strong>');
 /*
  * GVV French translation
 */
@@ -105,8 +107,8 @@ $lang['comptes_cloture_raz_charges'] = "remise à 0 des comptes de charges";
 $lang['comptes_cloture_raz_produits'] = "remise à 0 des comptes de produits";
 $lang['comptes_cloture_date_fin'] = "Date de fin d'exercice";
 $lang['comptes_cloture_date_gel'] = "Date de gel des écritures";
-$lang['comptes_cloture_title_result'] = "Compte utilisé pour intégrer les résultats et écarts de l'exercice précédant";
-$lang['comptes_cloture_title_previous'] = "Comptes de l'exercice précédant à réintégrer dans le capital ou les fonds associatifs";
+$lang['comptes_cloture_title_result'] = "Compte utilisé pour intégrer les résultats et écarts de l'exercice précédent";
+$lang['comptes_cloture_title_previous'] = "Comptes de l'exercice précédent à réintégrer dans le capital ou les fonds associatifs";
 $lang['comptes_cloture_title_charges_a_integrer'] = "Comptes de charges à intégrer dans le résultat";
 $lang['comptes_cloture_title_produits_a_integrer'] = "Comptes de produits à intégrer dans le résultat";
 

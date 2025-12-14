@@ -141,12 +141,14 @@ if (! function_exists('table_from_array')) {
         $alignments = (array_key_exists('align', $attrs)) ? $attrs['align'] : array();
 
         if (array_key_exists('fields', $attrs)) {
-            $res .= "\t<thead>";
+            $thead_class = isset($attrs['thead_class']) ? ' class="' . $attrs['thead_class'] . '"' : '';
+            $res .= "\t<thead$thead_class>";
             $res .= "<tr>";
             $cnt = 0;
+            $header_th_class = isset($attrs['header_th_class']) ? ' ' . $attrs['header_th_class'] : '';
             foreach ($attrs['fields'] as $field) {
                 $align = (array_key_exists($cnt, $alignments)) ? 'align="' . $alignments[$cnt] . '"' : "";
-                $res .= "\t\t<th $align class=\"ui-state-default\" >";
+                $res .= "\t\t<th $align class=\"ui-state-default$header_th_class\" >";
                 $res .= $field;
                 $res .= "</th>\n";
                 $cnt++;

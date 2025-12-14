@@ -1238,14 +1238,13 @@ class Comptes extends Gvv_Controller {
     private function liste_comptes($selection, $date) {
         $result = $this->gvv_model->select_page($selection, $date);
         $table = array();
-        $table[] = $this->lang->line("comptes_list_header");;
+        // Use specific header for clôture view: only 4 columns
+        $table[] = $this->lang->line("comptes_cloture_list_header");
 
         foreach ($result as $row) {
             $table[] = array(
                 $row['codec'],
                 $row['nom'],
-                euro($row['debit']),
-                euro($row['credit']),
                 euro($row['solde_debit']),
                 euro($row['solde_credit'])
             );

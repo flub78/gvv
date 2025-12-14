@@ -3,13 +3,12 @@
 
 ## Bugs
 
-* [] problème d'alignement sur la page résultats, les chiffres devraient être alignès à droite.
 * [] Rapprochement, lors des rapprochements, au lieu de considérer rapprochés les entrées qui ont une entrée de rapprochement, il faudrait aussi vérifier qu'elle pointe sur une écriture existante. Et sinon supprimer l'écriture de rapprochement.
 
 * [] **la page de retour après une modification des écritures est discutable**
-  
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits.
+
+* [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits. Pas d'action, ce sera résolu après basculement.
 
 
 ## Reste à faire
@@ -213,3 +212,5 @@
 * [x] Comptes > 400 lignes, passer aux datatable serveur side.
 * [x] Ajout d'une date de validité aux vols de découvertes. 
 * [x] **Déconnexion intempestive**  (plus de plaintes depuis le changement des paramètres de timeout dans le php.ini du serveur)
+* [x] problème d'alignement sur la page résultats, les chiffres devraient être alignés à droite.
+

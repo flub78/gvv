@@ -61,20 +61,25 @@ echo br(2);
 
 echo heading($this->lang->line("comptes_cloture_title_previous"), 4, "");
 $attrs = array(
-		'align' => array('left', 'left', 'right', 'right', 'right', 'right'),
-        'class' => ' table table-striped'
+		'align' => array('left', 'left', 'right', 'right'),
+        'class' => ' table table-striped',
+        'fields' => isset($a_integrer[0]) ? $a_integrer[0] : array(),
+        'thead_class' => 'table-dark',
+        'header_th_class' => 'text-light'
 		);
 
 echo br();
-echo table_from_array($a_integrer, $attrs);
+echo table_from_array(array_slice($a_integrer, 1), $attrs);
 
 echo br();
 echo heading($this->lang->line("comptes_cloture_title_charges_a_integrer"), 4, "");
-echo table_from_array($charges, $attrs);
+$attrs['fields'] = isset($charges[0]) ? $charges[0] : array();
+echo table_from_array(array_slice($charges, 1), $attrs);
 
 echo br();
 echo heading($this->lang->line("comptes_cloture_title_produits_a_integrer"), 4, "");
-echo table_from_array($produits, $attrs);
+$attrs['fields'] = isset($produits[0]) ? $produits[0] : array();
+echo table_from_array(array_slice($produits, 1), $attrs);
 
 echo br();
 if ($action == MODIFICATION && !$error && $section) {
