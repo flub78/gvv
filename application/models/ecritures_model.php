@@ -818,8 +818,8 @@ class Ecritures_model extends Common_Model {
     /**
      * Dépenses d'un exercise
      *
-     * Normalement les dépenses ne sont qu'au débit des comptes 600, mais il faut aussi prendre
-     * en compte les crédits (avoir, annulation de dépenses)
+     * Normalement les dépenses ne sont qu'au débit des comptes 600, mais il faut aussi prendre en compte
+     * les crédits (avoir, annulation de dépenses)
      *
      * On pourrait calculer les dépenses en comparant les soldes en début et en fin d'exercise, mais seuls
      * les soldes courrants sont gardés dans les tables de comptes. Le calcul du solde à une date données
@@ -2318,6 +2318,131 @@ array (size=2)
             return FALSE;
         }
     }
+
+    /**
+     * Calcule le solde d'un compte ou d'un groupe de comptes de gestion
+     * 
+     * Dépenses (6xx): SUM(débits sur compte1) - SUM(crédits sur compte2)
+     * Recettes (7xx): SUM(crédits sur compte2) - SUM(débits sur compte1)
+     * 
+     * @param string $date_op Date limite (format AAAA-MM-JJ)
+     * @param int $compte ID du compte spécifique (optionnel)
+     * @param string $codec_min Codec minimum (optionnel)
+     * @param string $codec_max Codec maximum (optionnel)
+     * @param int $section_id ID de la section (optionnel)
+     * @return float Le solde calculé
+     */
+    public function solde_compte_gestion($date_op, $compte = "", $codec_min = "", $codec_max = "", $section_id = 0) {
+        // Déterminer l'année de référence depuis $date_op
+        $date_parts = explode('-', $date_op);
+        if (count($date_parts) !== 3) {
+            gvv_error("solde_compte_gestion: format de date invalide: $date_op");
+            return 0;
+        }
+        $year = $date_parts[0];
+        $date_debut = "$year-01-01";
+
+        // Récupérer la première écriture pour déterminer le type (charge ou recette)
+        $this->db->select('compte1.codec as codec1, compte2.codec as codec2')
+            ->from('ecritures')
+            ->join('comptes as compte1', 'ecritures.compte1 = compte1.id', 'left')
+            ->join('comptes as compte2', 'ecritures.compte2 = compte2.id', 'left')
+            ->where('ecritures.date_op >=', $date_debut)
+            ->where('ecritures.date_op <=', $date_op)
+            ->where('compte1.codec !=', '120')
+            ->where('compte1.codec !=', '129')
+            ->where('compte2.codec !=', '120')
+            ->where('compte2.codec !=', '129');
+
+        // Appliquer les filtres si fournis
+        if (!empty($compte)) {
+            $this->db->where('(ecritures.compte1 = ' . intval($compte) . ' OR ecritures.compte2 = ' . intval($compte) . ')');
+        }
+        if (!empty($codec_min) && !empty($codec_max)) {
+            $this->db->where('(compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '")');
+        }
+        if ($section_id > 0) {
+            $this->db->where('ecritures.club', $section_id);
+        }
+
+        $result = $this->db->limit(1)->get();
+        if ($result->num_rows() === 0) {
+            return 0;
+        }
+
+        $first_row = $result->row();
+        $codec_ref = $first_row->codec1 ?: $first_row->codec2;
+        $is_charge = (intval(substr($codec_ref, 0, 1)) === 6);
+
+        // Réinitialiser la requête pour le calcul du solde
+        if ($is_charge) {
+            // Dépenses: débits sur compte1 - crédits sur compte2
+            if (!empty($compte)) {
+                // When filtering by specific compte, sum only when that compte is on the respective side
+                $compte_int = intval($compte);
+                $this->db->select("SUM(CASE WHEN ecritures.compte1 = $compte_int THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN ecritures.compte2 = $compte_int THEN ecritures.montant ELSE 0 END) as credits");
+            } else {
+                // When filtering by codec range, keep the original logic
+                $this->db->select('SUM(CASE WHEN ecritures.compte1 IS NOT NULL THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN ecritures.compte2 IS NOT NULL THEN ecritures.montant ELSE 0 END) as credits');
+            }
+            $this->db->from('ecritures')
+				->join('comptes as compte1', 'ecritures.compte1 = compte1.id', 'left')
+				->join('comptes as compte2', 'ecritures.compte2 = compte2.id', 'left')
+				->where('ecritures.date_op >=', $date_debut)
+				->where('ecritures.date_op <=', $date_op)
+				->where('compte1.codec !=', '120')
+				->where('compte1.codec !=', '129')
+				->where('compte2.codec !=', '120')
+				->where('compte2.codec !=', '129');
+        } else {
+            // Recettes: crédits sur compte2 - débits sur compte1
+            if (!empty($compte)) {
+                // When filtering by specific compte, sum only when that compte is on the respective side
+                $compte_int = intval($compte);
+                $this->db->select("SUM(CASE WHEN ecritures.compte1 = $compte_int THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN ecritures.compte2 = $compte_int THEN ecritures.montant ELSE 0 END) as credits");
+            } else {
+                // When filtering by codec range, keep the original logic
+                $this->db->select('SUM(CASE WHEN ecritures.compte1 IS NOT NULL THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN ecritures.compte2 IS NOT NULL THEN ecritures.montant ELSE 0 END) as credits');
+            }
+            $this->db->from('ecritures')
+				->join('comptes as compte1', 'ecritures.compte1 = compte1.id', 'left')
+				->join('comptes as compte2', 'ecritures.compte2 = compte2.id', 'left')
+				->where('ecritures.date_op >=', $date_debut)
+				->where('ecritures.date_op <=', $date_op)
+				->where('compte1.codec !=', '120')
+				->where('compte1.codec !=', '129')
+				->where('compte2.codec !=', '120')
+				->where('compte2.codec !=', '129');
+        }
+
+        // Appliquer les filtres si fournis
+        if (!empty($compte)) {
+            $this->db->where('(ecritures.compte1 = ' . intval($compte) . ' OR ecritures.compte2 = ' . intval($compte) . ')');
+        }
+        if (!empty($codec_min) && !empty($codec_max)) {
+            $this->db->where('(compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '")');
+        }
+        if ($section_id > 0) {
+            $this->db->where('ecritures.club', $section_id);
+        }
+
+        $result = $this->db->get()->row();
+
+        $debits = floatval($result->debits ?: 0);
+        $credits = floatval($result->credits ?: 0);
+
+        if ($is_charge) {
+            return $debits - $credits;
+        } else {
+            return $credits - $debits;
+        }
+    }
+
+    // ...existing code...
 }
 
 /* End of file */
