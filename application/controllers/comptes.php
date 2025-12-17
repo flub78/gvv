@@ -1609,7 +1609,8 @@ class Comptes extends Gvv_Controller {
 
         // Déterminer si c'est une charge ou un produit
         $is_charge = (intval($codec) >= 600 && intval($codec) < 700);
-        $factor = $is_charge ? -1 : 1;
+        // Les charges sont affichées en positif (facteur = 1)
+        $factor = 1;
 
         // Récupération des données de détail pour deux années
         $html = ($mode == "html");

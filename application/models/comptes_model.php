@@ -1258,6 +1258,27 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Calcule le montant d'un compte spécifique pour une section et une année.
+     * Utilise l'ID du compte pour un calcul précis par compte.
+     *
+     * @param int $compte_id ID du compte
+     * @param int $year Année
+     * @param int $section_id ID de la section
+     * @return float Le montant calculé
+     */
+    private function year_amount_compte_section($compte_id, $year, $section_id) {
+        $date_op = "$year-12-31";
+
+        return $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            $compte_id,  // ID du compte spécifique
+            '',          // pas de filtre par codec
+            '',          // pas de filtre par codec
+            $section_id
+        );
+    }
+
+    /**
      * Diagnostic: compare la somme des montants par section (courant et précédent) pour un codec
      * avec les totaux calculés par /comptes/resultat (select_depenses/select_recettes).
      * Ecrit des logs via gvv_debug pour aider à identifier les écarts.
@@ -1472,17 +1493,17 @@ class Comptes_model extends Common_Model {
         $table = [$header];
 
         foreach ($res as $compte) {
+            $compte_id = $compte['id'];
             $row = [$compte['codec'], $compte['nom']];
 
             $total_current = 0.0;
             $total_prev = 0.0;
 
-            $is_charge = (intval($codec) >= 600 && intval($codec) < 700);
             foreach ($sections as $section) {
                 $sid = $section['id'];
-                // Sommes annuelles par section, même logique que /comptes/resultat
-                $amount_current_raw = $this->year_amount_codec_section($codec, $year_current, $sid, $is_charge);
-                $amount_prev_raw = $this->year_amount_codec_section($codec, $year_prev, $sid, $is_charge);
+                // Calcul par compte spécifique (pas par codec global)
+                $amount_current_raw = $this->year_amount_compte_section($compte_id, $year_current, $sid);
+                $amount_prev_raw = $this->year_amount_compte_section($compte_id, $year_prev, $sid);
 
                 $amount_current = $amount_current_raw * $factor;
                 $amount_prev = $amount_prev_raw * $factor;
@@ -1499,7 +1520,7 @@ class Comptes_model extends Common_Model {
             // Montants année précédente
             foreach ($sections as $section) {
                 $sid = $section['id'];
-                $amount_prev_raw2 = $this->year_amount_codec_section($codec, $year_prev, $sid, $is_charge);
+                $amount_prev_raw2 = $this->year_amount_compte_section($compte_id, $year_prev, $sid);
                 $amount_prev2 = $amount_prev_raw2 * $factor;
                 $row[] = $html ? euro($amount_prev2) : number_format((float) $amount_prev2, 2, ",", "");
             }
