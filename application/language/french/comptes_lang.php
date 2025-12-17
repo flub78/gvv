@@ -138,3 +138,9 @@ $lang['gvv_comptes_collapse_all'] = "Tout réduire";
 
 // Error messages
 $lang['gvv_comptes_error_account_not_found'] = "Le compte n'existe pas ou n'appartient pas à cette section";
+
+// Résultat par sections
+$lang['gvv_comptes_title_resultat_par_sections'] = "Résultat d'exploitation par sections";
+$lang['gvv_comptes_title_resultat_par_sections_detail'] = "Détail du résultat par sections - %s";
+$lang['comptes_label_charges'] = "Charges";
+$lang['comptes_label_produits'] = "Produits";

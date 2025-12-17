@@ -138,3 +138,9 @@ $lang['gvv_comptes_collapse_all'] = "Alles inklappen";
 
 // Error messages
 $lang['gvv_comptes_error_account_not_found'] = "De rekening bestaat niet of behoort niet tot deze sectie";
+
+// Resultaat per secties
+$lang['gvv_comptes_title_resultat_par_sections'] = "Bedrijfsresultaat per secties";
+$lang['gvv_comptes_title_resultat_par_sections_detail'] = "Resultaatdetails per secties - %s";
+$lang['comptes_label_charges'] = "Kosten";
+$lang['comptes_label_produits'] = "Inkomsten";

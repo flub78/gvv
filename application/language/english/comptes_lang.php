@@ -138,3 +138,9 @@ $lang['gvv_comptes_collapse_all'] = "Collapse All";
 
 // Error messages
 $lang['gvv_comptes_error_account_not_found'] = "The account does not exist or does not belong to this section";
+
+// Results by sections
+$lang['gvv_comptes_title_resultat_par_sections'] = "Operating result by sections";
+$lang['gvv_comptes_title_resultat_par_sections_detail'] = "Result details by sections - %s";
+$lang['comptes_label_charges'] = "Expenses";
+$lang['comptes_label_produits'] = "Income";

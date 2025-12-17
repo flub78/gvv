@@ -1382,6 +1382,7 @@ class Comptes extends Gvv_Controller {
         $section = $this->gvv_model->section();
 
         $this->data['controller'] = 'comptes';
+        $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
         $this->data['action'] = $action;
         $this->data['balance_date'] = $balance_date;
         $this->data['year'] = $year;
@@ -1528,6 +1529,280 @@ class Comptes extends Gvv_Controller {
         
         // Reset colors to default
         $pdf->SetTextColor(0, 0, 0);
+    }
+
+
+    /**
+     * Affiche le résultat d'exploitation par sections pour deux années consécutives
+     * 
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     */
+    function resultat_par_sections($mode = 'html') {
+        $this->data['controller'] = 'comptes';
+        // Ensure model is loaded and year selector provided to view
+        $this->load->model('ecritures_model');
+        $year_selector = $this->ecritures_model->getYearSelector("date_op");
+        $this->data['year_selector'] = is_array($year_selector) ? $year_selector : array();
+
+        $year = $this->session->userdata('year');
+        $this->data['year'] = $year;
+
+        // Gestion de la date d'affichage
+        // Affichage par exercice: utilise la session 'year' et fin d'exercice
+        $this->data['balance_date'] = '31/12/' . $year;
+
+        // Récupération des données pour deux années
+        $html = ($mode == "html");
+        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html);
+        
+        $this->data['charges'] = $tables['charges'];
+        $this->data['produits'] = $tables['produits'];
+        $this->data['resultat'] = $tables['resultat'];
+
+        // Gestion des exports
+        if ($mode == "csv") {
+            $this->csv_resultat_par_sections($this->data);
+            return;
+        } else if ($mode == "pdf") {
+            $this->pdf_resultat_par_sections($this->data);
+            return;
+        }
+
+        $this->push_return_url("resultat_par_sections");
+
+        load_last_view('comptes/bs_resultat_par_sectionsView', $this->data);
+    }
+
+    /**
+     * Affiche le détail d'un codec par sections pour deux années consécutives
+     * 
+     * @param string $codec Code comptable (ex: '606', '701')
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     */
+    function resultat_par_sections_detail($codec = '', $mode = 'html') {
+        if (empty($codec)) {
+            show_404();
+            return;
+        }
+
+        $this->data['controller'] = 'comptes';
+        $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+
+        $year = $this->session->userdata('year');
+        $this->data['year'] = $year;
+
+        // Gestion de la date d'affichage
+        $balance_date = $this->session->userdata('balance_date');
+        if ($balance_date) {
+            $this->data['balance_date'] = $balance_date;
+        } else {
+            $this->data['balance_date'] = '31/12/' . $year;
+        }
+
+        // Récupération du nom du codec depuis la table plan comptable
+        $this->load->model('plan_comptable_model');
+        $codec_info = $this->plan_comptable_model->get_by_id('pcode', $codec);
+        $codec_nom = $codec_info && isset($codec_info['pdesc']) ? $codec_info['pdesc'] : $codec;
+
+        $this->data['codec'] = $codec;
+        $this->data['codec_nom'] = $codec_nom;
+
+        // Déterminer si c'est une charge ou un produit
+        $is_charge = (intval($codec) >= 600 && intval($codec) < 700);
+        $factor = $is_charge ? -1 : 1;
+
+        // Récupération des données de détail pour deux années
+        $html = ($mode == "html");
+        $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor, $html);
+
+        $this->data['detail'] = $detail;
+        $this->data['is_charge'] = $is_charge;
+
+        // Gestion des exports
+        if ($mode == "csv") {
+            $this->csv_resultat_par_sections_detail($this->data);
+            return;
+        } else if ($mode == "pdf") {
+            $this->pdf_resultat_par_sections_detail($this->data);
+            return;
+        }
+
+        $this->push_return_url("resultat_par_sections_detail");
+
+        load_last_view('comptes/bs_resultat_par_sections_detailView', $this->data);
+    }
+
+    /**
+     * Export CSV du résultat par sections
+     * 
+     * @param array $data Données à exporter
+     */
+    function csv_resultat_par_sections($data) {
+        $title = $this->lang->line("gvv_comptes_title_resultat_par_sections");
+
+        $csv_data = array();
+        $csv_data[] = [$this->config->item('nom_club')];
+        $csv_data[] = array(
+            $this->lang->line("comptes_label_date"),
+            $data['balance_date'],
+            '',
+            '',
+            '',
+            ''
+        );
+
+        $csv_data[] = [];
+        $csv_data[] = [$this->lang->line("comptes_label_charges")];
+        $csv_data = array_merge($csv_data, $data['charges']);
+
+        $csv_data[] = [];
+        $csv_data[] = [$this->lang->line("comptes_label_produits")];
+        $csv_data = array_merge($csv_data, $data['produits']);
+
+        $csv_data[] = [];
+        $csv_data[] = [$this->lang->line("comptes_label_total")];
+        $csv_data = array_merge($csv_data, $data['resultat']);
+
+        csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export PDF du résultat par sections
+     * 
+     * @param array $data Données à exporter
+     */
+    function pdf_resultat_par_sections($data) {
+        $title = $this->lang->line("gvv_comptes_title_resultat_par_sections");
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+
+        // Paysage pour avoir plus de colonnes
+        $pdf->AddPage('L');
+        $pdf->title($title, 1);
+
+        // Helper pour calculer les largeurs dynamiques
+        $compute_widths = function($cols, $leadingCols = 2) {
+            // A4 paysage: ~277mm utilisable
+            $usable = 270;
+            $w = array();
+            if ($cols <= 0) return $w;
+            if ($leadingCols == 2) {
+                $w0 = 20; // code
+                $w1 = 90; // nom
+                $w[] = $w0; $w[] = $w1;
+                $remain = $usable - $w0 - $w1;
+                $rest = max(0, $cols - 2);
+                $each = ($rest > 0) ? ($remain / $rest) : 0;
+                for ($i = 0; $i < $rest; $i++) $w[] = $each;
+            }
+            return $w;
+        };
+
+        $compute_align = function($cols, $leadingCols = 2) {
+            $align = array();
+            for ($i = 0; $i < $cols; $i++) {
+                if ($i < $leadingCols) $align[] = 'L'; else $align[] = 'R';
+            }
+            return $align;
+        };
+
+        $render_section = function($section_title, $table_data, $leadingCols) use ($pdf, $compute_widths, $compute_align) {
+            if (empty($table_data)) return;
+            $pdf->title($section_title, 2);
+            $pdf->SetY($pdf->GetY() - 3);
+            $cols = count($table_data[0]);
+            $pdf->table($compute_widths($cols, $leadingCols), 6, $compute_align($cols, $leadingCols), $table_data);
+            $pdf->Ln(6);
+        };
+
+        // Charges
+        $render_section($this->lang->line("comptes_label_charges"), isset($data['charges']) ? $data['charges'] : array(), 2);
+        
+        // Produits
+        $render_section($this->lang->line("comptes_label_produits"), isset($data['produits']) ? $data['produits'] : array(), 2);
+        
+        // Résultat
+        $render_section($this->lang->line("comptes_label_total"), isset($data['resultat']) ? $data['resultat'] : array(), 1);
+
+        $pdf->Output();
+    }
+
+    /**
+     * Export CSV du détail d'un codec par sections
+     * 
+     * @param array $data Données à exporter
+     */
+    function csv_resultat_par_sections_detail($data) {
+        $title = sprintf($this->lang->line("gvv_comptes_title_resultat_par_sections_detail"), $data['codec'] . ' - ' . $data['codec_nom']);
+
+        $csv_data = array();
+        $csv_data[] = [$this->config->item('nom_club')];
+        $csv_data[] = array(
+            $this->lang->line("comptes_label_date"),
+            $data['balance_date'],
+            '',
+            '',
+            '',
+            ''
+        );
+
+        $csv_data[] = [];
+        $section_label = $data['is_charge'] ? $this->lang->line("comptes_label_charges") : $this->lang->line("comptes_label_produits");
+        $csv_data[] = [$section_label . ' - ' . $data['codec'] . ' ' . $data['codec_nom']];
+        $csv_data = array_merge($csv_data, $data['detail']);
+
+        csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export PDF du détail d'un codec par sections
+     * 
+     * @param array $data Données à exporter
+     */
+    function pdf_resultat_par_sections_detail($data) {
+        $title = sprintf($this->lang->line("gvv_comptes_title_resultat_par_sections_detail"), $data['codec'] . ' - ' . $data['codec_nom']);
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+
+        // Paysage pour avoir plus de colonnes
+        $pdf->AddPage('L');
+        $pdf->title($title, 1);
+
+        // Helper pour calculer les largeurs dynamiques (même que pour resultat_par_sections)
+        $compute_widths = function($cols, $leadingCols = 2) {
+            $usable = 270;
+            $w = array();
+            if ($cols <= 0) return $w;
+            if ($leadingCols == 2) {
+                $w0 = 20; // code
+                $w1 = 90; // nom
+                $w[] = $w0; $w[] = $w1;
+                $remain = $usable - $w0 - $w1;
+                $rest = max(0, $cols - 2);
+                $each = ($rest > 0) ? ($remain / $rest) : 0;
+                for ($i = 0; $i < $rest; $i++) $w[] = $each;
+            }
+            return $w;
+        };
+
+        $compute_align = function($cols, $leadingCols = 2) {
+            $align = array();
+            for ($i = 0; $i < $cols; $i++) {
+                if ($i < $leadingCols) $align[] = 'L'; else $align[] = 'R';
+            }
+            return $align;
+        };
+
+        $section_label = $data['is_charge'] ? $this->lang->line("comptes_label_charges") : $this->lang->line("comptes_label_produits");
+        
+        if (!empty($data['detail'])) {
+            $pdf->title($section_label . ' - ' . $data['codec'] . ' ' . $data['codec_nom'], 2);
+            $pdf->SetY($pdf->GetY() - 3);
+            $cols = count($data['detail'][0]);
+            $pdf->table($compute_widths($cols, 2), 6, $compute_align($cols, 2), $data['detail']);
+        }
+
+        $pdf->Output();
     }
 
     /**

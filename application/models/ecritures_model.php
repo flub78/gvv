@@ -2366,7 +2366,6 @@ array (size=2)
         }
 
         $result = $this->db->limit(1)->get();
-        gvv_debug("solde_compte_gestion - First query to determine type: " . $this->db->last_query());
         if ($result->num_rows() === 0) {
             return 0;
         }
@@ -2374,7 +2373,6 @@ array (size=2)
         $first_row = $result->row();
         $codec_ref = $first_row->codec1 ?: $first_row->codec2;
         $is_charge = (intval(substr($codec_ref, 0, 1)) === 6);
-        gvv_debug("solde_compte_gestion - codec_ref: $codec_ref, is_charge: " . ($is_charge ? 'YES' : 'NO'));
 
         // Réinitialiser la requête pour le calcul du solde
         if ($is_charge) {
@@ -2445,20 +2443,14 @@ array (size=2)
         }
 
         $result = $this->db->get()->row();
-        gvv_debug("solde_compte_gestion - Main SUM query: " . $this->db->last_query());
 
         $debits = floatval($result->debits ?: 0);
         $credits = floatval($result->credits ?: 0);
-        gvv_debug("solde_compte_gestion - debits: $debits, credits: $credits");
 
         if ($is_charge) {
-            $solde = $debits - $credits;
-            gvv_debug("solde_compte_gestion - is_charge=TRUE, returning debits - credits = $solde");
-            return $solde;
+            return $debits - $credits;
         } else {
-            $solde = $credits - $debits;
-            gvv_debug("solde_compte_gestion - is_charge=FALSE, returning credits - debits = $solde");
-            return $solde;
+            return $credits - $debits;
         }
     }
 

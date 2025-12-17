@@ -61,3 +61,51 @@ Create a PHP project that contains the files that you want to debug.
 Install the PHP Debug extension.
 
 Run -> Add Configuration...
+
+
+### To debug GVV served locally with Apache
+
+### To debug phpunit tests
+
+
+#### Check configuration
+
+```
+php --version
+PHP 7.4.33 (cli) (built: Jul  3 2025 16:41:49) ( NTS )
+Copyright (c) The PHP Group
+Zend Engine v3.4.0, Copyright (c) Zend Technologies
+	with Zend OPcache v7.4.33, Copyright (c), by Zend Technologies	
+	with Xdebug v3.1.6, Copyright (c) 2002-2022, by Derick Rethans
+
+php -i | grep xdebug.mode
+php -i | grep xdebug.client_port
+php -i | grep xdebug.start_with_request
+             Enabled Features (through 'xdebug.mode' setting)             
+xdebug.mode => debug => debug
+xdebug.client_port => 9003 => 9003
+xdebug.start_with_request => trigger => trigger
+```
+
+#### launch.json
+```
+    "configurations": [
+        
+        {
+            "name": "Listen for Xdebug",
+            "type": "php",
+            "request": "launch",
+            "port": 9003,
+            "log": true,
+            // "pathMappings": {
+            //     "/var/www/html/gvv.net": "${workspaceFolder}",
+            //     "/home/frederic/git/gvv": "${workspaceFolder}" // Adjust paths
+            // },
+        },
+```
+
+#### Test execution
+
+```
+XDEBUG_SESSION=1 php /usr/local/bin/phpunit --configuration phpunit_mysql.xml --no-coverage --filter testSoldeCompteGestionWithCodecRange application/tests/mysql/EcrituresModelSoldeCompteGestionMySqlTest.php
+```
