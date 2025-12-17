@@ -205,30 +205,69 @@ class EcrituresModelSoldeCompteGestionMySqlTest extends TransactionalTestCase {
         // - $date_op: Date for calculation
         // - $expected_solde: Expected balance result
 
-        $date_op = '2024-12-31';
-        $codec_min = '';  // PLACEHOLDER - to be set by user (e.g., '600')
-        $codec_max = '';  // PLACEHOLDER - to be set by user (e.g., '699')
+        $date_op = '2023-12-31';
+        $codec_min = '607';  // PLACEHOLDER - to be set by user (e.g., '600')
+        $codec_max = '607';  // PLACEHOLDER - to be set by user (e.g., '699')
 
-        // Skip test if codec range not provided
-        if (empty($codec_min) || empty($codec_max)) {
-            $this->markTestSkipped('Test skipped - codec_min/codec_max parameters not set by user');
-            return;
-        }
-
-        // Execute the method
+        $expected_solde = 38.00; // PLACEHOLDER - to be set by user
         $result = $this->ecritures_model->solde_compte_gestion(
             $date_op,
             '',
             $codec_min,
             $codec_max,
-            0
+            1
         );
+        // echo "\nsolde_compte_gestion result for codec range $codec_min-$codec_max: " . var_export($result, true) . "\n";
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
 
-        // Verify result is numeric
-        $this->assertIsNumeric($result, 'solde_compte_gestion should return a numeric value');
+        $date_op = '2022-10-31';
+        $expected_solde = 78.80; // PLACEHOLDER - to be set by user
+        $result = $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            '',
+            $codec_min,
+            $codec_max,
+            1
+        );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
 
-        // TODO: User can add specific assertion for expected value
-        // Example: $this->assertEquals($expected_solde, $result, 'Balance should match expected value', 0.01);
+        $codec_min = '75';  // PLACEHOLDER - to be set by user (e.g., '600')
+        $codec_max = '75';  // PLACEHOLDER - to be set by user (e.g., '699')
+        $date_op = '2022-12-31';
+        $expected_solde = 30.00; // PLACEHOLDER - to be set by user
+        $result = $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            '',
+            $codec_min,
+            $codec_max,
+            1
+        );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
+
+        $codec_min = '708';  // PLACEHOLDER - to be set by user (e.g., '600')
+        $codec_max = '708';  // PLACEHOLDER - to be set by user (e.g., '699')
+        $date_op = '2022-12-31';
+        $expected_solde = 5206.00; // PLACEHOLDER - to be set by user
+        $result = $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            '',
+            $codec_min,
+            $codec_max,
+            1
+        );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
+
+        $codec_min = '606';  // PLACEHOLDER - to be set by user (e.g., '600')
+        $codec_max = '606';  // PLACEHOLDER - to be set by user (e.g., '699')
+        $date_op = '2023-12-31';
+        $expected_solde = 9493.81; // PLACEHOLDER - to be set by user
+        $result = $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            '',
+            $codec_min,
+            $codec_max
+        );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
     }
 
     /**
@@ -236,34 +275,29 @@ class EcrituresModelSoldeCompteGestionMySqlTest extends TransactionalTestCase {
      * User will provide section ID and expected result
      */
     public function testSoldeCompteGestionWithSection() {
-        // TODO: User to provide:
-        // - $section_id: ID of an existing section in test database
-        // - $date_op: Date for calculation
-        // - $expected_solde: Expected balance result
-
+        // D'abord juste la section planeur
+        $codec_min = '606';  // PLACEHOLDER - to be set by user (e.g., '600')
+        $codec_max = '606';  // PLACEHOLDER - to be set by user (e.g., '699')
         $date_op = '2024-12-31';
-        $section_id = 0;  // PLACEHOLDER - to be set by user
-
-        // Skip test if no section ID provided
-        if ($section_id === 0) {
-            $this->markTestSkipped('Test skipped - section_id parameter not set by user');
-            return;
-        }
-
-        // Execute the method
+        $expected_solde = 4245.16; // PLACEHOLDER - to be set by user
         $result = $this->ecritures_model->solde_compte_gestion(
             $date_op,
             '',
-            '',
-            '',
-            $section_id
+            $codec_min,
+            $codec_max,
+            1
         );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
 
-        // Verify result is numeric
-        $this->assertIsNumeric($result, 'solde_compte_gestion should return a numeric value');
-
-        // TODO: User can add specific assertion for expected value
-        // Example: $this->assertEquals($expected_solde, $result, 'Balance should match expected value', 0.01);
+        // Puis toutes les sections
+        $expected_solde = 29060.16;
+        $result = $this->ecritures_model->solde_compte_gestion(
+            $date_op,
+            '',
+            $codec_min,
+            $codec_max
+        );
+        $this->assertEqualsWithDelta($expected_solde, $result, 0.0001, 'Balance should match expected value');
     }
 
     /**
@@ -307,44 +341,4 @@ class EcrituresModelSoldeCompteGestionMySqlTest extends TransactionalTestCase {
         $this->assertEquals(0, $result, 'No matching data should return 0');
     }
 
-    /**
-     * Test solde_compte_gestion with all parameters combined
-     * User will provide complete set of parameters and expected result
-     */
-    public function testSoldeCompteGestionWithAllParameters() {
-        // TODO: User to provide all parameters:
-        // - $date_op: Date for calculation
-        // - $compte_id: ID of specific compte
-        // - $codec_min: Minimum codec
-        // - $codec_max: Maximum codec
-        // - $section_id: ID of section
-        // - $expected_solde: Expected balance result
-
-        $date_op = '2024-12-31';
-        $compte_id = null;
-        $codec_min = '';
-        $codec_max = '';
-        $section_id = 0;
-
-        // Skip test if parameters not fully provided
-        if (empty($compte_id) && (empty($codec_min) || empty($codec_max)) && $section_id === 0) {
-            $this->markTestSkipped('Test skipped - parameters not fully set by user');
-            return;
-        }
-
-        // Execute the method with all parameters
-        $result = $this->ecritures_model->solde_compte_gestion(
-            $date_op,
-            $compte_id,
-            $codec_min,
-            $codec_max,
-            $section_id
-        );
-
-        // Verify result is numeric
-        $this->assertIsNumeric($result, 'solde_compte_gestion should return a numeric value');
-
-        // TODO: User can add specific assertion for expected value
-        // Example: $this->assertEquals($expected_solde, $result, 'Balance should match expected value', 0.01);
-    }
 }

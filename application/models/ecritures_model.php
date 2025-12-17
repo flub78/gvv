@@ -2359,13 +2359,14 @@ array (size=2)
             $this->db->where('(ecritures.compte1 = ' . intval($compte) . ' OR ecritures.compte2 = ' . intval($compte) . ')');
         }
         if (!empty($codec_min) && !empty($codec_max)) {
-            $this->db->where('(compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '")');
+            $this->db->where('((compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '"))');
         }
         if ($section_id > 0) {
             $this->db->where('ecritures.club', $section_id);
         }
 
         $result = $this->db->limit(1)->get();
+        gvv_debug("solde_compte_gestion - First query to determine type: " . $this->db->last_query());
         if ($result->num_rows() === 0) {
             return 0;
         }
@@ -2373,6 +2374,7 @@ array (size=2)
         $first_row = $result->row();
         $codec_ref = $first_row->codec1 ?: $first_row->codec2;
         $is_charge = (intval(substr($codec_ref, 0, 1)) === 6);
+        gvv_debug("solde_compte_gestion - codec_ref: $codec_ref, is_charge: " . ($is_charge ? 'YES' : 'NO'));
 
         // Réinitialiser la requête pour le calcul du solde
         if ($is_charge) {
@@ -2382,8 +2384,14 @@ array (size=2)
                 $compte_int = intval($compte);
                 $this->db->select("SUM(CASE WHEN ecritures.compte1 = $compte_int THEN ecritures.montant ELSE 0 END) as debits,
 								   SUM(CASE WHEN ecritures.compte2 = $compte_int THEN ecritures.montant ELSE 0 END) as credits");
+            } elseif (!empty($codec_min) && !empty($codec_max)) {
+                // When filtering by codec range, sum only when the codec is on the respective side
+                $codec_min_escaped = $this->db->escape_str($codec_min);
+                $codec_max_escaped = $this->db->escape_str($codec_max);
+                $this->db->select("SUM(CASE WHEN compte1.codec >= \"$codec_min_escaped\" AND compte1.codec <= \"$codec_max_escaped\" THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN compte2.codec >= \"$codec_min_escaped\" AND compte2.codec <= \"$codec_max_escaped\" THEN ecritures.montant ELSE 0 END) as credits");
             } else {
-                // When filtering by codec range, keep the original logic
+                // No specific filter, sum all
                 $this->db->select('SUM(CASE WHEN ecritures.compte1 IS NOT NULL THEN ecritures.montant ELSE 0 END) as debits,
 								   SUM(CASE WHEN ecritures.compte2 IS NOT NULL THEN ecritures.montant ELSE 0 END) as credits');
             }
@@ -2403,8 +2411,14 @@ array (size=2)
                 $compte_int = intval($compte);
                 $this->db->select("SUM(CASE WHEN ecritures.compte1 = $compte_int THEN ecritures.montant ELSE 0 END) as debits,
 								   SUM(CASE WHEN ecritures.compte2 = $compte_int THEN ecritures.montant ELSE 0 END) as credits");
+            } elseif (!empty($codec_min) && !empty($codec_max)) {
+                // When filtering by codec range, sum only when the codec is on the respective side
+                $codec_min_escaped = $this->db->escape_str($codec_min);
+                $codec_max_escaped = $this->db->escape_str($codec_max);
+                $this->db->select("SUM(CASE WHEN compte1.codec >= \"$codec_min_escaped\" AND compte1.codec <= \"$codec_max_escaped\" THEN ecritures.montant ELSE 0 END) as debits,
+								   SUM(CASE WHEN compte2.codec >= \"$codec_min_escaped\" AND compte2.codec <= \"$codec_max_escaped\" THEN ecritures.montant ELSE 0 END) as credits");
             } else {
-                // When filtering by codec range, keep the original logic
+                // No specific filter, sum all
                 $this->db->select('SUM(CASE WHEN ecritures.compte1 IS NOT NULL THEN ecritures.montant ELSE 0 END) as debits,
 								   SUM(CASE WHEN ecritures.compte2 IS NOT NULL THEN ecritures.montant ELSE 0 END) as credits');
             }
@@ -2424,21 +2438,27 @@ array (size=2)
             $this->db->where('(ecritures.compte1 = ' . intval($compte) . ' OR ecritures.compte2 = ' . intval($compte) . ')');
         }
         if (!empty($codec_min) && !empty($codec_max)) {
-            $this->db->where('(compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '")');
+            $this->db->where('((compte1.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte1.codec <= "' . $this->db->escape_str($codec_max) . '") OR (compte2.codec >= "' . $this->db->escape_str($codec_min) . '" AND compte2.codec <= "' . $this->db->escape_str($codec_max) . '"))');
         }
         if ($section_id > 0) {
             $this->db->where('ecritures.club', $section_id);
         }
 
         $result = $this->db->get()->row();
+        gvv_debug("solde_compte_gestion - Main SUM query: " . $this->db->last_query());
 
         $debits = floatval($result->debits ?: 0);
         $credits = floatval($result->credits ?: 0);
+        gvv_debug("solde_compte_gestion - debits: $debits, credits: $credits");
 
         if ($is_charge) {
-            return $debits - $credits;
+            $solde = $debits - $credits;
+            gvv_debug("solde_compte_gestion - is_charge=TRUE, returning debits - credits = $solde");
+            return $solde;
         } else {
-            return $credits - $debits;
+            $solde = $credits - $debits;
+            gvv_debug("solde_compte_gestion - is_charge=FALSE, returning credits - debits = $solde");
+            return $solde;
         }
     }
 
