@@ -1395,41 +1395,42 @@ class Comptes_model extends Common_Model {
         $header_offset = 2; // Code + Comptes
         
         // Total des produits
-        $total_produits = ["Total des recettes"];
+        // L'en-tête a 2 colonnes de labels ("Code", "Comptes"), donc les lignes doivent aussi avoir 2 colonnes
+        $total_produits = ["", "Total des recettes"];
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
             $total = 0.0;
             $col_index = $header_offset + $i;
-            
+
             for ($row = 1; $row < count($produits); $row++) {
                 $val = str_replace(',', '.', strip_tags($produits[$row][$col_index]));
                 $total += floatval($val);
             }
-            
+
             $total_produits[] = $this->format_currency($total, $html);
         }
         $resultat[] = $total_produits;
-        
+
         // Total des charges
-        $total_charges = ["Total des dépenses"];
+        $total_charges = ["", "Total des dépenses"];
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
             $total = 0.0;
             $col_index = $header_offset + $i;
-            
+
             for ($row = 1; $row < count($charges); $row++) {
                 $val = str_replace(',', '.', strip_tags($charges[$row][$col_index]));
                 $total += floatval($val);
             }
-            
+
             $total_charges[] = $this->format_currency($total, $html);
         }
         $resultat[] = $total_charges;
-        
+
         // Résultat = Produits - Charges
-        $total_resultat = ["Résultat"];
+        $total_resultat = ["", "Résultat"];
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
-            $produit_val = str_replace(',', '.', strip_tags($total_produits[$i + 1]));
-            $charge_val = str_replace(',', '.', strip_tags($total_charges[$i + 1]));
-            
+            $produit_val = str_replace(',', '.', strip_tags($total_produits[$i + 2]));
+            $charge_val = str_replace(',', '.', strip_tags($total_charges[$i + 2]));
+
             $resultat_val = floatval($produit_val) - floatval($charge_val);
             $total_resultat[] = $this->format_currency($resultat_val, $html);
         }

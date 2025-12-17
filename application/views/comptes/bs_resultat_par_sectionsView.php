@@ -98,8 +98,8 @@ $url = controller_url($controller);
     <?php
     if (!empty($resultat)) {
         $nb_cols = count($resultat[0]);
-        $align = array('left'); // Première colonne (libellé) à gauche
-        for ($i = 1; $i < $nb_cols; $i++) {
+        $align = array('center', 'left'); // Code (vide) et Libellé à gauche
+        for ($i = 2; $i < $nb_cols; $i++) {
             $align[] = 'right'; // Montants à droite
         }
 
