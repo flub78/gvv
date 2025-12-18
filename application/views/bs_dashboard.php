@@ -334,6 +334,15 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-table text-info"></i>
+                        <div class="card-title">Résultat par sections</div>
+                        <div class="card-text text-muted">Analytique</div>
+                        <a href="<?= controller_url('comptes/resultat_par_sections') ?>" class="btn btn-info btn-sm">Voir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-calculator text-primary"></i>
                         <div class="card-title">Bilan</div>
                         <div class="card-text text-muted">Comptable</div>

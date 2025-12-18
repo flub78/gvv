@@ -68,6 +68,7 @@ $lang['gvv_menu_accounting_balance_hierarchical'] = "Balance hiérarchique";
 $lang['gvv_menu_accounting_pilot_balance'] = "Soldes pilote";
 $lang['gvv_menu_accounting_banking_accounts'] = "Comptes bancaires";
 $lang['gvv_menu_accounting_results'] = "Résultats";
+$lang['gvv_menu_accounting_results_by_sections'] = "Résultats par sections";
 $lang['gvv_menu_accounting_bilan'] = "Bilan";
 $lang['gvv_menu_accounting_sales'] = "Ventes";
 $lang['gvv_menu_accounting_cash'] = "Trésorerie";

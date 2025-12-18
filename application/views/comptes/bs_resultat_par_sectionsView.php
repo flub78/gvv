@@ -138,6 +138,12 @@ $url = controller_url($controller);
     .resultat-table tbody tr td.col-label {
         font-weight: bold;
     }
+
+    /* Valeurs négatives en rouge */
+    .resultat-table tbody tr td.negative-value {
+        color: #dc3545;
+        font-weight: bold;
+    }
 </style>
 
 <?php
@@ -248,7 +254,17 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
                     $section_start_col += $years_count;
                 }
 
-                $html .= "<td class=\"col-numeric {$year_class}{$border_class}\">{$cell_value}</td>\n";
+                // Détection des valeurs négatives
+                $negative_class = '';
+                // Nettoyer la valeur : supprimer &nbsp;, espaces, €, et remplacer , par .
+                $clean_value = str_replace(['&nbsp;', ' ', '€'], '', $cell_value);
+                $clean_value = str_replace(',', '.', $clean_value);
+                // Vérifier si c'est un nombre négatif
+                if (is_numeric($clean_value) && floatval($clean_value) < 0) {
+                    $negative_class = ' negative-value';
+                }
+
+                $html .= "<td class=\"col-numeric {$year_class}{$border_class}{$negative_class}\">{$cell_value}</td>\n";
             }
         }
         $html .= "</tr>\n";

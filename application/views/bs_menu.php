@@ -250,6 +250,7 @@ $section_count = $CI->sections_model->safe_count_all();
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/512?start_expanded=true") ?>"><i class="fas fa-university text-primary"></i> <?= translation("gvv_menu_accounting_banking_accounts") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/411?start_expanded=true") ?>"><i class="fas fa-user-check text-success"></i> <?= translation("gvv_menu_accounting_pilot_balance") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat") ?>"><i class="fas fa-chart-pie text-warning"></i> <?= translation("gvv_menu_accounting_results") ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat_par_sections") ?>"><i class="fas fa-table text-info"></i> <?= translation("gvv_menu_accounting_results_by_sections") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/bilan") ?>"><i class="fas fa-calculator text-primary"></i> <?= translation("gvv_menu_accounting_bilan") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><i class="fas fa-shopping-bag text-success"></i> <?= translation("gvv_menu_accounting_sales") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><i class="fas fa-money-bill-wave text-success"></i> <?= translation("gvv_menu_accounting_cash") ?></a></li>

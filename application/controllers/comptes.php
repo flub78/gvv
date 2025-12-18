@@ -1637,6 +1637,88 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Transforme les données avec en-têtes "Section Année" en format à deux lignes
+     * Ligne 1: sections | Ligne 2: années
+     * 
+     * @param array $data Données brutes avec en-têtes comme "Avion 2025", "Avion 2024"
+     * @param bool $skip_label_cols Si true, n'inclut pas Code/Comptes dans les en-têtes
+     * @return array ['header_sections' => [...], 'header_years' => [...], 'rows' => [...]]
+     */
+    private function transform_to_two_line_header($data, $skip_label_cols = false) {
+        if (empty($data)) {
+            return ['header_sections' => [], 'header_years' => [], 'rows' => []];
+        }
+
+        $header = $data[0];
+        $rows = array_slice($data, 1);
+
+        // Parser l'en-tête pour extraire sections et années
+        $sections = [];
+        $current_section = null;
+        
+        $start_col = $skip_label_cols ? 0 : 2;
+        for ($i = $start_col; $i < count($header); $i++) {
+            $col_name = $header[$i];
+            // Extraire section et année
+            if (preg_match('/^(.+?)\s+(\d{4})$/', $col_name, $matches)) {
+                $section_name = $matches[1];
+                $year = $matches[2];
+                
+                if ($current_section === null || $current_section['name'] !== $section_name) {
+                    // Sauvegarder la section précédente si elle existe
+                    if ($current_section !== null) {
+                        $sections[] = $current_section;
+                    }
+                    // Créer une nouvelle section
+                    $current_section = ['name' => $section_name, 'years' => []];
+                }
+                $current_section['years'][] = $year;
+            }
+        }
+        // Ajouter la dernière section
+        if ($current_section !== null) {
+            $sections[] = $current_section;
+        }
+
+        // Construire la ligne des sections
+        $header_sections = [];
+        if (!$skip_label_cols) {
+            $header_sections[] = 'Code';
+            $header_sections[] = 'Comptes';
+        } else {
+            $header_sections[] = '';
+        }
+        foreach ($sections as $section) {
+            $header_sections[] = $section['name'];
+            // Ajouter des cellules vides pour les années suivantes
+            for ($i = 1; $i < count($section['years']); $i++) {
+                $header_sections[] = '';
+            }
+        }
+
+        // Construire la ligne des années
+        $header_years = [];
+        if (!$skip_label_cols) {
+            $header_years[] = '';
+            $header_years[] = '';
+        } else {
+            $header_years[] = '';
+        }
+        foreach ($sections as $section) {
+            foreach ($section['years'] as $year) {
+                $header_years[] = $year;
+            }
+        }
+
+        return [
+            'header_sections' => $header_sections,
+            'header_years' => $header_years,
+            'rows' => $rows,
+            'sections' => $sections
+        ];
+    }
+
+    /**
      * Export CSV du résultat par sections
      * 
      * @param array $data Données à exporter
@@ -1655,17 +1737,28 @@ class Comptes extends Gvv_Controller {
             ''
         );
 
-        $csv_data[] = [];
-        $csv_data[] = [$this->lang->line("comptes_label_charges")];
-        $csv_data = array_merge($csv_data, $data['charges']);
+        // Helper pour ajouter une section avec en-têtes à deux lignes
+        $add_section = function($section_title, $section_data, $skip_label_cols) use (&$csv_data) {
+            $csv_data[] = [];
+            $csv_data[] = [$section_title];
+            
+            $transformed = $this->transform_to_two_line_header($section_data, $skip_label_cols);
+            
+            if (!empty($transformed['header_sections'])) {
+                $csv_data[] = $transformed['header_sections'];
+                $csv_data[] = $transformed['header_years'];
+                $csv_data = array_merge($csv_data, $transformed['rows']);
+            }
+        };
 
-        $csv_data[] = [];
-        $csv_data[] = [$this->lang->line("comptes_label_produits")];
-        $csv_data = array_merge($csv_data, $data['produits']);
+        // Charges
+        $add_section($this->lang->line("comptes_label_charges"), $data['charges'], false);
 
-        $csv_data[] = [];
-        $csv_data[] = [$this->lang->line("comptes_label_total")];
-        $csv_data = array_merge($csv_data, $data['resultat']);
+        // Produits
+        $add_section($this->lang->line("comptes_label_produits"), $data['produits'], false);
+
+        // Total (sans colonnes Code/Comptes)
+        $add_section($this->lang->line("comptes_label_total"), $data['resultat'], true);
 
         csv_file($title, $csv_data);
     }
@@ -1684,49 +1777,176 @@ class Comptes extends Gvv_Controller {
         $pdf->AddPage('L');
         $pdf->title($title, 1);
 
-        // Helper pour calculer les largeurs dynamiques
-        $compute_widths = function($cols, $leadingCols = 2) {
-            // A4 paysage: ~277mm utilisable
-            $usable = 270;
-            $w = array();
-            if ($cols <= 0) return $w;
-            if ($leadingCols == 2) {
-                $w0 = 20; // code
-                $w1 = 90; // nom
-                $w[] = $w0; $w[] = $w1;
-                $remain = $usable - $w0 - $w1;
-                $rest = max(0, $cols - 2);
-                $each = ($rest > 0) ? ($remain / $rest) : 0;
-                for ($i = 0; $i < $rest; $i++) $w[] = $each;
-            }
-            return $w;
-        };
-
-        $compute_align = function($cols, $leadingCols = 2) {
-            $align = array();
-            for ($i = 0; $i < $cols; $i++) {
-                if ($i < $leadingCols) $align[] = 'L'; else $align[] = 'R';
-            }
-            return $align;
-        };
-
-        $render_section = function($section_title, $table_data, $leadingCols) use ($pdf, $compute_widths, $compute_align) {
-            if (empty($table_data)) return;
+        // Helper pour rendre une section avec en-têtes à deux lignes
+        $render_section = function($section_title, $section_data, $skip_label_cols) use ($pdf) {
+            if (empty($section_data)) return;
+            
             $pdf->title($section_title, 2);
             $pdf->SetY($pdf->GetY() - 3);
-            $cols = count($table_data[0]);
-            $pdf->table($compute_widths($cols, $leadingCols), 6, $compute_align($cols, $leadingCols), $table_data);
+            
+            // Transformer les données
+            $transformed = $this->transform_to_two_line_header($section_data, $skip_label_cols);
+            
+            if (empty($transformed['header_sections'])) return;
+            
+            // Calculer les largeurs de colonnes
+            $usable = 270; // A4 paysage
+            $num_data_cols = count($transformed['header_years']) - ($skip_label_cols ? 1 : 2);
+            
+            $widths = [];
+            if (!$skip_label_cols) {
+                $widths[] = 20;  // Code
+                $widths[] = 60;  // Comptes
+                $remaining = $usable - 80;
+            } else {
+                $widths[] = 40;  // Libellé (Charges/Produits/Total)
+                $remaining = $usable - 40;
+            }
+            
+            // Distribuer le reste pour les colonnes de données
+            $col_width = $num_data_cols > 0 ? $remaining / $num_data_cols : 0;
+            for ($i = 0; $i < $num_data_cols; $i++) {
+                $widths[] = $col_width;
+            }
+            
+            // Dessiner l'en-tête ligne 1 (sections avec colspan)
+            $pdf->SetFont('DejaVu', 'B', 9);
+            $pdf->SetFillColor(218, 227, 236); // Couleur des sections
+            
+            $x = $pdf->GetX();
+            $y = $pdf->GetY();
+            $col_idx = 0;
+            
+            // Colonnes Code/Comptes ou Libellé (sans bordure en bas car ligne 2 va la compléter)
+            if (!$skip_label_cols) {
+                $pdf->Cell($widths[0], 6, 'Code', 'LRT', 0, 'C', true);
+                $pdf->Cell($widths[1], 6, 'Comptes', 'LRT', 0, 'C', true);
+                $col_idx = 2;
+            } else {
+                $pdf->Cell($widths[0], 6, '', 'LRT', 0, 'C', true);
+                $col_idx = 1;
+            }
+            
+            // Sections
+            foreach ($transformed['sections'] as $section) {
+                $section_width = 0;
+                foreach ($section['years'] as $year) {
+                    $section_width += $widths[$col_idx];
+                    $col_idx++;
+                }
+                $pdf->Cell($section_width, 6, $section['name'], 1, 0, 'C', true);
+            }
+            $pdf->Ln();
+            
+            // Dessiner l'en-tête ligne 2 (années)
+            $pdf->SetFillColor(200, 217, 230); // Couleur année courante
+            $col_idx = 0;
+
+            if (!$skip_label_cols) {
+                // Compléter les cellules Code/Comptes avec bordure en bas
+                $pdf->SetFillColor(248, 249, 250);
+                $pdf->Cell($widths[0], 6, '', 'LRB', 0, 'C', true);
+                $pdf->Cell($widths[1], 6, '', 'LRB', 0, 'C', true);
+                $col_idx = 2;
+            } else {
+                // Compléter la cellule de libellé avec bordure en bas
+                $pdf->SetFillColor(248, 249, 250);
+                $pdf->Cell($widths[0], 6, '', 'LRB', 0, 'C', true);
+                $col_idx = 1;
+            }
+            
+            // Années
+            $year_idx = 0;
+            foreach ($transformed['sections'] as $section) {
+                foreach ($section['years'] as $year) {
+                    // Alterner les couleurs (année courante / année précédente)
+                    $fill_color = ($year_idx % 2 == 0) ? [200, 217, 230] : [245, 234, 212];
+                    $pdf->SetFillColor($fill_color[0], $fill_color[1], $fill_color[2]);
+                    $pdf->Cell($widths[$col_idx], 6, $year, 1, 0, 'C', true);
+                    $col_idx++;
+                    $year_idx++;
+                }
+            }
+            $pdf->Ln();
+            
+            // Dessiner les lignes de données
+            $pdf->SetFont('DejaVu', '', 8);
+            foreach ($transformed['rows'] as $row_idx => $row) {
+                $col_idx = 0;
+                
+                // Filtrer la première colonne vide si skip_label_cols
+                if ($skip_label_cols) {
+                    $row = array_slice($row, 1);
+                }
+                
+                foreach ($row as $cell_idx => $cell) {
+                    // Déterminer l'alignement et le fond
+                    $align = ($cell_idx < ($skip_label_cols ? 1 : 2)) ? 'L' : 'R';
+                    
+                    if ($cell_idx < ($skip_label_cols ? 1 : 2)) {
+                        // Colonnes de libellé : fond blanc
+                        $pdf->SetFillColor(255, 255, 255);
+                        $fill = true;
+                    } else {
+                        // Colonnes de données : alterner les couleurs
+                        $data_col_idx = $cell_idx - ($skip_label_cols ? 1 : 2);
+                        $fill_color = ($data_col_idx % 2 == 0) ? [227, 240, 247] : [254, 245, 231];
+                        $pdf->SetFillColor($fill_color[0], $fill_color[1], $fill_color[2]);
+                        $fill = true;
+                    }
+                    
+                    // Alternance des lignes
+                    if ($row_idx % 2 == 1) {
+                        $pdf->SetFillColor(248, 248, 248);
+                    }
+                    
+                    // Détection des valeurs négatives pour les colonnes numériques
+                    $is_negative = false;
+                    if ($cell_idx >= ($skip_label_cols ? 1 : 2)) {
+                        // Nettoyer la valeur pour détecter les négatifs
+                        $clean_value = str_replace([' ', '€'], '', $cell);
+                        $clean_value = str_replace(',', '.', $clean_value);
+                        if (is_numeric($clean_value) && floatval($clean_value) < 0) {
+                            $is_negative = true;
+                        }
+                    }
+                    
+                    // Appliquer la couleur rouge pour les valeurs négatives
+                    if ($is_negative) {
+                        $pdf->SetTextColor(220, 53, 69); // Rouge Bootstrap danger
+                        $pdf->SetFont('DejaVu', 'B', 8); // Gras
+                    } else {
+                        $pdf->SetTextColor(0, 0, 0); // Noir
+                        $pdf->SetFont('DejaVu', '', 8); // Normal
+                    }
+                    
+                    $pdf->Cell($widths[$col_idx], 5, $cell, 1, 0, $align, $fill);
+                    $col_idx++;
+                }
+                $pdf->Ln();
+            }
+            
+            // Réinitialiser la couleur du texte
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->SetFont('DejaVu', '', 8);
+            
             $pdf->Ln(6);
         };
 
         // Charges
-        $render_section($this->lang->line("comptes_label_charges"), isset($data['charges']) ? $data['charges'] : array(), 2);
+        $render_section($this->lang->line("comptes_label_charges"), $data['charges'], false);
+        
+        // Nouvelle page avant Produits
+        $pdf->AddPage('L');
         
         // Produits
-        $render_section($this->lang->line("comptes_label_produits"), isset($data['produits']) ? $data['produits'] : array(), 2);
+        $render_section($this->lang->line("comptes_label_produits"), $data['produits'], false);
         
-        // Résultat
-        $render_section($this->lang->line("comptes_label_total"), isset($data['resultat']) ? $data['resultat'] : array(), 1);
+        // Nouvelle page avant Résultat
+        $pdf->AddPage('L');
+        
+        // Résultat (sans Code/Comptes)
+        $render_section($this->lang->line("comptes_label_total"), $data['resultat'], true);
 
         $pdf->Output();
     }
