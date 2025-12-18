@@ -133,6 +133,11 @@ $url = controller_url($controller);
     .resultat-table tbody tr td:nth-child(1).col-label:only-of-type {
         border-right: 3px solid #8b939a !important;
     }
+
+    /* Mise en gras des labels Charges, Produits et Total dans le tableau Total */
+    .resultat-table tbody tr td.col-label {
+        font-weight: bold;
+    }
 </style>
 
 <?php
@@ -205,7 +210,7 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
     foreach ($sections as $section_idx => $section) {
         foreach ($section['years'] as $idx => $year) {
             $class = ($idx % 2 == 0) ? 'year-current' : 'year-previous';
-            $border_class = ($section_idx > 0 && $idx == 0) ? ' section-border-left' : '';
+            $border_class = (($section_idx > 0 || $skip_label_cols) && $idx == 0) ? ' section-border-left' : '';
             $html .= "<th class=\"{$class}{$border_class}\">{$year}</th>\n";
         }
     }
