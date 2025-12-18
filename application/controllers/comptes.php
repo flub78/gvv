@@ -1575,7 +1575,7 @@ class Comptes extends Gvv_Controller {
 
     /**
      * Affiche le détail d'un codec par sections pour deux années consécutives
-     * 
+     *
      * @param string $codec Code comptable (ex: '606', '701')
      * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
      */
@@ -1612,9 +1612,12 @@ class Comptes extends Gvv_Controller {
         // Les charges sont affichées en positif (facteur = 1)
         $factor = 1;
 
-        // Récupération des données de détail pour deux années
+        // Récupération des données de détail pour deux années (données brutes en float)
+        $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor);
+
+        // Formatage selon le mode d'affichage
         $html = ($mode == "html");
-        $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor, $html);
+        $detail = $this->gvv_model->format_numeric_columns($detail, 2, $html);
 
         $this->data['detail'] = $detail;
         $this->data['is_charge'] = $is_charge;

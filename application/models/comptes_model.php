@@ -1127,13 +1127,15 @@ class Comptes_model extends Common_Model {
 
     /**
      * Liste par codec des soldes par sections pour deux années consécutives
+     * Retourne les données brutes (float) sans formatage pour permettre les calculs.
+     * Le formatage doit être fait après les calculs via format_numeric_columns().
      *
      * @param string $selection Filtering criteria for selecting accounts
      * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
      * @param float $factor Multiplication factor for balance values (default: 1)
      * @param bool $with_sections Whether to filter by selected section
-     * @param bool $html Whether to format for HTML display (with links and euro formatting)
-     * @return array Table with data for current year and previous year side by side
+     * @param bool $html Whether to create HTML links for codes (formatting is done separately)
+     * @return array Table with raw float data for current year and previous year side by side
      */
     function select_par_section_deux_annees($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
         // Détermine les années et bornes de période (accepte JJ/MM/AAAA ou AAAA-MM-JJ)
@@ -1215,22 +1217,23 @@ class Comptes_model extends Common_Model {
                 $total_current += $amount_current;
                 $total_prev += $amount_prev;
 
-                $row[] = $html ? euro($amount_current) : number_format((float) $amount_current, 2, ",", "");
+                // Retourner les valeurs brutes (float) sans formatage
+                $row[] = $amount_current;
             }
 
-            // Total club pour l'année courante
-            $row[] = $html ? euro($total_current) : number_format((float) $total_current, 2, ",", "");
+            // Total club pour l'année courante (float)
+            $row[] = $total_current;
 
-            // Ajout des montants année précédente par section
+            // Ajout des montants année précédente par section (float)
             foreach ($sections as $section) {
                 $sid = $section['id'];
                 $amount_prev_raw2 = $this->year_amount_codec_section($codec, $year_prev, $sid, $is_charge);
                 $amount_prev2 = $amount_prev_raw2 * $factor;
-                $row[] = $html ? euro($amount_prev2) : number_format((float) $amount_prev2, 2, ",", "");
+                $row[] = $amount_prev2;
             }
 
-            // Total club pour l'année précédente
-            $row[] = $html ? euro($total_prev) : number_format((float) $total_prev, 2, ",", "");
+            // Total club pour l'année précédente (float)
+            $row[] = $total_prev;
 
             $table[] = $row;
         }
@@ -1346,7 +1349,43 @@ class Comptes_model extends Common_Model {
 
 
     /**
+     * Formate les colonnes numériques d'une table
+     * Applique le formatage monétaire aux colonnes à partir de $start_col
+     *
+     * @param array $table Table avec des valeurs float dans les colonnes numériques
+     * @param int $start_col Index de la première colonne numérique à formater (défaut: 2 pour Code, Comptes)
+     * @param bool $format_html Si true, formate avec euro() pour HTML, sinon avec number_format pour CSV/PDF
+     * @return array Copie de la table avec les valeurs formatées
+     */
+    function format_numeric_columns($table, $start_col = 2, $format_html = false) {
+        $formatted_table = [];
+
+        foreach ($table as $row_index => $row) {
+            $formatted_row = [];
+
+            foreach ($row as $col_index => $cell_value) {
+                if ($col_index >= $start_col && $row_index > 0) {
+                    // Colonne numérique (pas l'en-tête)
+                    if ($format_html) {
+                        $formatted_row[] = euro($cell_value);
+                    } else {
+                        $formatted_row[] = number_format((float) $cell_value, 2, ",", " ");
+                    }
+                } else {
+                    // En-tête ou colonnes textuelles (Code, Comptes)
+                    $formatted_row[] = $cell_value;
+                }
+            }
+
+            $formatted_table[] = $formatted_row;
+        }
+
+        return $formatted_table;
+    }
+
+    /**
      * Récupère les charges, produits et résultats par sections pour deux années consécutives
+     * Les calculs sont effectués sur les données brutes (float), puis formatés selon le mode d'affichage.
      *
      * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
      * @param bool $html Whether to format for HTML display
@@ -1355,101 +1394,97 @@ class Comptes_model extends Common_Model {
     function select_resultat_par_sections_deux_annees($balance_date, $html = false) {
         $this->load->model('comptes_model');
 
-        // Récupération des charges et produits pour deux années
+        // Récupération des charges et produits pour deux années (données brutes en float)
         // Les charges sont affichées en positif (facteur = 1) pour la présentation
+        // Le paramètre $html est utilisé uniquement pour créer les liens dans la colonne Code
         $tables = [];
         $tables['charges'] = $this->select_par_section_deux_annees('codec >= "6" and codec < "7"', $balance_date, 1, false, $html);
         $tables['produits'] = $this->select_par_section_deux_annees('codec >= "7" and codec < "8"', $balance_date, 1, false, $html);
 
-        // Calcul du résultat pour les deux années
-        $tables['resultat'] = $this->compute_resultat_deux_annees($tables['charges'], $tables['produits'], $html);
+        // Calcul du résultat pour les deux années (sur les données brutes)
+        $tables['resultat'] = $this->compute_resultat_deux_annees($tables['charges'], $tables['produits']);
 
-        // NE PAS appeler format_table_html() car les liens sont déjà créés dans select_par_section_deux_annees()
+        // Formatage des colonnes numériques après les calculs
+        $tables['charges'] = $this->format_numeric_columns($tables['charges'], 2, $html);
+        $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
+        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 1, $html); // Résultat commence à col 1 (pas de Code)
 
         return $tables;
     }
 
     /**
      * Calcule le résultat (produits - charges) pour deux années
-     * 
-     * @param array $charges Table des charges pour deux années
-     * @param array $produits Table des produits pour deux années
-     * @param bool $html Whether to format for HTML display
-     * @return array Table du résultat avec les totaux par section pour deux années
+     * Travaille sur des données brutes (float) et retourne des float.
+     * Le formatage doit être fait après via format_numeric_columns().
+     *
+     * @param array $charges Table des charges pour deux années (contient des float)
+     * @param array $produits Table des produits pour deux années (contient des float)
+     * @return array Table du résultat avec les totaux par section pour deux années (en float)
      */
-    function compute_resultat_deux_annees($charges, $produits, $html = false) {
+    function compute_resultat_deux_annees($charges, $produits) {
         $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
-        
+
         $resultat = [];
-        
+
         // Construction de l'en-tête (identique aux charges/produits)
         if (!empty($produits)) {
             $resultat[] = $produits[0]; // En-tête
         }
-        
+
         // Calcul des totaux pour chaque année
         // La structure est: [Code, Comptes, Sections_Année1..., Total_Année1, Sections_Année2..., Total_Année2]
         // Nombre de colonnes de sections + total pour une année
         $cols_per_year = $sections_count + 1;
         $header_offset = 2; // Code + Comptes
-        
-        // Total des produits
-        // L'en-tête a 2 colonnes de labels ("Code", "Comptes"), donc les lignes doivent aussi avoir 2 colonnes
+
+        // Calculer les totaux par section ET les totaux globaux
         $total_produits = ["", "Total des recettes"];
-        for ($i = 0; $i < $cols_per_year * 2; $i++) {
-            $total = 0.0;
-            $col_index = $header_offset + $i;
-
-            for ($row = 1; $row < count($produits); $row++) {
-                $val = str_replace(',', '.', strip_tags($produits[$row][$col_index]));
-                $total += floatval($val);
-            }
-
-            $total_produits[] = $this->format_currency($total, $html);
-        }
-        $resultat[] = $total_produits;
-
-        // Total des charges
         $total_charges = ["", "Total des dépenses"];
+        $total_resultat = ["", "Résultat"];
+
+        // Pour chaque colonne de section + total
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
-            $total = 0.0;
             $col_index = $header_offset + $i;
 
+            // Somme des charges pour cette colonne (directement sur les float)
+            $sum_charges = 0.0;
             for ($row = 1; $row < count($charges); $row++) {
-                $val = str_replace(',', '.', strip_tags($charges[$row][$col_index]));
-                $total += floatval($val);
+                $sum_charges += floatval($charges[$row][$col_index]);
             }
+            $total_charges[] = $sum_charges;
 
-            $total_charges[] = $this->format_currency($total, $html);
+            // Somme des produits pour cette colonne (directement sur les float)
+            $sum_produits = 0.0;
+            for ($row = 1; $row < count($produits); $row++) {
+                $sum_produits += floatval($produits[$row][$col_index]);
+            }
+            $total_produits[] = $sum_produits;
+
+            // Résultat pour cette colonne
+            $sum_resultat = $sum_produits - $sum_charges;
+            $total_resultat[] = $sum_resultat;
         }
+
+        $resultat[] = $total_produits;
         $resultat[] = $total_charges;
-
-        // Résultat = Produits - Charges
-        $total_resultat = ["", "Résultat"];
-        for ($i = 0; $i < $cols_per_year * 2; $i++) {
-            $produit_val = str_replace(',', '.', strip_tags($total_produits[$i + 2]));
-            $charge_val = str_replace(',', '.', strip_tags($total_charges[$i + 2]));
-
-            $resultat_val = floatval($produit_val) - floatval($charge_val);
-            $total_resultat[] = $this->format_currency($resultat_val, $html);
-        }
         $resultat[] = $total_resultat;
-        
+
         return $resultat;
     }
 
 
     /**
      * Liste détaillée des comptes d'un codec par sections pour deux années consécutives
-     * 
+     * Retourne les données brutes (float) sans formatage pour permettre les calculs.
+     * Le formatage doit être fait après via format_numeric_columns().
+     *
      * @param string $codec Le codec dont on veut le détail (ex: "606", "701")
      * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
      * @param float $factor Multiplication factor for balance values (default: 1)
-     * @param bool $html Whether to format for HTML display
-     * @return array Table with detailed accounts for the codec for two years
+     * @return array Table with raw float data for detailed accounts of the codec for two years
      */
-    function select_detail_codec_deux_annees($codec, $balance_date, $factor = 1, $html = false) {
+    function select_detail_codec_deux_annees($codec, $balance_date, $factor = 1) {
         // Années et bornes de périodes (accepte JJ/MM/AAAA ou AAAA-MM-JJ)
         $year_current = 0;
         $date_parts = explode('/', $balance_date);
@@ -1512,22 +1547,23 @@ class Comptes_model extends Common_Model {
                 $total_current += $amount_current;
                 $total_prev += $amount_prev;
 
-                $row[] = $html ? euro($amount_current) : number_format((float) $amount_current, 2, ",", "");
+                // Retourner les valeurs brutes (float)
+                $row[] = $amount_current;
             }
 
-            // Total club année courante
-            $row[] = $html ? euro($total_current) : number_format((float) $total_current, 2, ",", "");
+            // Total club année courante (float)
+            $row[] = $total_current;
 
-            // Montants année précédente
+            // Montants année précédente (float)
             foreach ($sections as $section) {
                 $sid = $section['id'];
                 $amount_prev_raw2 = $this->year_amount_compte_section($compte_id, $year_prev, $sid);
                 $amount_prev2 = $amount_prev_raw2 * $factor;
-                $row[] = $html ? euro($amount_prev2) : number_format((float) $amount_prev2, 2, ",", "");
+                $row[] = $amount_prev2;
             }
 
-            // Total club année précédente
-            $row[] = $html ? euro($total_prev) : number_format((float) $total_prev, 2, ",", "");
+            // Total club année précédente (float)
+            $row[] = $total_prev;
 
             $table[] = $row;
         }
