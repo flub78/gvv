@@ -1396,7 +1396,7 @@ class Comptes_model extends Common_Model {
         // Formatage des colonnes numériques après les calculs
         $tables['charges'] = $this->format_numeric_columns($tables['charges'], 2, $html);
         $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
-        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 1, $html); // Résultat commence à col 1 (pas de Code)
+        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html); // Ne pas formater la colonne 1 (Charges/Produits/Total)
 
         return $tables;
     }
@@ -1428,9 +1428,9 @@ class Comptes_model extends Common_Model {
         $header_offset = 2; // Code + Comptes
 
         // Calculer les totaux par section ET les totaux globaux
-        $total_produits = ["", "Total des recettes"];
-        $total_charges = ["", "Total des dépenses"];
-        $total_resultat = ["", "Résultat"];
+        $total_charges = ["", "Charges"];
+        $total_produits = ["", "Produits"];
+        $total_resultat = ["", "Total"];
 
         // Pour chaque colonne de section + total
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
@@ -1455,8 +1455,8 @@ class Comptes_model extends Common_Model {
             $total_resultat[] = $sum_resultat;
         }
 
-        $resultat[] = $total_produits;
         $resultat[] = $total_charges;
+        $resultat[] = $total_produits;
         $resultat[] = $total_resultat;
 
         return $resultat;

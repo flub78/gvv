@@ -109,6 +109,30 @@ $url = controller_url($controller);
     .resultat-table tbody tr td:first-child {
         text-align: center;
     }
+
+    /* Bordures verticales entre sections */
+    .resultat-table thead th.section-border-left {
+        border-left: 3px solid #8b939a !important;
+    }
+    .resultat-table tbody tr td.section-border-left {
+        border-left: 3px solid #8b939a !important;
+    }
+
+    /* Bordure verticale après Libellé (2ème colonne pour tableaux avec Code et Libellé) */
+    .resultat-table thead th:nth-child(2).col-label {
+        border-right: 3px solid #8b939a !important;
+    }
+    .resultat-table tbody tr td:nth-child(2).col-label {
+        border-right: 3px solid #8b939a !important;
+    }
+
+    /* Bordure verticale après la colonne de titre (1ère colonne si tableau sans Code/Libellé) */
+    .resultat-table thead th:nth-child(1).col-label:only-of-type {
+        border-right: 3px solid #8b939a !important;
+    }
+    .resultat-table tbody tr td:nth-child(1).col-label:only-of-type {
+        border-right: 3px solid #8b939a !important;
+    }
 </style>
 
 <?php
@@ -116,9 +140,10 @@ $url = controller_url($controller);
  * Fonction helper pour générer un tableau avec en-tête sur deux lignes
  * @param array $data Les données (ligne 0 = en-tête original)
  * @param string $table_class Classe CSS du tableau
+ * @param bool $skip_label_cols Si true, supprime les colonnes Code et Libellé
  * @return string HTML du tableau
  */
-function render_two_line_header_table($data, $table_class = 'resultat-table') {
+function render_two_line_header_table($data, $table_class = 'resultat-table', $skip_label_cols = false) {
     if (empty($data)) {
         return '<p class="text-muted">Aucune donnée disponible</p>';
     }
@@ -131,7 +156,8 @@ function render_two_line_header_table($data, $table_class = 'resultat-table') {
     $sections = [];
     $current_section = null;
 
-    for ($i = 2; $i < count($header); $i++) {
+    $start_col = $skip_label_cols ? 0 : 2;
+    for ($i = $start_col; $i < count($header); $i++) {
         $col_name = $header[$i];
         // Extraire section et année
         if (preg_match('/^(.+?)\s+(\d{4})$/', $col_name, $matches)) {
@@ -160,20 +186,27 @@ function render_two_line_header_table($data, $table_class = 'resultat-table') {
 
     // Ligne 1 : Sections
     $html .= "<tr>\n";
-    $html .= "<th rowspan=\"2\" class=\"col-label\">Code</th>\n";
-    $html .= "<th rowspan=\"2\" class=\"col-label\">Libellé</th>\n";
-    foreach ($sections as $section) {
+    if (!$skip_label_cols) {
+        $html .= "<th rowspan=\"2\" class=\"col-label\">Code</th>\n";
+        $html .= "<th rowspan=\"2\" class=\"col-label\">Libellé</th>\n";
+    } else {
+        // Pour le tableau Total, une colonne de titre vide
+        $html .= "<th rowspan=\"2\" class=\"col-label\"></th>\n";
+    }
+    foreach ($sections as $section_idx => $section) {
         $colspan = count($section['years']);
-        $html .= "<th colspan=\"{$colspan}\" class=\"section-header\">{$section['name']}</th>\n";
+        $border_class = ($section_idx > 0 || $skip_label_cols) ? ' section-border-left' : '';
+        $html .= "<th colspan=\"{$colspan}\" class=\"section-header{$border_class}\">{$section['name']}</th>\n";
     }
     $html .= "</tr>\n";
 
     // Ligne 2 : Années
     $html .= "<tr>\n";
-    foreach ($sections as $section) {
+    foreach ($sections as $section_idx => $section) {
         foreach ($section['years'] as $idx => $year) {
             $class = ($idx % 2 == 0) ? 'year-current' : 'year-previous';
-            $html .= "<th class=\"{$class}\">{$year}</th>\n";
+            $border_class = ($section_idx > 0 && $idx == 0) ? ' section-border-left' : '';
+            $html .= "<th class=\"{$class}{$border_class}\">{$year}</th>\n";
         }
     }
     $html .= "</tr>\n";
@@ -184,13 +217,33 @@ function render_two_line_header_table($data, $table_class = 'resultat-table') {
     foreach ($rows as $row) {
         $html .= "<tr>\n";
         foreach ($row as $col_idx => $cell_value) {
-            if ($col_idx < 2) {
-                // Colonnes Code et Libellé
+            if ($col_idx == 0 && $skip_label_cols) {
+                // Sauter la colonne 0 (vide) pour le tableau Total
+                continue;
+            } else if ($col_idx == 1 && $skip_label_cols) {
+                // Colonne de titre pour le tableau Total (Charges, Produits, Total)
                 $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
-            } else {
+            } else if ($col_idx < 2 && !$skip_label_cols) {
+                // Colonnes Code et Libellé (tableaux normaux)
+                $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
+            } else if ($col_idx >= 2) {
                 // Colonnes numériques
-                $year_class = (($col_idx - 2) % 2 == 0) ? 'year-current' : 'year-previous';
-                $html .= "<td class=\"col-numeric {$year_class}\">{$cell_value}</td>\n";
+                $data_col = $skip_label_cols ? ($col_idx - 2) : ($col_idx - 2);
+                $year_class = ($data_col % 2 == 0) ? 'year-current' : 'year-previous';
+
+                // Déterminer si c'est le début d'une nouvelle section (bordure gauche)
+                $section_start_col = 0;
+                $border_class = '';
+                foreach ($sections as $section_idx => $section) {
+                    $years_count = count($section['years']);
+                    if ($data_col == $section_start_col && ($section_idx > 0 || $skip_label_cols)) {
+                        $border_class = ' section-border-left';
+                        break;
+                    }
+                    $section_start_col += $years_count;
+                }
+
+                $html .= "<td class=\"col-numeric {$year_class}{$border_class}\">{$cell_value}</td>\n";
             }
         }
         $html .= "</tr>\n";
