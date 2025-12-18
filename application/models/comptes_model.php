@@ -1174,15 +1174,13 @@ class Comptes_model extends Common_Model {
 
         $sections = $this->sections_model->section_list();
 
-        // En-tête avec années suffixées
+        // En-tête avec années groupées par section (N et N-1 adjacentes)
         $header = ['Code', 'Comptes'];
         foreach ($sections as $section) {
-            $header[] = $section['acronyme'] . ' ' . $year_current;
+            $header[] = $section['nom'] . ' ' . $year_current;
+            $header[] = $section['nom'] . ' ' . $year_prev;
         }
         $header[] = 'Total Club ' . $year_current;
-        foreach ($sections as $section) {
-            $header[] = $section['acronyme'] . ' ' . $year_prev;
-        }
         $header[] = 'Total Club ' . $year_prev;
 
         $table = [$header];
@@ -1204,7 +1202,7 @@ class Comptes_model extends Common_Model {
             $total_current = 0.0;
             $total_prev = 0.0;
 
-            // Montants par section calculés à l'année comme dans /comptes/resultat
+            // Montants par section : année N et N-1 adjacentes pour chaque section
             $is_charge = (substr($codec, 0, 1) == '6');
             foreach ($sections as $section) {
                 $sid = $section['id'];
@@ -1217,22 +1215,13 @@ class Comptes_model extends Common_Model {
                 $total_current += $amount_current;
                 $total_prev += $amount_prev;
 
-                // Retourner les valeurs brutes (float) sans formatage
+                // Année N puis année N-1 pour cette section
                 $row[] = $amount_current;
+                $row[] = $amount_prev;
             }
 
-            // Total club pour l'année courante (float)
+            // Totaux club : année N puis année N-1
             $row[] = $total_current;
-
-            // Ajout des montants année précédente par section (float)
-            foreach ($sections as $section) {
-                $sid = $section['id'];
-                $amount_prev_raw2 = $this->year_amount_codec_section($codec, $year_prev, $sid, $is_charge);
-                $amount_prev2 = $amount_prev_raw2 * $factor;
-                $row[] = $amount_prev2;
-            }
-
-            // Total club pour l'année précédente (float)
             $row[] = $total_prev;
 
             $table[] = $row;
@@ -1515,15 +1504,13 @@ class Comptes_model extends Common_Model {
 
         $sections = $this->sections_model->section_list();
 
-        // En-tête
+        // En-tête avec années groupées par section (N et N-1 adjacentes)
         $header = ["Code", "Libellé"];
         foreach ($sections as $section) {
-            $header[] = $section['acronyme'] . ' ' . $year_current;
+            $header[] = $section['nom'] . ' ' . $year_current;
+            $header[] = $section['nom'] . ' ' . $year_prev;
         }
         $header[] = "Total Club " . $year_current;
-        foreach ($sections as $section) {
-            $header[] = $section['acronyme'] . ' ' . $year_prev;
-        }
         $header[] = "Total Club " . $year_prev;
 
         $table = [$header];
@@ -1535,6 +1522,7 @@ class Comptes_model extends Common_Model {
             $total_current = 0.0;
             $total_prev = 0.0;
 
+            // Montants par section : année N et N-1 adjacentes pour chaque section
             foreach ($sections as $section) {
                 $sid = $section['id'];
                 // Calcul par compte spécifique (pas par codec global)
@@ -1547,22 +1535,13 @@ class Comptes_model extends Common_Model {
                 $total_current += $amount_current;
                 $total_prev += $amount_prev;
 
-                // Retourner les valeurs brutes (float)
+                // Année N puis année N-1 pour cette section
                 $row[] = $amount_current;
+                $row[] = $amount_prev;
             }
 
-            // Total club année courante (float)
+            // Totaux club : année N puis année N-1
             $row[] = $total_current;
-
-            // Montants année précédente (float)
-            foreach ($sections as $section) {
-                $sid = $section['id'];
-                $amount_prev_raw2 = $this->year_amount_compte_section($compte_id, $year_prev, $sid);
-                $amount_prev2 = $amount_prev_raw2 * $factor;
-                $row[] = $amount_prev2;
-            }
-
-            // Total club année précédente (float)
             $row[] = $total_prev;
 
             $table[] = $row;
