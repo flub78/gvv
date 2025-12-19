@@ -771,6 +771,8 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['acronyme']['Name'] = 'Acronyme';
                 $this->field['sections']['couleur']['Name'] = 'Couleur';
                 $this->field['sections']['couleur']['Subtype'] = 'color';
+                $this->field['sections']['ordre_affichage']['Name'] = 'Ordre d\'affichage';
+                $this->field['sections']['ordre_affichage']['Type'] = 'int';
 
                 /**
                  * Vue sections
@@ -782,6 +784,8 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_sections']['acronyme']['Name'] = 'Acronyme';
                 $this->field['vue_sections']['couleur']['Name'] = 'Couleur';
                 $this->field['vue_sections']['couleur']['Subtype'] = 'color';
+                $this->field['vue_sections']['ordre_affichage']['Name'] = 'Ordre d\'affichage';
+                $this->field['vue_sections']['ordre_affichage']['Type'] = 'int';
 
                 /**
                  * Vols de découverte

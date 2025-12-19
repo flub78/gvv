@@ -51,7 +51,8 @@ $this->lang->load('sections');
 					'nom' => $nom,
 					'description' => $description,
 					'acronyme' => $acronyme,
-					'couleur' => $couleur
+					'couleur' => $couleur,
+					'ordre_affichage' => $ordre_affichage
 				))); ?>
 
 				<?= validation_button($action); ?>

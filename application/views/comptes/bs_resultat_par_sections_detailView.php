@@ -216,6 +216,7 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
     $html .= "<tbody>\n";
     foreach ($rows as $row) {
         $html .= "<tr>\n";
+        $compte_id = null;
         foreach ($row as $col_idx => $cell_value) {
             if ($col_idx == 0 && $skip_label_cols) {
                 // Sauter la colonne 0 (vide) pour le tableau Total
@@ -223,12 +224,24 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
             } else if ($col_idx == 1 && $skip_label_cols) {
                 // Colonne de titre pour le tableau Total (Charges, Produits, Total)
                 $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
-            } else if ($col_idx < 2 && !$skip_label_cols) {
-                // Colonnes Code et Libellé (tableaux normaux)
+            } else if ($col_idx == 0 && !$skip_label_cols) {
+                // Colonne Code (tableaux normaux)
                 $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
-            } else if ($col_idx >= 2) {
+            } else if ($col_idx == 1 && !$skip_label_cols) {
+                // Colonne Libellé avec lien vers journal_compte (tableaux normaux)
+                $compte_id = isset($row[2]) ? $row[2] : null;
+                if ($compte_id) {
+                    $url = site_url("compta/journal_compte/{$compte_id}");
+                    $html .= "<td class=\"col-label\"><a href=\"{$url}\">{$cell_value}</a></td>\n";
+                } else {
+                    $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
+                }
+            } else if ($col_idx == 2 && !$skip_label_cols) {
+                // Colonne ID (cachée)
+                continue;
+            } else if ($col_idx >= 3 || ($col_idx >= 2 && $skip_label_cols)) {
                 // Colonnes numériques
-                $data_col = $skip_label_cols ? ($col_idx - 2) : ($col_idx - 2);
+                $data_col = $skip_label_cols ? ($col_idx - 2) : ($col_idx - 3);
                 $year_class = ($data_col % 2 == 0) ? 'year-current' : 'year-previous';
 
                 // Déterminer si c'est le début d'une nouvelle section (bordure gauche)

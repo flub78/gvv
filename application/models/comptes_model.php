@@ -624,9 +624,12 @@ class Comptes_model extends Common_Model {
      * @param array $selection Filtering criteria for selecting accounts
      * @param string $balance_date Date for calculating account balances
      * @param float $factor Multiplication factor for balance values (default: 1)
+     * @param bool $with_sections Whether to filter by selected section
+     * @param bool $html Whether to create HTML links
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array Table of account data with sections and totals
      */
-    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
+    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = true) {
 
         $table = [];
         $title = ["Code", "Comptes"];
@@ -646,8 +649,9 @@ class Comptes_model extends Common_Model {
             ->get()->result_array();
 
         $sections = $this->sections_model->section_list();
+        $section_field = $use_full_names ? 'nom' : 'acronyme';
         foreach ($sections as $section) {
-            $title[] = $section['acronyme'];
+            $title[] = $section[$section_field];
         }
         $title[] = "Total Club";
         $table[] = $title;
@@ -717,22 +721,25 @@ class Comptes_model extends Common_Model {
 
     /**
      * Computes the financial result by comparing charges and products across different sections
-     * 
+     *
      * @param array $charges The list of expense entries for each section
      * @param array $produits The list of income/product entries for each section
+     * @param bool $html Whether to format for HTML display
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array A table representing the financial result with totals per section
      */
-    function compute_resultat($charges, $produits, $html = false) {
+    function compute_resultat($charges, $produits, $html = false, $use_full_names = true) {
         $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
         $header_count = 1;
+        $section_field = $use_full_names ? 'nom' : 'acronyme';
 
         $resultat = [];
-        
+
         // Construction de l'en-tête avec les vrais noms des sections depuis la base de données
         $title = [''];
         foreach ($sections as $section) {
-            $title[] = $section['acronyme'];
+            $title[] = $section[$section_field];
         }
         $title[] = "Total Club";
         $resultat[] = $title;
@@ -770,15 +777,18 @@ class Comptes_model extends Common_Model {
 
     /**
      * Computes the available financial resources for a given balance date
-     * 
+     *
      * @param string $balance_date The date for which to calculate available funds
+     * @param bool $html Whether to format for HTML display
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array A table representing available financial resources by section
      */
-    function compute_disponible($balance_date, $html = false) {
+    function compute_disponible($balance_date, $html = false, $use_full_names = true) {
         // les sections
         $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
         $header_count = 1;
+        $section_field = $use_full_names ? 'nom' : 'acronyme';
 
         $date_op = date_ht2db($balance_date);
 
@@ -845,7 +855,7 @@ class Comptes_model extends Common_Model {
 
         foreach ($sections as $section) {
             // Les colonnes de section
-            $title[] = $section['acronyme'];
+            $title[] = $section[$section_field];
 
             $solde_banque = $this->total_of($this->ecritures_model->select_solde($date_op, 5, 6, TRUE, $section['id'])) * -1;
             $banques[] = $this->format_currency($solde_banque, false);
@@ -994,27 +1004,29 @@ class Comptes_model extends Common_Model {
 
     /**
      * Retrieves and processes expense and income entries for a specific balance date
-     * 
+     *
      * @param string $balance_date The date for which to retrieve financial entries
+     * @param bool $html Whether to format for HTML display
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array A collection of financial tables including charges, products, results, and available funds
      */
-    function select_charges_et_produits($balance_date, $html = false) {
+    function select_charges_et_produits($balance_date, $html = false, $use_full_names = true) {
 
         $this->load->model('comptes_model');
 
         // listes des comptes de dépenses et de recettes
         $tables = [];
-        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1, false, false);
-        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date, 1, false, false);
+        $tables['charges'] = $this->select_par_section('codec >= "6" and codec < "7"', $balance_date, -1, false, false, $use_full_names);
+        $tables['produits'] = $this->select_par_section('codec >= "7" and codec < "8"', $balance_date, 1, false, false, $use_full_names);
 
-        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], $html);
+        $tables['resultat'] = $this->compute_resultat($tables['charges'], $tables['produits'], $html, $use_full_names);
 
         if ($html) {
             $this->format_table_html($tables['charges']);
             $this->format_table_html($tables['produits']);
         }
 
-        $dispo = $this->compute_disponible($balance_date, $html);
+        $dispo = $this->compute_disponible($balance_date, $html, $use_full_names);
         $tables['disponible'] = $dispo['disponible'];
         $tables['dettes'] = $dispo['dettes'];
 
@@ -1135,9 +1147,10 @@ class Comptes_model extends Common_Model {
      * @param float $factor Multiplication factor for balance values (default: 1)
      * @param bool $with_sections Whether to filter by selected section
      * @param bool $html Whether to create HTML links for codes (formatting is done separately)
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array Table with raw float data for current year and previous year side by side
      */
-    function select_par_section_deux_annees($selection, $balance_date, $factor = 1, $with_sections = true, $html = false) {
+    function select_par_section_deux_annees($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = false) {
         // Détermine les années et bornes de période (accepte JJ/MM/AAAA ou AAAA-MM-JJ)
         $year_current = 0;
         $date_parts = explode('/', $balance_date);
@@ -1176,9 +1189,10 @@ class Comptes_model extends Common_Model {
 
         // En-tête avec années groupées par section (N et N-1 adjacentes)
         $header = ['Code', 'Comptes'];
+        $section_field = $use_full_names ? 'nom' : 'acronyme';
         foreach ($sections as $section) {
-            $header[] = $section['nom'] . ' ' . $year_current;
-            $header[] = $section['nom'] . ' ' . $year_prev;
+            $header[] = $section[$section_field] . ' ' . $year_current;
+            $header[] = $section[$section_field] . ' ' . $year_prev;
         }
         $header[] = 'Total Club ' . $year_current;
         $header[] = 'Total Club ' . $year_prev;
@@ -1378,17 +1392,18 @@ class Comptes_model extends Common_Model {
      *
      * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
      * @param bool $html Whether to format for HTML display
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array Array with 'charges', 'produits', and 'resultat' tables for two years
      */
-    function select_resultat_par_sections_deux_annees($balance_date, $html = false) {
+    function select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
         $this->load->model('comptes_model');
 
         // Récupération des charges et produits pour deux années (données brutes en float)
         // Les charges sont affichées en positif (facteur = 1) pour la présentation
         // Le paramètre $html est utilisé uniquement pour créer les liens dans la colonne Code
         $tables = [];
-        $tables['charges'] = $this->select_par_section_deux_annees('codec >= "6" and codec < "7"', $balance_date, 1, false, $html);
-        $tables['produits'] = $this->select_par_section_deux_annees('codec >= "7" and codec < "8"', $balance_date, 1, false, $html);
+        $tables['charges'] = $this->select_par_section_deux_annees('codec >= "6" and codec < "7"', $balance_date, 1, false, $html, $use_full_names);
+        $tables['produits'] = $this->select_par_section_deux_annees('codec >= "7" and codec < "8"', $balance_date, 1, false, $html, $use_full_names);
 
         // Calcul du résultat pour les deux années (sur les données brutes)
         $tables['resultat'] = $this->compute_resultat_deux_annees($tables['charges'], $tables['produits']);
@@ -1471,9 +1486,10 @@ class Comptes_model extends Common_Model {
      * @param string $codec Le codec dont on veut le détail (ex: "606", "701")
      * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
      * @param float $factor Multiplication factor for balance values (default: 1)
+     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array Table with raw float data for detailed accounts of the codec for two years
      */
-    function select_detail_codec_deux_annees($codec, $balance_date, $factor = 1) {
+    function select_detail_codec_deux_annees($codec, $balance_date, $factor = 1, $use_full_names = false) {
         // Années et bornes de périodes (accepte JJ/MM/AAAA ou AAAA-MM-JJ)
         $year_current = 0;
         $date_parts = explode('/', $balance_date);
@@ -1506,9 +1522,10 @@ class Comptes_model extends Common_Model {
 
         // En-tête avec années groupées par section (N et N-1 adjacentes)
         $header = ["Code", "Libellé"];
+        $section_field = $use_full_names ? 'nom' : 'acronyme';
         foreach ($sections as $section) {
-            $header[] = $section['nom'] . ' ' . $year_current;
-            $header[] = $section['nom'] . ' ' . $year_prev;
+            $header[] = $section[$section_field] . ' ' . $year_current;
+            $header[] = $section[$section_field] . ' ' . $year_prev;
         }
         $header[] = "Total Club " . $year_current;
         $header[] = "Total Club " . $year_prev;
@@ -1517,7 +1534,7 @@ class Comptes_model extends Common_Model {
 
         foreach ($res as $compte) {
             $compte_id = $compte['id'];
-            $row = [$compte['codec'], $compte['nom']];
+            $row = [$compte['codec'], $compte['nom'], $compte_id];
 
             $total_current = 0.0;
             $total_prev = 0.0;

@@ -1553,8 +1553,9 @@ class Comptes extends Gvv_Controller {
 
         // Récupération des données pour deux années
         $html = ($mode == "html");
-        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html);
-        
+        $use_full_names = true; // Utiliser les noms complets partout (HTML, PDF, CSV)
+        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names);
+
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
         $this->data['resultat'] = $tables['resultat'];
@@ -1613,11 +1614,12 @@ class Comptes extends Gvv_Controller {
         $factor = 1;
 
         // Récupération des données de détail pour deux années (données brutes en float)
-        $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor);
+        $use_full_names = true; // Utiliser les noms complets partout (HTML, PDF, CSV)
+        $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor, $use_full_names);
 
         // Formatage selon le mode d'affichage
         $html = ($mode == "html");
-        $detail = $this->gvv_model->format_numeric_columns($detail, 2, $html);
+        $detail = $this->gvv_model->format_numeric_columns($detail, 3, $html);
 
         $this->data['detail'] = $detail;
         $this->data['is_charge'] = $is_charge;

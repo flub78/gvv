@@ -21,19 +21,57 @@ class Sections_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, nom, description, acronyme, couleur');
+        $select = $this->select_columns('id, nom, description, acronyme, couleur, ordre_affichage');
+        $this->db->order_by('ordre_affichage', 'asc');
+        $this->db->order_by('nom', 'asc');
         $this->gvvmetadata->store_table("vue_sections", $select);
         return $select;
     }
 
     /**
-     * Returns a list of sections ordered by nom
+     * Returns a list of sections ordered by ordre_affichage, then by nom
      */
     public function section_list() {
-        $this->db->select('id, nom, description, acronyme, couleur');
+        $this->db->select('id, nom, description, acronyme, couleur, ordre_affichage');
+        $this->db->order_by('ordre_affichage', 'asc');
         $this->db->order_by('nom', 'asc');
         $query = $this->db->get($this->table);
         return $query->result_array();
+    }
+
+    /**
+     * Overrides Common_Model selector to order by ordre_affichage
+     * Returns a hash for use in dropdown menus
+     * 
+     * @param array $where Selection criteria
+     * @param string $order Sort order (asc or desc)
+     * @param bool $filter_section Whether to filter by section
+     * @return array Hash array for dropdown
+     */
+    public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
+        $key = $this->primary_key;
+
+        $this->db->select($key)->from($this->table)->where($where);
+        
+        // Add ORDER BY for ordre_affichage, then nom
+        $this->db->order_by('ordre_affichage', 'asc');
+        $this->db->order_by('nom', 'asc');
+
+        if ($filter_section && $this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+        
+        $db_res = $this->db->get();
+        $allkeys = $this->get_to_array($db_res);
+
+        $result = array();
+        foreach ($allkeys as $row) {
+            $value = $row[$key];
+            $result[$value] = $this->image($value);
+        }
+        
+        // No need to sort again since ORDER BY is in the query
+        return $result;
     }
 
     /**
