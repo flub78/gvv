@@ -1560,6 +1560,20 @@ class Comptes extends Gvv_Controller {
         $this->data['produits'] = $tables['produits'];
         $this->data['resultat'] = $tables['resultat'];
 
+        // Ajout de la ligne de totaux aux tableaux charges et produits
+        // Les totaux sont dans le tableau resultat aux lignes 1 (Charges) et 2 (Produits)
+        if (count($this->data['resultat']) >= 3) {
+            // Copier la ligne des totaux des charges et modifier le libellé
+            $total_charges = $this->data['resultat'][1];
+            $total_charges[1] = "Total des charges";
+            $this->data['charges'][] = $total_charges;
+            
+            // Copier la ligne des totaux des produits et modifier le libellé
+            $total_produits = $this->data['resultat'][2];
+            $total_produits[1] = "Total des produits";
+            $this->data['produits'][] = $total_produits;
+        }
+
         // Gestion des exports
         if ($mode == "csv") {
             $this->csv_resultat_par_sections($this->data);
