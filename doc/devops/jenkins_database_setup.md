@@ -44,25 +44,7 @@ df -h /var/lib/mysql
 
 ### 1.1 Installer le serveur de base de données
 
-```bash
-# Mettre à jour les paquets
-sudo apt update
-
-# Installer MariaDB (compatible MySQL 5.x)
-sudo apt install -y mariadb-server mariadb-client
-
-# Vérifier l'installation
-sudo systemctl status mariadb
-
-# Activer le démarrage automatique
-sudo systemctl enable mariadb
-```
-
-**Résultat attendu** :
-```
-● mariadb.service - MariaDB 10.x database server
-   Active: active (running)
-```
+mysql is already installed.
 
 ### 1.2 Sécuriser l'installation MySQL
 
@@ -592,11 +574,11 @@ mysql -u gvv_user -plfoyfgbj gvv2 -e \
 
 Avant de marquer l'installation comme terminée, vérifiez :
 
-- [ ] MySQL/MariaDB démarre automatiquement : `sudo systemctl status mariadb`
-- [ ] Connexion root MySQL fonctionne : `sudo mysql -u root -p`
-- [ ] Base de données `gvv2` existe : `mysql -u gvv_user -plfoyfgbj -e "SHOW DATABASES;"`
-- [ ] Utilisateur `gvv_user` peut se connecter : `mysql -u gvv_user -plfoyfgbj gvv2`
-- [ ] Tables GVV existent : `mysql -u gvv_user -plfoyfgbj gvv2 -e "SHOW TABLES;"`
+- [x] MySQL/MariaDB démarre automatiquement : `sudo systemctl status mariadb`
+- [x] Connexion root MySQL fonctionne : `sudo mysql -u root -p`
+- [x] Base de données `gvv2` existe : `mysql -u gvv_user -plfoyfgbj -e "SHOW DATABASES;"`
+- [x] Utilisateur `gvv_user` peut se connecter : `mysql -u gvv_user -plfoyfgbj gvv2`
+- [x] Tables GVV existent : `mysql -u gvv_user -plfoyfgbj gvv2 -e "SHOW TABLES;"`
 - [ ] Migrations à jour : `mysql -u gvv_user -plfoyfgbj gvv2 -e "SELECT * FROM migrations;"`
 - [ ] Utilisateurs de test créés : `mysql -u gvv_user -plfoyfgbj gvv2 -e "SELECT username FROM users WHERE username LIKE 'test%';"`
 - [ ] phpMyAdmin accessible : http://votre-serveur/phpmyadmin
