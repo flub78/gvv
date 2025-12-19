@@ -47,7 +47,17 @@ class Admin extends CI_Controller {
      *            string type structure | "" = sauvegarde complète
      */
     public function backup($type = "") {
-        $this->database->backup2($type);
+        // Get encryption parameters from POST
+        $encrypt = $this->input->post('encrypt_backup');
+        $passphrase = $this->input->post('passphrase');
+
+        // If type is passed via POST (from form), use it
+        $post_type = $this->input->post('type');
+        if ($post_type !== false && $post_type !== null) {
+            $type = $post_type;
+        }
+
+        $this->database->backup2($type, $encrypt, $passphrase);
     }
 
     /**
@@ -55,6 +65,11 @@ class Admin extends CI_Controller {
      */
     public function backup_media() {
         $this->load->helper('file');
+        $this->load->helper('crypto');
+        
+        // Get encryption parameters from POST
+        $encrypt = $this->input->post('encrypt_backup');
+        $passphrase = $this->input->post('passphrase');
         
         // Path to uploads directory (excluding restore subdirectory)
         $uploads_path = './uploads';
@@ -107,8 +122,28 @@ class Admin extends CI_Controller {
         exec($command, $output, $return_code);
         gvv_info("Backup media return code: " . $return_code . ", Output: " . implode("\n", $output));
 
-        // if ($return_code == 0 && file_exists($full_backup_path)) {
         if ($return_code == 0) {
+            // If encryption is requested, encrypt the file
+            if ($encrypt) {
+                $encrypted_filename = get_encrypted_filename($filename);
+                $encrypted_filepath = $backupdir . '/' . $encrypted_filename;
+                
+                gvv_info("Encrypting backup: $filepath to $encrypted_filepath");
+                
+                if (encrypt_file($filepath, $encrypted_filepath, $passphrase)) {
+                    // Remove unencrypted file
+                    unlink($filepath);
+                    
+                    // Update filepath and filename to encrypted version
+                    $filepath = $encrypted_filepath;
+                    $filename = $encrypted_filename;
+                    gvv_info("Backup encrypted successfully");
+                } else {
+                    show_error('Erreur lors du chiffrement de la sauvegarde');
+                    return;
+                }
+            }
+            
             // Memory-efficient streaming download instead of loading entire file into memory
             $this->stream_file_download($filepath, $filename);
             
@@ -235,6 +270,8 @@ class Admin extends CI_Controller {
      * TODO utiliser le helper database
      */
     public function do_restore() {
+        $this->load->helper('crypto');
+        
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
             if (! mkdir($upload_path)) {
@@ -249,10 +286,14 @@ class Admin extends CI_Controller {
                 unlink($file); // delete file
         }
 
+        // Get passphrase from POST
+        $passphrase = $this->input->post('passphrase');
+
         // upload archive
         $config['upload_path'] = $upload_path;
-        $config['allowed_types'] = 'zip|gz';
+        $config['allowed_types'] = '*'; // Allow all types, we'll validate manually
         $config['max_size'] = '1500';
+        $config['file_ext_tolower'] = FALSE; // Don't force lowercase for .enc.zip detection
 
         $this->load->library('upload', $config);
 
@@ -270,11 +311,51 @@ class Admin extends CI_Controller {
             // on a rechargé la sauvegarde
             $data = $this->upload->data();
 
+            // Manual validation: ensure we only accept database backup files
+            $orig_name_lower = strtolower($data['orig_name']);
+            // Accept .zip, .enc.zip but NOT .tar.gz (media backups)
+            $is_valid_backup = preg_match('/\.(enc\.)?(zip|sql\.gz)$/i', $orig_name_lower) ||
+                              (preg_match('/\.gz$/i', $orig_name_lower) && !preg_match('/\.tar\.gz$/i', $orig_name_lower));
+
+            if (!$is_valid_backup) {
+                // Remove uploaded file and show error
+                $filename = $config['upload_path'] . $data['file_name'];
+                unlink($filename);
+                $error = array(
+                    'error' => 'Seuls les fichiers de sauvegarde (.zip, .gz, .enc.zip, .enc.gz) sont autorisés.',
+                    'erase_db' => 1
+                );
+                load_last_view('admin/restore_form', $error);
+                return;
+            }
+
             $this->load->library('unzip');
             $filename = $config['upload_path'] . $data['file_name'];
-            // echo $filename . br();
             $orig_name = $config['upload_path'] . $data['orig_name'];
-            // echo $orig_name . br();
+
+            // Check if file is encrypted
+            if (is_encrypted_backup($data['file_name'])) {
+                gvv_info("do_restore: Encrypted backup detected: " . $data['file_name']);
+                
+                // Decrypt the file
+                $decrypted_filename = $upload_path . get_decrypted_filename($data['file_name']);
+                
+                if (decrypt_file($filename, $decrypted_filename, $passphrase)) {
+                    gvv_info("do_restore: Successfully decrypted to $decrypted_filename");
+                    
+                    // Remove encrypted file and use decrypted one
+                    unlink($filename);
+                    $filename = $decrypted_filename;
+                    $orig_name = $upload_path . get_decrypted_filename($data['orig_name']);
+                } else {
+                    $error = array(
+                        'error' => 'Erreur lors du déchiffrement de la sauvegarde. Vérifiez la passphrase.',
+                        'erase_db' => 1
+                    );
+                    load_last_view('admin/restore_form', $error);
+                    return;
+                }
+            }
 
             // Les fichiers standards de backup sont des zip même sous Linux
             $this->unzip->extract($filename, $upload_path);
@@ -306,6 +387,8 @@ class Admin extends CI_Controller {
      * Restaure les fichiers média
      */
     public function do_restore_media() {
+        $this->load->helper('crypto');
+
         $upload_path = './uploads/restore/';
         if (! file_exists($upload_path)) {
             if (! mkdir($upload_path, 0755, true)) {
@@ -331,6 +414,7 @@ class Admin extends CI_Controller {
         $this->load->library('upload', $config);
 
         $merge_media = $this->input->post('merge_media');
+        $passphrase = $this->input->post('passphrase');
 
         // Debug: Log what we receive
         gvv_info("Media restore - POST data: " . print_r($_POST, true));
@@ -419,13 +503,40 @@ class Admin extends CI_Controller {
         } else {
             $data = $this->upload->data();
             $filename = $config['upload_path'] . $data['file_name'];
-            
+
+            // Check if file is encrypted and decrypt if necessary
+            if (is_encrypted_backup($data['file_name'])) {
+                gvv_info("do_restore_media: Encrypted backup detected: " . $data['file_name']);
+
+                // Decrypt the file
+                $decrypted_filename = $upload_path . get_decrypted_filename($data['file_name']);
+
+                if (decrypt_file($filename, $decrypted_filename, $passphrase)) {
+                    gvv_info("do_restore_media: Successfully decrypted to $decrypted_filename");
+
+                    // Remove encrypted file and use decrypted one
+                    unlink($filename);
+                    $filename = $decrypted_filename;
+
+                    // Update data with decrypted filename
+                    $data['file_name'] = basename($decrypted_filename);
+                    $data['orig_name'] = get_decrypted_filename($data['orig_name']);
+                } else {
+                    $error = array(
+                        'error' => 'Erreur lors du déchiffrement de la sauvegarde des médias. Vérifiez la passphrase.',
+                        'merge_media' => 1
+                    );
+                    load_last_view('admin/restore_form', $error);
+                    return;
+                }
+            }
+
             // Custom validation: ensure we only accept archive files
             $file_ext = strtolower(pathinfo($data['orig_name'], PATHINFO_EXTENSION));
             $orig_name_lower = strtolower($data['orig_name']);
-            
+
             // Check if it's a valid archive file
-            $is_valid_archive = in_array($file_ext, ['tar', 'gz', 'tgz']) || 
+            $is_valid_archive = in_array($file_ext, ['tar', 'gz', 'tgz']) ||
                                strpos($orig_name_lower, '.tar.gz') !== false ||
                                strpos($orig_name_lower, '.tar') !== false;
             

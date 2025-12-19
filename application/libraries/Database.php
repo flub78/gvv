@@ -162,9 +162,14 @@ class Database {
 		force_download($filename, $backup);
 	}
 
-	public function backup2() {
+	public function backup2($type = "", $encrypt = false, $passphrase = null) {
 
 		gvv_info("backup: ");
+
+		// Load crypto helper for encryption if needed
+		if ($encrypt) {
+			$this->CI->load->helper('crypto');
+		}
 
 		if (PHP_OS == "WINNT") {
 			$mysqldump = 'c:\xampp_php8\mysql\bin\mysqldump.exe';
@@ -274,11 +279,30 @@ class Database {
 
 		unlink($filename);
 
+		// If encryption is requested, encrypt the file
+		$final_filename = $zipname;
+		if ($encrypt) {
+			$encrypted_filename = get_encrypted_filename($zipname);
+			
+			gvv_info("backup: Encrypting $zipname to $encrypted_filename");
+			
+			if (encrypt_file($zipname, $encrypted_filename, $passphrase)) {
+				// Remove unencrypted file
+				unlink($zipname);
+				$final_filename = $encrypted_filename;
+				gvv_info("backup: Encrypted successfully");
+			} else {
+				chdir($original_dir);
+				throw new Exception("Failed to encrypt backup file");
+			}
+		}
+
+		chdir($original_dir);
 		$this->CI->load->helper('download');
-		$this->stream_file_download($zipname, $zipname);
+		$this->stream_file_download($dirname . $final_filename, $final_filename);
 		
 		// Clean up the backup file after download
-		unlink($zipname);
+		unlink($dirname . $final_filename);
 	}
 
 	/*

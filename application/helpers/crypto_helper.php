@@ -156,3 +156,151 @@ if (!function_exists('modInverse')) {
         return $oldS;
     }
 }
+
+if (!function_exists('encrypt_file')) {
+    /**
+     * Chiffre un fichier avec OpenSSL AES-256-CBC
+     *
+     * @param string $input_file Chemin du fichier à chiffrer
+     * @param string $output_file Chemin du fichier chiffré (optionnel, par défaut ajoute .enc)
+     * @param string $passphrase Passphrase pour le chiffrement
+     * @return bool TRUE en cas de succès, FALSE sinon
+     */
+    function encrypt_file($input_file, $output_file = null, $passphrase = null) {
+        if (!file_exists($input_file)) {
+            gvv_error("encrypt_file: Input file does not exist: $input_file");
+            return false;
+        }
+
+        if (empty($passphrase)) {
+            $CI =& get_instance();
+            $passphrase = $CI->config->item('passphrase');
+            if (empty($passphrase)) {
+                gvv_error("encrypt_file: No passphrase provided and no default passphrase configured");
+                return false;
+            }
+        }
+
+        if ($output_file === null) {
+            $output_file = $input_file . '.enc';
+        }
+
+        // Use OpenSSL command line for encryption
+        // -aes-256-cbc: AES 256 bits in CBC mode
+        // -pbkdf2: Use PBKDF2 key derivation (more secure)
+        // -salt: Add salt (default, but explicit for clarity)
+        // -pass pass:xxx: Pass the passphrase directly
+        $command = sprintf(
+            'openssl enc -aes-256-cbc -pbkdf2 -salt -in %s -out %s -pass pass:%s',
+            escapeshellarg($input_file),
+            escapeshellarg($output_file),
+            escapeshellarg($passphrase)
+        );
+
+        gvv_debug("encrypt_file: Encrypting $input_file to $output_file");
+        exec($command, $output, $return_code);
+
+        if ($return_code !== 0) {
+            gvv_error("encrypt_file: OpenSSL encryption failed with code $return_code: " . implode("\n", $output));
+            return false;
+        }
+
+        if (!file_exists($output_file)) {
+            gvv_error("encrypt_file: Output file was not created: $output_file");
+            return false;
+        }
+
+        gvv_info("encrypt_file: Successfully encrypted $input_file to $output_file");
+        return true;
+    }
+}
+
+if (!function_exists('decrypt_file')) {
+    /**
+     * Déchiffre un fichier avec OpenSSL AES-256-CBC
+     *
+     * @param string $input_file Chemin du fichier chiffré
+     * @param string $output_file Chemin du fichier déchiffré
+     * @param string $passphrase Passphrase pour le déchiffrement
+     * @return bool TRUE en cas de succès, FALSE sinon
+     */
+    function decrypt_file($input_file, $output_file, $passphrase = null) {
+        if (!file_exists($input_file)) {
+            gvv_error("decrypt_file: Input file does not exist: $input_file");
+            return false;
+        }
+
+        if (empty($passphrase)) {
+            $CI =& get_instance();
+            $passphrase = $CI->config->item('passphrase');
+            if (empty($passphrase)) {
+                gvv_error("decrypt_file: No passphrase provided and no default passphrase configured");
+                return false;
+            }
+        }
+
+        // Use OpenSSL command line for decryption
+        // -d: Decrypt mode
+        // -aes-256-cbc: AES 256 bits in CBC mode
+        // -pbkdf2: Use PBKDF2 key derivation
+        // -pass pass:xxx: Pass the passphrase directly
+        $command = sprintf(
+            'openssl enc -d -aes-256-cbc -pbkdf2 -in %s -out %s -pass pass:%s',
+            escapeshellarg($input_file),
+            escapeshellarg($output_file),
+            escapeshellarg($passphrase)
+        );
+
+        gvv_debug("decrypt_file: Decrypting $input_file to $output_file");
+        exec($command, $output, $return_code);
+
+        if ($return_code !== 0) {
+            gvv_error("decrypt_file: OpenSSL decryption failed with code $return_code: " . implode("\n", $output));
+            return false;
+        }
+
+        if (!file_exists($output_file)) {
+            gvv_error("decrypt_file: Output file was not created: $output_file");
+            return false;
+        }
+
+        gvv_info("decrypt_file: Successfully decrypted $input_file to $output_file");
+        return true;
+    }
+}
+
+if (!function_exists('is_encrypted_backup')) {
+    /**
+     * Vérifie si un fichier est chiffré (basé sur l'extension)
+     *
+     * @param string $filename Nom du fichier
+     * @return bool TRUE si le fichier semble être chiffré, FALSE sinon
+     */
+    function is_encrypted_backup($filename) {
+        return preg_match('/\.enc\.(zip|tar\.gz|tgz|gz)$/i', $filename) === 1;
+    }
+}
+
+if (!function_exists('get_decrypted_filename')) {
+    /**
+     * Obtient le nom du fichier déchiffré à partir du nom du fichier chiffré
+     *
+     * @param string $encrypted_filename Nom du fichier chiffré (ex: backup.enc.zip)
+     * @return string Nom du fichier déchiffré (ex: backup.zip)
+     */
+    function get_decrypted_filename($encrypted_filename) {
+        return preg_replace('/\.enc\.(zip|tar\.gz|tgz|gz)$/i', '.$1', $encrypted_filename);
+    }
+}
+
+if (!function_exists('get_encrypted_filename')) {
+    /**
+     * Obtient le nom du fichier chiffré à partir du nom du fichier non chiffré
+     *
+     * @param string $plain_filename Nom du fichier non chiffré (ex: backup.zip)
+     * @return string Nom du fichier chiffré (ex: backup.enc.zip)
+     */
+    function get_encrypted_filename($plain_filename) {
+        return preg_replace('/\.(zip|tar\.gz|tgz|gz)$/i', '.enc.$1', $plain_filename);
+    }
+}

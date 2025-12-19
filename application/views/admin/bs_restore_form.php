@@ -58,8 +58,14 @@ echo p($this->lang->line("gvv_admin_db_select"));
 
 echo form_open_multipart('admin/do_restore');
 echo '<div class="mb-3">';
-echo '<label for="userfile" class="form-label">Fichier de sauvegarde (.zip ou .gz)</label>';
-echo '<input type="file" class="form-control" name="userfile" id="userfile" accept=".zip,.gz" />';
+echo '<label for="userfile" class="form-label">Fichier de sauvegarde (.zip, .gz ou .enc.zip, .enc.gz)</label>';
+echo '<input type="file" class="form-control" name="userfile" id="userfile" accept=".zip,.gz,.enc.zip,.enc.gz" />';
+echo '</div>';
+
+echo '<div class="mb-3">';
+echo '<label for="passphrase_restore" class="form-label">Passphrase (pour sauvegardes chiffrées)</label>';
+echo '<input type="password" class="form-control" name="passphrase" id="passphrase_restore" placeholder="Laisser vide pour utiliser la passphrase par défaut" />';
+echo '<div class="form-text">Requis uniquement pour les fichiers chiffrés (.enc.zip). Si vide, la passphrase configurée sera utilisée.</div>';
 echo '</div>';
 
 $checked = "";
@@ -98,8 +104,14 @@ echo '<p>Sélectionnez un fichier de sauvegarde des médias (formats acceptés: 
 echo form_open_multipart('admin/do_restore_media');
 echo '<div class="mb-3">';
 echo '<label for="userfile_media" class="form-label">Fichier de sauvegarde des médias</label>';
-echo '<input type="file" class="form-control" name="userfile" id="userfile_media" accept=".tar,.gz,.tgz,application/gzip,application/x-tar,application/x-gzip" />';
+echo '<input type="file" class="form-control" name="userfile" id="userfile_media" accept=".tar,.gz,.tgz,.enc.tar.gz,.enc.tgz,.enc.gz,application/gzip,application/x-tar,application/x-gzip" />';
 echo '<div class="form-text">Taille maximum autorisée par le serveur: ' . ini_get('upload_max_filesize') . '</div>';
+echo '</div>';
+
+echo '<div class="mb-3">';
+echo '<label for="passphrase_restore_media" class="form-label">Passphrase (pour sauvegardes chiffrées)</label>';
+echo '<input type="password" class="form-control" name="passphrase" id="passphrase_restore_media" placeholder="Laisser vide pour utiliser la passphrase par défaut" />';
+echo '<div class="form-text">Requis uniquement pour les fichiers chiffrés (.enc.tar.gz). Si vide, la passphrase configurée sera utilisée.</div>';
 echo '</div>';
 
 // Add JavaScript for client-side file size validation
