@@ -1618,10 +1618,35 @@ class Comptes extends Gvv_Controller {
         $detail = $this->gvv_model->select_detail_codec_deux_annees($codec, $this->data['balance_date'], $factor, $use_full_names);
 
         // Formatage selon le mode d'affichage
+        // Colonnes: Code, Libellé, compte_id (caché), Section, Year N, Year N-1
+        // Les colonnes numériques commencent à l'index 4
         $html = ($mode == "html");
-        $detail = $this->gvv_model->format_numeric_columns($detail, 3, $html);
+        $detail = $this->gvv_model->format_numeric_columns($detail, 4, $html);
 
-        $this->data['detail'] = $detail;
+        // Pour CSV et PDF, supprimer la colonne compte_id (index 2) qui est cachée
+        if ($mode == "csv" || $mode == "pdf") {
+            $detail_export = array();
+            foreach ($detail as $row_idx => $row) {
+                $export_row = array();
+                foreach ($row as $col_idx => $value) {
+                    // Pour la ligne d'en-tête (index 0), tout garder sauf pas de colonne ID
+                    // Pour les lignes de données, sauter la colonne compte_id (index 2)
+                    if ($row_idx == 0) {
+                        // En-tête: Code, Libellé, Section, N, N-1 (pas de compte_id)
+                        $export_row[] = $value;
+                    } else {
+                        // Données: sauter compte_id à l'index 2
+                        if ($col_idx == 2) continue;
+                        $export_row[] = $value;
+                    }
+                }
+                $detail_export[] = $export_row;
+            }
+            $this->data['detail'] = $detail_export;
+        } else {
+            $this->data['detail'] = $detail;
+        }
+
         $this->data['is_charge'] = $is_charge;
 
         // Gestion des exports
@@ -1739,7 +1764,7 @@ class Comptes extends Gvv_Controller {
             ''
         );
 
-        // Helper pour ajouter une section avec en-têtes à deux lignes
+        // Helper pour ajouter une section avec entêtes à deux lignes
         $add_section = function($section_title, $section_data, $skip_label_cols) use (&$csv_data) {
             $csv_data[] = [];
             $csv_data[] = [$section_title];
@@ -1963,10 +1988,10 @@ class Comptes extends Gvv_Controller {
 
         $csv_data = array();
         $csv_data[] = [$this->config->item('nom_club')];
+        // Structure: Code, Libellé, Section, N, N-1 (5 colonnes)
         $csv_data[] = array(
             $this->lang->line("comptes_label_date"),
             $data['balance_date'],
-            '',
             '',
             '',
             ''
@@ -1994,15 +2019,31 @@ class Comptes extends Gvv_Controller {
         $pdf->AddPage('L');
         $pdf->title($title, 1);
 
-        // Helper pour calculer les largeurs dynamiques (même que pour resultat_par_sections)
-        $compute_widths = function($cols, $leadingCols = 2) {
+        // Helper pour calculer les largeurs dynamiques
+        // Structure: Code (20), Libellé (70), Section (60), Year N (60), Year N-1 (60)
+        $compute_widths = function($cols, $leadingCols = 3) {
             $usable = 270;
             $w = array();
             if ($cols <= 0) return $w;
-            if ($leadingCols == 2) {
-                $w0 = 20; // code
-                $w1 = 90; // nom
-                $w[] = $w0; $w[] = $w1;
+            
+            if ($leadingCols == 3) {
+                // Nouvelle structure: Code, Libellé, Section
+                $w0 = 20;  // code
+                $w1 = 70;  // nom
+                $w2 = 60;  // section
+                $w[] = $w0; 
+                $w[] = $w1; 
+                $w[] = $w2;
+                $remain = $usable - $w0 - $w1 - $w2;
+                $rest = max(0, $cols - 3);
+                $each = ($rest > 0) ? ($remain / $rest) : 0;
+                for ($i = 0; $i < $rest; $i++) $w[] = $each;
+            } else if ($leadingCols == 2) {
+                // Ancienne structure: Code, Libellé (pour compatibilité)
+                $w0 = 20;  // code
+                $w1 = 90;  // nom
+                $w[] = $w0; 
+                $w[] = $w1;
                 $remain = $usable - $w0 - $w1;
                 $rest = max(0, $cols - 2);
                 $each = ($rest > 0) ? ($remain / $rest) : 0;
@@ -2011,7 +2052,7 @@ class Comptes extends Gvv_Controller {
             return $w;
         };
 
-        $compute_align = function($cols, $leadingCols = 2) {
+        $compute_align = function($cols, $leadingCols = 3) {
             $align = array();
             for ($i = 0; $i < $cols; $i++) {
                 if ($i < $leadingCols) $align[] = 'L'; else $align[] = 'R';
@@ -2025,7 +2066,7 @@ class Comptes extends Gvv_Controller {
             $pdf->title($section_label . ' - ' . $data['codec'] . ' ' . $data['codec_nom'], 2);
             $pdf->SetY($pdf->GetY() - 3);
             $cols = count($data['detail'][0]);
-            $pdf->table($compute_widths($cols, 2), 6, $compute_align($cols, 2), $data['detail']);
+            $pdf->table($compute_widths($cols, 3), 6, $compute_align($cols, 3), $data['detail']);
         }
 
         $pdf->Output();

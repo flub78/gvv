@@ -137,7 +137,86 @@ $url = controller_url($controller);
 
 <?php
 /**
- * Fonction helper pour générer un tableau avec en-tête sur deux lignes
+ * Fonction helper pour générer un tableau simplifié
+ * Format attendu: ["Code", "Libellé", "Section", Year_N, Year_N-1]
+ * Data rows: [codec, nom, compte_id (caché), section, amount_N, amount_N-1]
+ *
+ * @param array $data Les données (ligne 0 = en-tête)
+ * @param string $table_class Classe CSS du tableau
+ * @return string HTML du tableau
+ */
+function render_simple_detail_table($data, $table_class = 'resultat-table') {
+    if (empty($data)) {
+        return '<p class="text-muted">Aucune donnée disponible</p>';
+    }
+
+    $header = $data[0];
+    $rows = array_slice($data, 1);
+
+    // Générer le HTML
+    $html = "<table class=\"{$table_class} table table-sm\">\n";
+    $html .= "<thead>\n<tr>\n";
+
+    // En-tête simple sur une ligne
+    // Structure: Code, Libellé, Section, Année N, Année N-1
+    foreach ($header as $idx => $col_name) {
+        $class = 'col-label';
+        if ($idx == 3) {
+            // Colonne Année N (courante)
+            $class = 'year-current';
+        } else if ($idx == 4) {
+            // Colonne Année N-1 (précédente)
+            $class = 'year-previous';
+        }
+        $html .= "<th class=\"{$class}\">{$col_name}</th>\n";
+    }
+
+    $html .= "</tr>\n</thead>\n";
+
+    // Corps du tableau
+    $html .= "<tbody>\n";
+    foreach ($rows as $row) {
+        $html .= "<tr>\n";
+
+        foreach ($row as $col_idx => $cell_value) {
+            if ($col_idx == 0) {
+                // Colonne Code
+                $html .= "<td class=\"col-label\" style=\"text-align: center;\">{$cell_value}</td>\n";
+            } else if ($col_idx == 1) {
+                // Colonne Libellé avec lien vers journal_compte
+                $compte_id = isset($row[2]) ? $row[2] : null;
+                if ($compte_id) {
+                    $url = site_url("compta/journal_compte/{$compte_id}");
+                    $html .= "<td class=\"col-label\"><a href=\"{$url}\">{$cell_value}</a></td>\n";
+                } else {
+                    $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
+                }
+            } else if ($col_idx == 2) {
+                // Colonne compte_id (cachée)
+                continue;
+            } else if ($col_idx == 3) {
+                // Colonne Section
+                $html .= "<td class=\"col-label\">{$cell_value}</td>\n";
+            } else if ($col_idx == 4) {
+                // Colonne Année N (courante)
+                $html .= "<td class=\"col-numeric year-current\">{$cell_value}</td>\n";
+            } else if ($col_idx == 5) {
+                // Colonne Année N-1 (précédente)
+                $html .= "<td class=\"col-numeric year-previous\">{$cell_value}</td>\n";
+            }
+        }
+
+        $html .= "</tr>\n";
+    }
+    $html .= "</tbody>\n";
+    $html .= "</table>\n";
+
+    return $html;
+}
+
+/**
+ * Fonction helper pour générer un tableau avec en-tête sur deux lignes (ancienne version)
+ * Conservée pour compatibilité avec d'autres vues
  * @param array $data Les données (ligne 0 = en-tête original)
  * @param string $table_class Classe CSS du tableau
  * @param bool $skip_label_cols Si true, supprime les colonnes Code et Libellé
@@ -292,7 +371,7 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
         <?= $is_charge ? $this->lang->line("comptes_label_charges") : $this->lang->line("comptes_label_produits") ?>
         - <?= $codec ?> <?= $codec_nom ?>
     </h3>
-    <?= render_two_line_header_table($detail) ?>
+    <?= render_simple_detail_table($detail) ?>
 
     <?php
     echo br(2);

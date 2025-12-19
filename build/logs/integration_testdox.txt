@@ -89,14 +89,6 @@ Compta Saisie Cotisation
  [x] Transaction rollback on error
  [x] Date format conversion
 
-Comptes Resultat Par Sections Model
- [ ] Select par section deux annees
- [ ] Select resultat par sections deux annees
- [ ] Select detail codec deux annees
- [x] Select detail codec
- [ ] Calcul date annee precedente
- [ ] Formatage html
-
 Comptes Resultat Pdf Export
  [x] Pdf export redirection pattern
  [x] Pdf content structure and validation

@@ -1505,61 +1505,44 @@ class Comptes_model extends Common_Model {
             $year_current = intval(date('Y'));
         }
         $year_prev = $year_current - 1;
-        $year_prev_prev = $year_current - 2;
 
-        $end_current_db = $year_current . '-12-31';
-        $end_prev_db = $year_prev . '-12-31';
-
-        // Récupération des comptes du codec
+        // Récupération des comptes du codec avec leur section
         $this->db
-            ->select('comptes.id, comptes.codec, comptes.nom, comptes.club')
+            ->select('comptes.id, comptes.codec, comptes.nom, comptes.club, sections.nom as section_nom, sections.acronyme as section_acronyme')
             ->from('comptes')
-            ->where('codec', $codec)
-            ->order_by('codec, nom');
+            ->join('sections', 'comptes.club = sections.id', 'left')
+            ->where('comptes.codec', $codec)
+            ->order_by('sections.ordre_affichage, sections.nom, comptes.codec, comptes.nom');
         $res = $this->db->get()->result_array();
 
-        $sections = $this->sections_model->section_list();
-
-        // En-tête avec années groupées par section (N et N-1 adjacentes)
-        $header = ["Code", "Libellé"];
-        $section_field = $use_full_names ? 'nom' : 'acronyme';
-        foreach ($sections as $section) {
-            $header[] = $section[$section_field] . ' ' . $year_current;
-            $header[] = $section[$section_field] . ' ' . $year_prev;
-        }
-        $header[] = "Total Club " . $year_current;
-        $header[] = "Total Club " . $year_prev;
-
+        // En-tête simplifié : Code, Libellé, Section, N, N-1
+        $header = ["Code", "Libellé", "Section", $year_current, $year_prev];
         $table = [$header];
 
         foreach ($res as $compte) {
             $compte_id = $compte['id'];
-            $row = [$compte['codec'], $compte['nom'], $compte_id];
+            $section_id = $compte['club'];
+            
+            // Nom de section selon préférence
+            $section_field = $use_full_names ? 'section_nom' : 'section_acronyme';
+            $section_name = $compte[$section_field] ?? '';
 
-            $total_current = 0.0;
-            $total_prev = 0.0;
+            // Calcul des montants pour l'année N et N-1
+            $amount_current_raw = $this->year_amount_compte_section($compte_id, $year_current, $section_id);
+            $amount_prev_raw = $this->year_amount_compte_section($compte_id, $year_prev, $section_id);
 
-            // Montants par section : année N et N-1 adjacentes pour chaque section
-            foreach ($sections as $section) {
-                $sid = $section['id'];
-                // Calcul par compte spécifique (pas par codec global)
-                $amount_current_raw = $this->year_amount_compte_section($compte_id, $year_current, $sid);
-                $amount_prev_raw = $this->year_amount_compte_section($compte_id, $year_prev, $sid);
+            $amount_current = $amount_current_raw * $factor;
+            $amount_prev = $amount_prev_raw * $factor;
 
-                $amount_current = $amount_current_raw * $factor;
-                $amount_prev = $amount_prev_raw * $factor;
-
-                $total_current += $amount_current;
-                $total_prev += $amount_prev;
-
-                // Année N puis année N-1 pour cette section
-                $row[] = $amount_current;
-                $row[] = $amount_prev;
-            }
-
-            // Totaux club : année N puis année N-1
-            $row[] = $total_current;
-            $row[] = $total_prev;
+            // Ligne simplifiée : Code, Libellé, compte_id (caché), Section, N, N-1
+            $row = [
+                $compte['codec'],
+                $compte['nom'],
+                $compte_id,  // ID for creating links (will be hidden in display)
+                $section_name,
+                $amount_current,
+                $amount_prev
+            ];
 
             $table[] = $row;
         }
