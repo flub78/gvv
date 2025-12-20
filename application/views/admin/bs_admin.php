@@ -174,6 +174,14 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm">Générer</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-primary">
+                        <i class="fas fa-file-code text-primary"></i>
+                        <div class="card-title">Schéma initial DB</div>
+                        <div class="card-text text-muted">Pour installation</div>
+                        <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm">Générer</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

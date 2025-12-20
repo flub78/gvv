@@ -1913,4 +1913,318 @@ class Admin extends CI_Controller {
         load_last_view('admin/bs_test_database_generation', $data);
     }
 
+    /**
+     * Generate initial database schema (install/gvv_init.sql)
+     * Creates schema + minimal test data for fresh GVV installation
+     */
+    public function generate_initial_schema() {
+        // Security check: only for authorized user (fpeignot only)
+        if ($this->dx_auth->get_username() !== 'fpeignot') {
+            show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
+            return;
+        }
+
+        // Load database config
+        require(APPPATH . 'config/database.php');
+        $db_config = $db['default'];
+
+        $results = array();
+        $errors = array();
+
+        try {
+            // Step 1: Generate schema (structure only, no data)
+            log_message('info', 'Step 1: Generating database schema');
+
+            $install_dir = FCPATH . 'install';
+            $schema_file = $install_dir . '/gvv_init.sql';
+
+            // Backup existing file if it exists
+            if (file_exists($schema_file)) {
+                $backup_file = $install_dir . '/gvv_init.sql.backup_' . date('Ymd_His');
+                copy($schema_file, $backup_file);
+                $results[] = array('step' => 'Sauvegarde ancien fichier', 'status' => 'OK', 'details' => basename($backup_file));
+
+                // Delete the old file so we can create a new one with proper ownership
+                unlink($schema_file);
+            }
+
+            // Generate schema using mysqldump --no-data (use absolute path)
+            $cmd = sprintf(
+                '/usr/bin/mysqldump --no-data --skip-triggers --skip-lock-tables -h%s -u%s -p%s %s',
+                escapeshellarg($db_config['hostname']),
+                escapeshellarg($db_config['username']),
+                escapeshellarg($db_config['password']),
+                escapeshellarg($db_config['database'])
+            );
+
+            exec($cmd . ' 2>&1', $output, $return_code);
+
+            if ($return_code !== 0) {
+                throw new Exception("Échec de la génération du schéma: " . implode("\n", $output));
+            }
+
+            // Write the captured output to the file
+            file_put_contents($schema_file, implode("\n", $output));
+
+            // Set proper permissions so we can append test data
+            chmod($schema_file, 0666);
+
+            if (!file_exists($schema_file) || filesize($schema_file) == 0) {
+                throw new Exception("Le fichier de schéma n'a pas été créé ou est vide");
+            }
+
+            $results[] = array('step' => 'Génération du schéma', 'status' => 'OK', 'details' => filesize($schema_file) . ' bytes');
+
+            // Step 2: Add minimal test data
+            log_message('info', 'Step 2: Adding minimal test data');
+
+            $test_data = $this->_generate_minimal_test_data();
+
+            // Append test data to schema file
+            file_put_contents($schema_file, "\n-- ========================================\n", FILE_APPEND);
+            file_put_contents($schema_file, "-- Données de test minimales\n", FILE_APPEND);
+            file_put_contents($schema_file, "-- ========================================\n\n", FILE_APPEND);
+            file_put_contents($schema_file, $test_data, FILE_APPEND);
+
+            $results[] = array('step' => 'Ajout données de test', 'status' => 'OK', 'details' => strlen($test_data) . ' bytes');
+
+            $success_message = "Schéma initial généré avec succès dans install/gvv_init.sql";
+
+        } catch (Exception $e) {
+            log_message('error', 'Initial schema generation failed: ' . $e->getMessage());
+            $errors[] = $e->getMessage();
+            $success_message = null;
+        }
+
+        // Prepare view data
+        $data = array(
+            'title' => 'Génération du schéma initial',
+            'results' => $results,
+            'errors' => $errors,
+            'message' => $success_message,
+            'show_form' => empty($success_message) && empty($errors)
+        );
+
+        load_last_view('admin/bs_initial_schema_generation', $data);
+    }
+
+    /**
+     * Generate minimal test data for fresh installation
+     * Extracted from actual working gvv_init.sql file
+     * @return string SQL INSERT statements
+     */
+    private function _generate_minimal_test_data() {
+        // Get current migration version dynamically
+        $this->db->select_max('version');
+        $query = $this->db->get('migrations');
+        $row = $query->row();
+        $migration_version = $row ? $row->version : 0;
+
+        // Hardcoded INSERT statements from working gvv_init.sql
+        $sql = <<<SQL
+-- Migration version
+INSERT INTO `migrations` (`version`) VALUES ({$migration_version});
+
+-- Membres de test (utilisateurs Gaulois)
+INSERT INTO `membres` (`mlogin`, `mnom`, `mprenom`, `memail`, `memailparent`, `madresse`, `cp`, `ville`, `pays`, `mtelf`, `mtelm`, `mdaten`, `m25ans`, `mlieun`, `msexe`, `mniveaux`, `macces`, `club`, `ext`, `actif`, `username`, `photo`, `compte`, `comment`, `trigramme`, `categorie`, `profession`, `inst_glider`, `inst_airplane`, `licfed`) VALUES
+('abraracourcix', 'Le Gaulois', 'Abraracourcix', 'abraracourcix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 8192, 0, 0, 0, 1, '0', '', 0, 'abraracourcix', '', '0', '', '', '', 0),
+('asterix', 'Le Gaulois', 'Asterix', 'asterix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 524288, 0, 0, 0, 1, '0', '', 0, 'asterix', '', '0', '', '', '', 0),
+('goudurix', 'Le Gaulois', 'Goudurix', 'goudurix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 0, 0, 1, '0', '', 0, 'goudurix', '', '0', '', '', '', 0),
+('panoramix', 'Le Gaulois', 'Panoramix', 'panoramix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 491520, 0, 0, 0, 1, '0', '', 0, 'panoramix', '', '0', '', '', '', 0);
+
+-- Permissions
+INSERT INTO `permissions` (`id`, `role_id`, `data`) VALUES
+(1, 1, 'a:1:{s:3:"uri";a:22:{i:0;s:8:"/membre/";i:1;s:14:"/planeur/page/";i:2;s:12:"/avion/page/";i:3;s:12:"/vols_avion/";i:4;s:14:"/vols_planeur/";i:5;s:19:"/rapports/licences/";i:6;s:19:"/compta/mon_compte/";i:7;s:23:"/compta/journal_compte/";i:8;s:25:"/compta/filterValidation/";i:9;s:12:"/compta/pdf/";i:10;s:15:"/compta/export/";i:11;s:17:"/compta/new_year/";i:12;s:18:"/comptes/new_year/";i:13;s:17:"/achats/new_year/";i:14;s:14:"/tickets/page/";i:15;s:13:"/event/stats/";i:16;s:12:"/event/page/";i:17;s:17:"/event/formation/";i:18;s:11:"/event/fai/";i:19;s:11:"/presences/";i:20;s:10:"/licences/";i:21;s:9:"/welcome/";}}'),
+(2, 7, 'a:1:{s:3:"uri";a:3:{i:0;s:12:"/vols_avion/";i:1;s:14:"/vols_planeur/";i:2;s:0:"";}}'),
+(3, 9, 'a:1:{s:3:"uri";a:8:{i:0;s:10:"/factures/";i:1;s:8:"/compta/";i:2;s:9:"/comptes/";i:3;s:10:"/remorque/";i:4;s:16:"/plan_comptable/";i:5;s:11:"/categorie/";i:6;s:8:"/tarifs/";i:7;s:0:"";}}'),
+(4, 8, 'a:1:{s:3:"uri";a:20:{i:0;s:8:"/membre/";i:1;s:9:"/planeur/";i:2;s:7:"/avion/";i:3;s:12:"/vols_avion/";i:4;s:14:"/vols_planeur/";i:5;s:10:"/factures/";i:6;s:8:"/compta/";i:7;s:8:"/compta/";i:8;s:8:"/compta/";i:9;s:9:"/comptes/";i:10;s:9:"/tickets/";i:11;s:7:"/event/";i:12;s:10:"/rapports/";i:13;s:10:"/licences/";i:14;s:8:"/achats/";i:15;s:10:"/terrains/";i:16;s:7:"/admin/";i:17;s:9:"/reports/";i:18;s:7:"/mails/";i:19;s:12:"/historique/";}}'),
+(5, 3, 'a:1:{s:3:"uri";a:2:{i:0;s:23:"/compta/journal_compte/";i:1;s:13:"/compta/view/";}}'),
+(6, 2, 'a:1:{s:3:"uri";a:32:{i:0;s:8:"/membre/";i:1;s:9:"/planeur/";i:2;s:7:"/avion/";i:3;s:17:"/vols_avion/page/";i:4;s:29:"/vols_avion/filterValidation/";i:5;s:16:"/vols_avion/pdf/";i:6;s:23:"/vols_avion/statistics/";i:7;s:21:"/vols_avion/new_year/";i:8;s:19:"/vols_planeur/page/";i:9;s:24:"/vols_planeur/statistic/";i:10;s:31:"/vols_planeur/filterValidation/";i:11;s:18:"/vols_planeur/pdf/";i:12;s:24:"/vols_planeur/pdf_month/";i:13;s:26:"/vols_planeur/pdf_machine/";i:14;s:25:"/vols_planeur/export_per/";i:15;s:21:"/vols_planeur/export/";i:16;s:23:"/vols_planeur/new_year/";i:17;s:19:"/factures/en_cours/";i:18;s:15:"/factures/page/";i:19;s:15:"/factures/view/";i:20;s:21:"/factures/ma_facture/";i:21;s:19:"/compta/mon_compte/";i:22;s:23:"/compta/journal_compte/";i:23;s:25:"/compta/filterValidation/";i:24;s:12:"/compta/pdf/";i:25;s:17:"/compta/new_year/";i:26;s:18:"/comptes/new_year/";i:27;s:14:"/tickets/page/";i:28;s:13:"/event/stats/";i:29;s:12:"/event/page/";i:30;s:17:"/event/formation/";i:31;s:11:"/event/fai/";}}');
+
+-- Roles
+INSERT INTO `roles` (`id`, `parent_id`, `name`) VALUES
+(1, 0, 'membre'),
+(2, 9, 'admin'),
+(3, 8, 'bureau'),
+(7, 1, 'planchiste'),
+(8, 7, 'ca'),
+(9, 3, 'tresorier');
+
+-- Sections
+INSERT INTO `sections` (`id`, `nom`, `description`) VALUES
+(1, 'Planeur', 'Section planeur de l\'aéroclub d\'Abbeville');
+
+-- Types de rôles
+INSERT INTO `types_roles` (`id`, `nom`, `description`) VALUES
+(1, 'user', 'Capacity to login and see user data'),
+(2, 'auto_planchiste', 'Capacity to create, modify and delete the user own data'),
+(5, 'planchiste', 'Authorization to create, modify and delete flight data'),
+(6, 'ca', 'capacity to see all data for a section including global financial data'),
+(7, 'bureau', 'capacity to see all data for a section including personnal financial data'),
+(8, 'tresorier', 'Capacity to edit financial data for one section'),
+(9, 'super-tresorier', 'Capacity to see an edit financial data for all sections'),
+(10, 'club-admin', 'capacity to access all data and change everything');
+
+-- Type de tickets
+INSERT INTO `type_ticket` (`id`, `nom`) VALUES
+(0, 'Remorqué'),
+(1, 'treuillé');
+
+-- Utilisateurs de test (login=username, password=username)
+INSERT INTO `users` (`id`, `role_id`, `username`, `password`, `email`, `banned`, `ban_reason`, `newpass`, `newpass_key`, `newpass_time`, `last_ip`, `last_login`, `created`, `modified`) VALUES
+(15, 1, 'testuser', '\$1\$wu3.3t2.\$Wgk43dHPPi3PTv5atdpnz0', 'testuser@free.fr', 0, NULL, NULL, NULL, NULL, '::1', '2023-06-17 06:34:23', '2011-04-21 15:21:13', '2023-06-17 04:34:23'),
+(16, 2, 'testadmin', '\$1\$uM1.f95.\$AnUHH1W/xLS9fxDbt8RPo0', 'frederic.peignot@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '2025-02-19 16:21:28', '2011-04-21 15:21:40', '2025-02-19 15:21:28'),
+(58, 7, 'testplanchiste', '\$1\$DT0.QJ1.\$yXqRz6gf/jWC4MzY2D05Y.', 'testplanchiste@free.fr', 0, NULL, NULL, NULL, NULL, '::1', '2023-06-17 06:30:44', '2012-01-25 21:00:23', '2023-06-17 04:30:44'),
+(59, 8, 'testca', '\$1\$9h..cY3.\$NzkeKkCoSa2oxL7bQCq4v1', 'testca@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:00:58', '2014-12-23 20:38:30'),
+(60, 3, 'testbureau', '\$1\$NC0.SN5.\$qwnSUxiPbyh6v2JrhA1fH1', 'testbureau@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '2012-01-25 21:03:01', '2012-01-25 21:01:36', '2014-12-23 20:39:00'),
+(61, 9, 'testtresorier', '\$1\$KiPMl0ho\$/E3NBaprpM5Xcv.z40zjK0', 'testresorier@free.fr', 0, NULL, NULL, NULL, NULL, '127.0.0.1', '0000-00-00 00:00:00', '2012-01-25 21:02:36', '2012-01-25 20:02:36'),
+(118, 1, 'asterix', '\$1\$178.XGif\$uv3FdWy4uSb4hURObhQaU1', 'asterix@flub78.net', 0, NULL, NULL, NULL, NULL, '::1', '1900-01-01 00:00:00', '2023-06-17 06:32:07', '2023-06-17 04:32:07'),
+(119, 1, 'goudurix', '\$1\$TgWj4h2S\$O.t2stMILkVwqeV5xC/Ky.', 'goudurix@flub78.net', 0, NULL, NULL, NULL, NULL, '::1', '1900-01-01 00:00:00', '2023-06-17 06:32:11', '2023-06-17 04:32:11'),
+(120, 1, 'panoramix', '\$1\$Ih02twmD\$BnsuIlxHH62qF41/puKs30', 'panoramix@flub78.net', 0, NULL, NULL, NULL, NULL, '::1', '1900-01-01 00:00:00', '2023-06-17 06:32:16', '2023-06-17 04:32:16'),
+(121, 1, 'abraracourcix', '\$1\$B0U6TBCD\$Mcx76FTA.ulT.TO.sX2HZ1', 'abraracourcix@flub78.net', 0, NULL, NULL, NULL, NULL, '::1', '1900-01-01 00:00:00', '2023-06-17 06:32:20', '2023-06-17 04:32:20');
+
+-- Profils utilisateurs
+INSERT INTO `user_profile` (`id`, `user_id`, `country`, `website`) VALUES
+(120, 118, NULL, NULL),
+(121, 119, NULL, NULL),
+(122, 120, NULL, NULL),
+(123, 121, NULL, NULL);
+
+-- Rôles par section
+INSERT INTO `user_roles_per_section` (`id`, `user_id`, `types_roles_id`, `section_id`) VALUES
+(1, 15, 1, 1),
+(2, 16, 10, 1),
+(3, 58, 5, 1),
+(4, 59, 6, 1),
+(5, 60, 7, 1),
+(6, 61, 8, 1),
+(7, 118, 1, 1),
+(8, 119, 1, 1),
+(9, 120, 1, 1),
+(10, 121, 1, 1);
+
+-- Plan comptable de base
+INSERT INTO `planc` (`pcode`, `pdesc`) VALUES
+('102', 'Fonds associatif (sans droit de reprise)'),
+('110', 'Report à nouveau (solde créditeur)'),
+('119', 'Report à nouveau (solde débiteur)'),
+('120', 'Résultat de l\'exercice (excédent)'),
+('129', 'Résultat de l\'exercice (déficit)'),
+('164', 'Emprunts auprès des établissements de crédit'),
+('215', 'Matériel'),
+('218', 'Mobilier.'),
+('281', 'Amortissement des immobilisations corporelles'),
+('371', 'Marchandises'),
+('401', 'Fournisseurs'),
+('409', 'Fournisseurs débiteurs. Accomptes'),
+('411', 'Clients'),
+('441', 'Etat - Subventions'),
+('46', 'Débiteurs divers et créditeur divers'),
+('487', 'Produits constatés d\'avance'),
+('512', 'Banque'),
+('531', 'Caisse'),
+('60', 'Achats'),
+('601', 'Achats stockés - Matières premières et fournitures'),
+('602', 'Achats stockés - Autres approvisionements'),
+('604', 'Achats d\'études et prestations de services'),
+('605', 'Achat autres.'),
+('606', 'Achats non stockés de matières et fournitures'),
+('607', 'Achats de marchandises'),
+('61', 'Services extérieurs'),
+('611', 'Sous-traitance générale'),
+('612', 'Redevances de crédit-bail'),
+('613', 'Locations'),
+('615', 'Entretien et réparations'),
+('616', 'Assurances'),
+('62', 'Autres services extérieurs'),
+('621', 'Personels extérieur à l\'association'),
+('622', 'Rémunérations et Honoraires.'),
+('623', 'Publicité, Publications, Relations publiques'),
+('624', 'Transport de bien et transport collectif du person'),
+('625', 'Déplacement, missions et reception'),
+('626', 'Frais postaux et télécommunications'),
+('628', 'Divers, cotisations'),
+('629', 'Rabais, ristournes, remises sur services extérieur'),
+('63', 'Impôts et Taxes'),
+('631', 'Impots sur rémunération'),
+('635', 'Autres impôts et Taxes.'),
+('64', 'Charges de Personnel'),
+('65', 'Autres Charges de gestion courante'),
+('651', 'Redevance pour concessions, brevets'),
+('654', 'Pertes sur créances irrécouvrables'),
+('657', 'Subventions versées par l\'association'),
+('66', 'Charges financières'),
+('67', 'Chages Exceptionnelles'),
+('674', 'Autres.'),
+('678', 'Autres charges exceptionnelles'),
+('68', 'Dotation aux Amortissements'),
+('70', 'Ventes'),
+('701', 'Ventes de produits finis'),
+('706', 'Prestations de services'),
+('707', 'Ventes de marchandises'),
+('708', 'Produit des activités annexes'),
+('74', 'Subventions d\'exploitation'),
+('75', 'Autres produits de gestion courante'),
+('753', 'Assurances licences FFVV.'),
+('754', 'Retour des Fédérations (bourses).'),
+('756', 'Cotisations'),
+('76', 'Produits financiers'),
+('774', 'Autres produits exceptionnels'),
+('775', 'Produits des cessions d\'éléments d\'actif'),
+('778', 'Autres produits exceptionnels'),
+('78', 'Reprise sur amortissements'),
+('781', 'Reprises sur amortissements et provisions');
+
+-- Comptes de test
+INSERT INTO `comptes` (`id`, `nom`, `pilote`, `desc`, `codec`, `actif`, `debit`, `credit`, `saisie_par`, `club`) VALUES
+(292, 'Immobilisations', '', 'Immobilisations', '215', 1, 0.00, 0.00, 'testadmin', 1),
+(293, 'Fonds associatifs', '', 'Fonds associatifs', '102', 1, 0.00, 0.00, 'testadmin', 1),
+(294, 'Banque', '', 'Banque', '512', 1, 850.47, 152.63, 'testadmin', 1),
+(295, 'Emprunt', '', 'Emprunt', '164', 1, 0.00, 0.00, 'testadmin', 1),
+(296, 'Atelier de la Somme', '', 'Fournisseur', '401', 1, 350.00, 350.00, 'testadmin', 1),
+(297, 'Frais de bureau', '', 'Frais de bureau', '606', 1, 25.50, 0.00, 'testadmin', 1),
+(298, 'Essence plus huile', '', 'Essence plus huile', '606', 1, 125.50, 0.00, 'testadmin', 1),
+(299, 'Entretien', '', 'Entretien', '615', 1, 350.00, 350.00, 'testadmin', 1),
+(300, 'Assurances', '', 'Assurances', '616', 1, 0.00, 0.00, 'testadmin', 1),
+(301, 'Heures de vol planeur', '', 'Heures de vol planeur', '706', 1, 0.00, 0.00, 'testadmin', 1),
+(302, 'Heures de vol avion', '', 'Heures de vol avion', '706', 1, 0.00, 0.00, 'testadmin', 1),
+(303, 'Heures de vol ULM', '', 'Heures de vol ULM', '706', 1, 0.00, 0.00, 'testadmin', 1),
+(304, 'Subventions', '', 'Subventions', '74', 1, 0.00, 0.00, 'testadmin', 1),
+(305, '(411) Test User', 'testuser', '', '411', 1, 0.00, 0.00, 'testadmin', 1),
+(306, '(411) Test Admin', 'testadmin', '', '411', 1, 0.00, 0.00, 'testadmin', 1),
+(307, '(411) Test CA', 'testca', '', '411', 1, 0.00, 0.00, 'testadmin', 1),
+(308, '(411) Test Bureau', 'testbureau', '', '411', 1, 0.00, 0.00, 'testadmin', 1),
+(309, 'Boutique', '', 'Boutique', '707', 1, 0.00, 0.00, 'testadmin', 1);
+
+-- Planeurs de test
+INSERT INTO `machinesp` (`mpconstruc`, `mpmodele`, `mpimmat`, `mpnumc`, `mpnbhdv`, `mpbiplace`, `mpautonome`, `mptreuil`, `mpprive`, `club`, `mprix`, `mprix_forfait`, `mprix_moteur`, `mmax_facturation`, `actif`, `comment`, `horametre_en_minutes`, `fabrication`, `banalise`, `proprio`) VALUES
+('Alexander Schleicher', 'Ask21', 'F-CGAA', '', 0.00, '2', 0, 0, 0, 1, 'hdv-planeur', 'hdv-planeur-forfait', 'gratuit', 180, 1, '', 0, 0, 0, ''),
+('Centrair', 'Pégase', 'F-CGAB', 'EG', 0.00, '1', 0, 0, 0, 1, 'hdv-planeur', 'hdv-planeur-forfait', 'gratuit', 180, 1, '', 0, 0, 0, ''),
+('DG', 'DG800', 'F-CGAC', 'AC', 0.00, '1', 0, 0, 0, 1, 'gratuit', 'gratuit', 'gratuit', 180, 1, '', 0, 0, 0, '');
+
+-- Avions remorqueurs de test
+INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
+('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
+('Aeropol', 'Dynamic', 'F-JUFA', 0.00, 2, 1, 0, 1, 1, '', 'hdv-ULM', 'hdv-ULM', 0, 0);
+
+-- Terrains
+INSERT INTO `terrains` (`oaci`, `nom`, `freq1`, `freq2`, `comment`) VALUES
+('LFAY', 'Amiens Glisy', 123.400, 0.000, ''),
+('LFEG', 'Argenton Sur Creuse', 123.500, 0.000, ''),
+('LFJR', 'Angers', 0.000, 0.000, ''),
+('LFLV', 'Vichy', 121.400, 0.000, '253m'),
+('LFNC', 'montdauphin saint crepin', 123.500, 123.050, 'alt 903 m'),
+('LFOI', 'Abbeville', 123.500, 0.000, ''),
+('LFON', 'Dreux', 123.500, 0.000, ''),
+('LFQB', 'Troyes - Barberey', 123.725, 0.000, ''),
+('LFQO', 'Lille - Marq en Bareuil', 0.000, 0.000, ''),
+('LFRI', 'la Roche sur Yon', 0.000, 0.000, ''),
+('LFYG', 'Cambrai', 999.999, 0.000, ''),
+('LFYR', 'Romorantin', 119.070, 0.000, '');
+
+SQL;
+
+        return $sql;
+    }
+
 }
