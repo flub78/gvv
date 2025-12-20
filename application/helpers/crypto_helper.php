@@ -191,7 +191,7 @@ if (!function_exists('encrypt_file')) {
         // -salt: Add salt (default, but explicit for clarity)
         // -pass pass:xxx: Pass the passphrase directly
         $command = sprintf(
-            'openssl enc -aes-256-cbc -pbkdf2 -salt -in %s -out %s -pass pass:%s',
+            'openssl enc -aes-256-cbc -pbkdf2 -salt -in %s -out %s -pass pass:%s 2>&1',
             escapeshellarg($input_file),
             escapeshellarg($output_file),
             escapeshellarg($passphrase)
@@ -245,7 +245,7 @@ if (!function_exists('decrypt_file')) {
         // -pbkdf2: Use PBKDF2 key derivation
         // -pass pass:xxx: Pass the passphrase directly
         $command = sprintf(
-            'openssl enc -d -aes-256-cbc -pbkdf2 -in %s -out %s -pass pass:%s',
+            'openssl enc -d -aes-256-cbc -pbkdf2 -in %s -out %s -pass pass:%s 2>&1',
             escapeshellarg($input_file),
             escapeshellarg($output_file),
             escapeshellarg($passphrase)

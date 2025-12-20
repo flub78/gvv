@@ -1000,18 +1000,22 @@ class Admin extends CI_Controller {
             'Bayonne', 'Drancy', 'Sevran', 'Albi', 'Vincennes', 'Charleville-Mézières', 'Saint-Malo', 'Corbeil-Essonnes'
         );
 
-        // Get all members
-        $membres = $this->db->select('mlogin')->from('membres')->get()->result_array();
+        // Get all members with their trigramme
+        $membres = $this->db->select('mlogin, trigramme')->from('membres')->get()->result_array();
         $count = 0;
 
         foreach ($membres as $membre) {
             $mlogin = $membre['mlogin'];
+            $has_trigramme = !empty($membre['trigramme']);
 
             if ($with_number) {
                 // Numbered mode (fast)
+                $nom = 'Nom' . mt_rand(1000, 9999);
+                $prenom = 'Prenom' . mt_rand(1000, 9999);
+
                 $random_data = array(
-                    'mnom' => 'Nom' . mt_rand(1000, 9999),
-                    'mprenom' => 'Prenom' . mt_rand(1000, 9999),
+                    'mnom' => $nom,
+                    'mprenom' => $prenom,
                     'memail' => 'membre' . mt_rand(1000, 9999) . '@example.com',
                     'madresse' => mt_rand(1, 999) . ' Rue Test',
                     'ville' => 'Ville' . mt_rand(100, 999),
@@ -1036,6 +1040,13 @@ class Admin extends CI_Controller {
                     'mtelf' => '01' . sprintf('%02d', mt_rand(20, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)),
                     'mtelm' => '06' . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99)) . sprintf('%02d', mt_rand(10, 99))
                 );
+            }
+
+            // Generate trigramme from anonymized name if member had one
+            if ($has_trigramme) {
+                // Generate trigramme: First letter of prenom + first two letters of nom (uppercase)
+                $trigramme = strtoupper(substr($prenom, 0, 1) . substr($nom, 0, 2));
+                $random_data['trigramme'] = $trigramme;
             }
 
             // Update membre using direct DB update
@@ -1516,73 +1527,350 @@ class Admin extends CI_Controller {
                 $results[] = array('step' => 'Utilisateurs de test', 'status' => 'SKIPPED', 'details' => 'Script non trouvé');
             }
 
-            // Step 4: Create anonymized dump
-            log_message('info', 'Step 4: Creating anonymized dump');
-            $anon_file = sys_get_temp_dir() . '/gvv_test_migration_55.sql';
-            $temp_files[] = $anon_file;
+            // Step 4: Update fixtures.json with test data
+            log_message('info', 'Step 4: Updating fixtures.json');
 
-            $cmd = sprintf(
-                'mysqldump --single-transaction --skip-lock-tables -h%s -u%s -p%s %s > %s 2>&1',
-                escapeshellarg($db_config['hostname']),
-                escapeshellarg($db_config['username']),
-                escapeshellarg($db_config['password']),
-                escapeshellarg($db_config['database']),
-                escapeshellarg($anon_file)
-            );
+            try {
+                // Initialize test data structure
+                $test_data = array(
+                    'metadata' => array(
+                        'extracted_at' => date('Y-m-d H:i:s'),
+                        'database' => $this->db->database,
+                        'version' => '1.0'
+                    ),
+                    'pilots' => array(),
+                    'instructors' => array(
+                        'glider' => array(),
+                        'airplane' => array()
+                    ),
+                    'gliders' => array(
+                        'two_seater' => array(),
+                        'single_seater' => array()
+                    ),
+                    'tow_planes' => array(),
+                    'accounts' => array()
+                );
 
-            exec($cmd, $output, $return_code);
-            if ($return_code !== 0) {
-                throw new Exception("Échec du dump anonymisé: " . implode("\n", $output));
+                // Extract regular pilots with accounts
+                $query = $this->db->query("
+                    SELECT
+                        m.mlogin,
+                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
+                        m.mprenom as first_name,
+                        m.mnom as last_name,
+                        m.actif,
+                        c.id as account_id,
+                        CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
+                    FROM membres m
+                    LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
+                    WHERE m.actif = 1
+                        AND m.ext = 0
+                        AND c.id IS NOT NULL
+                    ORDER BY m.mnom, m.mprenom
+                    LIMIT 10
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['pilots'][] = array(
+                        'login' => $row->mlogin,
+                        'full_name' => $row->full_name,
+                        'first_name' => $row->first_name,
+                        'last_name' => $row->last_name,
+                        'account_id' => (int)$row->account_id,
+                        'account_label' => $row->account_label
+                    );
+                }
+
+                // Extract glider instructors
+                $query = $this->db->query("
+                    SELECT
+                        m.mlogin,
+                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
+                        m.mprenom as first_name,
+                        m.mnom as last_name,
+                        m.inst_glider,
+                        c.id as account_id,
+                        CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
+                    FROM membres m
+                    LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
+                    WHERE m.actif = 1
+                        AND m.ext = 0
+                        AND m.inst_glider IS NOT NULL
+                        AND m.inst_glider != ''
+                        AND c.id IS NOT NULL
+                    ORDER BY m.mnom, m.mprenom
+                    LIMIT 5
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['instructors']['glider'][] = array(
+                        'login' => $row->mlogin,
+                        'full_name' => $row->full_name,
+                        'first_name' => $row->first_name,
+                        'last_name' => $row->last_name,
+                        'qualification' => $row->inst_glider,
+                        'account_id' => (int)$row->account_id,
+                        'account_label' => $row->account_label
+                    );
+                }
+
+                // Extract airplane instructors (tow pilots)
+                $query = $this->db->query("
+                    SELECT
+                        m.mlogin,
+                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
+                        m.mprenom as first_name,
+                        m.mnom as last_name,
+                        m.inst_airplane
+                    FROM membres m
+                    WHERE m.actif = 1
+                        AND m.ext = 0
+                        AND m.inst_airplane IS NOT NULL
+                        AND m.inst_airplane != ''
+                    ORDER BY m.mnom, m.mprenom
+                    LIMIT 5
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['instructors']['airplane'][] = array(
+                        'login' => $row->mlogin,
+                        'full_name' => $row->full_name,
+                        'first_name' => $row->first_name,
+                        'last_name' => $row->last_name,
+                        'qualification' => $row->inst_airplane
+                    );
+                }
+
+                // Extract two-seater gliders
+                $query = $this->db->query("
+                    SELECT
+                        mpimmat as registration,
+                        mpmodele as model,
+                        mpconstruc as manufacturer,
+                        mpbiplace as seats,
+                        mpautonome as autonomous
+                    FROM machinesp
+                    WHERE actif = 1
+                        AND mpbiplace = '1'
+                    ORDER BY mpimmat
+                    LIMIT 5
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['gliders']['two_seater'][] = array(
+                        'registration' => $row->registration,
+                        'model' => $row->model,
+                        'manufacturer' => $row->manufacturer,
+                        'seats' => 2,
+                        'autonomous' => (bool)$row->autonomous
+                    );
+                }
+
+                // Extract single-seater gliders
+                $query = $this->db->query("
+                    SELECT
+                        mpimmat as registration,
+                        mpmodele as model,
+                        mpconstruc as manufacturer,
+                        mpbiplace as seats,
+                        mpautonome as autonomous
+                    FROM machinesp
+                    WHERE actif = 1
+                        AND mpbiplace = '0'
+                    ORDER BY mpimmat
+                    LIMIT 5
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['gliders']['single_seater'][] = array(
+                        'registration' => $row->registration,
+                        'model' => $row->model,
+                        'manufacturer' => $row->manufacturer,
+                        'seats' => 1,
+                        'autonomous' => (bool)$row->autonomous
+                    );
+                }
+
+                // Extract tow planes
+                $query = $this->db->query("
+                    SELECT
+                        macimmat as registration,
+                        macmodele as model,
+                        macconstruc as manufacturer,
+                        macrem as is_tow_plane
+                    FROM machinesa
+                    WHERE actif = 1
+                        AND macrem = 1
+                    ORDER BY macimmat
+                    LIMIT 5
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['tow_planes'][] = array(
+                        'registration' => $row->registration,
+                        'model' => $row->model,
+                        'manufacturer' => $row->manufacturer
+                    );
+                }
+
+                // Extract member accounts (for billing)
+                $query = $this->db->query("
+                    SELECT
+                        c.id,
+                        c.nom as account_name,
+                        c.pilote as pilot_login,
+                        c.codec as account_code,
+                        CONCAT('(', c.codec, ') ', c.nom) as label
+                    FROM comptes c
+                    WHERE c.actif = 1
+                        AND c.codec LIKE '411%'
+                        AND c.pilote IS NOT NULL
+                        AND c.pilote != ''
+                    ORDER BY c.nom
+                    LIMIT 20
+                ");
+                foreach ($query->result() as $row) {
+                    $test_data['accounts'][] = array(
+                        'id' => (int)$row->id,
+                        'name' => $row->account_name,
+                        'pilot_login' => $row->pilot_login,
+                        'code' => $row->account_code,
+                        'label' => $row->label
+                    );
+                }
+
+                // Create output directory if needed
+                $output_dir = FCPATH . 'playwright/test-data';
+                if (!is_dir($output_dir)) {
+                    mkdir($output_dir, 0755, true);
+                }
+
+                // Write JSON file
+                $output_file = $output_dir . '/fixtures.json';
+                $json = json_encode($test_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                $write_success = file_put_contents($output_file, $json) !== false;
+
+                // Calculate total extracted
+                $total_extracted = count($test_data['pilots']) +
+                                 count($test_data['instructors']['glider']) +
+                                 count($test_data['instructors']['airplane']) +
+                                 count($test_data['gliders']['two_seater']) +
+                                 count($test_data['gliders']['single_seater']) +
+                                 count($test_data['tow_planes']) +
+                                 count($test_data['accounts']);
+
+                if ($write_success) {
+                    $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'OK', 'details' => "$total_extracted enregistrements");
+                } else {
+                    $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'WARNING', 'details' => 'Échec écriture fichier');
+                }
+            } catch (Exception $e) {
+                $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'WARNING', 'details' => $e->getMessage());
             }
-            $results[] = array('step' => 'Dump anonymisé', 'status' => 'OK', 'details' => filesize($anon_file) . ' bytes');
 
-            // Step 5: Encrypt the dump
-            log_message('info', 'Step 5: Encrypting dump');
-            
-            // Get passphrase from environment or POST
-            $passphrase = getenv('GVV_TEST_DB_PASSPHRASE');
+            // Step 5: Create anonymized dump and package it (following backup2 procedure exactly)
+            log_message('info', 'Step 5: Creating anonymized dump');
+
+            // Load crypto helper
+            $this->load->helper('crypto');
+
+            // Get passphrase from config
+            $passphrase = $this->config->item('passphrase');
             if (empty($passphrase)) {
-                $passphrase = $this->input->post('passphrase');
+                throw new Exception("Passphrase non configurée dans application/config/program.php");
             }
 
-            if (empty($passphrase)) {
-                throw new Exception("Passphrase non fournie. Définissez GVV_TEST_DB_PASSPHRASE ou utilisez le formulaire.");
-            }
-
+            // Ensure install directory exists
             $install_dir = FCPATH . 'install';
             if (!is_dir($install_dir)) {
                 mkdir($install_dir, 0755, true);
             }
 
-            $encrypted_file = $install_dir . '/base_de_test.sql.gpg';
-            $passphrase_file = sys_get_temp_dir() . '/gvv_passphrase_' . time() . '.txt';
-            file_put_contents($passphrase_file, $passphrase);
-            $temp_files[] = $passphrase_file;
+            // Get migration version (same as backup2)
+            $this->db->select_max('version');
+            $query = $this->db->get('migrations');
+            $row = $query->row();
+            $migration = $row ? $row->version : 0;
 
+            // Create filenames following backup2 naming convention
+            $nom_club = $this->config->item('nom_club');
+            $clubid = strtolower(str_replace(' ', '_', $nom_club));
+            $dt = date("Ymd_His");
+            $database = $db_config['database'];
+
+            $base_name = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration;
+            $base_name = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $base_name);
+            $sql_filename = $base_name . ".sql";
+            $zip_filename = $base_name . ".zip";
+
+            // Change to install directory (same as backup2 does with backups dir)
+            $original_dir = getcwd();
+            chdir($install_dir);
+
+            // Create SQL dump in install directory
             $cmd = sprintf(
-                'gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase-file %s --output %s %s 2>&1',
-                escapeshellarg($passphrase_file),
-                escapeshellarg($encrypted_file),
-                escapeshellarg($anon_file)
+                'mysqldump --single-transaction --skip-lock-tables -h%s -u%s -p%s %s > %s 2>&1',
+                escapeshellarg($db_config['hostname']),
+                escapeshellarg($db_config['username']),
+                escapeshellarg($db_config['password']),
+                escapeshellarg($database),
+                escapeshellarg($sql_filename)
             );
 
             exec($cmd, $output, $return_code);
             if ($return_code !== 0) {
-                throw new Exception("Échec du chiffrement: " . implode("\n", $output));
-            }
-            $results[] = array('step' => 'Chiffrement GPG', 'status' => 'OK', 'details' => filesize($encrypted_file) . ' bytes');
-
-            // Also create a ZIP version for backward compatibility
-            $zip_file = $install_dir . '/base_de_test.zip';
-            $zip = new ZipArchive();
-            if ($zip->open($zip_file, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-                $zip->addFile($anon_file, 'base_de_test.sql');
-                $zip->close();
-                $results[] = array('step' => 'Archive ZIP', 'status' => 'OK', 'details' => filesize($zip_file) . ' bytes (non chiffré)');
+                chdir($original_dir);
+                throw new Exception("Échec du dump anonymisé: " . implode("\n", $output));
             }
 
-            // Step 6: Restore original database
-            log_message('info', 'Step 6: Restoring original database');
+            if (!file_exists($sql_filename)) {
+                chdir($original_dir);
+                throw new Exception("Le fichier SQL n'a pas été créé");
+            }
+
+            $results[] = array('step' => 'Dump anonymisé', 'status' => 'OK', 'details' => filesize($sql_filename) . ' bytes');
+
+            // Step 6: Create ZIP archive (same as backup2)
+            log_message('info', 'Step 6: Creating ZIP archive');
+
+            $cmd = sprintf('zip %s %s 2>&1', escapeshellarg($zip_filename), escapeshellarg($sql_filename));
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0) {
+                chdir($original_dir);
+                throw new Exception("Échec de la création de l'archive ZIP: " . implode("\n", $output));
+            }
+
+            if (!file_exists($zip_filename)) {
+                chdir($original_dir);
+                throw new Exception("Le fichier ZIP n'a pas été créé");
+            }
+
+            // Delete SQL file (same as backup2)
+            unlink($sql_filename);
+
+            $results[] = array('step' => 'Archive ZIP', 'status' => 'OK', 'details' => filesize($zip_filename) . ' bytes');
+
+            // Step 7: Encrypt the ZIP file (same as backup2)
+            log_message('info', 'Step 7: Encrypting ZIP file');
+
+            $encrypted_filename = get_encrypted_filename($zip_filename);
+
+            if (!encrypt_file($zip_filename, $encrypted_filename, $passphrase)) {
+                chdir($original_dir);
+                throw new Exception("Échec du chiffrement OpenSSL");
+            }
+
+            // Delete unencrypted ZIP (same as backup2)
+            unlink($zip_filename);
+
+            // Rename to fixed name for test database
+            $final_filename = 'base_de_test.enc.zip';
+            if (file_exists($final_filename)) {
+                unlink($final_filename);
+            }
+            rename($encrypted_filename, $final_filename);
+
+            // Return to original directory
+            chdir($original_dir);
+
+            $results[] = array('step' => 'Chiffrement OpenSSL', 'status' => 'OK', 'details' => filesize($install_dir . '/' . $final_filename) . ' bytes');
+
+            // Step 8: Restore original database
+            log_message('info', 'Step 8: Restoring original database');
             $cmd = sprintf(
                 'mysql -h%s -u%s -p%s %s < %s 2>&1',
                 escapeshellarg($db_config['hostname']),
@@ -1598,7 +1886,7 @@ class Admin extends CI_Controller {
             }
             $results[] = array('step' => 'Restauration base', 'status' => 'OK', 'details' => 'Base restaurée à l\'état initial');
 
-            $success_message = "Base de test générée avec succès dans install/base_de_test.sql.gpg";
+            $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip";
 
         } catch (Exception $e) {
             log_message('error', 'Test database generation failed: ' . $e->getMessage());
@@ -1619,8 +1907,7 @@ class Admin extends CI_Controller {
             'results' => $results,
             'errors' => $errors,
             'message' => $success_message,
-            'show_form' => empty($success_message) && empty($errors),
-            'passphrase_required' => empty(getenv('GVV_TEST_DB_PASSPHRASE'))
+            'show_form' => empty($success_message) && empty($errors)
         );
 
         load_last_view('admin/bs_test_database_generation', $data);

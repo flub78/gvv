@@ -67,9 +67,9 @@ $this->load->view('bs_banner');
                             <li>Créer une sauvegarde temporaire de la base actuelle</li>
                             <li>Anonymiser toutes les données personnelles</li>
                             <li>Ajouter les utilisateurs de test (testuser, testadmin, testplanchiste, etc.)</li>
+                            <li>Mettre à jour fixtures.json avec les données de test pour Playwright</li>
                             <li>Créer un dump SQL de la base anonymisée</li>
-                            <li>Chiffrer le dump avec GPG (AES256)</li>
-                            <li>Créer une archive ZIP (non chiffrée, pour compatibilité)</li>
+                            <li>Chiffrer le dump avec OpenSSL (AES-256-CBC)</li>
                             <li><strong>Restaurer la base à son état initial</strong></li>
                         </ol>
                         
@@ -90,29 +90,11 @@ $this->load->view('bs_banner');
                                 </div>
                             </div>
 
-                            <?php if (isset($passphrase_required) && $passphrase_required): ?>
-                                <div class="mb-3">
-                                    <label for="passphrase" class="form-label">
-                                        <i class="fas fa-key"></i> Passphrase de chiffrement *
-                                    </label>
-                                    <input type="password" 
-                                           class="form-control" 
-                                           id="passphrase" 
-                                           name="passphrase" 
-                                           required
-                                           placeholder="Entrez une passphrase forte">
-                                    <div class="form-text">
-                                        Cette passphrase sera utilisée pour chiffrer la base de test avec GPG AES256.
-                                        Vous pouvez aussi définir la variable d'environnement <code>GVV_TEST_DB_PASSPHRASE</code>.
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="alert alert-info">
-                                    <i class="fas fa-check-circle"></i>
-                                    La variable d'environnement <code>GVV_TEST_DB_PASSPHRASE</code> est définie.
-                                    Elle sera utilisée pour le chiffrement.
-                                </div>
-                            <?php endif; ?>
+                            <div class="alert alert-info">
+                                <i class="fas fa-key"></i>
+                                <strong>Chiffrement :</strong> Le chiffrement utilise la passphrase configurée dans <code>application/config/program.php</code>.
+                                L'archive générée sera au format <code>install/base_de_test.enc.zip</code> (compatible avec le système de sauvegarde/restauration).
+                            </div>
 
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-cog"></i> Générer la base de test
