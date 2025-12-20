@@ -1,0 +1,92 @@
+<?php
+
+/**
+ *    GVV Gestion vol à voile
+ *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *	Script de migration de la base
+ */
+
+if (!defined('BASEPATH'))
+	exit('No direct script access allowed');
+
+/**
+ * Migration: Set default timestamp for granted_at in user_roles_per_section
+ *
+ * Modifies the granted_at column to have current_timestamp() as default value
+ * to automatically record when a role was granted to a user.
+ *
+ * @author Claude Code
+ */
+class Migration_Set_Default_Timestamp_Granted_At extends CI_Migration {
+
+	protected $migration_number;
+
+	/**
+	 * Constructor
+	 */
+	function __construct() {
+		parent::__construct();
+		$this->migration_number = 57;
+	}
+
+	/**
+	 * Execute an array of sql requests
+	 */
+	private function run_queries($sqls = array()) {
+		$errors = 0;
+		foreach ($sqls as $sql) {
+			gvv_info("Migration sql: " . $sql);
+			if (!$this->db->query($sql)) {
+				gvv_error("Migration error: " . $this->db->error()['message']);
+				$errors += 1;
+			}
+		}
+		return $errors;
+	}
+
+	/**
+	 * Apply the migration
+	 */
+	public function up() {
+		$errors = 0;
+
+		$sqls = array(
+			"ALTER TABLE user_roles_per_section MODIFY COLUMN granted_at DATETIME NOT NULL DEFAULT current_timestamp()"
+		);
+
+		$errors += $this->run_queries($sqls);
+		gvv_info("Migration database up to " . $this->migration_number . ", errors=$errors");
+
+		return !$errors;
+	}
+
+	/**
+	 * Reverse the migration
+	 */
+	public function down() {
+		$errors = 0;
+
+		$sqls = array(
+			"ALTER TABLE user_roles_per_section MODIFY COLUMN granted_at DATETIME NOT NULL"
+		);
+
+		$errors += $this->run_queries($sqls);
+		gvv_info("Migration database down to " . ($this->migration_number - 1) . ", errors=$errors");
+
+		return !$errors;
+	}
+}
