@@ -1277,13 +1277,13 @@ CREATE TABLE `volsp` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-20 19:12:14
+-- Dump completed on 2025-12-20 19:22:55
 -- ========================================
 -- Données de test minimales
 -- ========================================
 
 -- Migration version
-INSERT INTO `migrations` (`version`) VALUES (56);
+INSERT INTO `migrations` (`version`) VALUES (57);
 
 -- Membres de test (utilisateurs Gaulois)
 INSERT INTO `membres` (`mlogin`, `mnom`, `mprenom`, `memail`, `memailparent`, `madresse`, `cp`, `ville`, `pays`, `mtelf`, `mtelm`, `mdaten`, `m25ans`, `mlieun`, `msexe`, `mniveaux`, `macces`, `club`, `ext`, `actif`, `username`, `photo`, `compte`, `comment`, `trigramme`, `categorie`, `profession`, `inst_glider`, `inst_airplane`, `licfed`) VALUES
