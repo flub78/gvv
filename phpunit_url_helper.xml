@@ -11,5 +11,25 @@
 		<const name="PHPUNIT_TEST" value="1" />
 		<const name="PHPUNIT_CHARSET" value="UTF-8" />
 		<server name="REMOTE_ADDR" value="0.0.0.0" />
+		<env name="XDEBUG_MODE" value="coverage"/>
 	</php>
+	<filter>
+		<whitelist processUncoveredFilesFromWhitelist="false">
+			<directory suffix=".php">application</directory>
+			<exclude>
+				<directory suffix=".php">system</directory>
+				<directory suffix=".php">application/third_party</directory>
+				<directory suffix=".php">application/views</directory>
+				<directory suffix=".php">application/tests</directory>
+				<file>application/controllers/achats.php</file>
+				<file>application/controllers/vols_planeur.php</file>
+				<file>application/controllers/vols_avion.php</file>
+			</exclude>
+		</whitelist>
+	</filter>
+	<logging>
+		<log type="junit" target="build/logs/url_helper_junit.xml"/>
+		<log type="testdox-text" target="build/logs/url_helper_testdox.txt"/>
+		<log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+	</logging>
 </phpunit>
