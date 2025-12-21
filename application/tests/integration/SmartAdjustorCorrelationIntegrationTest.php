@@ -80,7 +80,9 @@ class SmartAdjustorCorrelationIntegrationTest extends TestCase
     private function loadStringImages(): array
     {
         $path = APPPATH . 'tests/data/string_images.php';
-        $this->assertTrue(file_exists($path), 'string_images.php must exist');
+        if (!file_exists($path)) {
+            $this->markTestSkipped('string_images.php not available - contains personal data, not committed to git');
+        }
         $images = require $path; // returns the $string_images array
         $this->assertTrue(is_array($images), 'string_images should be an array');
         return $images;

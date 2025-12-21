@@ -191,7 +191,9 @@ class EmailListSublistsMigrationTest extends TestCase
 
         if ($query->num_rows() > 0) {
             $row = $query->row_array();
-            $this->assertEquals('RESTRICT', $row['DELETE_RULE'], 'child_list_id FK should RESTRICT on delete');
+            // MySQL treats RESTRICT and NO ACTION as synonyms - both are valid
+            $this->assertContains($row['DELETE_RULE'], ['RESTRICT', 'NO ACTION'],
+                'child_list_id FK should RESTRICT on delete (or NO ACTION which is equivalent in MySQL)');
         }
     }
 
