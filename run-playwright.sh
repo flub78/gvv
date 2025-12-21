@@ -82,10 +82,10 @@ if echo "$LOGIN_PAGE" | grep -q 'src="http://gvv.net/captcha/[0-9]*\.[0-9]*\.png
     echo "  1. Open http://gvv.net/auth/login in your browser"
     echo "  2. Complete the CAPTCHA manually"
     echo "  3. OR wait for the CAPTCHA to expire"
-    echo "  4. OR clear the login attempt counter from the database:"
+    echo "  4. OR clear the login attempts from the database:"
     echo ""
     echo "     mysql -h localhost -u gvv_user -plfoyfgbj gvv2 -e \\"
-    echo "       \"UPDATE login_attempts SET login_attempts = 0 WHERE ip_address = '127.0.0.1'\""
+    echo "       \"DELETE FROM login_attempts WHERE ip_address = '127.0.0.1'\""
     echo ""
     exit 1
 elif echo "$LOGIN_PAGE" | grep -qi 'captcha'; then

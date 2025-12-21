@@ -1,6 +1,6 @@
 # Plan de Tests GVV
 
-**Date de mise à jour:** 2025-10-24
+**Date de mise à jour:** 2025-12-21
 **Statut:** 🟢 Actif - Stratégie de Tests en Production
 
 ---
@@ -16,17 +16,17 @@ Ce document définit la **stratégie de tests** pour l'application GVV (Gestion 
 
 **Note:** Ce document se concentre sur la **stratégie et la planification**. Pour l'état actuel des tests, les métriques en temps réel, et les détails de couverture, consultez [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md).
 
-**État Stratégique - 2025-10-24:**
+**État Stratégique - 2025-12-21:**
 - ✅ **Phase 1 (Fondations):** COMPLÈTE - Infrastructure opérationnelle
-- ✅ **Tests critiques:** 254 tests (213 PHPUnit + 41 Playwright) tous passent
+- ✅ **Tests critiques:** 731 tests (621 PHPUnit + 110 Playwright) tous passent
 - 🎯 **Phase 2 (Modèles Critiques):** PROCHAINE - Membres, Vols, Flotte
-- 📈 **Objectif final:** 75% couverture code, 200+ tests PHPUnit
+- 📈 **Objectif final:** 75% couverture code, 800+ tests total
 
 ## 🏆 SUCCÈS MAJEUR: MIGRATION PLAYWRIGHT DES TESTS CRITIQUES!
 
 **MIGRATION STATUS: 8/21 FICHIERS DUSK MIGRÉS (38%) - TOUS LES TESTS CRITIQUES FONCTIONNELS:**
 
-### ✅ Tests Migrated Successfully - 41/41 PASSING (Critical Tests):
+### ✅ Tests Migrated Successfully - 110/110 PASSING (Critical Tests):
 
 **🎯 Core Functionality Tests Successfully Migrated:**
 - **✅ Smoke Tests**: 8/8 passing (100%) - Basic application verification
@@ -200,7 +200,7 @@ firefox build/coverage/index.
 # Playwright tests
 cd playwright; 
 npx playwright test --reporter=line
-npx playwright test --browser=chromium
+npx playwright test
 
 
 ```
@@ -218,7 +218,8 @@ npx playwright test --browser=chromium
 **Scripts d'Exécution:**
 - `run-tests.sh` - Tests unitaires rapides (Suite 1 uniquement)
 - `run-coverage.sh` - Tests unitaires avec couverture (Suite 1)
-- `run-all-tests.sh` - **TOUTES les 5 suites** (~219 tests PHPUnit)
+- `run-all-tests.sh` - **TOUTES les 6 suites** (621 tests PHPUnit)
+- `run-all-tests.sh --coverage` - Toutes les suites avec couverture (~60s)
 
 **Environnement:**
 - PHP 7.4.33 (via `/usr/bin/php7.4`)
@@ -249,7 +250,14 @@ npx playwright test --browser=chromium
 - [ ] Corriger 23 erreurs dans suite Integration (à faire)
 - [ ] Mettre à jour rapport couverture avec toutes les suites
 
-**Résultat Actuel:** ~319 tests actifs (219 PHPUnit + 86 Dusk + 3 Playwright + 11 skipped), baseline établie ✅
+**Résultat Actuel:** 731 tests actifs (621 PHPUnit + 110 Playwright), baseline établie ✅
+
+**Notes sur l'État Actuel:**
+- ✅ 6 suites PHPUnit complètement opérationnelles
+- ✅ 0 tests en échec
+- ⚠️ 1 test risky (EmailListsModelTest::testGetUsersByRoleAndSection_ActiveFilter) - à corriger
+- ℹ️ 2 tests skipped (tests de complétude de traduction - attendus)
+- ✅ Infrastructure de tests moderne et robuste avec reporting amélioré
 
 ---
 
@@ -436,22 +444,23 @@ npx playwright test --browser=chromium
 > **📊 Pour les détails complets de la couverture actuelle des tests:**
 > **Voir [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md)**
 
-### 3.1 Résumé de l'Infrastructure (2025-10-24)
+### 3.1 Résumé de l'Infrastructure (2025-12-21)
 
 **Tests Opérationnels:**
-- ✅ 213 tests PHPUnit (100% passing)
-- ✅ 41 tests Playwright (100% passing)
-- ✅ 254 tests au total
+- ✅ 621 tests PHPUnit (618 passed, 0 failed, 1 risky, 2 skipped)
+- ✅ 110 tests Playwright (100% passing)
+- ✅ 731 tests au total
 
 **Suites PHPUnit:**
-- Suite 1 (Unit): 75 tests - Helpers, models, libraries, authorization
-- Suite 2 (Integration): 12 tests - Authorization workflows
-- Suite 3 (Enhanced): 63 tests - CI framework helpers
-- Suite 4 (Controller): 8 tests - Controller testing
-- Suite 5 (MySQL): 132 tests - Database operations
+- Suite 1 (Unit): 184 tests - Helpers, models, libraries, i18n, controllers (182 passed, 2 incomplete)
+- Suite 2 (URL Helper): 8 tests - URL generation and validation (all passed)
+- Suite 3 (Integration): 269 tests - Real database operations, metadata (all passed)
+- Suite 4 (Enhanced): 63 tests - CI framework helpers (all passed)
+- Suite 5 (Controller): 8 tests - JSON/HTML/CSV output parsing (all passed)
+- Suite 6 (MySQL): 89 tests - Real database CRUD operations (88 passed, 1 risky)
 
 **Tests End-to-End:**
-- Playwright: 8 fichiers de test (41 tests critiques migrés)
+- Playwright: 110 tests across 8 test files (100% passing)
 - Dusk (legacy): 13 fichiers restant à migrer
 
 ### 3.2 Composants Testés vs Non Testés
@@ -532,11 +541,11 @@ cd /home/frederic/git/dusk_gvv && php artisan dusk
 
 ### 4.1 Tableau de Bord (Objectifs par Phase)
 
-| Métrique | Actuel (2025-10-24) | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
+| Métrique | Actuel (2025-12-21) | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Phase 6 |
 |----------|---------------------|---------|---------|---------|---------|---------|
-| **Tests PHPUnit** | ✅ 213 | 250 | 280 | 310 | 345 | 380+ |
-| **Tests E2E** | ✅ 41 (Playwright) | 60 | 75 | 85 | 95 | 100+ |
-| **Assertions** | ✅ 1,216+ | 1,500 | 1,800 | 2,100 | 2,400 | 2,700+ |
+| **Tests PHPUnit** | ✅ 621 | 680 | 740 | 800 | 860 | 920+ |
+| **Tests E2E** | ✅ 110 (Playwright) | 130 | 150 | 165 | 180 | 200+ |
+| **Assertions** | ✅ 2,150+ | 2,500 | 2,900 | 3,300 | 3,700 | 4,100+ |
 | **Couverture Code** | TBD | 40% | 55% | 65% | 70% | 75% |
 | **Modèles Testés** | 2/37 | 8 | 12 | 15 | 18 | 25+ |
 | **Contrôleurs Testés** | 5/53 | 8 | 12 | 15 | 20 | 25+ |

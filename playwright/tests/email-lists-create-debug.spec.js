@@ -9,16 +9,16 @@ test.describe('Email Lists Creation Debug', () => {
 
         // Login
         console.log('1. Logging in...');
-        await page.goto('http://gvv.net/index.php/dx_auth/login');
-        await page.fill('input[name="login"]', 'testadmin');
+        await page.goto('http://gvv.net/auth/login');
+        await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForLoadState('networkidle');
         console.log('   Logged in successfully');
 
         // Navigate to create page
         console.log('2. Navigating to create page...');
-        await page.goto('http://gvv.net/index.php/email_lists/create');
+        await page.goto('http://gvv.net/email_lists/create');
         await page.waitForLoadState('networkidle');
 
         // Check if we're on the right page
@@ -50,7 +50,7 @@ test.describe('Email Lists Creation Debug', () => {
 
         // Submit the form
         console.log('4. Submitting form...');
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
 
         // Wait for navigation or error
         await page.waitForLoadState('networkidle');

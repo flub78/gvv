@@ -7,16 +7,16 @@ const { test, expect } = require('@playwright/test');
 test.describe('Balance Search Bug Fix', () => {
     test('should find "Peignot Frédéric" when typing "PEI"', async ({ page }) => {
         // Login first
-        await page.goto('http://gvv.net/index.php/dx_auth/login');
-        await page.fill('input[name="login"]', 'testadmin');
+        await page.goto('http://gvv.net/auth/login');
+        await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForLoadState('networkidle');
 
         console.log('✓ Logged in successfully');
 
         // Navigate to balance page
-        await page.goto('http://gvv.net/index.php/comptes/balance');
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
 
         console.log('✓ Navigated to balance page');
@@ -72,13 +72,13 @@ test.describe('Balance Search Bug Fix', () => {
 
     test('should clear search results when input is empty', async ({ page }) => {
         // Login and navigate
-        await page.goto('http://gvv.net/index.php/dx_auth/login');
-        await page.fill('input[name="login"]', 'testadmin');
+        await page.goto('http://gvv.net/auth/login');
+        await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForLoadState('networkidle');
 
-        await page.goto('http://gvv.net/index.php/comptes/balance');
+        await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
 
