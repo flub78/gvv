@@ -2,11 +2,11 @@
 #
 # GVV - Script d'initialisation de la base de test pour Jenkins/CI
 #
-# Ce script déchiffre et restaure la base de données de test chiffrée
+# Ce script déchiffre (OpenSSL) et restaure la base de données de test chiffrée
 # Utilisé dans les jobs Jenkins pour initialiser l'environnement de test
 #
 # Variables d'environnement requises:
-#   - GVV_TEST_DB_PASSPHRASE: Passphrase pour déchiffrer la base GPG
+#   - GVV_TEST_DB_PASSPHRASE: Passphrase pour déchiffrer la base (OpenSSL AES-256-CBC)
 #   - MYSQL_DATABASE: Nom de la base (défaut: gvv2)
 #   - MYSQL_USER: Utilisateur MySQL (défaut: gvv_user)
 #   - MYSQL_PASSWORD: Mot de passe MySQL
@@ -27,7 +27,7 @@ DB_USER="${MYSQL_USER:-gvv_user}"
 DB_PASSWORD="${MYSQL_PASSWORD:-}"
 DB_HOST="${MYSQL_HOST:-localhost}"
 
-ENCRYPTED_FILE="install/base_de_test.sql.gpg"
+ENCRYPTED_FILE="install/base_de_test.enc.zip"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -81,20 +81,49 @@ fi
 # Étape 2: Déchiffrer et restaurer
 echo -e "${YELLOW}[2/3]${NC} Déchiffrement et restauration de la base de test..."
 
-# Créer un fichier temporaire pour la passphrase
-PASSPHRASE_FILE=$(mktemp)
-echo "$GVV_TEST_DB_PASSPHRASE" > "$PASSPHRASE_FILE"
+# Créer des fichiers temporaires
+TEMP_ZIP=$(mktemp --suffix=.zip)
+TEMP_SQL=$(mktemp --suffix=.sql)
 
-# Déchiffrer et injecter directement dans MySQL
-gpg --quiet --batch --yes --decrypt \
-    --passphrase-file "$PASSPHRASE_FILE" \
-    "$ENCRYPTED_FILE" | \
-    mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME"
+# Déchiffrer avec OpenSSL (compatible avec crypto_helper.php)
+openssl enc -d -aes-256-cbc -pbkdf2 \
+    -in "$ENCRYPTED_FILE" \
+    -out "$TEMP_ZIP" \
+    -pass pass:"$GVV_TEST_DB_PASSPHRASE" 2>/dev/null
 
+if [ $? -ne 0 ]; then
+    echo -e "${RED}✗${NC} Échec du déchiffrement OpenSSL"
+    rm -f "$TEMP_ZIP" "$TEMP_SQL"
+    exit 1
+fi
+
+# Créer un répertoire temporaire pour l'extraction
+TEMP_DIR=$(mktemp -d)
+
+# Décompresser le ZIP
+unzip -q -o "$TEMP_ZIP" -d "$TEMP_DIR" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo -e "${RED}✗${NC} Échec de la décompression"
+    rm -rf "$TEMP_ZIP" "$TEMP_SQL" "$TEMP_DIR"
+    exit 1
+fi
+
+# Trouver le fichier SQL extrait (chercher n'importe quel .sql)
+SQL_FILE=$(find "$TEMP_DIR" -name "*.sql" -type f | head -n 1)
+if [ -z "$SQL_FILE" ] || [ ! -f "$SQL_FILE" ]; then
+    echo -e "${RED}✗${NC} Fichier SQL introuvable après décompression"
+    echo "Contenu du ZIP:"
+    ls -la "$TEMP_DIR"
+    rm -rf "$TEMP_ZIP" "$TEMP_SQL" "$TEMP_DIR"
+    exit 1
+fi
+
+# Importer dans MySQL
+mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$SQL_FILE"
 RESULT=$?
 
-# Supprimer le fichier de passphrase
-rm -f "$PASSPHRASE_FILE"
+# Nettoyer les fichiers temporaires
+rm -rf "$TEMP_ZIP" "$TEMP_SQL" "$TEMP_DIR"
 
 if [ $RESULT -eq 0 ]; then
     echo -e "${GREEN}✓${NC} Base restaurée"
