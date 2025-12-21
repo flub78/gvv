@@ -112,6 +112,7 @@ declare -a SUITE_NAMES
 declare -a SUITE_TESTS
 declare -a SUITE_PASSED
 declare -a SUITE_FAILED
+declare -a SUITE_RISKY
 declare -a SUITE_SKIPPED
 SUITE_COUNT=0
 
@@ -177,6 +178,7 @@ run_suite() {
     local tests=0
     local passed=0
     local failed=0
+    local risky=0
     local skipped=0
 
     # Extract test counts from PHPUnit output
@@ -189,11 +191,11 @@ run_suite() {
             failed=$(echo "$test_line" | grep -oP 'Failures: \K[0-9]+' || echo 0)
             local errors=$(echo "$test_line" | grep -oP 'Errors: \K[0-9]+' || echo 0)
             local incomplete=$(echo "$test_line" | grep -oP 'Incomplete: \K[0-9]+' || echo 0)
-            local risky=$(echo "$test_line" | grep -oP 'Risky: \K[0-9]+' || echo 0)
+            risky=$(echo "$test_line" | grep -oP 'Risky: \K[0-9]+' || echo 0)
 
             failed=$((failed + errors))
-            skipped=$((incomplete + risky))
-            passed=$((tests - failed - skipped))
+            skipped=$incomplete
+            passed=$((tests - failed - risky - skipped))
         else
             # Try format: "OK (8 tests, 32 assertions)" or "FAILURES! Tests: 8, ..."
             local ok_line=$(grep -E "^OK \([0-9]+ tests?" "$output_file" | tail -1)
@@ -201,6 +203,7 @@ run_suite() {
                 tests=$(echo "$ok_line" | grep -oP '\(\K[0-9]+' || echo 0)
                 passed=$tests
                 failed=0
+                risky=0
                 skipped=0
             fi
         fi
@@ -211,6 +214,7 @@ run_suite() {
     SUITE_TESTS[$SUITE_COUNT]=$tests
     SUITE_PASSED[$SUITE_COUNT]=$passed
     SUITE_FAILED[$SUITE_COUNT]=$failed
+    SUITE_RISKY[$SUITE_COUNT]=$risky
     SUITE_SKIPPED[$SUITE_COUNT]=$skipped
     SUITE_COUNT=$((SUITE_COUNT + 1))
 
@@ -266,18 +270,20 @@ echo ""
 total_tests=0
 total_passed=0
 total_failed=0
+total_risky=0
 total_skipped=0
 
 for ((i=0; i<SUITE_COUNT; i++)); do
     total_tests=$((total_tests + SUITE_TESTS[i]))
     total_passed=$((total_passed + SUITE_PASSED[i]))
     total_failed=$((total_failed + SUITE_FAILED[i]))
+    total_risky=$((total_risky + SUITE_RISKY[i]))
     total_skipped=$((total_skipped + SUITE_SKIPPED[i]))
 done
 
 # Display table header
-printf "%-30s | %6s | %6s | %6s | %8s\n" "Suite Name" "Tests" "Passed" "Failed" "Skipped"
-echo "───────────────────────────────────────────────────────────────────────────"
+printf "%-30s | %6s | %6s | %6s | %6s | %8s\n" "Suite Name" "Tests" "Passed" "Failed" "Risky" "Skipped"
+echo "─────────────────────────────────────────────────────────────────────────────────────"
 
 # Display each suite's results
 for ((i=0; i<SUITE_COUNT; i++)); do
@@ -285,21 +291,24 @@ for ((i=0; i<SUITE_COUNT; i++)); do
     tests="${SUITE_TESTS[i]:-0}"
     passed="${SUITE_PASSED[i]:-0}"
     failed="${SUITE_FAILED[i]:-0}"
+    risky="${SUITE_RISKY[i]:-0}"
     skipped="${SUITE_SKIPPED[i]:-0}"
 
     # Color code the status
     if [ "$failed" -gt 0 ] 2>/dev/null; then
-        printf "${RED}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+        printf "${RED}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$risky" "$skipped"
+    elif [ "$risky" -gt 0 ] 2>/dev/null; then
+        printf "${YELLOW}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$risky" "$skipped"
     elif [ "$skipped" -gt 0 ] 2>/dev/null; then
-        printf "${YELLOW}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+        printf "${YELLOW}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$risky" "$skipped"
     else
-        printf "${GREEN}%-30s${NC} | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$skipped"
+        printf "${GREEN}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "$name" "$tests" "$passed" "$failed" "$risky" "$skipped"
     fi
 done
 
 # Display totals
-echo "───────────────────────────────────────────────────────────────────────────"
-printf "${CYAN}%-30s${NC} | %6d | %6d | %6d | %8d\n" "TOTAL" "$total_tests" "$total_passed" "$total_failed" "$total_skipped"
+echo "─────────────────────────────────────────────────────────────────────────────────────"
+printf "${CYAN}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "TOTAL" "$total_tests" "$total_passed" "$total_failed" "$total_risky" "$total_skipped"
 echo ""
 
 if [ $FAILED_SUITES -eq 0 ]; then
