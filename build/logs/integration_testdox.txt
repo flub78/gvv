@@ -12,7 +12,6 @@ Assets Helper Integration
  [x] Asset url
  [x] Controller url
  [x] Controller url different paths
- [x] Jqueryui theme
 
 Attachment Storage Feature
  [x] New file is stored when attachment uploaded

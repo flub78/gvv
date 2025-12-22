@@ -222,23 +222,4 @@ class AssetsHelperIntegrationTest extends TestCase
             $this->assertStringStartsWith('http', $url, "Controller URL should be absolute for $path");
         }
     }
-
-    /**
-     * Test jqueryui_theme() function
-     */
-    public function testJqueryuiTheme()
-    {
-        $jquery_theme = jqueryui_theme();
-
-        $this->assertIsString($jquery_theme, "jQuery UI theme should be a string");
-        $this->assertNotEmpty($jquery_theme, "jQuery UI theme should not be empty");
-
-        // Should return either configured palette or default 'base'
-        $palette = config_item('palette');
-        if ($palette) {
-            $this->assertEquals($palette, $jquery_theme, "jQuery UI theme should match config palette");
-        } else {
-            $this->assertEquals('base', $jquery_theme, "jQuery UI theme should default to 'base'");
-        }
-    }
 }

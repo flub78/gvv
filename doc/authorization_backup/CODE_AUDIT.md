@@ -20,10 +20,6 @@
    - Line 68: Calls `$this->dx_auth->check_login()` in constructor
    - Line 639: Uses `$this->dx_auth->is_role($this->modification_level, true, true)` for authorization
 
-3. **Authorization Helper** (`application/helpers/authorization_helper.php`)
-   - Contains commented-out bitfield constants (legacy)
-   - Helper function `logged_username()` to get current user
-
 ### Authorization Flow
 
 ```

@@ -73,14 +73,3 @@ if (!function_exists('controller_url')) {
         return site_url($nom);
     }
 }
-
-// TODO: remove references to jqueryui
-if (!function_exists('jqueryui_theme')) {
-    function jqueryui_theme() {
-        $CI = &get_instance();
-        if ($CI->config->item('palette')) {
-            return $CI->config->item('palette');
-        }
-        return "base";
-    }
-}
