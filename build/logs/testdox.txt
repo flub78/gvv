@@ -1,3 +1,21 @@
+Balance Helper
+ [x] Balance accordion header with debit balance
+ [x] Balance accordion header with credit balance
+ [x] Balance accordion header with zero balance
+ [x] Balance accordion header with special characters
+ [x] Balance detail datatable small dataset
+ [x] Balance detail datatable large dataset
+ [x] Balance detail datatable without modification rights
+ [x] Balance detail datatable single account
+ [x] Balance detail datatable with mixed balances
+ [x] Balance detail datatable with journal links
+ [x] Balance accordion item collapsed
+ [x] Balance accordion item expanded
+ [x] Balance accordion item with empty details
+ [x] Balance accordion item with dots in codec
+ [x] Balance detail datatable unique ids
+ [x] Balance detail datatable delete confirmation
+
 Bitfields Helper
  [x] Array 2 int nominal cases
  [x] Array 2 int with duplicates
