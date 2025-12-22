@@ -180,39 +180,3 @@ Language Completeness
  [ ] Dutch has all translation keys
  [x] Reference language has translation files
 
-Comptes Controller
- [x] Csv resultat export is truncated
- [x] Fixed csv resultat export contains complete data
-
-Configuration Controller
- [x] Json output parsing
- [x] Html output parsing
- [x] Csv output parsing
- [x] Http status codes
- [x] Response headers
- [x] Form validation logic
-
-Controller
- [x] Load controller from subfolder
- [x] Load inexistent controller from subfolder
-
-Email Lists Controller Sublists
- [x] AddSublistAjax JsonStructure Success
- [x] AddSublistAjax JsonStructure MissingParams
- [x] AddSublistAjax JsonStructure ListNotFound
- [x] RemoveSublistAjax JsonStructure Success
- [x] RemoveSublistAjax JsonStructure Error
- [x] GetAvailableSublistsAjax JsonStructure Success
- [x] GetAvailableSublistsAjax JsonStructure Error
- [x] CheckVisibilityConsistencyAjax JsonStructure Consistent
- [x] CheckVisibilityConsistencyAjax JsonStructure Inconsistent
- [x] CheckVisibilityConsistencyAjax JsonStructure Error
- [x] PropagateVisibilityAjax JsonStructure Success
- [x] PropagateVisibilityAjax JsonStructure Error
- [x] AllAjaxMethods ReturnValidJson
-
-Vols Decouverte Background Image
- [x] Background image path validation
- [x] Background image selection logic
- [x] Discovery flight background image file
-

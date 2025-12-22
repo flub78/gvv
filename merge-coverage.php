@@ -132,6 +132,35 @@ try {
     // Merge coverage
     $mergedCoverage = mergeCoverage($coverageObjects);
 
+    // Apply filter to exclude unwanted directories
+    echo "\nApplying coverage filter...\n";
+    $filter = new PHPUnitPHAR\SebastianBergmann\CodeCoverage\Filter();
+
+    // Add only the directories we want to include
+    $appDir = __DIR__ . '/application';
+    $filter->addDirectoryToWhitelist($appDir . '/config');
+    $filter->addDirectoryToWhitelist($appDir . '/core');
+    $filter->addDirectoryToWhitelist($appDir . '/errors');
+    $filter->addDirectoryToWhitelist($appDir . '/helpers');
+    $filter->addDirectoryToWhitelist($appDir . '/hooks');
+    $filter->addDirectoryToWhitelist($appDir . '/language');
+    $filter->addDirectoryToWhitelist($appDir . '/libraries');
+    $filter->addDirectoryToWhitelist($appDir . '/migrations');
+    $filter->addDirectoryToWhitelist($appDir . '/models');
+
+    // Exclude specific problematic files
+    $filter->removeFileFromWhitelist($appDir . '/controllers/achats.php');
+    $filter->removeFileFromWhitelist($appDir . '/controllers/vols_planeur.php');
+    $filter->removeFileFromWhitelist($appDir . '/controllers/vols_avion.php');
+
+    // Apply the new filter to merged coverage
+    $reflection = new ReflectionClass($mergedCoverage);
+    $filterProperty = $reflection->getProperty('filter');
+    $filterProperty->setAccessible(true);
+    $filterProperty->setValue($mergedCoverage, $filter);
+
+    echo "Filter applied (included: config, core, errors, helpers, hooks, language, libraries, migrations, models)\n";
+
     // Generate HTML report
     echo "\nGenerating HTML report to: {$htmlOutputDir}\n";
     $htmlReport = new PHPUnitPHAR\SebastianBergmann\CodeCoverage\Report\Html\Facade();

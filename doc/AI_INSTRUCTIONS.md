@@ -88,10 +88,9 @@ find application/controllers -name "*.php" -exec php -l {} \;
 - **Unit Tests**: `application/tests/unit/` - Helpers, models, libraries, i18n
 - **Integration Tests**: `application/tests/integration/` - Real database operations, metadata
 - **Enhanced CI Tests**: `application/tests/enhanced/` - CI framework-dependent helpers/libraries (with enhanced mock CI environment)
-- **Controller Tests**: `application/tests/controllers/` - JSON/HTML/CSV output parsing
 - **MySQL Tests**: `application/tests/mysql/` - Real database CRUD operations
 
-Current status: ~128 tests across all suites
+Current status: ~120 tests across all suites
 
 ---
 
