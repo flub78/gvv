@@ -30,10 +30,19 @@ if (!defined('FILE_READ_MODE')) {
 define('CREATION', 'creation');
 define('MODIFICATION', 'modification');
 
+// Mock log_message function (must be defined before loading log_helper.php)
+if (!function_exists('log_message')) {
+    function log_message($level, $message, $php_error = FALSE) {
+        // Mock log function for tests
+        return TRUE;
+    }
+}
+
 // Load the helper functions
 require_once APPPATH . 'helpers/validation_helper.php';
 require_once APPPATH . 'helpers/bitfields_helper.php';
 require_once APPPATH . 'helpers/assets_helper.php';
+require_once APPPATH . 'helpers/log_helper.php';
 require_once APPPATH . 'helpers/crypto_helper.php';
 require_once APPPATH . 'helpers/csv_helper.php';
 require_once APPPATH . 'helpers/markdown_helper.php';
@@ -58,13 +67,6 @@ load_library('MY_Parsedown');
 if (!function_exists('valid_email')) {
     function valid_email($email) {
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-    }
-}
-
-// Mock debug function
-if (!function_exists('gvv_debug')) {
-    function gvv_debug($message) {
-        // Mock debug function - does nothing in tests
     }
 }
 
@@ -357,14 +359,6 @@ if (!function_exists('get_instance')) {
     function &get_instance() {
         global $CI;
         return $CI;
-    }
-}
-
-// Mock log_message function
-if (!function_exists('log_message')) {
-    function log_message($level, $message, $php_error = FALSE) {
-        // Mock log function for tests
-        return TRUE;
     }
 }
 

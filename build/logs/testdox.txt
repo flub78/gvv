@@ -28,6 +28,19 @@ Crypto Helper
  [x] Complete encode de code cycle
  [x] Deterministic behavior
  [x] Output within modulo range
+ [x] Is encrypted backup with encrypted filenames
+ [x] Is encrypted backup with non encrypted filenames
+ [x] Get decrypted filename
+ [x] Get decrypted filename with non encrypted files
+ [x] Get encrypted filename
+ [x] Get encrypted filename with non archive files
+ [x] Encrypt file with valid input
+ [x] Encrypt file with default output filename
+ [x] Encrypt file with non existent file
+ [x] Decrypt file with valid input
+ [x] Decrypt file with wrong passphrase
+ [x] Decrypt file with non existent file
+ [x] Encrypt decrypt round trip with different sizes
 
 Debug Example
  [x] Debugging example
