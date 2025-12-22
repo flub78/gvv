@@ -55,51 +55,6 @@ class Types_roles_model extends Common_Model {
         $result[] = $this->lang->line("all_sections");
         return $result;
     }
-
-    /** 
-     * For some reasons unit test library can only be invoked directly from the controller.
-     * This test returns an array of test results.
-     */
-    public function test() {
-        $res = [];
-
-        $res[] = ["description" => "Model sections", "result" => true];
-
-        // Count elements in sections table
-        $initial_count = $this->db->count_all($this->table);
-        $res[] = ["description" => "Initial count sections: " . $initial_count, "result" => true];
-
-        // Insert a dummy element
-        $data = array(
-            'nom' => 'Autogire',
-            'description' => 'Section Autogire'
-        );
-        $insert_result = $this->db->insert($this->table, $data);
-        $last_id = $this->db->insert_id();
-
-        $count = $this->db->count_all($this->table);
-
-        $res[] = ["description" => "Insert returns true", "result" => $insert_result];
-        $res[] = ["description" => "Section created", "result" => ($count == $initial_count + 1)];
-
-        // Get last inserted id
-        $res[] = ["description" => "Last inserted ID: " . $last_id, "result" => ($last_id > 0)];
-
-        // Get last inserted element
-        $last = $this->get_by_id('id', $last_id);
-
-        $res[] = ["description" => "Last element id", "result" => ($last['id'] == $last_id)];
-
-        // Delete last inserted element
-        $delete_result = $this->db->delete($this->table, array('id' => $last_id));
-        $res[] = ["description" => "Delete returns true", "result" => $delete_result];
-
-        // Verify deletion
-        $count_after_delete = $this->db->count_all($this->table);
-        $res[] = ["description" => "Section deleted", "result" => ($count_after_delete == $initial_count)];
-
-        return $res;
-    }
 }
 
 /* End of file */
