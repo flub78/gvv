@@ -211,6 +211,21 @@ Gvv_Authorization
  [x] Can edit row delegates to can access data
  [x] Can edit row uses current user when null
 
+Widget
+ [x] Instantiation empty
+ [x] Instantiation with attributes
+ [x] Set method
+ [x] Get method existing
+ [x] Get method non existent
+ [x] Overwrite attribute
+ [x] Multiple attributes
+ [x] Various data types
+ [x] Image method default
+ [x] Constructor with empty array
+ [x] Constructor with nested arrays
+ [x] Attribute isolation
+ [x] Attributes with special characters
+
 Language Completeness
  [x] Reference language directory exists
  [x] English has all language files
