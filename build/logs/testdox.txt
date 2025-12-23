@@ -125,6 +125,14 @@ Validation Helper
  [x] Decimal to time
  [x] Euro
  [x] Email validation
+ [x] French date compare edge cases
+ [x] French date compare with invalid format
+ [x] Decimal to time edge cases
+ [x] Minute to time with negative values
+ [x] Euro with negative values
+ [x] Euro with large numbers
+ [x] Date db 2 ht edge cases
+ [x] Date ht 2 db edge cases
 
 Authorization_model
  [x] Model loads successfully

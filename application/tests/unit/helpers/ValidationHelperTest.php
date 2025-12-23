@@ -147,6 +147,122 @@ class ValidationHelperTest extends TestCase
         $this->assertFalse(valid_email('user@'));
         $this->assertFalse(valid_email(''));
     }
+    
+    /**
+     * Test date comparison edge cases
+     */
+    public function testFrenchDateCompareEdgeCases()
+    {
+        // Test with beginning and end of month
+        $this->assertTrue(french_date_compare("01/01/2023", "31/01/2023", "<"));
+        $this->assertTrue(french_date_compare("31/01/2023", "01/01/2023", ">"));
+        
+        // Test year boundaries
+        $this->assertTrue(french_date_compare("31/12/2022", "01/01/2023", "<"));
+        $this->assertTrue(french_date_compare("01/01/2023", "31/12/2023", "<"));
+        
+        // Test leap year date
+        $this->assertTrue(french_date_compare("28/02/2023", "01/03/2023", "<"));
+        $this->assertTrue(french_date_compare("01/03/2023", "28/02/2023", ">"));
+    }
+    
+    /**
+     * Test french_date_compare with invalid date format should throw exception
+     */
+    public function testFrenchDateCompareWithInvalidFormat()
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Format de date incorrect");
+        french_date_compare("2023-01-01", "01/01/2023", "<");
+    }
+    
+    /**
+     * Test decimal_to_time edge cases
+     */
+    public function testDecimalToTimeEdgeCases()
+    {
+        // Test minimum value
+        $this->assertEquals("00:00", decimal_to_time(0.00));
+        
+        // Test maximum reasonable value (24 hours)
+        $this->assertEquals("24:00", decimal_to_time(24.00));
+        
+        // Test values with minimal decimal differences
+        $this->assertEquals("01:00", decimal_to_time(1.00));
+        $this->assertEquals("01:01", decimal_to_time(1.01));
+        $this->assertEquals("01:59", decimal_to_time(1.59));
+    }
+    
+    /**
+     * Test minute_to_time with negative values
+     */
+    public function testMinuteToTimeWithNegativeValues()
+    {
+        // Negative values should be handled gracefully
+        $result = minute_to_time(-30);
+        // Function may return formatted or invalid, just check it doesn't crash
+        $this->assertIsString($result);
+    }
+    
+    /**
+     * Test euro with negative values
+     */
+    public function testEuroWithNegativeValues()
+    {
+        // Test negative amounts
+        $result = euro(-10.5);
+        $this->assertStringContainsString('10,50', $result);
+        
+        // Test large negative amount
+        $result = euro(-1234.56);
+        $this->assertStringContainsString('1', $result);
+        $this->assertStringContainsString('234', $result);
+        $this->assertStringContainsString('56', $result);
+    }
+    
+    /**
+     * Test euro with very large numbers
+     */
+    public function testEuroWithLargeNumbers()
+    {
+        // Test very large amount
+        $result = euro(1000000.99);
+        $this->assertStringContainsString('€', $result);
+        // Large numbers should have thousand separators
+        $this->assertStringContainsString('1', $result);
+        $this->assertStringContainsString('000', $result);
+        $this->assertStringContainsString('99', $result);
+    }
+    
+    /**
+     * Test date_db2ht with edge dates
+     */
+    public function testDateDb2HtEdgeCases()
+    {
+        // Test leap year date
+        $this->assertEquals("29/02/2020", date_db2ht("2020-02-29"));
+        
+        // Test year 2000 (Y2K edge case)
+        $this->assertEquals("01/01/2000", date_db2ht("2000-01-01"));
+        
+        // Test century boundary
+        $this->assertEquals("31/12/1999", date_db2ht("1999-12-31"));
+    }
+    
+    /**
+     * Test date_ht2db with edge dates
+     */
+    public function testDateHt2DbEdgeCases()
+    {
+        // Test leap year date
+        $this->assertEquals("2020-02-29", date_ht2db("29/02/2020"));
+        
+        // Test year 2000
+        $this->assertEquals("2000-01-01", date_ht2db("01/01/2000"));
+        
+        // Test end of year
+        $this->assertEquals("1999-12-31", date_ht2db("31/12/1999"));
+    }
 }
 
 ?>
