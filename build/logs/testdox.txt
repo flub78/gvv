@@ -190,6 +190,20 @@ Bitfield
  [x] Edge cases
  [x] Complex scenarios
 
+Button
+ [x] Instantiation with defaults
+ [x] Instantiation with attributes
+ [x] Button with confirmation
+ [x] Button with image
+ [x] Set attributes after construction
+ [x] Button inherits from widget
+ [x] Button with all attributes
+ [x] Override defaults
+ [x] Button with numeric parameter
+ [x] Button with complex parameter
+ [x] Multiple button instances
+ [x] Button with empty controller and action
+
 Gvv_Authorization
  [x] Library loads successfully
  [x] Use new system returns config value
