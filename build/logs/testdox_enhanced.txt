@@ -21,6 +21,12 @@ Csv Helper
  [x] Csv file function
  [x] Csv file with empty table
  [x] Csv file with single row
+ [x] Csv file numeric conversion
+ [x] Csv file with header flag
+ [x] Csv file with special characters
+ [x] Csv file multiple rows complex
+ [x] Csv file format validation
+ [x] Csv file with empty and null values
 
 Form Elements Helper
  [x] Checkbox array function
