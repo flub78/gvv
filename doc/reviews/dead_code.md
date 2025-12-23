@@ -247,4 +247,11 @@ Non analysés dans ce rapport:
 
 ---
 
+**Mise à jour — 2025-12-22**
+
+- Helpers: `application/helpers/views_helper.php` — `load_club_view($view, $data, $nodisplay)` — Confiance: HIGH — Aucun appel trouvé hors définition. La fonction semble remplacée par `load_bs_view()`. Recommandation: suppression sécurisée après validation.
+- Helpers: `application/helpers/wsse_helper.php` — `decode_chunked($str)` — Confiance: HIGH — Aucune référence dans le projet; la bibliothèque tierce `Requests` fournit sa propre implémentation. Recommandation: suppression sécurisée.
+
+Éléments contrôlés et validés par recherche de références (`grep`): `array2int`, `int2array`, `update_config`, `month_chart`, `pdf_per_month_page`, `no_file_or_file_too_old`, `machine_barchart`, `date_m25ans`, `wsse_header_short`, `heva_request`, `markdown`, `load_bs_view`, `load_last_view`, `is_logged_in`, `is_admin`, `has_role`, `mysql_real_escape_string`, `csv_file`, `balance_accordion_header` — tous utilisés.
+
 **Fin du Rapport**
