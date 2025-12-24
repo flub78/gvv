@@ -1,4 +1,11 @@
-**Commandes Playwright:**
+# Playwright tests for GVV
+
+## Prerequisites
+
+The playwrith tests 
+
+## **Commandes Playwright:**
+
 ```bash
 cd playwright
 npx playwright test                       # Tous les tests

@@ -24,7 +24,7 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix';
+        $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix, saisie_par, created_at, updated_at';
 
         // Prepare filter data for the view
         $year = $this->session->userdata('vd_year') ?: date('Y');
@@ -147,7 +147,28 @@ class Vols_decouverte_model extends Common_Model {
         $highest_id = $this->highest_id_by_year($year);
         $data['id'] = $highest_id   + 1;
 
+        // Explicitly set timestamps to ensure they're always initialized
+        $now = date('Y-m-d H:i:s');
+        $data['created_at'] = $now;
+        $data['updated_at'] = $now;
+
         parent::create($data);
+    }
+
+    /**
+     * Update an existing element and ensure updated_at is refreshed
+     *
+     * @param integer $keyid The key field name
+     * @param hash $data Data to update
+     * @param string $keyvalue Optional key value
+     * @return bool The result of the query
+     */
+    public function update($keyid, $data, $keyvalue = '') {
+        // Explicitly set updated_at to ensure it's always updated
+        // even if no other fields change
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        
+        parent::update($keyid, $data, $keyvalue);
     }
 
     /**
