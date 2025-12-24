@@ -25,87 +25,115 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist page length across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/11`);
+        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
+        
+        // Wait for DataTables to fully initialize
+        await page.waitForSelector('.dataTables_info');
         await page.waitForTimeout(2000);
 
         // Change page length to 50
         const pageLengthSelect = page.locator('select[name="journal-table_length"]');
         await pageLengthSelect.selectOption('50');
-        await page.waitForTimeout(1000);
+
+        // Wait for AJAX call to complete and state to save
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
 
         // Reload page
-        await page.reload();
+        await page.reload({ waitUntil: 'networkidle' });
         await page.waitForSelector('#journal-table');
+        await page.waitForSelector('.dataTables_info');
         await page.waitForTimeout(2000);
 
         // Verify page length is still 50
-        const selectedValue = await pageLengthSelect.inputValue();
+        const selectedValue = await page.locator('select[name="journal-table_length"]').inputValue();
         expect(selectedValue).toBe('50');
     });
 
     test('should persist search term across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/11`);
+        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
+        
+        // Wait for DataTables to fully initialize
+        await page.waitForSelector('.dataTables_info');
         await page.waitForTimeout(2000);
 
-        // Enter search term
-        const searchInput = page.locator('input[type="search"]');
+        // Enter search term - need to trigger the search event properly
+        const searchInput = page.locator('.dataTables_filter input');
         await searchInput.fill('2023');
-        await page.waitForTimeout(1000);
+        // Trigger keyup event to ensure DataTables processes the search
+        await searchInput.press('Enter');
+
+        // Wait for search to execute and state to save
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
 
         // Reload page
-        await page.reload();
+        await page.reload({ waitUntil: 'networkidle' });
         await page.waitForSelector('#journal-table');
-        await page.waitForTimeout(2000);
+        
+        // Wait for DataTables to initialize AND restore state - this is critical
+        await page.waitForSelector('.dataTables_info');
+        await page.waitForTimeout(3000);  // Give extra time for state restoration
 
         // Verify search term is still there
-        const searchValue = await searchInput.inputValue();
+        const searchValue = await page.locator('.dataTables_filter input').inputValue();
         expect(searchValue).toBe('2023');
     });
 
     test('should persist current page across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/11`);
+        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
+        
+        // Wait for DataTables to fully initialize
+        await page.waitForSelector('.dataTables_info');
         await page.waitForTimeout(2000);
 
-        // Clear any search
-        const searchInput = page.locator('input[type="search"]');
+        // Clear any search to ensure we have multiple pages
+        const searchInput = page.locator('.dataTables_filter input');
         await searchInput.fill('');
+        await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
         // Get initial page info
         const initialInfo = await page.locator('.dataTables_info').textContent();
 
-        // Click "Next" button if it exists and is not disabled
-        const nextButton = page.locator('.dataTables_paginate .ui-icon-seek-next').first();
-        const isNextDisabled = await nextButton.evaluateHandle(el => {
-            const parent = el.parentElement;
-            return parent && parent.classList.contains('ui-state-disabled');
-        });
+        // Try to find and click the "Next" button - looking for the last pagination link before "Last"
+        const nextButton = page.locator('.dataTables_paginate a.fg-button').nth(-2);
+        const buttonCount = await nextButton.count();
+        
+        if (buttonCount > 0) {
+            const isDisabled = await nextButton.evaluate(el => el.parentElement.classList.contains('ui-state-disabled'));
+            
+            if (!isDisabled) {
+                await nextButton.click();
 
-        if (!await isNextDisabled.jsonValue()) {
-            await nextButton.click();
-            await page.waitForTimeout(1000);
+                // Wait for page change and state to save
+                await page.waitForLoadState('networkidle');
+                await page.waitForTimeout(2000);
 
-            // Get page info after clicking next
-            const afterNextInfo = await page.locator('.dataTables_info').textContent();
+                // Get page info after clicking next
+                const afterNextInfo = await page.locator('.dataTables_info').textContent();
 
-            // Reload page
-            await page.reload();
-            await page.waitForSelector('#journal-table');
-            await page.waitForTimeout(2000);
+                // Reload page
+                await page.reload({ waitUntil: 'networkidle' });
+                await page.waitForSelector('#journal-table');
+                await page.waitForSelector('.dataTables_info');
+                await page.waitForTimeout(2000);
 
-            // Get page info after reload
-            const afterReloadInfo = await page.locator('.dataTables_info').textContent();
+                // Get page info after reload
+                const afterReloadInfo = await page.locator('.dataTables_info').textContent();
 
-            // Verify we're still on the same page (not back to page 1)
-            expect(afterReloadInfo).toBe(afterNextInfo);
-            expect(afterReloadInfo).not.toBe(initialInfo);
+                // Verify we're still on the same page (not back to page 1)
+                expect(afterReloadInfo).toBe(afterNextInfo);
+                expect(afterReloadInfo).not.toBe(initialInfo);
+            } else {
+                test.skip();
+            }
         } else {
-            // If there's only one page, skip this test
             test.skip();
         }
     });
