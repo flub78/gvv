@@ -22,20 +22,9 @@ test.describe('Compta Frozen Entry Buttons', () => {
         // Wait for redirect after login
         await page.waitForLoadState('networkidle');
 
-        // Navigate to balance des comptes to find an existing account
-        await page.goto('http://gvv.net/comptes/balance');
-        await page.waitForLoadState('networkidle');
-
-        // Expand the first accordion if it exists (balance page uses accordions)
-        const firstAccordion = page.locator('.accordion-button').first();
-        if (await firstAccordion.isVisible()) {
-            await firstAccordion.click();
-            await page.waitForTimeout(500); // Wait for accordion animation
-        }
-
-        // Click on the first visible account link to go to its journal
-        const firstAccountLink = page.locator('a[href*="journal_compte"]:visible').first();
-        await firstAccountLink.click();
+        // Navigate directly to account 23 which has entries to test with
+        // (account 102 typically has no entries until end of year)
+        await page.goto('http://gvv.net/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
     });
 
