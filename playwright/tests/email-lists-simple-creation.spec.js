@@ -37,7 +37,7 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
         await page.waitForURL(/email_lists\/edit\/\d+/);
 
         // Verify we're now in edit mode
-        await expect(page.locator('h3')).toContainText('Modification');
+        await expect(page.locator('h3')).toContainText('Modifier la liste');
 
         // Verify success message
         await expect(page.locator('.alert-success')).toBeVisible();
