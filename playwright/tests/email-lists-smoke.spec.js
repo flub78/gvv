@@ -134,6 +134,16 @@ test.describe('Email Lists Smoke Tests', () => {
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
+    // Close "Message du jour" dialog if it appears (it blocks interactions)
+    const modDialog = page.locator('.ui-dialog');
+    if (await modDialog.isVisible().catch(() => false)) {
+      const closeButton = page.locator('.ui-dialog-buttonpane button:has-text("OK")');
+      if (await closeButton.isVisible().catch(() => false)) {
+        await closeButton.click();
+        await page.waitForTimeout(500);
+      }
+    }
+
     // Look for Dev menu
     const devMenu = page.locator('a.nav-link:has-text("Dev")');
     if (await devMenu.isVisible()) {

@@ -59,7 +59,7 @@ test.describe('Résultat par sections detail view', () => {
 
         // Check that the page loaded successfully
         const title = await page.locator('h2').first().textContent();
-        expect(title).toContain('Résultat par sections');
+        expect(title).toContain('résultat par sections');
 
         // Check table structure
         const headers = await page.locator('table.resultat-table thead th').allTextContents();

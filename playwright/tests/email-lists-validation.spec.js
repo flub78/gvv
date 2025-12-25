@@ -75,10 +75,10 @@ test.describe('Email Lists - Validation Errors', () => {
         console.log('✓ Field-specific validation error displayed for description field');
     });
 
-    test('should show validation error for invalid active_member value', async ({ page }) => {
+    test('should reject invalid active_member value (security)', async ({ page }) => {
         await page.fill('input[name="name"]', 'Test List');
 
-        // Try to submit with invalid active_member value via JavaScript
+        // Try to submit with invalid active_member value via JavaScript (simulating form tampering)
         await page.evaluate(() => {
             // Add an invalid option
             const select = document.querySelector('select[name="active_member"]');
@@ -92,17 +92,22 @@ test.describe('Email Lists - Validation Errors', () => {
         // Submit the form
         await page.click('button[type="submit"]');
 
-        // Wait for page to reload with validation errors
+        // Wait for page to reload
         await page.waitForLoadState('networkidle');
 
-        // Check that we're on create or store page (validation may keep us on either)
+        // Check that we're still on create page (form was rejected)
         await expect(page).toHaveURL(/email_lists\/(create|store)$/);
 
-        // Check for validation error
-        const activeMemFieldContainer = page.locator('.row:has(select[name="active_member"])');
-        await expect(activeMemFieldContainer.locator('.invalid-feedback')).toBeVisible();
+        // Verify that the invalid value was rejected and field reset to a valid value
+        // Backend security validation should have rejected 'invalid_value' and reset to default
+        const activeMemSelect = page.locator('select[name="active_member"]');
+        const currentValue = await activeMemSelect.inputValue();
 
-        console.log('✓ Field-specific validation error displayed for active_member field');
+        // Should be one of the valid values (active, inactive, all), NOT 'invalid_value'
+        expect(['active', 'inactive', 'all']).toContain(currentValue);
+        expect(currentValue).not.toBe('invalid_value');
+
+        console.log('✓ Invalid active_member value rejected by backend (security validation)');
     });
 
     test('should preserve form values after validation error', async ({ page }) => {

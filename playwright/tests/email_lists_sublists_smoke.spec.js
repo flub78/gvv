@@ -77,18 +77,19 @@ test.describe('Email Lists - Sublists Smoke Test', () => {
         // Wait for tab content
         await page.waitForSelector('#sublists', { state: 'visible' });
 
-        // Check if we see either current sublists section or "no sublists" message
-        const hasCurrentSection = await page.locator('.current-sublists').isVisible().catch(() => false);
-        const hasNoSublistsMsg = await page.locator('text=/no sublists/i').isVisible().catch(() => false);
-        
-        // One of these should be visible
-        expect(hasCurrentSection || hasNoSublistsMsg).toBeTruthy();
+        // Check for "Sous-listes actuelles" heading (current sublists section)
+        const currentSublistsHeading = page.locator('h6:has-text("Sous-listes actuelles")');
+        await expect(currentSublistsHeading).toBeVisible();
 
-        // Check if we see available sublists section
-        const hasAvailableSection = await page.locator('.available-sublists').isVisible().catch(() => false);
-        const hasNoAvailableMsg = await page.locator('text=/no.*available/i').isVisible().catch(() => false);
-        
-        // One of these should be visible
-        expect(hasAvailableSection || hasNoAvailableMsg).toBeTruthy();
+        // Check for either configured sublists or "no sublists" message
+        const hasNoSublistsMsg = await page.locator('text=/Aucune sous-liste configurée/i').isVisible().catch(() => false);
+        const hasSublistsList = await page.locator('h6:has-text("Sous-listes actuelles")').textContent();
+
+        // Either should have "Aucune sous-liste" message or a count > 0
+        expect(hasNoSublistsMsg || (hasSublistsList && hasSublistsList.match(/\d+/))).toBeTruthy();
+
+        // Check for "Listes disponibles" heading (available lists section)
+        const availableListsHeading = page.locator('h6:has-text("Listes disponibles")');
+        await expect(availableListsHeading).toBeVisible();
     });
 });
