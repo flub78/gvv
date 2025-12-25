@@ -16,8 +16,7 @@
 const { test, expect } = require('@playwright/test');
 
 // Test configuration
-const BASE_URL = 'http://gvv.net';
-const LOGIN_URL = `${BASE_URL}/auth/login`;
+const LOGIN_URL = '/auth/login';
 const TEST_USER = {
   username: 'testadmin',
   password: 'password'
@@ -41,7 +40,7 @@ test.describe('BugFix: Payeur Selector Tests', () => {
 
   test('BugFix: should verify payeur selector in glider flight form only shows 411 accounts', async ({ page }) => {
     // Navigate to glider flight creation form
-    await page.goto(`${BASE_URL}/vols_planeur/create`);
+    await page.goto('/vols_planeur/create');
     await page.waitForLoadState('networkidle');
     
     // Check if the page loaded correctly
@@ -98,7 +97,7 @@ test.describe('BugFix: Payeur Selector Tests', () => {
 
   test('BugFix: should verify payeur selector in airplane flight form only shows 411 accounts', async ({ page }) => {
     // Navigate to airplane flight creation form
-    await page.goto(`${BASE_URL}/vols_avion/create`);
+    await page.goto('/vols_avion/create');
     await page.waitForLoadState('networkidle');
     
     // Check if the page loaded correctly
@@ -155,7 +154,7 @@ test.describe('BugFix: Payeur Selector Tests', () => {
 
   test('BugFix: should verify payeur selector has empty default option', async ({ page }) => {
     // Navigate to glider flight creation form
-    await page.goto(`${BASE_URL}/vols_planeur/create`);
+    await page.goto('/vols_planeur/create');
     await page.waitForLoadState('networkidle');
     
     const payeurSelector = page.locator('select[name="payeur"], #payeur');
@@ -179,7 +178,7 @@ test.describe('BugFix: Payeur Selector Tests', () => {
 
   test('BugFix: should verify payeur selector only contains 411 accounts from active section', async ({ page }) => {
     // Navigate to glider flight creation form
-    await page.goto(`${BASE_URL}/vols_planeur/create`);
+    await page.goto('/vols_planeur/create');
     await page.waitForLoadState('networkidle');
     
     const payeurSelector = page.locator('select[name="payeur"], #payeur');
@@ -233,7 +232,7 @@ test.describe('BugFix: Payeur Selector Tests', () => {
 
   test('BugFix: should verify payeur selector shows account names with proper format', async ({ page }) => {
     // Navigate to glider flight creation form
-    await page.goto(`${BASE_URL}/vols_planeur/create`);
+    await page.goto('/vols_planeur/create');
     await page.waitForLoadState('networkidle');
     
     const payeurSelector = page.locator('select[name="payeur"], #payeur');

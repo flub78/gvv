@@ -14,9 +14,8 @@
 const { test, expect } = require('@playwright/test');
 
 // Test configuration
-const BASE_URL = 'http://gvv.net';
-const LOGIN_URL = `${BASE_URL}/auth/login`;
-const RAPPROCHEMENTS_URL = `${BASE_URL}/rapprochements/import_releve_from_file`;
+const LOGIN_URL = '/auth/login';
+const RAPPROCHEMENTS_URL = `/rapprochements/import_releve_from_file`;
 const TEST_USER = {
   username: 'testadmin',
   correctPassword: 'password'

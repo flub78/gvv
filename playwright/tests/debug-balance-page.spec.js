@@ -2,14 +2,14 @@ const { test } = require('@playwright/test');
 
 test('Debug: Check balance page structure', async ({ page }) => {
     // Login
-    await page.goto('http://gvv.net/auth/login');
+    await page.goto('/auth/login');
     await page.fill('input[name="username"]', 'testadmin');
     await page.fill('input[name="password"]', 'password');
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     // Navigate to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Take screenshot

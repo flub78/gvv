@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
     test.beforeEach(async ({ page }) => {
         // Login as testadmin (tresorier role)
-        await page.goto('http://gvv.net/auth/login');
+        await page.goto('/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -18,7 +18,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
 
     test('should display membership fee entry form', async ({ page }) => {
         // Navigate to membership fee entry page
-        await page.goto('http://gvv.net/compta/saisie_cotisation');
+        await page.goto('/compta/saisie_cotisation');
 
         // Verify we're on the correct page
         await expect(page.locator('h3')).toContainText('Enregistrement Cotisation');
@@ -42,7 +42,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
 
     test('should create membership fee successfully', async ({ page }) => {
         // Navigate to membership fee entry page
-        await page.goto('http://gvv.net/compta/saisie_cotisation');
+        await page.goto('/compta/saisie_cotisation');
 
         // Fill in the form
         const timestamp = Date.now();
@@ -94,7 +94,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
     test('should re-enable submit button when form is modified', async ({ page }) => {
         // This test assumes we're on the form page after a successful submission
         // We'll navigate fresh and submit first
-        await page.goto('http://gvv.net/compta/saisie_cotisation');
+        await page.goto('/compta/saisie_cotisation');
 
         // Quick submit (simplified - might not validate, but for button state testing)
         // First, let's check if button is enabled initially
@@ -127,7 +127,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
         // 3. Verify error message
 
         // Navigate to membership fee entry page
-        await page.goto('http://gvv.net/compta/saisie_cotisation');
+        await page.goto('/compta/saisie_cotisation');
 
         // For this test, we'll just verify that the error message mechanism exists
         // Full test would require database setup/teardown
@@ -143,7 +143,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
         // PHASE 1 FIX: Navigate directly to URL instead of using dropdown menu
         // This avoids issues with Bootstrap dropdown visibility
         // Original menu path: Écritures > Saisie cotisation
-        await page.goto('http://gvv.net/compta/saisie_cotisation');
+        await page.goto('/compta/saisie_cotisation');
 
         // Verify we're on the membership fee entry page
         await expect(page).toHaveURL(/compta\/saisie_cotisation/);

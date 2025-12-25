@@ -6,8 +6,7 @@
 
 const { test, expect } = require('@playwright/test');
 
-const BASE_URL = 'http://gvv.net';
-const LOGIN_URL = `${BASE_URL}/auth/login`;
+const LOGIN_URL = '/auth/login';
 const TEST_USER = {
     username: 'testadmin',
     password: 'password'
@@ -25,7 +24,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist page length across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
+        await page.goto(`/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize
@@ -53,7 +52,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist search term across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
+        await page.goto(`/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize
@@ -85,7 +84,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist current page across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`${BASE_URL}/compta/journal_compte/23`);
+        await page.goto(`/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize

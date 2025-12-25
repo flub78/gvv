@@ -16,7 +16,7 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
     test.beforeEach(async ({ page }) => {
         // TODO: Update with valid credentials for your environment
         // Login
-        await page.goto('http://gvv.net/');
+        await page.goto('/');
         await page.fill('input[name="username"]', 'YOUR_USERNAME');
         await page.fill('input[name="password"]', 'YOUR_PASSWORD');
         await page.click('input[type="submit"]');
@@ -25,7 +25,7 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
 
     test('should display search box for account with > 400 entries', async ({ page }) => {
         // Navigate to account #23 which has 1937 entries
-        await page.goto('http://gvv.net/index.php/compta/journal_compte/23');
+        await page.goto('/index.php/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
 
         // Verify search box is visible
@@ -39,7 +39,7 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
 
     test('should filter table rows based on search term', async ({ page }) => {
         // Navigate to account #23 which has 1937 entries
-        await page.goto('http://gvv.net/index.php/compta/journal_compte/23');
+        await page.goto('/index.php/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
 
         // Count initial visible rows
@@ -70,7 +70,7 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
 
     test('should show all rows when search is cleared', async ({ page }) => {
         // Navigate to account #23 which has 1937 entries
-        await page.goto('http://gvv.net/index.php/compta/journal_compte/23');
+        await page.goto('/index.php/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
 
         // Count initial visible rows

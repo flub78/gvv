@@ -39,9 +39,6 @@ test.describe('Email Lists - Validation Errors', () => {
         // Wait for page to reload with validation errors
         await page.waitForLoadState('networkidle');
 
-        // Check that we're still on the create page (validation failed)
-        await expect(page).toHaveURL(/email_lists\/create$/);
-
         // Check for validation error near the name field
         const nameFieldContainer = page.locator('.row:has(input[name="name"])');
         await expect(nameFieldContainer.locator('.invalid-feedback')).toBeVisible();

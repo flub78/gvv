@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Email Lists Workflow v1.4', () => {
     test.beforeEach(async ({ page }) => {
         // Login via dx_auth
-        await page.goto('http://gvv.net/auth/login');
+        await page.goto('/auth/login');
         await page.fill('input[name="username"]', 'admin');
         await page.fill('input[name="password"]', 'gvvadmin');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -13,7 +13,7 @@ test.describe('Email Lists Workflow v1.4', () => {
 
     test('should show disabled address section in creation mode', async ({ page }) => {
         // Navigate to create page
-        await page.goto('http://gvv.net/email_lists/create');
+        await page.goto('/email_lists/create');
 
         // Check title
         await expect(page.locator('h3')).toContainText('Nouvelle liste');
@@ -41,7 +41,7 @@ test.describe('Email Lists Workflow v1.4', () => {
 
     test('should create list and redirect to edit mode with enabled address section', async ({ page }) => {
         // Navigate to create page
-        await page.goto('http://gvv.net/email_lists/create');
+        await page.goto('/email_lists/create');
 
         // Fill in metadata
         const listName = 'Test List v1.4 ' + Date.now();
@@ -81,7 +81,7 @@ test.describe('Email Lists Workflow v1.4', () => {
 
     test('should allow modifying metadata and addresses in edit mode', async ({ page }) => {
         // First create a list
-        await page.goto('http://gvv.net/email_lists/create');
+        await page.goto('/email_lists/create');
         const listName = 'Test Edit v1.4 ' + Date.now();
         await page.fill('input[name="name"]', listName);
         await page.click('button[type="submit"], input[type="submit"]');

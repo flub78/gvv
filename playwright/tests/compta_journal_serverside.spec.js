@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Journal Compte Server-side DataTables', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to GVV application
-    await page.goto('http://gvv.net/');
+    await page.goto('/');
     
     // Login - using testplanchiste user (assuming it exists)
     await page.fill('input[name="username"]', 'testplanchiste');
@@ -23,7 +23,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('DataTables loads correctly with server-side processing', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page instead of clicking dropdown menu
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Find and click on first account link to open journal
@@ -46,7 +46,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Search functionality works across all data (server-side)', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -78,7 +78,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Pagination works correctly', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -113,7 +113,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Column sorting works correctly', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -144,7 +144,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Page length selector works', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -181,7 +181,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
     });
 
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -207,7 +207,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
 test.describe('Regression tests for existing functionality', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://gvv.net/');
+    await page.goto('/');
     await page.fill('input[name="username"]', 'testplanchiste');
     await page.fill('input[name="password"]', 'password');
     await page.click('input[type="submit"]');
@@ -216,7 +216,7 @@ test.describe('Regression tests for existing functionality', () => {
 
   test('Edit and delete buttons still work', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();
@@ -249,7 +249,7 @@ test.describe('Regression tests for existing functionality', () => {
 
   test('Filters still work with server-side processing', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('http://gvv.net/comptes/balance');
+    await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     const accountLink = await page.locator('table a[href*="journal_compte"]').first();

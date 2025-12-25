@@ -15,7 +15,7 @@ test.describe('Balance Search Bug Fix', () => {
     for (const testCase of fixtures.balance_search_tests) {
         test(`should find "${testCase.expected_name}" when typing "${testCase.search_term}"`, async ({ page }) => {
             // Go to login page
-            await page.goto('http://gvv.net/auth/login');
+            await page.goto('/auth/login');
 
             // Select "Général" section BEFORE logging in to see all members
             const sectionSelect = page.locator('select[name="section"]');
@@ -31,7 +31,7 @@ test.describe('Balance Search Bug Fix', () => {
             console.log('✓ Logged in successfully');
 
             // Navigate to balance page
-            await page.goto('http://gvv.net/comptes/balance');
+            await page.goto('/comptes/balance');
             await page.waitForLoadState('networkidle');
 
             console.log('✓ Navigated to balance page');
@@ -89,7 +89,7 @@ test.describe('Balance Search Bug Fix', () => {
 
     test('should clear search results when input is empty', async ({ page }) => {
         // Go to login page
-        await page.goto('http://gvv.net/auth/login');
+        await page.goto('/auth/login');
 
         // Select "Général" section BEFORE logging in
         const sectionSelect = page.locator('select[name="section"]');
@@ -102,7 +102,7 @@ test.describe('Balance Search Bug Fix', () => {
         await page.waitForLoadState('networkidle');
 
         // Navigate to balance page
-        await page.goto('http://gvv.net/comptes/balance');
+        await page.goto('/comptes/balance');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
 

@@ -6,7 +6,9 @@
 class BasePage {
   constructor(page) {
     this.page = page;
-    this.baseUrl = process.env.BASE_URL || 'http://gvv.net';
+    // Use baseURL from Playwright config (which reads BASE_URL env var)
+    // Fallback to process.env.BASE_URL for backwards compatibility
+    this.baseUrl = page.context()._options.baseURL || process.env.BASE_URL || 'http://gvv.net';
   }
 
   /**

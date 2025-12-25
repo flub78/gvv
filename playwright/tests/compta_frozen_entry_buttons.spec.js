@@ -14,7 +14,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Compta Frozen Entry Buttons', () => {
     test.beforeEach(async ({ page }) => {
         // Login as test admin (see bin/create_test_users.sh)
-        await page.goto('http://gvv.net/');
+        await page.goto('/');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('input[type="submit"]');
@@ -24,7 +24,7 @@ test.describe('Compta Frozen Entry Buttons', () => {
 
         // Navigate directly to account 23 which has entries to test with
         // (account 102 typically has no entries until end of year)
-        await page.goto('http://gvv.net/compta/journal_compte/23');
+        await page.goto('/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
     });
 

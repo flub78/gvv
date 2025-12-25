@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Résultat par sections detail view', () => {
     test.beforeEach(async ({ page }) => {
         // Login as admin
-        await page.goto('http://gvv.net/auth/login');
+        await page.goto('/auth/login');
         await page.waitForLoadState('networkidle');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
@@ -21,7 +21,7 @@ test.describe('Résultat par sections detail view', () => {
 
     test('should display simplified table structure with Section column', async ({ page }) => {
         // Navigate to resultat_par_sections page first
-        await page.goto('http://gvv.net/comptes/resultat_par_sections');
+        await page.goto('/comptes/resultat_par_sections');
         await page.waitForLoadState('networkidle');
 
         // Find a link to a detail page (codec link)
@@ -54,7 +54,7 @@ test.describe('Résultat par sections detail view', () => {
 
     test('should access detail page directly via codec 607', async ({ page }) => {
         // Navigate directly to a known codec detail page
-        await page.goto('http://gvv.net/comptes/resultat_par_sections_detail/607');
+        await page.goto('/comptes/resultat_par_sections_detail/607');
         await page.waitForLoadState('networkidle');
 
         // Check that the page loaded successfully
@@ -74,7 +74,7 @@ test.describe('Résultat par sections detail view', () => {
     });
 
     test('should have CSV and PDF export buttons', async ({ page }) => {
-        await page.goto('http://gvv.net/comptes/resultat_par_sections_detail/607');
+        await page.goto('/comptes/resultat_par_sections_detail/607');
         await page.waitForLoadState('networkidle');
 
         // Check for export buttons
