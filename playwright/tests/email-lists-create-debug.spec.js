@@ -40,8 +40,8 @@ test.describe('Email Lists Creation Debug', () => {
         await page.check('input[name="visible"]');
         console.log('   Visible checked');
 
-        // Get the form action URL
-        const formAction = await page.locator('form').getAttribute('action');
+        // Get the form action URL (be specific to avoid finding multiple forms)
+        const formAction = await page.locator('form[action*="email_lists"]').getAttribute('action');
         console.log('   Form action:', formAction);
 
         // Screenshot before submit

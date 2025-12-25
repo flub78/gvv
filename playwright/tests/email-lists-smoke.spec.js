@@ -105,34 +105,21 @@ test.describe('Email Lists Smoke Tests', () => {
     await expect(page.locator('textarea[name="description"]')).toBeVisible();
     console.log('✓ Description field is visible');
 
-    // Check all three tabs are present
-    const criteriaTab = page.locator('#criteria-tab');
-    await expect(criteriaTab).toBeVisible();
-    console.log('✓ Criteria tab is visible');
+    // Check active member select
+    await expect(page.locator('select[name="active_member"]')).toBeVisible();
+    console.log('✓ Active member select is visible');
 
-    const manualTab = page.locator('#manual-tab');
-    await expect(manualTab).toBeVisible();
-    console.log('✓ Manual tab is visible');
+    // Check visible checkbox
+    await expect(page.locator('input[name="visible"]')).toBeVisible();
+    console.log('✓ Visible checkbox is present');
 
-    const importTab = page.locator('#import-tab');
-    await expect(importTab).toBeVisible();
-    console.log('✓ Import tab is visible');
+    // Check submit button
+    await expect(page.locator('button[type="submit"], input[type="submit"]')).toBeVisible();
+    console.log('✓ Submit button is visible');
 
-    // Click each tab to verify they work
-    await manualTab.click();
-    await page.waitForTimeout(500);
-    await expect(page.locator('#manual')).toBeVisible();
-    console.log('✓ Manual tab content loads');
-
-    await importTab.click();
-    await page.waitForTimeout(500);
-    await expect(page.locator('#import')).toBeVisible();
-    console.log('✓ Import tab content loads');
-
-    await criteriaTab.click();
-    await page.waitForTimeout(500);
-    await expect(page.locator('#criteria')).toBeVisible();
-    console.log('✓ Criteria tab content loads');
+    // Note: In CREATE mode, address selection tabs (#criteria-tab, #manual-tab, #import-tab)
+    // are not available. They only become available after the list is created (EDIT mode).
+    console.log('✓ Create form validation complete');
 
     console.log('\n✓ ALL SMOKE TESTS PASSED');
   });

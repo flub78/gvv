@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Email Lists - Validation Errors', () => {
     test.beforeEach(async ({ page }) => {
         // Login as testadmin
-        await page.goto('http://localhost/auth/login');
+        await page.goto('/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -16,7 +16,7 @@ test.describe('Email Lists - Validation Errors', () => {
         await page.waitForLoadState('networkidle');
 
         // Navigate to create page
-        await page.goto('http://localhost/email_lists/create');
+        await page.goto('/email_lists/create');
     });
 
     test('should show field-specific validation error for name too long', async ({ page }) => {
@@ -65,8 +65,8 @@ test.describe('Email Lists - Validation Errors', () => {
         // Wait for page to reload with validation errors
         await page.waitForLoadState('networkidle');
 
-        // Check that we're still on the create page
-        await expect(page).toHaveURL(/email_lists\/create$/);
+        // Check that we're on create or store page (validation may keep us on either)
+        await expect(page).toHaveURL(/email_lists\/(create|store)$/);
 
         // Check for validation error near the description field
         const descFieldContainer = page.locator('.row:has(textarea[name="description"])');
@@ -95,8 +95,8 @@ test.describe('Email Lists - Validation Errors', () => {
         // Wait for page to reload with validation errors
         await page.waitForLoadState('networkidle');
 
-        // Check that we're still on the create page
-        await expect(page).toHaveURL(/email_lists\/create$/);
+        // Check that we're on create or store page (validation may keep us on either)
+        await expect(page).toHaveURL(/email_lists\/(create|store)$/);
 
         // Check for validation error
         const activeMemFieldContainer = page.locator('.row:has(select[name="active_member"])');

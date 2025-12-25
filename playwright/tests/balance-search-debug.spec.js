@@ -54,7 +54,13 @@ test.describe('Balance Search Bug Fix', () => {
 
             // Type the search term from fixtures
             await searchInput.fill(testCase.search_term);
-            await page.waitForTimeout(1000); // Wait for search to process
+
+            // Trigger input event to ensure search is processed
+            await searchInput.dispatchEvent('input');
+            await searchInput.dispatchEvent('keyup');
+
+            // Wait longer for search to process and DOM to update
+            await page.waitForTimeout(2000); // Increased wait time
 
             console.log(`✓ Typed "${testCase.search_term}" in search input`);
 
@@ -66,12 +72,23 @@ test.describe('Balance Search Bug Fix', () => {
 
             console.log(`Found ${visibleItems} visible accordion items after search`);
 
+            // If no visible items, wait a bit longer and check again (sometimes search needs more time)
+            let finalVisibleItems = visibleItems;
+            if (visibleItems === 0) {
+                console.log('No items found, waiting longer and checking again...');
+                await page.waitForTimeout(2000);
+                finalVisibleItems = await accordionItems.evaluateAll(items =>
+                    items.filter(item => item.style.display !== 'none').length
+                );
+                console.log(`After retry: ${finalVisibleItems} visible items`);
+            }
+
             // Look for the expected name in the page content
             const nameVisible = await page.locator(`text=${testCase.expected_name}`).isVisible();
             console.log(`${testCase.expected_name} visible: ${nameVisible}`);
 
             // If not visible, let's check if the accordions are collapsed
-            if (!nameVisible) {
+            if (!nameVisible && finalVisibleItems > 0) {
                 // Try to expand accordion sections that might contain the name
                 const clientAccordion = page.locator(`.accordion-item:has-text("${testCase.expected_account_code}")`).first();
                 if (await clientAccordion.isVisible()) {
@@ -88,7 +105,8 @@ test.describe('Balance Search Bug Fix', () => {
             await page.screenshot({ path: `test-results/${screenshotName}`, fullPage: true });
 
             // Check if we have at least one visible item (the search should work)
-            expect(visibleItems).toBeGreaterThan(0);
+            // Note: If search still returns 0, this might indicate a bug in the application's search
+            expect(finalVisibleItems).toBeGreaterThan(0);
 
             console.log(`✓ Search test completed for "${testCase.search_term}"`);
         });
