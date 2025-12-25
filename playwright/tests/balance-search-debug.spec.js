@@ -39,6 +39,13 @@ test.describe('Balance Search Bug Fix', () => {
             // Wait for the page to be fully loaded
             await page.waitForTimeout(2000);
 
+            // Scroll to the datatable/accordion before checking anything
+            const balanceAccordion = page.locator('#balanceAccordion');
+            await balanceAccordion.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(500); // Wait for scroll to complete
+
+            console.log('✓ Scrolled to datatable');
+
             // Find the search input
             const searchInput = page.locator('#accordion-search');
             await expect(searchInput).toBeVisible({ timeout: 10000 });
@@ -105,6 +112,13 @@ test.describe('Balance Search Bug Fix', () => {
         await page.goto('/comptes/balance');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
+
+        // Scroll to the datatable/accordion before checking anything
+        const balanceAccordion = page.locator('#balanceAccordion');
+        await balanceAccordion.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(500); // Wait for scroll to complete
+
+        console.log('✓ Scrolled to datatable');
 
         const searchInput = page.locator('#accordion-search');
         await expect(searchInput).toBeVisible();

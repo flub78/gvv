@@ -1415,6 +1415,28 @@ class Admin extends CI_Controller {
             'extracted' => count($test_data['accounts'])
         );
 
+        // Add balance search test cases
+        $test_data['balance_search_tests'] = array(
+            array(
+                'description' => 'Search for Adam using ADA',
+                'search_term' => 'ADA',
+                'expected_name' => 'Adam',
+                'expected_account_code' => '411'
+            ),
+            array(
+                'description' => 'Search for Alonso using ALO',
+                'search_term' => 'ALO',
+                'expected_name' => 'Alonso',
+                'expected_account_code' => '411'
+            ),
+            array(
+                'description' => 'Search for Barbier using BAR',
+                'search_term' => 'BAR',
+                'expected_name' => 'Barbier',
+                'expected_account_code' => '411'
+            )
+        );
+
         // Create output directory if needed
         $output_dir = FCPATH . 'playwright/test-data';
         if (!is_dir($output_dir)) {
@@ -1733,6 +1755,47 @@ class Admin extends CI_Controller {
                     );
                 }
 
+                // Generate balance search test cases from extracted accounts
+                $test_data['balance_search_tests'] = array();
+                if (!empty($test_data['accounts'])) {
+                    // Create test cases based on first few accounts
+                    $accounts_for_tests = array_slice($test_data['accounts'], 0, min(5, count($test_data['accounts'])));
+
+                    foreach ($accounts_for_tests as $account) {
+                        // Extract parts of the name for testing
+                        $name_parts = explode(' ', $account['name']);
+
+                        // Test with last name (first word)
+                        if (!empty($name_parts[0])) {
+                            $test_data['balance_search_tests'][] = array(
+                                'search_term' => $name_parts[0],
+                                'expected_name' => $account['name'],
+                                'expected_account_code' => $account['code']
+                            );
+                        }
+
+                        // Test with partial first name (if exists)
+                        if (isset($name_parts[1]) && strlen($name_parts[1]) >= 3) {
+                            $test_data['balance_search_tests'][] = array(
+                                'search_term' => substr($name_parts[1], 0, 3),
+                                'expected_name' => $account['name'],
+                                'expected_account_code' => $account['code']
+                            );
+                        }
+                    }
+
+                    // Remove duplicates by search_term
+                    $unique_tests = array();
+                    $seen_terms = array();
+                    foreach ($test_data['balance_search_tests'] as $test) {
+                        if (!in_array(strtolower($test['search_term']), $seen_terms)) {
+                            $unique_tests[] = $test;
+                            $seen_terms[] = strtolower($test['search_term']);
+                        }
+                    }
+                    $test_data['balance_search_tests'] = array_slice($unique_tests, 0, 10); // Limit to 10 tests
+                }
+
                 // Create output directory if needed
                 $output_dir = FCPATH . 'playwright/test-data';
                 if (!is_dir($output_dir)) {
@@ -1751,7 +1814,8 @@ class Admin extends CI_Controller {
                                  count($test_data['gliders']['two_seater']) +
                                  count($test_data['gliders']['single_seater']) +
                                  count($test_data['tow_planes']) +
-                                 count($test_data['accounts']);
+                                 count($test_data['accounts']) +
+                                 count($test_data['balance_search_tests']);
 
                 if ($write_success) {
                     $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'OK', 'details' => "$total_extracted enregistrements");

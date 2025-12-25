@@ -1,145 +1,145 @@
 {
     "metadata": {
-        "extracted_at": "2025-12-25 10:49:27",
+        "extracted_at": "2025-12-25 12:01:32",
         "database": "gvv2",
         "version": "1.0"
     },
     "pilots": [
         {
-            "login": "abatteux",
-            "full_name": "Antoine Christophe",
-            "first_name": "Christophe",
-            "last_name": "Antoine",
-            "account_id": 1125,
-            "account_label": "(411) Antoine Christophe"
+            "login": "bmoncomble",
+            "full_name": "Adam Fabien",
+            "first_name": "Fabien",
+            "last_name": "Adam",
+            "account_id": 1352,
+            "account_label": "(411) Adam Fabien"
         },
         {
-            "login": "abatteux",
-            "full_name": "Antoine Christophe",
-            "first_name": "Christophe",
-            "last_name": "Antoine",
-            "account_id": 1126,
-            "account_label": "(411) Antoine Christophe"
+            "login": "bmoncomble",
+            "full_name": "Adam Fabien",
+            "first_name": "Fabien",
+            "last_name": "Adam",
+            "account_id": 1353,
+            "account_label": "(411) Adam Fabien"
         },
         {
-            "login": "fdenis",
-            "full_name": "Barbier Bruno",
-            "first_name": "Bruno",
-            "last_name": "Barbier",
-            "account_id": 1322,
-            "account_label": "(411) Barbier Bruno"
+            "login": "bmoncomble",
+            "full_name": "Adam Fabien",
+            "first_name": "Fabien",
+            "last_name": "Adam",
+            "account_id": 1354,
+            "account_label": "(411) Adam Fabien"
         },
         {
-            "login": "fdenis",
-            "full_name": "Barbier Bruno",
-            "first_name": "Bruno",
-            "last_name": "Barbier",
-            "account_id": 1323,
-            "account_label": "(411) Barbier Bruno"
+            "login": "psoulas",
+            "full_name": "Alonso Benjamin",
+            "first_name": "Benjamin",
+            "last_name": "Alonso",
+            "account_id": 1342,
+            "account_label": "(411) Alonso Benjamin"
         },
         {
-            "login": "dgay",
-            "full_name": "Barbier Francois",
-            "first_name": "Francois",
-            "last_name": "Barbier",
-            "account_id": 1151,
-            "account_label": "(411) Barbier Francois"
+            "login": "psoulas",
+            "full_name": "Alonso Benjamin",
+            "first_name": "Benjamin",
+            "last_name": "Alonso",
+            "account_id": 1343,
+            "account_label": "(411) Alonso Benjamin"
         },
         {
-            "login": "dgay",
-            "full_name": "Barbier Francois",
-            "first_name": "Francois",
-            "last_name": "Barbier",
-            "account_id": 1152,
-            "account_label": "(411) Barbier Francois"
+            "login": "vpeignot",
+            "full_name": "Andre Daniel",
+            "first_name": "Daniel",
+            "last_name": "Andre",
+            "account_id": 45,
+            "account_label": "(411) Andre Daniel"
         },
         {
-            "login": "astal",
-            "full_name": "Barbier Laurent",
-            "first_name": "Laurent",
-            "last_name": "Barbier",
-            "account_id": 1346,
-            "account_label": "(411) Barbier Laurent"
+            "login": "vpeignot",
+            "full_name": "Andre Daniel",
+            "first_name": "Daniel",
+            "last_name": "Andre",
+            "account_id": 782,
+            "account_label": "(411) Andre Daniel"
         },
         {
-            "login": "astal",
-            "full_name": "Barbier Laurent",
-            "first_name": "Laurent",
-            "last_name": "Barbier",
-            "account_id": 1347,
-            "account_label": "(411) Barbier Laurent"
+            "login": "vpeignot",
+            "full_name": "Andre Daniel",
+            "first_name": "Daniel",
+            "last_name": "Andre",
+            "account_id": 1275,
+            "account_label": "(411) Andre Daniel"
         },
         {
-            "login": "flor",
-            "full_name": "Barbier Mickael",
-            "first_name": "Mickael",
-            "last_name": "Barbier",
-            "account_id": 1297,
-            "account_label": "(411) Barbier Mickael"
+            "login": "pmichalczyk",
+            "full_name": "Aubert Sebastien",
+            "first_name": "Sebastien",
+            "last_name": "Aubert",
+            "account_id": 1246,
+            "account_label": "(411) Aubert Sebastien"
         },
         {
-            "login": "flor",
-            "full_name": "Barbier Mickael",
-            "first_name": "Mickael",
-            "last_name": "Barbier",
-            "account_id": 1298,
-            "account_label": "(411) Barbier Mickael"
+            "login": "pmichalczyk",
+            "full_name": "Aubert Sebastien",
+            "first_name": "Sebastien",
+            "last_name": "Aubert",
+            "account_id": 1247,
+            "account_label": "(411) Aubert Sebastien"
         }
     ],
     "instructors": {
         "glider": [
             {
                 "login": "ffourcroy",
-                "full_name": "Berthier Charles",
-                "first_name": "Charles",
-                "last_name": "Berthier",
+                "full_name": "Etienne David",
+                "first_name": "David",
+                "last_name": "Etienne",
                 "qualification": "fpeignot",
                 "account_id": 300,
-                "account_label": "(411) Berthier Charles"
+                "account_label": "(411) Etienne David"
             },
             {
                 "login": "ffourcroy",
-                "full_name": "Berthier Charles",
-                "first_name": "Charles",
-                "last_name": "Berthier",
+                "full_name": "Etienne David",
+                "first_name": "David",
+                "last_name": "Etienne",
                 "qualification": "fpeignot",
                 "account_id": 941,
-                "account_label": "(411) Berthier Charles"
+                "account_label": "(411) Etienne David"
             },
             {
                 "login": "ffourcroy",
-                "full_name": "Berthier Charles",
-                "first_name": "Charles",
-                "last_name": "Berthier",
+                "full_name": "Etienne David",
+                "first_name": "David",
+                "last_name": "Etienne",
                 "qualification": "fpeignot",
                 "account_id": 1266,
-                "account_label": "(411) Berthier Charles"
+                "account_label": "(411) Etienne David"
             },
             {
                 "login": "dcoquel",
-                "full_name": "Roussel Gerard",
-                "first_name": "Gerard",
-                "last_name": "Roussel",
+                "full_name": "Ferreira Gregory",
+                "first_name": "Gregory",
+                "last_name": "Ferreira",
                 "qualification": "gpruvost",
                 "account_id": 320,
-                "account_label": "(411) Roussel Gerard"
+                "account_label": "(411) Ferreira Gregory"
             },
             {
                 "login": "dcoquel",
-                "full_name": "Roussel Gerard",
-                "first_name": "Gerard",
-                "last_name": "Roussel",
+                "full_name": "Ferreira Gregory",
+                "first_name": "Gregory",
+                "last_name": "Ferreira",
                 "qualification": "gpruvost",
                 "account_id": 960,
-                "account_label": "(411) Roussel Gerard"
+                "account_label": "(411) Ferreira Gregory"
             }
         ],
         "airplane": [
             {
                 "login": "tdgd",
-                "full_name": "Lefevre Julien",
-                "first_name": "Julien",
-                "last_name": "Lefevre",
+                "full_name": "Perrin Cedric",
+                "first_name": "Cedric",
+                "last_name": "Perrin",
                 "qualification": "fduvollet"
             }
         ]
@@ -208,144 +208,166 @@
     ],
     "accounts": [
         {
-            "id": 305,
-            "name": "Adam Patrick",
-            "pilot_login": "etrohel",
+            "id": 1354,
+            "name": "Adam Fabien",
+            "pilot_login": "bmoncomble",
             "code": "411",
-            "label": "(411) Adam Patrick"
+            "label": "(411) Adam Fabien"
         },
         {
-            "id": 945,
-            "name": "Adam Patrick",
-            "pilot_login": "etrohel",
+            "id": 1352,
+            "name": "Adam Fabien",
+            "pilot_login": "bmoncomble",
             "code": "411",
-            "label": "(411) Adam Patrick"
+            "label": "(411) Adam Fabien"
         },
         {
-            "id": 196,
-            "name": "Alonso Nicolas",
-            "pilot_login": "gcaudrelier",
+            "id": 1353,
+            "name": "Adam Fabien",
+            "pilot_login": "bmoncomble",
             "code": "411",
-            "label": "(411) Alonso Nicolas"
+            "label": "(411) Adam Fabien"
         },
         {
-            "id": 857,
-            "name": "Alonso Nicolas",
-            "pilot_login": "gcaudrelier",
+            "id": 785,
+            "name": "Alexandre Nathan",
+            "pilot_login": "sacaudrelier",
             "code": "411",
-            "label": "(411) Alonso Nicolas"
+            "label": "(411) Alexandre Nathan"
         },
         {
-            "id": 176,
-            "name": "Alonso Patrick",
-            "pilot_login": "gmenier",
+            "id": 49,
+            "name": "Alexandre Nathan",
+            "pilot_login": "sacaudrelier",
             "code": "411",
-            "label": "(411) Alonso Patrick"
+            "label": "(411) Alexandre Nathan"
         },
         {
-            "id": 837,
-            "name": "Alonso Patrick",
-            "pilot_login": "gmenier",
+            "id": 867,
+            "name": "Alonso Benjamin",
+            "pilot_login": "ccaillet",
             "code": "411",
-            "label": "(411) Alonso Patrick"
+            "label": "(411) Alonso Benjamin"
         },
         {
-            "id": 1126,
-            "name": "Antoine Christophe",
-            "pilot_login": "abatteux",
+            "id": 1342,
+            "name": "Alonso Benjamin",
+            "pilot_login": "psoulas",
             "code": "411",
-            "label": "(411) Antoine Christophe"
+            "label": "(411) Alonso Benjamin"
         },
         {
-            "id": 1125,
-            "name": "Antoine Christophe",
-            "pilot_login": "abatteux",
+            "id": 211,
+            "name": "Alonso Benjamin",
+            "pilot_login": "ccaillet",
             "code": "411",
-            "label": "(411) Antoine Christophe"
+            "label": "(411) Alonso Benjamin"
         },
         {
-            "id": 852,
-            "name": "Bailly Emmanuel",
-            "pilot_login": "cdurier",
+            "id": 1343,
+            "name": "Alonso Benjamin",
+            "pilot_login": "psoulas",
             "code": "411",
-            "label": "(411) Bailly Emmanuel"
+            "label": "(411) Alonso Benjamin"
         },
         {
-            "id": 191,
-            "name": "Bailly Emmanuel",
-            "pilot_login": "cdurier",
+            "id": 341,
+            "name": "Alves Claude",
+            "pilot_login": "blammens",
             "code": "411",
-            "label": "(411) Bailly Emmanuel"
+            "label": "(411) Alves Claude"
         },
         {
-            "id": 276,
-            "name": "Bailly Matthieu",
-            "pilot_login": "pfortin",
+            "id": 981,
+            "name": "Alves Claude",
+            "pilot_login": "blammens",
             "code": "411",
-            "label": "(411) Bailly Matthieu"
+            "label": "(411) Alves Claude"
         },
         {
-            "id": 919,
-            "name": "Bailly Matthieu",
-            "pilot_login": "pfortin",
+            "id": 340,
+            "name": "Andre Antoine",
+            "pilot_login": "jpmacveigh",
             "code": "411",
-            "label": "(411) Bailly Matthieu"
+            "label": "(411) Andre Antoine"
         },
         {
-            "id": 1323,
-            "name": "Barbier Bruno",
-            "pilot_login": "fdenis",
+            "id": 45,
+            "name": "Andre Daniel",
+            "pilot_login": "vpeignot",
             "code": "411",
-            "label": "(411) Barbier Bruno"
+            "label": "(411) Andre Daniel"
         },
         {
-            "id": 1322,
-            "name": "Barbier Bruno",
-            "pilot_login": "fdenis",
+            "id": 1275,
+            "name": "Andre Daniel",
+            "pilot_login": "vpeignot",
             "code": "411",
-            "label": "(411) Barbier Bruno"
+            "label": "(411) Andre Daniel"
         },
         {
-            "id": 1151,
-            "name": "Barbier Francois",
-            "pilot_login": "dgay",
+            "id": 782,
+            "name": "Andre Daniel",
+            "pilot_login": "vpeignot",
             "code": "411",
-            "label": "(411) Barbier Francois"
+            "label": "(411) Andre Daniel"
         },
         {
-            "id": 1152,
-            "name": "Barbier Francois",
-            "pilot_login": "dgay",
+            "id": 1247,
+            "name": "Aubert Sebastien",
+            "pilot_login": "pmichalczyk",
             "code": "411",
-            "label": "(411) Barbier Francois"
+            "label": "(411) Aubert Sebastien"
         },
         {
-            "id": 1347,
-            "name": "Barbier Laurent",
-            "pilot_login": "astal",
+            "id": 1273,
+            "name": "Aubert Sebastien",
+            "pilot_login": "pmichalczyk",
             "code": "411",
-            "label": "(411) Barbier Laurent"
+            "label": "(411) Aubert Sebastien"
         },
         {
-            "id": 1346,
-            "name": "Barbier Laurent",
-            "pilot_login": "astal",
+            "id": 1246,
+            "name": "Aubert Sebastien",
+            "pilot_login": "pmichalczyk",
             "code": "411",
-            "label": "(411) Barbier Laurent"
+            "label": "(411) Aubert Sebastien"
         },
         {
-            "id": 1298,
-            "name": "Barbier Mickael",
-            "pilot_login": "flor",
+            "id": 963,
+            "name": "Aubry Vincent",
+            "pilot_login": "sfrison",
             "code": "411",
-            "label": "(411) Barbier Mickael"
+            "label": "(411) Aubry Vincent"
         },
         {
-            "id": 1297,
-            "name": "Barbier Mickael",
-            "pilot_login": "flor",
+            "id": 323,
+            "name": "Aubry Vincent",
+            "pilot_login": "sfrison",
             "code": "411",
-            "label": "(411) Barbier Mickael"
+            "label": "(411) Aubry Vincent"
+        }
+    ],
+    "balance_search_tests": [
+        {
+            "search_term": "Adam",
+            "expected_name": "Adam Fabien",
+            "expected_account_code": "411"
+        },
+        {
+            "search_term": "Fab",
+            "expected_name": "Adam Fabien",
+            "expected_account_code": "411"
+        },
+        {
+            "search_term": "Alexandre",
+            "expected_name": "Alexandre Nathan",
+            "expected_account_code": "411"
+        },
+        {
+            "search_term": "Nat",
+            "expected_name": "Alexandre Nathan",
+            "expected_account_code": "411"
         }
     ]
 }
