@@ -9,14 +9,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Journal Compte Server-side DataTables', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to GVV application
-    await page.goto('/');
-    
-    // Login - using testplanchiste user (assuming it exists)
-    await page.fill('input[name="username"]', 'testplanchiste');
+    // Navigate to login page
+    await page.goto('/auth/login');
+
+    // Login - using testadmin user (has access to comptes)
+    await page.fill('input[name="username"]', 'testadmin');
     await page.fill('input[name="password"]', 'password');
-    await page.click('input[type="submit"]');
-    
+    await page.click('input[type="submit"], button[type="submit"]');
+
     // Wait for dashboard to load
     await page.waitForLoadState('networkidle');
   });
@@ -26,8 +26,17 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    // Find and click on first account link to open journal
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    // Wait for and click on first account link to open journal
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -49,7 +58,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -62,7 +80,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
     // Perform a search
     const searchBox = page.locator('input[type="search"]');
     await searchBox.fill('test');
-    await page.waitForTimeout(500); // Wait for search to be processed
+    await page.waitForTimeout(1000); // Wait for search to be processed
     
     // Verify search was processed
     await page.waitForFunction(() => {
@@ -81,7 +99,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -116,7 +143,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -147,7 +183,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -184,7 +229,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -219,7 +273,16 @@ test.describe('Regression tests for existing functionality', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -252,7 +315,16 @@ test.describe('Regression tests for existing functionality', () => {
     await page.goto('/comptes/balance');
     await page.waitForLoadState('networkidle');
 
-    const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+    // Expand first accordion if not already expanded
+    const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+    const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await firstAccordionButton.click();
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+    }
+
+    const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
+    await expect(accountLink).toBeVisible({ timeout: 10000 });
     await accountLink.click();
     await page.waitForLoadState('networkidle');
     
@@ -263,7 +335,7 @@ test.describe('Regression tests for existing functionality', () => {
     const filterButton = page.locator('button[data-bs-target="#panel_filter_id"]');
     if (await filterButton.count() > 0) {
       await filterButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
       
       // Apply a date filter
       const dateInput = page.locator('input[name="filter_date"]');
