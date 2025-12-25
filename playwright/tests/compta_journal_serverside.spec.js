@@ -19,6 +19,16 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
     // Wait for dashboard to load
     await page.waitForLoadState('networkidle');
+
+    // Close "Message du jour" dialog if it appears (it blocks interactions)
+    const modDialog = page.locator('.ui-dialog');
+    if (await modDialog.isVisible().catch(() => false)) {
+      const closeButton = page.locator('.ui-dialog-buttonpane button:has-text("OK")');
+      if (await closeButton.isVisible().catch(() => false)) {
+        await closeButton.click();
+        await page.waitForTimeout(500);
+      }
+    }
   });
 
   test('DataTables loads correctly with server-side processing', async ({ page }) => {

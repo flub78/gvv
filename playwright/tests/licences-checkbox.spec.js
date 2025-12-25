@@ -89,8 +89,9 @@ test.describe('Licences Checkbox Interface', () => {
     const response = await responsePromise;
     expect(response.status()).toBe(200);
 
-    // Vérifier que la checkbox est maintenant cochée
-    await expect(uncheckedCheckbox).toBeChecked();
+    // Vérifier que la checkbox est maintenant cochée (re-select using data attributes)
+    const verifyCheckbox = page.locator(`input.licence-checkbox[data-pilote="${pilote}"][data-year="${year}"][data-type="${type}"]`);
+    await expect(verifyCheckbox).toBeChecked();
 
     console.log('Licence created successfully');
   });
@@ -130,8 +131,9 @@ test.describe('Licences Checkbox Interface', () => {
     const response = await responsePromise;
     expect(response.status()).toBe(200);
 
-    // Vérifier que la checkbox est maintenant décochée
-    await expect(checkedCheckbox).not.toBeChecked();
+    // Vérifier que la checkbox est maintenant décochée (re-select using data attributes)
+    const verifyCheckbox = page.locator(`input.licence-checkbox[data-pilote="${pilote}"][data-year="${year}"][data-type="${type}"]`);
+    await expect(verifyCheckbox).not.toBeChecked();
 
     console.log('Licence deleted successfully');
   });

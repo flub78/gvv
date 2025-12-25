@@ -3,12 +3,22 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Email Lists Workflow v1.4', () => {
     test.beforeEach(async ({ page }) => {
-        // Login via dx_auth
+        // Login via dx_auth (use testadmin which has proper test permissions)
         await page.goto('/auth/login');
-        await page.fill('input[name="username"]', 'admin');
-        await page.fill('input[name="password"]', 'gvvadmin');
+        await page.fill('input[name="username"]', 'testadmin');
+        await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForLoadState('networkidle');
+
+        // Close "Message du jour" dialog if it appears (it blocks interactions)
+        const modDialog = page.locator('.ui-dialog');
+        if (await modDialog.isVisible().catch(() => false)) {
+            const closeButton = page.locator('.ui-dialog-buttonpane button:has-text("OK")');
+            if (await closeButton.isVisible().catch(() => false)) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            }
+        }
     });
 
     test('should show disabled address section in creation mode', async ({ page }) => {
@@ -28,15 +38,11 @@ test.describe('Email Lists Workflow v1.4', () => {
         // Check that submit buttons are present in metadata section
         await expect(page.locator('button[type="submit"]').first()).toBeVisible();
 
-        // Check that address section header is visible but in disabled state
-        await expect(page.locator('text=Ajout et suppression')).toBeVisible();
-
-        // Check that info message is shown
-        await expect(page.locator('text=Veuillez d\'abord enregistrer')).toBeVisible();
-
-        // Check that tabs are present but in disabled preview
-        const disabledSection = page.locator('#addresses-section-disabled');
-        await expect(disabledSection).toBeVisible();
+        // Check that info note about adding addresses after creation is shown
+        await expect(page.locator('text=Après avoir créé la liste')).toBeVisible();
+        await expect(page.locator('text=Par critères')).toBeVisible();
+        await expect(page.locator('text=Sélection manuelle de membres')).toBeVisible();
+        await expect(page.locator('text=Import de fichiers')).toBeVisible();
     });
 
     test('should create list and redirect to edit mode with enabled address section', async ({ page }) => {
