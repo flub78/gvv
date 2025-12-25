@@ -3,14 +3,14 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Email Lists - Sublists Smoke Test', () => {
     test.beforeEach(async ({ page }) => {
-        // Login as admin
-        await page.goto('/');
-        await page.fill('input[name="username"]', 'admin');
-        await page.fill('input[name="password"]', 'admin');
-        await page.click('button[type="submit"]');
-        
+        // Login as testadmin
+        await page.goto('/auth/login');
+        await page.fill('input[name="username"]', 'testadmin');
+        await page.fill('input[name="password"]', 'password');
+        await page.click('button[type="submit"], input[type="submit"]');
+
         // Wait for redirect after login
-        await page.waitForURL('**/welcome');
+        await page.waitForLoadState('networkidle');
     });
 
     test('can access sublists tab in edit mode', async ({ page }) => {

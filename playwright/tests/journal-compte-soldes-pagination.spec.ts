@@ -12,12 +12,12 @@ import * as fs from 'fs';
 
 test.describe('Journal Compte - Soldes avec Pagination', () => {
     test.beforeEach(async ({ page }) => {
-        // Login
-        await page.goto('http://gvv.net/');
-        await page.fill('input[name="username"]', 'testplanchiste');
+        // Login as testadmin (has access to comptes)
+        await page.goto('http://gvv.net/auth/login');
+        await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
-        await page.click('input[type="submit"]');
-        
+        await page.click('input[type="submit"], button[type="submit"]');
+
         // Wait for dashboard to load
         await page.waitForLoadState('networkidle');
     });
@@ -27,8 +27,16 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
 
+        // Expand first accordion if not already expanded
+        const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+        const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+            await firstAccordionButton.click();
+            await page.waitForTimeout(500);
+        }
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
-        const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+        const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
         await accountLink.click();
         await page.waitForLoadState('networkidle');
         
@@ -118,8 +126,16 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
 
+        // Expand first accordion if not already expanded
+        const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+        const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+            await firstAccordionButton.click();
+            await page.waitForTimeout(500);
+        }
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
-        const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+        const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
         await accountLink.click();
         await page.waitForLoadState('networkidle');
         
@@ -173,8 +189,16 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
 
+        // Expand first accordion if not already expanded
+        const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+        const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+            await firstAccordionButton.click();
+            await page.waitForTimeout(500);
+        }
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
-        const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+        const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
         await accountLink.click();
         await page.waitForLoadState('networkidle');
         
@@ -231,8 +255,16 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         await page.goto('http://gvv.net/comptes/balance');
         await page.waitForLoadState('networkidle');
 
+        // Expand first accordion if not already expanded
+        const firstAccordionButton = page.locator('#balanceAccordion .accordion-button').first();
+        const isExpanded = await firstAccordionButton.getAttribute('aria-expanded');
+        if (isExpanded !== 'true') {
+            await firstAccordionButton.click();
+            await page.waitForTimeout(500);
+        }
+
         // Cliquer sur le premier lien de compte pour ouvrir le journal
-        const accountLink = await page.locator('table a[href*="journal_compte"]').first();
+        const accountLink = page.locator('.accordion-body a[href*="journal_compte"]').first();
         await accountLink.click();
         await page.waitForLoadState('networkidle');
         

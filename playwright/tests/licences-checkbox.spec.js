@@ -17,9 +17,9 @@ test.describe('Licences Checkbox Interface', () => {
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
 
-    // Login en tant qu'utilisateur CA (admin)
+    // Login en tant qu'utilisateur admin avec accès complet
     await loginPage.open();
-    await loginPage.login('ca', 'frederic', '1'); // Section Planeur
+    await loginPage.login('testadmin', 'password', '1'); // Section Planeur
     await loginPage.verifyLoggedIn();
   });
 
