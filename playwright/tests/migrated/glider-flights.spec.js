@@ -89,8 +89,8 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     const twoSeater = fixtures.gliders.two_seater[0];
     const anotherTwoSeater = fixtures.gliders.two_seater[1];
 
-    // Test two-seater aircraft
-    await flightPage.select('vpmacid', twoSeater.registration);
+    // Test two-seater aircraft - use selectByText for Select2 dropdowns
+    await flightPage.selectByText('vpmacid', twoSeater.registration);
     await page.waitForTimeout(1000);
 
     await flightPage.verifyFieldVisibility('two-seater', false);
@@ -104,14 +104,14 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     console.log('✓ DC mode fields verified');
 
     // Test another two-seater aircraft
-    await flightPage.select('vpmacid', anotherTwoSeater.registration);
+    await flightPage.selectByText('vpmacid', anotherTwoSeater.registration);
     await page.waitForTimeout(1000);
 
     await flightPage.verifyFieldVisibility('two-seater', false);
     console.log('✓ Another two-seater fields verified');
 
     // Back to first two-seater to verify state reset
-    await flightPage.select('vpmacid', twoSeater.registration);
+    await flightPage.selectByText('vpmacid', twoSeater.registration);
     await page.waitForTimeout(1000);
 
     await flightPage.verifyFieldVisibility('two-seater', false);

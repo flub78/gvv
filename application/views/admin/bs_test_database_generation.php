@@ -70,12 +70,12 @@ $this->load->view('bs_banner');
                             <li>Mettre à jour fixtures.json avec les données de test pour Playwright</li>
                             <li>Créer un dump SQL de la base anonymisée</li>
                             <li>Chiffrer le dump avec OpenSSL (AES-256-CBC)</li>
-                            <li><strong>Restaurer la base à son état initial</strong></li>
+                            <li><strong>Optionnellement restaurer la base à son état initial</strong> (si "Garder anonymisée" non coché)</li>
                         </ol>
-                        
+
                         <div class="alert alert-warning mt-3">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Attention :</strong> Pendant l'opération, la base sera temporairement anonymisée puis restaurée.
+                            <strong>Attention :</strong> Pour que les tests Playwright fonctionnent, gardez l'option "Garder la base anonymisée" cochée.
                             Ne pas interrompre le processus !
                         </div>
 
@@ -87,6 +87,17 @@ $this->load->view('bs_banner');
                                 </label>
                                 <div class="form-text">
                                     Si coché, génère des noms comme "Nom1", "Nom2". Sinon, utilise des noms naturels aléatoires.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <input type="checkbox" name="keep_anonymized" value="1" checked>
+                                    Garder la base anonymisée pour les tests (recommandé)
+                                </label>
+                                <div class="form-text">
+                                    Si coché, la base reste anonymisée après génération pour que les tests Playwright fonctionnent.
+                                    Si décoché, la base est restaurée à son état initial (fixtures non utilisables).
                                 </div>
                             </div>
 

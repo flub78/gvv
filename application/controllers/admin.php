@@ -1933,24 +1933,31 @@ class Admin extends CI_Controller {
 
             $results[] = array('step' => 'Chiffrement OpenSSL', 'status' => 'OK', 'details' => filesize($install_dir . '/' . $final_filename) . ' bytes');
 
-            // Step 8: Restore original database
-            log_message('info', 'Step 8: Restoring original database');
-            $cmd = sprintf(
-                'mysql -h%s -u%s -p%s %s < %s 2>&1',
-                escapeshellarg($db_config['hostname']),
-                escapeshellarg($db_config['username']),
-                escapeshellarg($db_config['password']),
-                escapeshellarg($db_config['database']),
-                escapeshellarg($backup_file)
-            );
+            // Step 8: Optionally restore original database (skip for test environments)
+            // Check if we should restore by looking at a POST parameter
+            $keep_anonymized = $this->input->post('keep_anonymized') == '1';
 
-            exec($cmd, $output, $return_code);
-            if ($return_code !== 0) {
-                throw new Exception("CRITIQUE: Échec de la restauration. Base en état anonymisé! Erreur: " . implode("\n", $output));
+            if (!$keep_anonymized) {
+                log_message('info', 'Step 8: Restoring original database');
+                $cmd = sprintf(
+                    'mysql -h%s -u%s -p%s %s < %s 2>&1',
+                    escapeshellarg($db_config['hostname']),
+                    escapeshellarg($db_config['username']),
+                    escapeshellarg($db_config['password']),
+                    escapeshellarg($db_config['database']),
+                    escapeshellarg($backup_file)
+                );
+
+                exec($cmd, $output, $return_code);
+                if ($return_code !== 0) {
+                    throw new Exception("CRITIQUE: Échec de la restauration. Base en état anonymisé! Erreur: " . implode("\n", $output));
+                }
+                $results[] = array('step' => 'Restauration base', 'status' => 'OK', 'details' => 'Base restaurée à l\'état initial');
+                $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip (base restaurée)";
+            } else {
+                $results[] = array('step' => 'Restauration base', 'status' => 'SKIPPED', 'details' => 'Base gardée anonymisée pour les tests');
+                $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip (base anonymisée active)";
             }
-            $results[] = array('step' => 'Restauration base', 'status' => 'OK', 'details' => 'Base restaurée à l\'état initial');
-
-            $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip";
 
         } catch (Exception $e) {
             log_message('error', 'Test database generation failed: ' . $e->getMessage());
