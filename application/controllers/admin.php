@@ -1310,7 +1310,7 @@ class Admin extends CI_Controller {
                 mpautonome as autonomous
             FROM machinesp
             WHERE actif = 1
-                AND mpbiplace = '1'
+                AND mpbiplace = '2'
             ORDER BY mpimmat
             LIMIT 5
         ");
