@@ -59,8 +59,9 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await expect(page.locator('.dataTables_info')).toBeVisible();
     
     // Verify search box is present and functional
-    const searchBox = page.locator('input[type="search"]');
-    await expect(searchBox).toBeVisible();
+    // Note: With jQuery UI theming, search box might have different markup
+    const searchBox = page.locator('.dataTables_filter input').or(page.locator('input[type="search"]'));
+    await expect(searchBox.first()).toBeVisible();
   });
 
   test('Search functionality works across all data (server-side)', async ({ page }) => {
@@ -88,8 +89,8 @@ test.describe('Journal Compte Server-side DataTables', () => {
     const initialInfo = await page.locator('.dataTables_info').textContent();
     
     // Perform a search
-    const searchBox = page.locator('input[type="search"]');
-    await searchBox.fill('test');
+    const searchBox = page.locator('.dataTables_filter input').or(page.locator('input[type="search"]'));
+    await searchBox.first().fill('test');
     await page.waitForTimeout(1000); // Wait for search to be processed
     
     // Verify search was processed
@@ -126,8 +127,9 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.waitForSelector('.dataTables_wrapper', { timeout: 10000 });
     
     // Check if there are multiple pages (next button is enabled)
-    const nextButton = page.locator('.dataTables_paginate .paginate_button.next');
-    const isNextEnabled = await nextButton.evaluate(btn => !btn.classList.contains('disabled'));
+    // jQuery UI themed tables use different pagination markup
+    const nextButton = page.locator('.dataTables_paginate .next, .dataTables_paginate .paginate_button.next').first();
+    const isNextEnabled = await nextButton.evaluate(btn => !btn.classList.contains('disabled') && !btn.classList.contains('ui-state-disabled'));
     
     if (isNextEnabled) {
       // Get data from first page
@@ -142,7 +144,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
       expect(firstPageData).not.toBe(secondPageData);
       
       // Go back to first page
-      const prevButton = page.locator('.dataTables_paginate .paginate_button.previous');
+      const prevButton = page.locator('.dataTables_paginate .previous, .dataTables_paginate .paginate_button.previous').first();
       await prevButton.click();
       await page.waitForLoadState('networkidle');
     }
@@ -262,12 +264,12 @@ test.describe('Journal Compte Server-side DataTables', () => {
     await page.waitForSelector('.dataTables_wrapper', { timeout: 10000 });
     
     // Perform various operations to ensure no JS errors
-    const searchBox = page.locator('input[type="search"]');
-    await searchBox.fill('test');
+    const searchBox = page.locator('.dataTables_filter input').or(page.locator('input[type="search"]'));
+    await searchBox.first().fill('test');
     await page.waitForTimeout(1000);
     
     // Clear search
-    await searchBox.fill('');
+    await searchBox.first().fill('');
     await page.waitForTimeout(1000);
     
     // Check for any JavaScript errors
@@ -278,10 +280,20 @@ test.describe('Journal Compte Server-side DataTables', () => {
 test.describe('Regression tests for existing functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.fill('input[name="username"]', 'testplanchiste');
+    await page.fill('input[name="username"]', 'testadmin');
     await page.fill('input[name="password"]', 'password');
     await page.click('input[type="submit"]');
     await page.waitForLoadState('networkidle');
+
+    // Close "Message du jour" dialog if it appears (it blocks interactions)
+    const modDialog = page.locator('.ui-dialog');
+    if (await modDialog.isVisible().catch(() => false)) {
+      const closeButton = page.locator('.ui-dialog-buttonpane button:has-text("OK")');
+      if (await closeButton.isVisible().catch(() => false)) {
+        await closeButton.click();
+        await page.waitForTimeout(500);
+      }
+    }
   });
 
   test('Edit and delete buttons still work', async ({ page }) => {
@@ -350,12 +362,18 @@ test.describe('Regression tests for existing functionality', () => {
     // Expand filter accordion if it exists
     const filterButton = page.locator('button[data-bs-target="#panel_filter_id"]');
     if (await filterButton.count() > 0) {
-      await filterButton.click();
-      await page.waitForTimeout(1000); // Wait for accordion animation and content to load
-      
+      // Check if accordion is already expanded
+      const isExpanded = await filterButton.getAttribute('aria-expanded');
+      if (isExpanded !== 'true') {
+        await filterButton.click();
+        await page.waitForTimeout(1000); // Wait for accordion animation and content to load
+      }
+
       // Apply a date filter
       const dateInput = page.locator('input[name="filter_date"]');
       if (await dateInput.count() > 0) {
+        // Wait for input to be visible after accordion expansion
+        await dateInput.waitFor({ state: 'visible', timeout: 5000 });
         await dateInput.fill('01/01/2023');
         
         // Submit filter

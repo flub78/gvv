@@ -85,7 +85,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         
         // Test 1: Configurer pour 10 lignes par page
         console.log('\n=== Test avec 10 lignes par page ===');
-        await page.selectOption('select[name="jeu_ecritures_length"]', '10');
+        await page.selectOption('select[name="journal-table_length"]', '10');
         await page.waitForTimeout(1000); // Attendre le rechargement
         
         // Aller à la page 2 (écritures 11-20)
@@ -101,7 +101,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         
         // Test 2: Configurer pour 25 lignes par page
         console.log('\n=== Test avec 25 lignes par page ===');
-        await page.selectOption('select[name="jeu_ecritures_length"]', '25');
+        await page.selectOption('select[name="journal-table_length"]', '25');
         await page.waitForTimeout(1000);
         
         // Sur cette page, la ligne 15 globale est à l'index 14
@@ -140,9 +140,9 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         await page.waitForLoadState('networkidle');
         
         await page.waitForSelector('.dataTables_wrapper');
-        
+
         // Configurer pour 25 lignes par page pour avoir assez de données
-        await page.selectOption('select[name="jeu_ecritures_length"]', '25');
+        await page.selectOption('select[name="journal-table_length"]', '25');
         await page.waitForTimeout(1000);
         
         // Fonction helper pour parser un montant français en nombre
@@ -206,10 +206,10 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         
         // Préparer l'écoute du téléchargement
         const downloadPromise = page.waitForEvent('download');
-        
-        // Cliquer sur le bouton CSV (il faut trouver le bon sélecteur)
-        // Selon la structure du formulaire, le bouton CSV devrait être présent
-        await page.click('input[value="Csv"]');
+
+        // Cliquer sur le bouton Excel (CSV export)
+        // The view uses "Excel" button for CSV export
+        await page.click('input[value="Excel"]');
         
         const download = await downloadPromise;
         
