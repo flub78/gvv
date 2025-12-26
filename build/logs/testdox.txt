@@ -1,3 +1,19 @@
+Assets Helper
+ [x] Theme
+ [x] Css url
+ [x] Js url
+ [x] Image dir
+ [x] Img url
+ [x] Asset url
+ [x] Controller url relative
+ [x] Controller url absolute http
+ [x] Controller url absolute https
+ [x] Css url various names
+ [x] Js url various names
+ [x] Img url different types
+ [x] Controller url empty
+ [x] All functions exist
+
 Authorization Helper
  [x] Authorization helper functions exist
  [x] Logged username returns username
@@ -70,6 +86,15 @@ Crypto Helper
  [x] Decrypt file with non existent file
  [x] Encrypt decrypt round trip with different sizes
 
+Csv Helper
+ [x] Csv file basic data
+ [x] Csv file with header
+ [x] Csv file numeric values
+ [x] Csv file empty data
+ [x] Csv file no title
+ [x] Csv file mixed data types
+ [x] Csv file line endings
+
 Database Helper
  [x] Database helper loads successfully
  [x] Mysql real escape string escapes single quotes
@@ -128,6 +153,18 @@ Email Helper
  [x] GenerateMarkdownExport EmptyEmails
  [x] GenerateMarkdownExport NoDescription
  [x] GenerateMarkdownExport MissingName
+
+Log Helper
+ [x] Current logfile
+ [x] Gvv dump no die
+ [x] Gvv dump no title
+ [x] Gvv dump string
+ [x] Gvv dump array
+ [x] Gvv assert true
+ [x] Gvv assert false no die
+ [x] Logging functions exist
+ [ ] Occurences
+ [x] Gvv dump nested structure
 
 Markdown Helper
  [x] Markdown helper loads successfully
