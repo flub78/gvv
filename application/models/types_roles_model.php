@@ -49,8 +49,9 @@ class Types_roles_model extends Common_Model {
      * ."
      *
      * @param $where selection
+     * @param $filter_section filter by section (not used in this model)
      */
-    public function selector_with_all($where = array()) {
+    public function selector_with_all($where = array(), $filter_section = FALSE) {
         $result = $this->selector($where);
         $result[] = $this->lang->line("all_sections");
         return $result;

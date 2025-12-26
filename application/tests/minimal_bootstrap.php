@@ -49,6 +49,7 @@ require_once APPPATH . 'helpers/markdown_helper.php';
 require_once APPPATH . 'helpers/email_helper.php';
 require_once APPPATH . 'helpers/database_helper.php';
 require_once APPPATH . 'helpers/wsse_helper.php';
+require_once APPPATH . 'helpers/authorization_helper.php';
 require_once BASEPATH . 'helpers/url_helper.php';
 
 // Load library files for testing
@@ -69,6 +70,13 @@ load_library('MY_Parsedown');
 if (!function_exists('valid_email')) {
     function valid_email($email) {
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+}
+
+// Mock theme function for buttons
+if (!function_exists('theme')) {
+    function theme() {
+        return 'themes/default';
     }
 }
 
@@ -337,6 +345,36 @@ class MinimalMockDatabase {
     }
 }
 
+// Mock DX_Auth class for authorization tests
+class MinimalMockDXAuth {
+    private $username = 'test_user';
+
+    public function get_username() {
+        return $this->username;
+    }
+
+    public function set_username($username) {
+        $this->username = $username;
+    }
+}
+
+// Mock Lang class for language support
+class MinimalMockLang {
+    public function line($key) {
+        // Return simple translations for common keys
+        $translations = array(
+            'gvv_button_new' => 'Nouveau',
+            'all_sections' => 'Toutes les sections'
+        );
+
+        return isset($translations[$key]) ? $translations[$key] : $key;
+    }
+
+    public function load($file, $idiom = '') {
+        return TRUE;
+    }
+}
+
 // Minimal CI mock class
 class MinimalMockCI {
     public $config;
@@ -344,13 +382,17 @@ class MinimalMockCI {
     public $db;
     public $session;
     public $input;
-    
+    public $dx_auth;
+    public $lang;
+
     public function __construct() {
         $this->config = new MinimalMockConfig();
         $this->load = new MinimalMockLoader($this);
         $this->db = new MinimalMockDatabase();
         $this->session = new stdClass();
         $this->input = new MinimalMockInput();
+        $this->dx_auth = new MinimalMockDXAuth();
+        $this->lang = new MinimalMockLang();
     }
 }
 

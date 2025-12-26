@@ -1,3 +1,13 @@
+Authorization Helper
+ [x] Authorization helper functions exist
+ [x] Logged username returns username
+ [x] Logged username returns different usernames
+ [x] Logged username returns empty string
+ [x] Logged username uses dx auth
+ [x] Logged username with special characters
+ [x] Logged username with unicode
+ [x] Logged username with spaces
+
 Balance Helper
  [x] Balance accordion header with debit balance
  [x] Balance accordion header with credit balance
@@ -213,6 +223,21 @@ Bitfield
  [x] Iterator
  [x] Edge cases
  [x] Complex scenarios
+
+Button New
+ [x] Button new instantiation
+ [x] Button new default label
+ [x] Button new default action
+ [x] Button new default image
+ [x] Button new with custom attributes
+ [x] Button new action is fixed
+ [x] Button new with controller and param
+ [x] Button new inherits set method
+ [x] Button new no confirmation by default
+ [x] Button new with empty attributes
+ [x] Multiple button new instances are independent
+ [x] Button new defaults are consistent
+ [x] Button new image uses theme
 
 Button Subclasses
  [x] Button edit defaults
