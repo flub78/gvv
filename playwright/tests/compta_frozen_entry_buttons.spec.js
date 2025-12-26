@@ -110,22 +110,36 @@ test.describe('Compta Frozen Entry Buttons', () => {
     });
 
     test('view button opens form in view mode with disabled submit', async ({ page }) => {
-        // Find the first entry row with a gel checkbox
-        const firstGelCheckbox = page.locator('.gel-checkbox').first();
-        const ecritureId = await firstGelCheckbox.getAttribute('data-ecriture-id');
-
-        // Ensure it's frozen
-        const isChecked = await firstGelCheckbox.isChecked();
-        if (!isChecked) {
+        // Find the first ALREADY frozen entry (checked gel checkbox) to avoid timing issues
+        const frozenCount = await page.locator('.gel-checkbox:checked').count();
+        let ecritureId;
+        let needsCleanup = false;
+        
+        if (frozenCount === 0) {
+            // No frozen entries, so freeze the first one
+            const firstGelCheckbox = page.locator('.gel-checkbox').first();
+            ecritureId = await firstGelCheckbox.getAttribute('data-ecriture-id');
             await firstGelCheckbox.check();
-            await page.waitForTimeout(1000); // Increased wait for AJAX to complete
+            await page.waitForTimeout(1000); // Wait for AJAX to complete
+            needsCleanup = true;
+            
+            // Verify button changed to view mode
+            const viewBtn = page.locator(`.edit-entry-btn[data-ecriture-id="${ecritureId}"]`);
+            await expect(viewBtn.locator('i')).toHaveClass(/fa-eye/, { timeout: 5000 });
+        } else {
+            // Use the already frozen entry - no timing issues!
+            const frozenCheckbox = page.locator('.gel-checkbox:checked').first();
+            ecritureId = await frozenCheckbox.getAttribute('data-ecriture-id');
         }
 
-        // Verify button changed to view mode before clicking
+        // Find the view button for the frozen entry and verify it's in view mode
         const viewBtn = page.locator(`.edit-entry-btn[data-ecriture-id="${ecritureId}"]`);
+        
+        // Verify the button is in view mode (eye icon) before clicking
         await expect(viewBtn.locator('i')).toHaveClass(/fa-eye/, { timeout: 5000 });
-
-        // Click the view button (eye icon)
+        await expect(viewBtn).toHaveAttribute('data-frozen', '1');
+        
+        // Click the view button
         await viewBtn.click();
 
         // Wait for the edit page to load
@@ -147,9 +161,11 @@ test.describe('Compta Frozen Entry Buttons', () => {
         await page.goBack();
         await page.waitForLoadState('networkidle');
 
-        // Uncheck to restore original state
-        const gelCheckbox = page.locator(`.gel-checkbox[data-ecriture-id="${ecritureId}"]`);
-        await gelCheckbox.uncheck();
-        await page.waitForTimeout(500);
+        // Only uncheck if we froze an entry for this test
+        if (needsCleanup) {
+            const gelCheckbox = page.locator(`.gel-checkbox[data-ecriture-id="${ecritureId}"]`);
+            await gelCheckbox.uncheck();
+            await page.waitForTimeout(500);
+        }
     });
 });
