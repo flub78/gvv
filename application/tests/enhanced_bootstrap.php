@@ -115,6 +115,91 @@ class EnhancedMockConfig {
     }
 }
 
+// Mock DB Result class for CI
+class EnhancedMockDBResult {
+    public function result_array() { return array(); }
+    public function row_array() { return NULL; }
+    public function num_rows() { return 0; }
+    public function row() { return NULL; }
+    public function result() { return array(); }
+}
+
+// Mock database class for CI
+class EnhancedMockDatabase {
+    public $conn_id = null;
+
+    public function select($select) {
+        return $this;
+    }
+
+    public function from($table) {
+        return $this;
+    }
+
+    public function join($table, $cond, $type = '') {
+        return $this;
+    }
+
+    public function where($key, $value = NULL) {
+        return $this;
+    }
+
+    public function or_where($key, $value = NULL) {
+        return $this;
+    }
+
+    public function where_in($key, $values = array()) {
+        return $this;
+    }
+
+    public function get($table = '', $limit = NULL, $offset = NULL) {
+        return new EnhancedMockDBResult();
+    }
+
+    public function query($sql) {
+        // Mock query method
+        return new EnhancedMockDBResult();
+    }
+
+    public function insert($table, $data = NULL) {
+        return TRUE;
+    }
+
+    public function update($table, $data = NULL, $where = NULL) {
+        return TRUE;
+    }
+
+    public function _error_number() {
+        return 0; // Mock no error
+    }
+
+    public function _error_message() {
+        return ''; // Mock empty error message
+    }
+
+    public function last_query() {
+        return 'SELECT * FROM mock_table';
+    }
+}
+
+// Mock Lang class for language support
+class EnhancedMockLang {
+    public function line($key) {
+        // Return simple translations for common keys
+        $translations = array(
+            'gvv_button_new' => 'Nouveau',
+            'all_sections' => 'Toutes les sections',
+            'gvv_events_types_enum_activite' => array('Vol', 'Administratif', 'Autre')
+        );
+
+        return isset($translations[$key]) ? $translations[$key] : $key;
+    }
+
+    public function load($file, $idiom = '') {
+        return TRUE;
+    }
+}
+
 // Create enhanced CI mock with config and other required properties
 class EnhancedMockCI {
     public $config;
@@ -122,33 +207,28 @@ class EnhancedMockCI {
     public $db;
     public $session;
     public $log;
-    
+    public $lang;
+
     public function __construct() {
         // Mock config with theme and base_url settings
         $this->config = new EnhancedMockConfig();
-        
-        // Mock loader
-        $this->load = new EnhancedMockLoader();
-        
-        // Pre-load required helpers for testing
-        $this->load->helper('assets');
-        
-        // Pre-load required libraries for testing
-        $this->load->library('Widget');
-        $this->load->library('Button');
-        $this->load->library('ButtonDelete');
-        $this->load->library('ButtonEdit');
-        
-        // Mock database (simple version)
-        $this->db = new stdClass();
-        
+
+        // Mock loader - pass reference to this CI instance
+        $this->load = new EnhancedMockLoader($this);
+
+        // Mock lang
+        $this->lang = new EnhancedMockLang();
+
+        // Mock database with required methods
+        $this->db = new EnhancedMockDatabase();
+
         // Mock session
         $this->session = new stdClass();
-        
+
         // Mock log with required methods
         $this->log = new MockLog();
     }
-    
+
     public function helper($helper) {
         // Mock helper loading
         return true;
@@ -156,6 +236,12 @@ class EnhancedMockCI {
 }
 
 class EnhancedMockLoader {
+    private $CI;
+
+    public function __construct(&$CI) {
+        $this->CI =& $CI;
+    }
+
     public function helper($helper) {
         // Load actual helpers if they exist
         $helper_file = APPPATH . 'helpers/' . $helper . '_helper.php';
@@ -164,16 +250,30 @@ class EnhancedMockLoader {
         }
         return true;
     }
-    
+
+    public function database() {
+        // Mock database loading
+        return true;
+    }
+
     public function library($library) {
         // Load actual library files if they exist
         $library_file = APPPATH . 'libraries/' . $library . '.php';
         if (file_exists($library_file)) {
             require_once $library_file;
+
+            // Instantiate the library and attach it to CI instance
+            // Property name is lowercase
+            $library_var = strtolower($library);
+
+            // Only instantiate if not already loaded
+            if (!isset($this->CI->$library_var)) {
+                $this->CI->$library_var = new $library();
+            }
         }
         return true;
     }
-    
+
     public function is_loaded($type) {
         // Return FALSE for form_validation since we don't need it for basic tests
         if ($type === 'form_validation') {
@@ -241,6 +341,13 @@ if (!function_exists('get_instance')) {
         return $CI;
     }
 }
+
+// Pre-load required helpers and libraries (now that get_instance() is available)
+$CI->load->helper('assets');
+$CI->load->library('Widget');
+$CI->load->library('Button');
+$CI->load->library('ButtonDelete');
+$CI->load->library('ButtonEdit');
 
 // Mock config_item function for assets helper
 if (!function_exists('config_item')) {
