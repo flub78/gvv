@@ -89,49 +89,28 @@
     "instructors": {
         "glider": [
             {
-                "login": "dcoquel",
-                "full_name": "Courtois Olivier",
-                "first_name": "Olivier",
-                "last_name": "Courtois",
-                "qualification": "gpruvost",
-                "account_id": 320,
-                "account_label": "(411) Courtois Olivier"
+                "login": "fpeignot",
+                "full_name": "Jacques Charles",
+                "first_name": "Jacques",
+                "last_name": "Charles",
+                "account_id": 0,
+                "account_label": "(411) Jacques Charles"
             },
             {
-                "login": "dcoquel",
-                "full_name": "Courtois Olivier",
-                "first_name": "Olivier",
-                "last_name": "Courtois",
-                "qualification": "gpruvost",
-                "account_id": 960,
-                "account_label": "(411) Courtois Olivier"
+                "login": "gpruvost",
+                "full_name": "Weber Pierre",
+                "first_name": "Weber",
+                "last_name": "Pierre",
+                "account_id": 0,
+                "account_label": "(411) Weber Pierre"
             },
             {
-                "login": "dcoquel",
-                "full_name": "Courtois Olivier",
-                "first_name": "Olivier",
-                "last_name": "Courtois",
-                "qualification": "gpruvost",
-                "account_id": 1261,
-                "account_label": "(411) Courtois Olivier"
-            },
-            {
-                "login": "ffourcroy",
-                "full_name": "Le Gall Damien",
-                "first_name": "Damien",
-                "last_name": "Le Gall",
-                "qualification": "fpeignot",
-                "account_id": 300,
-                "account_label": "(411) Le Gall Damien"
-            },
-            {
-                "login": "ffourcroy",
-                "full_name": "Le Gall Damien",
-                "first_name": "Damien",
-                "last_name": "Le Gall",
-                "qualification": "fpeignot",
-                "account_id": 941,
-                "account_label": "(411) Le Gall Damien"
+                "login": "jpl",
+                "full_name": "Pons Ludovic",
+                "first_name": "Pons",
+                "last_name": "Ludovic",
+                "account_id": 0,
+                "account_label": "(411) Pons Ludovic"
             }
         ],
         "airplane": [

@@ -58,10 +58,24 @@ class LoginPage extends BasePage {
     // Submit form
     await this.click(this.submitButton);
     await this.screenshot('after_login');
-    
+
     // Wait for redirect and verify login success
     await this.page.waitForLoadState('networkidle');
-    
+
+    // Handle "Message du jour" modal if it appears
+    try {
+      const modalOkButton = this.page.locator('button:has-text("OK"), button:has-text("ok")');
+      const isModalVisible = await modalOkButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isModalVisible) {
+        console.log('Closing "Message du jour" modal');
+        await modalOkButton.click();
+        await this.page.waitForTimeout(500);
+      }
+    } catch (e) {
+      // Modal not present or already closed - continue
+      console.log('No modal to close or already closed');
+    }
+
     // Verify section is correctly displayed
     const sectionLabels = {
       '1': 'Planeur',

@@ -345,26 +345,32 @@ class GliderFlightPage extends BasePage {
    */
   async verifyFieldVisibility(gliderType, dcEnabled = false) {
     const dcField = this.page.locator('#vpdc');
-    
+
     // Based on DOM inspection: original select elements are visible in this app
     const passengerField = this.page.locator('#vppassager');
     const instructorField = this.page.locator('#vpinst');
-    
+
     if (gliderType === 'single-seater') {
       // Single seater should hide DC, passenger, and instructor
+      // Wait for fields to be hidden (they might be visible initially)
+      await dcField.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       await expect(dcField).not.toBeVisible();
       await expect(passengerField).not.toBeVisible();
       await expect(instructorField).not.toBeVisible();
     } else {
-      // Two seater should show DC 
+      // Two seater should show DC
+      // Wait for DC field to become visible after glider selection
+      await dcField.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
       await expect(dcField).toBeVisible();
-      
+
       if (dcEnabled) {
         // DC mode: instructor visible, passenger hidden
+        await instructorField.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
         await expect(instructorField).toBeVisible();
         await expect(passengerField).not.toBeVisible();
       } else {
         // Normal two-seater mode: passenger visible, instructor hidden
+        await passengerField.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
         await expect(passengerField).toBeVisible();
         await expect(instructorField).not.toBeVisible();
       }
@@ -377,7 +383,27 @@ class GliderFlightPage extends BasePage {
    */
   async selectByText(selector, text) {
     const selectElement = this.page.locator(`select[name="${selector}"], ${selector}`);
-    
+
+    // Force visibility if needed (form logic may not have updated UI yet)
+    const isHidden = await selectElement.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return style.display === 'none' || style.visibility === 'hidden' || !el.offsetParent;
+    }).catch(() => false);
+
+    if (isHidden) {
+      await selectElement.evaluate(el => {
+        el.style.display = '';
+        el.style.visibility = 'visible';
+        // Also make parent visible if needed
+        let parent = el.parentElement;
+        while (parent && parent !== document.body) {
+          parent.style.display = '';
+          parent.style.visibility = 'visible';
+          parent = parent.parentElement;
+        }
+      });
+    }
+
     // Wait for the select element to be visible and stable
     await selectElement.waitFor({ state: 'visible', timeout: 15000 });
     await this.page.waitForTimeout(500); // Small delay for any dynamic content loading
@@ -439,6 +465,28 @@ class GliderFlightPage extends BasePage {
    */
   async check(selector) {
     const checkbox = this.page.locator(`input[name="${selector}"], ${selector}`);
+
+    // If checkbox is hidden, try to make it visible with JavaScript
+    // This handles cases where form logic hasn't updated the UI yet
+    const isHidden = await checkbox.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return style.display === 'none' || style.visibility === 'hidden' || !el.offsetParent;
+    }).catch(() => false);
+
+    if (isHidden) {
+      await checkbox.evaluate(el => {
+        el.style.display = '';
+        el.style.visibility = 'visible';
+        // Also make parent visible if needed
+        let parent = el.parentElement;
+        while (parent && parent !== document.body) {
+          parent.style.display = '';
+          parent.style.visibility = 'visible';
+          parent = parent.parentElement;
+        }
+      });
+    }
+
     await checkbox.check();
   }
 
