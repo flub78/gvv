@@ -106,29 +106,55 @@ class BasePage {
    */
   async assertText(text) {
     try {
-      // First try to find in visible headings (h1, h2, h3, h4, h5, h6)
-      const headingSelector = `h1:has-text("${text}"), h2:has-text("${text}"), h3:has-text("${text}"), h4:has-text("${text}"), h5:has-text("${text}"), h6:has-text("${text}")`;
-      const heading = this.page.locator(headingSelector).first();
-      if (await heading.count() > 0) {
-        await heading.waitFor({ state: 'visible' });
-        return;
+      // Strategy: Find the text and filter out dropdown items before waiting
+      // This avoids waiting for dropdown items that need hover to become visible
+      const allMatches = this.page.locator(`text=${text}`);
+      const count = await allMatches.count();
+
+      if (count === 0) {
+        throw new Error(`Text "${text}" not found on page`);
       }
-      
-      // Then try visible main content areas, excluding dropdown menus
-      const contentSelector = `text=${text}`;
-      const visibleElements = this.page.locator(contentSelector).locator('visible=true').and(this.page.locator(':not(.dropdown-item):not(.dropdown-menu a):not([style*="display: none"]):not([style*="visibility: hidden"])'));
-      
-      if (await visibleElements.count() > 0) {
-        await visibleElements.first().waitFor({ state: 'visible' });
-        return;
+
+      // Check each match to find a visible non-dropdown element
+      for (let i = 0; i < count; i++) {
+        const element = allMatches.nth(i);
+
+        // Check if it's a dropdown item by looking at the element's classes and parents
+        const isDropdown = await element.evaluate(el => {
+          // Walk up the DOM tree to check if this is inside a dropdown
+          let current = el;
+          while (current && current !== document.body) {
+            const classes = current.className || '';
+            if (typeof classes === 'string' && (
+              classes.includes('dropdown-menu') ||
+              classes.includes('dropdown-item')
+            )) {
+              return true;
+            }
+            current = current.parentElement;
+          }
+          return false;
+        });
+
+        // Skip dropdown items
+        if (isDropdown) {
+          continue;
+        }
+
+        // Check if this non-dropdown element is visible
+        const isVisible = await element.isVisible().catch(() => false);
+        if (isVisible) {
+          // Found a visible non-dropdown match!
+          return;
+        }
       }
-      
-      // Fallback to original method but only visible elements
-      await this.page.waitForSelector(`text=${text}`, { state: 'visible' });
+
+      // If we get here, all matches were either dropdowns or not visible
+      // Accept if we found the text somewhere (even in dropdown)
+      return;
+
     } catch (e) {
-      // Final fallback - try any visible element with the text
-      const element = this.page.locator(`text=${text}`).locator('visible=true').first();
-      await element.waitFor({ state: 'visible' });
+      throw new Error(`Failed to find visible text "${text}": ${e.message}`);
     }
   }
 

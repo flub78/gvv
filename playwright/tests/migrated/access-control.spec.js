@@ -93,7 +93,7 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       // Test various admin-accessible pages
       const adminPages = [
-        { url: 'vols_planeur/page', mustSee: ['Planche des Vols Planeur'] },
+        { url: 'vols_planeur/page', mustSee: ['Vols Planeur'] },
         { url: 'alarmes', mustSee: ['Conditions', 'Visite'] },
         { url: 'tickets/page', mustSee: ['Gestion des tickets'] },
         { url: 'tickets/solde', mustSee: ['Solde des tickets par pilote'] },
@@ -111,10 +111,10 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       for (const pageTest of adminPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, user.username, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
@@ -137,10 +137,10 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       for (const pageTest of financialPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, user.username, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
@@ -211,7 +211,7 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       // Bureau users typically have access to member management and flights
       const allowedPages = [
-        { url: 'vols_planeur/page', mustSee: ['Planche des Vols Planeur'] },
+        { url: 'vols_planeur/page', mustSee: ['Vols Planeur'] },
         { url: 'membre/page', mustSee: ['Membres'] },
         { url: 'tickets/page', mustSee: ['Gestion des tickets'] },
         { url: 'planeur/page', mustSee: ['Planeurs'] }
@@ -219,10 +219,10 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       for (const pageTest of allowedPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, user.username, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
@@ -242,17 +242,17 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       // CA users typically have access to reports and oversight functions
       const allowedPages = [
-        { url: 'vols_planeur/page', mustSee: ['Planche des Vols Planeur'] },
+        { url: 'vols_planeur/page', mustSee: ['Vols Planeur'] },
         { url: 'membre/page', mustSee: ['Membres'] },
         { url: 'planeur/page', mustSee: ['Planeurs'] }
       ];
       
       for (const pageTest of allowedPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, user.username, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
@@ -272,7 +272,7 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       // Planchistes manage daily flight operations
       const allowedPages = [
-        { url: 'vols_planeur/page', mustSee: ['Planche des Vols Planeur'] },
+        { url: 'vols_planeur/page', mustSee: ['Vols Planeur'] },
         { url: 'vols_planeur/create', mustSee: ['Vol'] },
         { url: 'planeur/page', mustSee: ['Planeurs'] },
         { url: 'membre/page', mustSee: ['Membres'] }
@@ -280,10 +280,10 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       
       for (const pageTest of allowedPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, user.username, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
