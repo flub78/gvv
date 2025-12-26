@@ -1,10 +1,11 @@
-Banque de Test
-FR7630001007941234567890185;Test Section
-Date de comptabilisation;Date d'opération;Libellé;Libellé interbancaire;Montant (EUR);Référence
-01/01/2025;;;Solde au;1000,00;
-;;;;;;
-Date de comptabilisation;Date d'opération;Libellé;Libellé interbancaire;Montant (EUR);Référence
-02/01/2025;02/01/2025;VIREMENT RECU;VIREMENT RECU;500,00;VIR001
-03/01/2025;03/01/2025;PAIEMENT CB SUPERMARCHE;PAIEMENT CB;-50,00;CB001
-04/01/2025;04/01/2025;CHEQUE N°123456;CHEQUES PAYES;-100,00;CHQ123456
-05/01/2025;05/01/2025;PRELEVEMENT ELECTRICITE;PRELEVEMENTS;-75,00;PREL001
+"Banque de test"
+"FR76 3000 3234 4521 6543 8532 123";"TT"
+"CAV ADMI"
+"Solde au";"02/09/2025"
+"Solde";"17 747,32";"EUR"
+
+Date;Nature de l'opération;Débit;Crédit;Devise;Date de valeur;Libellé interbancaire
+"02/01/2025";"REMISE CHEQUE 0000016 002";"";"130,00";"EUR";"03/01/2025";"REMISES DE CHEQUES"
+"";"DE 1 CHQ 02846 000018";"";"";"";"";""
+"07/01/2025";"VIR RECU 0775808S";"";"200,00";"EUR";"07/01/2025";"AUTRES VIREMENTS RECUS"
+"";"DE: OLIVIER MARTIN";"";"";"";"";""
