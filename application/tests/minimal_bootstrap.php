@@ -47,6 +47,8 @@ require_once APPPATH . 'helpers/crypto_helper.php';
 require_once APPPATH . 'helpers/csv_helper.php';
 require_once APPPATH . 'helpers/markdown_helper.php';
 require_once APPPATH . 'helpers/email_helper.php';
+require_once APPPATH . 'helpers/database_helper.php';
+require_once APPPATH . 'helpers/wsse_helper.php';
 require_once BASEPATH . 'helpers/url_helper.php';
 
 // Load library files for testing
@@ -283,6 +285,8 @@ class MinimalMockDBResult {
 
 // Mock database class for CI
 class MinimalMockDatabase {
+    public $conn_id = null;
+
     public function select($select) {
         return $this;
     }

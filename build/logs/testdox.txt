@@ -60,6 +60,17 @@ Crypto Helper
  [x] Decrypt file with non existent file
  [x] Encrypt decrypt round trip with different sizes
 
+Database Helper
+ [x] Database helper loads successfully
+ [x] Mysql real escape string escapes single quotes
+ [x] Mysql real escape string escapes double quotes
+ [x] Mysql real escape string escapes backslashes
+ [x] Mysql real escape string handles empty string
+ [x] Mysql real escape string handles plain text
+ [x] Mysql real escape string handles null bytes
+ [x] Mysql real escape string handles sql injection attempt
+ [x] Mysql real escape string handles multiple special chars
+
 Debug Example
  [x] Debugging example
  [x] Debugging with helpers
@@ -134,6 +145,19 @@ Validation Helper
  [x] Date db 2 ht edge cases
  [x] Date ht 2 db edge cases
 
+Wsse Helper
+ [x] Wsse helper functions exist
+ [x] Wsse header short format
+ [x] Wsse header short unique per call
+ [x] Wsse header short different passwords different digests
+ [x] Wsse header short handles special characters
+ [x] Decode chunked simple
+ [x] Decode chunked multiple chunks
+ [x] Decode chunked empty string
+ [x] Decode chunked single character
+ [x] Decode chunked large chunk
+ [x] Decode chunked mixed case hex
+
 Authorization_model
  [x] Model loads successfully
  [x] Get user roles queries correct tables
@@ -189,6 +213,23 @@ Bitfield
  [x] Iterator
  [x] Edge cases
  [x] Complex scenarios
+
+Button Subclasses
+ [x] Button edit defaults
+ [x] Button edit with custom attributes
+ [x] Button delete defaults
+ [x] Button delete with custom confirm msg
+ [x] Button delete default confirm msg
+ [x] Button view defaults
+ [x] Button view with custom attributes
+ [x] All subclasses inherit widget
+ [x] Set attributes on subclasses
+ [x] Button delete always requires confirmation
+ [x] Different button types are independent
+ [x] All buttons have images
+ [x] Button edit action is fixed
+ [x] Button delete action is fixed
+ [x] Button view action is fixed
 
 Button
  [x] Instantiation with defaults
