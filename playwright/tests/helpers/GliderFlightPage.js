@@ -418,39 +418,107 @@ class GliderFlightPage extends BasePage {
       try {
         // First close any open date pickers or dropdowns that might interfere
         await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(200);
-        
+        await this.page.waitForTimeout(300);
+
         // Click on the Select2 container selection area (more specific selector)
-        const select2Selection = this.page.locator(`select[name="${selector}"] + .select2-container .select2-selection, ${selector} + .select2-container .select2-selection`);
+        // Use ID selector if the select has an ID, otherwise use name
+        const select2Selection = this.page.locator(`select#${selector} + .select2-container .select2-selection, select[name="${selector}"] + .select2-container .select2-selection`).first();
+        await select2Selection.scrollIntoViewIfNeeded();
         await select2Selection.click({ force: true });
-        
-        // Wait for dropdown to open
-        await this.page.waitForTimeout(500);
-        
-        // Type the text to search/filter options
-        const searchInput = this.page.locator('.select2-search__field').last();
-        await searchInput.fill(text);
-        await this.page.waitForTimeout(500);
-        
-        // Click on the matching option
-        const option = this.page.locator(`.select2-results__option`).filter({ hasText: text }).first();
+
+        // Wait for dropdown to actually open and be visible
+        await this.page.waitForSelector('.select2-dropdown', { state: 'visible', timeout: 5000 });
+        await this.page.waitForTimeout(300);
+
+        // Type the text to search/filter options (if search field exists)
+        // Extract just the name part if text contains account code like "(411) Name"
+        const searchText = text.includes(')') ? text.split(')')[1].trim() : text;
+        const searchInput = this.page.locator('.select2-search__field');
+        if (await searchInput.count() > 0) {
+          await searchInput.last().fill(searchText);
+          await this.page.waitForTimeout(800);
+        }
+
+        // Wait for results to load and click on the matching option
+        await this.page.waitForSelector('.select2-results__option:not(.loading-results)', { state: 'visible', timeout: 5000 });
+
+        // Try to find exact match first, then partial match
+        let option = this.page.locator(`.select2-results__option`).filter({ hasText: text }).first();
+        let optionCount = await option.count();
+
+        if (optionCount === 0) {
+          // Try with just the search text
+          option = this.page.locator(`.select2-results__option`).filter({ hasText: searchText }).first();
+          optionCount = await option.count();
+        }
+
+        if (optionCount === 0) {
+          throw new Error(`No Select2 option found matching "${text}" or "${searchText}"`);
+        }
+
+        await option.waitFor({ state: 'visible', timeout: 5000 });
         await option.click();
         
       } catch (select2Error) {
-        console.log(`Select2 handling failed, falling back to regular select: ${select2Error.message}`);
-        
+        console.log(`Select2 handling failed: ${select2Error.message}`);
+
         // Check if page is still open before fallback
         if (this.page.isClosed()) {
           console.log('Page is closed, cannot continue with select operation');
           throw new Error('Page closed during select operation');
         }
-        
-        // Fallback to regular select if Select2 handling fails
+
+        // For Select2, we can't use regular selectOption on hidden element
+        // Instead, try to set the value using JavaScript and trigger change event
         try {
-          await selectElement.selectOption({ label: text });
+          console.log(`Trying JavaScript fallback to set value for ${selector}`);
+
+          // First, let's see what options are actually available
+          const availableOptions = await this.page.evaluate(({ selector }) => {
+            const selectEl = document.querySelector(`select[name="${selector}"], select#${selector}`);
+            if (!selectEl) return [];
+            return Array.from(selectEl.options).map(opt => ({
+              value: opt.value,
+              text: opt.text
+            }));
+          }, { selector });
+
+          console.log(`Available options for ${selector}:`, availableOptions.slice(0, 10));
+
+          const success = await this.page.evaluate(({ selector, text }) => {
+            const selectEl = document.querySelector(`select[name="${selector}"], select#${selector}`);
+            if (!selectEl) return false;
+
+            // Find option by text content
+            const option = Array.from(selectEl.options).find(opt =>
+              opt.text.includes(text) || opt.text === text
+            );
+
+            if (option) {
+              selectEl.value = option.value;
+              // Trigger change event for Select2
+              const event = new Event('change', { bubbles: true });
+              selectEl.dispatchEvent(event);
+
+              // Also try to trigger Select2's change if it exists
+              if (window.jQuery && window.jQuery(selectEl).data('select2')) {
+                window.jQuery(selectEl).trigger('change');
+              }
+              return true;
+            }
+            return false;
+          }, { selector, text });
+
+          if (!success) {
+            throw new Error(`JavaScript fallback failed: could not find option matching "${text}". Available options count: ${availableOptions.length}`);
+          }
+
+          console.log(`Successfully set value using JavaScript fallback`);
+          await this.page.waitForTimeout(500);
+
         } catch (fallbackError) {
-          console.log(`Regular select also failed: ${fallbackError.message}`);
-          throw fallbackError;
+          console.log(`JavaScript fallback also failed: ${fallbackError.message}`);
+          throw new Error(`Failed to select "${text}" for ${selector}: ${select2Error.message}`);
         }
       }
       

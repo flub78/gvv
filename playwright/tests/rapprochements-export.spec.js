@@ -10,10 +10,11 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const LoginPage = require('./helpers/LoginPage');
+const RapprochementsPage = require('./helpers/RapprochementsPage');
 
 // Test configuration
 const LOGIN_URL = '/auth/login';
-const RAPPROCHEMENTS_URL = `/rapprochements/import_releve_from_file`;
 const TEST_USER = {
   username: 'testadmin',
   correctPassword: 'password'
@@ -22,27 +23,17 @@ const TEST_USER = {
 test.describe('Rapprochements Export Buttons', () => {
 
   test('should display export buttons in Ecritures GVV tab', async ({ page }) => {
-    // Login first
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-
-    // Navigate to rapprochements page
-    console.log('Navigating to rapprochements page...');
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-
-    // Wait for the page to load
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     // Click on "Ecritures GVV" tab
     console.log('Clicking on Ecritures GVV tab...');
-    const gvvTab = await page.locator('#gvv-tab');
-    await gvvTab.click();
+    await rapprochementsPage.clickTab('gvv-tab');
 
     // Wait for tab content to be visible
     await page.waitForSelector('#gvv.show', { timeout: 5000 });
@@ -80,23 +71,16 @@ test.describe('Rapprochements Export Buttons', () => {
   });
 
   test('should verify Excel button is clickable', async ({ page }) => {
-    // Login first
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-
-    // Navigate to rapprochements page
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     // Click on "Ecritures GVV" tab
-    const gvvTab = await page.locator('#gvv-tab');
-    await gvvTab.click();
+    await rapprochementsPage.clickTab('gvv-tab');
     await page.waitForSelector('#gvv.show', { timeout: 5000 });
 
     // Verify Excel button is clickable (we won't actually click it to avoid download)
@@ -108,23 +92,16 @@ test.describe('Rapprochements Export Buttons', () => {
   });
 
   test('should verify PDF button is clickable', async ({ page }) => {
-    // Login first
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-
-    // Navigate to rapprochements page
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     // Click on "Ecritures GVV" tab
-    const gvvTab = await page.locator('#gvv-tab');
-    await gvvTab.click();
+    await rapprochementsPage.clickTab('gvv-tab');
     await page.waitForSelector('#gvv.show', { timeout: 5000 });
 
     // Verify PDF button is clickable (we won't actually click it to avoid download)

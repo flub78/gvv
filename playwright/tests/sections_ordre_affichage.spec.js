@@ -47,7 +47,7 @@ test.describe('Sections ordre affichage', () => {
         await ordreField.fill('10');
 
         // Submit form
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
 
         // Wait for success message or redirect
         await page.waitForURL('**/sections/page');
@@ -76,7 +76,7 @@ test.describe('Sections ordre affichage', () => {
         await ordreField.fill('99');
 
         // Submit form
-        await page.click('button[type="submit"]');
+        await page.click('button[type="submit"], input[type="submit"]');
 
         // Wait for redirect to list
         await page.waitForURL('**/sections/page');

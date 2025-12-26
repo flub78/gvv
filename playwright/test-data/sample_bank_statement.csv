@@ -1,0 +1,10 @@
+Banque de Test
+FR7630001007941234567890185;Test Section
+Date de comptabilisation;Date d'opération;Libellé;Libellé interbancaire;Montant (EUR);Référence
+01/01/2025;;;Solde au;1000,00;
+;;;;;;
+Date de comptabilisation;Date d'opération;Libellé;Libellé interbancaire;Montant (EUR);Référence
+02/01/2025;02/01/2025;VIREMENT RECU;VIREMENT RECU;500,00;VIR001
+03/01/2025;03/01/2025;PAIEMENT CB SUPERMARCHE;PAIEMENT CB;-50,00;CB001
+04/01/2025;04/01/2025;CHEQUE N°123456;CHEQUES PAYES;-100,00;CHQ123456
+05/01/2025;05/01/2025;PRELEVEMENT ELECTRICITE;PRELEVEMENTS;-75,00;PREL001
