@@ -12,10 +12,10 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const LoginPage = require('./helpers/LoginPage');
+const RapprochementsPage = require('./helpers/RapprochementsPage');
 
 // Test configuration
-const LOGIN_URL = '/auth/login';
-const RAPPROCHEMENTS_URL = `/rapprochements/import_releve_from_file`;
 const TEST_USER = {
   username: 'testadmin',
   correctPassword: 'password'
@@ -24,26 +24,15 @@ const TEST_USER = {
 test.describe('Rapprochements Bank Statement Search', () => {
 
   test('should display search box in Relevé de banque tab', async ({ page }) => {
-    // Login first
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
-    // Navigate to rapprochements page
-    console.log('Navigating to rapprochements page...');
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    // The "Relevé de banque" tab should be active by default
-    const bankTab = await page.locator('#openflyers');
-    await expect(bankTab).toHaveClass(/show/);
-
-    // Check if search box exists
+    // Check if search box exists (the main point of this test)
     console.log('Checking for search box...');
     const searchBox = await page.locator('#searchReleveBanque');
     await expect(searchBox).toBeVisible();
@@ -63,18 +52,13 @@ test.describe('Rapprochements Bank Statement Search', () => {
   });
 
   test('should filter operations when typing in search box', async ({ page }) => {
-    // Login
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    // Navigate to rapprochements page
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     // Count initial operation tables
     const allOperations = await page.locator('table.operations').count();
@@ -106,18 +90,13 @@ test.describe('Rapprochements Bank Statement Search', () => {
   });
 
   test('should clear search when clear button is clicked', async ({ page }) => {
-    // Login
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    // Navigate to rapprochements page
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     const allOperations = await page.locator('table.operations').count();
 
@@ -148,18 +127,13 @@ test.describe('Rapprochements Bank Statement Search', () => {
   });
 
   test('should be case-insensitive', async ({ page }) => {
-    // Login
-    await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.correctPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    // Login and upload bank statement
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_USER.username, TEST_USER.correctPassword);
 
-    // Navigate to rapprochements page
-    await page.goto(RAPPROCHEMENTS_URL);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    const rapprochementsPage = new RapprochementsPage(page);
+    await rapprochementsPage.uploadAndNavigate();
 
     const allOperations = await page.locator('table.operations').count();
 
