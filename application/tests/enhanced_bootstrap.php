@@ -200,6 +200,71 @@ class EnhancedMockLang {
     }
 }
 
+// Mock Session class for session support
+class EnhancedMockSession {
+    private $userdata = array();
+    private $flashdata = array();
+
+    public function __construct() {
+        // Initialize with some default session data
+        $this->userdata = array(
+            'filter_active' => false
+        );
+    }
+
+    public function userdata($key = NULL) {
+        if ($key === NULL) {
+            return $this->userdata;
+        }
+        return isset($this->userdata[$key]) ? $this->userdata[$key] : NULL;
+    }
+
+    public function set_userdata($key, $value = NULL) {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->userdata[$k] = $v;
+            }
+        } else {
+            $this->userdata[$key] = $value;
+        }
+    }
+
+    public function flashdata($key = NULL) {
+        if ($key === NULL) {
+            return $this->flashdata;
+        }
+        return isset($this->flashdata[$key]) ? $this->flashdata[$key] : NULL;
+    }
+
+    public function set_flashdata($key, $value = NULL) {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->flashdata[$k] = $v;
+            }
+        } else {
+            $this->flashdata[$key] = $value;
+        }
+    }
+}
+
+// Mock DX_Auth class for authentication
+class EnhancedMockDxAuth {
+    public function is_admin() {
+        // Mock is_admin - return false for tests (non-admin user)
+        return false;
+    }
+
+    public function is_role($role, $check_all = false, $check_section = false) {
+        // Mock is_role - return true for tests (user has role)
+        return true;
+    }
+
+    public function is_logged_in() {
+        // Mock is_logged_in - return true for tests
+        return true;
+    }
+}
+
 // Create enhanced CI mock with config and other required properties
 class EnhancedMockCI {
     public $config;
@@ -208,6 +273,7 @@ class EnhancedMockCI {
     public $session;
     public $log;
     public $lang;
+    public $dx_auth;
 
     public function __construct() {
         // Mock config with theme and base_url settings
@@ -223,7 +289,10 @@ class EnhancedMockCI {
         $this->db = new EnhancedMockDatabase();
 
         // Mock session
-        $this->session = new stdClass();
+        $this->session = new EnhancedMockSession();
+
+        // Mock dx_auth for authentication
+        $this->dx_auth = new EnhancedMockDxAuth();
 
         // Mock log with required methods
         $this->log = new MockLog();

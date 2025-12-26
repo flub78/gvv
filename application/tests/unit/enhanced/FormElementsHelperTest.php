@@ -577,4 +577,329 @@ class FormElementsHelperTest extends TestCase
             $this->markTestSkipped('add_first_col function not available');
         }
     }
+
+    /**
+     * Test label() function
+     */
+    public function testLabelFunction()
+    {
+        if (function_exists('label')) {
+            $result = label('test_label');
+
+            $this->assertIsString($result, "label should return a string");
+            $this->assertStringContainsString('<label>', $result, "Should contain label tag");
+            $this->assertStringContainsString('</label>', $result, "Should contain closing label tag");
+            $this->assertStringContainsString(':', $result, "Should contain colon");
+        } else {
+            $this->markTestSkipped('label function not available');
+        }
+    }
+
+    /**
+     * Test label() function with attributes
+     */
+    public function testLabelWithAttributes()
+    {
+        if (function_exists('label')) {
+            $attrs = array('for' => 'email_field', 'class' => 'form-label');
+            $result = label('email', $attrs);
+
+            $this->assertIsString($result, "label should return a string");
+            $this->assertStringContainsString('for="email_field"', $result, "Should contain for attribute");
+            $this->assertStringContainsString('class="form-label"', $result, "Should contain class attribute");
+        } else {
+            $this->markTestSkipped('label function not available');
+        }
+    }
+
+    /**
+     * Test e_label() function - echoes label
+     */
+    public function testELabelFunction()
+    {
+        if (function_exists('e_label')) {
+            ob_start();
+            e_label('test_label');
+            $output = ob_get_clean();
+
+            $this->assertIsString($output, "e_label should produce string output");
+            $this->assertStringContainsString('<label>', $output, "Should contain label tag");
+            $this->assertStringContainsString('</label>', $output, "Should contain closing label tag");
+        } else {
+            $this->markTestSkipped('e_label function not available');
+        }
+    }
+
+    /**
+     * Test translation() function
+     */
+    public function testTranslationFunction()
+    {
+        if (function_exists('translation')) {
+            $result = translation('gvv_button_create');
+
+            $this->assertIsString($result, "translation should return a string");
+            // Should return translated string or original if not found
+            $this->assertNotEmpty($result, "Should return non-empty string");
+        } else {
+            $this->markTestSkipped('translation function not available');
+        }
+    }
+
+    /**
+     * Test translation() with non-existent key
+     */
+    public function testTranslationNonExistent()
+    {
+        if (function_exists('translation')) {
+            $key = 'non_existent_translation_key_12345';
+            $result = translation($key);
+
+            $this->assertEquals($key, $result, "Should return the key itself when translation not found");
+        } else {
+            $this->markTestSkipped('translation function not available');
+        }
+    }
+
+    /**
+     * Test translation() with empty string
+     */
+    public function testTranslationEmpty()
+    {
+        if (function_exists('translation')) {
+            $result = translation('');
+
+            $this->assertIsString($result, "translation should return a string");
+        } else {
+            $this->markTestSkipped('translation function not available');
+        }
+    }
+
+    /**
+     * Test checkalert() function with popup message
+     */
+    public function testCheckalertWithPopup()
+    {
+        if (!function_exists('checkalert')) {
+            $this->markTestSkipped('checkalert function not available');
+            return;
+        }
+
+        // Create a proper mock session object with flashdata method
+        $session = $this->getMockBuilder('stdClass')
+            ->addMethods(['flashdata'])
+            ->getMock();
+
+        $session->method('flashdata')->willReturn(null);
+
+        $result = checkalert($session, 'Test alert message');
+
+        $this->assertIsString($result, "checkalert should return a string");
+        $this->assertStringContainsString('<script', $result, "Should contain script tag");
+        $this->assertStringContainsString('alert', $result, "Should contain alert function");
+        $this->assertStringContainsString('Test alert message', $result, "Should contain the alert message");
+    }
+
+    /**
+     * Test checkalert() function without popup
+     */
+    public function testCheckalertNoPopup()
+    {
+        if (!function_exists('checkalert')) {
+            $this->markTestSkipped('checkalert function not available');
+            return;
+        }
+
+        // Create a proper mock session object with flashdata method
+        $session = $this->getMockBuilder('stdClass')
+            ->addMethods(['flashdata'])
+            ->getMock();
+
+        $session->method('flashdata')->willReturn(null);
+
+        $result = checkalert($session, '');
+
+        $this->assertIsString($result, "checkalert should return a string");
+        $this->assertEmpty($result, "Should return empty string when no popup");
+    }
+
+    /**
+     * Test button_bar2() function
+     */
+    public function testButtonBar2Function()
+    {
+        if (function_exists('button_bar2')) {
+            $buttons = array('Create' => 'create', 'Update' => 'update');
+            $result = button_bar2('test_controller', $buttons);
+
+            $this->assertIsString($result, "button_bar2 should return a string");
+            $this->assertStringContainsString('form', $result, "Should contain form tags");
+            $this->assertStringContainsString('submit', $result, "Should contain submit buttons");
+            $this->assertStringContainsString('Create', $result, "Should contain button labels");
+        } else {
+            $this->markTestSkipped('button_bar2 function not available');
+        }
+    }
+
+    /**
+     * Test button_bar4() function with simple buttons
+     */
+    public function testButtonBar4SimpleButtons()
+    {
+        if (!function_exists('button_bar4')) {
+            $this->markTestSkipped('button_bar4 function not available');
+            return;
+        }
+
+        // Check if CI instance has dx_auth, otherwise skip
+        $CI = &get_instance();
+        if (!isset($CI->dx_auth)) {
+            $this->markTestSkipped('dx_auth not available in CI instance');
+            return;
+        }
+
+        $buttons = array(
+            array('url' => 'test/view', 'label' => 'View'),
+            array('url' => 'test/edit', 'label' => 'Edit')
+        );
+        $result = button_bar4($buttons);
+
+        $this->assertIsString($result, "button_bar4 should return a string");
+        $this->assertStringContainsString('View', $result, "Should contain View button");
+        $this->assertStringContainsString('Edit', $result, "Should contain Edit button");
+        $this->assertStringContainsString('<a', $result, "Should contain anchor tags");
+    }
+
+    /**
+     * Test button_bar4() with submit button
+     */
+    public function testButtonBar4WithSubmit()
+    {
+        if (!function_exists('button_bar4')) {
+            $this->markTestSkipped('button_bar4 function not available');
+            return;
+        }
+
+        // Check if CI instance has dx_auth, otherwise skip
+        $CI = &get_instance();
+        if (!isset($CI->dx_auth)) {
+            $this->markTestSkipped('dx_auth not available in CI instance');
+            return;
+        }
+
+        $buttons = array(
+            array('type' => 'submit', 'label' => 'Save', 'id' => 'save_btn', 'name' => 'save')
+        );
+        $result = button_bar4($buttons);
+
+        $this->assertIsString($result, "button_bar4 should return a string");
+        $this->assertStringContainsString('submit', $result, "Should contain submit input");
+        $this->assertStringContainsString('Save', $result, "Should contain Save label");
+    }
+
+    /**
+     * Test validation_button() for creation mode
+     */
+    public function testValidationButtonCreation()
+    {
+        if (function_exists('validation_button') && defined('CREATION') && defined('VISUALISATION')) {
+            $result = validation_button(CREATION, false, true);
+
+            $this->assertIsString($result, "validation_button should return a string");
+            $this->assertStringContainsString('submit', $result, "Should contain submit button");
+            $this->assertStringContainsString('validate', $result, "Should contain validate id");
+        } else {
+            $this->markTestSkipped('validation_button function or constants not available');
+        }
+    }
+
+    /**
+     * Test validation_button() for modification mode
+     */
+    public function testValidationButtonModification()
+    {
+        if (function_exists('validation_button') && defined('MODIFICATION') && defined('VISUALISATION')) {
+            $result = validation_button(MODIFICATION, true, true);
+
+            $this->assertIsString($result, "validation_button should return a string");
+            $this->assertStringContainsString('submit', $result, "Should contain submit button");
+            $this->assertStringContainsString('validate', $result, "Should contain validate button");
+            $this->assertStringContainsString('delete', $result, "Should contain delete button");
+        } else {
+            $this->markTestSkipped('validation_button function or constants not available');
+        }
+    }
+
+    /**
+     * Test validation_button() for visualization mode (no buttons)
+     */
+    public function testValidationButtonVisualization()
+    {
+        if (function_exists('validation_button') && defined('VISUALISATION')) {
+            $result = validation_button(VISUALISATION, false, true);
+
+            $this->assertIsString($result, "validation_button should return a string");
+            $this->assertEmpty($result, "Should return empty string for visualization mode");
+        } else {
+            $this->markTestSkipped('validation_button function or VISUALISATION constant not available');
+        }
+    }
+
+    /**
+     * Test year_selector() function
+     */
+    public function testYearSelectorFunction()
+    {
+        if (function_exists('year_selector')) {
+            $year_options = array('2023' => '2023', '2024' => '2024', '2025' => '2025');
+            $result = year_selector('test_controller', '2024', $year_options, false);
+
+            $this->assertIsString($result, "year_selector should return a string");
+            $this->assertStringContainsString('year', $result, "Should contain year selector");
+            $this->assertStringContainsString('2024', $result, "Should contain selected year");
+            $this->assertStringContainsString('hidden', $result, "Should contain hidden controller_url field");
+        } else {
+            $this->markTestSkipped('year_selector function not available');
+        }
+    }
+
+    /**
+     * Test year_selector() with "all" option
+     */
+    public function testYearSelectorWithAll()
+    {
+        if (function_exists('year_selector')) {
+            $year_options = array('2023' => '2023', '2024' => '2024');
+            $result = year_selector('test_controller', '2024', $year_options, true);
+
+            $this->assertIsString($result, "year_selector should return a string");
+            $this->assertStringContainsString('year', $result, "Should contain year selector");
+        } else {
+            $this->markTestSkipped('year_selector function not available');
+        }
+    }
+
+    /**
+     * Test filter_buttons() function
+     */
+    public function testFilterButtonsFunction()
+    {
+        if (!function_exists('filter_buttons')) {
+            $this->markTestSkipped('filter_buttons function not available');
+            return;
+        }
+
+        // Check if CI instance has session, otherwise skip
+        $CI = &get_instance();
+        if (!isset($CI->session)) {
+            $this->markTestSkipped('session not available in CI instance');
+            return;
+        }
+
+        $result = filter_buttons();
+
+        $this->assertIsString($result, "filter_buttons should return a string");
+        $this->assertStringContainsString('submit', $result, "Should contain submit buttons");
+        $this->assertStringContainsString('button', $result, "Should contain button name");
+    }
 }
