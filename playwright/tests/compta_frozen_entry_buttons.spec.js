@@ -118,22 +118,30 @@ test.describe('Compta Frozen Entry Buttons', () => {
         const isChecked = await firstGelCheckbox.isChecked();
         if (!isChecked) {
             await firstGelCheckbox.check();
-            await page.waitForTimeout(500); // Wait for AJAX
+            await page.waitForTimeout(1000); // Increased wait for AJAX to complete
         }
 
-        // Click the view button (eye icon)
+        // Verify button changed to view mode before clicking
         const viewBtn = page.locator(`.edit-entry-btn[data-ecriture-id="${ecritureId}"]`);
+        await expect(viewBtn.locator('i')).toHaveClass(/fa-eye/, { timeout: 5000 });
+
+        // Click the view button (eye icon)
         await viewBtn.click();
 
         // Wait for the edit page to load
         await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Verify we're on the edit page
         await expect(page).toHaveURL(/compta\/edit/);
 
+        // Wait for form to be fully loaded and JavaScript to execute
+        await page.waitForTimeout(1000);
+
         // Verify the submit button is disabled (VISUALISATION mode)
-        const submitBtn = page.locator('button[type="submit"], input[type="submit"]').first();
-        await expect(submitBtn).toBeDisabled();
+        // Be more specific - look for submit button in the form
+        const submitBtn = page.locator('form button[type="submit"], form input[type="submit"]').first();
+        await expect(submitBtn).toBeDisabled({ timeout: 5000 });
 
         // Go back to journal
         await page.goBack();
