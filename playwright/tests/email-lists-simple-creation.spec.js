@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Email Lists - Simple Creation Workflow', () => {
     test.beforeEach(async ({ page }) => {
         // Login as testadmin
-        await page.goto('http://localhost/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -18,7 +18,7 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
 
     test('should create new email list with simple form', async ({ page }) => {
         // Navigate to create page
-        await page.goto('http://localhost/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
 
         // Verify we're on the create page
         await expect(page.locator('h3')).toContainText('Nouvelle liste');
@@ -50,7 +50,7 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
 
     test('should show validation errors for empty name', async ({ page }) => {
         // Navigate to create page
-        await page.goto('http://localhost/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
 
         // Try to submit without filling name (required field)
         // Note: HTML5 validation will prevent submission, so we need to check this
@@ -64,7 +64,7 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
 
     test('should cancel creation and return to list', async ({ page }) => {
         // Navigate to create page
-        await page.goto('http://localhost/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
 
         // Click cancel button
         await page.click('a.btn-secondary');

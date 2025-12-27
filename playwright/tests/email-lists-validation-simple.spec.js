@@ -6,14 +6,14 @@ const { test, expect } = require('@playwright/test');
 test.describe('Email Lists - Simple Validation Test', () => {
     test('should display validation error when name is too long', async ({ page }) => {
         // Login
-        await page.goto('http://localhost/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForLoadState('networkidle');
 
         // Go to create page
-        await page.goto('http://localhost/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
         await page.waitForLoadState('networkidle');
 
         // Take a screenshot to see the page

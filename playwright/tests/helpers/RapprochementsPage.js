@@ -23,7 +23,7 @@ class RapprochementsPage extends BasePage {
     console.log(`Uploading bank statement: ${fileName}`);
 
     // Navigate to upload page
-    await this.page.goto(this.uploadUrl);
+    await this.goto(this.uploadUrl);
     await this.page.waitForLoadState('networkidle');
 
     // Get the file path
@@ -47,7 +47,7 @@ class RapprochementsPage extends BasePage {
    * Navigate to rapprochements page (requires bank statement to be uploaded first)
    */
   async navigateToRapprochements() {
-    await this.page.goto(this.rapprochementsUrl);
+    await this.goto(this.rapprochementsUrl);
     await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(1000);
   }
