@@ -11,11 +11,15 @@ Tests PHPUnit et playwright automatisés sur Jenkins avec base de données anony
 ---
 
 ## Situation actuelle
-- ✅ Serveur Jenkins déployé avec job à compléter
+- ✅ Serveur Jenkins déployé avec jobs pour phpunit
 - ✅ PHP 7.4 installé sur Jenkins
 - ✅ MySQL installé avec credentials de test
 - ✅ Tables GVV déjà présentes dans la base
 - ✅ Suite PHPUnit complète avec scripts `run-all-tests.sh`
+- ✅ Suite Playwright semi complète
+- ❌ Job jenkins pour mettre à jour les cibles de test
+- ❌ Job jenkins with Playwright
+
 
 ## Workflow
 1. Générer une base de données de test /admin/generate_initial_schema. La base est anonymisée et chiffrée avec Openssl.
@@ -45,7 +49,6 @@ apt install php7.4-xdebug
 ```
 
 ## Connextion ssh au serveur Jenkins
-
 
 ```
 ssh_jenkins

@@ -60,7 +60,7 @@ class LoginPage extends BasePage {
     await this.screenshot('after_login');
 
     // Wait for redirect and verify login success
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
 
     // Handle "Message du jour" modal if it appears
     try {
@@ -176,7 +176,7 @@ class LoginPage extends BasePage {
     await this.fillField('password', password);
     await this.click(this.submitButton);
     
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Should still be on login page or show error
     const isStillOnLoginPage = await this.page.locator(this.usernameField).isVisible();

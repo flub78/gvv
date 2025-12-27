@@ -29,7 +29,9 @@ class BasePage {
 
     const fullUrl = `${this.baseUrl}${normalizedPath}`;
     await this.page.goto(fullUrl);
-    await this.page.waitForLoadState('networkidle');
+    // Use domcontentloaded instead of networkidle for better reliability on remote servers
+    // Remote servers may have background requests that prevent networkidle state
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**

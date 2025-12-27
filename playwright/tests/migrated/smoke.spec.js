@@ -73,7 +73,7 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
 
     // Navigate around a bit to trigger any JS
     await loginPage.goto('/auth/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Log any JS errors for debugging
     if (jsErrors.length > 0) {
@@ -151,7 +151,7 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
     // Test basic form interactions
     console.log('Testing flight creation form...');
     await loginPage.goto('vols_planeur/create');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Fill some basic form fields
     await page.fill('input[name="vpdate"]', '01/01/2024');
@@ -235,10 +235,10 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
 
     // Navigate to pages that likely make AJAX calls
     await loginPage.goto('vols_planeur/page');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await loginPage.goto('membres/page');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Log any failed requests (but don't fail test unless critical)
     if (failedRequests.length > 0) {
@@ -280,7 +280,7 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
       });
 
       await loginPage.goto('vols_planeur/page');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify page still loads and main elements are present
       await loginPage.assertText('GVV');
@@ -320,10 +320,10 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
 
     // Navigate to main pages to load resources
     await loginPage.goto('vols_planeur/page');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await loginPage.goto('membres/page');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up listener
     page.off('response', resourceListener);

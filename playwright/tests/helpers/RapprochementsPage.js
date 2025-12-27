@@ -24,7 +24,7 @@ class RapprochementsPage extends BasePage {
 
     // Navigate to upload page
     await this.goto(this.uploadUrl);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
 
     // Get the file path
     const filePath = path.join(__dirname, '../../test-data', fileName);
@@ -35,7 +35,7 @@ class RapprochementsPage extends BasePage {
 
     // Click submit button
     await this.page.locator('input[type="submit"], button[type="submit"]').click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
 
     // Wait for the rapprochements page to load with tabs
     await this.page.waitForTimeout(1000);
@@ -48,7 +48,7 @@ class RapprochementsPage extends BasePage {
    */
   async navigateToRapprochements() {
     await this.goto(this.rapprochementsUrl);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(1000);
   }
 

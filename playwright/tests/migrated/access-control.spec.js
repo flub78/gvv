@@ -40,10 +40,12 @@ const ACCESS_DENIED = ['Utilisateur', 'Mot de passe', 'Connexion'];
  */
 async function testPageAccess(page, loginPage, url, expectedElements, mustNotSee = []) {
   console.log(`Testing access to: ${url}`);
-  
+
   await loginPage.goto(url);
-  await page.waitForLoadState('networkidle');
-  
+  // Use domcontentloaded instead of networkidle for better reliability on remote servers
+  // Remote servers may have background requests that prevent networkidle
+  await page.waitForLoadState('domcontentloaded');
+
   // Wait a bit more for dynamic content to load
   await page.waitForTimeout(1000);
   

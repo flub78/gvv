@@ -198,7 +198,7 @@ class GliderFlightPage extends BasePage {
     
     // Submit the form
     await this.click(this.submitButton);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     await this.screenshot('after_flight_submit');
     
@@ -273,7 +273,7 @@ class GliderFlightPage extends BasePage {
     
     await this.screenshot('before_update_submit');
     await this.click(this.submitButton);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.screenshot('after_update_submit');
     
     // Check for any error messages
@@ -296,7 +296,7 @@ class GliderFlightPage extends BasePage {
     
     const deleteUrl = `/vols_planeur/delete/${flightId}`;
     await this.goto(deleteUrl);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Give time for deletion to process and page to refresh
     await this.page.waitForTimeout(2000);
