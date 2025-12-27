@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Journal Compte - Soldes', () => {
     test('Les soldes sont corrects et cohérents', async ({ page }) => {
         // Login avec testadmin qui a accès à tous les comptes
-        await page.goto('http://gvv.net/');
+        await page.goto('/');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('input[type="submit"]');
@@ -19,7 +19,7 @@ test.describe('Journal Compte - Soldes', () => {
         await page.waitForLoadState('networkidle');
         
         // Naviguer vers Comptabilité -> Balance des comptes pour trouver un compte avec beaucoup d'écritures
-        await page.goto('http://gvv.net/index.php/comptes/balance');
+        await page.goto('/index.php/comptes/balance');
         await page.waitForLoadState('networkidle');
         
         // Chercher tous les liens vers des journaux de compte
@@ -173,7 +173,7 @@ test.describe('Journal Compte - Soldes', () => {
 
     test('Le solde initial (opening balance) est correctement pris en compte', async ({ page }) => {
         // Login avec testadmin
-        await page.goto('http://gvv.net/');
+        await page.goto('/');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('input[type="submit"]');
@@ -182,7 +182,7 @@ test.describe('Journal Compte - Soldes', () => {
         
         // Naviguer vers le compte 37 mentionné par l'utilisateur (ou un autre compte avec solde initial)
         // Ce compte devrait avoir un solde initial de 45,50€
-        await page.goto('http://gvv.net/index.php/compta/journal_compte/37');
+        await page.goto('/index.php/compta/journal_compte/37');
         await page.waitForLoadState('networkidle');
         
         console.log('URL actuelle:', page.url());

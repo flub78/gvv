@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-GVV has comprehensive test coverage across PHPUnit (unit, integration, MySQL) and Playwright (end-to-end) with **254 total tests** all passing.
+GVV has comprehensive test coverage across PHPUnit (unit, integration, MySQL) and Playwright (end-to-end)  all passing.
 
 ### Key Metrics
 

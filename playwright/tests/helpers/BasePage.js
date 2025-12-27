@@ -6,9 +6,10 @@
 class BasePage {
   constructor(page) {
     this.page = page;
-    // Use baseURL from Playwright config (which reads BASE_URL env var)
-    // Fallback to process.env.BASE_URL for backwards compatibility
-    this.baseUrl = page.context()._options.baseURL || process.env.BASE_URL || 'http://gvv.net';
+    // Use baseURL from Playwright config
+    // Defaults to local development environment (http://gvv.net)
+    // Set BASE_URL environment variable to override (e.g., for remote testing)
+    this.baseUrl = process.env.BASE_URL || 'http://gvv.net';
   }
 
   /**
