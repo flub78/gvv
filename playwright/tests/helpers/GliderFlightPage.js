@@ -195,13 +195,15 @@ class GliderFlightPage extends BasePage {
     }
     
     await this.screenshot('before_flight_submit');
-    
-    // Submit the form
-    await this.click(this.submitButton);
-    await this.page.waitForLoadState('domcontentloaded');
-    
+
+    // Submit the form and wait for navigation
+    await Promise.all([
+      this.page.waitForURL(/vols_planeur\/formValidation\/\d+/, { timeout: 10000 }),
+      this.click(this.submitButton)
+    ]);
+
     await this.screenshot('after_flight_submit');
-    
+
     // Check for errors
     if (flightData.error) {
       // Expect an error message
@@ -209,10 +211,16 @@ class GliderFlightPage extends BasePage {
       console.log(`Expected error "${flightData.error}" found`);
       return null;
     } else {
-      // Should redirect to flights list or show success
+      // Extract flight ID from redirect URL: /vols_planeur/formValidation/{id}
       const currentUrl = this.page.url();
       console.log(`Flight created, redirected to: ${currentUrl}`);
-      return await this.getLatestFlightId();
+
+      const match = currentUrl.match(/formValidation\/(\d+)/);
+      if (!match) {
+        throw new Error(`Failed to extract flight ID from URL: ${currentUrl}`);
+      }
+
+      return match[1];
     }
     
     } catch (error) {

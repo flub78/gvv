@@ -32,4 +32,6 @@ npx playwright test --project=chromium    # Navigateur spécifique
 npx playwright show-report                # Rapport HTML
 npx playwright test --reporter=line       # Results in 
 npx playwright test tests/bugfix-payeur-selector.spec.js  # to run a single test
+
+BASE_URL=https://gvvg.flub78.net npx playwright test
 ```
