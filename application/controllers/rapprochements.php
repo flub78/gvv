@@ -41,8 +41,6 @@ class Rapprochements extends CI_Controller {
         $this->lang->load('rapprochements');
         $this->load->model('associations_ecriture_model');
         $this->load->model('associations_releve_model');
-        $this->config->load('debug');
-
 
         $this->load->library('rapprochements/Reconciliator');
     }
