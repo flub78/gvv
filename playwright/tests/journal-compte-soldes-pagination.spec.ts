@@ -13,7 +13,7 @@ import * as fs from 'fs';
 test.describe('Journal Compte - Soldes avec Pagination', () => {
     test.beforeEach(async ({ page }) => {
         // Login as testadmin (has access to comptes)
-        await page.goto('/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('input[type="submit"], button[type="submit"]');
@@ -24,7 +24,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
 
     test('Les soldes sont indépendants de la taille de la pagination', async ({ page }) => {
         // PHASE 1 FIX: Navigate directly to balance page
-        await page.goto('/comptes/balance');
+        await page.goto('/index.php/comptes/balance');
         await page.waitForLoadState('networkidle');
 
         // Expand first accordion if not already expanded
@@ -123,7 +123,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
 
     test('Les incréments de solde sont cohérents', async ({ page }) => {
         // PHASE 1 FIX: Navigate directly to balance page
-        await page.goto('/comptes/balance');
+        await page.goto('/index.php/comptes/balance');
         await page.waitForLoadState('networkidle');
 
         // Expand first accordion if not already expanded
@@ -191,7 +191,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
 
     test('Les exports CSV contiennent les soldes', async ({ page, context }) => {
         // PHASE 1 FIX: Navigate directly to balance page
-        await page.goto('/comptes/balance');
+        await page.goto('/index.php/comptes/balance');
         await page.waitForLoadState('networkidle');
 
         // Expand first accordion if not already expanded
@@ -257,7 +257,7 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
 
     test('Les exports PDF sont générés en paysage', async ({ page }) => {
         // PHASE 1 FIX: Navigate directly to balance page
-        await page.goto('/comptes/balance');
+        await page.goto('/index.php/comptes/balance');
         await page.waitForLoadState('networkidle');
 
         // Expand first accordion if not already expanded

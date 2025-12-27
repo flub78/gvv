@@ -31,7 +31,7 @@ test.describe('Licences Checkbox Interface', () => {
 
   test('should display licences page with checkboxes', async ({ page }) => {
     // Naviguer vers la page des licences par année
-    await page.goto('/licences/per_year');
+    await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
     // Vérifier que le titre est présent
@@ -56,7 +56,7 @@ test.describe('Licences Checkbox Interface', () => {
 
   test('should create licence when checking empty checkbox', async ({ page }) => {
     // Naviguer vers la page des licences
-    await page.goto('/licences/per_year');
+    await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
     // Trouver une checkbox non cochée
@@ -98,7 +98,7 @@ test.describe('Licences Checkbox Interface', () => {
 
   test('should delete licence when unchecking checked checkbox', async ({ page }) => {
     // Naviguer vers la page des licences
-    await page.goto('/licences/per_year');
+    await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
     // Trouver une checkbox cochée
@@ -140,7 +140,7 @@ test.describe('Licences Checkbox Interface', () => {
 
   test('should toggle licence multiple times', async ({ page }) => {
     // Naviguer vers la page des licences
-    await page.goto('/licences/per_year');
+    await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
     // Trouver une checkbox

@@ -43,7 +43,7 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
     // Ensure we're logged out and session is cleared
     if (!page.isClosed()) {
       try {
-        await page.goto('/auth/logout');
+        await page.goto('/index.php/auth/logout');
         await page.context().clearCookies();
       } catch (error) {
         // Ignore errors during cleanup

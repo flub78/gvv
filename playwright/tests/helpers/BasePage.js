@@ -14,10 +14,20 @@ class BasePage {
 
   /**
    * Navigate to a specific URL relative to base URL
+   * Automatically adds /index.php/ prefix for CodeIgniter compatibility
    * @param {string} path - Path relative to base URL
    */
   async goto(path = '') {
-    const fullUrl = `${this.baseUrl}${path.startsWith('/') ? path : '/' + path}`;
+    // Normalize path to start with /
+    let normalizedPath = path.startsWith('/') ? path : '/' + path;
+
+    // Add /index.php/ prefix if not already present
+    // This ensures compatibility with servers that don't have mod_rewrite configured
+    if (!normalizedPath.startsWith('/index.php/') && normalizedPath !== '/' && normalizedPath !== '') {
+      normalizedPath = '/index.php' + normalizedPath;
+    }
+
+    const fullUrl = `${this.baseUrl}${normalizedPath}`;
     await this.page.goto(fullUrl);
     await this.page.waitForLoadState('networkidle');
   }

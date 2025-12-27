@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
     try {
         // Login
         console.log('Logging in...');
-        await page.goto('/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -25,7 +25,7 @@ const { chromium } = require('playwright');
 
         // Navigate to resultat_par_sections_detail
         console.log('Navigating to resultat_par_sections_detail/607...');
-        await page.goto('/comptes/resultat_par_sections_detail/607');
+        await page.goto('/index.php/comptes/resultat_par_sections_detail/607');
         await page.waitForTimeout(2000);
 
         console.log('Final URL:', page.url());

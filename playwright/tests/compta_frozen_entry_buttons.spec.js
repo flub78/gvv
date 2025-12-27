@@ -27,7 +27,7 @@ test.describe('Compta Frozen Entry Buttons', () => {
 
         // Navigate directly to account 23 which has entries to test with
         // (account 102 typically has no entries until end of year)
-        await page.goto('/compta/journal_compte/23');
+        await page.goto('/index.php/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
     });
 
@@ -37,7 +37,7 @@ test.describe('Compta Frozen Entry Buttons', () => {
             try {
                 // Navigate back to the journal if we navigated away
                 if (!page.url().includes('/compta/journal_compte/23')) {
-                    await page.goto('/compta/journal_compte/23');
+                    await page.goto('/index.php/compta/journal_compte/23');
                     await page.waitForLoadState('networkidle');
                 }
 
@@ -63,12 +63,12 @@ test.describe('Compta Frozen Entry Buttons', () => {
                 }
 
                 // Logout and clear session
-                await page.goto('/auth/logout');
+                await page.goto('/index.php/auth/logout');
                 await page.context().clearCookies();
             } catch (error) {
                 // Ignore cleanup errors - just try to logout
                 try {
-                    await page.goto('/auth/logout');
+                    await page.goto('/index.php/auth/logout');
                 } catch (e) {
                     // Final cleanup failed, ignore
                 }

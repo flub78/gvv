@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Sections ordre affichage', () => {
     test.beforeEach(async ({ page }) => {
         // Login as admin
-        await page.goto('/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.waitForLoadState('networkidle');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
@@ -21,7 +21,7 @@ test.describe('Sections ordre affichage', () => {
 
     test('should display ordre_affichage field in sections list', async ({ page }) => {
         // Navigate to sections list
-        await page.goto('/sections/page');
+        await page.goto('/index.php/sections/page');
 
         // Check that the table has the ordre_affichage column
         const headers = await page.locator('table thead th').allTextContents();
@@ -30,7 +30,7 @@ test.describe('Sections ordre affichage', () => {
 
     test('should be able to edit a section and set ordre_affichage', async ({ page }) => {
         // Navigate to sections list
-        await page.goto('/sections/page');
+        await page.goto('/index.php/sections/page');
 
         // Click on first edit button
         const firstEditButton = page.locator('table tbody tr').first().locator('a[href*="edit"]');
@@ -55,7 +55,7 @@ test.describe('Sections ordre affichage', () => {
 
     test('should create a new section with ordre_affichage', async ({ page }) => {
         // Navigate to sections list
-        await page.goto('/sections/page');
+        await page.goto('/index.php/sections/page');
 
         // Click create button
         await page.click('a[href*="sections/create"]');

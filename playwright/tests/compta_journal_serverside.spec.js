@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Journal Compte Server-side DataTables', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to login page
-    await page.goto('/auth/login');
+    await page.goto('/index.php/auth/login');
 
     // Login - using testadmin user (has access to comptes)
     await page.fill('input[name="username"]', 'testadmin');
@@ -33,7 +33,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('DataTables loads correctly with server-side processing', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page instead of clicking dropdown menu
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -66,7 +66,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Search functionality works across all data (server-side)', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -107,7 +107,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Pagination works correctly', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -152,7 +152,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Column sorting works correctly', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -198,7 +198,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
 
   test('Page length selector works', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -248,7 +248,7 @@ test.describe('Journal Compte Server-side DataTables', () => {
     });
 
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -302,7 +302,7 @@ test.describe('Regression tests for existing functionality', () => {
 
   test('Edit and delete buttons still work', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded
@@ -344,7 +344,7 @@ test.describe('Regression tests for existing functionality', () => {
 
   test('Filters still work with server-side processing', async ({ page }) => {
     // PHASE 1 FIX: Navigate directly to balance page
-    await page.goto('/comptes/balance');
+    await page.goto('/index.php/comptes/balance');
     await page.waitForLoadState('networkidle');
 
     // Expand first accordion if not already expanded

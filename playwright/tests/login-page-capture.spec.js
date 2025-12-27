@@ -18,7 +18,7 @@ test.describe('GVV Login Page Capture', () => {
     }
 
     // Navigate to the login page
-    await page.goto('/auth/login');
+    await page.goto('/index.php/auth/login');
 
     // Wait for the page to be fully loaded
     await page.waitForLoadState('networkidle');

@@ -9,7 +9,7 @@ test.describe('Email Lists Creation Debug', () => {
 
         // Login
         console.log('1. Logging in...');
-        await page.goto('/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -18,7 +18,7 @@ test.describe('Email Lists Creation Debug', () => {
 
         // Navigate to create page
         console.log('2. Navigating to create page...');
-        await page.goto('/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
         await page.waitForLoadState('networkidle');
 
         // Check if we're on the right page

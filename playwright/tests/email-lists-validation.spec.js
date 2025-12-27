@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('Email Lists - Validation Errors', () => {
     test.beforeEach(async ({ page }) => {
         // Login as testadmin
-        await page.goto('/auth/login');
+        await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"], input[type="submit"]');
@@ -16,7 +16,7 @@ test.describe('Email Lists - Validation Errors', () => {
         await page.waitForLoadState('networkidle');
 
         // Navigate to create page
-        await page.goto('/email_lists/create');
+        await page.goto('/index.php/email_lists/create');
     });
 
     test('should show field-specific validation error for name too long', async ({ page }) => {
