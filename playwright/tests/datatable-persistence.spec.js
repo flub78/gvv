@@ -24,7 +24,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist page length across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`/compta/journal_compte/23`);
+        await page.goto(`/index.php/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize
@@ -52,7 +52,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist search term across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`/compta/journal_compte/23`);
+        await page.goto(`/index.php/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize
@@ -84,7 +84,7 @@ test.describe('DataTables State Persistence', () => {
 
     test('should persist current page across reloads', async ({ page }) => {
         // Navigate to journal page
-        await page.goto(`/compta/journal_compte/23`);
+        await page.goto(`/index.php/compta/journal_compte/23`);
         await page.waitForSelector('#journal-table');
         
         // Wait for DataTables to fully initialize

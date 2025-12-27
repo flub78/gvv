@@ -16,7 +16,7 @@ const { test, expect } = require('@playwright/test');
 
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
-const EMAIL_LISTS_URL = `/email_lists`;
+const EMAIL_LISTS_URL = `/index.php/email_lists`;
 const TEST_USER = {
   username: 'testadmin',
   password: 'password'
