@@ -6,7 +6,7 @@
 
 const { test, expect } = require('@playwright/test');
 
-const LOGIN_URL = '/auth/login';
+const LOGIN_URL = '/index.php/auth/login';
 const TEST_USER = {
     username: 'testadmin',
     password: 'password'

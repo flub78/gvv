@@ -15,7 +15,7 @@ const LoginPage = require('./helpers/LoginPage');
 const RapprochementsPage = require('./helpers/RapprochementsPage');
 
 // Test configuration
-const LOGIN_URL = '/auth/login';
+const LOGIN_URL = '/index.php/auth/login';
 const TEST_USER = {
   username: 'testadmin',
   correctPassword: 'password'
