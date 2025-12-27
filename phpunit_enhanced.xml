@@ -4,7 +4,7 @@
          verbose="true">
     <testsuites>
 		<testsuite name="EnhancedTests">
-			<directory>application/tests/unit/enhanced</directory>
+			<directory>application/tests/enhanced</directory>
 		</testsuite>
 	</testsuites>
 	<logging>
