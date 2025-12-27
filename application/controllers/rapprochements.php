@@ -105,9 +105,7 @@ class Rapprochements extends CI_Controller {
         $parser = new ReleveParser();
         $parser_result = $parser->parse($filename);
 
-        if ($this->config->item('rappro_parser_result')) {
-            gvv_dump($parser_result);
-        }
+        // gvv_dump($parser_result);
 
         $this->shared_reconciliator = new Reconciliator($parser_result);
         
