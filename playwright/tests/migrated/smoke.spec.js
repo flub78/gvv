@@ -21,35 +21,65 @@ const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
 
 test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
+  // Configure tests to run serially to avoid session conflicts
+  test.describe.configure({ mode: 'serial' });
+
+  // Shared variables for event listeners
+  let consoleListener = null;
+  let responseListener = null;
+
+  // Clean up after each test
+  test.afterEach(async ({ page }) => {
+    // Remove event listeners if they were added
+    if (consoleListener) {
+      page.off('console', consoleListener);
+      consoleListener = null;
+    }
+    if (responseListener) {
+      page.off('response', responseListener);
+      responseListener = null;
+    }
+
+    // Ensure we're logged out and session is cleared
+    if (!page.isClosed()) {
+      try {
+        await page.goto('/auth/logout');
+        await page.context().clearCookies();
+      } catch (error) {
+        // Ignore errors during cleanup
+      }
+    }
+  });
 
   test('should load application without errors', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    
+
     // Navigate to home page
     await loginPage.goto('');
-    
+
     // Check for basic application elements
     await loginPage.assertText('GVV');
     await loginPage.assertText('Boissel');
     await loginPage.assertText('Peignot');
-    
+
     // Verify no JavaScript errors in console
     const jsErrors = [];
-    page.on('console', msg => {
+    consoleListener = (msg) => {
       if (msg.type() === 'error') {
         jsErrors.push(msg.text());
       }
-    });
-    
+    };
+    page.on('console', consoleListener);
+
     // Navigate around a bit to trigger any JS
     await loginPage.goto('/auth/login');
-    await page.waitForTimeout(2000);
-    
+    await page.waitForLoadState('networkidle');
+
     // Log any JS errors for debugging
     if (jsErrors.length > 0) {
       console.log('JavaScript errors detected:', jsErrors);
     }
-    
+
     console.log('✓ Application loads without critical errors');
   });
 
@@ -114,18 +144,19 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
 
   test('should handle form interactions without errors', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    
+
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
-    
+
     // Test basic form interactions
     console.log('Testing flight creation form...');
     await loginPage.goto('vols_planeur/create');
-    
+    await page.waitForLoadState('networkidle');
+
     // Fill some basic form fields
     await page.fill('input[name="vpdate"]', '01/01/2024');
-    await page.waitForTimeout(500);
-    
+    await page.waitForLoadState('domcontentloaded');
+
     // Test dropdown interactions
     const pilotSelect = page.locator('select[name="vppilote"]');
     if (await pilotSelect.count() > 0) {
@@ -135,19 +166,20 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
         console.log('✓ Pilot selection works');
       }
     }
-    
+
     const gliderSelect = page.locator('select[name="vpmacid"]');
     if (await gliderSelect.count() > 0) {
       const options = await gliderSelect.locator('option').count();
       if (options > 1) {
         await gliderSelect.selectOption({ index: 1 });
-        await page.waitForTimeout(1000); // Wait for dynamic updates
+        // Wait for any dynamic updates triggered by selection
+        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
         console.log('✓ Glider selection works');
       }
     }
-    
+
     console.log('✓ Form interactions work without errors');
-    
+
     await loginPage.logout();
   });
 
@@ -184,10 +216,10 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
 
   test('should handle AJAX requests without errors', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    
+
     // Track failed network requests
     const failedRequests = [];
-    page.on('response', response => {
+    responseListener = (response) => {
       if (response.status() >= 400) {
         failedRequests.push({
           url: response.url(),
@@ -195,35 +227,39 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
           statusText: response.statusText()
         });
       }
-    });
-    
+    };
+    page.on('response', responseListener);
+
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
-    
+
     // Navigate to pages that likely make AJAX calls
     await loginPage.goto('vols_planeur/page');
-    await page.waitForTimeout(3000);
-    
+    await page.waitForLoadState('networkidle');
+
     await loginPage.goto('membres/page');
-    await page.waitForTimeout(3000);
-    
+    await page.waitForLoadState('networkidle');
+
     // Log any failed requests (but don't fail test unless critical)
     if (failedRequests.length > 0) {
       console.log('Failed requests detected:', failedRequests);
-      
+
       // Only fail if there are critical failures (5xx errors)
       const criticalFailures = failedRequests.filter(req => req.status >= 500);
       expect(criticalFailures.length).toBe(0);
     }
-    
+
     console.log('✓ No critical AJAX errors detected');
-    
+
     await loginPage.logout();
   });
 
   test('should handle different screen sizes', async ({ page, context }) => {
     const loginPage = new LoginPage(page);
-    
+
+    // Store original viewport to restore later
+    const originalViewport = page.viewportSize();
+
     // Test different viewport sizes
     const viewports = [
       { width: 1920, height: 1080, name: 'Desktop' },
@@ -231,36 +267,41 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
       { width: 768, height: 1024, name: 'Tablet' },
       { width: 375, height: 667, name: 'Mobile' }
     ];
-    
+
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
-    
+
     for (const viewport of viewports) {
       console.log(`Testing ${viewport.name} viewport (${viewport.width}x${viewport.height})`);
-      
+
       await page.setViewportSize({
         width: viewport.width,
         height: viewport.height
       });
-      
+
       await loginPage.goto('vols_planeur/page');
-      await page.waitForTimeout(1000);
-      
+      await page.waitForLoadState('networkidle');
+
       // Verify page still loads and main elements are present
       await loginPage.assertText('GVV');
-      
+
       console.log(`✓ ${viewport.name} viewport works`);
     }
-    
+
+    // Restore original viewport
+    if (originalViewport) {
+      await page.setViewportSize(originalViewport);
+    }
+
     await loginPage.logout();
   });
 
   test('should load all critical resources', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    
+
     // Track resource loading
     const resourceFailures = [];
-    page.on('response', response => {
+    const resourceListener = (response) => {
       if (response.status() >= 400) {
         const url = response.url();
         // Only track CSS, JS, and other critical resources
@@ -271,32 +312,36 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
           });
         }
       }
-    });
-    
+    };
+    page.on('response', resourceListener);
+
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
-    
+
     // Navigate to main pages to load resources
     await loginPage.goto('vols_planeur/page');
     await page.waitForLoadState('networkidle');
-    
+
     await loginPage.goto('membres/page');
     await page.waitForLoadState('networkidle');
-    
+
+    // Clean up listener
+    page.off('response', resourceListener);
+
     // Report any resource failures
     if (resourceFailures.length > 0) {
       console.log('Resource loading failures:', resourceFailures);
-      
+
       // Don't fail test for missing images, but fail for CSS/JS
-      const criticalFailures = resourceFailures.filter(res => 
+      const criticalFailures = resourceFailures.filter(res =>
         res.url.match(/\.(css|js)$/) && res.status >= 400
       );
-      
+
       expect(criticalFailures.length).toBe(0);
     }
-    
+
     console.log('✓ Critical resources load successfully');
-    
+
     await loginPage.logout();
   });
 

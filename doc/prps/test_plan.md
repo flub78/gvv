@@ -14,7 +14,21 @@
 
 Ce document définit la **stratégie de tests** pour l'application GVV (Gestion Vol à Voile), incluant les principes directeurs, l'approche progressive d'amélioration de la couverture, et la roadmap de développement des tests.
 
-**Note:** Ce document se concentre sur la **stratégie et la planification**. Pour l'état actuel des tests, les métriques en temps réel, et les détails de couverture, consultez [TEST_COVERAGE_STATUS.md](TEST_COVERAGE_STATUS.md).
+GVV est deployé et utilisé depuis 14 ans. Et si je suis parfois surpris que certains utilisateurs s’accommodent de certains bugs, il est opérationnel. Il est assez rare que l'ajout de test supplémentaires révèle des bugs. Cependant il est essentiel de disposer d'une couverture de test qui permette d'identifier les regressions lors des évolutions. L'expérience récente a démontré que des bugs arrivaient parfois jusqu'à la production.
+
+Stratégie de test:
+
+* L'effort pour augmenter la couverture de test phpunit est peu rentable. Il est rare que cela permette de découvrir de nouveau bugs.
+* Il est plus utile de continuer la migration des tests dusk vers playwright. Puis de compléter la couverture en identifiant les fonctionnalités critiques non encore couvertes.
+* Les serveurs CI/CD sont également important dans la surveillance des regressions.
+
+* Pour les nouvelles fonctionnalités stratégie TDD classique
+
+* Pour les corrections de bugs, créer d'abord un test qui met le bug en évidence, corriger le bug et garder le test.
+  
+On touche du doigt la difficulté de garantir la continuité de service quand des modifications touchent l'ensemble du système. Le passage au multi-section a quasiment modifié toutes les vues et tous les modèles. Le changement de mode d'autorisation s'avère tout aussi critique.
+
+Dans le cadre du multi-section, à part l'implémenter dés le début ce qui aurait été du sur-engineering il était difficile d'abstraire le concept.
 
 **État Stratégique - 2025-12-21:**
 - ✅ **Phase 1 (Fondations):** COMPLÈTE - Infrastructure opérationnelle
@@ -735,136 +749,6 @@ phpunit --verbose
 
 ---
 
-## 6. Templates de Tests
-
-### 6.1 Test Unitaire
-
-```php
-<?php
-
-use PHPUnit\Framework\TestCase;
-
-class MonComposantTest extends TestCase
-{
-    private $composant;
-
-    public function setUp(): void
-    {
-        // Initialiser composant
-        $this->composant = new MonComposant();
-    }
-
-    public function testFonctionnaliteBasique()
-    {
-        $resultat = $this->composant->methode();
-        $this->assertEquals('attendu', $resultat);
-    }
-}
-```
-
-### 6.2 Test MySQL
-
-```php
-<?php
-
-use PHPUnit\Framework\TestCase;
-
-class MonModeleMySqlTest extends TestCase
-{
-    private $CI;
-    private $model;
-
-    public function setUp(): void
-    {
-        $this->CI =& get_instance();
-        $this->model = new Mon_model();
-        $this->CI->db->trans_start();
-    }
-
-    public function tearDown(): void
-    {
-        $this->CI->db->trans_rollback();
-    }
-
-    public function testOperationBase()
-    {
-        $id = $this->model->create(['champ' => 'valeur']);
-        $this->assertGreaterThan(0, $id);
-    }
-}
-```
-
-### 6.3 Test Contrôleur
-
-```php
-<?php
-
-use PHPUnit\Framework\TestCase;
-
-class MonControleurTest extends TestCase
-{
-    public function testSortieControleur()
-    {
-        ob_start();
-        $controleur = new Mon_controleur();
-        $controleur->methode();
-        $sortie = ob_get_clean();
-
-        $this->assertStringContainsString('attendu', $sortie);
-    }
-}
-```
-
-### 6.4 Test Playwright (End-to-End)
-
-```javascript
-// @ts-check
-import { test, expect } from '@playwright/test';
-
-test('description du test', async ({ page }) => {
-  // Navigation vers la page
-  await page.goto('http://localhost/gvv/index.php/welcome');
-
-  // Attendre un élément
-  await page.waitForSelector('h1');
-
-  // Vérifier le titre
-  await expect(page).toHaveTitle(/GVV/);
-
-  // Remplir un formulaire
-  await page.fill('#username', 'admin');
-  await page.fill('#password', 'password');
-
-  // Cliquer sur un bouton
-  await page.click('button[type="submit"]');
-
-  // Vérifier la redirection
-  await expect(page).toHaveURL(/dashboard/);
-
-  // Vérifier un texte
-  await expect(page.locator('h1')).toContainText('Tableau de bord');
-
-  // Screenshot en cas de besoin
-  await page.screenshot({ path: 'screenshot.png' });
-});
-
-test.describe('groupe de tests', () => {
-  test.beforeEach(async ({ page }) => {
-    // Setup avant chaque test
-    await page.goto('http://localhost/gvv');
-  });
-
-  test('premier test du groupe', async ({ page }) => {
-    // Test 1
-  });
-
-  test('deuxième test du groupe', async ({ page }) => {
-    // Test 2
-  });
-});
-```
-
----
 
 ## 7. Définition de "Terminé"
 
@@ -881,23 +765,6 @@ Une phase de tests est complète quand:
 
 ---
 
-## 8. Maintenance
-
-### 8.1 Activités Régulières
-
-- **Hebdomadaire:** Exécution suite complète, mise à jour métriques
-- **Par Fonctionnalité:** Ajout tests avant merge nouveau code
-- **Mensuel:** Revue rapports couverture, identification lacunes
-- **Trimestriel:** Mise à jour plan selon évolution application
-
-### 8.2 Maintenance Tests
-
-- Mise à jour tests lors changements exigences
-- Refactorisation pour réduire duplication
-- Archivage tests obsolètes
-- Documentation limitations connues
-
----
 
 ## 9. Indicateurs de Succès
 
@@ -956,52 +823,6 @@ Une phase de tests est complète quand:
 - ~~Base de données test Dusk: `installation/dusk_tests.sql`~~ ⏳ **PARTIELLEMENT OBSOLÈTE**
 - ~~Screenshots tests: `tests/Browser/screenshots/` (Dusk)~~ ⏳ **EN COURS DE REMPLACEMENT**
 
-### 10.3 Projets Liés
-
-- **🎉 Projet principal GVV:** `/home/frederic/git/gvv` ✅
-  - Tests PHPUnit: `application/tests/` ✅
-  - **Tests Playwright: `playwright/tests/` ✅ TESTS CRITIQUES FONCTIONNELS (8/21 migrés)**
-
-- ⏳ **Projet Dusk (en cours de remplacement):** `/home/frederic/git/dusk_gvv`
-  - Tests Dusk: `tests/Browser/` ⏳ **13 fichiers restant à migrer (62%)**
-  - Status: **38% migration accomplie - tests critiques migrés**
-
-### 10.4 Limitations Connues - MISES À JOUR
-
-**PHPUnit:**
-Certains contrôleurs legacy exclus de la couverture (problèmes signature):
-- `achats.php`
-- `vols_planeur.php`
-- `vols_avion.php`
-
-Ces contrôleurs seront corrigés lors refactorisation future.
-
-**🎊 Tests E2E:**
-- ✅ **Tests critiques Playwright: 8/21 fichiers Dusk migrés avec 100% succès**
-- ✅ **Infrastructure Playwright complète et opérationnelle (41 tests critiques)**
-- ✅ **Tous workflows critiques migrés avec succès**
-- ✅ **Performance 5-10x supérieure à Dusk pour tests migrés**
-- ✅ **Fiabilité 100% - aucun test instable**
-- ⏳ **Migration restante: 13 fichiers Dusk (62%) à migrer selon priorités**
-
-### 🎯 10.5 Capacités Obtenues pour Tests Critiques
-
-**🚀 Infrastructure Moderne Playwright:**
-- ✅ **Page Object Model robuste** (BasePage, LoginPage, GliderFlightPage)
-- ✅ **Multi-navigateurs natif** (Chrome, Firefox, Safari)
-- ✅ **Screenshots automatiques** en cas d'échec
-- ✅ **Traces de débogage** complètes
-- ✅ **Retry mécanisms** intelligents
-- ✅ **Exécution parallèle** optimisée
-- ✅ **Patterns async/await** modernes
-
-**💎 Techniques de Réparation Éprouvées:**
-- ✅ **Inspection DOM réelle** vs hypothèses
-- ✅ **Debugging interactif** pour sélecteurs
-- ✅ **Validation données** depuis base
-- ✅ **Gestion erreurs gracieuse** pour timeouts/fermetures
-- ✅ **Tests pragmatiques** axés fonctionnalité
-- ✅ **Timing adaptatif** pour contenu dynamique
 
 ### ⏳ 10.6 Migration Restante à Accomplir
 
@@ -1028,8 +849,4 @@ Ces contrôleurs seront corrigés lors refactorisation future.
 **📅 Prochaine Revue:** Après migration tests priorité haute restants (BillingTest, PlaneFlightTest, ComptaTest)
 **👥 Responsable:** Équipe Développement
 
-## 🎊 CÉLÉBRATION DU SUCCÈS RÉALISTE:
 
-**Cette mise à jour marque un accomplissement remarquable dans l'évolution de la stratégie de tests GVV. La migration réussie des tests critiques vers Playwright avec 100% de réussite démontre une maîtrise technique exceptionnelle et établit une fondation solide pour la suite de la migration.**
-
-**🚀 L'infrastructure de tests critiques GVV est maintenant moderne et fiable! 13 fichiers restent à migrer selon les priorités métier. 🚀**
