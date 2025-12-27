@@ -79,6 +79,9 @@ class ReportsModelMySqlTest extends TestCase
         // First check if table has data
         $all = $this->model->select_page(1000, 0);
 
+        // Always assert that query returns an array
+        $this->assertIsArray($all, 'select_page should return an array');
+
         if (count($all) > 5) {
             $result = $this->model->select_page(5, 0);
             $this->assertLessThanOrEqual(5, count($result),
@@ -93,6 +96,10 @@ class ReportsModelMySqlTest extends TestCase
     {
         $first = $this->model->select_page(5, 0);
         $second = $this->model->select_page(5, 5);
+
+        // Always assert that queries return arrays
+        $this->assertIsArray($first, 'First query should return an array');
+        $this->assertIsArray($second, 'Second query should return an array');
 
         if (!empty($first) && !empty($second)) {
             $this->assertNotEquals($first[0]['nom'], $second[0]['nom'],

@@ -495,6 +495,9 @@ class EmailListsModelTest extends TestCase
             'active'
         );
 
+        // Verify query executed successfully (returns array even if empty)
+        $this->assertIsArray($active_users, 'Should return array for active users');
+
         // All returned users should be active
         foreach ($active_users as $user) {
             $this->assertEquals(1, $user['actif'], 'User should be active');
@@ -506,6 +509,9 @@ class EmailListsModelTest extends TestCase
             $sections[0]['id'],
             'inactive'
         );
+
+        // Verify query executed successfully (returns array even if empty)
+        $this->assertIsArray($inactive_users, 'Should return array for inactive users');
 
         // All returned users should be inactive
         foreach ($inactive_users as $user) {
