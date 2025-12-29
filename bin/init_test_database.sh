@@ -118,8 +118,19 @@ if [ -z "$SQL_FILE" ] || [ ! -f "$SQL_FILE" ]; then
     exit 1
 fi
 
-# Importer dans MySQL
-mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$SQL_FILE"
+# Nettoyer le fichier SQL des lignes problématiques
+# Supprimer les commentaires MariaDB/MySQL qui peuvent poser problème avec le client mysql
+CLEANED_SQL="$TEMP_DIR/cleaned.sql"
+grep -v "^-- " "$SQL_FILE" | grep -v "^/\*!" > "$CLEANED_SQL"
+
+# Vérifier que le fichier nettoyé n'est pas vide
+if [ ! -s "$CLEANED_SQL" ]; then
+    echo -e "${YELLOW}⚠${NC} Le nettoyage a produit un fichier vide, utilisation du fichier original"
+    CLEANED_SQL="$SQL_FILE"
+fi
+
+# Importer dans MySQL avec binary-mode pour éviter l'interprétation des séquences \
+mysql --binary-mode -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$CLEANED_SQL"
 RESULT=$?
 
 # Nettoyer les fichiers temporaires
