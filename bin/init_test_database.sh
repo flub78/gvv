@@ -121,7 +121,11 @@ fi
 # Nettoyer le fichier SQL des lignes problématiques
 # Supprimer les commentaires MariaDB/MySQL qui peuvent poser problème avec le client mysql
 CLEANED_SQL="$TEMP_DIR/cleaned.sql"
-grep -v "^-- " "$SQL_FILE" | grep -v "^/\*!" > "$CLEANED_SQL"
+# Supprimer: commentaires --, commentaires conditionnels /*!...*/ et /*M!...*/, et lignes vides en début
+sed -e '/^-- /d' \
+    -e '/^\/\*[!M]/d' \
+    -e '1,/^DROP TABLE/{ /^$/d; /^--$/d; }' \
+    "$SQL_FILE" > "$CLEANED_SQL"
 
 # Vérifier que le fichier nettoyé n'est pas vide
 if [ ! -s "$CLEANED_SQL" ]; then
