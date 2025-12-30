@@ -118,23 +118,17 @@ if [ -z "$SQL_FILE" ] || [ ! -f "$SQL_FILE" ]; then
     exit 1
 fi
 
-# Nettoyer le fichier SQL des lignes problématiques
-# Supprimer les commentaires MariaDB/MySQL qui peuvent poser problème avec le client mysql
-CLEANED_SQL="$TEMP_DIR/cleaned.sql"
-# Supprimer: commentaires --, commentaires conditionnels /*!...*/ et /*M!...*/, et lignes vides en début
-sed -e '/^-- /d' \
-    -e '/^\/\*[!M]/d' \
-    -e '1,/^DROP TABLE/{ /^$/d; /^--$/d; }' \
-    "$SQL_FILE" > "$CLEANED_SQL"
-
-# Vérifier que le fichier nettoyé n'est pas vide
-if [ ! -s "$CLEANED_SQL" ]; then
-    echo -e "${YELLOW}⚠${NC} Le nettoyage a produit un fichier vide, utilisation du fichier original"
-    CLEANED_SQL="$SQL_FILE"
-fi
-
-# Importer dans MySQL avec binary-mode pour éviter l'interprétation des séquences \
-mysql --binary-mode -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$CLEANED_SQL"
+# Importer dans MySQL avec les mêmes paramètres que admin/restore
+# - Désactiver les contraintes de clés étrangères
+# - Définir sql_mode='NO_AUTO_VALUE_ON_ZERO'
+# - Utiliser binary-mode pour éviter l'interprétation des séquences \
+# Note: Ne pas nettoyer le SQL avec sed - admin/restore ne le fait pas et ça fonctionne
+(
+    echo "SET FOREIGN_KEY_CHECKS = 0;"
+    echo "SET sql_mode='NO_AUTO_VALUE_ON_ZERO';"
+    cat "$SQL_FILE"
+    echo "SET FOREIGN_KEY_CHECKS = 1;"
+) | mysql --binary-mode -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME"
 RESULT=$?
 
 # Nettoyer les fichiers temporaires
