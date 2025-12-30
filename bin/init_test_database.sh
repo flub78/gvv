@@ -118,18 +118,23 @@ if [ -z "$SQL_FILE" ] || [ ! -f "$SQL_FILE" ]; then
     exit 1
 fi
 
+# Filtrer la directive MariaDB sandbox qui cause des problèmes avec mysql client
+# La première ligne /*M!999999\- enable the sandbox mode */ contient \- qui est
+# interprété comme une commande par le client mysql même avec --binary-mode
+FILTERED_SQL="$TEMP_DIR/filtered.sql"
+sed '1{/^\/\*M!.*\\-.*\*\//d;}' "$SQL_FILE" > "$FILTERED_SQL"
+
 # Importer dans MySQL avec les mêmes paramètres que admin/restore
-# - Désactiver les contraintes de clés étrangères
-# - Définir sql_mode='NO_AUTO_VALUE_ON_ZERO'
-# - Utiliser binary-mode pour éviter l'interprétation des séquences \
-# Note: Ne pas nettoyer le SQL avec sed - admin/restore ne le fait pas et ça fonctionne
-(
-    echo "SET FOREIGN_KEY_CHECKS = 0;"
-    echo "SET sql_mode='NO_AUTO_VALUE_ON_ZERO';"
-    cat "$SQL_FILE"
-    echo "SET FOREIGN_KEY_CHECKS = 1;"
-) | mysql --binary-mode -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME"
+# Utiliser --init-command pour SET au lieu de piper (évite problèmes d'interprétation)
+mysql --binary-mode \
+    --init-command="SET FOREIGN_KEY_CHECKS=0; SET sql_mode='NO_AUTO_VALUE_ON_ZERO';" \
+    -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" \
+    "$DB_NAME" < "$FILTERED_SQL"
 RESULT=$?
+
+# Réactiver les contraintes (au cas où l'import échouerait avant la fin)
+mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" \
+    -e "SET FOREIGN_KEY_CHECKS=1" 2>/dev/null || true
 
 # Nettoyer les fichiers temporaires
 rm -rf "$TEMP_ZIP" "$TEMP_SQL" "$TEMP_DIR"
