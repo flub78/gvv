@@ -27,6 +27,8 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
         // Navigate to account #23 which has 1937 entries
         await page.goto('/index.php/compta/journal_compte/23');
         await page.waitForLoadState('networkidle');
+        await page.selectOption('#year_selector', '2025');
+        await page.waitForLoadState('networkidle');
 
         // Verify search box is visible
         const searchBox = page.locator('#tableSearch');
@@ -40,6 +42,8 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
     test('should filter table rows based on search term', async ({ page }) => {
         // Navigate to account #23 which has 1937 entries
         await page.goto('/index.php/compta/journal_compte/23');
+        await page.waitForLoadState('networkidle');
+        await page.selectOption('#year_selector', '2025');
         await page.waitForLoadState('networkidle');
 
         // Count initial visible rows
@@ -71,6 +75,8 @@ test.describe.skip('Compta Journal Compte - Search Box [MANUAL TEST]', () => {
     test('should show all rows when search is cleared', async ({ page }) => {
         // Navigate to account #23 which has 1937 entries
         await page.goto('/index.php/compta/journal_compte/23');
+        await page.waitForLoadState('networkidle');
+        await page.selectOption('#year_selector', '2025');
         await page.waitForLoadState('networkidle');
 
         // Count initial visible rows
