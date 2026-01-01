@@ -28,7 +28,7 @@ pipeline {
         
         stage('Playwright Tests') {
             steps {
-                build job: 'GVV_Playwright_Tests'
+                build job: 'GVV-Playwright'
             }
         }
     }
