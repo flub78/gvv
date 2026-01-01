@@ -15,7 +15,7 @@ pipeline {
         }
 
         stage ('Coverage') {
-            steps {J
+            steps {
                 build job: 'GVV-PHPUnit-Coverage'
             }
         }
