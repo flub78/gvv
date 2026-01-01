@@ -60,17 +60,20 @@ async function setMigrationViaGui(page, targetVersion) {
   
   await page.goto('/index.php/migration', { waitUntil: 'networkidle' });
   
+  // Wait for the dropdown to be visible and stable
+  await page.waitForSelector('select[name="target_level"]');
+  
   // Select target version
   await page.selectOption('select[name="target_level"]', targetVersion.toString());
   console.log(`   ✅ Selected version ${targetVersion}`);
   
   // Submit form
   await page.getByRole('button', { name: 'Valider' }).click();
-  await page.waitForLoadState('networkidle');
-  console.log(`   ⏳ Waiting for migration to complete...`);
   
-  // Wait a bit more for migration to finish
-  await page.waitForTimeout(2000);
+  // Wait longer for migration to complete
+  await page.waitForTimeout(5000);
+  await page.waitForLoadState('networkidle');
+  console.log(`   ⏳ Migration complete, verifying...`);
   
   // Verify the change by checking the page again
   const newVersion = await getCurrentMigrationFromGui(page);

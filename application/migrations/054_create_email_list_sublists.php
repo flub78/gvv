@@ -153,8 +153,12 @@ class Migration_Create_email_list_sublists extends CI_Migration {
             throw new Exception('Migration 054: Table drop failed');
         }
 
-        // Verify table was dropped
-        if ($this->db->table_exists('email_list_sublists')) {
+        // Clear CodeIgniter table cache to detect table removal
+        $this->db->data_cache = array();
+
+        // Verify table was dropped using raw SQL (table_exists() may have cache issues)
+        $verify = $this->db->query("SHOW TABLES LIKE 'email_list_sublists'");
+        if ($verify->num_rows() > 0) {
             log_message('error', 'Migration 054: Table drop succeeded but table still exists');
             throw new Exception('Migration 054: Table verification failed after drop');
         }
