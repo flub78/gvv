@@ -16,18 +16,29 @@ test.describe('Compta Frozen Entry Buttons', () => {
     test.describe.configure({ mode: 'serial' });
 
     test.beforeEach(async ({ page }) => {
+        // Set larger viewport to show more rows in the table
+        await page.setViewportSize({ width: 1920, height: 1080 });
+
         // Login as test admin (see bin/create_test_users.sh)
         await page.goto('/');
         await page.fill('input[name="username"]', 'testadmin');
         await page.fill('input[name="password"]', 'password');
-        await page.click('input[type="submit"]');
+        await page.getByRole('button', { name: 'Connexion' }).click();
 
         // Wait for redirect after login
         await page.waitForLoadState('networkidle');
 
+        // Verify login succeeded
+        if (page.url().includes('auth/login')) {
+            throw new Error('Login failed - still on login page');
+        }
+
         // Navigate directly to account 23 which has entries to test with
-        // (account 102 typically has no entries until end of year)
         await page.goto('/index.php/compta/journal_compte/23');
+        await page.waitForLoadState('networkidle');
+
+        // Select year 2025 (test database has no data for 2026)
+        await page.selectOption('#year_selector', '2025');
         await page.waitForLoadState('networkidle');
     });
 
@@ -38,6 +49,8 @@ test.describe('Compta Frozen Entry Buttons', () => {
                 // Navigate back to the journal if we navigated away
                 if (!page.url().includes('/compta/journal_compte/23')) {
                     await page.goto('/index.php/compta/journal_compte/23');
+                    await page.waitForLoadState('networkidle');
+                    await page.selectOption('#year_selector', '2025');
                     await page.waitForLoadState('networkidle');
                 }
 
@@ -77,8 +90,15 @@ test.describe('Compta Frozen Entry Buttons', () => {
     });
 
     test('frozen entry shows eye icon button (view mode)', async ({ page }) => {
+        // Wait for the table data to load (AJAX)
+        await page.waitForSelector('.gel-checkbox', { timeout: 15000 });
+
         // Find the first entry row with a gel checkbox
         const firstGelCheckbox = page.locator('.gel-checkbox').first();
+
+        // Scroll to the checkbox to make it visible
+        await firstGelCheckbox.scrollIntoViewIfNeeded();
+
         const ecritureId = await firstGelCheckbox.getAttribute('data-ecriture-id');
 
         // Ensure it's not frozen initially
@@ -132,8 +152,15 @@ test.describe('Compta Frozen Entry Buttons', () => {
     });
 
     test('unfreezing entry restores edit button', async ({ page }) => {
+        // Wait for the table data to load (AJAX)
+        await page.waitForSelector('.gel-checkbox', { timeout: 15000 });
+
         // Find the first entry row with a gel checkbox
         const firstGelCheckbox = page.locator('.gel-checkbox').first();
+
+        // Scroll to the checkbox to make it visible
+        await firstGelCheckbox.scrollIntoViewIfNeeded();
+
         const ecritureId = await firstGelCheckbox.getAttribute('data-ecriture-id');
 
         // Ensure it's frozen first
