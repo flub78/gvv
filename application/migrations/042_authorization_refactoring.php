@@ -18,6 +18,13 @@ class Migration_authorization_refactoring extends CI_Migration {
 
     public function up()
     {
+        // Check prerequisites - migration 025 must have been run
+        // Use SQL query instead of table_exists() to avoid cache issues
+        $query = $this->db->query("SHOW TABLES LIKE 'types_roles'");
+        if ($query->num_rows() == 0) {
+            throw new Exception('Migration 042: Table types_roles does not exist. Please run migration 025 first.');
+        }
+
         // 1. Enhance types_roles table
         $types_roles_fields = array(
             'scope' => array(
@@ -212,6 +219,12 @@ class Migration_authorization_refactoring extends CI_Migration {
         }
 
         // 4. Enhance user_roles_per_section table
+        // Use SQL query instead of table_exists() to avoid cache issues
+        $query = $this->db->query("SHOW TABLES LIKE 'user_roles_per_section'");
+        if ($query->num_rows() == 0) {
+            throw new Exception('Migration 042: Table user_roles_per_section does not exist. Please run migration 025 first.');
+        }
+
         $user_roles_fields = array(
             'granted_by' => array('type' => 'INT', 'constraint' => 11, 'null' => TRUE, 'comment' => 'User who granted this role', 'after' => 'section_id'),
             'granted_at' => array('type' => 'DATETIME', 'null' => FALSE, 'after' => 'granted_by'),

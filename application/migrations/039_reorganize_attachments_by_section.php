@@ -37,7 +37,9 @@ class Migration_Reorganize_Attachments_By_Section extends CI_Migration {
         $sql = "ALTER TABLE `attachments` ADD COLUMN `file_backup` VARCHAR(255) DEFAULT NULL COMMENT 'Backup of original file path before section reorganization'";
         gvv_info("Migration sql: " . $sql);
         if (!$this->db->query($sql)) {
-            gvv_error("Migration error: " . $this->db->error()['message']);
+            $mysql_msg = $this->db->_error_message();
+            $mysql_error = $this->db->_error_number();
+            gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg");
             $errors++;
         }
 
@@ -45,7 +47,9 @@ class Migration_Reorganize_Attachments_By_Section extends CI_Migration {
         $sql = "UPDATE `attachments` SET `file_backup` = `file` WHERE `file` IS NOT NULL";
         gvv_info("Migration sql: " . $sql);
         if (!$this->db->query($sql)) {
-            gvv_error("Migration error: " . $this->db->error()['message']);
+            $mysql_msg = $this->db->_error_message();
+            $mysql_error = $this->db->_error_number();
+            gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg");
             $errors++;
         }
 
@@ -73,7 +77,9 @@ class Migration_Reorganize_Attachments_By_Section extends CI_Migration {
         $sql = "UPDATE `attachments` SET `file` = `file_backup` WHERE `file_backup` IS NOT NULL";
         gvv_info("Migration sql: " . $sql);
         if (!$this->db->query($sql)) {
-            gvv_error("Migration error: " . $this->db->error()['message']);
+            $mysql_msg = $this->db->_error_message();
+            $mysql_error = $this->db->_error_number();
+            gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg");
             $errors++;
         }
 
@@ -81,7 +87,9 @@ class Migration_Reorganize_Attachments_By_Section extends CI_Migration {
         $sql = "ALTER TABLE `attachments` DROP COLUMN `file_backup`";
         gvv_info("Migration sql: " . $sql);
         if (!$this->db->query($sql)) {
-            gvv_error("Migration error: " . $this->db->error()['message']);
+            $mysql_msg = $this->db->_error_message();
+            $mysql_error = $this->db->_error_number();
+            gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg");
             $errors++;
         }
 

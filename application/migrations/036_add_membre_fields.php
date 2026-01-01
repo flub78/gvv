@@ -21,7 +21,9 @@ class Migration_Add_membre_fields extends CI_Migration {
         foreach ($sqls as $sql) {
             gvv_info("Migration sql: " . $sql);
             if (!$this->db->query($sql)) {
-                gvv_error("Migration error: " . $this->db->error()['message']);
+                $mysql_msg = $this->db->_error_message();
+                $mysql_error = $this->db->_error_number();
+                gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg");
                 $errors += 1;
             }
         }

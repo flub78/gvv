@@ -65,9 +65,9 @@ ALTER TABLE `user_roles_per_section`
 -- Contraintes pour la table `user_roles_per_section`
 --
 ALTER TABLE `user_roles_per_section`
-  ADD CONSTRAINT `section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`),
-  ADD CONSTRAINT `types_roles_id` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`),
-  ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `fk_user_roles_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_user_roles_types_roles` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_user_roles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
