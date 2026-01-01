@@ -50,7 +50,9 @@ class Migration_Attachments extends CI_Migration {
 		foreach ($sqls as $sql) {
 			gvv_info("Migration sql: " . $sql);
 			if (!$this->db->query($sql)) {
-				gvv_error("Migration error: " . $this->db->error()['message']);
+				$mysql_msg = $this->db->_error_message();
+				$mysql_error = $this->db->_error_number();
+				gvv_error("Migration error: code=$mysql_error, msg=$mysql_msg, sql=$sql");
 				$errors += 1;
 			}
 		}
@@ -73,7 +75,7 @@ class Migration_Attachments extends CI_Migration {
   				`filename` varchar(128) DEFAULT NULL,
   				`description` varchar(124) DEFAULT NULL,
   				`file` varchar(255) DEFAULT NULL,
-				`club` tinyint(1) DEFAULT NULL,
+				`club` tinyint(1) DEFAULT NULL
 
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 			"ALTER TABLE `attachments` ADD PRIMARY KEY (`id`)",

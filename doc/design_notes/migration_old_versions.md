@@ -5,13 +5,17 @@ Ce document décrit une stratégie sûre pour migrer une base de données GVV tr
 ## Contexte et risques
 
 - Le code actuel cible PHP 7.4, MySQL 5.x et CodeIgniter 2.x. Voir `setenv.sh` qui force l’utilisation de `/usr/bin/php7.4`.
-- Les migrations de schéma vont jusqu’à la version 58 (`application/config/migration.php`). Le dossier `application/migrations/` contient les migrations 001→058.
-- Baseline déploiement légacy: la version de migration de référence était `20` (le mécanisme de migration était déjà actif sur ces déploiements). Cela signifie que les instances anciennes ont très probablement une table `migrations` avec `version=20`, ou au minimum un schéma cohérent avec les migrations ≤20.
+  
+- La migration courante est au niveau 58 (`application/config/migration.php`). Le dossier `application/migrations/` contient les migrations 001→058.
+
+- Baseline déploiement légacy: la migration de référence est la `20` (le mécanisme de migration était déjà actif sur ces déploiements). Cela signifie que les instances anciennes ont une table `migrations` avec `version=20`.
 
 - Les instances très anciennes peuvent:
   - manquer des tables clés ajoutées récemment (ex. système d’autorisations refactoré vers 042, listes de diffusion 049→054),
-  - dépendre de fichiers de configuration SVN (procédure de migration GitHub exige de réinstaller les configs et de recréer `uploads/`).
-- Restaurer un dump très ancien et démarrer le site sans migration provoque des erreurs applicatives (modèles et vues attendent des colonnes/tables inexistantes).
+  - dépendre de fichiers ou de répertoire d'uploads manquants (ex. `uploads/email_lists/`),
+- Il est possible de restaurer une sauvegarde de migration 20 et il est possible de se reconnecter.
+- Il est possible d'accéder à la page migration après cela. http://gvv.net/migration
+- La migration fonctionne jusqu'au niveau 22.
 
 ## Pré-requis
 
