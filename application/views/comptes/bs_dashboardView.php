@@ -53,24 +53,22 @@ $url = controller_url($controller);
             <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <?php
+                    // Build dynamic align array based on number of columns in data
+                    $charges_align = array('center', 'left'); // Code, Comptes
+                    if (isset($charges[0]) && is_array($charges[0])) {
+                        $column_count = count($charges[0]) - 2; // Subtract Code and Comptes columns
+                        for ($i = 0; $i < $column_count; $i++) {
+                            $charges_align[] = 'right'; // Section columns + Total
+                        }
+                    }
+
                     $table = new DataTable(array(
                         'title' => "",
                         'values' => $charges,
                         'controller' => $controller,
                         'class' => "sql_table fixed_datatable table",
                         'id' => "charges_table",
-                        // 'create' => '',
-                        // 'count' => '',
-                        // 'first' => '',
-                        'align' => array(
-                            'center',
-                            'left',
-                            'right',
-                            'right',
-                            'right',
-                            'right',
-                            'right'
-                        )
+                        'align' => $charges_align
                     ));
 
                     $table->display();
@@ -87,21 +85,22 @@ $url = controller_url($controller);
             <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <?php
+                    // Build dynamic align array based on number of columns in data
+                    $produits_align = array('center', 'left'); // Code, Comptes
+                    if (isset($produits[0]) && is_array($produits[0])) {
+                        $column_count = count($produits[0]) - 2; // Subtract Code and Comptes columns
+                        for ($i = 0; $i < $column_count; $i++) {
+                            $produits_align[] = 'right'; // Section columns + Total
+                        }
+                    }
+
                     $table = new DataTable(array(
                         'title' => "",
                         'values' => $produits,
                         'controller' => $controller,
                         'class' => "sql_table fixed_datatable table",
                         'id' => "produits_table",
-                        'align' => array(
-                            'center',
-                            'left',
-                            'right',
-                            'right',
-                            'right',
-                            'right',
-                            'right'
-                        )
+                        'align' => $produits_align
                     ));
 
                     $table->display();
@@ -118,19 +117,21 @@ $url = controller_url($controller);
     <h3><?= $this->lang->line("comptes_bilan_resultat_avant_repartition") ?></h3>
 
     <?php
+    // Build dynamic align array for resultat table
+    $resultat_align = array('left'); // First column (label)
+    if (isset($resultat[0]) && is_array($resultat[0])) {
+        $column_count = count($resultat[0]) - 1; // Subtract first column
+        for ($i = 0; $i < $column_count; $i++) {
+            $resultat_align[] = 'right'; // Section columns + Total
+        }
+    }
+
     $table = new DataTable(array(
         'title' => "",
         'values' => $resultat,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
-        'align' => array(
-            'left',
-            'right',
-            'right',
-            'right',
-            'right',
-            'right'
-        )
+        'align' => $resultat_align
     ));
 
     $table->display();
@@ -138,19 +139,21 @@ $url = controller_url($controller);
 
     <h3 class="mt-3"><?= "Actifs financiers" ?></h3>
     <?php
+    // Build dynamic align array for disponible table
+    $disponible_align = array('left'); // First column (label)
+    if (isset($disponible[0]) && is_array($disponible[0])) {
+        $column_count = count($disponible[0]) - 1; // Subtract first column
+        for ($i = 0; $i < $column_count; $i++) {
+            $disponible_align[] = 'right'; // Section columns + Total
+        }
+    }
+
     $table = new DataTable(array(
         'title' => "",
         'values' => $disponible,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
-        'align' => array(
-            'left',
-            'right',
-            'right',
-            'right',
-            'right',
-            'right'
-        )
+        'align' => $disponible_align
     ));
 
     $table->display();
@@ -158,19 +161,21 @@ $url = controller_url($controller);
 
     <h3 class="mt-3"><?= "Dettes" ?></h3>
     <?php
+    // Build dynamic align array for dettes table
+    $dettes_align = array('left'); // First column (label)
+    if (isset($dettes[0]) && is_array($dettes[0])) {
+        $column_count = count($dettes[0]) - 1; // Subtract first column
+        for ($i = 0; $i < $column_count; $i++) {
+            $dettes_align[] = 'right'; // Section columns + Total
+        }
+    }
+
     $table = new DataTable(array(
         'title' => "",
         'values' => $dettes,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
-        'align' => array(
-            'left',
-            'right',
-            'right',
-            'right',
-            'right',
-            'right'
-        )
+        'align' => $dettes_align
     ));
 
     $table->display();
@@ -178,19 +183,21 @@ $url = controller_url($controller);
 
     <h3 class="mt-3"><?= "Immobilisations" ?></h3>
     <?php
+    // Build dynamic align array for immos table
+    $immos_align = array('left'); // First column (label)
+    if (isset($immos[0]) && is_array($immos[0])) {
+        $column_count = count($immos[0]) - 1; // Subtract first column
+        for ($i = 0; $i < $column_count; $i++) {
+            $immos_align[] = 'right'; // Section columns + Total
+        }
+    }
+
     $table = new DataTable(array(
         'title' => "",
         'values' => $immos,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
-        'align' => array(
-            'left',
-            'right',
-            'right',
-            'right',
-            'right',
-            'right'
-        )
+        'align' => $immos_align
     ));
 
     $table->display();

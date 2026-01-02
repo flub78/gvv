@@ -629,7 +629,7 @@ class Comptes_model extends Common_Model {
      * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
      * @return array Table of account data with sections and totals
      */
-    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = true) {
+    function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = true, $sections = null) {
 
         $table = [];
         $title = ["Code", "Comptes"];
@@ -648,7 +648,11 @@ class Comptes_model extends Common_Model {
         $res = $this->db->group_by('codec')
             ->get()->result_array();
 
-        $sections = $this->sections_model->section_list();
+        // Use provided sections list or fall back to all sections
+        if ($sections === null) {
+            $sections = $this->sections_model->section_list();
+        }
+        
         $section_field = $use_full_names ? 'nom' : 'acronyme';
         foreach ($sections as $section) {
             $title[] = $section[$section_field];
@@ -994,7 +998,8 @@ class Comptes_model extends Common_Model {
                 $anchor = anchor($url, $row[0]);
                 $table[$line][0] = $anchor;
 
-                for ($i = 2; $i <= 6; $i++) {
+                // Format all numeric columns (from index 2 to last column)
+                for ($i = 2; $i < count($row); $i++) {
                     $table[$line][$i] = euro($table[$line][$i] ); 
                 }
             }

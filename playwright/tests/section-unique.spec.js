@@ -24,6 +24,66 @@ const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
 
 /**
+ * Verify table has correct number of columns
+ * @param {import('@playwright/test').Page} page - Playwright page object
+ * @param {string} tableId - Table ID to verify
+ * @param {number} expectedColumns - Expected number of columns
+ * @param {number} sectionCount - Number of sections for logging
+ */
+async function verifyTableColumns(page, tableId, expectedColumns, sectionCount) {
+  console.log(`\nVerifying table: ${tableId}`);
+
+  // Locate the table
+  const table = page.locator(`table#${tableId}`);
+  await expect(table).toBeVisible();
+  console.log(`✓ Found ${tableId}`);
+
+  // Count columns in the header row
+  const headerCells = table.locator('tr').first().locator('th, td');
+  const headerColumnCount = await headerCells.count();
+  console.log(`Found ${headerColumnCount} columns in header row`);
+
+  // Verify: number of header columns = number of sections + 3
+  expect(headerColumnCount).toBe(expectedColumns);
+  console.log(`✓ Header column count is correct: ${headerColumnCount} = ${sectionCount} sections + 3`);
+
+  // Count columns in a data row (if any exist)
+  const dataRows = table.locator('tbody tr, tr:not(:first-child)');
+  const dataRowCount = await dataRows.count();
+
+  if (dataRowCount > 0) {
+    console.log(`Found ${dataRowCount} data row(s), verifying column count...`);
+
+    // Check first data row
+    const firstDataRow = dataRows.first();
+    const dataCells = firstDataRow.locator('td, th');
+    const dataColumnCount = await dataCells.count();
+
+    console.log(`Found ${dataColumnCount} columns in first data row`);
+    expect(dataColumnCount).toBe(expectedColumns);
+    console.log(`✓ Data row column count is correct: ${dataColumnCount} = ${sectionCount} sections + 3`);
+
+    // Verify all data rows have the same number of columns
+    for (let i = 0; i < Math.min(dataRowCount, 5); i++) { // Check first 5 rows max
+      const row = dataRows.nth(i);
+      const cells = row.locator('td, th');
+      const cellCount = await cells.count();
+
+      expect(cellCount).toBe(expectedColumns);
+      console.log(`  ✓ Row ${i + 1}: ${cellCount} columns`);
+    }
+
+    if (dataRowCount > 5) {
+      console.log(`  ... and ${dataRowCount - 5} more rows (not checked individually)`);
+    }
+  } else {
+    console.log('⚠ No data rows found in table');
+  }
+
+  console.log(`✅ ${tableId} column validation completed`);
+}
+
+/**
  * Login, navigate to about page, and count cloture_table data rows
  * @param {import('@playwright/test').Page} page - Playwright page object
  * @returns {Promise<number>} Number of data rows (excluding header)
@@ -201,23 +261,16 @@ test.describe('Section Unique - Cloture Table Validation', () => {
       fullPage: true
     });
 
-    // Locate the charges_table
-    console.log('Locating charges_table...');
-    const chargesTable = page.locator('table#charges_table');
-    await expect(chargesTable).toBeVisible();
-    console.log('✓ Found charges_table');
-
-    // Count columns in the header row
-    const headerCells = chargesTable.locator('tr').first().locator('th, td');
-    const columnCount = await headerCells.count();
-    console.log(`Found ${columnCount} columns in charges_table`);
-
-    // Verify: number of columns = number of sections + 3
+    // Verify both tables have correct number of columns
     const expectedColumns = sectionCount + 3;
-    expect(columnCount).toBe(expectedColumns);
-    console.log(`✓ Column count is correct: ${columnCount} = ${sectionCount} sections + 3`);
 
-    console.log('✅ Charges table column validation completed');
+    // Verify charges_table
+    await verifyTableColumns(page, 'charges_table', expectedColumns, sectionCount);
+
+    // Verify produits_table
+    await verifyTableColumns(page, 'produits_table', expectedColumns, sectionCount);
+
+    console.log('\n✅ All dashboard table validations completed');
   });
 
 });
