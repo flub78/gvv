@@ -37,20 +37,33 @@ class LoginPage extends BasePage {
   /**
    * Perform login with credentials
    * @param {string} username - Username
-   * @param {string} password - Password  
-   * @param {string} section - Section ID (1=Planeur, 2=ULM, 3=Avion, 4=Général, 5=Toutes)
+   * @param {string} password - Password
+   * @param {string} section - Section ID (1=Planeur, 2=ULM, 3=Avion, 4=Général, 5=Toutes), null for auto-detect
    */
-  async login(username, password, section = '1') {
-    console.log(`Logging in as ${username}, section ${section}`);
-    
+  async login(username, password, section = null) {
+    console.log(`Logging in as ${username}, section ${section || 'auto-detect'}`);
+
     await this.screenshot('before_login');
-    
+
     // Fill login form
     await this.fillField('username', username);
     await this.fillField('password', password);
-    
-    // Select section if provided
-    if (section && section !== '') {
+
+    // Handle section selection
+    const sectionSelect = this.page.locator('select[name="section"]');
+    const hasSectionSelector = await sectionSelect.count() > 0;
+
+    if (hasSectionSelector && section === null) {
+      // Auto-detect: use the first available section option
+      const firstOption = await sectionSelect.locator('option').first().getAttribute('value');
+      if (firstOption) {
+        section = firstOption;
+        console.log(`Auto-selected first available section: ${section}`);
+      }
+    }
+
+    // Select section if provided or auto-detected
+    if (section && section !== '' && hasSectionSelector) {
       await this.select('section', section);
       await this.screenshot('after_select_section');
     }
