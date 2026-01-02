@@ -1253,6 +1253,7 @@ class Comptes_model extends Common_Model {
         $res = $this->db->group_by('codec')->get()->result_array();
 
         $sections = $this->sections_model->section_list();
+        $sections_count = count($sections);
 
         // En-tête avec années groupées par section (N et N-1 adjacentes)
         $header = ['Code', 'Comptes'];
@@ -1261,8 +1262,11 @@ class Comptes_model extends Common_Model {
             $header[] = $section[$section_field] . ' ' . $year_current;
             $header[] = $section[$section_field] . ' ' . $year_prev;
         }
-        $header[] = 'Total Club ' . $year_current;
-        $header[] = 'Total Club ' . $year_prev;
+        // Only add Total Club columns if there are 2 or more sections
+        if ($sections_count > 1) {
+            $header[] = 'Total Club ' . $year_current;
+            $header[] = 'Total Club ' . $year_prev;
+        }
 
         $table = [$header];
 
@@ -1301,9 +1305,11 @@ class Comptes_model extends Common_Model {
                 $row[] = $amount_prev;
             }
 
-            // Totaux club : année N puis année N-1
-            $row[] = $total_current;
-            $row[] = $total_prev;
+            // Totaux club : année N puis année N-1 (only if 2+ sections)
+            if ($sections_count > 1) {
+                $row[] = $total_current;
+                $row[] = $total_prev;
+            }
 
             $table[] = $row;
         }
@@ -1504,9 +1510,11 @@ class Comptes_model extends Common_Model {
         }
 
         // Calcul des totaux pour chaque année
-        // La structure est: [Code, Comptes, Sections_Année1..., Total_Année1, Sections_Année2..., Total_Année2]
-        // Nombre de colonnes de sections + total pour une année
-        $cols_per_year = $sections_count + 1;
+        // La structure dépend du nombre de sections:
+        // Si sections > 1: [Code, Comptes, Sections_Année1..., Total_Année1, Sections_Année2..., Total_Année2]
+        // Si sections <= 1: [Code, Comptes, Sections_Année1..., Sections_Année2...]
+        // Nombre de colonnes de sections (+ total si > 1 section) pour une année
+        $cols_per_year = ($sections_count > 1) ? ($sections_count + 1) : $sections_count;
         $header_offset = 2; // Code + Comptes
 
         // Calculer les totaux par section ET les totaux globaux
@@ -1514,21 +1522,25 @@ class Comptes_model extends Common_Model {
         $total_produits = ["", "Produits"];
         $total_resultat = ["", "Total"];
 
-        // Pour chaque colonne de section + total
+        // Pour chaque colonne de section (+ total si applicable)
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
             $col_index = $header_offset + $i;
 
             // Somme des charges pour cette colonne (directement sur les float)
             $sum_charges = 0.0;
             for ($row = 1; $row < count($charges); $row++) {
-                $sum_charges += floatval($charges[$row][$col_index]);
+                if (isset($charges[$row][$col_index])) {
+                    $sum_charges += floatval($charges[$row][$col_index]);
+                }
             }
             $total_charges[] = $sum_charges;
 
             // Somme des produits pour cette colonne (directement sur les float)
             $sum_produits = 0.0;
             for ($row = 1; $row < count($produits); $row++) {
-                $sum_produits += floatval($produits[$row][$col_index]);
+                if (isset($produits[$row][$col_index])) {
+                    $sum_produits += floatval($produits[$row][$col_index]);
+                }
             }
             $total_produits[] = $sum_produits;
 

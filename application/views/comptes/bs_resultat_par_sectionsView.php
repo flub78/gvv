@@ -192,7 +192,28 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
     }
 
     // Générer le HTML
-    $html = "<table class=\"{$table_class} table table-sm\">\n";
+    // Déterminer l'ID du tableau selon le type
+    $table_id = '';
+    if ($skip_label_cols) {
+        $table_id = ' id="resultat_par_sections_total_table"';
+    } else {
+        // Identifier le type de tableau selon les données (première ligne après l'en-tête)
+        if (!empty($rows) && count($rows) > 0) {
+            $first_code = $rows[0][0] ?? '';
+            // Extraire le premier caractère du code (enlever les balises HTML si présent)
+            $code_text = strip_tags($first_code);
+            if (!empty($code_text)) {
+                $first_digit = substr($code_text, 0, 1);
+                if ($first_digit == '6') {
+                    $table_id = ' id="resultat_par_sections_charges_table"';
+                } else if ($first_digit == '7') {
+                    $table_id = ' id="resultat_par_sections_produits_table"';
+                }
+            }
+        }
+    }
+    
+    $html = "<table{$table_id} class=\"{$table_class} table table-sm\">\n";
     $html .= "<thead>\n";
 
     // Ligne 1 : Sections
