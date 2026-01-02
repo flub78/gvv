@@ -54,18 +54,19 @@ $section_count = $CI->sections_model->safe_count_all();
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_admin") ?></a>
                 <ul class="dropdown-menu">
 
-                  <li><a class="dropdown-item" href="#"><i class="fas fa-plane-departure text-info"></i> <?= translation("gvv_menu_vols_decouverte") ?>&raquo;</a>
-                    <ul class="submenu dropdown-menu">
+                  <?php if ($this->config->item('gestion_vd')) : ?>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-plane-departure text-info"></i> <?= translation("gvv_menu_vols_decouverte") ?>&raquo;</a>
+                      <ul class="submenu dropdown-menu">
 
-                      <?php if (has_role('ca')) : ?>
-                        <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
-                        <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
-                      <?php endif; ?>
-                  </li>
-                </ul>
+                        <?php if (has_role('ca')) : ?>
+                          <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
+                          <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
+                        <?php endif; ?>
+                      </ul>
+                    </li>
+                  <?php endif; ?>
 
-
-              <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line text-info"></i> <?= translation("gvv_menu_reports") ?> &raquo;</a>
+                  <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line text-info"></i> <?= translation("gvv_menu_reports") ?> &raquo;</a>
                 <ul class="submenu dropdown-menu">
 
                   <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("gvv_menu_validities") ?></a></li>
