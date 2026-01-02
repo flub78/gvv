@@ -131,6 +131,7 @@ $url = controller_url($controller);
         'values' => $resultat,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
+        'id' => "resultat_table",
         'align' => $resultat_align
     ));
 
@@ -153,6 +154,7 @@ $url = controller_url($controller);
         'values' => $disponible,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
+        'id' => "actifs_table",
         'align' => $disponible_align
     ));
 
@@ -175,6 +177,7 @@ $url = controller_url($controller);
         'values' => $dettes,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
+        'id' => "dettes_table",
         'align' => $dettes_align
     ));
 
@@ -197,6 +200,7 @@ $url = controller_url($controller);
         'values' => $immos,
         'controller' => $controller,
         'class' => "sql_table fixed_datatable table",
+        'id' => "immos_table",
         'align' => $immos_align
     ));
 
@@ -207,28 +211,17 @@ $url = controller_url($controller);
 
     echo br(2);
 
-    $table = new DataTable(array(
-        'title' => "",
-        'values' => $resultat_table,
-        'controller' => $controller,
-        'class' => "sql_table fixed_datatable table",
-        // 'create' => '',
-        // 'count' => '',
-        // 'first' => '',
-        // 'align' => array(
-        // 	'left',
-        // 	'left',
-        // 	'right',
-        // 	'right',
-        // 	'center',
-        // 	'right',
-        // 	'left',
-        // 	'right',
-        // 	'right'
-        // )
-    ));
+    // $table = new DataTable(array(
+    //     'title' => "",
+    //     'values' => $resultat_table,
+    //     'controller' => $controller,
+    //     'class' => "sql_table fixed_datatable table",
+    //     // 'create' => '',
+    //     // 	'right'
+    //     // )
+    // ));
 
-    $table->display();
+    // $table->display();
 
     $bar = array(
         array('label' => "Excel", 'url' => "comptes/dashboard/csv", 'role' => 'ca'),

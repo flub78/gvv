@@ -43,9 +43,12 @@ async function verifyTableColumns(page, tableId, expectedColumns, sectionCount) 
   const headerColumnCount = await headerCells.count();
   console.log(`Found ${headerColumnCount} columns in header row`);
 
-  // Verify: number of header columns = number of sections + 3
+  // Calculate extra columns for logging (expectedColumns - sectionCount)
+  const extraColumns = expectedColumns - sectionCount;
+  
+  // Verify: number of header columns = expectedColumns
   expect(headerColumnCount).toBe(expectedColumns);
-  console.log(`✓ Header column count is correct: ${headerColumnCount} = ${sectionCount} sections + 3`);
+  console.log(`✓ Header column count is correct: ${headerColumnCount} = ${sectionCount} sections + ${extraColumns}`);
 
   // Count columns in a data row (if any exist)
   const dataRows = table.locator('tbody tr, tr:not(:first-child)');
@@ -61,7 +64,7 @@ async function verifyTableColumns(page, tableId, expectedColumns, sectionCount) 
 
     console.log(`Found ${dataColumnCount} columns in first data row`);
     expect(dataColumnCount).toBe(expectedColumns);
-    console.log(`✓ Data row column count is correct: ${dataColumnCount} = ${sectionCount} sections + 3`);
+    console.log(`✓ Data row column count is correct: ${dataColumnCount} = ${sectionCount} sections + ${extraColumns}`);
 
     // Verify all data rows have the same number of columns
     for (let i = 0; i < Math.min(dataRowCount, 5); i++) { // Check first 5 rows max
@@ -271,6 +274,61 @@ test.describe('Section Unique - Cloture Table Validation', () => {
     await verifyTableColumns(page, 'produits_table', expectedColumns, sectionCount);
 
     console.log('\n✅ All dashboard table validations completed');
+  });
+
+  test('should verify resultat_table, actifs_table, dettes_table, and immos_table have correct number of columns', async ({ page }) => {
+    // Get the number of sections (data rows in cloture_table)
+    const sectionCount = await login_and_section_number(page);
+    console.log(`Number of sections detected: ${sectionCount}`);
+
+    // Navigate to /comptes/dashboard
+    console.log('Navigating to /comptes/dashboard...');
+    await page.goto('/index.php/comptes/dashboard');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Open all accordions on the page
+    console.log('Opening all accordions...');
+
+    // Force-open all Bootstrap collapse elements via JavaScript
+    await page.evaluate(() => {
+      // Find all collapse elements and show them
+      const collapseElements = document.querySelectorAll('.collapse:not(.show)');
+      collapseElements.forEach(element => {
+        element.classList.add('show');
+      });
+
+      // Update aria-expanded attributes
+      const expandButtons = document.querySelectorAll('[aria-expanded="false"][data-bs-toggle="collapse"]');
+      expandButtons.forEach(button => {
+        button.setAttribute('aria-expanded', 'true');
+      });
+    });
+
+    // Wait for all animations to complete
+    await page.waitForTimeout(1000);
+
+    // Take screenshot after opening accordions (for debugging)
+    await page.screenshot({
+      path: 'build/playwright-captures/dashboard-all-tables.png',
+      fullPage: true
+    });
+
+    // Expected number of columns = number of sections + 2
+    const expectedColumns = sectionCount + 2;
+
+    // Verify resultat_table
+    await verifyTableColumns(page, 'resultat_table', expectedColumns, sectionCount);
+
+    // Verify actifs_table
+    await verifyTableColumns(page, 'actifs_table', expectedColumns, sectionCount);
+
+    // Verify dettes_table
+    await verifyTableColumns(page, 'dettes_table', expectedColumns, sectionCount);
+
+    // Verify immos_table
+    await verifyTableColumns(page, 'immos_table', expectedColumns, sectionCount);
+
+    console.log('\n✅ All table column validations completed');
   });
 
 });
