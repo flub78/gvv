@@ -23,54 +23,62 @@ const { test, expect } = require('@playwright/test');
 const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
 
+/**
+ * Login, navigate to about page, and count cloture_table data rows
+ * @param {import('@playwright/test').Page} page - Playwright page object
+ * @returns {Promise<number>} Number of data rows (excluding header)
+ */
+async function login_and_section_number(page) {
+  // Step 1: Login as admin
+  console.log('Logging in as admin...');
+  await page.goto('/index.php/auth/login');
+  await page.waitForLoadState('networkidle');
+
+  await page.fill('input[name="username"]', TEST_USER);
+  await page.fill('input[name="password"]', TEST_PASSWORD);
+  await page.click('button[type="submit"], input[type="submit"]');
+  await page.waitForLoadState('networkidle');
+
+  // Handle section selection if prompted
+  const currentUrl = page.url();
+  if (currentUrl.includes('select_section')) {
+    const firstSection = page.locator('table tbody tr').first();
+    await firstSection.locator('a').first().click();
+    await page.waitForLoadState('networkidle');
+  }
+
+  console.log('✓ Successfully logged in as admin');
+
+  // Step 2: Navigate to /welcome/about
+  console.log('Navigating to /welcome/about...');
+  await page.goto('/index.php/welcome/about');
+  await page.waitForLoadState('domcontentloaded');
+
+  // Step 3: Locate the cloture_table and count rows
+  console.log('Locating cloture_table...');
+  const clotureTable = page.locator('table#cloture_table');
+  await expect(clotureTable).toBeVisible();
+  console.log('✓ Successfully navigated to about page and found cloture_table');
+
+  // Count all rows
+  const allRows = await clotureTable.locator('tr').count();
+
+  // Return data rows count (excluding header)
+  const dataRowCount = allRows - 1;
+  console.log(`Found ${allRows} total rows (including header)`);
+  console.log(`Data rows count: ${dataRowCount}`);
+
+  return dataRowCount;
+}
+
 test.describe('Section Unique - Cloture Table Validation', () => {
 
   test('should verify cloture_table has between 0 and 5 rows', async ({ page }) => {
-    // Step 1: Login as admin
-    console.log('Step 1: Logging in as admin...');
-    await page.goto('/index.php/auth/login');
-    await page.waitForLoadState('networkidle');
+    // Get the number of data rows using the helper function
+    const dataRowCount = await login_and_section_number(page);
 
-    await page.fill('input[name="username"]', TEST_USER);
-    await page.fill('input[name="password"]', TEST_PASSWORD);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-
-    // Handle section selection if prompted
-    const currentUrl = page.url();
-    if (currentUrl.includes('select_section')) {
-      const firstSection = page.locator('table tbody tr').first();
-      await firstSection.locator('a').first().click();
-      await page.waitForLoadState('networkidle');
-    }
-
-    console.log('✓ Successfully logged in as admin');
-
-    // Step 2: Navigate to /welcome/about
-    console.log('Step 2: Navigating to /welcome/about...');
-    await page.goto('/index.php/welcome/about');
-    await page.waitForLoadState('domcontentloaded');
-
-    // Step 3: Locate and verify the cloture_table is visible (confirms page loaded)
-    console.log('Step 3: Locating cloture_table...');
-    const clotureTable = page.locator('table#cloture_table');
-    await expect(clotureTable).toBeVisible();
-    console.log('✓ Successfully navigated to about page and found cloture_table');
-
-    // Step 4: Count rows in the table (excluding header)
-    console.log('Step 4: Counting rows in cloture_table...');
-
-    // Get all <tr> elements in the table
-    const allRows = await clotureTable.locator('tr').count();
-
-    // Subtract 1 for the header row to get data rows count
-    const dataRowCount = allRows - 1;
-
-    console.log(`Found ${allRows} total rows (including header)`);
-    console.log(`Data rows count: ${dataRowCount}`);
-
-    // Step 5: Verify count is an integer between 0 and 5
-    console.log('Step 5: Validating row count...');
+    // Verify count is an integer between 0 and 5
+    console.log('Validating row count...');
 
     // Check it's an integer (should always be true from .count())
     expect(Number.isInteger(dataRowCount)).toBeTruthy();
@@ -91,29 +99,11 @@ test.describe('Section Unique - Cloture Table Validation', () => {
   });
 
   test('should verify cloture_table structure', async ({ page }) => {
-    // Login
-    await page.goto('/index.php/auth/login');
-    await page.waitForLoadState('networkidle');
-    await page.fill('input[name="username"]', TEST_USER);
-    await page.fill('input[name="password"]', TEST_PASSWORD);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-
-    // Handle section selection if prompted
-    const currentUrl = page.url();
-    if (currentUrl.includes('select_section')) {
-      const firstSection = page.locator('table tbody tr').first();
-      await firstSection.locator('a').first().click();
-      await page.waitForLoadState('networkidle');
-    }
-
-    // Navigate to about page
-    await page.goto('/index.php/welcome/about');
-    await page.waitForLoadState('domcontentloaded');
+    // Use helper function to login and navigate (we'll verify structure after)
+    const dataRowCount = await login_and_section_number(page);
 
     // Verify table structure
     const clotureTable = page.locator('table#cloture_table');
-    await expect(clotureTable).toBeVisible();
 
     // Verify header columns exist
     const headerCells = clotureTable.locator('tr').first().locator('th');
@@ -128,7 +118,106 @@ test.describe('Section Unique - Cloture Table Validation', () => {
     expect(headerTexts.some(text => text.includes('Date') || text.includes('clôture'))).toBeTruthy();
 
     console.log('✓ Table headers are correct:', headerTexts);
+    console.log(`✓ Table has ${dataRowCount} data rows`);
     console.log('✅ Table structure validation completed');
+  });
+
+  test('should verify charges_table has correct number of columns', async ({ page }) => {
+    // Get the number of sections (data rows in cloture_table)
+    const sectionCount = await login_and_section_number(page);
+    console.log(`Number of sections detected: ${sectionCount}`);
+
+    // Navigate to /comptes/dashboard
+    console.log('Navigating to /comptes/dashboard...');
+    await page.goto('/index.php/comptes/dashboard');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Take screenshot before opening accordions (for debugging)
+    await page.screenshot({
+      path: 'build/playwright-captures/dashboard-before-accordions.png',
+      fullPage: true
+    });
+
+    // Open all accordions on the page
+    console.log('Opening all accordions...');
+
+    // Try multiple strategies to find and open accordions
+    // Strategy 1: Bootstrap accordion buttons
+    let accordionButtons = page.locator('.accordion-button[aria-expanded="false"]');
+    let accordionCount = await accordionButtons.count();
+
+    // Strategy 2: Any button with data-bs-toggle="collapse" that's collapsed
+    if (accordionCount === 0) {
+      accordionButtons = page.locator('button[data-bs-toggle="collapse"][aria-expanded="false"]');
+      accordionCount = await accordionButtons.count();
+    }
+
+    // Strategy 3: Any clickable element with aria-expanded="false"
+    if (accordionCount === 0) {
+      accordionButtons = page.locator('[aria-expanded="false"][data-bs-toggle="collapse"]');
+      accordionCount = await accordionButtons.count();
+    }
+
+    if (accordionCount > 0) {
+      console.log(`Found ${accordionCount} collapsed accordion(s), opening them...`);
+      for (let i = 0; i < accordionCount; i++) {
+        try {
+          const button = accordionButtons.nth(i);
+          await button.scrollIntoViewIfNeeded();
+          await button.click({ timeout: 5000 });
+          await page.waitForTimeout(500); // Wait for accordion animation
+          console.log(`  ✓ Opened accordion ${i + 1}/${accordionCount}`);
+        } catch (error) {
+          console.log(`  ⚠ Could not open accordion ${i + 1}: ${error.message}`);
+        }
+      }
+      console.log('✓ All accordions processed');
+    } else {
+      console.log('No collapsed accordions found');
+    }
+
+    // Alternative: Force-open all collapse elements via JavaScript
+    console.log('Force-opening all Bootstrap collapse elements...');
+    await page.evaluate(() => {
+      // Find all collapse elements and show them
+      const collapseElements = document.querySelectorAll('.collapse:not(.show)');
+      collapseElements.forEach(element => {
+        element.classList.add('show');
+      });
+
+      // Update aria-expanded attributes
+      const expandButtons = document.querySelectorAll('[aria-expanded="false"][data-bs-toggle="collapse"]');
+      expandButtons.forEach(button => {
+        button.setAttribute('aria-expanded', 'true');
+      });
+    });
+
+    // Wait a bit for all animations to complete
+    await page.waitForTimeout(1000);
+
+    // Take screenshot after opening accordions (for debugging)
+    await page.screenshot({
+      path: 'build/playwright-captures/dashboard-after-accordions.png',
+      fullPage: true
+    });
+
+    // Locate the charges_table
+    console.log('Locating charges_table...');
+    const chargesTable = page.locator('table#charges_table');
+    await expect(chargesTable).toBeVisible();
+    console.log('✓ Found charges_table');
+
+    // Count columns in the header row
+    const headerCells = chargesTable.locator('tr').first().locator('th, td');
+    const columnCount = await headerCells.count();
+    console.log(`Found ${columnCount} columns in charges_table`);
+
+    // Verify: number of columns = number of sections + 3
+    const expectedColumns = sectionCount + 3;
+    expect(columnCount).toBe(expectedColumns);
+    console.log(`✓ Column count is correct: ${columnCount} = ${sectionCount} sections + 3`);
+
+    console.log('✅ Charges table column validation completed');
   });
 
 });

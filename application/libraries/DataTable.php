@@ -81,6 +81,7 @@ class DataTable extends Widget {
         $first = $this->attr['first'] + 1;
         $last = $first +count($values) - 2;
         $class = array_key_exists('class', $this->attr) ? "class=\"" . $this->attr['class'] . "\"" : '';
+        $id = $this->attr['id'] ? " id=\"" . $this->attr['id'] . "\"" : '';
 
         // build the image
         $res = ""; // <center>\n";
@@ -92,11 +93,11 @@ class DataTable extends Widget {
             return $res;
         }
 
-        $res .= "<table $class>\n";
+        $res .= "<table $class $id>\n";
         $res .= "\t<caption>$title</caption>\n";
 
         $res .= "\t<thead>";
-        $res .= '<tr class="first_row">' . "\n";
+        $res .= '<tr class="first_row" $id>' . "\n";
         $title_row = $values[0];
         $col = 0;
         if ($create != "") {

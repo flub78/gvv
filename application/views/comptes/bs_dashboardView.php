@@ -58,6 +58,7 @@ $url = controller_url($controller);
                         'values' => $charges,
                         'controller' => $controller,
                         'class' => "sql_table fixed_datatable table",
+                        'id' => "charges_table",
                         // 'create' => '',
                         // 'count' => '',
                         // 'first' => '',
@@ -91,6 +92,7 @@ $url = controller_url($controller);
                         'values' => $produits,
                         'controller' => $controller,
                         'class' => "sql_table fixed_datatable table",
+                        'id' => "produits_table",
                         'align' => array(
                             'center',
                             'left',

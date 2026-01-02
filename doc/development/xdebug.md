@@ -65,6 +65,52 @@ Run -> Add Configuration...
 
 ### To debug GVV served locally with Apache
 
+#### Check configuration
+
+```
+php --version
+PHP 7.4.33 (cli) (built: Jul  3 2025 16:41:49) ( NTS )
+Copyright (c) The PHP Group
+Zend Engine v3.4.0, Copyright (c) Zend Technologies
+	with Zend OPcache v7.4.33, Copyright (c), by Zend Technologies	
+	with Xdebug v3.1.6, Copyright (c) 2002-2022, by Derick Rethans
+``` 
+
+##### launch.json
+```
+	"configurations": [
+		
+		{
+			"name": "Listen for Xdebug",
+			"type": "php",
+			"request": "launch",
+			"port": 9003,
+			"log": true,
+			// "pathMappings": {
+			//     "/var/www/html/gvv.net": "${workspaceFolder}",
+			//     "/home/frederic/git/gvv": "${workspaceFolder}" // Adjust paths
+			// },
+		},
+```
+
+Run - Start Debugging
+
+Si le programme s’arrête quand il y a une instruction xdebug_break() mais pas quand on pause les breakpoints dans VSC 
+
+pathMappings incorrect
+Xdebug reçoit un chemin serveur, VSCode un chemin local. S'ils ne correspondent pas, les breakpoints ne matchent pas.
+
+string(32) "/home/frederic/git/gvv/index.php"
+
+/etc/php/7.4/cli/conf.d/20-xdebug.ini,
+
+replaced 
+xdebug.start_with_request=trigger
+with
+xdebug.start_with_request=yes
+
+sudo systemctl restart apache2
+
 ### To debug phpunit tests
 
 
