@@ -57,7 +57,7 @@ echo ul($list, $attributes);
 
 echo '<hr>';
 
-echo "<table class='table'>";
+echo "<table class='table' id='cloture_table'>";
 echo "<tr><th>Section</th><th>Date de clôture</th></tr>";
 foreach ($dates_gel as $sect) {
 	echo "<tr><td>" . $sect->nom . "</td><td>" . $sect->latest_cloture_date . "</td></tr>";
