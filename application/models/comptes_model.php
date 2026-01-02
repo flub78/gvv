@@ -657,7 +657,10 @@ class Comptes_model extends Common_Model {
         foreach ($sections as $section) {
             $title[] = $section[$section_field];
         }
-        $title[] = "Total Club";
+        // Only add "Total Club" column if there are 2 or more sections
+        if (count($sections) >= 2) {
+            $title[] = "Total Club";
+        }
         $table[] = $title;
 
         foreach ($res as $codec) {
@@ -683,10 +686,13 @@ class Comptes_model extends Common_Model {
                     $row[] = number_format((float) $solde * $factor, 2, ",", "");
                 }
             }
-            if ($html) {
-                $row[] = euro($total * $factor);
-            } else {
-                $row[] = number_format((float) $total * $factor, 2, ",", "");
+            // Only add total column if there are 2 or more sections
+            if (count($sections) >= 2) {
+                if ($html) {
+                    $row[] = euro($total * $factor);
+                } else {
+                    $row[] = number_format((float) $total * $factor, 2, ",", "");
+                }
             }
 
             $table[] = $row;
@@ -709,12 +715,21 @@ class Comptes_model extends Common_Model {
         $sections = $this->sections_model->section_list();
         $sections_count = count($sections);
 
-        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
+        // Calculate the correct column range based on whether we have "Total Club" column
+        $max_col_index = $header_count + $sections_count;
+        if ($sections_count < 2) {
+            // If less than 2 sections, don't add the "Total Club" column
+            $max_col_index = $header_count + $sections_count - 1;
+        }
+
+        for ($i = $header_count; $i <= $max_col_index; $i++) {
             $total = 0.0;
             foreach ($table as $elt) {
                 if ($line) {
-                    $val = str_replace(',', '.', $elt[$i]);
-                    $total += $val;
+                    if (isset($elt[$i])) {
+                        $val = str_replace(',', '.', $elt[$i]);
+                        $total += $val;
+                    }
                 }
                 $line += 1;
             }
@@ -745,22 +760,38 @@ class Comptes_model extends Common_Model {
         foreach ($sections as $section) {
             $title[] = $section[$section_field];
         }
-        $title[] = "Total Club";
+        // Only add "Total Club" column if there are 2 or more sections
+        if ($sections_count >= 2) {
+            $title[] = "Total Club";
+        }
         $resultat[] = $title;
         $resultat[] = $this->compute_total(["Total des recettes"], $produits);
         $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
 
         $total_row = ["Résultat"];
 
-        for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-            $total = $resultat[1][$i] - $resultat[2][$i];
-            $total_row[] = $this->format_currency($total, $html);
+        // Calculate the correct column range based on whether we added "Total Club"
+        $max_col_index = $header_count + $sections_count;
+        if ($sections_count < 2) {
+            // If less than 2 sections, don't access the "Total Club" column index
+            $max_col_index = $header_count + $sections_count - 1;
+        }
+
+        for ($i = $header_count; $i <= $max_col_index; $i++) {
+            if (isset($resultat[1][$i]) && isset($resultat[2][$i])) {
+                $total = $resultat[1][$i] - $resultat[2][$i];
+                $total_row[] = $this->format_currency($total, $html);
+            }
         }
 
         if ($html) {
-            for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-                $resultat[1][$i] = euro($resultat[1][$i]);
-                $resultat[2][$i] = euro($resultat[2][$i]);
+            for ($i = $header_count; $i <= $max_col_index; $i++) {
+                if (isset($resultat[1][$i])) {
+                    $resultat[1][$i] = euro($resultat[1][$i]);
+                }
+                if (isset($resultat[2][$i])) {
+                    $resultat[2][$i] = euro($resultat[2][$i]);
+                }
             }
         }
         $resultat[] = $total_row;
@@ -917,40 +948,71 @@ class Comptes_model extends Common_Model {
 
         }
 
-        // la colonne Total
-        $title[] = "Total Club";
-        $banques[] =  $tot_banque;
-        $emprunts[] =  $tot_emprunt;
-        $prets[] = $tot_prets;
+        // la colonne Total - Only add "Total Club" column if there are 2 or more sections
+        if ($sections_count >= 2) {
+            $title[] = "Total Club";
+            $banques[] =  $tot_banque;
+            $emprunts[] =  $tot_emprunt;
+            $prets[] = $tot_prets;
 
-        $creances[] = $tot_creances;
-        $dettes_tiers[] = $tot_dettes;
+            $creances[] = $tot_creances;
+            $dettes_tiers[] = $tot_dettes;
 
-        $total_dispo[] = $tot_banque + $tot_creances + $tot_prets;
-        $total_dettes[] = $tot_emprunt + $tot_dettes;
-        $diff_actif_passif[] = $tot_banque + $tot_creances + $tot_prets - $tot_emprunt - $tot_dettes;
+            $total_dispo[] = $tot_banque + $tot_creances + $tot_prets;
+            $total_dettes[] = $tot_emprunt + $tot_dettes;
+            $diff_actif_passif[] = $tot_banque + $tot_creances + $tot_prets - $tot_emprunt - $tot_dettes;
 
-        
-        $immos_brutes[] = $tot_immos_brutes;
-        $immos_cumul_amortissements[] = $tot_immos_cumul_amortissements;
-        $immos_nettes[] = $tot_immos_nettes;
+            
+            $immos_brutes[] = $tot_immos_brutes;
+            $immos_cumul_amortissements[] = $tot_immos_cumul_amortissements;
+            $immos_nettes[] = $tot_immos_nettes;
+        }
 
         // Mise en forme
         if ($html) {
-            for ($i = $header_count; $i <= $header_count + $sections_count; $i++) {
-                $prets[$i] = $this->format_currency($prets[$i], $html);
-                $banques[$i] = $this->format_currency($banques[$i], $html);
-                $creances[$i] = $this->format_currency($creances[$i], $html);
-                $total_dispo[$i] = $this->format_currency($total_dispo[$i], $html);
+            // Calculate the number of column indices to format
+            $max_col_index = $header_count + $sections_count;
+            if ($sections_count < 2) {
+                // If less than 2 sections, don't access the "Total Club" column index
+                $max_col_index = $header_count + $sections_count - 1;
+            }
+            
+            for ($i = $header_count; $i <= $max_col_index; $i++) {
+                if (isset($prets[$i])) {
+                    $prets[$i] = $this->format_currency($prets[$i], $html);
+                }
+                if (isset($banques[$i])) {
+                    $banques[$i] = $this->format_currency($banques[$i], $html);
+                }
+                if (isset($creances[$i])) {
+                    $creances[$i] = $this->format_currency($creances[$i], $html);
+                }
+                if (isset($total_dispo[$i])) {
+                    $total_dispo[$i] = $this->format_currency($total_dispo[$i], $html);
+                }
 
-                $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
-                $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
-                $total_dettes[$i]  = $this->format_currency($total_dettes[$i], $html);
-                $diff_actif_passif[$i]  = $this->format_currency($diff_actif_passif[$i], $html);
+                if (isset($dettes_tiers[$i])) {
+                    $dettes_tiers[$i] = $this->format_currency($dettes_tiers[$i], $html);
+                }
+                if (isset($emprunts[$i])) {
+                    $emprunts[$i] = $this->format_currency($emprunts[$i], $html);
+                }
+                if (isset($total_dettes[$i])) {
+                    $total_dettes[$i]  = $this->format_currency($total_dettes[$i], $html);
+                }
+                if (isset($diff_actif_passif[$i])) {
+                    $diff_actif_passif[$i]  = $this->format_currency($diff_actif_passif[$i], $html);
+                }
 
-                $immos_brutes[$i] = $this->format_currency($immos_brutes[$i], $html);
-                $immos_cumul_amortissements[$i] = $this->format_currency($immos_cumul_amortissements[$i], $html);
-                $immos_nettes[$i] = $this->format_currency($immos_nettes[$i], $html);     
+                if (isset($immos_brutes[$i])) {
+                    $immos_brutes[$i] = $this->format_currency($immos_brutes[$i], $html);
+                }
+                if (isset($immos_cumul_amortissements[$i])) {
+                    $immos_cumul_amortissements[$i] = $this->format_currency($immos_cumul_amortissements[$i], $html);
+                }
+                if (isset($immos_nettes[$i])) {
+                    $immos_nettes[$i] = $this->format_currency($immos_nettes[$i], $html);
+                }
             }
         }
 

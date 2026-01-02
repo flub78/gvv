@@ -264,14 +264,22 @@ test.describe('Section Unique - Cloture Table Validation', () => {
       fullPage: true
     });
 
-    // Verify both tables have correct number of columns
-    const expectedColumns = sectionCount + 3;
+    // Calculate expected number of columns based on section count
+    // If sectionCount >= 2: expectedColumns = sectionCount + 3
+    // If sectionCount == 1: expectedColumns = 3 (sections + label column + total)
+    const chargesExpectedColumns = sectionCount >= 2 ? sectionCount + 3 : 3;
+    const produitsExpectedColumns = sectionCount >= 2 ? sectionCount + 3 : 3;
+
+    console.log(`\nCalculating expected columns for charges_table and produits_table:`);
+    console.log(`  Section count: ${sectionCount}`);
+    console.log(`  Expected columns for charges_table: ${chargesExpectedColumns}`);
+    console.log(`  Expected columns for produits_table: ${produitsExpectedColumns}`);
 
     // Verify charges_table
-    await verifyTableColumns(page, 'charges_table', expectedColumns, sectionCount);
+    await verifyTableColumns(page, 'charges_table', chargesExpectedColumns, sectionCount);
 
     // Verify produits_table
-    await verifyTableColumns(page, 'produits_table', expectedColumns, sectionCount);
+    await verifyTableColumns(page, 'produits_table', produitsExpectedColumns, sectionCount);
 
     console.log('\n✅ All dashboard table validations completed');
   });
@@ -313,8 +321,14 @@ test.describe('Section Unique - Cloture Table Validation', () => {
       fullPage: true
     });
 
-    // Expected number of columns = number of sections + 2
-    const expectedColumns = sectionCount + 2;
+    // Calculate expected number of columns based on section count
+    // If sectionCount >= 2: expectedColumns = sectionCount + 2
+    // If sectionCount == 1: expectedColumns = 2 (section column + label/description column)
+    const expectedColumns = sectionCount >= 2 ? sectionCount + 2 : 2;
+
+    console.log(`\nCalculating expected columns for resultat_table, actifs_table, dettes_table, and immos_table:`);
+    console.log(`  Section count: ${sectionCount}`);
+    console.log(`  Expected columns: ${expectedColumns}`);
 
     // Verify resultat_table
     await verifyTableColumns(page, 'resultat_table', expectedColumns, sectionCount);
