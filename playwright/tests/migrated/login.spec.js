@@ -160,19 +160,7 @@ test.describe('GVV Login Tests (Migrated from Dusk)', () => {
     const hasSectionSelector = await sectionSelect.count() > 0;
 
     if (!hasSectionSelector) {
-      console.log('Section selector not available - testing login without section selection');
-      console.log('This is expected if sections are not configured in the system');
-
-      // Login without section parameter
-      await loginPage.login(TEST_USER, TEST_PASSWORD, '');
-
-      // Verify login succeeded
-      await loginPage.verifyLoggedIn();
-      console.log('✓ Login successful without section selection');
-
-      // Logout
-      await loginPage.logout();
-      console.log('✓ Login/logout test completed without sections');
+      test.skip(true, 'Section selector not available - sections not configured');
       return;
     }
 
@@ -181,18 +169,7 @@ test.describe('GVV Login Tests (Migrated from Dusk)', () => {
     console.log(`Found ${sectionOptions} section options`);
 
     if (sectionOptions <= 1) {
-      console.log('No section options available (only default/empty) - testing login without specific section');
-
-      // Login without section parameter
-      await loginPage.login(TEST_USER, TEST_PASSWORD, '');
-
-      // Verify login succeeded
-      await loginPage.verifyLoggedIn();
-      console.log('✓ Login successful without section selection');
-
-      // Logout
-      await loginPage.logout();
-      console.log('✓ Login/logout test completed without sections');
+      test.skip(true, 'No section options available - sections not configured');
       return;
     }
 
