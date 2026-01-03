@@ -35,9 +35,9 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     loginPage = new LoginPage(page);
     flightPage = new GliderFlightPage(page);
     
-    // Login before each test
+    // Login before each test - section 1 = Planeur (glider section)
     await loginPage.open();
-    await loginPage.login(TEST_USER, TEST_PASSWORD);
+    await loginPage.login(TEST_USER, TEST_PASSWORD, '1');
   });
 
   test.afterEach(async () => {
