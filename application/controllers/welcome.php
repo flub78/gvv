@@ -64,6 +64,11 @@ class Welcome extends Gvv_Controller {
         $data['username'] = $this->dx_auth->get_username();
         $data['user_name'] = $data['username']; // Can be enhanced with full name from membres table
 
+        // Comptes multi-sections pour le pilote courant
+        $this->load->model('comptes_model');
+        $this->load->model('sections_model');
+        $data['user_accounts'] = $this->comptes_model->get_pilote_comptes($data['username']);
+
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin

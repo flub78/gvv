@@ -61,7 +61,7 @@ if ($section) {
         </h3>
         <div id="panel_filter_id" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panel-filtre">
             <div class="accordion-body">
-                <form action="<?= controller_url($controller) . "/filterValidation/" . $compte ?>" method="post" accept-charset="utf-8" name="saisie">
+                <form action="<?= controller_url($controller) . '/filterValidation/' . $compte . ($section ? '/' . $section['id'] : '') ?>" method="post" accept-charset="utf-8" name="saisie">
 
                     <div class="d-md-flex flex-row mb-2">
                         <!-- date -->
@@ -390,9 +390,9 @@ if ($codec == 411 && $navigation_allowed && $section) {
 }
 
 if ($this->dx_auth->is_role('tresorier')) {
-    echo button_bar2("$controller/export/$compte", array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
+    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 } else {
-    echo button_bar2("$controller/export/$compte", array('Excel' => "button", 'Pdf' => "button"));
+    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button"));
 }
 
 echo '</div>';
@@ -426,14 +426,15 @@ echo '</div>';
         );
 
         // Initialize DataTables with server-side processing using older syntax
-        console.log('Initializing DataTables with URL: <?= site_url('compta/datatable_journal_compte/' . $compte) ?>');
+        <?php $ajax_url = site_url('compta/datatable_journal_compte/' . $compte . ($section ? '/' . $section['id'] : '')); ?>
+        console.log('Initializing DataTables with URL: <?= $ajax_url ?>');
         console.log('has_modification_rights: <?= $has_modification_rights ? "true" : "false" ?>');
         console.log('section: <?= $section ? "true" : "false" ?>');
         
         $('#journal-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": "<?= site_url('compta/datatable_journal_compte/' . $compte) ?>",
+            "sAjaxSource": "<?= $ajax_url ?>",
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,

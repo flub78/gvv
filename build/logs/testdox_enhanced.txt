@@ -1,81 +1,32 @@
-Assets Helper
- [x] Theme function
- [x] Css url function
- [x] Js url function
- [x] Img url function
- [x] Asset url function
- [x] Controller url function
- [x] Image dir function
+Events Types Metadata
+ [x] Metadata instantiation
+ [x] Metadata has key configuration
+ [x] Id field is key
+ [x] Activite field is enumerate
+ [x] Boolean fields are configured
+ [x] En vol field is boolean
+ [x] Multiple field is boolean
+ [x] Expirable field is boolean
+ [x] Annual field is boolean
+ [x] Metadata has field array
+ [x] Metadata inheritance
+ [x] All expected fields are defined
 
-Button Library
- [x] Button library loaded
- [x] Button default attribute
- [x] Button attribute modification
- [x] Button display
- [x] Button delete class
- [x] Button edit class
- [x] Button without attributes
- [x] Button inheritance behavior
-
-Csv Helper
- [x] Csv file function
- [x] Csv file with empty table
- [x] Csv file with single row
- [x] Csv file numeric conversion
- [x] Csv file with header flag
- [x] Csv file with special characters
- [x] Csv file multiple rows complex
- [x] Csv file format validation
- [x] Csv file with empty and null values
-
-Form Elements Helper
- [x] Checkbox array function
- [x] Input field function
- [x] Dropdown field function
- [x] Add first row function
- [x] Add first col function
- [x] Complete table manipulation
- [x] To list function
- [x] To list empty array
- [x] Highlight with html
- [x] Highlight without html
- [x] Checkbox field function
- [x] Checkbox field unchecked
- [x] Radio field function
- [x] Radio field with attributes
- [x] Enumerate radio fields function
- [x] Enumerate radio fields with selection
- [x] Add first row empty table
- [x] Dropdown field null attrs
- [x] Dropdown field empty options
- [x] Account sums function
- [x] Account sums negative solde
- [x] Display form table function
- [x] Display form table empty
- [x] Input field with attributes
- [x] E form dropdown function
- [x] Checkbox array checked
- [x] Checkbox array unchecked
- [x] Checkbox array null array
- [x] Add first col extra values
-
-Log Library
- [x] System user information
- [x] Log directory permissions
- [x] Gvv info logging
- [x] Gvv debug logging
- [x] Gvv error logging
- [x] Log file method
- [x] Log file size method
- [x] Count lines method
-
-Widget Library
- [x] Widget library loaded
- [x] Widget default attribute
- [x] Widget attribute modification
- [x] Widget display
- [x] Widget image method
- [x] Widget multiple attributes
- [x] Widget non existent attribute
- [x] Widget set get workflow
+Mail Metadata
+ [x] Metadata instantiation
+ [x] Mail table fields are defined
+ [x] Id field has custom name
+ [x] Date envoie field is configured
+ [x] Titre field is configured
+ [x] Selection field is configured
+ [x] Individuel field is boolean
+ [x] Destinataires field has textarea attrs
+ [x] Texte field has textarea attrs
+ [x] Mails selection is enumerate
+ [x] Vue mails selection is enumerate
+ [x] Titre field has title
+ [x] Destinataires field has title
+ [x] Individuel field has title
+ [x] Texte field has title with variables
+ [x] Metadata has field array
 

@@ -135,14 +135,39 @@ $this->lang->load('welcome');
                 </div>
                 <?php endif; ?>
 
+                <?php
+                $accounts = isset($user_accounts) ? $user_accounts : array();
+                if (!empty($accounts)) :
+                    foreach ($accounts as $account) :
+                        $section_name = isset($account['section_name']) ? $account['section_name'] : $account['club'];
+                        $title = translation('dashboard_my_account_section');
+                        if ($title && strpos($title, '%s') !== false) {
+                            $title = sprintf($title, $section_name);
+                        } else {
+                            $title = translation('dashboard_my_account') . ' - ' . $section_name;
+                        }
+                ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-file-invoice-dollar text-success"></i>
-                        <div class="card-title">Ma facture</div>
-                        <div class="card-text text-muted">Consulter</div>
+                        <div class="card-title"><?= $title ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
+                        <a href="<?= controller_url('compta/mon_compte/' . $account['club']) ?>" class="btn btn-success btn-sm">Accéder</a>
+                    </div>
+                </div>
+                <?php
+                    endforeach;
+                else:
+                ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-file-invoice-dollar text-success"></i>
+                        <div class="card-title"><?= translation('dashboard_my_account') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
                         <a href="<?= controller_url('compta/mon_compte') ?>" class="btn btn-success btn-sm">Accéder</a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">

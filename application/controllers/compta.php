@@ -51,6 +51,7 @@ class Compta extends Gvv_Controller {
         $this->load->model('tarifs_model');
         $this->load->model('categorie_model');
         $this->load->model('attachments_model');
+        $this->load->model('sections_model');
         $this->lang->load('compta');
         $this->lang->load('comptes');
         $this->lang->load('attachments');
@@ -1686,13 +1687,28 @@ class Compta extends Gvv_Controller {
      * @param unknown_type $message
      * @param unknown_type $per_page
      */
-    private function select_data($account_data, $compte = '', $premier = 0, $message = '', $per_page = 0) {
+    private function select_data($account_data, $compte = '', $premier = 0, $message = '', $per_page = 0, $section = null) {
         if (!$per_page)
             $per_page = $this->session->userdata('per_page');
 
+        // Determine which section to use for queries FIRST
+        $query_section_id = null;
+        if ($section && isset($section['id'])) {
+            $query_section_id = $section['id'];
+        } else if ($this->sections_model->section()) {
+            $query_section_id = $this->sections_model->section_id();
+        }
+
         // The following line has to be first
         $this->data = $account_data;
-        $this->data['compte_selector'] = $this->comptes_model->selector_with_all([], true);
+        
+        // Build compte_selector with correct section filter
+        // When explicit section provided, filter by that section; otherwise use session section
+        $where_clause = [];
+        if ($query_section_id) {
+            $where_clause['club'] = $query_section_id;
+        }
+        $this->data['compte_selector'] = $this->comptes_model->selector_with_all($where_clause, false);
 
         $year = $this->session->userdata('year');
         $this->data['year_selector'] = $this->gvv_model->getYearSelector("date_op");
@@ -1717,10 +1733,10 @@ class Compta extends Gvv_Controller {
             }
         }
 
-        $solde_previous_year = $this->ecritures_model->solde_compte($compte, $date_deb, "<");
+        $solde_previous_year = $this->ecritures_model->solde_compte($compte, $date_deb, "<", false, $query_section_id);
 
-        $solde_deb = $this->ecritures_model->solde_compte($compte, $date_deb, $operation = "<");
-        $solde_fin = $this->ecritures_model->solde_compte($compte, $date_fin, $operation = "<=");
+        $solde_deb = $this->ecritures_model->solde_compte($compte, $date_deb, $operation = "<", false, $query_section_id);
+        $solde_fin = $this->ecritures_model->solde_compte($compte, $date_fin, $operation = "<=", false, $query_section_id);
         $this->data['date_deb'] = $date_deb;
         $this->data['date_fin'] = $date_fin;
         $this->data['solde_avant'] = $solde_deb;
@@ -1728,11 +1744,11 @@ class Compta extends Gvv_Controller {
 
         // echo "debut $date_deb, solde=$solde_deb fin=$date_fin, solde=$solde_fin" . br();
         // warning_count
-        $this->data['count'] = $this->gvv_model->count_account($compte);
+        $this->data['count'] = $this->gvv_model->count_account($compte, $query_section_id);
         if ($this->data['count'] > 400) {
-            $this->data['select_result'] = $this->gvv_model->select_journal($compte, $per_page, $premier);
+            $this->data['select_result'] = $this->gvv_model->select_journal($compte, $per_page, $premier, [], $query_section_id);
         } else {
-            $this->data['select_result'] = $this->gvv_model->select_journal($compte);
+            $this->data['select_result'] = $this->gvv_model->select_journal($compte, 1000000, 0, [], $query_section_id);
         }
         $user = $this->comptes_model->user($compte);
         $mlogin = $this->dx_auth->get_username();
@@ -1781,19 +1797,19 @@ class Compta extends Gvv_Controller {
     /**
      * Display account extract
      */
-    private function journal_data($data, $compte = '', $premier = 0, $message = '') {
-        $this->select_data($data, $compte, $premier, $message);
-        $this->data['section'] = $this->gvv_model->section();
+    private function journal_data($data, $compte = '', $premier = 0, $message = '', $section = null) {
+        $this->select_data($data, $compte, $premier, $message, 0, $section);
+        $selected_section = $section ? $section : $this->gvv_model->section();
+        $this->data['section'] = $selected_section;
         // Add section name for display in the form
-        $section = $this->gvv_model->section();
-        $this->data['section_name'] = $section ? $section['nom'] : '';
+        $this->data['section_name'] = $selected_section ? $selected_section['nom'] : '';
         load_last_view('compta/journalCompteView', $this->data);
     }
 
     /**
      * journal
      */
-    function journal_compte($compte = '', $premier = 0, $message = '') {
+    function journal_compte($compte = '', $premier = 0, $message = '', $section = null) {
         $current_url = current_url();
 
         /*
@@ -1813,19 +1829,38 @@ class Compta extends Gvv_Controller {
             redirect("comptes/balance");
         }
 
-        // or it is not an account of the current section
-        if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
-            redirect("comptes/balance");
+        // Determine the expected section context
+        $section_context = $section ? $section : $this->gvv_model->section();
+        
+        // If a section is explicitly provided, validate that the account belongs to it
+        if ($section && isset($section['id']) && isset($data['club'])) {
+            if ($section['id'] != $data['club']) {
+                // Account does not belong to the requested section - this is an error
+                $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+                redirect("comptes/balance");
+            }
+        }
+        
+        // Check section mismatch for session-based section (existing logic)
+        $section_mismatch = $section_context && ($section_context['id'] != $data['club']);
+        if ($section_mismatch && !$section) {
+            // Only apply owner check if no explicit section was provided (session-based access)
+            $owner = $this->comptes_model->user($compte);
+            $mlogin = $this->dx_auth->get_username();
+            $has_board_rights = $this->dx_auth->is_role('bureau', true, true);
+            if (($owner != $mlogin) && !$has_board_rights) {
+                $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+                redirect("comptes/balance");
+            }
         }
 
-        $this->journal_data($data, $compte, $premier, $message);
+        $this->journal_data($data, $compte, $premier, $message, $section_context);
     }
 
     /**
      * AJAX endpoint for DataTables server-side processing (older format)
      */
-    function datatable_journal_compte($compte = '') {
+    function datatable_journal_compte($compte = '', $section_id = null) {
         // Clear any previous output buffer to prevent contamination
         if (ob_get_level()) {
             ob_clean();
@@ -1849,8 +1884,13 @@ class Compta extends Gvv_Controller {
         }
         
         if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
-            $this->output->set_output(json_encode(['error' => 'Access denied to account: ' . $compte]));
-            return;
+            $account_owner = isset($data['pilote']) ? $data['pilote'] : $this->comptes_model->user($compte);
+            $mlogin = $this->dx_auth->get_username();
+            $has_board_rights = $this->dx_auth->is_role('bureau', true, true);
+            if (($account_owner != $mlogin) && !$has_board_rights) {
+                $this->output->set_output(json_encode(['error' => 'Access denied to account: ' . $compte]));
+                return;
+            }
         }
 
         // Authorization check - same logic as select_data()
@@ -1892,7 +1932,7 @@ class Compta extends Gvv_Controller {
             $this->load->model('ecritures_model');
             
             // Get total count without search filter
-            $total_count = $this->gvv_model->count_account($compte);
+            $total_count = $this->gvv_model->count_account($compte, $section_id);
             
             // Get filtered data using our method
             $result = $this->ecritures_model->get_datatable_data([
@@ -1901,7 +1941,8 @@ class Compta extends Gvv_Controller {
                 'length' => $iDisplayLength,
                 'search' => $sSearch,
                 'order_column' => 'date_op', // Default for now
-                'order_direction' => 'ASC'  // Chronological order (oldest first) for correct balance display
+                'order_direction' => 'ASC',  // Chronological order (oldest first) for correct balance display
+                'section_id' => $section_id   // Filter by explicit section if provided
             ]);
 
             $filtered_count = $result['filtered_count'];
@@ -2154,11 +2195,11 @@ class Compta extends Gvv_Controller {
      * @param
      *            $pilote
      */
-    function compte_pilote($pilote) {
-        if ($this->comptes_model->has_compte($pilote)) {
-            $compte = $this->comptes_model->compte_pilote_id($pilote);
+    function compte_pilote($pilote, $section = null) {
+        if ($this->comptes_model->has_compte($pilote, $section)) {
+            $compte = $this->comptes_model->compte_pilote_id($pilote, $section);
             $data = $this->comptes_model->get_by_id('id', $compte);
-            $this->journal_data($data, $compte);
+            $this->journal_data($data, $compte, 0, '', $section);
         } else {
             $data = array();
             $data['title'] = $this->lang->line("gvv_comptes_title_error");
@@ -2170,15 +2211,49 @@ class Compta extends Gvv_Controller {
     /**
      * journal
      */
-    function mon_compte() {
+    function mon_compte($section_id = null) {
         $this->push_return_url("mon compte");
 
         $mlogin = $this->dx_auth->get_username();
+
+        $target_section = null;
+        if ($section_id !== null) {
+            $target_section = $this->sections_model->get_by_id('id', $section_id);
+            if (!$target_section) {
+                gvv_error("mon_compte: section $section_id not found");
+                $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+                redirect('welcome');
+                return;
+            }
+            gvv_debug("mon_compte: target_section=" . $target_section['nom'] . " (id=$section_id)");
+
+            if (!$this->comptes_model->has_compte_in_section($mlogin, $section_id)) {
+                gvv_error("mon_compte: no account for $mlogin in section " . $target_section['nom']);
+                $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
+                redirect('welcome');
+                return;
+            }
+        } else {
+            gvv_debug("mon_compte: no explicit section_id, using session section");
+        }
+
+        $compte_record = $this->comptes_model->compte_pilote($mlogin, $target_section);
+        gvv_debug("mon_compte: compte_pilote returned: " . var_export($compte_record, true));
+        
+        if ($compte_record && isset($compte_record['id'])) {
+            gvv_debug("mon_compte: calling journal_compte with id=" . $compte_record['id'] . ", section=" . ($target_section ? $target_section['nom'] : 'null'));
+            $this->journal_compte($compte_record['id'], 0, '', $target_section);
+            return;
+        }
+
+        gvv_debug("mon_compte: compte_pilote returned null, trying fallback with info_pilote");
         $info_pilote = $this->membres_model->get_by_id('mlogin', $mlogin);
         if (isset($info_pilote['compte']) && ($info_pilote['compte'] !== "0")) {
-            $this->journal_compte($info_pilote['compte']);
+            gvv_debug("mon_compte: using info_pilote['compte']=" . $info_pilote['compte']);
+            $this->journal_compte($info_pilote['compte'], 0, '', $target_section);
         } else {
-            $this->compte_pilote($mlogin);
+            gvv_debug("mon_compte: calling compte_pilote fallback");
+            $this->compte_pilote($mlogin, $target_section);
         }
     }
 
@@ -2221,11 +2296,18 @@ class Compta extends Gvv_Controller {
     /**
      * Validation du filtre d'affichage de compte.
      */
-    public function filterValidation($compte) {
+    public function filterValidation($compte, $section_id = null) {
         $this->_filterValidation();
         // Le filtrage modifie la pagination, donc après filtrage on ne peut pas retourner
         // à la page initiale
-        $this->journal_compte($compte);
+        
+        // Resolve section if section_id is provided
+        $section = null;
+        if ($section_id) {
+            $section = $this->sections_model->get_by_id('id', $section_id);
+        }
+        
+        $this->journal_compte($compte, 0, '', $section);
     }
 
     /**
@@ -2278,7 +2360,7 @@ class Compta extends Gvv_Controller {
      *
      * @param unknown_type $compte
      */
-    function pdf($compte = '') {
+    function pdf($compte = '', $section_id = null) {
         $separator = ',';
         if ($compte == '') {
             $user = $this->dx_auth->get_username();
@@ -2290,7 +2372,16 @@ class Compta extends Gvv_Controller {
 
         $height = 6;
         $compte_data = $this->comptes_model->get_by_id('id', $compte);
-        $this->select_data($compte_data, $compte, 0, '', 10000);
+        
+        // Determine which section to use
+        $section = null;
+        if ($section_id) {
+            $section = $this->sections_model->get_by_id('id', $section_id);
+        } else {
+            $section = $this->gvv_model->section();
+        }
+        
+        $this->select_data($compte_data, $compte, 0, '', 10000, $section);
 
         $nom_club = $this->config->item('nom_club');
         $tel_club = $this->config->item('tel_club');
@@ -2305,7 +2396,6 @@ class Compta extends Gvv_Controller {
 
         // Build title with club name and section name if available
         $title = $nom_club;
-        $section = $this->gvv_model->section();
         if ($section) {
             $title .= " section " . $section['nom'];
         }
@@ -2531,7 +2621,7 @@ class Compta extends Gvv_Controller {
      *
      * @param unknown_type $compte
      */
-    function export($compte = '') {
+    function export($compte = '', $section_id = null) {
         if ($compte == '') {
             $user = $this->dx_auth->get_username();
             if (!$this->comptes_model->has_compte($user)) {
@@ -2541,12 +2631,21 @@ class Compta extends Gvv_Controller {
         }
 
         if ($_POST['button'] == 'Pdf') {
-            $this->pdf($compte);
+            $this->pdf($compte, $section_id);
             return;
         }
 
         $compte_data = $this->comptes_model->get_by_id('id', $compte);
-        $this->select_data($compte_data, $compte, 0, '', 10000);
+        
+        // Determine which section to use
+        $section = null;
+        if ($section_id) {
+            $section = $this->sections_model->get_by_id('id', $section_id);
+        } else {
+            $section = $this->gvv_model->section();
+        }
+        
+        $this->select_data($compte_data, $compte, 0, '', 10000, $section);
 
         if ($_POST['button'] == $this->lang->line("gvv_compta_button_freeze")) {
             $selection = $this->data['select_result'];
@@ -2582,7 +2681,6 @@ class Compta extends Gvv_Controller {
 
             $str .= "$nom_club;; " . $this->data['pilote_name'] . "\n";
             // Add section name to CSV export if available
-            $section = $this->gvv_model->section();
             if ($section) {
                 $str .= $this->lang->line("gvv_compta_label_section") . ":; " . $section['nom'] . ";;\n";
             }

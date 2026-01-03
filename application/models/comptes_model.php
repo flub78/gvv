@@ -386,9 +386,16 @@ class Comptes_model extends Common_Model {
      * @param
      *            $pilote
      */
-    public function compte_pilote($pilote) {
+    public function compte_pilote($pilote, $section = null) {
         $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
-        $section = $this->sections_model->section();
+        $target_section = null;
+        if (is_array($section) && isset($section['id'])) {
+            $target_section = $section;
+        } else if ($section) {
+            $target_section = $this->sections_model->get_by_id('id', $section);
+        } else {
+            $target_section = $this->sections_model->section();
+        }
 
         // Si un membre_payeur est défini, chercher son compte dans la section courante
         if ($info_pilote && isset($info_pilote['membre_payeur']) && $info_pilote['membre_payeur']) {
@@ -404,8 +411,8 @@ class Comptes_model extends Common_Model {
                 ));
 
             // Filtrer par section si une section est active
-            if ($section) {
-                $this->db->where('comptes.club', $section['id']);
+            if ($target_section) {
+                $this->db->where('comptes.club', $target_section['id']);
             }
 
             $result = $this->db->get();
@@ -414,8 +421,8 @@ class Comptes_model extends Common_Model {
                 return $result->row_array();
             } else {
                 // Aucun compte trouvé pour le membre payeur dans la section courante
-                if ($section) {
-                    gvv_error("Aucun compte 411 trouvé pour le membre payeur '$membre_payeur' dans la section " . $section['nom']);
+                if ($target_section) {
+                    gvv_error("Aucun compte 411 trouvé pour le membre payeur '$membre_payeur' dans la section " . $target_section['nom']);
                 } else {
                     gvv_error("Aucun compte 411 trouvé pour le membre payeur '$membre_payeur' (aucune section active)");
                 }
@@ -433,8 +440,8 @@ class Comptes_model extends Common_Model {
             ));
 
         // Filtrer par section si une section est active
-        if ($section) {
-            $this->db->where('comptes.club', $section['id']);
+        if ($target_section) {
+            $this->db->where('comptes.club', $target_section['id']);
         }
 
         $result = $this->db->get();
@@ -442,8 +449,8 @@ class Comptes_model extends Common_Model {
         if ($result && $result->num_rows() > 0) {
             return $result->row_array();
         } else {
-            if ($section) {
-                gvv_error("Aucun compte 411 trouvé pour le pilote $pilote dans la section " . $section['nom']);
+            if ($target_section) {
+                gvv_error("Aucun compte 411 trouvé pour le pilote $pilote dans la section " . $target_section['nom']);
             } else {
                 gvv_error("Aucun compte 411 trouvé pour le pilote $pilote (aucune section active)");
             }
@@ -457,8 +464,8 @@ class Comptes_model extends Common_Model {
      * @param
      *            $pilote
      */
-    public function compte_pilote_id($pilote) {
-        $res = $this->compte_pilote($pilote);
+    public function compte_pilote_id($pilote, $section = null) {
+        $res = $this->compte_pilote($pilote, $section);
         return $res['id'];
     }
 
@@ -468,8 +475,8 @@ class Comptes_model extends Common_Model {
      * @param
      *            $pilote
      */
-    public function solde_pilote($pilote) {
-        $compte_id = $this->compte_pilote_id($pilote, true);
+    public function solde_pilote($pilote, $section = null) {
+        $compte_id = $this->compte_pilote_id($pilote, $section);
         $solde = $this->ecritures_model->solde_compte($compte_id);
         return $solde;
     }
@@ -500,14 +507,21 @@ class Comptes_model extends Common_Model {
      * @param
      *            $user
      */
-    public function has_compte($user) {
+    public function has_compte($user, $section = null) {
 
-        return $this->pilot_account($user);
+        return $this->pilot_account($user, $section);
     }
 
 
-    public function pilot_account($user) {
-        $section = $this->sections_model->section();
+    public function pilot_account($user, $section = null) {
+        $target_section = null;
+        if (is_array($section) && isset($section['id'])) {
+            $target_section = $section;
+        } else if ($section) {
+            $target_section = $this->sections_model->get_by_id('id', $section);
+        } else {
+            $target_section = $this->sections_model->section();
+        }
 
         $this->db
             ->select('id, nom, codec, desc, actif, debit, credit, club')
@@ -515,8 +529,8 @@ class Comptes_model extends Common_Model {
             ->where("pilote = '$user'");
 
         // On ne retourne rien s'il n'y a pas de section active
-        if ($section) {
-            $this->db->where('club', $section['id']);
+        if ($target_section) {
+            $this->db->where('club', $target_section['id']);
         }
 
         $result = $this->db->get();
@@ -528,6 +542,57 @@ class Comptes_model extends Common_Model {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Retourne tous les comptes 411 d'un pilote, toutes sections confondues
+     *
+     * @param string $pilote Login du pilote
+     * @return array Liste des comptes avec informations de section
+     */
+    public function get_pilote_comptes($pilote) {
+        $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
+        $account_owner = ($info_pilote && isset($info_pilote['membre_payeur']) && $info_pilote['membre_payeur'])
+            ? $info_pilote['membre_payeur']
+            : $pilote;
+
+        $this->db->select('comptes.id, comptes.nom, comptes.club, sections.nom as section_name, sections.acronyme as section_acronym');
+        $this->db->from($this->table);
+        $this->db->join('sections', 'comptes.club = sections.id', 'left');
+        $this->db->where('comptes.pilote', $account_owner);
+        $this->db->where('comptes.codec', '411');
+        $this->db->where('comptes.actif', 1);
+        $this->db->where('comptes.masked', 0);
+        $this->db->order_by('comptes.club', 'ASC');
+
+        $result = $this->db->get();
+        if ($result) {
+            return $result->result_array();
+        }
+        return [];
+    }
+
+    /**
+     * Vérifie qu'un pilote possède un compte 411 dans une section donnée
+     *
+     * @param string $pilote Login du pilote
+     * @param int $section_id Identifiant de la section
+     * @return bool
+     */
+    public function has_compte_in_section($pilote, $section_id) {
+        $info_pilote = $this->membres_model->get_by_id('mlogin', $pilote);
+        $account_owner = ($info_pilote && isset($info_pilote['membre_payeur']) && $info_pilote['membre_payeur'])
+            ? $info_pilote['membre_payeur']
+            : $pilote;
+
+        $this->db->from($this->table);
+        $this->db->where('pilote', $account_owner);
+        $this->db->where('codec', '411');
+        $this->db->where('club', $section_id);
+        $this->db->where('actif', 1);
+        $this->db->where('masked', 0);
+
+        return $this->db->count_all_results() > 0;
     }
 
     /**

@@ -46,3 +46,9 @@ $lang['gvv_admin_media_restore_desc'] = "Restore media files from an archive";
 $lang['gvv_admin_media_merge'] = "Merge with existing files";
 $lang['gvv_admin_media_replace'] = "Replace all existing files";
 $lang['gvv_admin_media_success'] = "Media has been successfully restored from";
+
+// Test database generation
+$lang['gvv_admin_test_db_title'] = "Generate test database";
+$lang['gvv_admin_test_db_desc'] = "Create an anonymized, encrypted database dump for CI/CD tests";
+$lang['gvv_admin_test_db_success'] = "Test database generated successfully";
+$lang['gvv_admin_test_db_error'] = "Error while generating the test database";

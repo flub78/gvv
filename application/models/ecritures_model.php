@@ -196,7 +196,7 @@ class Ecritures_model extends Common_Model {
      *
      * @return objet La liste
      */
-    public function select_journal($compte, $nb = 1000000, $debut = 0, $selection = array()) {
+    public function select_journal($compte, $nb = 1000000, $debut = 0, $selection = array(), $section_id = null) {
         $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
 
         if ($compte != '') {
@@ -226,7 +226,9 @@ class Ecritures_model extends Common_Model {
             ->where($selection, NULL)
             ->where($filtrage);
 
-        if ($this->sections_model->section()) {
+        if ($section_id !== null) {
+            $this->db->where('ecritures.club', $section_id);
+        } else if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
 
@@ -247,7 +249,7 @@ class Ecritures_model extends Common_Model {
                 $cnt++;
                 if ($cnt == 1) {
                     // première ligne de résultat, on initialise le solde
-                    $solde = $this->solde_compte($compte, $row['date_op'], '<');
+                    $solde = $this->solde_compte($compte, $row['date_op'], '<', false, $section_id);
                     $solde += $this->solde_jour($compte, $row['date_op'], $row['id']);
                 }
                 if ($row['compte1'] == $compte) {
@@ -295,7 +297,7 @@ class Ecritures_model extends Common_Model {
      * @return integer Le nombre de lignes satisfaisant la condition
      */
     // warning_count
-    public function count_account($compte = '') {
+    public function count_account($compte = '', $section_id = null) {
         $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
         if ($compte != '') {
             $where .= $this->_filtrage_compte($compte); // " and (ecritures.compte1 = \"$compte\" or ecritures.compte2 = \"$compte\") ";
@@ -325,7 +327,9 @@ class Ecritures_model extends Common_Model {
             ->where($filtrage);
         // ->where("YEAR(date_op) = \"$year\"");
 
-        if ($this->sections_model->section()) {
+        if ($section_id !== null) {
+            $query = $this->db->where('ecritures.club', $section_id);
+        } else if ($this->sections_model->section()) {
             $query = $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
 
@@ -403,21 +407,25 @@ class Ecritures_model extends Common_Model {
      * @param boolean $all
      *            si vrai retourne un tableau ['debit', 'credit'] si faux retourne le solde (scalaire)
      */
-    public function solde_compte($compte, $date = '', $operation = "<=", $all = FALSE) {
+    public function solde_compte($compte, $date = '', $operation = "<=", $all = FALSE, $section_id = null) {
         if ($date == '') {
             $date = date("d/m/Y");
         }
         $where = "date_op $operation \"" . date_ht2db($date) . "\"";
 
-        $debit = $this->db->select_sum('montant')->from($this->table)->where($where)->where(array(
-            'compte1' => $compte
-        ))->get()->row()->montant;
+        $this->db->select_sum('montant')->from($this->table)->where($where)->where(array('compte1' => $compte));
+        if ($section_id !== null) {
+            $this->db->where('club', $section_id);
+        }
+        $debit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
 
-        $credit = $this->db->select_sum('montant')->from($this->table)->where($where)->where(array(
-            'compte2' => $compte
-        ))->get()->row()->montant;
+        $this->db->select_sum('montant')->from($this->table)->where($where)->where(array('compte2' => $compte));
+        if ($section_id !== null) {
+            $this->db->where('club', $section_id);
+        }
+        $credit = $this->db->get()->row()->montant;
 
         gvv_debug("sql: " . $this->db->last_query());
         $solde = $credit - $debit;
@@ -1841,9 +1849,16 @@ array (size=2)
             $order_direction = 'DESC';
         }
 
-        // Store section values BEFORE building any queries to avoid Query Builder interference
-        $has_section = $this->sections_model->section();
-        $section_id = $has_section ? $this->sections_model->section_id() : null;
+        // Determine which section to use: explicit section_id parameter takes priority over session
+        $section_id = null;
+        if (isset($params['section_id']) && $params['section_id'] !== null) {
+            // Explicit section provided (e.g., when viewing account from different section)
+            $section_id = $params['section_id'];
+        } else {
+            // Fall back to session section
+            $has_section = $this->sections_model->section();
+            $section_id = $has_section ? $this->sections_model->section_id() : null;
+        }
 
         // Use the same query structure as select_journal but with modifications for DataTables
         $where = "ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id";
@@ -1867,7 +1882,7 @@ array (size=2)
         // Build base query
         $this->db->select($select)->from($from)->where($where, NULL)->where($filtrage);
 
-        if ($has_section) {
+        if ($section_id) {
             $this->db->where('ecritures.club', $section_id);
         }
 
@@ -1918,7 +1933,7 @@ array (size=2)
                     // NOTE IMPORTANTE: contrairement au calcul chrono précédent qui appliquait filtrage et section,
                     // solde_compte calcule le solde TOTAL du compte (sans filtres de période/section)
                     // car c'est le vrai solde comptable. Les filtres ne servent qu'à afficher un sous-ensemble d'écritures.
-                    $solde = $this->solde_compte($compte, $row['date_op'], '<');
+                    $solde = $this->solde_compte($compte, $row['date_op'], '<', false, $section_id);
                     $solde += $this->solde_jour($compte, $row['date_op'], $row['id']);
                 }
 

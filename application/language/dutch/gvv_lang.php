@@ -45,6 +45,11 @@ $lang['gvv_menu_reports_user_reports'] = "Eigen rapporten";
 $lang['gvv_menu_reports_federal_report'] = "LVZC";
 $lang['gvv_menu_reports_admin_report'] = "DGLV";
 
+# Dashboard
+$lang['dashboard_my_account'] = "Mijn rekening";
+$lang['dashboard_my_account_section'] = "Mijn rekening - %s";
+$lang['dashboard_consult'] = "Bekijken";
+
 $lang['gvv_menu_accounting'] = "Boekhouding";
 $lang['gvv_menu_accounting_journal'] = "Journaal";
 $lang['gvv_menu_accounting_balance'] = "Balans";

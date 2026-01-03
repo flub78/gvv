@@ -60,6 +60,11 @@ $lang['gvv_menu_reports_admin_report'] = "DGAC";
 $lang['gvv_menu_validities'] = "Validité licence";
 $lang['gvv_menu_reports_financial_reports'] = "Rapports financier";
 
+# Dashboard
+$lang['dashboard_my_account'] = "Mon compte";
+$lang['dashboard_my_account_section'] = "Mon compte - %s";
+$lang['dashboard_consult'] = "Consulter";
+
 
 $lang['gvv_menu_accounting'] = "Compta";
 $lang['gvv_menu_accounting_journal'] = "Journaux";

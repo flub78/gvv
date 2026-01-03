@@ -47,3 +47,9 @@ $lang['gvv_admin_media_merge'] = "Samenvoegen met bestaande bestanden";
 $lang['gvv_admin_media_replace'] = "Alle bestaande bestanden vervangen";
 $lang['gvv_admin_media_success'] = "Media zijn succesvol hersteld vanuit";
 
+// Test database generation
+$lang['gvv_admin_test_db_title'] = "Testdatabase genereren";
+$lang['gvv_admin_test_db_desc'] = "Maak een geanonimiseerde en versleutelde database dump voor CI/CD-tests";
+$lang['gvv_admin_test_db_success'] = "Testdatabase succesvol gegenereerd";
+$lang['gvv_admin_test_db_error'] = "Fout bij het genereren van de testdatabase";
+

@@ -51,6 +51,11 @@ $lang['gvv_menu_reports_user_reports'] = "User Reports";
 $lang['gvv_menu_reports_federal_report'] = "FFVV";
 $lang['gvv_menu_reports_admin_report'] = "DGAC";
 
+# Dashboard
+$lang['dashboard_my_account'] = "My account";
+$lang['dashboard_my_account_section'] = "My account - %s";
+$lang['dashboard_consult'] = "View";
+
 $lang['gvv_menu_accounting'] = "Accounting";
 $lang['gvv_menu_accounting_journal'] = "Journal entries";
 $lang['gvv_menu_accounting_balance'] = "Balance";

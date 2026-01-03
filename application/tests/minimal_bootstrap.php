@@ -291,6 +291,26 @@ class MinimalMockDBResult {
     public function result() { return array(); }
 }
 
+// Mock session object with minimal userdata support for models relying on CI session
+class MinimalMockSession {
+    private $store = array();
+
+    public function userdata($key) {
+        return isset($this->store[$key]) ? $this->store[$key] : NULL;
+    }
+
+    public function set_userdata($key, $value = NULL) {
+        // Accept array or single key/value for compatibility
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->store[$k] = $v;
+            }
+        } else {
+            $this->store[$key] = $value;
+        }
+    }
+}
+
 // Mock database class for CI
 class MinimalMockDatabase {
     public $conn_id = null;
@@ -389,7 +409,7 @@ class MinimalMockCI {
         $this->config = new MinimalMockConfig();
         $this->load = new MinimalMockLoader($this);
         $this->db = new MinimalMockDatabase();
-        $this->session = new stdClass();
+        $this->session = new MinimalMockSession();
         $this->input = new MinimalMockInput();
         $this->dx_auth = new MinimalMockDXAuth();
         $this->lang = new MinimalMockLang();

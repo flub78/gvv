@@ -228,6 +228,11 @@ Authorization_model
  [x] Update role accepts correct parameters
  [x] Delete role accepts correct parameters
 
+Comptes Model Section
+ [x] Get pilote comptes uses account owner and filters active unmasked
+ [x] Has compte in section checks owner and filters
+ [x] Compte pilote filters by explicit section and returns first match
+
 Configuration Model
  [x] Image method logic
  [x] Configuration key validation
@@ -347,7 +352,7 @@ Language Completeness
  [x] Reference language directory exists
  [x] English has all language files
  [x] Dutch has all language files
- [ ] English has all translation keys
- [ ] Dutch has all translation keys
+ [x] English has all translation keys
+ [x] Dutch has all translation keys
  [x] Reference language has translation files
 
