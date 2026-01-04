@@ -44,16 +44,4 @@ class Types_ticket extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
     }
-
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        // parent::test($format);
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $this->unit->run(true, true, "Tests $this->controller");
-        $this->tests_results($format);
-    }
 }

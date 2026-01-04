@@ -298,18 +298,6 @@ class Presences extends CI_Controller {
         gvv_debug("json = $json");
     }
 
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        // parent::test($format);
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $this->unit->run(true, true, "Tests $this->controller");
-        $this->tests_results($format);
-    }
-
 /**
  * Non automated use cases
  *

@@ -99,14 +99,4 @@ class Associations_releve extends Gvv_Controller {
                 ->set_output(json_encode($response));
     }
 
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $this->unit->run(true, true, "Tests $this->controller");
-        $this->tests_results($format);
-    }
 }

@@ -85,11 +85,4 @@ class Associations_ecriture extends Gvv_Controller {
             ->set_output(json_encode($response));
     }
 
-    function test($format = "html") {
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $this->unit->run(true, true, "Tests $this->controller");
-        $this->tests_results($format);
-    }
 }

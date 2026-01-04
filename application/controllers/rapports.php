@@ -561,17 +561,4 @@ class Rapports extends Gvv_Controller {
                 $this->load->model('vols_planeur_model');
         }
 
-        /**
-         * Test unitaire
-         */
-        function test($format = "html") {
-                $this->unit_test = TRUE;
-                $this->load->library('unit_test');
-
-                $this->unit->run(true, true, "Tests édition des rapports");
-                $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
-                echo $this->unit->report();
-
-                $this->unit->save_coverage();
-        }
 }
