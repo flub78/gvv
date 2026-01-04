@@ -532,7 +532,42 @@ class GliderFlightPage extends BasePage {
       
     } else {
       // Handle regular select element
-      await selectElement.selectOption({ label: text });
+      try {
+        // Try exact label match first
+        await selectElement.selectOption({ label: text });
+      } catch (e) {
+        // If exact match fails, try partial match using JavaScript
+        console.log(`Exact label match failed for "${text}", trying partial match`);
+        
+        const success = await this.page.evaluate(({ selector, text }) => {
+          const selectEl = document.querySelector(`select[name="${selector}"], select#${selector}`);
+          if (!selectEl) return false;
+
+          // Find option by partial text match
+          const option = Array.from(selectEl.options).find(opt =>
+            opt.text.includes(text) || opt.text.trim() === text.trim()
+          );
+
+          if (option) {
+            selectEl.value = option.value;
+            const event = new Event('change', { bubbles: true });
+            selectEl.dispatchEvent(event);
+            return true;
+          }
+          return false;
+        }, { selector, text });
+
+        if (!success) {
+          // List available options for debugging
+          const availableOptions = await this.page.evaluate(({ selector }) => {
+            const selectEl = document.querySelector(`select[name="${selector}"], select#${selector}`);
+            if (!selectEl) return [];
+            return Array.from(selectEl.options).map(opt => opt.text).slice(0, 10);
+          }, { selector });
+          
+          throw new Error(`Could not find option matching "${text}" for ${selector}. Available options: ${availableOptions.join(', ')}`);
+        }
+      }
     }
   }
 

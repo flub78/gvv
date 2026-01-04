@@ -72,7 +72,18 @@ class BasePage {
   async fillField(selector, value) {
     // Try by name first, then by selector
     const field = this.page.locator(`input[name="${selector}"], textarea[name="${selector}"], select[name="${selector}"], ${selector}`);
-    await field.fill(value);
+    
+    try {
+      // Wait for field to be visible
+      await field.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        console.warn(`Field ${selector} not visible within 5s, attempting to fill anyway`);
+      });
+      
+      await field.fill(value);
+    } catch (e) {
+      console.warn(`Failed to fill field ${selector}: ${e.message}`);
+      throw new Error(`Cannot fill field "${selector}": ${e.message}`);
+    }
   }
 
   /**
@@ -91,12 +102,20 @@ class BasePage {
   async select(selector, value) {
     const selectElement = this.page.locator(`select[name="${selector}"], ${selector}`);
     
-    // Wait for the select element to be visible and stable
-    await selectElement.waitFor({ state: 'visible', timeout: 15000 });
-    await this.page.waitForTimeout(500); // Small delay for any dynamic content loading
-    
-    // Try to select the option
-    await selectElement.selectOption(value);
+    try {
+      // Wait for the select element to be visible and stable
+      await selectElement.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        console.warn(`Select ${selector} not visible within 5s, attempting anyway`);
+      });
+      
+      await this.page.waitForTimeout(300); // Small delay for any dynamic content loading
+      
+      // Try to select the option
+      await selectElement.selectOption(value);
+    } catch (e) {
+      console.warn(`Failed to select value ${value} in ${selector}: ${e.message}`);
+      throw new Error(`Cannot select option in "${selector}": ${e.message}`);
+    }
   }
 
   /**

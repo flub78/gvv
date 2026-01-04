@@ -1,0 +1,4330 @@
+{
+  "config": {
+    "configFile": "/home/frederic/git/gvv/playwright/playwright.config.js",
+    "rootDir": "/home/frederic/git/gvv/playwright/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 6
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/frederic/git/gvv/playwright/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 6
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/frederic/git/gvv/playwright/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.0",
+    "workers": 6,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "migrated/access-control.spec.js",
+      "file": "migrated/access-control.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Access Control Tests (Migrated from Dusk)",
+          "file": "migrated/access-control.spec.js",
+          "line": 84,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Admin User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 86,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "admin can access all administrative pages",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 30313,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to vols_planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: alarmes\n"
+                            },
+                            {
+                              "text": "✓ Access to alarmes verified\n"
+                            },
+                            {
+                              "text": "Testing access to: tickets/page\n"
+                            },
+                            {
+                              "text": "✓ Access to tickets/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: tickets/solde\n"
+                            },
+                            {
+                              "text": "✓ Access to tickets/solde verified\n"
+                            },
+                            {
+                              "text": "Testing access to: rapports/ffvv\n"
+                            },
+                            {
+                              "text": "✓ Access to rapports/ffvv verified\n"
+                            },
+                            {
+                              "text": "Testing access to: rapports/dgac\n"
+                            },
+                            {
+                              "text": "✓ Access to rapports/dgac verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/page\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/edit/LFOI\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/edit/LFOI verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/create\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/create verified\n"
+                            },
+                            {
+                              "text": "Testing access to: membre/page\n"
+                            },
+                            {
+                              "text": "✓ Access to membre/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: comptes/page\n"
+                            },
+                            {
+                              "text": "✓ Access to comptes/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: achats/page\n"
+                            },
+                            {
+                              "text": "✓ Access to achats/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: avion/page\n"
+                            },
+                            {
+                              "text": "✓ Access to avion/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.922Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-b99ff70c32e60729776a",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 88,
+                  "column": 5
+                },
+                {
+                  "title": "admin can access financial and accounting features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 10361,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: comptes/page\n"
+                            },
+                            {
+                              "text": "✓ Access to comptes/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: achats/page\n"
+                            },
+                            {
+                              "text": "✓ Access to achats/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.780Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-1399f0348573f4a5385a",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 127,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Regular User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 154,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "regular user has limited access to non-admin pages",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 16680,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testuser, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Testing access to: \n"
+                            },
+                            {
+                              "text": "✓ Access to  verified\n"
+                            },
+                            {
+                              "text": "Testing access to: alarmes\n"
+                            },
+                            {
+                              "text": "✓ Access to alarmes verified\n"
+                            },
+                            {
+                              "text": "Testing access to: tickets/solde\n"
+                            },
+                            {
+                              "text": "✓ Access to tickets/solde verified\n"
+                            },
+                            {
+                              "text": "Testing access to: rapports/ffvv\n"
+                            },
+                            {
+                              "text": "✓ Access to rapports/ffvv verified\n"
+                            },
+                            {
+                              "text": "Testing access to: rapports/dgac\n"
+                            },
+                            {
+                              "text": "✓ Access to rapports/dgac verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/page\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/edit/LFOI\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/edit/LFOI verified\n"
+                            },
+                            {
+                              "text": "Testing access to: terrains/create\n"
+                            },
+                            {
+                              "text": "✓ Access to terrains/create verified\n"
+                            },
+                            {
+                              "text": "Testing access to: comptes/page\n"
+                            },
+                            {
+                              "text": "✓ Access to comptes/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: achats/page\n"
+                            },
+                            {
+                              "text": "✓ Access to achats/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.793Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-d4a5db9d2b122633a9bf",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 156,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Bureau User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 205,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "bureau user has intermediate access level",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 14849,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testbureau, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to vols_planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: membre/page\n"
+                            },
+                            {
+                              "text": "✓ Access to membre/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: tickets/page\n"
+                            },
+                            {
+                              "text": "✓ Access to tickets/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to planeur/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.961Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-afc0b734e84c8922a868",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 207,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "CA (Board) User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 236,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "CA user has access to management and reports",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 8445,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testca, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to vols_planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: membre/page\n"
+                            },
+                            {
+                              "text": "✓ Access to membre/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to planeur/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.738Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-c3f3e449063d5a36b9a2",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 238,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Planchiste User Access",
+              "file": "migrated/access-control.spec.js",
+              "line": 266,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "planchiste user has access to flight operations",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 14386,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testplanchiste, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to vols_planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: vols_planeur/create\n"
+                            },
+                            {
+                              "text": "✓ Access to vols_planeur/create verified\n"
+                            },
+                            {
+                              "text": "Testing access to: planeur/page\n"
+                            },
+                            {
+                              "text": "✓ Access to planeur/page verified\n"
+                            },
+                            {
+                              "text": "Testing access to: membre/page\n"
+                            },
+                            {
+                              "text": "✓ Access to membre/page verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:58:53.799Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-29f7149a7464c259de64",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 268,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Cross-User Navigation Tests",
+              "file": "migrated/access-control.spec.js",
+              "line": 297,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "all user types can access basic flight pages",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 5109,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Testing basic access for admin user\n"
+                            },
+                            {
+                              "text": "Logging in as testadmin, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Testing access to: \n"
+                            },
+                            {
+                              "text": "✓ Access to  verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:59:02.287Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-b60c892dff3d4052f63e",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 299,
+                  "column": 5
+                },
+                {
+                  "title": "navigation elements reflect user permissions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 7103,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Logging in as testadmin, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "Closing \"Message du jour\" modal\n"
+                            },
+                            {
+                              "text": "Admin navigation elements verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            },
+                            {
+                              "text": "Logging in as testuser, section auto-detect\n"
+                            },
+                            {
+                              "text": "Auto-selected first available section: 3\n"
+                            },
+                            {
+                              "text": "User navigation limitations verified\n"
+                            },
+                            {
+                              "text": "Logging out\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-01-04T15:59:04.256Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8093c05929076632b735-7b2458a14781cc7b36c8",
+                  "file": "migrated/access-control.spec.js",
+                  "line": 321,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/attachments.spec.js",
+      "file": "migrated/attachments.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Attachments Tests (Migrated from Dusk)",
+          "file": "migrated/attachments.spec.js",
+          "line": 50,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should navigate accounting pages and access attachments",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 10028,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "\n--- Comptes Classe 606 ---\n"
+                        },
+                        {
+                          "text": "✓ Classe 606 page loaded (accounts may be section-filtered)\n"
+                        },
+                        {
+                          "text": "Found journal_compte link: http://gvv.net/compta/journal_compte/651\n"
+                        },
+                        {
+                          "text": "⚠️  No edit links found in table\n"
+                        },
+                        {
+                          "text": "\n--- Comptes Classe 512 (Banque) ---\n"
+                        },
+                        {
+                          "text": "✓ Classe 512 page loaded (Banque may be section-filtered)\n"
+                        },
+                        {
+                          "text": "Found journal_compte link: http://gvv.net/compta/journal_compte/679\n"
+                        },
+                        {
+                          "text": "\n--- Attachments Page ---\n"
+                        },
+                        {
+                          "text": "✓ Attachments page loaded\n"
+                        },
+                        {
+                          "text": "✓ Attachments page shows 0 elements initially\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "\n✓ Test completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:07.416Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "72c4c21745d77b5f1975-f7dd088ac052ce388524",
+              "file": "migrated/attachments.spec.js",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "should verify attachments page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4183,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Attachments page is accessible and contains table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:08.328Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "72c4c21745d77b5f1975-0665a25e2f0bba97cf54",
+              "file": "migrated/attachments.spec.js",
+              "line": 217,
+              "column": 3
+            },
+            {
+              "title": "should verify accounting pages navigation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 6100,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Classe 606 accessible\n"
+                        },
+                        {
+                          "text": "✓ Classe 512 accessible\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:08.942Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "72c4c21745d77b5f1975-e5335a696ef3e159d9db",
+              "file": "migrated/attachments.spec.js",
+              "line": 237,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/compta.spec.js",
+      "file": "migrated/compta.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Accounting (Compta) Tests (Migrated from Dusk)",
+          "file": "migrated/compta.spec.js",
+          "line": 62,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should verify account and codec counts across sections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 16195,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in with Planeur section\n"
+                        },
+                        {
+                          "text": "\n--- PLANEUR SECTION ---\n"
+                        },
+                        {
+                          "text": "Planeur codec count: 46\n"
+                        },
+                        {
+                          "text": "Planeur account count: 46\n"
+                        },
+                        {
+                          "text": "✓ Planeur: codec_count >= account_count\n"
+                        },
+                        {
+                          "text": "\n--- ULM SECTION ---\n"
+                        },
+                        {
+                          "text": "Switched to section 2\n"
+                        },
+                        {
+                          "text": "ULM codec count: 34\n"
+                        },
+                        {
+                          "text": "ULM account count: 34\n"
+                        },
+                        {
+                          "text": "✓ ULM: codec_count >= account_count\n"
+                        },
+                        {
+                          "text": "\n--- AVION SECTION ---\n"
+                        },
+                        {
+                          "text": "Switched to section 3\n"
+                        },
+                        {
+                          "text": "Avion codec count: 42\n"
+                        },
+                        {
+                          "text": "Avion account count: 42\n"
+                        },
+                        {
+                          "text": "✓ Avion: codec_count >= account_count\n"
+                        },
+                        {
+                          "text": "\n--- GENERAL SECTION ---\n"
+                        },
+                        {
+                          "text": "Switched to section 4\n"
+                        },
+                        {
+                          "text": "General codec count: 44\n"
+                        },
+                        {
+                          "text": "General account count: 44\n"
+                        },
+                        {
+                          "text": "✓ General: codec_count >= account_count\n"
+                        },
+                        {
+                          "text": "\n--- ALL SECTION ---\n"
+                        },
+                        {
+                          "text": "Switched to section 5\n"
+                        },
+                        {
+                          "text": "ALL codec count: 69\n"
+                        },
+                        {
+                          "text": "ALL account count: 69\n"
+                        },
+                        {
+                          "text": "✓ ALL: codec_count >= account_count\n"
+                        },
+                        {
+                          "text": "\n--- VERIFICATION: ALL >= INDIVIDUAL SECTIONS ---\n"
+                        },
+                        {
+                          "text": "✓ ALL codec count >= all individual sections\n"
+                        },
+                        {
+                          "text": "✓ ALL account count >= all individual sections\n"
+                        },
+                        {
+                          "text": "\n=== SUMMARY ===\n"
+                        },
+                        {
+                          "text": "Planeur: 46 codecs, 46 accounts\n"
+                        },
+                        {
+                          "text": "ULM: 34 codecs, 34 accounts\n"
+                        },
+                        {
+                          "text": "Avion: 42 codecs, 42 accounts\n"
+                        },
+                        {
+                          "text": "General: 44 codecs, 44 accounts\n"
+                        },
+                        {
+                          "text": "ALL: 69 codecs, 69 accounts\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "\n✓ Test completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:10.606Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4127a387b90072be294-8595590a0273463de290",
+              "file": "migrated/compta.spec.js",
+              "line": 64,
+              "column": 3
+            },
+            {
+              "title": "should verify codec page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4296,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Codec page is accessible and contains table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:11.382Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4127a387b90072be294-140cd4dfc141b12ce999",
+              "file": "migrated/compta.spec.js",
+              "line": 194,
+              "column": 3
+            },
+            {
+              "title": "should verify accounts page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4779,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Accounts page is accessible and contains table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:12.527Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c4127a387b90072be294-4b0f5df411aafe75edb0",
+              "file": "migrated/compta.spec.js",
+              "line": 214,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/filtering.spec.js",
+      "file": "migrated/filtering.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Filtering Tests (Migrated from Dusk)",
+          "file": "migrated/filtering.spec.js",
+          "line": 30,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should test balance filtering with Planeur section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 6804,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in as testadmin with Planeur section\n"
+                        },
+                        {
+                          "text": "✓ Navigated to comptes/general\n"
+                        },
+                        {
+                          "text": "Table row count: 47\n"
+                        },
+                        {
+                          "text": "✓ Table has sufficient rows (>= 16)\n"
+                        },
+                        {
+                          "text": "✓ Clicked filter button\n"
+                        },
+                        {
+                          "text": "✓ Filter accordion opened and shows correct section text\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Test completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:15.064Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7ab62a9ef7a0dcf2d326-7124312fb82bb4f5d0cd",
+              "file": "migrated/filtering.spec.js",
+              "line": 32,
+              "column": 3
+            },
+            {
+              "title": "should verify filter button exists and is clickable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4217,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Filter button is visible\n"
+                        },
+                        {
+                          "text": "✓ Filter button is enabled\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:15.691Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7ab62a9ef7a0dcf2d326-dd85a535b92097aa6f33",
+              "file": "migrated/filtering.spec.js",
+              "line": 82,
+              "column": 3
+            },
+            {
+              "title": "should verify section filtering works for different sections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4182,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Testing with Planeur section...\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Planeur section filtering confirmed\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Section filtering test completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:17.323Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7ab62a9ef7a0dcf2d326-c9f42dc8011b753f4eff",
+              "file": "migrated/filtering.spec.js",
+              "line": 106,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/glider-flights.spec.js",
+      "file": "migrated/glider-flights.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Glider Flight Tests (Migrated from Dusk)",
+          "file": "migrated/glider-flights.spec.js",
+          "line": 31,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should create multiple glider flights successfully",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 27241,
+                      "error": {
+                        "message": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge",
+                        "stack": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:568:17)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:111:11)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:79:24",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                          "column": 17,
+                          "line": 568
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/GliderFlightPage.js:568\n\n  566 |           }, { selector });\n  567 |           \n> 568 |           throw new Error(`Could not find option matching \"${text}\" for ${selector}. Available options: ${availableOptions.join(', ')}`);\n      |                 ^\n  569 |         }\n  570 |       }\n  571 |     }"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                            "column": 17,
+                            "line": 568
+                          },
+                          "message": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n\n   at helpers/GliderFlightPage.js:568\n\n  566 |           }, { selector });\n  567 |           \n> 568 |           throw new Error(`Could not find option matching \"${text}\" for ${selector}. Available options: ${availableOptions.join(', ')}`);\n      |                 ^\n  569 |         }\n  570 |       }\n  571 |     }\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:568:17)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:111:11)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:79:24"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  instructor: \u001b[32m'Guerin Sebastien'\u001b[39m,\n  DC: \u001b[33mtrue\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Pierre Charles'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m,\n  airfield: \u001b[32m'LFOI'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Exact label match failed for \"Guerin Sebastien\", trying partial match\n"
+                        },
+                        {
+                          "text": "Error creating flight: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:17.466Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-486eb-glider-flights-successfully-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-486eb-glider-flights-successfully-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                        "column": 17,
+                        "line": 568
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-9e1b0edbc6ef8865e68c",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "should show correct fields based on aircraft selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js",
+                        "line": 85,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:19.922Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-b1b426f618fe895bdbe9",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 85,
+              "column": 8
+            },
+            {
+              "title": "should reject conflicting flights",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 50763,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CDRE'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'12:15'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDRE\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'12:15'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m,\n  error: \u001b[32m'Le planeur est déjà en vol'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Expected error \"Le planeur est déjà en vol\" found\n"
+                        },
+                        {
+                          "text": "✓ Conflicting flight correctly rejected\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CDRE'\u001b[39m,\n  start_time: \u001b[32m'09:30'\u001b[39m,\n  end_time: \u001b[32m'10:15'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m,\n  error: \u001b[32m'Le pilote est déjà en vol'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDRE\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Expected error \"Le pilote est déjà en vol\" found\n"
+                        },
+                        {
+                          "text": "✓ Conflicting flight correctly rejected\n"
+                        },
+                        {
+                          "text": "✓ All conflict detection tests passed successfully\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:19.930Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-0443cdf84fcf318a8797",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 132,
+              "column": 3
+            },
+            {
+              "title": "should update flight information",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 14019,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m,\n  comment: \u001b[32m'Original comment'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Flight update form accessible and functional\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:21.527Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-f301f5fa7913100bf729",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "should delete flight",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 14847,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Flight exists and can be edited\n"
+                        },
+                        {
+                          "text": "✓ Delete operation completed without errors\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:21.891Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-c9be1fe4e61a3df4912f",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 251,
+              "column": 3
+            },
+            {
+              "title": "should handle different launch methods",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 29207,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Pierre Charles'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  altitude: \u001b[32m'700'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for pilote_remorqueur with text: Pierre Charles\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Tow flight created\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CDRE'\u001b[39m,\n  start_time: \u001b[32m'11:00'\u001b[39m,\n  end_time: \u001b[32m'11:30'\u001b[39m,\n  launch: \u001b[32m'A'\u001b[39m,\n  account: \u001b[32m'(411) Abraracourcix Le Gaulois'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CDRE\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for payeur with text: (411) Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Flight created, redirected to: http://gvv.net/vols_planeur/formValidation/1\n"
+                        },
+                        {
+                          "text": "✓ Autonomous flight created\n"
+                        },
+                        {
+                          "text": "✓ Different launch methods handled successfully\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:24.361Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-9709d25135770a4cb86c",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 296,
+              "column": 3
+            },
+            {
+              "title": "should handle flight sharing and billing",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 27161,
+                      "error": {
+                        "message": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge",
+                        "stack": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:568:17)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:111:11)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:369:22",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                          "column": 17,
+                          "line": 568
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/GliderFlightPage.js:568\n\n  566 |           }, { selector });\n  567 |           \n> 568 |           throw new Error(`Could not find option matching \"${text}\" for ${selector}. Available options: ${availableOptions.join(', ')}`);\n      |                 ^\n  569 |         }\n  570 |       }\n  571 |     }"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                            "column": 17,
+                            "line": 568
+                          },
+                          "message": "Error: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n\n   at helpers/GliderFlightPage.js:568\n\n  566 |           }, { selector });\n  567 |           \n> 568 |           throw new Error(`Could not find option matching \"${text}\" for ${selector}. Available options: ${availableOptions.join(', ')}`);\n      |                 ^\n  569 |         }\n  570 |       }\n  571 |     }\n    at GliderFlightPage.selectByText (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:568:17)\n    at GliderFlightPage.createFlight (/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js:111:11)\n    at /home/frederic/git/gvv/playwright/tests/migrated/glider-flights.spec.js:369:22"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Creating glider flight: {\n  date: \u001b[32m'05/01/2026'\u001b[39m,\n  pilot: \u001b[32m'Abraracourcix Le Gaulois'\u001b[39m,\n  glider: \u001b[32m'F-CBAU'\u001b[39m,\n  instructor: \u001b[32m'Guerin Sebastien'\u001b[39m,\n  DC: \u001b[33mtrue\u001b[39m,\n  start_time: \u001b[32m'10:00'\u001b[39m,\n  end_time: \u001b[32m'10:30'\u001b[39m,\n  launch: \u001b[32m'R'\u001b[39m,\n  tow_pilot: \u001b[32m'Pierre Charles'\u001b[39m,\n  tow_plane: \u001b[32m'F-JUFA'\u001b[39m,\n  account: \u001b[32m'(411) Guerin Sebastien'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vppilid with text: Abraracourcix Le Gaulois\n"
+                        },
+                        {
+                          "text": "Handling Select2 select for vpmacid with text: F-CBAU\n"
+                        },
+                        {
+                          "text": "Exact label match failed for \"Guerin Sebastien\", trying partial match\n"
+                        },
+                        {
+                          "text": "Error creating flight: Could not find option matching \"Guerin Sebastien\" for vpinst. Available options: , Charles Sylvain, Lemoine Mathieu, Boulanger Patrick, Hoarau Frederic, Meyer Vincent, Launay Serge\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:26.821Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-f513c--flight-sharing-and-billing-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-glider-flights-GV-f513c--flight-sharing-and-billing-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/GliderFlightPage.js",
+                        "column": 17,
+                        "line": 568
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-ed1171f4842c4660dc33",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 343,
+              "column": 3
+            },
+            {
+              "title": "should validate required fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 6033,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Form validation working - empty form rejected\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:35.563Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2af49c3f2667e475014-a767aa5ade604c362986",
+              "file": "migrated/glider-flights.spec.js",
+              "line": 410,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/login.spec.js",
+      "file": "migrated/login.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Login Tests (Migrated from Dusk)",
+          "file": "migrated/login.spec.js",
+          "line": 24,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should access home page and see basic elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 328,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Home page access verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:36.756Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-dc463d78133d92743c81",
+              "file": "migrated/login.spec.js",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should perform complete login and logout workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3990,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "Login/logout workflow completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:37.098Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-e9b4a4f7018c0b990949",
+              "file": "migrated/login.spec.js",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "should verify basic access for connected users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4248,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Access verification: Compta=false, Planche=true, Vols=false, Membres=true, Table=true\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:41.101Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-3f981922bca849ee3858",
+              "file": "migrated/login.spec.js",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "should deny access with wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 679,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login correctly denied - error message shown\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:41.611Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-3d259d430de988777323",
+              "file": "migrated/login.spec.js",
+              "line": 103,
+              "column": 3
+            },
+            {
+              "title": "should show all required login form elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 386,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Section selector is available\n"
+                        },
+                        {
+                          "text": "Section selector has 5 options\n"
+                        },
+                        {
+                          "text": "All required login form elements verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:42.302Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-02ef996fb2a0e48b9851",
+              "file": "migrated/login.spec.js",
+              "line": 125,
+              "column": 3
+            },
+            {
+              "title": "should handle different section selections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 3825,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Found 5 section options\n"
+                        },
+                        {
+                          "text": "Testing section Planeur (1)\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Section Planeur (1) login verified - section name visible in UI\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Section selection test completed - Planeur section works correctly\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:42.699Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f1625d94912fdb742747-2babe04859e4f39aed20",
+              "file": "migrated/login.spec.js",
+              "line": 154,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/motd.spec.js",
+      "file": "migrated/motd.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Message of the Day Tests (Migrated from Dusk)",
+          "file": "migrated/motd.spec.js",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should access home page and see basic elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 543,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Home page access verified\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:45.421Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "48d4eaceaa557508f91a-cd2e6c61d6022b2dffc0",
+              "file": "migrated/motd.spec.js",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "should show MOTD on first login and not show on second login after dismissal",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3849,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login submitted, checking for MOTD...\n"
+                        },
+                        {
+                          "text": "✓ MOTD dialog is visible\n"
+                        },
+                        {
+                          "text": "✓ Checked \"don't show again\" checkbox using selector: #no_mod\n"
+                        },
+                        {
+                          "text": "✓ Closed MOTD dialog\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Logged out\n"
+                        },
+                        {
+                          "text": "Logging in again to verify MOTD doesn't reappear...\n"
+                        },
+                        {
+                          "text": "✓ MOTD correctly hidden on second login\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Test completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:45.361Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "48d4eaceaa557508f91a-5e83cbf425fdd15d61e3",
+              "file": "migrated/motd.spec.js",
+              "line": 39,
+              "column": 3
+            },
+            {
+              "title": "should handle login/logout workflow with MOTD auto-dismissed by LoginPage helper",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 3891,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Login successful (MOTD auto-handled by LoginPage helper)\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Logout successful\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:46.047Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "48d4eaceaa557508f91a-7d48a4c2bc3f6551f8c6",
+              "file": "migrated/motd.spec.js",
+              "line": 141,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/plane_flight.spec.js",
+      "file": "migrated/plane_flight.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Plane Flight Tests (Migrated from Dusk - Simplified)",
+          "file": "migrated/plane_flight.spec.js",
+          "line": 36,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should verify plane flights list page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5221,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "✓ Plane flights page loaded with table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:46.537Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ec13d3b617a8be7705d1-a658af8a7da3e4b827ed",
+              "file": "migrated/plane_flight.spec.js",
+              "line": 38,
+              "column": 3
+            },
+            {
+              "title": "should verify plane flight create page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5164,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "⚠️  Submit button not immediately visible (may require scrolling)\n"
+                        },
+                        {
+                          "text": "✓ Date field found\n"
+                        },
+                        {
+                          "text": "⚠️  Pilot field not found (may have different name)\n"
+                        },
+                        {
+                          "text": "⚠️  Plane field not found (may have different name)\n"
+                        },
+                        {
+                          "text": "✓ Plane flight create page structure verified\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:49.226Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ec13d3b617a8be7705d1-bdbffaf31d2c7b7f8417",
+              "file": "migrated/plane_flight.spec.js",
+              "line": 65,
+              "column": 3
+            },
+            {
+              "title": "should verify navigation between list and create pages",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 5111,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ On flights list page\n"
+                        },
+                        {
+                          "text": "✓ Navigated to create page directly (link not visible)\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:49.967Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ec13d3b617a8be7705d1-e950c11a101d37711c0b",
+              "file": "migrated/plane_flight.spec.js",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "should verify flights page has DataTables or pagination",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5225,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Page uses DataTables for pagination/search\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:51.768Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ec13d3b617a8be7705d1-ef2045709ec87008d2a4",
+              "file": "migrated/plane_flight.spec.js",
+              "line": 147,
+              "column": 3
+            },
+            {
+              "title": "should verify basic accessibility of plane flight features",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5641,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Flights list accessible (vols_avion/page)\n"
+                        },
+                        {
+                          "text": "✓ Create flight accessible (vols_avion/create)\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:53.582Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ec13d3b617a8be7705d1-3521c6682f5133fb0fc7",
+              "file": "migrated/plane_flight.spec.js",
+              "line": 184,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/planeur.spec.js",
+      "file": "migrated/planeur.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Planeur (Glider) Tests (Migrated from Dusk)",
+          "file": "migrated/planeur.spec.js",
+          "line": 151,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should verify basic access for connected users and create glider",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 8098,
+                      "error": {
+                        "message": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page",
+                        "stack": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:189:13)\n    at createGlider (/home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:132:3)\n    at /home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:179:5",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                          "column": 13,
+                          "line": 189
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:189\n\n  187 |\n  188 |     } catch (e) {\n> 189 |       throw new Error(`Failed to find visible text \"${text}\": ${e.message}`);\n      |             ^\n  190 |     }\n  191 |   }\n  192 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 13,
+                            "line": 189
+                          },
+                          "message": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page\n\n   at helpers/BasePage.js:189\n\n  187 |\n  188 |     } catch (e) {\n> 189 |       throw new Error(`Failed to find visible text \"${text}\": ${e.message}`);\n      |             ^\n  190 |     }\n  191 |   }\n  192 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:189:13)\n    at createGlider (/home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:132:3)\n    at /home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:179:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Using test glider: F-CG395202\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "✓ Planeurs page is accessible\n"
+                        },
+                        {
+                          "text": "✓ Initial glider count: 17\n"
+                        },
+                        {
+                          "text": "⚠️  Could not select prix option (Select2 widget)\n"
+                        },
+                        {
+                          "text": "⚠️  Could not select prix_forfait option (Select2 widget)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:54.871Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-planeur-GVV-Plane-3e509-ted-users-and-create-glider-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-planeur-GVV-Plane-3e509-ted-users-and-create-glider-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                        "column": 13,
+                        "line": 189
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6381ca3e9da62c3d884a-a637f553b93c92469411",
+              "file": "migrated/planeur.spec.js",
+              "line": 153,
+              "column": 3
+            },
+            {
+              "title": "should verify planeurs page is accessible and contains table",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4365,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Planeurs page is accessible and contains table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:54.404Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6381ca3e9da62c3d884a-aaf7d67ed02712195be1",
+              "file": "migrated/planeur.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should create and delete glider with minimal data",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 7551,
+                      "error": {
+                        "message": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page",
+                        "stack": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:189:13)\n    at createGlider (/home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:132:3)\n    at /home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:264:5",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                          "column": 13,
+                          "line": 189
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers/BasePage.js:189\n\n  187 |\n  188 |     } catch (e) {\n> 189 |       throw new Error(`Failed to find visible text \"${text}\": ${e.message}`);\n      |             ^\n  190 |     }\n  191 |   }\n  192 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                            "column": 13,
+                            "line": 189
+                          },
+                          "message": "Error: Failed to find visible text \"Planeurs\": Text \"Planeurs\" not found on page\n\n   at helpers/BasePage.js:189\n\n  187 |\n  188 |     } catch (e) {\n> 189 |       throw new Error(`Failed to find visible text \"${text}\": ${e.message}`);\n      |             ^\n  190 |     }\n  191 |   }\n  192 |\n    at LoginPage.assertText (/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js:189:13)\n    at createGlider (/home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:132:3)\n    at /home/frederic/git/gvv/playwright/tests/migrated/planeur.spec.js:264:5"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "⚠️  Could not select prix option (Select2 widget)\n"
+                        },
+                        {
+                          "text": "⚠️  Could not select prix_forfait option (Select2 widget)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:55.099Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-planeur-GVV-Plane-2fcb4-te-glider-with-minimal-data-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-planeur-GVV-Plane-2fcb4-te-glider-with-minimal-data-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/helpers/BasePage.js",
+                        "column": 13,
+                        "line": 189
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6381ca3e9da62c3d884a-66ddb7eb5734508a97f3",
+              "file": "migrated/planeur.spec.js",
+              "line": 242,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/sections.spec.js",
+      "file": "migrated/sections.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Sections Tests (Migrated from Dusk)",
+          "file": "migrated/sections.spec.js",
+          "line": 66,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should allow user to login with section and switch between sections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 8230,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in with Planeur section\n"
+                        },
+                        {
+                          "text": "Plane count in Planeur section: 4\n"
+                        },
+                        {
+                          "text": "Switched to section 5\n"
+                        },
+                        {
+                          "text": "Plane count in ALL section: 8\n"
+                        },
+                        {
+                          "text": "Switched to section 4\n"
+                        },
+                        {
+                          "text": "Plane count in GENERAL section: 0\n"
+                        },
+                        {
+                          "text": "✓ Section switching and filtering verified\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:57.011Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ed4275d01c3e02a807a-78f08a8e58c8b2f1144a",
+              "file": "migrated/sections.spec.js",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should filter resources by section for comptes (accounts)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 12099,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 2\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in with ULM section\n"
+                        },
+                        {
+                          "text": "Client accounts in ULM section: 66\n"
+                        },
+                        {
+                          "text": "Switched to section 1\n"
+                        },
+                        {
+                          "text": "Client accounts in Planeur section: 189\n"
+                        },
+                        {
+                          "text": "Switched to section 4\n"
+                        },
+                        {
+                          "text": "Client accounts in GENERAL section: 284\n"
+                        },
+                        {
+                          "text": "Switched to section 5\n"
+                        },
+                        {
+                          "text": "Client accounts in ALL section: 590\n"
+                        },
+                        {
+                          "text": "✓ Account filtering by section verified\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:58.783Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ed4275d01c3e02a807a-831dd95dacb0be94d9d4",
+              "file": "migrated/sections.spec.js",
+              "line": 114,
+              "column": 3
+            },
+            {
+              "title": "should verify section selector is available on pages",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3953,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Section selector is visible\n"
+                        },
+                        {
+                          "text": "✓ Section selector has 5 options\n"
+                        },
+                        {
+                          "text": "✓ Current section is 1 (Planeur)\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T15:59:59.243Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ed4275d01c3e02a807a-c974a81af0c6c568edb6",
+              "file": "migrated/sections.spec.js",
+              "line": 159,
+              "column": 3
+            },
+            {
+              "title": "should verify section filtering on vols_avion create page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 8104,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 1\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Plane options in Planeur section: 4\n"
+                        },
+                        {
+                          "text": "Switched to section 4\n"
+                        },
+                        {
+                          "text": "Plane options in GENERAL section: 0\n"
+                        },
+                        {
+                          "text": "✓ Plane selector filtering by section verified\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:03.509Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ed4275d01c3e02a807a-d29134756438e2b0fb0d",
+              "file": "migrated/sections.spec.js",
+              "line": 185,
+              "column": 3
+            },
+            {
+              "title": "should persist section selection across page navigation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 4980,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section 2\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in with ULM section\n"
+                        },
+                        {
+                          "text": "✓ Section ULM persisted on avion/page\n"
+                        },
+                        {
+                          "text": "✓ Section ULM persisted on planeur/page\n"
+                        },
+                        {
+                          "text": "✓ Section ULM persisted on comptes/page\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:03.937Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ed4275d01c3e02a807a-a844695626c709c3bb1a",
+              "file": "migrated/sections.spec.js",
+              "line": 229,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/smoke.spec.js",
+      "file": "migrated/smoke.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Smoke Tests (Migrated from Dusk)",
+          "file": "migrated/smoke.spec.js",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load application without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 647,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✓ Application loads without critical errors\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:03.216Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-86fb7d64f99465696663",
+              "file": "migrated/smoke.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should navigate to core pages without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8767,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Testing Home page...\n"
+                        },
+                        {
+                          "text": "✓ Home page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Glider Flights page...\n"
+                        },
+                        {
+                          "text": "✓ Glider Flights page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Members page...\n"
+                        },
+                        {
+                          "text": "✓ Members page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Gliders page...\n"
+                        },
+                        {
+                          "text": "✓ Gliders page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Aircraft page...\n"
+                        },
+                        {
+                          "text": "✓ Aircraft page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Airfields page...\n"
+                        },
+                        {
+                          "text": "✓ Airfields page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Accounts page...\n"
+                        },
+                        {
+                          "text": "✓ Accounts page loads successfully\n"
+                        },
+                        {
+                          "text": "Testing Purchases page...\n"
+                        },
+                        {
+                          "text": "✓ Purchases page loads successfully\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:03.877Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-9340302e7f41fb9d08d8",
+              "file": "migrated/smoke.spec.js",
+              "line": 86,
+              "column": 3
+            },
+            {
+              "title": "should handle login/logout cycle multiple times",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11234,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Login/logout cycle 1\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 1 completed successfully\n"
+                        },
+                        {
+                          "text": "Login/logout cycle 2\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 2 completed successfully\n"
+                        },
+                        {
+                          "text": "Login/logout cycle 3\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Cycle 3 completed successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:12.656Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-d7bce09299828a6db7d1",
+              "file": "migrated/smoke.spec.js",
+              "line": 127,
+              "column": 3
+            },
+            {
+              "title": "should handle form interactions without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4650,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Testing flight creation form...\n"
+                        },
+                        {
+                          "text": "✓ Glider selection works\n"
+                        },
+                        {
+                          "text": "✓ Form interactions work without errors\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:23.904Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-d389ffb8722d46446f13",
+              "file": "migrated/smoke.spec.js",
+              "line": 145,
+              "column": 3
+            },
+            {
+              "title": "should display proper navigation for logged-in users",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3875,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Navigation element \"Membres\" found\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:28.563Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-8b0ed4b40c0a73db5820",
+              "file": "migrated/smoke.spec.js",
+              "line": 186,
+              "column": 3
+            },
+            {
+              "title": "should handle AJAX requests without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4066,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Failed requests detected: [\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/footer.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_75_e6e6e6_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  },\n  {\n    url: \u001b[32m'http://gvv.net/index.php/membres/page'\u001b[39m,\n    status: \u001b[33m404\u001b[39m,\n    statusText: \u001b[32m'Not Found'\u001b[39m\n  }\n]\n"
+                        },
+                        {
+                          "text": "✓ No critical AJAX errors detected\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:32.452Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-7f2ccc65d9a75e56ab3f",
+              "file": "migrated/smoke.spec.js",
+              "line": 217,
+              "column": 3
+            },
+            {
+              "title": "should handle different screen sizes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5083,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Testing Desktop viewport (1920x1080)\n"
+                        },
+                        {
+                          "text": "✓ Desktop viewport works\n"
+                        },
+                        {
+                          "text": "Testing Laptop viewport (1366x768)\n"
+                        },
+                        {
+                          "text": "✓ Laptop viewport works\n"
+                        },
+                        {
+                          "text": "Testing Tablet viewport (768x1024)\n"
+                        },
+                        {
+                          "text": "✓ Tablet viewport works\n"
+                        },
+                        {
+                          "text": "Testing Mobile viewport (375x667)\n"
+                        },
+                        {
+                          "text": "✓ Mobile viewport works\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:36.533Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-371ff0380408d4be3766",
+              "file": "migrated/smoke.spec.js",
+              "line": 257,
+              "column": 3
+            },
+            {
+              "title": "should load all critical resources",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4083,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Resource loading failures: [\n  { url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m, status: \u001b[33m404\u001b[39m },\n  { url: \u001b[32m'http://gvv.net/assets/images/footer.png'\u001b[39m, status: \u001b[33m404\u001b[39m },\n  { url: \u001b[32m'http://gvv.net/assets/images/header.png'\u001b[39m, status: \u001b[33m404\u001b[39m },\n  {\n    url: \u001b[32m'http://gvv.net/assets/css/images/ui-bg_glass_75_e6e6e6_1x400.png'\u001b[39m,\n    status: \u001b[33m404\u001b[39m\n  }\n]\n"
+                        },
+                        {
+                          "text": "✓ Critical resources load successfully\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:41.632Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "64f30cdbe9d371449b2e-9afce75f89dbfb5c6382",
+              "file": "migrated/smoke.spec.js",
+              "line": 299,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/terrain.spec.js",
+      "file": "migrated/terrain.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Terrain CRUD Tests (Migrated from Dusk)",
+          "file": "migrated/terrain.spec.js",
+          "line": 163,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should complete full CRUD workflow for terrains",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 16096,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m307\u001b[39m\nReceived: \u001b[31m306\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m307\u001b[39m\nReceived: \u001b[31m306\u001b[39m\n    at /home/frederic/git/gvv/playwright/tests/migrated/terrain.spec.js:259:40",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/migrated/terrain.spec.js",
+                          "column": 40,
+                          "line": 259
+                        },
+                        "snippet": "  257 |     const afterDuplicateAttemptCount = await getTotalCount(page);\n  258 |     console.log(`✓ Count after duplicate attempts: ${afterDuplicateAttemptCount}`);\n> 259 |     expect(afterDuplicateAttemptCount).toBe(afterCreateCount);\n      |                                        ^\n  260 |\n  261 |     // ===== DELETE PHASE =====\n  262 |     console.log('\\n--- DELETE PHASE ---');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/migrated/terrain.spec.js",
+                            "column": 40,
+                            "line": 259
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m307\u001b[39m\nReceived: \u001b[31m306\u001b[39m\n\n  257 |     const afterDuplicateAttemptCount = await getTotalCount(page);\n  258 |     console.log(`✓ Count after duplicate attempts: ${afterDuplicateAttemptCount}`);\n> 259 |     expect(afterDuplicateAttemptCount).toBe(afterCreateCount);\n      |                                        ^\n  260 |\n  261 |     // ===== DELETE PHASE =====\n  262 |     console.log('\\n--- DELETE PHASE ---');\n    at /home/frederic/git/gvv/playwright/tests/migrated/terrain.spec.js:259:40"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Using test terrains: T405285A, T405285B\n"
+                        },
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "✓ Initial terrain count: 304\n"
+                        },
+                        {
+                          "text": "\n--- CREATE PHASE ---\n"
+                        },
+                        {
+                          "text": "✓ Created terrain: T405285A - Test Terrain A 405285\n"
+                        },
+                        {
+                          "text": "✓ Created terrain: T405285B - Test Terrain B 405285\n"
+                        },
+                        {
+                          "text": "Count after creation: initial=304, after=307\n"
+                        },
+                        {
+                          "text": "⚠️  Terrain not found (may be filtered): T405285A\n"
+                        },
+                        {
+                          "text": "⚠️  Terrain not found (may be filtered): T405285B\n"
+                        },
+                        {
+                          "text": "⚠️  Found 0/2 terrains (others may be section-filtered)\n"
+                        },
+                        {
+                          "text": "\n--- DUPLICATE CREATION ERROR PHASE ---\n"
+                        },
+                        {
+                          "text": "✓ Duplicate creation correctly rejected for T405285A\n"
+                        },
+                        {
+                          "text": "✓ Duplicate creation correctly rejected for T405285B\n"
+                        },
+                        {
+                          "text": "✓ Count after duplicate attempts: 306\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:05.254Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-terrain-GVV-Terra-b7411--CRUD-workflow-for-terrains-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-terrain-GVV-Terra-b7411--CRUD-workflow-for-terrains-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/migrated/terrain.spec.js",
+                        "column": 40,
+                        "line": 259
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a37e2cffe9c20fc712e9-83d979291adda64e3bca",
+              "file": "migrated/terrain.spec.js",
+              "line": 165,
+              "column": 3
+            },
+            {
+              "title": "should create single terrain successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 11676,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "Using test terrain: TZ413907\n"
+                        },
+                        {
+                          "text": "✓ Created test terrain: TZ413907\n"
+                        },
+                        {
+                          "text": "Count: initial=305, after=307\n"
+                        },
+                        {
+                          "text": "⚠️  Terrain not found in table (may be filtered): TZ413907\n"
+                        },
+                        {
+                          "text": "✓ Cleaned up test terrain: TZ413907\n"
+                        },
+                        {
+                          "text": "Count: initial=305, final=306\n"
+                        },
+                        {
+                          "text": "✓ Verified terrain deleted: TZ413907\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        },
+                        {
+                          "text": "✓ Single terrain create/delete test completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:09.041Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a37e2cffe9c20fc712e9-94bf726b7c9083c4ff78",
+              "file": "migrated/terrain.spec.js",
+              "line": 293,
+              "column": 3
+            },
+            {
+              "title": "should verify terrains page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4662,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Terrains page is accessible and contains table\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:10.738Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a37e2cffe9c20fc712e9-8397fc8bcf121166e9f1",
+              "file": "migrated/terrain.spec.js",
+              "line": 358,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "migrated/upload.spec.js",
+      "file": "migrated/upload.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GVV Upload Image Tests (Migrated from Dusk)",
+          "file": "migrated/upload.spec.js",
+          "line": 53,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should verify no upload field on membre create page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4453,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "✓ Logged in\n"
+                        },
+                        {
+                          "text": "✓ Member create page loaded\n"
+                        },
+                        {
+                          "text": "✓ No upload elements on create form (as expected)\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:10.899Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d5141d3d04d2b4e2d012-b02232b75869a2c7b85d",
+              "file": "migrated/upload.spec.js",
+              "line": 55,
+              "column": 3
+            },
+            {
+              "title": "should upload and delete member photo",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 119,
+                      "error": {
+                        "message": "Error: Test image not found: /home/frederic/git/gvv/playwright/tests/fixtures/images/asterix.jpeg",
+                        "stack": "Error: Test image not found: /home/frederic/git/gvv/playwright/tests/fixtures/images/asterix.jpeg\n    at /home/frederic/git/gvv/playwright/tests/migrated/upload.spec.js:89:13",
+                        "location": {
+                          "file": "/home/frederic/git/gvv/playwright/tests/migrated/upload.spec.js",
+                          "column": 13,
+                          "line": 89
+                        },
+                        "snippet": "  87 |     // Verify test image exists\n  88 |     if (!fs.existsSync(TEST_IMAGE_PATH)) {\n> 89 |       throw new Error(`Test image not found: ${TEST_IMAGE_PATH}`);\n     |             ^\n  90 |     }\n  91 |     console.log(`Using test image: ${TEST_IMAGE_PATH}`);\n  92 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/frederic/git/gvv/playwright/tests/migrated/upload.spec.js",
+                            "column": 13,
+                            "line": 89
+                          },
+                          "message": "Error: Test image not found: /home/frederic/git/gvv/playwright/tests/fixtures/images/asterix.jpeg\n\n  87 |     // Verify test image exists\n  88 |     if (!fs.existsSync(TEST_IMAGE_PATH)) {\n> 89 |       throw new Error(`Test image not found: ${TEST_IMAGE_PATH}`);\n     |             ^\n  90 |     }\n  91 |     console.log(`Using test image: ${TEST_IMAGE_PATH}`);\n  92 |\n    at /home/frederic/git/gvv/playwright/tests/migrated/upload.spec.js:89:13"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:11.720Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/frederic/git/gvv/playwright/test-results/migrated-upload-GVV-Upload-930ca-oad-and-delete-member-photo-chromium/test-failed-1.png"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/frederic/git/gvv/playwright/tests/migrated/upload.spec.js",
+                        "column": 13,
+                        "line": 89
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5141d3d04d2b4e2d012-fab1cdee7013a9fad8c0",
+              "file": "migrated/upload.spec.js",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "should verify upload directory is writable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 7601,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Logging in as testadmin, section auto-detect\n"
+                        },
+                        {
+                          "text": "Auto-selected first available section: 3\n"
+                        },
+                        {
+                          "text": "Closing \"Message du jour\" modal\n"
+                        },
+                        {
+                          "text": "⚠️  Upload interface may not be fully visible\n"
+                        },
+                        {
+                          "text": "✓ Upload directory exists: /home/frederic/git/gvv/uploads/\n"
+                        },
+                        {
+                          "text": "  Current file count: 0\n"
+                        },
+                        {
+                          "text": "Logging out\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T16:00:12.777Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d5141d3d04d2b4e2d012-d08864f7ce9ab0709ea9",
+              "file": "migrated/upload.spec.js",
+              "line": 254,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-04T15:58:52.997Z",
+    "duration": 112776.621,
+    "expected": 54,
+    "skipped": 1,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}
