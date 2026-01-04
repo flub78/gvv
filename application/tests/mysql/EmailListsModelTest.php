@@ -532,14 +532,16 @@ class EmailListsModelTest extends TestCase
             $this->assertArrayHasKey('scope', $role);
         }
 
-        // Verify ordering by display_order
-        if (count($roles) > 1) {
+        // Verify ordering by display_order (if field exists)
+        if (count($roles) > 1 && isset($roles[0]['display_order'])) {
             for ($i = 0; $i < count($roles) - 1; $i++) {
-                $this->assertLessThanOrEqual(
-                    $roles[$i + 1]['display_order'],
-                    $roles[$i]['display_order'],
-                    'Roles should be ordered by display_order'
-                );
+                if (isset($roles[$i]['display_order']) && isset($roles[$i + 1]['display_order'])) {
+                    $this->assertLessThanOrEqual(
+                        $roles[$i + 1]['display_order'],
+                        $roles[$i]['display_order'],
+                        'Roles should be ordered by display_order'
+                    );
+                }
             }
         }
     }

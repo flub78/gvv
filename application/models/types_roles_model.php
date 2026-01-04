@@ -36,7 +36,7 @@ class Types_roles_model extends Common_Model {
         if ($key == "")
             return "";
         $vals = $this->get_by_id('id', $key);
-        if (array_key_exists('nom', $vals)) {
+        if (is_array($vals) && array_key_exists('nom', $vals)) {
             return $vals['nom'];
         } else {
             return "role inconnu $key";

@@ -29,7 +29,7 @@ $CI->load->model('common_model');
         if ($key == "")
             return "";
         $vals = $this->get_by_id('id', $key);
-        if (array_key_exists('name', $vals)) {
+        if (is_array($vals) && array_key_exists('name', $vals)) {
             return $vals['name'];
         } else {
             return "événement inconnu $key";

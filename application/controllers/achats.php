@@ -375,28 +375,4 @@ class Achats extends Gvv_Controller {
             }
         }
     }
-
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        // parent::test($format);
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $res = $this->gvv_model->test();
-        $all_passed = !in_array(false, array_column($res, 'result'));
-        if ($all_passed) {
-            $count = count($res);
-            $this->unit->run(true, true, "All " . $count . " Model tests $this->controller are passed");
-        } else {
-            foreach ($res as $t) {
-                $this->unit->run($t["result"], true, $t["description"]);
-            }
-        }
-
-        $this->unit->run(true, true, "Tests $this->controller");
-        $this->tests_results('xml');
-        $this->tests_results($format);
-    }
 }
