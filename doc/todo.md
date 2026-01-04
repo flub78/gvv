@@ -20,9 +20,9 @@
     * [ ] Implement missing phpunit tests according to the test plan
     * [ ] Investigate the coverage reporting which looks underestimated
   * [ ] playwright
-    * [ ] mechanism to restore a well defined test database before testing
-    * [ ] checks if there are still some Dusk tests to migrate
-    * [ ] migrate them
+    * [x] mechanism to restore a well defined test database before testing
+    * [x] checks if there are still some Dusk tests to migrate
+    * [x] migrate them
     * [ ] Implement missing playwright tests according to the test plan
     
 * [] Création d'une vue planche ULM ()
@@ -62,12 +62,12 @@
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues de code et refactoring
 * [] Check translations completeness
-* [] Corriger les tests qui ne passent pas
-* [] Redéployer un serveur CI/CD fonctionnel
+* [x] Corriger les tests qui ne passent pas
+* [x] Redéployer un serveur CI/CD fonctionnel
 * [] Définir une charte graphique et l'appliquer partout
 * [] Améliorer les vues saisies des vols (avion, planeur)
 * [x] basculer à tfpdf pour les exports PDF
-* [ ] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
+* [x] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
 
 ## Idées et suggestions
 

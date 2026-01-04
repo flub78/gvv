@@ -1530,6 +1530,7 @@ class Admin extends CI_Controller {
             log_message('info', 'Step 3: Adding test users');
             $test_users_script = FCPATH . 'bin/create_test_users.sh';
             
+            $script_users_count = 0;
             if (file_exists($test_users_script)) {
                 $env_vars = sprintf(
                     'MYSQL_HOST=%s MYSQL_USER=%s MYSQL_PASSWORD=%s MYSQL_DATABASE=%s',
@@ -1541,12 +1542,29 @@ class Admin extends CI_Controller {
                 
                 exec("$env_vars bash $test_users_script 2>&1", $output, $return_code);
                 if ($return_code === 0) {
-                    $results[] = array('step' => 'Utilisateurs de test', 'status' => 'OK', 'details' => '6 utilisateurs créés');
+                    $script_users_count = 6;
+                    $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'OK', 'details' => '6 utilisateurs créés');
                 } else {
-                    $results[] = array('step' => 'Utilisateurs de test', 'status' => 'WARNING', 'details' => 'Script échoué: ' . implode("\n", $output));
+                    $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'WARNING', 'details' => 'Script échoué: ' . implode("\n", $output));
                 }
             } else {
-                $results[] = array('step' => 'Utilisateurs de test', 'status' => 'SKIPPED', 'details' => 'Script non trouvé');
+                $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'SKIPPED', 'details' => 'Script non trouvé');
+            }
+            
+            // Step 3b: Add Gaulois test users with full profiles
+            log_message('info', 'Step 3b: Adding Gaulois test users');
+            $gaulois_result = $this->_create_test_gaulois_users();
+            $gaulois_created = $gaulois_result['created'];
+            
+            if ($gaulois_created > 0) {
+                $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'OK', 
+                    'details' => "$gaulois_created utilisateurs créés (asterix, obelix, abraracourcix, goudurix)");
+            } else if (!empty($gaulois_result['errors'])) {
+                $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'WARNING', 
+                    'details' => 'Erreurs: ' . implode('; ', $gaulois_result['errors']));
+            } else {
+                $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'INFO', 
+                    'details' => 'Utilisateurs déjà existants (non recréés)');
             }
 
             // Step 4: Update fixtures.json with test data
@@ -2296,6 +2314,214 @@ INSERT INTO `terrains` (`oaci`, `nom`, `freq1`, `freq2`, `comment`) VALUES
 SQL;
 
         return $sql;
+    }
+
+    /**
+     * Create Gaulois test users with full profiles
+     * Called after anonymization to add test data with clear names and contact info
+     * @return array Result array with 'created' count
+     */
+    private function _create_test_gaulois_users() {
+        $result = array('created' => 0, 'errors' => array());
+        
+        // Password hash for "password" (MD5 crypt)
+        $password_hash = '$1$wu3.3t2.$Wgk43dHPPi3PTv5atdpnz0';
+        
+        // Role bits from program.php
+        $REMORQUEUR = 8192;     // 2**13
+        $IVV = 65536;            // 2**16 - Instructeur Vol à Voile (Glider instructor)
+        $FI_AVION = 131072;      // 2**17 - Instructeur Vol Avion (Airplane instructor)
+        $CA_BIT = 64;            // 2**6 - Conseil d'Administration
+        $TRESORIER = 8;          // 2**3
+        
+        // Section IDs
+        $planeur_section = 1;
+        $ulm_section = 2;
+        $avion_section = 3;
+        $general_section = 4;
+        
+        // Get types_roles IDs from database (hardcode fallbacks)
+        $types_roles = array(
+            'user' => 1,
+            'planchiste' => 5,
+            'ca' => 6,
+            'tresorier' => 8,
+            'instructeur' => 11
+        );
+        
+        // Query for actual role IDs
+        $roles_query = $this->db->get('types_roles');
+        foreach ($roles_query->result() as $role) {
+            $types_roles[$role->nom] = $role->id;
+        }
+        
+        // Test users definition
+        $test_users = array(
+            array(
+                'username' => 'asterix',
+                'nom' => 'Asterix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'asterix@gmail.com',
+                'adresse' => '12 rue de Babaorum',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                'sections' => array($planeur_section, $general_section),
+                'roles_bits' => 0
+            ),
+            array(
+                'username' => 'obelix',
+                'nom' => 'Obelix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'obelix@gmail.com',
+                'adresse' => '27 rue du Menhir',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                'sections' => array($planeur_section, $ulm_section, $general_section),
+                'roles_bits' => $REMORQUEUR
+            ),
+            array(
+                'username' => 'abraracourcix',
+                'nom' => 'Abraracourcix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'abraracourcix@gmail.com',
+                'adresse' => '3 rue du Menhir',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                'sections' => array($planeur_section, $avion_section, $ulm_section, $general_section),
+                'roles_bits' => $REMORQUEUR + $FI_AVION + $CA_BIT
+            ),
+            array(
+                'username' => 'goudurix',
+                'nom' => 'Goudurix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'goudurix@gmail.com',
+                'adresse' => '3 rue du Menhir',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                'sections' => array($avion_section, $general_section),
+                'roles_bits' => $TRESORIER
+            )
+        );
+        
+        // Create each user
+        foreach ($test_users as $user_data) {
+            try {
+                $username = $user_data['username'];
+                
+                // Check if user already exists
+                $existing = $this->db->where('username', $username)->get('users');
+                if ($existing->num_rows() > 0) {
+                    continue;  // Skip if already exists
+                }
+                
+                // 1. Create user in users table
+                $user_insert = array(
+                    'role_id' => 1,
+                    'username' => $username,
+                    'password' => $password_hash,
+                    'email' => $user_data['email'],
+                    'banned' => 0,
+                    'last_ip' => '127.0.0.1',
+                    'last_login' => date('Y-m-d H:i:s'),
+                    'created' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('users', $user_insert);
+                $user_id = $this->db->insert_id();
+                
+                // 2. Create membre entry
+                $membre_insert = array(
+                    'mlogin' => $username,
+                    'mnom' => $user_data['nom'],
+                    'mprenom' => $user_data['prenom'],
+                    'memail' => $user_data['email'],
+                    'madresse' => $user_data['adresse'],
+                    'cp' => $user_data['cp'],
+                    'ville' => $user_data['ville'],
+                    'pays' => 'France',
+                    'msexe' => 'M',
+                    'mniveaux' => $user_data['roles_bits'],
+                    'macces' => 0,
+                    'club' => 0,
+                    'ext' => 0,
+                    'actif' => 1,
+                    'username' => $username,
+                    'categorie' => '0'
+                );
+                $this->db->insert('membres', $membre_insert);
+                
+                // 3. Create 411 accounts for each section
+                foreach ($user_data['sections'] as $section_id) {
+                    $compte_insert = array(
+                        'nom' => '(411) ' . $user_data['nom'] . ' ' . $user_data['prenom'],
+                        'pilote' => $username,
+                        'desc' => 'Compte client 411 ' . $user_data['nom'] . ' ' . $user_data['prenom'],
+                        'codec' => 411,
+                        'actif' => 1,
+                        'debit' => 0.0,
+                        'credit' => 0.0,
+                        'club' => $section_id,
+                        'saisie_par' => 'admin'
+                    );
+                    
+                    // Check if account already exists for this section
+                    $existing_compte = $this->db->where('pilote', $username)
+                                               ->where('codec', 411)
+                                               ->where('club', $section_id)
+                                               ->get('comptes');
+                    if ($existing_compte->num_rows() === 0) {
+                        $this->db->insert('comptes', $compte_insert);
+                    }
+                }
+                
+                // 4. Create user roles per section
+                foreach ($user_data['sections'] as $section_id) {
+                    $section_roles = array();
+                    
+                    // Always add 'user' role
+                    $section_roles[] = $types_roles['user'];
+                    
+                    // CA role applies to all sections
+                    if ($user_data['roles_bits'] & $CA_BIT) {
+                        $section_roles[] = $types_roles['ca'];
+                    }
+                    
+                    // Treasurer role applies to all sections
+                    if ($user_data['roles_bits'] & $TRESORIER) {
+                        $section_roles[] = $types_roles['tresorier'];
+                    }
+                    
+                    // Instructor roles for specific sections
+                    if ($user_data['roles_bits'] & $FI_AVION && $section_id == $avion_section) {
+                        $section_roles[] = $types_roles['instructeur'];
+                    }
+                    
+                    // Remorqueur (tow pilot) for avion section
+                    if ($user_data['roles_bits'] & $REMORQUEUR && $section_id == $avion_section) {
+                        $section_roles[] = $types_roles['instructeur'];  // Use instructeur as tow pilot marker
+                    }
+                    
+                    // Insert unique roles
+                    $section_roles = array_unique($section_roles);
+                    foreach ($section_roles as $types_role_id) {
+                        $role_insert = array(
+                            'user_id' => $user_id,
+                            'types_roles_id' => $types_role_id,
+                            'section_id' => $section_id,
+                            'granted_at' => date('Y-m-d H:i:s')
+                        );
+                        $this->db->insert('user_roles_per_section', $role_insert);
+                    }
+                }
+                
+                $result['created']++;
+                
+            } catch (Exception $e) {
+                $result['errors'][] = "Erreur création {$user_data['username']}: " . $e->getMessage();
+                log_message('error', "Failed to create Gaulois user {$user_data['username']}: " . $e->getMessage());
+            }
+        }
+        
+        return $result;
     }
 
 }
