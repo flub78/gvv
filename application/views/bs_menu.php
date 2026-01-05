@@ -329,12 +329,14 @@ $section_count = $CI->sections_model->safe_count_all();
 
               <li><a class="dropdown-item" href="<?= controller_url("compta/remb_capital") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_wire_remb_capital") ?></a></li>
 
-              <li>
-                <hr class="dropdown-divider">
-              </li>
+              <?php if ($section_count > 1) : ?>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/encaissement_pour_une_section") ?>"><i class="fas fa-building text-info"></i> <?= translation("gvv_menu_entries_section_collection") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/reversement_section") ?>"><i class="fas fa-exchange-alt text-secondary"></i> <?= translation("gvv_menu_entries_section_reversal") ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("compta/encaissement_pour_une_section") ?>"><i class="fas fa-building text-info"></i> <?= translation("gvv_menu_entries_section_collection") ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("compta/reversement_section") ?>"><i class="fas fa-exchange-alt text-secondary"></i> <?= translation("gvv_menu_entries_section_reversal") ?></a></li>
+              <?php endif; ?>
             </ul>
           </li>
         <?php endif; ?>

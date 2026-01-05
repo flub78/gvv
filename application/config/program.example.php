@@ -171,6 +171,10 @@ $config['gestion_ulm'] = true;
 $config['gestion_tickets'] = true;
 $config['gestion_pompes'] = true;
 
+$config['gestion_vd'] = true;
+$config['gestion_of'] = true;
+$config['gestion_rapprochements'] = true;
+
 /*
  * Les pilotes sont autorisés à saisir leur propres vols quand ils ne sont pas planchistes
  */
@@ -189,6 +193,19 @@ $config['dev_menu'] = true;
  * Ce paramètre s'il existe détermine une section dans laquelle créer un compte 411 supplémentaire 
  */
 $config['section_general'] = '0';
+
+/**
+ * Mode RAN (Retrospective Adjustment Nullification)
+ * Active la saisie d'écritures rétrospectives avec compensation automatique
+ * Permet de passer des écritures 2024 sans modifier les soldes finaux
+ *
+ * ATTENTION: En mode RAN, le formulaire s'affiche sur fond rouge et le contrôle
+ * de date de gel est désactivé. À utiliser uniquement pour la ventilation 2024.
+ */
+$config['ran_mode_enabled'] = false;  // Désactivé pour tests
+
+$config['passphrase'] = "Il était une fois...";
+
 
 /* End of file program.php */
 /* Location: .application/config/program.php */
