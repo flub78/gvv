@@ -717,13 +717,16 @@ class Admin extends CI_Controller {
      * A completer. Peut-etre vaudrait-il mieux ne pas supporter
      * cela. C'est surement une faille de sécurité potentielle ???
      */
+    /**
+     * Admin page - DEPRECATED
+     * This page has been removed. Development and test features are now available
+     * in the "Développement & Tests" section of the welcome dashboard.
+     * 
+     * @deprecated Use welcome/index instead
+     */
     public function page() {
-        // Check if user is authorized for development/test features
-        // Authorized user: fpeignot only
-        $data = array(
-            'is_dev_authorized' => ($this->dx_auth->get_username() === 'fpeignot')
-        );
-        return load_last_view('admin/admin', $data, $this->unit_test);
+        // Redirect to welcome dashboard instead
+        redirect('welcome');
     }
 
     /**

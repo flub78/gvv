@@ -155,8 +155,6 @@ $section_count = $CI->sections_model->safe_count_all();
                   </ul>
                 </li>
 
-                <li><a class="dropdown-item" href="<?= controller_url("admin/page") ?>"><i class="fas fa-tools text-danger"></i> Admin</a></li>
-
               <?php endif; ?>
 
           </ul>

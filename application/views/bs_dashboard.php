@@ -876,15 +876,6 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('user_roles_per_section') ?>" class="btn btn-warning btn-sm">Gérer</a>
                     </div>
                 </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-danger">
-                        <i class="fas fa-tools text-danger"></i>
-                        <div class="card-title">Admin</div>
-                        <div class="card-text text-muted">Panneau admin</div>
-                        <a href="<?= controller_url('admin/page') ?>" class="btn btn-danger btn-sm">Accéder</a>
-                    </div>
-                </div>
                     </div>
                 </div>
             </div>
@@ -903,48 +894,150 @@ $this->lang->load('welcome');
         <div id="collapseDevTest" class="accordion-collapse collapse" aria-labelledby="headingDevTest" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
+                <!-- Tests Section -->
+                <div class="col-12">
+                    <h6 class="text-muted mb-2"><i class="fas fa-vial"></i> Tests</h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-flask text-success"></i>
+                        <div class="card-title">Tests unitaires</div>
+                        <div class="card-text text-muted">PHPUnit</div>
+                        <a href="<?= controller_url('tests') ?>" class="btn btn-success btn-sm">Accéder</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-chart-pie text-info"></i>
+                        <div class="card-title">Couverture</div>
+                        <div class="card-text text-muted">Code coverage</div>
+                        <a href="<?= controller_url('coverage') ?>" class="btn btn-info btn-sm">Accéder</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        <div class="card-title">phpinfo()</div>
+                        <div class="card-text text-muted">Config PHP</div>
+                        <a href="<?= controller_url('admin/info') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                    </div>
+                </div>
+
+                <!-- Outils de Développement -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> Outils de développement</h6>
+                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">
                         <i class="fas fa-user-secret text-warning"></i>
-                        <div class="card-title">Anonymisation</div>
-                        <div class="card-text text-muted">Données de test</div>
+                        <div class="card-title">Anonymiser données</div>
+                        <div class="card-text text-muted">Toutes les données</div>
                         <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm"
-                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">
-                           Anonymiser
-                        </a>
+                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">Exécuter</a>
                     </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-envelope text-secondary"></i>
+                        <div class="card-title">Anonymiser emails</div>
+                        <div class="card-text text-muted">API JSON</div>
+                        <a href="<?= controller_url('backend/anonymize_all') ?>" class="btn btn-secondary btn-sm">API</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-info">
+                        <i class="fas fa-database text-info"></i>
+                        <div class="card-title">Extraire données test</div>
+                        <div class="card-text text-muted">Pour Playwright</div>
+                        <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">Extraire</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-success">
+                        <i class="fas fa-file-archive text-success"></i>
+                        <div class="card-title">Générer base de test</div>
+                        <div class="card-text text-muted">Chiffrée pour CI/CD</div>
+                        <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm">Générer</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-primary">
+                        <i class="fas fa-file-code text-primary"></i>
+                        <div class="card-title">Schéma initial DB</div>
+                        <div class="card-text text-muted">Pour installation</div>
+                        <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm">Générer</a>
+                    </div>
+                </div>
+
+                <!-- Cohérence de la Base de Données -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> Cohérence de la base de données</h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-database text-info"></i>
-                        <div class="card-title">Extraction test</div>
-                        <div class="card-text text-muted">Données Playwright</div>
-                        <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">
-                           Extraire
-                        </a>
+                    <div class="sub-card text-center">
+                        <i class="fas fa-pen text-primary"></i>
+                        <div class="card-title">Écritures</div>
+                        <div class="card-text text-muted">Vérifier</div>
+                        <a href="<?= controller_url('dbchecks') ?>" class="btn btn-primary btn-sm">Vérifier</a>
                     </div>
                 </div>
-
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-plane text-success"></i>
+                        <div class="card-title">Vols planeur</div>
+                        <div class="card-text text-muted">Cohérence</div>
+                        <a href="<?= controller_url('dbchecks/volsp') ?>" class="btn btn-success btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-plane-departure text-info"></i>
+                        <div class="card-title">Vols avion</div>
+                        <div class="card-text text-muted">Cohérence</div>
+                        <a href="<?= controller_url('dbchecks/volsa') ?>" class="btn btn-info btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-shopping-cart text-warning"></i>
+                        <div class="card-title">Achats</div>
+                        <div class="card-text text-muted">Cohérence</div>
+                        <a href="<?= controller_url('dbchecks/achats') ?>" class="btn btn-warning btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-wallet text-danger"></i>
+                        <div class="card-title">Soldes</div>
+                        <div class="card-text text-muted">Comptes</div>
+                        <a href="<?= controller_url('dbchecks/soldes') ?>" class="btn btn-danger btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-layer-group text-secondary"></i>
+                        <div class="card-title">Sections</div>
+                        <div class="card-text text-muted">Cohérence</div>
+                        <a href="<?= controller_url('dbchecks/sections') ?>" class="btn btn-secondary btn-sm">Vérifier</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-link text-warning"></i>
+                        <div class="card-title">Rapprochements</div>
+                        <div class="card-text text-muted">Associations orphelines</div>
+                        <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm">Vérifier</a>
+                    </div>
+                </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">
                         <i class="fas fa-check-circle text-success"></i>
-                        <div class="card-title">Cohérence BDD</div>
-                        <div class="card-text text-muted">Vérification comptes</div>
-                        <a href="<?= controller_url('comptes/check') ?>" class="btn btn-success btn-sm">
-                           Vérifier
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-bolt text-danger"></i>
-                        <div class="card-title">Opérations One-Shot</div>
-                        <div class="card-text text-muted">Scripts ponctuels</div>
-                        <a href="<?= controller_url('oneshot') ?>" class="btn btn-danger btn-sm">
-                           Accéder
-                        </a>
+                        <div class="card-title">Cohérence comptes</div>
+                        <div class="card-text text-muted">Vérifier soldes</div>
+                        <a href="<?= controller_url('comptes/check') ?>" class="btn btn-success btn-sm">Vérifier</a>
                     </div>
                 </div>
             </div>
