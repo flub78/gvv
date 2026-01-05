@@ -1169,7 +1169,7 @@ class Admin extends CI_Controller {
      *
      * Only available to authorized user (fpeignot)
      */
-    public function extract_test_data() {
+    public function extract_test_data($silent = false) {
         // Security check: only for authorized user (fpeignot only)
         if ($this->dx_auth->get_username() !== 'fpeignot') {
             show_error('Cette fonction est réservée aux administrateurs autorisés', 403, 'Accès refusé');
@@ -1227,74 +1227,110 @@ class Admin extends CI_Controller {
                 'account_label' => $row->account_label
             );
         }
+        $test_data['pilots'] = $this->_unique_by_key($test_data['pilots'], 'login');
         $results[] = array(
             'routine' => 'Pilotes avec comptes',
             'extracted' => count($test_data['pilots'])
         );
 
         // Extract glider instructors
-        $query = $this->db->query("
-            SELECT
-                m.mlogin,
-                CONCAT(m.mnom, ' ', m.mprenom) as full_name,
-                m.mprenom as first_name,
-                m.mnom as last_name,
-                m.inst_glider,
-                c.id as account_id,
-                CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
-            FROM membres m
-            LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
-            WHERE m.actif = 1
-                AND m.ext = 0
-                AND m.inst_glider IS NOT NULL
-                AND m.inst_glider != ''
-                AND c.id IS NOT NULL
-            ORDER BY m.mnom, m.mprenom
-            LIMIT 5
-        ");
+        $this->load->model('membres_model');
+        $glider_selector = $this->membres_model->qualif_selector('mlogin', ITP | IVV);
 
-        foreach ($query->result() as $row) {
+        foreach ($glider_selector as $login => $label) {
+            if (empty($login)) {
+                continue;
+            }
+
+            $member = $this->db
+                ->select('mlogin, mnom, mprenom, inst_glider')
+                ->from('membres')
+                ->where('mlogin', $login)
+                ->where('actif', 1)
+                ->where('ext', 0)
+                ->get()
+                ->row();
+
+            if (!$member) {
+                continue;
+            }
+
+            $account = $this->db
+                ->select('id, nom, codec')
+                ->from('comptes')
+                ->where('pilote', $login)
+                ->like('codec', '411', 'after')
+                ->order_by('id', 'asc')
+                ->limit(1)
+                ->get()
+                ->row();
+
+            if (!$account) {
+                continue; // skip if no 411 account
+            }
+
             $test_data['instructors']['glider'][] = array(
-                'login' => $row->mlogin,
-                'full_name' => $row->full_name,
-                'first_name' => $row->first_name,
-                'last_name' => $row->last_name,
-                'qualification' => $row->inst_glider,
-                'account_id' => (int)$row->account_id,
-                'account_label' => $row->account_label
+                'login' => $member->mlogin,
+                'full_name' => $member->mnom . ' ' . $member->mprenom,
+                'first_name' => $member->mprenom,
+                'last_name' => $member->mnom,
+                'qualification' => $member->inst_glider,
+                'account_id' => (int)$account->id,
+                'account_label' => '(' . $account->codec . ') ' . $account->nom
             );
         }
+        $test_data['instructors']['glider'] = $this->_unique_by_key($test_data['instructors']['glider'], 'login');
         $results[] = array(
             'routine' => 'Instructeurs planeur',
             'extracted' => count($test_data['instructors']['glider'])
         );
 
-        // Extract airplane instructors (tow pilots)
-        $query = $this->db->query("
-            SELECT
-                m.mlogin,
-                CONCAT(m.mnom, ' ', m.mprenom) as full_name,
-                m.mprenom as first_name,
-                m.mnom as last_name,
-                m.inst_airplane
-            FROM membres m
-            WHERE m.actif = 1
-                AND m.ext = 0
-                AND m.inst_airplane IS NOT NULL
-                AND m.inst_airplane != ''
-            ORDER BY m.mnom, m.mprenom
-            LIMIT 5
-        ");
+        // Extract airplane instructors (FI/FE) using same selector as vols_avion
+        $air_selector = $this->membres_model->qualif_selector('mlogin', FI_AVION | FE_AVION);
 
-        foreach ($query->result() as $row) {
+        foreach ($air_selector as $login => $label) {
+            if (empty($login)) {
+                continue;
+            }
+
+            $member = $this->db
+                ->select('mlogin, mnom, mprenom, inst_airplane')
+                ->from('membres')
+                ->where('mlogin', $login)
+                ->where('actif', 1)
+                ->where('ext', 0)
+                ->get()
+                ->row();
+
+            if (!$member) {
+                continue;
+            }
+
+            $account = $this->db
+                ->select('id, nom, codec')
+                ->from('comptes')
+                ->where('pilote', $login)
+                ->like('codec', '411', 'after')
+                ->order_by('id', 'asc')
+                ->limit(1)
+                ->get()
+                ->row();
+
+            if (!$account) {
+                continue; // skip if no 411 account
+            }
+
             $test_data['instructors']['airplane'][] = array(
-                'login' => $row->mlogin,
-                'full_name' => $row->full_name,
-                'first_name' => $row->first_name,
-                'last_name' => $row->last_name,
-                'qualification' => $row->inst_airplane
+                'login' => $member->mlogin,
+                'full_name' => $member->mnom . ' ' . $member->mprenom,
+                'first_name' => $member->mprenom,
+                'last_name' => $member->mnom,
+                'qualification' => $member->inst_airplane,
+                'account_id' => (int)$account->id,
+                'account_label' => '(' . $account->codec . ') ' . $account->nom
             );
         }
+        $test_data['instructors']['airplane'] = $this->_unique_by_key($test_data['instructors']['airplane'], 'login');
         $results[] = array(
             'routine' => 'Pilotes remorqueurs',
             'extracted' => count($test_data['instructors']['airplane'])
@@ -1324,6 +1360,7 @@ class Admin extends CI_Controller {
                 'autonomous' => (bool)$row->autonomous
             );
         }
+        $test_data['gliders']['two_seater'] = $this->_unique_by_key($test_data['gliders']['two_seater'], 'registration');
         $results[] = array(
             'routine' => 'Planeurs biplaces',
             'extracted' => count($test_data['gliders']['two_seater'])
@@ -1353,6 +1390,7 @@ class Admin extends CI_Controller {
                 'autonomous' => (bool)$row->autonomous
             );
         }
+        $test_data['gliders']['single_seater'] = $this->_unique_by_key($test_data['gliders']['single_seater'], 'registration');
         $results[] = array(
             'routine' => 'Planeurs monoplaces',
             'extracted' => count($test_data['gliders']['single_seater'])
@@ -1379,6 +1417,7 @@ class Admin extends CI_Controller {
                 'manufacturer' => $row->manufacturer
             );
         }
+        $test_data['tow_planes'] = $this->_unique_by_key($test_data['tow_planes'], 'registration');
         $results[] = array(
             'routine' => 'Avions remorqueurs',
             'extracted' => count($test_data['tow_planes'])
@@ -1410,6 +1449,7 @@ class Admin extends CI_Controller {
                 'label' => $row->label
             );
         }
+        $test_data['accounts'] = $this->_unique_by_key($test_data['accounts'], 'pilot_login');
         $results[] = array(
             'routine' => 'Comptes membres',
             'extracted' => count($test_data['accounts'])
@@ -1454,6 +1494,19 @@ class Admin extends CI_Controller {
             $total_extracted += $result['extracted'];
         }
 
+        $summary = array(
+            'write_success' => $write_success,
+            'results' => $results,
+            'total_extracted' => $total_extracted,
+            'output_file' => $output_file,
+            'file_size' => $write_success ? filesize($output_file) : 0,
+            'errors' => $write_success ? array() : array('Impossible d\'écrire le fichier ' . $output_file)
+        );
+
+        if ($silent) {
+            return $summary;
+        }
+
         // Prepare view data
         $data = array(
             'title' => 'Extraction de données de test',
@@ -1463,8 +1516,8 @@ class Admin extends CI_Controller {
             'results' => $results,
             'total_extracted' => $total_extracted,
             'output_file' => $output_file,
-            'file_size' => $write_success ? filesize($output_file) : 0,
-            'errors' => $write_success ? array() : array('Impossible d\'écrire le fichier ' . $output_file)
+            'file_size' => $summary['file_size'],
+            'errors' => $summary['errors']
         );
 
         // Load view
@@ -1571,274 +1624,24 @@ class Admin extends CI_Controller {
             log_message('info', 'Step 4: Updating fixtures.json');
 
             try {
-                // Initialize test data structure
-                $test_data = array(
-                    'metadata' => array(
-                        'extracted_at' => date('Y-m-d H:i:s'),
-                        'database' => $this->db->database,
-                        'version' => '1.0'
-                    ),
-                    'pilots' => array(),
-                    'instructors' => array(
-                        'glider' => array(),
-                        'airplane' => array()
-                    ),
-                    'gliders' => array(
-                        'two_seater' => array(),
-                        'single_seater' => array()
-                    ),
-                    'tow_planes' => array(),
-                    'accounts' => array()
-                );
+                $fixtures_result = $this->extract_test_data(true);
 
-                // Extract regular pilots with accounts
-                $query = $this->db->query("
-                    SELECT
-                        m.mlogin,
-                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
-                        m.mprenom as first_name,
-                        m.mnom as last_name,
-                        m.actif,
-                        c.id as account_id,
-                        CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
-                    FROM membres m
-                    LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
-                    WHERE m.actif = 1
-                        AND m.ext = 0
-                        AND c.id IS NOT NULL
-                    ORDER BY m.mnom, m.mprenom
-                    LIMIT 10
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['pilots'][] = array(
-                        'login' => $row->mlogin,
-                        'full_name' => $row->full_name,
-                        'first_name' => $row->first_name,
-                        'last_name' => $row->last_name,
-                        'account_id' => (int)$row->account_id,
-                        'account_label' => $row->account_label
+                if (!is_array($fixtures_result)) {
+                    throw new Exception('Extraction fixtures.json: résultat inattendu');
+                }
+
+                if ($fixtures_result['write_success']) {
+                    $results[] = array(
+                        'step' => 'Mise à jour fixtures.json',
+                        'status' => 'OK',
+                        'details' => $fixtures_result['total_extracted'] . ' enregistrements'
                     );
-                }
-
-                // Extract glider instructors
-                $query = $this->db->query("
-                    SELECT
-                        m.mlogin,
-                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
-                        m.mprenom as first_name,
-                        m.mnom as last_name,
-                        m.inst_glider,
-                        c.id as account_id,
-                        CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
-                    FROM membres m
-                    LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
-                    WHERE m.actif = 1
-                        AND m.ext = 0
-                        AND m.inst_glider IS NOT NULL
-                        AND m.inst_glider != ''
-                        AND c.id IS NOT NULL
-                    ORDER BY m.mnom, m.mprenom
-                    LIMIT 5
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['instructors']['glider'][] = array(
-                        'login' => $row->mlogin,
-                        'full_name' => $row->full_name,
-                        'first_name' => $row->first_name,
-                        'last_name' => $row->last_name,
-                        'qualification' => $row->inst_glider,
-                        'account_id' => (int)$row->account_id,
-                        'account_label' => $row->account_label
-                    );
-                }
-
-                // Extract airplane instructors (tow pilots)
-                $query = $this->db->query("
-                    SELECT
-                        m.mlogin,
-                        CONCAT(m.mnom, ' ', m.mprenom) as full_name,
-                        m.mprenom as first_name,
-                        m.mnom as last_name,
-                        m.inst_airplane
-                    FROM membres m
-                    WHERE m.actif = 1
-                        AND m.ext = 0
-                        AND m.inst_airplane IS NOT NULL
-                        AND m.inst_airplane != ''
-                    ORDER BY m.mnom, m.mprenom
-                    LIMIT 5
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['instructors']['airplane'][] = array(
-                        'login' => $row->mlogin,
-                        'full_name' => $row->full_name,
-                        'first_name' => $row->first_name,
-                        'last_name' => $row->last_name,
-                        'qualification' => $row->inst_airplane
-                    );
-                }
-
-                // Extract two-seater gliders
-                $query = $this->db->query("
-                    SELECT
-                        mpimmat as registration,
-                        mpmodele as model,
-                        mpconstruc as manufacturer,
-                        mpbiplace as seats,
-                        mpautonome as autonomous
-                    FROM machinesp
-                    WHERE actif = 1
-                        AND mpbiplace = '1'
-                    ORDER BY mpimmat
-                    LIMIT 5
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['gliders']['two_seater'][] = array(
-                        'registration' => $row->registration,
-                        'model' => $row->model,
-                        'manufacturer' => $row->manufacturer,
-                        'seats' => 2,
-                        'autonomous' => (bool)$row->autonomous
-                    );
-                }
-
-                // Extract single-seater gliders
-                $query = $this->db->query("
-                    SELECT
-                        mpimmat as registration,
-                        mpmodele as model,
-                        mpconstruc as manufacturer,
-                        mpbiplace as seats,
-                        mpautonome as autonomous
-                    FROM machinesp
-                    WHERE actif = 1
-                        AND mpbiplace = '0'
-                    ORDER BY mpimmat
-                    LIMIT 5
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['gliders']['single_seater'][] = array(
-                        'registration' => $row->registration,
-                        'model' => $row->model,
-                        'manufacturer' => $row->manufacturer,
-                        'seats' => 1,
-                        'autonomous' => (bool)$row->autonomous
-                    );
-                }
-
-                // Extract tow planes
-                $query = $this->db->query("
-                    SELECT
-                        macimmat as registration,
-                        macmodele as model,
-                        macconstruc as manufacturer,
-                        macrem as is_tow_plane
-                    FROM machinesa
-                    WHERE actif = 1
-                        AND macrem = 1
-                    ORDER BY macimmat
-                    LIMIT 5
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['tow_planes'][] = array(
-                        'registration' => $row->registration,
-                        'model' => $row->model,
-                        'manufacturer' => $row->manufacturer
-                    );
-                }
-
-                // Extract member accounts (for billing)
-                $query = $this->db->query("
-                    SELECT
-                        c.id,
-                        c.nom as account_name,
-                        c.pilote as pilot_login,
-                        c.codec as account_code,
-                        CONCAT('(', c.codec, ') ', c.nom) as label
-                    FROM comptes c
-                    WHERE c.actif = 1
-                        AND c.codec LIKE '411%'
-                        AND c.pilote IS NOT NULL
-                        AND c.pilote != ''
-                    ORDER BY c.nom
-                    LIMIT 20
-                ");
-                foreach ($query->result() as $row) {
-                    $test_data['accounts'][] = array(
-                        'id' => (int)$row->id,
-                        'name' => $row->account_name,
-                        'pilot_login' => $row->pilot_login,
-                        'code' => $row->account_code,
-                        'label' => $row->label
-                    );
-                }
-
-                // Generate balance search test cases from extracted accounts
-                $test_data['balance_search_tests'] = array();
-                if (!empty($test_data['accounts'])) {
-                    // Create test cases based on first few accounts
-                    $accounts_for_tests = array_slice($test_data['accounts'], 0, min(5, count($test_data['accounts'])));
-
-                    foreach ($accounts_for_tests as $account) {
-                        // Extract parts of the name for testing
-                        $name_parts = explode(' ', $account['name']);
-
-                        // Test with last name (first word)
-                        if (!empty($name_parts[0])) {
-                            $test_data['balance_search_tests'][] = array(
-                                'search_term' => $name_parts[0],
-                                'expected_name' => $account['name'],
-                                'expected_account_code' => $account['code']
-                            );
-                        }
-
-                        // Test with partial first name (if exists)
-                        if (isset($name_parts[1]) && strlen($name_parts[1]) >= 3) {
-                            $test_data['balance_search_tests'][] = array(
-                                'search_term' => substr($name_parts[1], 0, 3),
-                                'expected_name' => $account['name'],
-                                'expected_account_code' => $account['code']
-                            );
-                        }
-                    }
-
-                    // Remove duplicates by search_term
-                    $unique_tests = array();
-                    $seen_terms = array();
-                    foreach ($test_data['balance_search_tests'] as $test) {
-                        if (!in_array(strtolower($test['search_term']), $seen_terms)) {
-                            $unique_tests[] = $test;
-                            $seen_terms[] = strtolower($test['search_term']);
-                        }
-                    }
-                    $test_data['balance_search_tests'] = array_slice($unique_tests, 0, 10); // Limit to 10 tests
-                }
-
-                // Create output directory if needed
-                $output_dir = FCPATH . 'playwright/test-data';
-                if (!is_dir($output_dir)) {
-                    mkdir($output_dir, 0755, true);
-                }
-
-                // Write JSON file
-                $output_file = $output_dir . '/fixtures.json';
-                $json = json_encode($test_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                $write_success = file_put_contents($output_file, $json) !== false;
-
-                // Calculate total extracted
-                $total_extracted = count($test_data['pilots']) +
-                                 count($test_data['instructors']['glider']) +
-                                 count($test_data['instructors']['airplane']) +
-                                 count($test_data['gliders']['two_seater']) +
-                                 count($test_data['gliders']['single_seater']) +
-                                 count($test_data['tow_planes']) +
-                                 count($test_data['accounts']) +
-                                 count($test_data['balance_search_tests']);
-
-                if ($write_success) {
-                    $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'OK', 'details' => "$total_extracted enregistrements");
                 } else {
-                    $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'WARNING', 'details' => 'Échec écriture fichier');
+                    $results[] = array(
+                        'step' => 'Mise à jour fixtures.json',
+                        'status' => 'WARNING',
+                        'details' => !empty($fixtures_result['errors']) ? implode('; ', $fixtures_result['errors']) : 'Échec écriture fichier'
+                    );
                 }
             } catch (Exception $e) {
                 $results[] = array('step' => 'Mise à jour fixtures.json', 'status' => 'WARNING', 'details' => $e->getMessage());
@@ -2095,6 +1898,28 @@ class Admin extends CI_Controller {
         );
 
         load_last_view('admin/bs_initial_schema_generation', $data);
+    }
+
+    /**
+     * Return array with unique entries based on a key
+     */
+    private function _unique_by_key($items, $key) {
+        $unique = array();
+        $seen = array();
+
+        foreach ($items as $item) {
+            if (!is_array($item) || !array_key_exists($key, $item)) {
+                continue;
+            }
+
+            $value = strtolower((string)$item[$key]);
+            if (!isset($seen[$value])) {
+                $seen[$value] = true;
+                $unique[] = $item;
+            }
+        }
+
+        return $unique;
     }
 
     /**
