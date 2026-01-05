@@ -161,7 +161,7 @@ class Mails extends Gvv_Controller {
         }
 
         $data ['title'] = 'Mail envoyé';
-        $this->load->view('message', $data);
+        load_last_view('message', $data);
     }
 
     /**
