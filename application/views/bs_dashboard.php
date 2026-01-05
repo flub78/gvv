@@ -904,7 +904,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-flask text-success"></i>
                         <div class="card-title">Tests unitaires</div>
                         <div class="card-text text-muted">PHPUnit</div>
-                        <a href="<?= controller_url('tests') ?>" class="btn btn-success btn-sm">Accéder</a>
+                        <a href="<?= controller_url('tests_ciunit') ?>" class="btn btn-success btn-sm">Accéder</a>
                     </div>
                 </div>
 

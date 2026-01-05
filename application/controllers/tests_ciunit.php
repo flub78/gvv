@@ -21,7 +21,7 @@ if (! defined('BASEPATH'))
 set_include_path(getcwd() . "/..:" . get_include_path());
 include(APPPATH . '/third_party/phpqrcode/qrlib.php');
 
-class Tests extends CI_Controller {
+class Tests_ciunit extends CI_Controller {
     function __construct() {
         date_default_timezone_set('Europe/Paris');
         parent::__construct();

@@ -27,45 +27,9 @@ echo heading("Tests", 3);
 echo p("Cette page permet l'activation des tests unitaires CodeIgniter. Note: elle doit être activable par tout les utilisateurs, pas seulement les administrateurs.");
 echo p("Les tests CodeIgniter vont être graduellement remplacés par des tests phpunit");
 
-echo heading("Tests des librairies et helpers", 4);
-$list = array(
-	anchor(controller_url("tests/test_libraries"), "Libraries")
-);
-echo ul($list);
-
-echo heading("Tests controleurs et models", 4);
-echo p("Tests unitaires des fonctions du controleur et du model");
-
-
-$list = array(
-	anchor(controller_url("achats/test"), "Achats"),
-	anchor(controller_url("admin/test"), "Admin"),
-	anchor(controller_url("attachments/test"), "Attachments"),
-	anchor(controller_url("categorie/test"), "Categories"),
-	anchor(controller_url("compta/test"), "Compta"),
-	anchor(controller_url("comptes/test"), "Comptes"),
-	anchor(controller_url("event/test"), "Events"),
-	anchor(controller_url("licences/test"), "Licences"),
-	anchor(controller_url("membre/test"), "Membres"),
-	anchor(controller_url("plan_comptable/test"), "Plan comptable"),
-	anchor(controller_url("planeur/test"), "Planeur"),
-	anchor(controller_url("pompes/test"), "Pompes"),
-	anchor(controller_url("presences/test"), "Présences"),
-	anchor(controller_url("rapports/test"), "Rapports"),
-	anchor(controller_url("sections/test"), "Sections"),
-	anchor(controller_url("user_roles_per_section/test"), "Rôles utilisateur par section"),
-
-	anchor(controller_url("tarifs/test"), "Tarifs"),
-	anchor(controller_url("terrains/test"), "Terrains"),
-	anchor(controller_url("tickets/test"), "Tickets"),
-	anchor(controller_url("types_ticket/test"), "Type tickets"),
-);
-echo ul($list);
-
 echo heading("Tests fonctionels", 4);
 echo p("Ces tests mettent en jeux plusieurs models.");
 echo p("Attention ils chargent une base de données de test et effacent vos données.", 'class="error"');
-//echo p("(Note: il doivent laisser la base de donnée dans l'état ou ils l'ont trouvée).");
 
 $list = array(
 	anchor(controller_url("facturation/test"), "Facturation"),

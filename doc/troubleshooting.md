@@ -6,12 +6,12 @@ Regardez les fichiers journaux. Ils contiennent des informations sur les erreurs
 
 ### Logs GVV
 
-* `gvv/application/logs/log-2025-03-05.php` 
+* `cat gvv/application/logs/log-2025-03-05.php` 
 
 ### Logs Apache et PHP
-* `/var/log/apache2/error.log`
-* `/var/log/apache2/access.log`
-* `/var/log/apache2/other_vhosts_access.log`
+* `cat /var/log/apache2/error.log`
+* `cat /var/log/apache2/access.log`
+* `cat /var/log/apache2/other_vhosts_access.log`
  
 ### Logs des tests Dusk
 * `dusk_gvv/storage/logs/laravel.log`

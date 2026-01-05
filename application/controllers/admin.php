@@ -736,21 +736,6 @@ class Admin extends CI_Controller {
         echo phpinfo();
     }
 
-    /**
-     * Test unitaire
-     */
-    function test() {
-        $this->unit_test = TRUE;
-        echo heading("Test controller " . $this->controller, 3);
-
-        $this->load->library('unit_test');
-
-        $res = $this->page();
-        echo $this->unit->run(($res == ""), FALSE, $this->controller . "/page", "non vide");
-        echo $this->unit->run(preg_match("/PHP Error/", $res), 0, "membre/page2", "pas d'erreurs PHP");
-
-        echo anchor(controller_url("tests"), "Tests unitaires");
-    }
 
     function spy() {
         echo "spy:" . br();
