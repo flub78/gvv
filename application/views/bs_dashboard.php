@@ -907,14 +907,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('tests') ?>" class="btn btn-success btn-sm">Accéder</a>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-chart-pie text-info"></i>
-                        <div class="card-title">Couverture</div>
-                        <div class="card-text text-muted">Code coverage</div>
-                        <a href="<?= controller_url('coverage') ?>" class="btn btn-info btn-sm">Accéder</a>
-                    </div>
-                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">
                         <i class="fas fa-info-circle text-primary"></i>
@@ -938,22 +931,7 @@ $this->lang->load('welcome');
                            onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">Exécuter</a>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-envelope text-secondary"></i>
-                        <div class="card-title">Anonymiser emails</div>
-                        <div class="card-text text-muted">API JSON</div>
-                        <a href="<?= controller_url('backend/anonymize_all') ?>" class="btn btn-secondary btn-sm">API</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-info">
-                        <i class="fas fa-database text-info"></i>
-                        <div class="card-title">Extraire données test</div>
-                        <div class="card-text text-muted">Pour Playwright</div>
-                        <a href="<?= controller_url('admin/extract_test_data') ?>" class="btn btn-info btn-sm">Extraire</a>
-                    </div>
-                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-success">
                         <i class="fas fa-file-archive text-success"></i>
@@ -1008,14 +986,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('dbchecks/achats') ?>" class="btn btn-warning btn-sm">Vérifier</a>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-wallet text-danger"></i>
-                        <div class="card-title">Soldes</div>
-                        <div class="card-text text-muted">Comptes</div>
-                        <a href="<?= controller_url('dbchecks/soldes') ?>" class="btn btn-danger btn-sm">Vérifier</a>
-                    </div>
-                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-layer-group text-secondary"></i>
@@ -1030,14 +1001,6 @@ $this->lang->load('welcome');
                         <div class="card-title">Rapprochements</div>
                         <div class="card-text text-muted">Associations orphelines</div>
                         <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm">Vérifier</a>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <div class="card-title">Cohérence comptes</div>
-                        <div class="card-text text-muted">Vérifier soldes</div>
-                        <a href="<?= controller_url('comptes/check') ?>" class="btn btn-success btn-sm">Vérifier</a>
                     </div>
                 </div>
             </div>
