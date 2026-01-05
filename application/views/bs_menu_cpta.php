@@ -39,5 +39,11 @@
     <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer"><i class="fas fa-cloud-sun text-info"></i> <?= translation("Prévisions vol à voile") ?></a></li>
     <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer"><i class="fas fa-id-card text-success"></i> <?= translation("Licences assurance") ?></a></li>
 
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+
+    <li><a class="dropdown-item" href="<?= controller_url("welcome/about") ?>"><i class="fas fa-info-circle text-info"></i> <?= "A propos de GVV" ?></a></li>
+
   </ul>
 </li>
