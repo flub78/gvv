@@ -382,8 +382,20 @@ class Backend extends GVV_Controller {
             // processing is done by the run method.
 
             if ($action == CREATION) {
-                if (! $user = $this->dx_auth->register($this->data ['username'], $this->data ['password'], $this->data ['email'])) {
+                $user = $this->dx_auth->register($this->data['username'], $this->data['password'], $this->data['email']);
+                if (! $user) {
                     echo $this->lang->line("gvv_error_saving_user") . "<br>";
+                } else {
+                    // Apply selected role to the newly created user (no email activation flow)
+                    $this->load->model('dx_auth/users', 'users');
+                    $query = $this->users->get_user_by_username($this->data['username']);
+                    if ($query && $query->num_rows() === 1) {
+                        $user_id = (int) $query->row()->id;
+                        $role_id = (int) $this->data['role_id'];
+                        if ($role_id > 0) {
+                            $this->users->set_role($user_id, $role_id);
+                        }
+                    }
                 }
             } else {
                 // Load Models
