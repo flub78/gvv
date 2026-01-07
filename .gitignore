@@ -43,3 +43,4 @@ build/coverage-data/*
 install/base_de_test.sql
 install/base_de_test.zip
 playwright/test-data/fixtures.json
+application/config/email.php

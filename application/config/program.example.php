@@ -176,6 +176,13 @@ $config['gestion_of'] = true;
 $config['gestion_rapprochements'] = true;
 
 /*
+ * Unification de l'envoi des emails pour les vols de découverte (VD)
+ * Si TRUE, le contrôleur VD utilisera la configuration standard `application/config/email.php`
+ * Si FALSE ou si le paramètre n'existe pas, VD continue d'utiliser sa configuration SMTP dédiée
+ */
+$config['use_standard_email_configuration_for_vd'] = false;
+
+/*
  * Les pilotes sont autorisés à saisir leur propres vols quand ils ne sont pas planchistes
  */
 $config['auto_planchiste'] = false;

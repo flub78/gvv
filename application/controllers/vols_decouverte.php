@@ -372,31 +372,37 @@ class Vols_decouverte extends Gvv_Controller {
         $sender = "info@aeroclub-abbeville.fr";
         $sender = $this->configuration_model->get_param('vd.email.sender_email');
 
-        // Configure email settings
+        // Feature flag: use standard email configuration if enabled
+        $use_unified_cfg = (bool) $this->config->item('use_standard_email_configuration_for_vd');
+
+        // Prepare email library
         $this->email->clear();
-        $config['mailtype'] = 'html';
-        // Configure SMTP settings for Ionos
-        $smtp_host = $this->configuration_model->get_param('vd.email.smtp_host');
-        $smtp_pass = $this->configuration_model->get_param('vd.email.smtp_password');
-        $smtp_crypto = $this->configuration_model->get_param('vd.email.smtp_crypto');
-        $smtp_port = $this->configuration_model->get_param('vd.email.smtp_port');
-        $config = array(
-            'protocol'    => 'smtp',
-            'smtp_host'   => $smtp_host,  // or smtp.ionos.com depending on your account
-            'smtp_port'   => $smtp_port,
-            'smtp_user'   => $sender,  // Your full email address
-            'smtp_pass'   => $smtp_pass, // config/config.php
-            'smtp_crypto' => $smtp_crypto,
-            'mailtype'    => 'html',
-            'charset'     => 'utf-8',
-            'wordwrap'    => TRUE,
-            'newline'     => "\r\n"
-        );
 
-
-        gvv_debug(var_export($config, true), "email_config");
-
-        $this->email->initialize($config);
+        if ($use_unified_cfg) {
+            // Use global configuration from application/config/email.php
+            gvv_debug('VD email: using standard email configuration (config/email.php)', 'email_config');
+            // No per-feature initialization; rely on global Email config
+        } else {
+            // Legacy per-feature SMTP settings
+            $smtp_host = $this->configuration_model->get_param('vd.email.smtp_host');
+            $smtp_pass = $this->configuration_model->get_param('vd.email.smtp_password');
+            $smtp_crypto = $this->configuration_model->get_param('vd.email.smtp_crypto');
+            $smtp_port = $this->configuration_model->get_param('vd.email.smtp_port');
+            $config = array(
+                'protocol'    => 'smtp',
+                'smtp_host'   => $smtp_host,
+                'smtp_port'   => $smtp_port,
+                'smtp_user'   => $sender,
+                'smtp_pass'   => $smtp_pass,
+                'smtp_crypto' => $smtp_crypto,
+                'mailtype'    => 'html',
+                'charset'     => 'utf-8',
+                'wordwrap'    => TRUE,
+                'newline'     => "\r\n"
+            );
+            gvv_debug(var_export($config, true), 'email_config');
+            $this->email->initialize($config);
+        }
 
         // Set email parameters
         $this->email->from($sender, 'Aéroclub d\'Abbeville');
