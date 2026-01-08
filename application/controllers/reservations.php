@@ -56,36 +56,20 @@ class Reservations extends CI_Controller {
     }
 
     /**
-     * Get sample events for the calendar (JSON API)
+     * Get events for the calendar (JSON API)
      */
     function get_events() {
         header('Content-Type: application/json');
         
-        // Sample events for testing
-        $events = array(
-            array(
-                'id' => '1',
-                'title' => 'Sample Booking - Aircraft N-123',
-                'start' => date('Y-m-d') . 'T09:00:00',
-                'end' => date('Y-m-d') . 'T11:00:00',
-                'extendedProps' => array(
-                    'aircraft' => 'N-123',
-                    'pilot' => 'John Doe',
-                    'instructor' => ''
-                )
-            ),
-            array(
-                'id' => '2',
-                'title' => 'Sample Booking - Aircraft N-456',
-                'start' => date('Y-m-d', strtotime('+1 day')) . 'T14:00:00',
-                'end' => date('Y-m-d', strtotime('+1 day')) . 'T16:00:00',
-                'extendedProps' => array(
-                    'aircraft' => 'N-456',
-                    'pilot' => 'Jane Smith',
-                    'instructor' => 'Bob Johnson'
-                )
-            )
-        );
+        // Get date range from request parameters (FullCalendar provides these)
+        $start = isset($_GET['start']) ? $_GET['start'] : null;
+        $end = isset($_GET['end']) ? $_GET['end'] : null;
+        
+        // Load the reservations model
+        $this->load->model('reservations_model');
+        
+        // Get events from database
+        $events = $this->reservations_model->get_calendar_events($start, $end);
         
         echo json_encode($events);
     }
