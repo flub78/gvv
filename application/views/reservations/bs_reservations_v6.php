@@ -50,6 +50,22 @@ $this->load->view('bs_banner');
 <!-- FullCalendar v6 Standard Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
 
+<?php
+// Map CodeIgniter language to FullCalendar locale
+$ci_language = $this->config->item('language');
+$locale_map = array(
+    'french' => 'fr',
+    'english' => 'en',
+    'dutch' => 'nl'
+);
+$fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_language] : 'en';
+?>
+
+<!-- FullCalendar Locale Scripts -->
+<?php if ($fullcalendar_locale !== 'en'): ?>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/locales/<?= $fullcalendar_locale ?>.global.min.js"></script>
+<?php endif; ?>
+
 <style>
     #calendar {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -147,13 +163,48 @@ $this->load->view('bs_banner');
     document.addEventListener('DOMContentLoaded', function() {
         addLog('INIT', 'Initializing FullCalendar v6');
         
+        // Button text translations based on locale
+        var buttonTextMap = {
+            'fr': {
+                today: 'Aujourd\'hui',
+                month: 'Mois',
+                week: 'Semaine',
+                day: 'Jour',
+                list: 'Liste'
+            },
+            'nl': {
+                today: 'Vandaag',
+                month: 'Maand',
+                week: 'Week',
+                day: 'Dag',
+                list: 'Lijst'
+            },
+            'en': {
+                today: 'Today',
+                month: 'Month',
+                week: 'Week',
+                day: 'Day',
+                list: 'List'
+            }
+        };
+        
+        var buttonTexts = buttonTextMap['<?= $fullcalendar_locale ?>'] || buttonTextMap['en'];
+        
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: '<?= $fullcalendar_locale ?>',
             initialView: 'dayGridMonth',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            buttonText: {
+                today: buttonTexts.today,
+                month: buttonTexts.month,
+                week: buttonTexts.week,
+                day: buttonTexts.day,
+                list: buttonTexts.list
             },
             height: 'auto',
             contentHeight: 'auto',
