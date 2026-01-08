@@ -35,7 +35,7 @@ class Reservations_model extends Common_Model {
         $this->db->select(
             'r.id, r.aircraft_id, r.start_datetime, r.end_datetime, ' .
             'r.pilot_member_id, r.instructor_member_id, r.purpose, r.status, ' .
-            'r.notes, m.macmodele, ma.prenom, ma.nom'
+            'r.notes, m.macmodele, ma.mprenom, ma.mnom'
         )
             ->from('reservations r')
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
@@ -61,7 +61,7 @@ class Reservations_model extends Common_Model {
         // Format for FullCalendar
         $events = array();
         foreach ($reservations as $reservation) {
-            $pilot_name = trim($reservation['prenom'] . ' ' . $reservation['nom']);
+            $pilot_name = trim($reservation['mprenom'] . ' ' . $reservation['mnom']);
             $title = $reservation['macmodele'] . ' - ' . $pilot_name;
 
             if ($reservation['instructor_member_id']) {
@@ -102,8 +102,8 @@ class Reservations_model extends Common_Model {
     public function get_reservation($reservation_id) {
         $this->db->select(
             'r.*, m.macmodele, m.macmodele as aircraft_model, ' .
-            'pilot.prenom as pilot_prenom, pilot.nom as pilot_nom, ' .
-            'instr.prenom as instructor_prenom, instr.nom as instructor_nom'
+            'pilot.mprenom as pilot_prenom, pilot.mnom as pilot_nom, ' .
+            'instr.mprenom as instructor_prenom, instr.mnom as instructor_nom'
         )
             ->from('reservations r')
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')

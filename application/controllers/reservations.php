@@ -59,19 +59,29 @@ class Reservations extends CI_Controller {
      * Get events for the calendar (JSON API)
      */
     function get_events() {
-        header('Content-Type: application/json');
+        // Prevent any output buffering issues
+        if (ob_get_level()) {
+            ob_clean();
+        }
         
-        // Get date range from request parameters (FullCalendar provides these)
-        $start = isset($_GET['start']) ? $_GET['start'] : null;
-        $end = isset($_GET['end']) ? $_GET['end'] : null;
+        header('Content-Type: application/json; charset=UTF-8');
         
-        // Load the reservations model
-        $this->load->model('reservations_model');
-        
-        // Get events from database
-        $events = $this->reservations_model->get_calendar_events($start, $end);
-        
-        echo json_encode($events);
+        try {
+            // Get date range from request parameters (FullCalendar provides these)
+            $start = isset($_GET['start']) ? $_GET['start'] : null;
+            $end = isset($_GET['end']) ? $_GET['end'] : null;
+            
+            // Load the reservations model
+            $this->load->model('reservations_model');
+            
+            // Get events from database
+            $events = $this->reservations_model->get_calendar_events($start, $end);
+            
+            echo json_encode($events);
+        } catch (Exception $e) {
+            gvv_error("Error in get_events: " . $e->getMessage());
+            echo json_encode(array('error' => $e->getMessage()));
+        }
     }
 }
 
