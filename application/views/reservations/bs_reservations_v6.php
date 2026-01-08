@@ -1,0 +1,320 @@
+<!-- VIEW: application/views/reservations/bs_reservations_v6.php -->
+<?php
+
+/**
+ *    GVV Gestion vol à voile
+ *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    
+ * Aircraft Reservations - FullCalendar v6
+ */
+
+$this->load->view('bs_header', array('new_layout' => true));
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
+?>
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-md-9">
+            <h2>Aircraft Reservations - FullCalendar v6</h2>
+            <div id='calendar' style="height: 100%"></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>FullCalendar Events Log</h5>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    <div id="event-log">
+                        <p class="text-muted">Waiting for events...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FullCalendar v6 Standard Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+
+<style>
+    #calendar {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 14px;
+    }
+    
+    .event-log-item {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-left: 3px solid #007bff;
+        background-color: #f8f9fa;
+        border-radius: 3px;
+        font-size: 12px;
+        font-family: monospace;
+    }
+    
+    .event-log-item.error {
+        border-left-color: #dc3545;
+        background-color: #f8d7da;
+    }
+    
+    .event-log-item.warning {
+        border-left-color: #ffc107;
+        background-color: #fff3cd;
+    }
+    
+    .event-log-item.success {
+        border-left-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .log-timestamp {
+        color: #666;
+        font-weight: bold;
+    }
+    
+    .log-content {
+        margin-top: 2px;
+    }
+</style>
+
+<script>
+    let eventLog = [];
+    const MAX_LOG_ENTRIES = 50;
+    
+    /**
+     * Add an event to the log display
+     */
+    function addLog(category, message, data = null, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString('fr-FR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        const logEntry = {
+            timestamp,
+            category,
+            message,
+            data,
+            type
+        };
+        
+        eventLog.unshift(logEntry);
+        if (eventLog.length > MAX_LOG_ENTRIES) {
+            eventLog.pop();
+        }
+        
+        renderLog();
+        
+        // Also log to console
+        console.log(`[${timestamp}] [${category}] ${message}`, data);
+    }
+    
+    /**
+     * Render the event log to the UI
+     */
+    function renderLog() {
+        const logContainer = document.getElementById('event-log');
+        logContainer.innerHTML = '';
+        
+        eventLog.forEach(entry => {
+            const div = document.createElement('div');
+            div.className = `event-log-item ${entry.type}`;
+            
+            let html = `<div class="log-timestamp">${entry.timestamp}</div>`;
+            html += `<div class="log-content"><strong>[${entry.category}]</strong> ${entry.message}`;
+            
+            if (entry.data) {
+                html += `<pre>${JSON.stringify(entry.data, null, 2)}</pre>`;
+            }
+            
+            html += '</div>';
+            div.innerHTML = html;
+            logContainer.appendChild(div);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        addLog('INIT', 'Initializing FullCalendar v6');
+        
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            height: 'auto',
+            contentHeight: 'auto',
+            events: {
+                url: '<?= base_url('index.php/reservations/get_events') ?>',
+                failure: function() {
+                    addLog('EVENTS', 'Error loading events from server', null, 'error');
+                }
+            },
+            editable: true,
+            selectable: true,
+            selectConstraint: 'businessHours',
+            eventClick: function(info) {
+                addLog('EVENT_CLICK', 'Event clicked', {
+                    eventId: info.event.id,
+                    title: info.event.title,
+                    start: info.event.start,
+                    end: info.event.end,
+                    extendedProps: info.event.extendedProps
+                }, 'info');
+            },
+            eventMouseEnter: function(info) {
+                addLog('EVENT_MOUSE_ENTER', 'Mouse over event', {
+                    eventId: info.event.id,
+                    title: info.event.title
+                }, 'info');
+            },
+            eventMouseLeave: function(info) {
+                addLog('EVENT_MOUSE_LEAVE', 'Mouse left event', {
+                    eventId: info.event.id,
+                    title: info.event.title
+                }, 'info');
+            },
+            select: function(info) {
+                addLog('SELECT', 'Date/time range selected', {
+                    start: info.start,
+                    end: info.end,
+                    allDay: info.allDay,
+                    jsEvent: {
+                        type: info.jsEvent.type,
+                        button: info.jsEvent.button
+                    }
+                }, 'success');
+                
+                // Deselect after showing the info
+                calendar.unselect();
+            },
+            dateClick: function(info) {
+                addLog('DATE_CLICK', 'Date clicked', {
+                    date: info.date,
+                    allDay: info.allDay,
+                    jsEvent: {
+                        type: info.jsEvent.type,
+                        button: info.jsEvent.button
+                    }
+                }, 'info');
+            },
+            datesSet: function(info) {
+                addLog('DATES_SET', 'Calendar view changed', {
+                    start: info.start,
+                    end: info.end,
+                    startStr: info.startStr,
+                    endStr: info.endStr
+                }, 'warning');
+            },
+            eventChange: function(info) {
+                addLog('EVENT_CHANGE', 'Event modified (drag/resize)', {
+                    eventId: info.event.id,
+                    title: info.event.title,
+                    oldStart: info.oldEvent.start,
+                    newStart: info.event.start,
+                    oldEnd: info.oldEvent.end,
+                    newEnd: info.event.end
+                }, 'warning');
+            },
+            eventDidMount: function(info) {
+                addLog('EVENT_DID_MOUNT', 'Event rendered to DOM', {
+                    eventId: info.event.id,
+                    title: info.event.title
+                }, 'info');
+            },
+            eventAdd: function(info) {
+                addLog('EVENT_ADD', 'Event added to calendar', {
+                    eventId: info.event.id,
+                    title: info.event.title,
+                    start: info.event.start,
+                    end: info.event.end
+                }, 'success');
+            },
+            eventRemove: function(info) {
+                addLog('EVENT_REMOVE', 'Event removed from calendar', {
+                    eventId: info.event.id,
+                    title: info.event.title
+                }, 'warning');
+            },
+            loading: function(isLoading) {
+                addLog('LOADING', isLoading ? 'Calendar loading started' : 'Calendar loading finished', {
+                    isLoading: isLoading
+                }, isLoading ? 'warning' : 'success');
+            },
+            datesDestroy: function() {
+                addLog('DATES_DESTROY', 'Dates destroyed (view switching)', null, 'warning');
+            },
+            windowResize: function(view) {
+                addLog('WINDOW_RESIZE', 'Window resized', {
+                    viewType: view.type,
+                    viewTitle: view.title
+                }, 'info');
+            },
+            viewDidMount: function(info) {
+                addLog('VIEW_DID_MOUNT', 'View mounted to DOM', {
+                    viewType: info.view.type,
+                    viewTitle: info.view.title
+                }, 'success');
+            },
+            viewWillUnmount: function(info) {
+                addLog('VIEW_WILL_UNMOUNT', 'View will be unmounted', {
+                    viewType: info.view.type,
+                    viewTitle: info.view.title
+                }, 'warning');
+            },
+            eventDid: function(info) {
+                addLog('EVENT_DID', 'Generic event callback', {
+                    eventId: info.event?.id,
+                    title: info.event?.title
+                }, 'info');
+            },
+            moreLinkClick: function(info) {
+                addLog('MORE_LINK_CLICK', 'More link clicked (day with too many events)', {
+                    date: info.date,
+                    allDay: info.allDay,
+                    numEvents: info.num,
+                    hiddenEventCount: info.hiddenSegs?.length || 0
+                }, 'info');
+            },
+            drop: function(info) {
+                addLog('DROP', 'External element dropped on calendar', {
+                    draggedEl: info.draggedEl?.id,
+                    start: info.date,
+                    allDay: info.allDay
+                }, 'warning');
+            },
+            receive: function(info) {
+                addLog('RECEIVE', 'Event received from external source', {
+                    event: {
+                        id: info.event?.id,
+                        title: info.event?.title
+                    },
+                    date: info.date
+                }, 'success');
+            },
+            eventError: function(info) {
+                addLog('EVENT_ERROR', 'Error loading events', {
+                    errorMessage: info.message,
+                    error: info.error?.message || info.error
+                }, 'error');
+            }
+        });
+        
+        addLog('INIT', 'FullCalendar v6 instance created');
+        calendar.render();
+        addLog('INIT', 'FullCalendar rendered successfully', null, 'success');
+    });
+</script>
