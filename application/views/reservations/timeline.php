@@ -419,7 +419,12 @@ $this->load->view('bs_banner');
             viewMode: 'day',  // 'day' or 'week'
             timelineData: null,
             draggingEvent: null,
-            dragOffset: 0
+            dragMode: null,  // 'move' or 'resize'
+            dragStartX: 0,
+            dragStartLeft: 0,
+            dragStartWidth: 0,
+            isDragging: false,
+            dragDistance: 0
         };
         
         // Initialize
@@ -553,18 +558,45 @@ $this->load->view('bs_banner');
             eventEl.style.width = width + 'px';
             eventEl.setAttribute('data-event-id', event.id);
             eventEl.setAttribute('data-resource-id', event.resourceId);
+            eventEl.setAttribute('data-start', event.start);
+            eventEl.setAttribute('data-end', event.end);
             eventEl.textContent = event.title;
             eventEl.title = `${event.title} (${event.status})`;
             
+            // Add resize handle
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            resizeHandle.style.cssText = 'position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: rgba(0,0,0,0.1);';
+            eventEl.appendChild(resizeHandle);
+            
             // Add event handlers
+            let clickStartX = 0;
+            eventEl.addEventListener('mousedown', (e) => {
+                clickStartX = e.clientX;
+            });
+            
             eventEl.addEventListener('click', (e) => {
+                if (e.target.classList.contains('resize-handle')) return;
+                // Check if this was actually a drag (moved > 5px)
+                const clickDistance = Math.abs(e.clientX - clickStartX);
+                if (clickDistance > 5) {
+                    e.stopPropagation();
+                    return; // This was a drag, not a click
+                }
                 e.stopPropagation();
                 handleEventClick(event);
             });
             
             eventEl.addEventListener('mousedown', (e) => {
+                if (e.button === 0 && !e.target.classList.contains('resize-handle')) {
+                    startDragging(e, event, eventEl, 'move');
+                }
+            });
+            
+            resizeHandle.addEventListener('mousedown', (e) => {
                 if (e.button === 0) {
-                    startDragging(e, event);
+                    e.stopPropagation();
+                    startDragging(e, event, eventEl, 'resize');
                 }
             });
             
@@ -608,11 +640,17 @@ $this->load->view('bs_banner');
         /**
          * Start dragging an event
          */
-        function startDragging(e, event) {
+        function startDragging(e, event, eventEl, mode) {
+            e.preventDefault();
             state.draggingEvent = event;
-            state.dragOffset = e.clientX;
+            state.dragMode = mode;
+            state.dragStartX = e.clientX;
+            state.dragStartLeft = parseInt(eventEl.style.left);
+            state.dragStartWidth = parseInt(eventEl.style.width);
+            state.draggingElement = eventEl;
+            state.isDragging = true;
+            state.dragDistance = 0;
             
-            const eventEl = e.target;
             eventEl.classList.add('dragging');
             
             document.addEventListener('mousemove', onDragMove);
@@ -623,47 +661,104 @@ $this->load->view('bs_banner');
          * Handle drag movement
          */
         function onDragMove(e) {
-            if (!state.draggingEvent) return;
+            if (!state.draggingEvent || !state.draggingElement) return;
             
-            const delta = e.clientX - state.dragOffset;
-            // This is where the visual feedback would happen
+            const delta = e.clientX - state.dragStartX;
+            state.dragDistance = Math.abs(delta);
+            const eventEl = state.draggingElement;
+            
+            if (state.dragMode === 'move') {
+                // Move the event
+                const newLeft = Math.max(0, state.dragStartLeft + delta);
+                eventEl.style.left = newLeft + 'px';
+            } else if (state.dragMode === 'resize') {
+                // Resize the event
+                const newWidth = Math.max(30, state.dragStartWidth + delta);
+                eventEl.style.width = newWidth + 'px';
+            }
         }
         
         /**
          * Handle drag end
          */
         function onDragEnd(e) {
-            if (!state.draggingEvent) return;
+            if (!state.draggingEvent || !state.draggingElement) return;
             
             document.removeEventListener('mousemove', onDragMove);
             document.removeEventListener('mouseup', onDragEnd);
             
             const event = state.draggingEvent;
-            const eventEl = document.querySelector(`[data-event-id="${event.id}"]`);
+            const eventEl = state.draggingElement;
             eventEl.classList.remove('dragging');
             
-            console.log('Event dropped:', event.id);
+            // Calculate new times based on position
+            const left = parseInt(eventEl.style.left);
+            const width = parseInt(eventEl.style.width);
             
-            // Send trace to server
+            const startHourDecimal = (left / CONFIG.slotWidthPx) + CONFIG.startHour;
+            const durationHours = width / CONFIG.slotWidthPx;
+            const endHourDecimal = startHourDecimal + durationHours;
+            
+            // Convert to datetime strings
+            const startHour = Math.floor(startHourDecimal);
+            const startMinute = Math.round((startHourDecimal - startHour) * 60);
+            const endHour = Math.floor(endHourDecimal);
+            const endMinute = Math.round((endHourDecimal - endHour) * 60);
+            
+            const dateStr = state.currentDate;
+            const newStart = `${dateStr} ${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`;
+            const newEnd = `${dateStr} ${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00`;
+            
+            console.log(`Event ${state.dragMode}d:`, event.id, 'from', event.start, '-', event.end, 'to', newStart, '-', newEnd);
+            
+            // Update the element's data attributes
+            eventEl.setAttribute('data-start', newStart);
+            eventEl.setAttribute('data-end', newEnd);
+            
+            // Send to server
             fetch(CONFIG.baseUrl + 'reservations/on_event_drop', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 body: 'event_id=' + event.id + 
-                      '&start_datetime=' + event.start +
-                      '&end_datetime=' + event.end +
-                      '&resource_id=' + event.resourceId
+                      '&start_datetime=' + encodeURIComponent(newStart) +
+                      '&end_datetime=' + encodeURIComponent(newEnd) +
+                      '&resource_id=' + event.resourceId +
+                      '&action=' + state.dragMode
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Drop response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Drop response data:', data);
                 if (data.success) {
-                    console.log('Event drop traced');
+                    console.log('Event updated successfully, keeping new position');
+                    // Update the event object to reflect new times
+                    event.start = newStart;
+                    event.end = newEnd;
+                    // DO NOT reload - keep the visual changes
+                } else {
+                    console.error('Server returned error:', data.error);
+                    // Reload to revert changes on error
+                    setTimeout(() => loadTimelineData(), 500);
                 }
             })
-            .catch(error => console.error('Error tracing drop:', error));
+            .catch(error => {
+                console.error('Error updating event:', error);
+                // Reload to revert changes on error
+                setTimeout(() => loadTimelineData(), 500);
+            });
             
             state.draggingEvent = null;
+            state.draggingElement = null;
+            state.dragMode = null;
+            state.isDragging = false;
+            state.dragDistance = 0;
         }
         
         /**

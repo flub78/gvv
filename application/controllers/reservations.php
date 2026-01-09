@@ -210,21 +210,44 @@ class Reservations extends CI_Controller {
         header('Content-Type: application/json; charset=UTF-8');
         
         try {
+            $this->load->model('reservations_model');
+            
             $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
             $resource_id = isset($_POST['resource_id']) ? $_POST['resource_id'] : null;
+            $action = isset($_POST['action']) ? $_POST['action'] : 'move';
             
             if (!$event_id || !$start_datetime || !$end_datetime || !$resource_id) {
                 throw new Exception('Missing required parameters');
             }
             
-            gvv_info("Timeline: User dragged event ID " . $event_id . 
+            // Validate datetime format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $start_datetime) ||
+                !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
+                throw new Exception('Invalid datetime format');
+            }
+            
+            // Update directly via database
+            $username = $this->dx_auth->get_username();
+            $this->db->update('reservations', array(
+                'start_datetime' => $start_datetime,
+                'end_datetime' => $end_datetime,
+                'aircraft_id' => $resource_id,
+                'updated_by' => $username
+            ), array('id' => $event_id));
+            
+            if ($this->db->affected_rows() <= 0) {
+                throw new Exception('No rows updated - reservation may not exist');
+            }
+            
+            gvv_info("Timeline: User " . ($action === 'resize' ? 'resized' : 'moved') . 
+                     " reservation ID " . $event_id . 
                      " to aircraft " . $resource_id . " from " . $start_datetime . " to " . $end_datetime);
             
             echo json_encode(array(
                 'success' => true,
-                'message' => 'Event drop traced'
+                'message' => 'Reservation updated successfully'
             ));
         } catch (Exception $e) {
             gvv_error("Error in on_event_drop: " . $e->getMessage());
