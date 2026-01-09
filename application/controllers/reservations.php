@@ -51,7 +51,10 @@ class Reservations extends CI_Controller {
      * Display the FullCalendar v6 interface
      */
     function index() {
-        $data = array();
+        $this->load->config('program');
+        $data = array(
+            'timeline_increment' => $this->config->item('timeline_increment')
+        );
         load_last_view('reservations/reservations_v6', $data);
     }
 
@@ -221,7 +224,7 @@ class Reservations extends CI_Controller {
             $resource_id = isset($_POST['resource_id']) ? $_POST['resource_id'] : null;
             $action = isset($_POST['action']) ? $_POST['action'] : 'move';
             
-            if (!$event_id || !$start_datetime || !$end_datetime || !$resource_id) {
+            if (!$event_id || !$start_datetime || !$end_datetime) {
                 throw new Exception('Missing required parameters');
             }
             
@@ -238,22 +241,33 @@ class Reservations extends CI_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
             
-            // Update directly via database
+            // Prepare update data
             $username = $this->dx_auth->get_username();
-            $this->db->update('reservations', array(
+            $update_data = array(
                 'start_datetime' => $start_datetime,
                 'end_datetime' => $end_datetime,
-                'aircraft_id' => $resource_id,
                 'updated_by' => $username
-            ), array('id' => $event_id));
+            );
+            
+            // Only update aircraft_id if resource_id is provided
+            if ($resource_id) {
+                $update_data['aircraft_id'] = $resource_id;
+            }
+            
+            // Update directly via database
+            $this->db->update('reservations', $update_data, array('id' => $event_id));
             
             if ($this->db->affected_rows() <= 0) {
                 throw new Exception('No rows updated - reservation may not exist');
             }
             
-            gvv_info("Timeline: User " . ($action === 'resize' ? 'resized' : 'moved') . 
-                     " reservation ID " . $event_id . 
-                     " to aircraft " . $resource_id . " from " . $start_datetime . " to " . $end_datetime);
+            $log_message = "Reservation: User " . ($action === 'resize' ? 'resized' : 'moved') . 
+                         " reservation ID " . $event_id . 
+                         " from " . $start_datetime . " to " . $end_datetime;
+            if ($resource_id) {
+                $log_message .= " (aircraft: " . $resource_id . ")";
+            }
+            gvv_info($log_message);
             
             echo json_encode(array(
                 'success' => true,

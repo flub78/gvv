@@ -193,6 +193,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         // Get saved view from localStorage, default to dayGridMonth
         var savedView = localStorage.getItem('reservationsCalendarView') || 'dayGridMonth';
         
+        // Get timeline increment from config (default 15 minutes)
+        var timelineIncrement = <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>;
+        
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: '<?= $fullcalendar_locale ?>',
@@ -211,6 +214,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             },
             height: 'auto',
             contentHeight: 'auto',
+            slotDuration: '00:' + String(timelineIncrement).padStart(2, '0') + ':00',
+            snapDuration: '00:' + String(timelineIncrement).padStart(2, '0') + ':00',
+            slotMinTime: '06:00:00',
             events: {
                 url: '<?= base_url('index.php/reservations/get_events') ?>',
                 failure: function() {
@@ -282,6 +288,59 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     oldEnd: info.oldEvent.end,
                     newEnd: info.event.end
                 }, 'warning');
+                
+                // Persist changes to server
+                // Convert to local datetime string (not UTC)
+                function toLocalDatetimeString(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                }
+                
+                const startStr = toLocalDatetimeString(info.event.start);
+                const endStr = info.event.end ? toLocalDatetimeString(info.event.end) : startStr;
+                const resourceId = info.event.extendedProps.aircraft || '';
+                
+                fetch('<?= base_url('index.php/reservations/on_event_drop') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'event_id=' + info.event.id + 
+                          '&start_datetime=' + encodeURIComponent(startStr) +
+                          '&end_datetime=' + encodeURIComponent(endStr) +
+                          '&resource_id=' + encodeURIComponent(resourceId) +
+                          '&action=move'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addLog('EVENT_CHANGE_SAVED', 'Event changes saved to server', {
+                            eventId: info.event.id,
+                            start: startStr,
+                            end: endStr
+                        }, 'success');
+                    } else {
+                        addLog('EVENT_CHANGE_FAILED', 'Failed to save event changes', {
+                            eventId: info.event.id,
+                            error: data.error
+                        }, 'error');
+                        // Revert the change
+                        info.revert();
+                    }
+                })
+                .catch(error => {
+                    addLog('EVENT_CHANGE_ERROR', 'Error saving event changes', {
+                        eventId: info.event.id,
+                        error: error.message
+                    }, 'error');
+                    // Revert the change
+                    info.revert();
+                });
             },
             eventDidMount: function(info) {
                 addLog('EVENT_DID_MOUNT', 'Event rendered to DOM', {
