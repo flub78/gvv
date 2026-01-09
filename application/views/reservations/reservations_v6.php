@@ -207,8 +207,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             
+            // Get saved view from localStorage, default to dayGridMonth
+            var savedView = localStorage.getItem('reservationsCalendarView') || 'dayGridMonth';
+            
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
+                initialView: savedView,
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -242,6 +245,10 @@
                 dateClick: function(info) {
                     // Hide popup when clicking on empty date
                     document.getElementById('eventInfoPopup').classList.remove('show');
+                },
+                // Save view when it changes
+                viewDidMount: function(info) {
+                    localStorage.setItem('reservationsCalendarView', info.view.type);
                 }
             });
             

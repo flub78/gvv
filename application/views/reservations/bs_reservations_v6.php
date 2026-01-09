@@ -190,10 +190,13 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         
         var buttonTexts = buttonTextMap['<?= $fullcalendar_locale ?>'] || buttonTextMap['en'];
         
+        // Get saved view from localStorage, default to dayGridMonth
+        var savedView = localStorage.getItem('reservationsCalendarView') || 'dayGridMonth';
+        
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: '<?= $fullcalendar_locale ?>',
-            initialView: 'dayGridMonth',
+            initialView: savedView,
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -315,6 +318,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 }, 'info');
             },
             viewDidMount: function(info) {
+                // Save view preference to localStorage
+                localStorage.setItem('reservationsCalendarView', info.view.type);
                 addLog('VIEW_DID_MOUNT', 'View mounted to DOM', {
                     viewType: info.view.type,
                     viewTitle: info.view.title
