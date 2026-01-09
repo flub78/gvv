@@ -184,7 +184,7 @@ $this->load->view('bs_banner');
         
         .time-slot {
             min-width: 60px;
-            border-right: 1px solid #eee;
+            border-right: 1px solid #ddd;
             flex: 0 0 auto;
             position: relative;
             cursor: pointer;
@@ -400,7 +400,8 @@ $this->load->view('bs_banner');
             baseUrl: '<?php echo base_url(); ?>',
             currentDate: '<?php echo $current_date; ?>',
             pixelsPerHour: 60,
-            slotWidthPx: 60
+            slotWidthPx: 60,
+            startHour: 6  // Timeline starts at 6:00
         };
         
         // State
@@ -448,7 +449,7 @@ $this->load->view('bs_banner');
          */
         function renderTimeHeader() {
             let html = '<div class="timeline-time-header">';
-            for (let hour = 0; hour < 24; hour++) {
+            for (let hour = 6; hour < 24; hour++) {
                 const timeStr = String(hour).padStart(2, '0') + ':00';
                 html += `<div class="time-slot-header">${timeStr}</div>`;
             }
@@ -490,7 +491,7 @@ $this->load->view('bs_banner');
                 html += `<div class="resource-row-timeline" data-resource-id="${resource.id}">`;
                 
                 // Time slots
-                for (let hour = 0; hour < 24; hour++) {
+                for (let hour = 6; hour < 24; hour++) {
                     html += `<div class="time-slot" data-hour="${hour}" data-resource-id="${resource.id}"></div>`;
                 }
                 
@@ -533,7 +534,7 @@ $this->load->view('bs_banner');
             const endHour = endTime.getHours() + endTime.getMinutes() / 60;
             const duration = endHour - startHour;
             
-            const left = startHour * CONFIG.slotWidthPx;
+            const left = (startHour - CONFIG.startHour) * CONFIG.slotWidthPx;
             const width = Math.max(duration * CONFIG.slotWidthPx, 40);
             
             const eventEl = document.createElement('div');

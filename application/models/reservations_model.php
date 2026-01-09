@@ -255,8 +255,7 @@ class Reservations_model extends Common_Model {
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
             ->join('membres ma', 'r.pilot_member_id = ma.mlogin', 'left')
             ->where('r.status !=', 'cancelled')
-            ->where('r.start_datetime >=', $start_datetime)
-            ->where('r.end_datetime <=', $end_datetime)
+            ->where('r.start_datetime < "' . $end_datetime . '" AND r.end_datetime > "' . $start_datetime . '"', null, false)
             ->order_by('r.aircraft_id, r.start_datetime', 'asc');
 
         // Filter by section if user has section restriction
