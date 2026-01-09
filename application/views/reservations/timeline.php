@@ -99,6 +99,10 @@ $this->load->view('bs_banner');
             cursor: pointer;
             transition: background-color 0.2s;
             font-size: 13px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .resource-row:hover {
@@ -168,11 +172,14 @@ $this->load->view('bs_banner');
         }
         
         .resource-row-timeline {
-            flex: 1;
             display: flex;
-            border-bottom: 1px solid #eee;
-            min-height: 80px;
+            border-bottom: 3px solid #999;
+            height: 60px;
             position: relative;
+        }
+        
+        .resource-row-timeline:last-child {
+            border-bottom: 2px solid #333;
         }
         
         .time-slot {
