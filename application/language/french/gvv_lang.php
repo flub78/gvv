@@ -4,6 +4,7 @@
 */
 
 $lang['gvv_language'] = "french";    // doit être identique a la valeur dans config.php
+$lang['lang'] = "fr-FR";  // JavaScript locale for date formatting
 
 # Menus
 # $this->lang->line("")

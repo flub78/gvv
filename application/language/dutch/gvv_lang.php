@@ -4,6 +4,7 @@
 */
 
 $lang['gvv_language'] = "dutch";	// must match value in config.php
+$lang['lang'] = "nl-NL";  // JavaScript locale for date formatting
 
 # Menus
 $lang['gvv_menu_membres'] = "Leden";

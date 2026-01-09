@@ -345,6 +345,7 @@ $this->load->view('bs_banner');
                 <button class="btn btn-outline-secondary btn-sm" id="btnPrevious" title="Previous day">
                     <i class="fas fa-chevron-left"></i> <?php echo $this->lang->line('previous') ?: 'Précédent'; ?>
                 </button>
+                <input type="date" class="form-control form-control-sm mx-2" id="datePicker" style="width: auto; display: inline-block;" value="<?php echo $current_date; ?>" title="Sélectionner une date">
                 <div class="current-date-display" id="currentDateDisplay">
                     <?php echo $current_date_formatted; ?>
                 </div>
@@ -739,6 +740,11 @@ $this->load->view('bs_banner');
                 date.setDate(date.getDate() + 1);
                 navigateToDate(date);
             });
+            
+            document.getElementById('datePicker').addEventListener('change', function(e) {
+                const selectedDate = new Date(e.target.value + 'T12:00:00');
+                navigateToDate(selectedDate);
+            });
         }
         
         /**
@@ -761,6 +767,9 @@ $this->load->view('bs_banner');
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             const formatted = date.toLocaleDateString('<?php echo $this->lang->line("lang") ?: "en"; ?>', options);
             document.getElementById('currentDateDisplay').textContent = formatted;
+            
+            // Update date picker value
+            document.getElementById('datePicker').value = state.currentDate;
         }
         
         /**
