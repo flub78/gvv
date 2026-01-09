@@ -83,6 +83,187 @@ class Reservations extends CI_Controller {
             echo json_encode(array('error' => $e->getMessage()));
         }
     }
+
+    /**
+     * Display Timeline view organized by resources (aircraft)
+     */
+    function timeline() {
+        $this->load->model('reservations_model');
+        
+        // Get date from request, default to today
+        $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+        
+        // Validate date format
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date = date('Y-m-d');
+        }
+        
+        // Get all active aircraft (resources)
+        $aircraft = $this->reservations_model->get_aircraft_list();
+        
+        // Get reservations for the day
+        $reservations = $this->reservations_model->get_day_reservations($date);
+        
+        // Format date for display
+        $date_obj = DateTime::createFromFormat('Y-m-d', $date);
+        $date_formatted = $date_obj->format('l, d F Y');
+        
+        // Prepare data for view
+        $data = array(
+            'current_date' => $date,
+            'current_date_formatted' => $date_formatted,
+            'aircraft' => $aircraft,
+            'reservations' => $reservations
+        );
+        
+        load_last_view('reservations/timeline', $data);
+    }
+
+    /**
+     * Get timeline data for a specific date (JSON API)
+     */
+    function get_timeline_data() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $this->load->model('reservations_model');
+            
+            // Get date from request, default to today
+            $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+            
+            // Validate date format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                $date = date('Y-m-d');
+            }
+            
+            // Get aircraft and reservations
+            $aircraft_list = $this->reservations_model->get_aircraft_list();
+            $events = $this->reservations_model->get_timeline_events($date);
+            
+            // Format resources for FullCalendar compatibility
+            $resources = array();
+            foreach ($aircraft_list as $id => $name) {
+                $resources[] = array(
+                    'id' => $id,
+                    'title' => $name
+                );
+            }
+            
+            // Format response
+            $response = array(
+                'date' => $date,
+                'resources' => $resources,
+                'events' => $events
+            );
+            
+            echo json_encode($response);
+        } catch (Exception $e) {
+            gvv_error("Error in get_timeline_data: " . $e->getMessage());
+            echo json_encode(array('error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle timeline event click
+     */
+    function on_event_click() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : null;
+            
+            if (!$event_id) {
+                throw new Exception('Missing event_id');
+            }
+            
+            $this->load->model('reservations_model');
+            $reservation = $this->reservations_model->get_reservation($event_id);
+            
+            gvv_info("Timeline: User clicked on event ID " . $event_id);
+            
+            echo json_encode(array(
+                'success' => true,
+                'reservation' => $reservation
+            ));
+        } catch (Exception $e) {
+            gvv_error("Error in on_event_click: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle timeline event drag and drop
+     */
+    function on_event_drop() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : null;
+            $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
+            $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
+            $resource_id = isset($_POST['resource_id']) ? $_POST['resource_id'] : null;
+            
+            if (!$event_id || !$start_datetime || !$end_datetime || !$resource_id) {
+                throw new Exception('Missing required parameters');
+            }
+            
+            gvv_info("Timeline: User dragged event ID " . $event_id . 
+                     " to aircraft " . $resource_id . " from " . $start_datetime . " to " . $end_datetime);
+            
+            echo json_encode(array(
+                'success' => true,
+                'message' => 'Event drop traced'
+            ));
+        } catch (Exception $e) {
+            gvv_error("Error in on_event_drop: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle timeline empty slot click
+     */
+    function on_slot_click() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $resource_id = isset($_POST['resource_id']) ? $_POST['resource_id'] : null;
+            $clicked_time = isset($_POST['clicked_time']) ? $_POST['clicked_time'] : null;
+            
+            if (!$resource_id || !$clicked_time) {
+                throw new Exception('Missing required parameters');
+            }
+            
+            gvv_info("Timeline: User clicked empty slot for aircraft " . $resource_id . 
+                     " at " . $clicked_time);
+            
+            echo json_encode(array(
+                'success' => true,
+                'resource_id' => $resource_id,
+                'clicked_time' => $clicked_time
+            ));
+        } catch (Exception $e) {
+            gvv_error("Error in on_slot_click: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
 }
 
 /* End of file reservations.php */

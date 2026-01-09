@@ -232,6 +232,101 @@ class Reservations_model extends Common_Model {
         }
         return $aircraft;
     }
+
+    /**
+     * Get all reservations for a specific day organized by aircraft
+     *
+     * Returns reservations formatted for Timeline view with aircraft information.
+     *
+     * @param string $date Date in YYYY-MM-DD format
+     * @return array Array of reservations with aircraft details
+     */
+    public function get_day_reservations($date) {
+        $start_datetime = $date . ' 00:00:00';
+        $end_datetime = $date . ' 23:59:59';
+
+        $this->db->select(
+            'r.id, r.aircraft_id, r.start_datetime, r.end_datetime, ' .
+            'r.pilot_member_id, r.instructor_member_id, r.purpose, r.status, ' .
+            'r.notes, r.section_id, ' .
+            'm.macmodele, ma.mprenom, ma.mnom'
+        )
+            ->from('reservations r')
+            ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
+            ->join('membres ma', 'r.pilot_member_id = ma.mlogin', 'left')
+            ->where('r.status !=', 'cancelled')
+            ->where('r.start_datetime >=', $start_datetime)
+            ->where('r.end_datetime <=', $end_datetime)
+            ->order_by('r.aircraft_id, r.start_datetime', 'asc');
+
+        // Filter by section if user has section restriction
+        if ($this->section) {
+            $this->db->where('r.section_id', $this->section_id);
+        }
+
+        $reservations = $this->db->get()->result_array();
+        gvv_debug("sql: " . $this->db->last_query());
+
+        // Format with computed fields
+        $formatted = array();
+        foreach ($reservations as $res) {
+            $pilot_name = trim($res['mprenom'] . ' ' . $res['mnom']);
+
+            $formatted[] = array(
+                'id' => $res['id'],
+                'aircraft_id' => $res['aircraft_id'],
+                'aircraft_model' => $res['macmodele'],
+                'start_datetime' => $res['start_datetime'],
+                'end_datetime' => $res['end_datetime'],
+                'pilot_member_id' => $res['pilot_member_id'],
+                'pilot_name' => $pilot_name,
+                'instructor_member_id' => $res['instructor_member_id'],
+                'purpose' => $res['purpose'],
+                'status' => $res['status'],
+                'notes' => $res['notes'],
+                'section_id' => $res['section_id']
+            );
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * Get timeline events for JSON API
+     *
+     * Returns events formatted for Timeline visualization.
+     *
+     * @param string $date Date in YYYY-MM-DD format
+     * @return array Array of event objects with status colors
+     */
+    public function get_timeline_events($date) {
+        $reservations = $this->get_day_reservations($date);
+        $events = array();
+
+        foreach ($reservations as $res) {
+            $event = array(
+                'id' => $res['id'],
+                'resourceId' => $res['aircraft_id'],
+                'title' => $res['pilot_name'],
+                'start' => $res['start_datetime'],
+                'end' => $res['end_datetime'],
+                'status' => $res['status'],
+                'extendedProps' => array(
+                    'aircraft_id' => $res['aircraft_id'],
+                    'aircraft_model' => $res['aircraft_model'],
+                    'pilot_name' => $res['pilot_name'],
+                    'instructor_member_id' => $res['instructor_member_id'],
+                    'purpose' => $res['purpose'],
+                    'status' => $res['status'],
+                    'notes' => $res['notes']
+                )
+            );
+
+            $events[] = $event;
+        }
+
+        return $events;
+    }
 }
 
 /* End of file reservations_model.php */

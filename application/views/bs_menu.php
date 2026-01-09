@@ -363,7 +363,9 @@ $section_count = $CI->sections_model->safe_count_all();
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
 
-              <li><a class="dropdown-item" href="<?= controller_url("tests/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("tests_ciunit/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("reservations") ?>"><i class="fas fa-calendar-alt text-primary"></i> Réservations (FullCalendar)</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("reservations/timeline") ?>"><i class="fas fa-clock text-info"></i> Timeline Réservations</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
