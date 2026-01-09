@@ -89,6 +89,7 @@ class Reservations extends CI_Controller {
      */
     function timeline() {
         $this->load->model('reservations_model');
+        $this->load->config('program');
         
         // Get date from request, default to today
         $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
@@ -113,7 +114,8 @@ class Reservations extends CI_Controller {
             'current_date' => $date,
             'current_date_formatted' => $date_formatted,
             'aircraft' => $aircraft,
-            'reservations' => $reservations
+            'reservations' => $reservations,
+            'timeline_increment' => $this->config->item('timeline_increment')
         );
         
         load_last_view('reservations/timeline', $data);
@@ -211,6 +213,7 @@ class Reservations extends CI_Controller {
         
         try {
             $this->load->model('reservations_model');
+            $this->load->config('program');
             
             $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
@@ -226,6 +229,13 @@ class Reservations extends CI_Controller {
             if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $start_datetime) ||
                 !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
                 throw new Exception('Invalid datetime format');
+            }
+            
+            // Apply timeline increment constraint
+            $increment = $this->config->item('timeline_increment');
+            if ($increment && is_numeric($increment) && $increment > 0) {
+                $start_datetime = $this->_snap_to_increment($start_datetime, $increment);
+                $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
             
             // Update directly via database
@@ -247,12 +257,38 @@ class Reservations extends CI_Controller {
             
             echo json_encode(array(
                 'success' => true,
-                'message' => 'Reservation updated successfully'
+                'message' => 'Reservation updated successfully',
+                'start_datetime' => $start_datetime,
+                'end_datetime' => $end_datetime
             ));
         } catch (Exception $e) {
             gvv_error("Error in on_event_drop: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));
         }
+    }
+    
+    /**
+     * Snap a datetime to the nearest increment in minutes
+     * @param string $datetime DateTime string in format 'YYYY-MM-DD HH:MM:SS'
+     * @param int $increment_minutes Increment in minutes
+     * @return string Snapped datetime
+     */
+    private function _snap_to_increment($datetime, $increment_minutes) {
+        $dt = new DateTime($datetime);
+        $minutes = (int)$dt->format('i');
+        $seconds = (int)$dt->format('s');
+        
+        // Calculate minutes rounded down to nearest increment
+        $rounded_minutes = (int)floor($minutes / $increment_minutes) * $increment_minutes;
+        
+        // Set minutes and seconds
+        $dt->setTime(
+            (int)$dt->format('H'),
+            $rounded_minutes,
+            0
+        );
+        
+        return $dt->format('Y-m-d H:i:s');
     }
 
     /**

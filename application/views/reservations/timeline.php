@@ -410,7 +410,8 @@ $this->load->view('bs_banner');
             currentDate: '<?php echo $current_date; ?>',
             pixelsPerHour: 60,
             slotWidthPx: 60,
-            startHour: 6  // Timeline starts at 6:00
+            startHour: 6,  // Timeline starts at 6:00
+            timelineIncrement: <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>  // Minutes
         };
         
         // State
@@ -638,6 +639,14 @@ $this->load->view('bs_banner');
         }
         
         /**
+         * Snap position to timeline increment grid
+         */
+        function snapToGrid(pixels) {
+            const pixelsPerIncrement = (CONFIG.timelineIncrement / 60) * CONFIG.pixelsPerHour;
+            return Math.round(pixels / pixelsPerIncrement) * pixelsPerIncrement;
+        }
+        
+        /**
          * Start dragging an event
          */
         function startDragging(e, event, eventEl, mode) {
@@ -668,12 +677,14 @@ $this->load->view('bs_banner');
             const eventEl = state.draggingElement;
             
             if (state.dragMode === 'move') {
-                // Move the event
-                const newLeft = Math.max(0, state.dragStartLeft + delta);
+                // Move the event, snapped to grid
+                let newLeft = state.dragStartLeft + delta;
+                newLeft = Math.max(0, snapToGrid(newLeft));
                 eventEl.style.left = newLeft + 'px';
             } else if (state.dragMode === 'resize') {
-                // Resize the event
-                const newWidth = Math.max(30, state.dragStartWidth + delta);
+                // Resize the event, snapped to grid
+                let newWidth = state.dragStartWidth + delta;
+                newWidth = Math.max(30, snapToGrid(newWidth));
                 eventEl.style.width = newWidth + 'px';
             }
         }
@@ -699,11 +710,26 @@ $this->load->view('bs_banner');
             const durationHours = width / CONFIG.slotWidthPx;
             const endHourDecimal = startHourDecimal + durationHours;
             
-            // Convert to datetime strings
-            const startHour = Math.floor(startHourDecimal);
-            const startMinute = Math.round((startHourDecimal - startHour) * 60);
-            const endHour = Math.floor(endHourDecimal);
-            const endMinute = Math.round((endHourDecimal - endHour) * 60);
+            // Convert to datetime strings with increment rounding
+            let startHour = Math.floor(startHourDecimal);
+            let startMinute = Math.round((startHourDecimal - startHour) * 60);
+            
+            // Snap minutes to increment
+            startMinute = Math.round(startMinute / CONFIG.timelineIncrement) * CONFIG.timelineIncrement;
+            if (startMinute >= 60) {
+                startMinute -= 60;
+                startHour += 1;
+            }
+            
+            let endHour = Math.floor(endHourDecimal);
+            let endMinute = Math.round((endHourDecimal - endHour) * 60);
+            
+            // Snap minutes to increment
+            endMinute = Math.round(endMinute / CONFIG.timelineIncrement) * CONFIG.timelineIncrement;
+            if (endMinute >= 60) {
+                endMinute -= 60;
+                endHour += 1;
+            }
             
             const dateStr = state.currentDate;
             const newStart = `${dateStr} ${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00`;
