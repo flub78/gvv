@@ -84,16 +84,14 @@ class Vols_avion extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $pilote_selector = $this->membres_model->selector_with_null(array(
-            'actif' => 1
-        ));
+        $pilote_selector = $this->membres_model->section_pilots(0, true);
         $this->data['saisie_par'] = $this->dx_auth->get_username();
         if (CREATION == $action) {
             $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
         }
 
         $this->config->load('facturation');
-        $payeur_selector = $this->comptes_model->payeur_selector_with_null();
+        $payeur_selector = $this->comptes_model->section_client_accounts(0, true);
         $this->data['payeur_selector'] = $payeur_selector;
         $this->data['payeur_non_pilote'] = $this->config->item('payeur_non_pilote');
         $this->data['partage'] = $this->config->item('partage');
@@ -313,7 +311,7 @@ class Vols_avion extends Gvv_Controller {
         $selection = "YEAR(vadate) = \"$year\"";
 
         $this->data['machine_selector'] = '';
-        $pilote_selector = $this->membres_model->selector_with_null();
+        $pilote_selector = $this->membres_model->section_pilots(0, false);
         $this->data['pilote_selector'] = $pilote_selector;
 
         $machine_selector = $this->avions_model->selector_with_null();

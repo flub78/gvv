@@ -1192,6 +1192,62 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Retourne un sélecteur des comptes clients (411) d'une section spécifique
+     * Filtre en fonction des membres actifs ou non
+     * 
+     * @param int $section_id L'ID de la section (0 = section active)
+     * @param bool $only_actif true pour ne retourner que les comptes de membres actifs, false pour tous
+     * @return array Sélecteur avec les comptes au format [id => (codec) nom]
+     */
+    public function section_client_accounts($section_id = 0, $only_actif = true) {
+        $selector = array('' => '-- Sélectionner --');
+
+        // Détermine la section à utiliser
+        if ($section_id == 0) {
+            $section_id = $this->section_id();
+        }
+
+        // DEBUG
+        log_message('debug', "section_client_accounts: section_id=$section_id, only_actif=$only_actif");
+
+        // Requête de base pour les comptes 411 de la section
+        $this->db->select('comptes.id, comptes.codec, comptes.nom, comptes.pilote');
+        $this->db->from('comptes');
+        $this->db->where('comptes.codec LIKE', '411%');
+        $this->db->where('comptes.club', $section_id);
+        $this->db->where('comptes.actif', 1);
+        $this->db->where('comptes.masked', 0);
+
+        // Si on filtre sur les membres actifs, on joint la table membres
+        if ($only_actif) {
+            $this->db->join('membres', 'membres.mlogin = comptes.pilote', 'inner');
+            $this->db->where('membres.actif', 1);
+        }
+
+        $this->db->order_by('comptes.codec', 'ASC');
+        $this->db->order_by('comptes.nom', 'ASC');
+
+        $query = $this->db->get();
+
+        // DEBUG
+        log_message('debug', "section_client_accounts: SQL = " . $this->db->last_query());
+        log_message('debug', "section_client_accounts: num_rows = " . ($query ? $query->num_rows() : 'NULL'));
+
+        if ($query && $query->num_rows() > 0) {
+            foreach ($query->result_array() as $account) {
+                if (!empty($account['pilote'])) {
+                    // Clé = ID du compte, Valeur = (code) Nom du compte
+                    $selector[$account['id']] = "({$account['codec']}) {$account['nom']}";
+                }
+            }
+        }
+
+        log_message('debug', "section_client_accounts: selector count = " . count($selector));
+
+        return $selector;
+    }
+
+    /**
      * Override parent selector to exclude masked accounts
      * 
      * @param array $where Additional where conditions

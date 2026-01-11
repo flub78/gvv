@@ -255,6 +255,15 @@ Ecriture Attachment Deletion
  [x] Method documentation
  [x] Attachment deletion order
 
+Section Pilots Accounts
+ [x] Section pilots returns pilots from active section
+ [x] Section pilots returns pilots from specific section
+ [x] Section pilots returns all members when only actif false
+ [x] Section client accounts returns accounts from active section
+ [x] Section client accounts returns accounts from specific section
+ [x] Section client accounts includes inactive members when only actif false
+ [x] Section client accounts joins with membres when only actif true
+
 Bitfield
  [x] Constructor
  [x] To string

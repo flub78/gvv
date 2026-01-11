@@ -91,6 +91,11 @@ class FakeDb
     {
         return $this->countResult;
     }
+
+    public function last_query()
+    {
+        return 'SELECT * FROM fake_query';
+    }
 }
 
 class StubMembresModel
@@ -144,6 +149,11 @@ class TestableComptesModel extends Comptes_model
         $this->membres_model = $membres_model;
         $this->sections_model = $sections_model;
         $this->table = 'comptes';
+    }
+
+    public function section_id()
+    {
+        return $this->sections_model->section_id();
     }
 }
 

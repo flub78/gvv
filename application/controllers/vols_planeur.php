@@ -80,7 +80,7 @@ class Vols_planeur extends Gvv_Controller {
     function form_static_element($action) {
         // var_dump($this->data);exit;
         parent::form_static_element($action);
-        $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
+        $pilote_selector = $this->membres_model->section_pilots(0, true);
         $this->data ['vpduree'] = minute_to_time($this->data ['vpduree']);
         $this->data ['vppassager'] = $this->data ['vpinst'];
         $this->data ['vptreuillard'] = $this->data ['pilote_remorqueur'];
@@ -90,7 +90,7 @@ class Vols_planeur extends Gvv_Controller {
                 'actif' => 1
         ));
         $this->config->load('facturation');
-        $payeur_selector = $this->comptes_model->payeur_selector_with_null();
+        $payeur_selector = $this->comptes_model->section_client_accounts(0, true);
         $this->data ['payeur_selector'] = $payeur_selector;
         $this->data ['payeur_non_pilote'] = $this->config->item('payeur_non_pilote');
         $this->data ['partage'] = $this->config->item('partage');
@@ -246,7 +246,7 @@ class Vols_planeur extends Gvv_Controller {
 
         $this->data ['planche'] = $planche;
 
-        $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->selector_with_null(['actif' => 1]));
+        $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->section_pilots(0, true));
 
         $machine_selector = $this->planeurs_model->selector_with_null(array (
                 'actif' => 1
@@ -515,7 +515,7 @@ class Vols_planeur extends Gvv_Controller {
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
 
-        $this->data ['pilote_selector'] = $this->membres_model->selector_with_null(['actif' => 1]);
+        $this->data ['pilote_selector'] = $this->membres_model->section_pilots(0, true);
 
         $machine_selector = $this->planeurs_model->selector_with_null(array (
                 'actif' => 1
