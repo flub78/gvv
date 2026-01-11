@@ -92,6 +92,8 @@ class Reservations extends CI_Controller {
      */
     function timeline() {
         $this->load->model('reservations_model');
+        $this->load->model('avions_model');
+        $this->load->model('membres_model');
         $this->load->config('program');
         
         // Get date from request, default to today
@@ -108,6 +110,12 @@ class Reservations extends CI_Controller {
         // Get reservations for the day
         $reservations = $this->reservations_model->get_day_reservations($date);
         
+        // Get aircraft options for modal selects (using existing selector)
+        $aircraft_options = $this->avions_model->selector(array('actif' => 1), 'asc', TRUE);
+        
+        // Get pilots (members) options for modal selects (using existing selector with null option)
+        $pilots_options = $this->membres_model->selector(array('actif' => 1));
+        
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
         $date_formatted = $date_obj->format('l, d F Y');
@@ -118,7 +126,9 @@ class Reservations extends CI_Controller {
             'current_date_formatted' => $date_formatted,
             'aircraft' => $aircraft,
             'reservations' => $reservations,
-            'timeline_increment' => $this->config->item('timeline_increment')
+            'timeline_increment' => $this->config->item('timeline_increment'),
+            'aircraft_options' => $aircraft_options,
+            'pilots_options' => $pilots_options
         );
         
         load_last_view('reservations/timeline', $data);
@@ -333,6 +343,133 @@ class Reservations extends CI_Controller {
             ));
         } catch (Exception $e) {
             gvv_error("Error in on_slot_click: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Update reservation details from timeline modal
+     */
+    function update_reservation() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $this->load->model('reservations_model');
+            $this->load->config('program');
+            
+            $reservation_id = isset($_POST['reservation_id']) ? $_POST['reservation_id'] : null;
+            $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
+            $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
+            $purpose = isset($_POST['purpose']) ? $_POST['purpose'] : null;
+            $notes = isset($_POST['notes']) ? $_POST['notes'] : null;
+            $status = isset($_POST['status']) ? $_POST['status'] : null;
+            $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
+            $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
+            
+            if (!$reservation_id) {
+                throw new Exception('Missing reservation ID');
+            }
+            
+            if ($start_datetime && $end_datetime) {
+                // Validate datetime format
+                if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $start_datetime) ||
+                    !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
+                    throw new Exception('Invalid datetime format');
+                }
+                
+                // Apply timeline increment constraint
+                $increment = $this->config->item('timeline_increment');
+                if ($increment && is_numeric($increment) && $increment > 0) {
+                    $start_datetime = $this->_snap_to_increment($start_datetime, $increment);
+                    $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
+                }
+            }
+            
+            // Prepare update data
+            $username = $this->dx_auth->get_username();
+            $update_data = array(
+                'updated_by' => $username
+            );
+            
+            if ($start_datetime) {
+                $update_data['start_datetime'] = $start_datetime;
+            }
+            if ($end_datetime) {
+                $update_data['end_datetime'] = $end_datetime;
+            }
+            if ($purpose !== null) {
+                $update_data['purpose'] = $purpose;
+            }
+            if ($notes !== null) {
+                $update_data['notes'] = $notes;
+            }
+            if ($status) {
+                $update_data['status'] = $status;
+            }
+            if ($aircraft_id) {
+                $update_data['aircraft_id'] = $aircraft_id;
+            }
+            if ($pilot_member_id) {
+                $update_data['pilot_member_id'] = $pilot_member_id;
+            }
+            
+            // Update in database
+            $this->db->update('reservations', $update_data, array('id' => $reservation_id));
+            
+            if ($this->db->affected_rows() <= 0) {
+                throw new Exception('No rows updated - reservation may not exist');
+            }
+            
+            gvv_info("Reservation: Updated reservation ID " . $reservation_id . " by user " . $username);
+            
+            echo json_encode(array(
+                'success' => true,
+                'message' => 'Reservation updated successfully'
+            ));
+        } catch (Exception $e) {
+            gvv_error("Error in update_reservation: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Get list of available aircraft and pilots for modal selects
+     */
+    function get_options() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            // Get aircraft list
+            $this->db->select('macimmat as id, macmodele as label')
+                ->from('machinesa')
+                ->where('en_service', 1)
+                ->order_by('macmodele', 'asc');
+            
+            $aircraft = $this->db->get()->result_array();
+            
+            // Get members list (pilots)
+            $this->db->select('mlogin as id, CONCAT(mprenom, " ", mnom) as label')
+                ->from('membres')
+                ->where('actif', 1)
+                ->order_by('mnom', 'asc');
+            
+            $pilots = $this->db->get()->result_array();
+            
+            echo json_encode(array(
+                'success' => true,
+                'aircraft' => $aircraft,
+                'pilots' => $pilots
+            ));
+        } catch (Exception $e) {
+            gvv_error("Error in get_options: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));
         }
     }

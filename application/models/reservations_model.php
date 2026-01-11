@@ -33,7 +33,7 @@ class Reservations_model extends Common_Model {
      */
     public function get_calendar_events($start_date = null, $end_date = null) {
         $this->db->select(
-            'r.id, r.aircraft_id, r.start_datetime, r.end_datetime, ' .
+            'r.id, r.aircraft_id, r.pilot_member_id, r.start_datetime, r.end_datetime, ' .
             'r.pilot_member_id, r.instructor_member_id, r.purpose, r.status, ' .
             'r.notes, m.macmodele, ma.mprenom, ma.mnom'
         )
@@ -77,8 +77,10 @@ class Reservations_model extends Common_Model {
                 'borderColor' => $this->get_status_color($reservation['status']),
                 'extendedProps' => array(
                     'aircraft' => $reservation['aircraft_id'],
+                    'aircraft_id' => $reservation['aircraft_id'],
                     'aircraft_model' => $reservation['macmodele'],
                     'pilot' => $pilot_name,
+                    'pilot_member_id' => $reservation['pilot_member_id'],
                     'instructor' => $reservation['instructor_member_id'] ?: '',
                     'purpose' => $reservation['purpose'] ?: '',
                     'status' => $reservation['status'],
@@ -313,6 +315,7 @@ class Reservations_model extends Common_Model {
                 'extendedProps' => array(
                     'aircraft_id' => $res['aircraft_id'],
                     'aircraft_model' => $res['aircraft_model'],
+                    'pilot_member_id' => $res['pilot_member_id'],
                     'pilot_name' => $res['pilot_name'],
                     'instructor_member_id' => $res['instructor_member_id'],
                     'purpose' => $res['purpose'],

@@ -336,7 +336,7 @@ $this->load->view('bs_banner');
     <h3><?php echo $this->lang->line('reservations_timeline') ?: 'Timeline Réservations'; ?></h3>
     
     <div class="timeline-container">
-        <!-- Header -->
+        <!-- Header date navigation buttons-->
         <div class="timeline-header">
             <div class="timeline-title">
                 <h4><?php echo $this->lang->line('reservations_timeline_desc') ?: 'Disponibilité des aéronefs par jour'; ?></h4>
@@ -390,13 +390,16 @@ $this->load->view('bs_banner');
     
     <!-- Event Info Modal (optional, for details) -->
     <div class="modal fade" id="eventModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="eventModalTitle">Détails de la réservation</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="eventModalBody">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="modal-footer" id="eventModalFooter">
                     <!-- Populated by JavaScript -->
                 </div>
             </div>
@@ -430,9 +433,20 @@ $this->load->view('bs_banner');
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize OPTIONS from PHP data
+            OPTIONS.aircraft = <?php echo json_encode($aircraft_options); ?>;
+            OPTIONS.pilots = <?php echo json_encode($pilots_options); ?>;
+            console.log('OPTIONS initialized from PHP:', OPTIONS);
+            
             loadTimelineData();
             setupDateNavigation();
         });
+        
+        // Global options storage - will be initialized from PHP
+        let OPTIONS = {
+            aircraft: [],
+            pilots: []
+        };
         
         /**
          * Load timeline data from server
@@ -816,26 +830,221 @@ $this->load->view('bs_banner');
         }
         
         /**
-         * Show event details
+         * Show event details in editable form
          */
         function showEventDetails(event) {
-            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-            document.getElementById('eventModalTitle').textContent = event.title;
-            
-            const body = document.getElementById('eventModalBody');
-            body.innerHTML = `
-                <p><strong>Aircraft:</strong> ${escapeHtml(event.extendedProps.aircraft_model)}</p>
-                <p><strong>Time:</strong> ${formatTime(event.start)} - ${formatTime(event.end)}</p>
-                <p><strong>Purpose:</strong> ${escapeHtml(event.extendedProps.purpose || '-')}</p>
-                <p><strong>Status:</strong> <span class="status-badge ${event.status}">${event.status.toUpperCase()}</span></p>
-                ${event.extendedProps.instructor_member_id ? 
-                    `<p><strong>Instructor:</strong> ${escapeHtml(event.extendedProps.instructor_member_id)}</p>` : ''}
-                ${event.extendedProps.notes ? 
-                    `<p><strong>Notes:</strong> ${escapeHtml(event.extendedProps.notes)}</p>` : ''}
-            `;
-            
-            modal.show();
+            try {
+                console.log('Opening modal for event:', event);
+                console.log('Current OPTIONS:', OPTIONS);
+                
+                // Options should already be loaded from PHP
+                displayEventModal(event);
+            } catch (error) {
+                console.error('Error in showEventDetails:', error);
+                alert('Error opening reservation details: ' + error.message);
+            }
         }
+        
+        /**
+         * Actually display the modal after options are loaded
+         */
+        function displayEventModal(event) {
+            try {
+                // Get modal and elements
+                const modalEl = document.getElementById('eventModal');
+                if (!modalEl) {
+                    throw new Error('Modal element not found in DOM');
+                }
+                
+                const modal = new bootstrap.Modal(modalEl);
+                const titleEl = document.getElementById('eventModalTitle');
+                const bodyEl = document.getElementById('eventModalBody');
+                const footerEl = document.getElementById('eventModalFooter');
+
+                if (!titleEl || !bodyEl || !footerEl) {
+                    throw new Error('Modal elements not found: title=' + !!titleEl + ', body=' + !!bodyEl + ', footer=' + !!footerEl);
+                }
+
+                titleEl.textContent = 'Réservation';
+                
+                // Extract and safely prepare data
+                // Handle different date formats from FullCalendar
+                let startStr = '';
+                let endStr = '';
+                
+                if (event.start instanceof Date) {
+                    startStr = event.start.toISOString().slice(0, 16);
+                } else if (typeof event.start === 'string') {
+                    startStr = event.start.slice(0, 16);
+                } else if (event.start && event.start.toISOString) {
+                    startStr = event.start.toISOString().slice(0, 16);
+                }
+                
+                if (event.end instanceof Date) {
+                    endStr = event.end.toISOString().slice(0, 16);
+                } else if (typeof event.end === 'string') {
+                    endStr = event.end.slice(0, 16);
+                } else if (event.end && event.end.toISOString) {
+                    endStr = event.end.toISOString().slice(0, 16);
+                }
+                
+                const props = event.extendedProps || {};
+                
+                const aircraftModel = props.aircraft_model ? String(props.aircraft_model).replace(/"/g, '&quot;') : '';
+                const pilot = props.pilot ? String(props.pilot).replace(/"/g, '&quot;') : '';
+                const purpose = props.purpose ? String(props.purpose).replace(/"/g, '&quot;') : '';
+                const notes = props.notes ? String(props.notes).replace(/"/g, '&quot;') : '';
+                const status = props.status || 'confirmed';
+                const instructor = props.instructor ? String(props.instructor).replace(/"/g, '&quot;') : '';
+                
+                console.log('Building selects with OPTIONS:', OPTIONS);
+                console.log('Aircraft options:', OPTIONS.aircraft);
+                console.log('Pilot options:', OPTIONS.pilots);
+                console.log('Current aircraft_id:', props.aircraft_id);
+                console.log('Current pilot_member_id:', props.pilot_member_id);
+                
+                // Build aircraft select (OPTIONS.aircraft is an associative array: id => label)
+                let aircraftSelect = '<select class="form-control" id="eventAircraft">';
+                aircraftSelect += '<option value="">-- Select Aircraft --</option>';
+                if (OPTIONS.aircraft) {
+                    for (const [id, label] of Object.entries(OPTIONS.aircraft)) {
+                        const selected = String(id) === String(props.aircraft_id) ? 'selected' : '';
+                        aircraftSelect += `<option value="${id}" ${selected}>${label}</option>`;
+                    }
+                }
+                aircraftSelect += '</select>';
+                
+                // Build pilot select (OPTIONS.pilots is an associative array: id => label)
+                let pilotSelect = '<select class="form-control" id="eventPilot">';
+                pilotSelect += '<option value="">-- Select Pilot --</option>';
+                if (OPTIONS.pilots) {
+                    for (const [id, label] of Object.entries(OPTIONS.pilots)) {
+                        const selected = String(id) === String(props.pilot_member_id) ? 'selected' : '';
+                        pilotSelect += `<option value="${id}" ${selected}>${label}</option>`;
+                    }
+                }
+                pilotSelect += '</select>';
+                
+                // Build instructor HTML conditionally
+                let instructorHtml = '';
+                if (instructor && instructor.trim()) {
+                    instructorHtml = `<div class="mb-3">
+                        <label for="eventInstructor" class="form-label"><strong>Instructor:</strong></label>
+                        <input type="text" class="form-control" id="eventInstructor" value="${instructor}" readonly>
+                    </div>`;
+                }
+                
+                // Build main form HTML
+                const formHtml = `<form id="eventEditForm">
+                    <div class="mb-3">
+                        <label for="eventAircraft" class="form-label"><strong>Aircraft:</strong></label>
+                        ${aircraftSelect}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="eventPilot" class="form-label"><strong>Pilot:</strong></label>
+                        ${pilotSelect}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventStart" class="form-label"><strong>Start Time:</strong></label>
+                            <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="eventEnd" class="form-label"><strong>End Time:</strong></label>
+                            <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="eventPurpose" class="form-label"><strong>Purpose:</strong></label>
+                        <input type="text" class="form-control" id="eventPurpose" value="${purpose}">
+                    </div>
+                    
+                    ${instructorHtml}
+                    
+                    <div class="mb-3">
+                        <label for="eventNotes" class="form-label"><strong>Notes:</strong></label>
+                        <textarea class="form-control" id="eventNotes" rows="2">${notes}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="eventStatus" class="form-label"><strong>Status:</strong></label>
+                        <select class="form-control" id="eventStatus">
+                            <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="completed" ${status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>No Show</option>
+                        </select>
+                    </div>
+                </form>`;
+                
+                bodyEl.innerHTML = formHtml;
+                
+                // Update footer with buttons
+                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveEventBtn">Save Changes</button>`;
+                
+                // Attach event listener for save button
+                document.getElementById('saveEventBtn').addEventListener('click', function() {
+                    saveEventChanges(event);
+                });
+                
+                console.log('Modal setup complete, showing modal');
+                modal.show();
+                console.log('Modal shown');
+                
+            } catch (error) {
+                console.error('Error in displayEventModal:', error);
+                alert('Error displaying reservation details: ' + error.message);
+            }
+        }
+        
+        /**
+         * Save event changes to server
+         */
+        function saveEventChanges(event) {
+            const startStr = document.getElementById('eventStart').value.replace('T', ' ') + ':00';
+            const endStr = document.getElementById('eventEnd').value.replace('T', ' ') + ':00';
+            const purpose = document.getElementById('eventPurpose').value;
+            const notes = document.getElementById('eventNotes').value;
+            const status = document.getElementById('eventStatus').value;
+            const aircraftId = document.getElementById('eventAircraft').value;
+            const pilotId = document.getElementById('eventPilot').value;
+            
+            // Send update to server
+            fetch(CONFIG.baseUrl + 'reservations/update_reservation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'reservation_id=' + event.id +
+                      '&start_datetime=' + encodeURIComponent(startStr) +
+                      '&end_datetime=' + encodeURIComponent(endStr) +
+                      '&purpose=' + encodeURIComponent(purpose) +
+                      '&notes=' + encodeURIComponent(notes) +
+                      '&status=' + encodeURIComponent(status) +
+                      '&aircraft_id=' + encodeURIComponent(aircraftId) +
+                      '&pilot_member_id=' + encodeURIComponent(pilotId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Reservation updated successfully');
+                    // Close modal and reload data
+                    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                    loadTimelineData();
+                } else {
+                    alert('Error updating reservation: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error updating reservation:', error);
+                alert('Error updating reservation: ' + error.message);
+            });
+        }
+        
         
         /**
          * Show event tooltip

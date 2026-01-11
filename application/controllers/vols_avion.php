@@ -89,7 +89,6 @@ class Vols_avion extends Gvv_Controller {
         ));
         $this->data['saisie_par'] = $this->dx_auth->get_username();
         if (CREATION == $action) {
-
             $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
         }
 
