@@ -564,15 +564,40 @@ $this->load->view('bs_banner');
             const resourceRow = document.querySelector(
                 `.resource-row-timeline[data-resource-id="${event.resourceId}"]`
             );
-            
+
             if (!resourceRow) return;
-            
+
             const startTime = new Date(event.start);
             const endTime = new Date(event.end);
-            const startHour = startTime.getHours() + startTime.getMinutes() / 60;
-            const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+
+            // Calculate day boundaries for the currently displayed date
+            const currentDayStart = new Date(state.currentDate + ' 00:00:00');
+            const currentDayEnd = new Date(state.currentDate + ' 23:59:59');
+            const timelineStart = new Date(state.currentDate + ' ' + String(CONFIG.startHour).padStart(2, '0') + ':00:00');
+            const timelineEnd = new Date(state.currentDate + ' 23:59:59');
+
+            // Clip start time to current day's timeline boundaries
+            let clippedStartTime = startTime;
+            if (startTime < timelineStart) {
+                clippedStartTime = timelineStart;
+            }
+
+            // Clip end time to current day's timeline boundaries
+            let clippedEndTime = endTime;
+            if (endTime > timelineEnd) {
+                clippedEndTime = timelineEnd;
+            }
+
+            // Calculate hours for positioning (must be within the same day)
+            const startHour = clippedStartTime.getHours() + clippedStartTime.getMinutes() / 60;
+            const endHour = clippedEndTime.getHours() + clippedEndTime.getMinutes() / 60;
             const duration = endHour - startHour;
-            
+
+            // Skip events that don't overlap with the visible timeline
+            if (duration <= 0) {
+                return;
+            }
+
             const left = (startHour - CONFIG.startHour) * CONFIG.slotWidthPx;
             const width = Math.max(duration * CONFIG.slotWidthPx, 40);
             
