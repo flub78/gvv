@@ -793,12 +793,16 @@ $this->load->view('bs_banner');
                     // DO NOT reload - keep the visual changes
                 } else {
                     console.error('Server returned error:', data.error);
+                    // Show error message to user
+                    alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
                     // Reload to revert changes on error
                     setTimeout(() => loadTimelineData(), 500);
                 }
             })
             .catch(error => {
                 console.error('Error updating event:', error);
+                // Show error message to user
+                alert(TRANSLATIONS.error_prefix + ': ' + error.message);
                 // Reload to revert changes on error
                 setTimeout(() => loadTimelineData(), 500);
             });

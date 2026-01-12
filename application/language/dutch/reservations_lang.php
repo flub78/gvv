@@ -48,5 +48,10 @@ $lang['reservations_error_prefix'] = "Fout";
 // Success messages
 $lang['reservations_success_saved'] = "Reservering succesvol opgeslagen";
 
+// Conflict messages
+$lang['reservations_conflict_aircraft_conflict'] = "Dit vliegtuig is al gereserveerd voor dit tijdvak";
+$lang['reservations_conflict_pilot_conflict'] = "Deze piloot heeft al een reservering voor dit tijdvak";
+$lang['reservations_conflict_instructor_conflict'] = "Deze instructeur heeft al een reservering voor dit tijdvak";
+
 /* End of file reservations_lang.php */
 /* Location: ./application/language/dutch/reservations_lang.php */

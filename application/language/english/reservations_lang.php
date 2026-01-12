@@ -48,5 +48,10 @@ $lang['reservations_error_prefix'] = "Error";
 // Success messages
 $lang['reservations_success_saved'] = "Reservation saved successfully";
 
+// Conflict messages
+$lang['reservations_conflict_aircraft_conflict'] = "This aircraft is already reserved for this time slot";
+$lang['reservations_conflict_pilot_conflict'] = "This pilot already has a reservation for this time slot";
+$lang['reservations_conflict_instructor_conflict'] = "This instructor already has a reservation for this time slot";
+
 /* End of file reservations_lang.php */
 /* Location: ./application/language/english/reservations_lang.php */

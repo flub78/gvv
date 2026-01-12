@@ -286,7 +286,38 @@ class Reservations extends CI_Controller {
                 $start_datetime = $this->_snap_to_increment($start_datetime, $increment);
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
-            
+
+            // Get the current reservation to know pilot and instructor
+            $reservation = $this->db->get_where('reservations', array('id' => $event_id))->row_array();
+            if (!$reservation) {
+                throw new Exception('Reservation not found');
+            }
+
+            // Determine the aircraft_id for conflict check
+            $check_aircraft_id = $resource_id ? $resource_id : $reservation['aircraft_id'];
+
+            // Check for conflicts (aircraft, pilot, instructor)
+            $conflict_check = $this->reservations_model->check_reservation_conflicts(
+                $check_aircraft_id,
+                $reservation['pilot_member_id'],
+                $reservation['instructor_member_id'],
+                $start_datetime,
+                $end_datetime,
+                $event_id  // Exclude current reservation from conflict check
+            );
+
+            if (!$conflict_check['valid']) {
+                // Load language file for error messages
+                $this->lang->load('reservations');
+
+                $error_messages = array();
+                foreach ($conflict_check['conflicts'] as $conflict_type) {
+                    $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                }
+
+                throw new Exception(implode(', ', $error_messages));
+            }
+
             // Prepare update data
             $username = $this->dx_auth->get_username();
             $update_data = array(
@@ -294,17 +325,22 @@ class Reservations extends CI_Controller {
                 'end_datetime' => $end_datetime,
                 'updated_by' => $username
             );
-            
+
             // Only update aircraft_id if resource_id is provided
             if ($resource_id) {
                 $update_data['aircraft_id'] = $resource_id;
             }
-            
+
             // Update directly via database
             $this->db->update('reservations', $update_data, array('id' => $event_id));
-            
+
             if ($this->db->affected_rows() <= 0) {
-                throw new Exception('No rows updated - reservation may not exist');
+                // Check if reservation exists
+                $exists = $this->db->get_where('reservations', array('id' => $event_id))->row();
+                if (!$exists) {
+                    throw new Exception('Reservation not found');
+                }
+                // If exists but no rows affected, data might be unchanged (not an error)
             }
             
             $log_message = "Reservation: User " . ($action === 'resize' ? 'resized' : 'moved') . 
@@ -440,6 +476,28 @@ class Reservations extends CI_Controller {
 
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
+
+            // Check for conflicts (aircraft, pilot, instructor)
+            $conflict_check = $this->reservations_model->check_reservation_conflicts(
+                $aircraft_id,
+                $pilot_member_id,
+                $instructor_member_id,
+                $start_datetime,
+                $end_datetime,
+                $is_create ? null : $reservation_id
+            );
+
+            if (!$conflict_check['valid']) {
+                // Load language file for error messages
+                $this->lang->load('reservations');
+
+                $error_messages = array();
+                foreach ($conflict_check['conflicts'] as $conflict_type) {
+                    $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                }
+
+                throw new Exception(implode(', ', $error_messages));
+            }
 
             if ($is_create) {
                 // CREATE new reservation

@@ -48,5 +48,10 @@ $lang['reservations_error_prefix'] = "Erreur";
 // Success messages
 $lang['reservations_success_saved'] = "Réservation enregistrée avec succès";
 
+// Conflict messages
+$lang['reservations_conflict_aircraft_conflict'] = "Cet avion est déjà réservé pour ce créneau horaire";
+$lang['reservations_conflict_pilot_conflict'] = "Ce pilote a déjà une réservation pour ce créneau horaire";
+$lang['reservations_conflict_instructor_conflict'] = "Cet instructeur a déjà une réservation pour ce créneau horaire";
+
 /* End of file reservations_lang.php */
 /* Location: ./application/language/french/reservations_lang.php */

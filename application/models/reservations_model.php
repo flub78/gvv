@@ -150,6 +150,105 @@ class Reservations_model extends Common_Model {
     }
 
     /**
+     * Check if pilot is available for a time slot
+     *
+     * Returns true if the pilot does not have another reservation during the requested period.
+     *
+     * @param string $pilot_member_id Pilot member ID
+     * @param string $start_datetime Start datetime (YYYY-MM-DD HH:MM:SS)
+     * @param string $end_datetime End datetime (YYYY-MM-DD HH:MM:SS)
+     * @param int $exclude_reservation_id Optional: reservation ID to exclude from conflict check
+     * @return bool True if available, false if conflict
+     */
+    public function is_pilot_available($pilot_member_id, $start_datetime, $end_datetime, $exclude_reservation_id = null) {
+        $this->db->select('COUNT(*) as conflict_count')
+            ->from('reservations')
+            ->where('pilot_member_id', $pilot_member_id)
+            ->where('status !=', 'cancelled')
+            ->where('(start_datetime < "' . $end_datetime . '" AND end_datetime > "' . $start_datetime . '")');
+
+        if ($exclude_reservation_id) {
+            $this->db->where('id !=', $exclude_reservation_id);
+        }
+
+        $result = $this->db->get()->row_array();
+        gvv_debug("sql: " . $this->db->last_query());
+        return ($result['conflict_count'] == 0);
+    }
+
+    /**
+     * Check if instructor is available for a time slot
+     *
+     * Returns true if the instructor does not have another reservation during the requested period.
+     *
+     * @param string $instructor_member_id Instructor member ID
+     * @param string $start_datetime Start datetime (YYYY-MM-DD HH:MM:SS)
+     * @param string $end_datetime End datetime (YYYY-MM-DD HH:MM:SS)
+     * @param int $exclude_reservation_id Optional: reservation ID to exclude from conflict check
+     * @return bool True if available, false if conflict
+     */
+    public function is_instructor_available($instructor_member_id, $start_datetime, $end_datetime, $exclude_reservation_id = null) {
+        // If no instructor specified, return true (no conflict)
+        if (empty($instructor_member_id)) {
+            return true;
+        }
+
+        $this->db->select('COUNT(*) as conflict_count')
+            ->from('reservations')
+            ->where('instructor_member_id', $instructor_member_id)
+            ->where('status !=', 'cancelled')
+            ->where('(start_datetime < "' . $end_datetime . '" AND end_datetime > "' . $start_datetime . '")');
+
+        if ($exclude_reservation_id) {
+            $this->db->where('id !=', $exclude_reservation_id);
+        }
+
+        $result = $this->db->get()->row_array();
+        gvv_debug("sql: " . $this->db->last_query());
+        return ($result['conflict_count'] == 0);
+    }
+
+    /**
+     * Check for all possible reservation conflicts
+     *
+     * Validates that:
+     * - Aircraft is not already reserved
+     * - Pilot does not have another reservation
+     * - Instructor (if specified) does not have another reservation
+     *
+     * @param string $aircraft_id Aircraft registration
+     * @param string $pilot_member_id Pilot member ID
+     * @param string $instructor_member_id Instructor member ID (can be null)
+     * @param string $start_datetime Start datetime (YYYY-MM-DD HH:MM:SS)
+     * @param string $end_datetime End datetime (YYYY-MM-DD HH:MM:SS)
+     * @param int $exclude_reservation_id Optional: reservation ID to exclude from conflict check
+     * @return array Array with 'valid' (bool) and 'conflicts' (array of conflict messages)
+     */
+    public function check_reservation_conflicts($aircraft_id, $pilot_member_id, $instructor_member_id, $start_datetime, $end_datetime, $exclude_reservation_id = null) {
+        $conflicts = array();
+
+        // Check aircraft availability
+        if (!$this->is_aircraft_available($aircraft_id, $start_datetime, $end_datetime, $exclude_reservation_id)) {
+            $conflicts[] = 'aircraft_conflict';
+        }
+
+        // Check pilot availability
+        if (!$this->is_pilot_available($pilot_member_id, $start_datetime, $end_datetime, $exclude_reservation_id)) {
+            $conflicts[] = 'pilot_conflict';
+        }
+
+        // Check instructor availability (if specified)
+        if (!empty($instructor_member_id) && !$this->is_instructor_available($instructor_member_id, $start_datetime, $end_datetime, $exclude_reservation_id)) {
+            $conflicts[] = 'instructor_conflict';
+        }
+
+        return array(
+            'valid' => (count($conflicts) == 0),
+            'conflicts' => $conflicts
+        );
+    }
+
+    /**
      * Create a new reservation
      *
      * @param array $data Reservation data
