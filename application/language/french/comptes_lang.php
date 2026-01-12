@@ -114,6 +114,7 @@ $lang['comptes_cloture_title_produits_a_integrer'] = "Comptes de produits à int
 
 $lang['comptes_cloture_error_120'] = "Clôture impossible car il n'y a pas de compte 120";
 $lang['comptes_cloture_error_129'] = "Clôture impossible car il n'y a pas de compte 129";
+$lang['comptes_cloture_success'] = "Clôture effectuée avec succès à la date du";
 
 $lang['comptes_balance_general'] = array('Détaillée' => 0, 'Générale' => 1);
 

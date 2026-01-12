@@ -111,6 +111,7 @@ $lang['comptes_cloture_title_produits_a_integrer'] = "Rekeningen producten te ve
 
 $lang['comptes_cloture_error_120'] = "Sluiting niet mogelijk omdat er geen rekening 120 is";
 $lang['comptes_cloture_error_129'] = "Sluiting niet mogelijk omdat er geen rekening 129 is";
+$lang['comptes_cloture_success'] = "Sluiting succesvol voltooid op";
 
 $lang['comptes_balance_general'] = array('Gedetailleerd' => 0, 'Algemeen' => 1);
 

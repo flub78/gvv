@@ -111,6 +111,7 @@ $lang['comptes_cloture_title_produits_a_integrer'] = "Income accounts used to co
 
 $lang['comptes_cloture_error_120'] = "Closing impossible, no account 120";
 $lang['comptes_cloture_error_129'] = "Closing impossible, no account 129";
+$lang['comptes_cloture_success'] = "Closing successfully completed on";
 
 $lang['comptes_balance_general'] = array('Detailed' => 0, 'General' => 1);
 

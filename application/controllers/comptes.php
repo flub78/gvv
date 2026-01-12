@@ -1390,21 +1390,28 @@ class Comptes extends Gvv_Controller {
         $this->data['date_gel'] = $date_gel;
         $this->data['section'] = $section;
 
-        if ($this->clotures_model->before_freeze_date($db_date_fin)) {
-            $error = $this->lang->line("comptes_cloture_impossible") . " $date_gel.";
-        } else {
+        // Si on vient de faire une clôture avec succès, ne pas afficher de message d'erreur
+        $success_message = $this->session->flashdata('success');
+        
+        if ($success_message) {
             $error = "";
+        } else {
+            if ($this->clotures_model->before_freeze_date($db_date_fin)) {
+                $error = $this->lang->line("comptes_cloture_impossible") . " $date_gel.";
+            } else {
+                $error = "";
+            }
+
+            $error_120 = $this->lang->line("comptes_cloture_error_120");
+            $error_129 = $this->lang->line("comptes_cloture_error_129");
+
+            $where = [];
+            if ($section) $where['club'] = $section['id'];
+            $where["codec"] = "120";
+            if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_120";
+            $where["codec"] = "129";
+            if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_129";
         }
-
-        $error_120 = $this->lang->line("comptes_cloture_error_120");
-        $error_129 = $this->lang->line("comptes_cloture_error_129");
-
-        $where = [];
-        if ($section) $where['club'] = $section['id'];
-        $where["codec"] = "120";
-        if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_120";
-        $where["codec"] = "129";
-        if ($this->gvv_model->count($where) == 0)  $error .= "<BR>$error_129";
 
         $this->data['error'] = $error;
 
@@ -1448,6 +1455,9 @@ class Comptes extends Gvv_Controller {
             // Modifie la date de gel
             $description = "Clôture $year - " . $section['nom'];
             $this->clotures_model->create_freeze_date($db_date_fin, $description);
+
+            // Message de succès
+            $this->session->set_flashdata('success', $this->lang->line("comptes_cloture_success") . " " . $date_fin);
 
             redirect($this->controller . "/cloture/" . VISUALISATION);
         }
