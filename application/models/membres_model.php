@@ -535,6 +535,59 @@ class Membres_model extends Common_Model {
 
         return $selector;
     }
+
+    /**
+     * Retourne un sélecteur des instructeurs inscrits dans une section spécifique
+     * Un instructeur est considéré inscrit dans une section s'il:
+     * - Possède un compte 411 actif dans cette section
+     * - A le rôle "instructeur" (types_roles_id = 11) pour cette section
+     *
+     * @param int $section_id L'ID de la section (0 = section active)
+     * @param bool $only_actif true pour ne retourner que les membres actifs, false pour tous
+     * @return array Sélecteur avec les instructeurs de la section au format [mlogin => image]
+     */
+    public function inst_selector($section_id = 0, $only_actif = true) {
+        // Détermine la section à utiliser
+        if ($section_id == 0) {
+            $section_id = $this->section_id();
+        }
+
+        // Sélectionne les membres qui ont un compte 411 actif dans la section
+        // et qui ont le rôle instructeur pour cette section
+        $this->db->distinct();
+        $this->db->select('membres.mlogin');
+        $this->db->from('membres');
+        $this->db->join('comptes', 'comptes.pilote = membres.mlogin', 'inner');
+        $this->db->join('users', 'users.username = membres.mlogin', 'inner');
+        $this->db->join('user_roles_per_section urps', 'urps.user_id = users.id', 'inner');
+        $this->db->where('comptes.codec', '411');
+        $this->db->where('comptes.club', $section_id);
+        $this->db->where('comptes.actif', 1);
+        $this->db->where('comptes.masked', 0);
+        $this->db->where('urps.types_roles_id', 11); // 11 = instructeur
+        $this->db->where('urps.section_id', $section_id);
+        $this->db->where('urps.revoked_at IS NULL');
+
+        if ($only_actif) {
+            $this->db->where('membres.actif', 1);
+        }
+
+        $this->db->order_by('membres.mnom', 'ASC');
+        $this->db->order_by('membres.mprenom', 'ASC');
+
+        $query = $this->db->get();
+
+        // Construire le sélecteur
+        $selector = array('' => '');
+        if ($query && $query->num_rows() > 0) {
+            foreach ($query->result_array() as $row) {
+                $mlogin = $row['mlogin'];
+                $selector[$mlogin] = $this->image($mlogin);
+            }
+        }
+
+        return $selector;
+    }
 }
 
 /* End of file membres_model.php */

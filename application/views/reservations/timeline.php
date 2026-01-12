@@ -436,16 +436,18 @@ $this->load->view('bs_banner');
             // Initialize OPTIONS from PHP data
             OPTIONS.aircraft = <?php echo json_encode($aircraft_options); ?>;
             OPTIONS.pilots = <?php echo json_encode($pilots_options); ?>;
+            OPTIONS.instructors = <?php echo json_encode($instructors_options); ?>;
             console.log('OPTIONS initialized from PHP:', OPTIONS);
-            
+
             loadTimelineData();
             setupDateNavigation();
         });
-        
+
         // Global options storage - will be initialized from PHP
         let OPTIONS = {
             aircraft: [],
-            pilots: []
+            pilots: [],
+            instructors: []
         };
         
         /**
@@ -866,6 +868,7 @@ $this->load->view('bs_banner');
                 extendedProps: {
                     aircraft_id: resourceId,
                     pilot_member_id: null,
+                    instructor_member_id: null,
                     purpose: '',
                     notes: '',
                     status: 'confirmed'
@@ -945,12 +948,14 @@ $this->load->view('bs_banner');
                 const notes = props.notes ? String(props.notes).replace(/"/g, '&quot;') : '';
                 const status = props.status || 'confirmed';
                 const instructor = props.instructor ? String(props.instructor).replace(/"/g, '&quot;') : '';
-                
+
                 console.log('Building selects with OPTIONS:', OPTIONS);
                 console.log('Aircraft options:', OPTIONS.aircraft);
                 console.log('Pilot options:', OPTIONS.pilots);
+                console.log('Instructor options:', OPTIONS.instructors);
                 console.log('Current aircraft_id:', props.aircraft_id);
                 console.log('Current pilot_member_id:', props.pilot_member_id);
+                console.log('Current instructor_member_id:', props.instructor_member_id);
                 
                 // Build aircraft select (OPTIONS.aircraft is an associative array: id => label)
                 let aircraftSelect = '<select class="form-control" id="eventAircraft">';
@@ -973,15 +978,17 @@ $this->load->view('bs_banner');
                     }
                 }
                 pilotSelect += '</select>';
-                
-                // Build instructor HTML conditionally
-                let instructorHtml = '';
-                if (instructor && instructor.trim()) {
-                    instructorHtml = `<div class="mb-3">
-                        <label for="eventInstructor" class="form-label"><strong>Instructor:</strong></label>
-                        <input type="text" class="form-control" id="eventInstructor" value="${instructor}" readonly>
-                    </div>`;
+
+                // Build instructor select (OPTIONS.instructors is an associative array: id => label)
+                let instructorSelect = '<select class="form-control" id="eventInstructor">';
+                instructorSelect += '<option value="">-- None --</option>';
+                if (OPTIONS.instructors) {
+                    for (const [id, label] of Object.entries(OPTIONS.instructors)) {
+                        const selected = String(id) === String(props.instructor_member_id) ? 'selected' : '';
+                        instructorSelect += `<option value="${id}" ${selected}>${label}</option>`;
+                    }
                 }
+                instructorSelect += '</select>';
                 
                 // Build main form HTML
                 const formHtml = `<form id="eventEditForm">
@@ -989,12 +996,17 @@ $this->load->view('bs_banner');
                         <label for="eventAircraft" class="form-label"><strong>Aircraft:</strong></label>
                         ${aircraftSelect}
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="eventPilot" class="form-label"><strong>Pilot:</strong></label>
                         ${pilotSelect}
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <label for="eventInstructor" class="form-label"><strong>Instructor:</strong> <span class="text-muted">(optionnel)</span></label>
+                        ${instructorSelect}
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="eventStart" class="form-label"><strong>Start Time:</strong></label>
@@ -1005,19 +1017,17 @@ $this->load->view('bs_banner');
                             <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="eventPurpose" class="form-label"><strong>Purpose:</strong></label>
                         <input type="text" class="form-control" id="eventPurpose" value="${purpose}">
                     </div>
-                    
-                    ${instructorHtml}
-                    
+
                     <div class="mb-3">
                         <label for="eventNotes" class="form-label"><strong>Notes:</strong></label>
                         <textarea class="form-control" id="eventNotes" rows="2">${notes}</textarea>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>Status:</strong></label>
                         <select class="form-control" id="eventStatus">
@@ -1062,6 +1072,7 @@ $this->load->view('bs_banner');
             const status = document.getElementById('eventStatus').value;
             const aircraftId = document.getElementById('eventAircraft').value;
             const pilotId = document.getElementById('eventPilot').value;
+            const instructorId = document.getElementById('eventInstructor').value;
 
             // Validation
             if (!aircraftId) {
@@ -1082,7 +1093,8 @@ $this->load->view('bs_banner');
                              '&notes=' + encodeURIComponent(notes) +
                              '&status=' + encodeURIComponent(status) +
                              '&aircraft_id=' + encodeURIComponent(aircraftId) +
-                             '&pilot_member_id=' + encodeURIComponent(pilotId);
+                             '&pilot_member_id=' + encodeURIComponent(pilotId) +
+                             '&instructor_member_id=' + encodeURIComponent(instructorId);
 
             if (!isCreate) {
                 requestBody = 'reservation_id=' + event.id + '&' + requestBody;

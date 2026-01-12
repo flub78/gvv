@@ -115,11 +115,14 @@ class Reservations extends CI_Controller {
 
         // Get pilots (members) options for modal selects - only from active section
         $pilots_options = $this->membres_model->section_pilots(0, true);
-        
+
+        // Get instructors options - only instructors with role in active section
+        $instructors_options = $this->membres_model->inst_selector(0, true);
+
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
         $date_formatted = $date_obj->format('l, d F Y');
-        
+
         // Prepare data for view
         $data = array(
             'current_date' => $date,
@@ -128,7 +131,8 @@ class Reservations extends CI_Controller {
             'reservations' => $reservations,
             'timeline_increment' => $this->config->item('timeline_increment'),
             'aircraft_options' => $aircraft_options,
-            'pilots_options' => $pilots_options
+            'pilots_options' => $pilots_options,
+            'instructors_options' => $instructors_options
         );
         
         load_last_view('reservations/timeline', $data);
@@ -369,6 +373,12 @@ class Reservations extends CI_Controller {
             $status = isset($_POST['status']) ? $_POST['status'] : 'confirmed';
             $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
             $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
+            $instructor_member_id = isset($_POST['instructor_member_id']) ? $_POST['instructor_member_id'] : null;
+
+            // Clean instructor_member_id: empty string should be null
+            if ($instructor_member_id === '') {
+                $instructor_member_id = null;
+            }
 
             // Validate required fields
             if (!$aircraft_id) {
@@ -404,6 +414,7 @@ class Reservations extends CI_Controller {
                 $data = array(
                     'aircraft_id' => $aircraft_id,
                     'pilot_member_id' => $pilot_member_id,
+                    'instructor_member_id' => $instructor_member_id,
                     'start_datetime' => $start_datetime,
                     'end_datetime' => $end_datetime,
                     'purpose' => $purpose,
@@ -436,6 +447,7 @@ class Reservations extends CI_Controller {
                     'status' => $status,
                     'aircraft_id' => $aircraft_id,
                     'pilot_member_id' => $pilot_member_id,
+                    'instructor_member_id' => $instructor_member_id,
                     'updated_by' => $username
                 );
 
