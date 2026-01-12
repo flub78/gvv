@@ -115,7 +115,7 @@ class Vols_avion extends Gvv_Controller {
             'actif' => 1
         )));
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
-        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->qualif_selector('mlogin', FI_AVION | FE_AVION));
+        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->inst_selector());
         $this->gvvmetadata->set_selector('payeur_selector', $payeur_selector);
         $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
 
