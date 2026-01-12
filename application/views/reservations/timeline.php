@@ -333,7 +333,6 @@ $this->load->view('bs_banner');
     </style>
 
 <div id="body" class="body container-fluid">
-    <h3><?php echo $this->lang->line('reservations_timeline') ?: 'Timeline Réservations'; ?></h3>
     
     <div class="timeline-container">
         <!-- Header date navigation buttons-->
@@ -423,12 +422,18 @@ $this->load->view('bs_banner');
             viewMode: 'day',  // 'day' or 'week'
             timelineData: null,
             draggingEvent: null,
+            draggingElement: null,
             dragMode: null,  // 'move' or 'resize'
             dragStartX: 0,
             dragStartLeft: 0,
             dragStartWidth: 0,
             isDragging: false,
-            dragDistance: 0
+            dragDistance: 0,
+            // Selection state for creating new reservations
+            isSelecting: false,
+            selectionStartSlot: null,
+            selectionStartX: 0,
+            selectionElement: null
         };
         
         // Initialize
@@ -547,11 +552,11 @@ $this->load->view('bs_banner');
                 renderEvent(event);
             });
             
-            // Add click handlers for empty slots
+            // Add drag selection handlers for empty slots
             document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        handleSlotClick(this);
+                slot.addEventListener('mousedown', function(e) {
+                    if (e.target === this && e.button === 0) {
+                        startSlotSelection(e, this);
                     }
                 });
             });
@@ -840,7 +845,133 @@ $this->load->view('bs_banner');
         }
         
         /**
-         * Handle empty slot click
+         * Start slot selection (drag to create reservation)
+         */
+        function startSlotSelection(e, slotEl) {
+            e.preventDefault();
+
+            // Don't start selection if already dragging an event
+            if (state.isDragging) return;
+
+            state.isSelecting = true;
+            state.selectionStartSlot = slotEl;
+            state.selectionStartX = e.clientX;
+
+            const resourceRow = slotEl.parentElement;
+            const resourceId = slotEl.getAttribute('data-resource-id');
+            const startHour = parseInt(slotEl.getAttribute('data-hour'));
+
+            // Create visual selection element
+            const selectionEl = document.createElement('div');
+            selectionEl.className = 'reservation-event selecting';
+            selectionEl.style.position = 'absolute';
+            selectionEl.style.left = (startHour - CONFIG.startHour) * CONFIG.slotWidthPx + 'px';
+            selectionEl.style.width = CONFIG.slotWidthPx + 'px';
+            selectionEl.style.height = '100%';
+            selectionEl.style.backgroundColor = 'rgba(0, 123, 255, 0.3)';
+            selectionEl.style.border = '2px dashed #007bff';
+            selectionEl.style.pointerEvents = 'none';
+            selectionEl.style.zIndex = '999';
+
+            resourceRow.appendChild(selectionEl);
+            state.selectionElement = selectionEl;
+
+            // Add document-level mouse handlers
+            document.addEventListener('mousemove', onSlotSelectionMove);
+            document.addEventListener('mouseup', onSlotSelectionEnd);
+        }
+
+        /**
+         * Handle mouse move during slot selection
+         */
+        function onSlotSelectionMove(e) {
+            if (!state.isSelecting || !state.selectionElement) return;
+
+            const resourceRow = state.selectionStartSlot.parentElement;
+            const rect = resourceRow.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+
+            // Calculate selection boundaries
+            const startSlotHour = parseInt(state.selectionStartSlot.getAttribute('data-hour'));
+            const startLeft = (startSlotHour - CONFIG.startHour) * CONFIG.slotWidthPx;
+
+            let selectionLeft, selectionWidth;
+
+            if (mouseX >= startLeft) {
+                // Selecting forward
+                selectionLeft = startLeft;
+                selectionWidth = Math.max(CONFIG.slotWidthPx, mouseX - startLeft);
+            } else {
+                // Selecting backward
+                selectionLeft = Math.max(0, mouseX);
+                selectionWidth = startLeft + CONFIG.slotWidthPx - selectionLeft;
+            }
+
+            // Snap to grid
+            selectionWidth = snapToGrid(selectionWidth);
+            selectionLeft = snapToGrid(selectionLeft);
+
+            // Update selection element
+            state.selectionElement.style.left = selectionLeft + 'px';
+            state.selectionElement.style.width = selectionWidth + 'px';
+        }
+
+        /**
+         * Handle mouse up to complete slot selection
+         */
+        function onSlotSelectionEnd(e) {
+            if (!state.isSelecting) return;
+
+            document.removeEventListener('mousemove', onSlotSelectionMove);
+            document.removeEventListener('mouseup', onSlotSelectionEnd);
+
+            const resourceRow = state.selectionStartSlot.parentElement;
+            const resourceId = state.selectionStartSlot.getAttribute('data-resource-id');
+
+            // Calculate selected time range
+            const selectionLeft = parseInt(state.selectionElement.style.left);
+            const selectionWidth = parseInt(state.selectionElement.style.width);
+
+            const startHourDecimal = (selectionLeft / CONFIG.slotWidthPx) + CONFIG.startHour;
+            const endHourDecimal = ((selectionLeft + selectionWidth) / CONFIG.slotWidthPx) + CONFIG.startHour;
+
+            // Convert to time strings
+            const startHour = Math.floor(startHourDecimal);
+            let startMinute = Math.round((startHourDecimal - startHour) * 60);
+            startMinute = Math.round(startMinute / CONFIG.timelineIncrement) * CONFIG.timelineIncrement;
+
+            const endHour = Math.floor(endHourDecimal);
+            let endMinute = Math.round((endHourDecimal - endHour) * 60);
+            endMinute = Math.round(endMinute / CONFIG.timelineIncrement) * CONFIG.timelineIncrement;
+
+            const startTime = String(startHour).padStart(2, '0') + ':' + String(startMinute).padStart(2, '0') + ':00';
+            const endTime = String(endHour).padStart(2, '0') + ':' + String(endMinute).padStart(2, '0') + ':00';
+
+            // Remove visual selection
+            if (state.selectionElement) {
+                state.selectionElement.remove();
+                state.selectionElement = null;
+            }
+
+            // Reset selection state
+            state.isSelecting = false;
+            state.selectionStartSlot = null;
+
+            console.log('Selection completed:', resourceId, startTime, 'to', endTime);
+
+            // Check if it was just a click (no significant drag)
+            const dragDistance = Math.abs(e.clientX - state.selectionStartX);
+            if (dragDistance < 5) {
+                // Just a click, use 1-hour default duration
+                handleSlotClick(state.selectionStartSlot);
+            } else {
+                // It was a drag, open modal with selected time range
+                showCreateReservationModal(resourceId, startTime, endTime);
+            }
+        }
+
+        /**
+         * Handle empty slot click (single click, no drag)
          */
         function handleSlotClick(slotEl) {
             const hour = parseInt(slotEl.getAttribute('data-hour'));
@@ -872,22 +1003,31 @@ $this->load->view('bs_banner');
         /**
          * Show modal to create a new reservation
          */
-        function showCreateReservationModal(resourceId, clickedTime) {
-            console.log('Opening create reservation modal for aircraft:', resourceId, 'at time:', clickedTime);
+        function showCreateReservationModal(resourceId, startTime, endTime = null) {
+            console.log('Opening create reservation modal for aircraft:', resourceId, 'from:', startTime, 'to:', endTime);
 
-            // Parse clicked time to construct start datetime
-            const timeParts = clickedTime.split(':');
-            const startHour = parseInt(timeParts[0]);
-            const startMinute = parseInt(timeParts[1]) || 0;
+            // Parse start time
+            const startTimeParts = startTime.split(':');
+            const startHour = parseInt(startTimeParts[0]);
+            const startMinute = parseInt(startTimeParts[1]) || 0;
 
-            // Calculate end time (default: 1 hour later)
-            let endHour = startHour + 1;
-            let endMinute = startMinute;
+            let endHour, endMinute;
 
-            // Handle day overflow
-            if (endHour >= 24) {
-                endHour = 23;
-                endMinute = 59;
+            if (endTime) {
+                // Use provided end time
+                const endTimeParts = endTime.split(':');
+                endHour = parseInt(endTimeParts[0]);
+                endMinute = parseInt(endTimeParts[1]) || 0;
+            } else {
+                // Calculate end time (default: 1 hour later)
+                endHour = startHour + 1;
+                endMinute = startMinute;
+
+                // Handle day overflow
+                if (endHour >= 24) {
+                    endHour = 23;
+                    endMinute = 59;
+                }
             }
 
             // Construct datetime strings (ISO format for datetime-local input)

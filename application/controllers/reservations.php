@@ -67,7 +67,6 @@ class Reservations extends CI_Controller {
 
         // Get all translations
         $translations = array(
-            'timeline' => $this->lang->line('reservations_timeline'),
             'timeline_desc' => $this->lang->line('reservations_timeline_desc'),
             'form_aircraft' => $this->lang->line('reservations_form_aircraft'),
             'form_pilot' => $this->lang->line('reservations_form_pilot'),

@@ -4,7 +4,6 @@
  */
 
 // Timeline labels
-$lang['reservations_timeline'] = "Reservations Timeline";
 $lang['reservations_timeline_desc'] = "Aircraft availability per day";
 
 // Form labels

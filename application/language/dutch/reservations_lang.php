@@ -4,7 +4,6 @@
  */
 
 // Timeline labels
-$lang['reservations_timeline'] = "Reserveringen Tijdlijn";
 $lang['reservations_timeline_desc'] = "Beschikbaarheid van vliegtuigen per dag";
 
 // Form labels
