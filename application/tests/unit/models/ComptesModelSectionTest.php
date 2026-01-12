@@ -52,6 +52,12 @@ class FakeDb
         return $this;
     }
 
+    public function distinct()
+    {
+        // Mock implementation - just return $this for method chaining
+        return $this;
+    }
+
     public function from($table)
     {
         $this->from = $table;

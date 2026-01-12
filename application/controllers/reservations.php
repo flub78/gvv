@@ -112,9 +112,9 @@ class Reservations extends CI_Controller {
         
         // Get aircraft options for modal selects (using existing selector)
         $aircraft_options = $this->avions_model->selector(array('actif' => 1), 'asc', TRUE);
-        
-        // Get pilots (members) options for modal selects (using existing selector with null option)
-        $pilots_options = $this->membres_model->selector(array('actif' => 1));
+
+        // Get pilots (members) options for modal selects - only from active section
+        $pilots_options = $this->membres_model->section_pilots(0, true);
         
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
@@ -348,88 +348,117 @@ class Reservations extends CI_Controller {
     }
 
     /**
-     * Update reservation details from timeline modal
+     * Create or update reservation details from timeline modal
      */
     function update_reservation() {
         if (ob_get_level()) {
             ob_clean();
         }
-        
+
         header('Content-Type: application/json; charset=UTF-8');
-        
+
         try {
             $this->load->model('reservations_model');
             $this->load->config('program');
-            
+
             $reservation_id = isset($_POST['reservation_id']) ? $_POST['reservation_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
-            $purpose = isset($_POST['purpose']) ? $_POST['purpose'] : null;
-            $notes = isset($_POST['notes']) ? $_POST['notes'] : null;
-            $status = isset($_POST['status']) ? $_POST['status'] : null;
+            $purpose = isset($_POST['purpose']) ? $_POST['purpose'] : '';
+            $notes = isset($_POST['notes']) ? $_POST['notes'] : '';
+            $status = isset($_POST['status']) ? $_POST['status'] : 'confirmed';
             $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
             $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
-            
-            if (!$reservation_id) {
-                throw new Exception('Missing reservation ID');
+
+            // Validate required fields
+            if (!$aircraft_id) {
+                throw new Exception('Aircraft ID is required');
             }
-            
-            if ($start_datetime && $end_datetime) {
-                // Validate datetime format
-                if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $start_datetime) ||
-                    !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
-                    throw new Exception('Invalid datetime format');
-                }
-                
-                // Apply timeline increment constraint
-                $increment = $this->config->item('timeline_increment');
-                if ($increment && is_numeric($increment) && $increment > 0) {
-                    $start_datetime = $this->_snap_to_increment($start_datetime, $increment);
-                    $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
-                }
+            if (!$pilot_member_id) {
+                throw new Exception('Pilot member ID is required');
             }
-            
-            // Prepare update data
+            if (!$start_datetime || !$end_datetime) {
+                throw new Exception('Start and end datetime are required');
+            }
+
+            // Validate datetime format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $start_datetime) ||
+                !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
+                throw new Exception('Invalid datetime format');
+            }
+
+            // Apply timeline increment constraint
+            $increment = $this->config->item('timeline_increment');
+            if ($increment && is_numeric($increment) && $increment > 0) {
+                $start_datetime = $this->_snap_to_increment($start_datetime, $increment);
+                $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
+            }
+
             $username = $this->dx_auth->get_username();
-            $update_data = array(
-                'updated_by' => $username
-            );
-            
-            if ($start_datetime) {
-                $update_data['start_datetime'] = $start_datetime;
+
+            // Determine if this is a create or update
+            $is_create = empty($reservation_id);
+
+            if ($is_create) {
+                // CREATE new reservation
+                $data = array(
+                    'aircraft_id' => $aircraft_id,
+                    'pilot_member_id' => $pilot_member_id,
+                    'start_datetime' => $start_datetime,
+                    'end_datetime' => $end_datetime,
+                    'purpose' => $purpose,
+                    'notes' => $notes,
+                    'status' => $status,
+                    'created_by' => $username
+                );
+
+                $new_id = $this->reservations_model->create_reservation($data);
+
+                if ($new_id <= 0) {
+                    throw new Exception('Failed to create reservation');
+                }
+
+                gvv_info("Reservation: Created new reservation ID " . $new_id . " by user " . $username);
+
+                echo json_encode(array(
+                    'success' => true,
+                    'message' => 'Reservation created successfully',
+                    'reservation_id' => $new_id
+                ));
+
+            } else {
+                // UPDATE existing reservation
+                $update_data = array(
+                    'start_datetime' => $start_datetime,
+                    'end_datetime' => $end_datetime,
+                    'purpose' => $purpose,
+                    'notes' => $notes,
+                    'status' => $status,
+                    'aircraft_id' => $aircraft_id,
+                    'pilot_member_id' => $pilot_member_id,
+                    'updated_by' => $username
+                );
+
+                // Update in database
+                $this->db->update('reservations', $update_data, array('id' => $reservation_id));
+
+                if ($this->db->affected_rows() <= 0) {
+                    // Check if reservation exists
+                    $exists = $this->db->get_where('reservations', array('id' => $reservation_id))->row();
+                    if (!$exists) {
+                        throw new Exception('Reservation not found');
+                    }
+                    // If exists but no rows affected, data might be unchanged (not an error)
+                }
+
+                gvv_info("Reservation: Updated reservation ID " . $reservation_id . " by user " . $username);
+
+                echo json_encode(array(
+                    'success' => true,
+                    'message' => 'Reservation updated successfully'
+                ));
             }
-            if ($end_datetime) {
-                $update_data['end_datetime'] = $end_datetime;
-            }
-            if ($purpose !== null) {
-                $update_data['purpose'] = $purpose;
-            }
-            if ($notes !== null) {
-                $update_data['notes'] = $notes;
-            }
-            if ($status) {
-                $update_data['status'] = $status;
-            }
-            if ($aircraft_id) {
-                $update_data['aircraft_id'] = $aircraft_id;
-            }
-            if ($pilot_member_id) {
-                $update_data['pilot_member_id'] = $pilot_member_id;
-            }
-            
-            // Update in database
-            $this->db->update('reservations', $update_data, array('id' => $reservation_id));
-            
-            if ($this->db->affected_rows() <= 0) {
-                throw new Exception('No rows updated - reservation may not exist');
-            }
-            
-            gvv_info("Reservation: Updated reservation ID " . $reservation_id . " by user " . $username);
-            
-            echo json_encode(array(
-                'success' => true,
-                'message' => 'Reservation updated successfully'
-            ));
+
         } catch (Exception $e) {
             gvv_error("Error in update_reservation: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));

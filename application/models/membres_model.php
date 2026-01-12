@@ -505,9 +505,6 @@ class Membres_model extends Common_Model {
             $section_id = $this->section_id();
         }
 
-        // DEBUG
-        log_message('debug', "section_pilots: section_id=$section_id, only_actif=$only_actif");
-
         // Sélectionne les membres qui ont un compte 411 actif dans la section
         $this->db->distinct();
         $this->db->select('membres.mlogin');
@@ -527,10 +524,6 @@ class Membres_model extends Common_Model {
 
         $query = $this->db->get();
 
-        // DEBUG
-        log_message('debug', "section_pilots: SQL = " . $this->db->last_query());
-        log_message('debug', "section_pilots: num_rows = " . ($query ? $query->num_rows() : 'NULL'));
-
         // Construire le sélecteur
         $selector = array('' => '');
         if ($query && $query->num_rows() > 0) {
@@ -539,8 +532,6 @@ class Membres_model extends Common_Model {
                 $selector[$mlogin] = $this->image($mlogin);
             }
         }
-
-        log_message('debug', "section_pilots: selector count = " . count($selector));
 
         return $selector;
     }

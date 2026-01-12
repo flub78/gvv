@@ -808,27 +808,74 @@ $this->load->view('bs_banner');
             const hour = parseInt(slotEl.getAttribute('data-hour'));
             const resourceId = slotEl.getAttribute('data-resource-id');
             const clickedTime = String(hour).padStart(2, '0') + ':00:00';
-            
+
             console.log('Slot clicked:', resourceId, clickedTime);
-            
+
             // Send trace to server
             fetch(CONFIG.baseUrl + 'reservations/on_slot_click', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'resource_id=' + resourceId + 
+                body: 'resource_id=' + resourceId +
                       '&clicked_time=' + clickedTime
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     console.log('Slot click traced');
+                    // Open modal to create reservation
+                    showCreateReservationModal(resourceId, clickedTime);
                 }
             })
             .catch(error => console.error('Error tracing click:', error));
         }
-        
+
+        /**
+         * Show modal to create a new reservation
+         */
+        function showCreateReservationModal(resourceId, clickedTime) {
+            console.log('Opening create reservation modal for aircraft:', resourceId, 'at time:', clickedTime);
+
+            // Parse clicked time to construct start datetime
+            const timeParts = clickedTime.split(':');
+            const startHour = parseInt(timeParts[0]);
+            const startMinute = parseInt(timeParts[1]) || 0;
+
+            // Calculate end time (default: 1 hour later)
+            let endHour = startHour + 1;
+            let endMinute = startMinute;
+
+            // Handle day overflow
+            if (endHour >= 24) {
+                endHour = 23;
+                endMinute = 59;
+            }
+
+            // Construct datetime strings (ISO format for datetime-local input)
+            const startStr = `${state.currentDate}T${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+            const endStr = `${state.currentDate}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+
+            // Create a fake event object for the modal
+            const newEvent = {
+                id: null,  // null means create new
+                resourceId: resourceId,
+                start: startStr,
+                end: endStr,
+                title: 'New Reservation',
+                extendedProps: {
+                    aircraft_id: resourceId,
+                    pilot_member_id: null,
+                    purpose: '',
+                    notes: '',
+                    status: 'confirmed'
+                }
+            };
+
+            // Open the modal with pre-filled data
+            displayEventModal(newEvent);
+        }
+
         /**
          * Show event details in editable form
          */
@@ -865,7 +912,9 @@ $this->load->view('bs_banner');
                     throw new Error('Modal elements not found: title=' + !!titleEl + ', body=' + !!bodyEl + ', footer=' + !!footerEl);
                 }
 
-                titleEl.textContent = 'Réservation';
+                // Set title based on create vs edit mode
+                const isCreate = (event.id === null || event.id === undefined);
+                titleEl.textContent = isCreate ? 'Nouvelle Réservation' : 'Modifier Réservation';
                 
                 // Extract and safely prepare data
                 // Handle different date formats from FullCalendar
@@ -981,10 +1030,11 @@ $this->load->view('bs_banner');
                 </form>`;
                 
                 bodyEl.innerHTML = formHtml;
-                
+
                 // Update footer with buttons
-                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveEventBtn">Save Changes</button>`;
+                const saveButtonText = isCreate ? 'Créer Réservation' : 'Enregistrer';
+                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveEventBtn">${saveButtonText}</button>`;
                 
                 // Attach event listener for save button
                 document.getElementById('saveEventBtn').addEventListener('click', function() {
@@ -1002,7 +1052,7 @@ $this->load->view('bs_banner');
         }
         
         /**
-         * Save event changes to server
+         * Save event changes to server (create or update)
          */
         function saveEventChanges(event) {
             const startStr = document.getElementById('eventStart').value.replace('T', ' ') + ':00';
@@ -1012,36 +1062,54 @@ $this->load->view('bs_banner');
             const status = document.getElementById('eventStatus').value;
             const aircraftId = document.getElementById('eventAircraft').value;
             const pilotId = document.getElementById('eventPilot').value;
-            
-            // Send update to server
+
+            // Validation
+            if (!aircraftId) {
+                alert('Veuillez sélectionner un avion');
+                return;
+            }
+            if (!pilotId) {
+                alert('Veuillez sélectionner un pilote');
+                return;
+            }
+
+            const isCreate = (event.id === null || event.id === undefined);
+
+            // Build request body
+            let requestBody = 'start_datetime=' + encodeURIComponent(startStr) +
+                             '&end_datetime=' + encodeURIComponent(endStr) +
+                             '&purpose=' + encodeURIComponent(purpose) +
+                             '&notes=' + encodeURIComponent(notes) +
+                             '&status=' + encodeURIComponent(status) +
+                             '&aircraft_id=' + encodeURIComponent(aircraftId) +
+                             '&pilot_member_id=' + encodeURIComponent(pilotId);
+
+            if (!isCreate) {
+                requestBody = 'reservation_id=' + event.id + '&' + requestBody;
+            }
+
+            // Send to server
             fetch(CONFIG.baseUrl + 'reservations/update_reservation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'reservation_id=' + event.id +
-                      '&start_datetime=' + encodeURIComponent(startStr) +
-                      '&end_datetime=' + encodeURIComponent(endStr) +
-                      '&purpose=' + encodeURIComponent(purpose) +
-                      '&notes=' + encodeURIComponent(notes) +
-                      '&status=' + encodeURIComponent(status) +
-                      '&aircraft_id=' + encodeURIComponent(aircraftId) +
-                      '&pilot_member_id=' + encodeURIComponent(pilotId)
+                body: requestBody
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    console.log('Reservation updated successfully');
+                    console.log('Reservation saved successfully');
                     // Close modal and reload data
                     bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
                     loadTimelineData();
                 } else {
-                    alert('Error updating reservation: ' + (data.error || 'Unknown error'));
+                    alert('Erreur: ' + (data.error || 'Erreur inconnue'));
                 }
             })
             .catch(error => {
-                console.error('Error updating reservation:', error);
-                alert('Error updating reservation: ' + error.message);
+                console.error('Error saving reservation:', error);
+                alert('Erreur lors de la sauvegarde: ' + error.message);
             });
         }
         

@@ -1207,9 +1207,6 @@ class Comptes_model extends Common_Model {
             $section_id = $this->section_id();
         }
 
-        // DEBUG
-        log_message('debug', "section_client_accounts: section_id=$section_id, only_actif=$only_actif");
-
         // Requête de base pour les comptes 411 de la section
         $this->db->select('comptes.id, comptes.codec, comptes.nom, comptes.pilote');
         $this->db->from('comptes');
@@ -1229,10 +1226,6 @@ class Comptes_model extends Common_Model {
 
         $query = $this->db->get();
 
-        // DEBUG
-        log_message('debug', "section_client_accounts: SQL = " . $this->db->last_query());
-        log_message('debug', "section_client_accounts: num_rows = " . ($query ? $query->num_rows() : 'NULL'));
-
         if ($query && $query->num_rows() > 0) {
             foreach ($query->result_array() as $account) {
                 if (!empty($account['pilote'])) {
@@ -1241,8 +1234,6 @@ class Comptes_model extends Common_Model {
                 }
             }
         }
-
-        log_message('debug', "section_client_accounts: selector count = " . count($selector));
 
         return $selector;
     }
