@@ -35,11 +35,13 @@ class Reservations_model extends Common_Model {
         $this->db->select(
             'r.id, r.aircraft_id, r.pilot_member_id, r.start_datetime, r.end_datetime, ' .
             'r.pilot_member_id, r.instructor_member_id, r.purpose, r.status, ' .
-            'r.notes, m.macmodele, ma.mprenom, ma.mnom'
+            'r.notes, m.macmodele, m.macimmat, ma.mprenom, ma.mnom, ' .
+            'mi.mprenom as instructor_prenom, mi.mnom as instructor_nom'
         )
             ->from('reservations r')
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
             ->join('membres ma', 'r.pilot_member_id = ma.mlogin', 'left')
+            ->join('membres mi', 'r.instructor_member_id = mi.mlogin', 'left')
             ->where('r.status !=', 'cancelled')
             ->order_by('r.start_datetime', 'asc');
 
@@ -62,11 +64,19 @@ class Reservations_model extends Common_Model {
         $events = array();
         foreach ($reservations as $reservation) {
             $pilot_name = trim($reservation['mprenom'] . ' ' . $reservation['mnom']);
-            $title = $reservation['macmodele'] . ' - ' . $pilot_name;
-
-            if ($reservation['instructor_member_id']) {
-                $title .= ' (+ instructeur)';
+            $instructor_name = '';
+            if (!empty($reservation['instructor_member_id'])) {
+                $instructor_name = trim($reservation['instructor_prenom'] . ' ' . $reservation['instructor_nom']);
             }
+
+            // Use unified title format: "HH:MM-HH:MM IMMAT Pilot + Instructor"
+            $title = $this->format_reservation_title(
+                $reservation['start_datetime'],
+                $reservation['end_datetime'],
+                $reservation['macimmat'],
+                $pilot_name,
+                $instructor_name
+            );
 
             $event = array(
                 'id' => $reservation['id'],
@@ -82,6 +92,8 @@ class Reservations_model extends Common_Model {
                     'pilot' => $pilot_name,
                     'pilot_member_id' => $reservation['pilot_member_id'],
                     'instructor' => $reservation['instructor_member_id'] ?: '',
+                    'instructor_member_id' => $reservation['instructor_member_id'],
+                    'instructor_name' => $instructor_name,
                     'purpose' => $reservation['purpose'] ?: '',
                     'status' => $reservation['status'],
                     'notes' => $reservation['notes'] ?: ''
@@ -350,11 +362,13 @@ class Reservations_model extends Common_Model {
             'r.id, r.aircraft_id, r.start_datetime, r.end_datetime, ' .
             'r.pilot_member_id, r.instructor_member_id, r.purpose, r.status, ' .
             'r.notes, r.section_id, ' .
-            'm.macmodele, ma.mprenom, ma.mnom'
+            'm.macmodele, m.macimmat, ma.mprenom, ma.mnom, ' .
+            'mi.mprenom as instructor_prenom, mi.mnom as instructor_nom'
         )
             ->from('reservations r')
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
             ->join('membres ma', 'r.pilot_member_id = ma.mlogin', 'left')
+            ->join('membres mi', 'r.instructor_member_id = mi.mlogin', 'left')
             ->where('r.status !=', 'cancelled')
             ->where('r.start_datetime < "' . $end_datetime . '" AND r.end_datetime > "' . $start_datetime . '"', null, false)
             ->order_by('r.aircraft_id, r.start_datetime', 'asc');
@@ -371,16 +385,22 @@ class Reservations_model extends Common_Model {
         $formatted = array();
         foreach ($reservations as $res) {
             $pilot_name = trim($res['mprenom'] . ' ' . $res['mnom']);
+            $instructor_name = '';
+            if (!empty($res['instructor_member_id'])) {
+                $instructor_name = trim($res['instructor_prenom'] . ' ' . $res['instructor_nom']);
+            }
 
             $formatted[] = array(
                 'id' => $res['id'],
                 'aircraft_id' => $res['aircraft_id'],
+                'aircraft_immat' => $res['macimmat'],
                 'aircraft_model' => $res['macmodele'],
                 'start_datetime' => $res['start_datetime'],
                 'end_datetime' => $res['end_datetime'],
                 'pilot_member_id' => $res['pilot_member_id'],
                 'pilot_name' => $pilot_name,
                 'instructor_member_id' => $res['instructor_member_id'],
+                'instructor_name' => $instructor_name,
                 'purpose' => $res['purpose'],
                 'status' => $res['status'],
                 'notes' => $res['notes'],
@@ -389,6 +409,32 @@ class Reservations_model extends Common_Model {
         }
 
         return $formatted;
+    }
+
+    /**
+     * Format reservation title for display
+     *
+     * @param string $start_datetime Start datetime (YYYY-MM-DD HH:MM:SS)
+     * @param string $end_datetime End datetime (YYYY-MM-DD HH:MM:SS)
+     * @param string $aircraft_immat Aircraft registration
+     * @param string $pilot_name Pilot name
+     * @param string $instructor_name Instructor name (optional)
+     * @return string Formatted title: "HH:MM-HH:MM IMMAT Pilot + Instructor"
+     */
+    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '') {
+        // Extract time from datetime
+        $start_time = substr($start_datetime, 11, 5); // HH:MM
+        $end_time = substr($end_datetime, 11, 5); // HH:MM
+
+        // Build title: "HH:MM-HH:MM IMMAT Pilot"
+        $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' ' . $pilot_name;
+
+        // Add instructor if present
+        if (!empty($instructor_name)) {
+            $title .= ' + ' . $instructor_name;
+        }
+
+        return $title;
     }
 
     /**
@@ -404,10 +450,18 @@ class Reservations_model extends Common_Model {
         $events = array();
 
         foreach ($reservations as $res) {
+            $title = $this->format_reservation_title(
+                $res['start_datetime'],
+                $res['end_datetime'],
+                $res['aircraft_immat'],
+                $res['pilot_name'],
+                $res['instructor_name']
+            );
+
             $event = array(
                 'id' => $res['id'],
                 'resourceId' => $res['aircraft_id'],
-                'title' => $res['pilot_name'],
+                'title' => $title,
                 'start' => $res['start_datetime'],
                 'end' => $res['end_datetime'],
                 'status' => $res['status'],
@@ -417,6 +471,7 @@ class Reservations_model extends Common_Model {
                     'pilot_member_id' => $res['pilot_member_id'],
                     'pilot_name' => $res['pilot_name'],
                     'instructor_member_id' => $res['instructor_member_id'],
+                    'instructor_name' => $res['instructor_name'],
                     'purpose' => $res['purpose'],
                     'status' => $res['status'],
                     'notes' => $res['notes']
