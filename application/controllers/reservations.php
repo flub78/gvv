@@ -52,8 +52,58 @@ class Reservations extends CI_Controller {
      */
     function index() {
         $this->load->config('program');
+        $this->load->model('reservations_model');
+        $this->load->model('membres_model');
+        $this->lang->load('reservations');
+
+        // Get aircraft list
+        $aircraft_list = $this->reservations_model->get_aircraft_list();
+
+        // Get pilots list (active members in the section)
+        $pilots_list = $this->membres_model->section_pilots(0, true);
+
+        // Get instructors list (active instructors in the section)
+        $instructors_list = $this->membres_model->inst_selector(0, true);
+
+        // Get all translations
+        $translations = array(
+            'timeline' => $this->lang->line('reservations_timeline'),
+            'timeline_desc' => $this->lang->line('reservations_timeline_desc'),
+            'form_aircraft' => $this->lang->line('reservations_form_aircraft'),
+            'form_pilot' => $this->lang->line('reservations_form_pilot'),
+            'form_instructor' => $this->lang->line('reservations_form_instructor'),
+            'form_instructor_optional' => $this->lang->line('reservations_form_instructor_optional'),
+            'form_start_time' => $this->lang->line('reservations_form_start_time'),
+            'form_end_time' => $this->lang->line('reservations_form_end_time'),
+            'form_purpose' => $this->lang->line('reservations_form_purpose'),
+            'form_notes' => $this->lang->line('reservations_form_notes'),
+            'form_status' => $this->lang->line('reservations_form_status'),
+            'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
+            'select_pilot' => $this->lang->line('reservations_select_pilot'),
+            'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
+            'status_confirmed' => $this->lang->line('reservations_status_confirmed'),
+            'status_pending' => $this->lang->line('reservations_status_pending'),
+            'status_completed' => $this->lang->line('reservations_status_completed'),
+            'status_no_show' => $this->lang->line('reservations_status_no_show'),
+            'modal_new' => $this->lang->line('reservations_modal_new'),
+            'modal_edit' => $this->lang->line('reservations_modal_edit'),
+            'btn_create' => $this->lang->line('reservations_btn_create'),
+            'btn_save' => $this->lang->line('reservations_btn_save'),
+            'btn_cancel' => $this->lang->line('reservations_btn_cancel'),
+            'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
+            'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
+            'error_unknown' => $this->lang->line('reservations_error_unknown'),
+            'error_saving' => $this->lang->line('reservations_error_saving'),
+            'error_prefix' => $this->lang->line('reservations_error_prefix'),
+            'success_saved' => $this->lang->line('reservations_success_saved')
+        );
+
         $data = array(
-            'timeline_increment' => $this->config->item('timeline_increment')
+            'timeline_increment' => $this->config->item('timeline_increment'),
+            'aircraft_list' => $aircraft_list,
+            'pilots_list' => $pilots_list,
+            'instructors_list' => $instructors_list,
+            'translations' => $translations
         );
         load_last_view('reservations/reservations_v6', $data);
     }

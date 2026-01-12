@@ -47,6 +47,25 @@ $this->load->view('bs_banner');
     </div>
 </div>
 
+<!-- Reservation Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle">Réservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Populated by JavaScript -->
+            </div>
+            <div class="modal-footer" id="eventModalFooter">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelEventBtn">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveEventBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- FullCalendar v6 Standard Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
 
@@ -108,8 +127,19 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
 </style>
 
 <script>
+    // Data from PHP
+    const OPTIONS = {
+        aircraft: <?php echo json_encode($aircraft_list); ?>,
+        pilots: <?php echo json_encode($pilots_list); ?>,
+        instructors: <?php echo json_encode($instructors_list); ?>
+    };
+
+    const TRANSLATIONS = <?php echo json_encode($translations); ?>;
+    const BASE_URL = '<?php echo base_url(); ?>';
+
     let eventLog = [];
     const MAX_LOG_ENTRIES = 50;
+    let currentEditingEvent = null;
     
     /**
      * Add an event to the log display
@@ -160,7 +190,254 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         });
     }
 
+    /**
+     * Display modal for creating or editing a reservation
+     */
+    function displayEventModal(event, startDate = null, endDate = null) {
+        try {
+            const modalEl = document.getElementById('eventModal');
+            if (!modalEl) {
+                throw new Error('Modal element not found in DOM');
+            }
+
+            const modal = new bootstrap.Modal(modalEl);
+            const titleEl = document.getElementById('eventModalTitle');
+            const bodyEl = document.getElementById('eventModalBody');
+            const saveBtn = document.getElementById('saveEventBtn');
+            const cancelBtn = document.getElementById('cancelEventBtn');
+
+            if (!titleEl || !bodyEl) {
+                throw new Error('Modal elements not found');
+            }
+
+            // Set title based on create vs edit mode
+            const isCreate = !event || event.id === null || event.id === undefined;
+            titleEl.textContent = isCreate ? TRANSLATIONS.modal_new : TRANSLATIONS.modal_edit;
+            saveBtn.textContent = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
+            cancelBtn.textContent = TRANSLATIONS.btn_cancel;
+
+            // Store current editing event
+            currentEditingEvent = event;
+
+            // Prepare dates
+            let startStr = '';
+            let endStr = '';
+
+            if (isCreate && startDate && endDate) {
+                // Creating new event from select
+                startStr = formatDateTimeLocal(startDate);
+                endStr = formatDateTimeLocal(endDate);
+            } else if (event) {
+                // Editing existing event
+                if (event.start instanceof Date) {
+                    startStr = formatDateTimeLocal(event.start);
+                } else if (typeof event.start === 'string') {
+                    startStr = event.start.slice(0, 16);
+                }
+
+                if (event.end instanceof Date) {
+                    endStr = formatDateTimeLocal(event.end);
+                } else if (typeof event.end === 'string') {
+                    endStr = event.end.slice(0, 16);
+                }
+            }
+
+            const props = (event && event.extendedProps) ? event.extendedProps : {};
+            const aircraftId = props.aircraft_id || props.aircraft || '';
+            const pilotId = props.pilot_member_id || '';
+            const instructorId = props.instructor_member_id || '';
+            const purpose = props.purpose || '';
+            const notes = props.notes || '';
+            const status = props.status || 'confirmed';
+
+            // Build aircraft select
+            let aircraftSelect = '<select class="form-control" id="eventAircraft">';
+            aircraftSelect += `<option value="">${TRANSLATIONS.select_aircraft}</option>`;
+            if (OPTIONS.aircraft) {
+                for (const [id, label] of Object.entries(OPTIONS.aircraft)) {
+                    const selected = String(id) === String(aircraftId) ? 'selected' : '';
+                    aircraftSelect += `<option value="${id}" ${selected}>${escapeHtml(label)}</option>`;
+                }
+            }
+            aircraftSelect += '</select>';
+
+            // Build pilot select
+            let pilotSelect = '<select class="form-control" id="eventPilot">';
+            pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
+            if (OPTIONS.pilots) {
+                for (const [id, label] of Object.entries(OPTIONS.pilots)) {
+                    const selected = String(id) === String(pilotId) ? 'selected' : '';
+                    pilotSelect += `<option value="${id}" ${selected}>${escapeHtml(label)}</option>`;
+                }
+            }
+            pilotSelect += '</select>';
+
+            // Build instructor select
+            let instructorSelect = '<select class="form-control" id="eventInstructor">';
+            instructorSelect += `<option value="">${TRANSLATIONS.select_instructor_none}</option>`;
+            if (OPTIONS.instructors) {
+                for (const [id, label] of Object.entries(OPTIONS.instructors)) {
+                    const selected = String(id) === String(instructorId) ? 'selected' : '';
+                    instructorSelect += `<option value="${id}" ${selected}>${escapeHtml(label)}</option>`;
+                }
+            }
+            instructorSelect += '</select>';
+
+            // Build form HTML
+            const formHtml = `<form id="eventEditForm">
+                <div class="mb-3">
+                    <label for="eventAircraft" class="form-label"><strong>${TRANSLATIONS.form_aircraft}:</strong></label>
+                    ${aircraftSelect}
+                </div>
+
+                <div class="mb-3">
+                    <label for="eventPilot" class="form-label"><strong>${TRANSLATIONS.form_pilot}:</strong></label>
+                    ${pilotSelect}
+                </div>
+
+                <div class="mb-3">
+                    <label for="eventInstructor" class="form-label"><strong>${TRANSLATIONS.form_instructor}:</strong> <span class="text-muted">${TRANSLATIONS.form_instructor_optional}</span></label>
+                    ${instructorSelect}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="eventStart" class="form-label"><strong>${TRANSLATIONS.form_start_time}:</strong></label>
+                        <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="eventEnd" class="form-label"><strong>${TRANSLATIONS.form_end_time}:</strong></label>
+                        <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="eventPurpose" class="form-label"><strong>${TRANSLATIONS.form_purpose}:</strong></label>
+                    <input type="text" class="form-control" id="eventPurpose" value="${escapeHtml(purpose)}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
+                    <textarea class="form-control" id="eventNotes" rows="2">${escapeHtml(notes)}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
+                    <select class="form-control" id="eventStatus">
+                        <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>${TRANSLATIONS.status_confirmed}</option>
+                        <option value="pending" ${status === 'pending' ? 'selected' : ''}>${TRANSLATIONS.status_pending}</option>
+                        <option value="completed" ${status === 'completed' ? 'selected' : ''}>${TRANSLATIONS.status_completed}</option>
+                        <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>${TRANSLATIONS.status_no_show}</option>
+                    </select>
+                </div>
+            </form>`;
+
+            bodyEl.innerHTML = formHtml;
+            modal.show();
+        } catch (error) {
+            console.error('Error in displayEventModal:', error);
+            alert('Error displaying reservation form: ' + error.message);
+        }
+    }
+
+    /**
+     * Save event changes to server
+     */
+    function saveEventChanges(calendar) {
+        const startStr = document.getElementById('eventStart').value.replace('T', ' ') + ':00';
+        const endStr = document.getElementById('eventEnd').value.replace('T', ' ') + ':00';
+        const purpose = document.getElementById('eventPurpose').value;
+        const notes = document.getElementById('eventNotes').value;
+        const status = document.getElementById('eventStatus').value;
+        const aircraftId = document.getElementById('eventAircraft').value;
+        const pilotId = document.getElementById('eventPilot').value;
+        const instructorId = document.getElementById('eventInstructor').value;
+
+        // Validation
+        if (!aircraftId) {
+            alert(TRANSLATIONS.error_no_aircraft);
+            return;
+        }
+        if (!pilotId) {
+            alert(TRANSLATIONS.error_no_pilot);
+            return;
+        }
+
+        const isCreate = !currentEditingEvent || currentEditingEvent.id === null || currentEditingEvent.id === undefined;
+
+        // Build request body
+        let requestBody = 'start_datetime=' + encodeURIComponent(startStr) +
+                         '&end_datetime=' + encodeURIComponent(endStr) +
+                         '&purpose=' + encodeURIComponent(purpose) +
+                         '&notes=' + encodeURIComponent(notes) +
+                         '&status=' + encodeURIComponent(status) +
+                         '&aircraft_id=' + encodeURIComponent(aircraftId) +
+                         '&pilot_member_id=' + encodeURIComponent(pilotId) +
+                         '&instructor_member_id=' + encodeURIComponent(instructorId);
+
+        if (!isCreate) {
+            requestBody = 'reservation_id=' + currentEditingEvent.id + '&' + requestBody;
+        }
+
+        // Send to server
+        fetch(BASE_URL + 'index.php/reservations/update_reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: requestBody
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addLog('SAVE', isCreate ? 'Reservation created successfully' : 'Reservation updated successfully', null, 'success');
+                // Close modal and reload calendar
+                bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                calendar.refetchEvents();
+                // Show success message
+                alert(TRANSLATIONS.success_saved);
+            } else {
+                addLog('SAVE', 'Failed to save reservation', { error: data.error }, 'error');
+                alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving reservation:', error);
+            addLog('SAVE', 'Error saving reservation', { error: error.message }, 'error');
+            alert(TRANSLATIONS.error_saving + ': ' + error.message);
+        });
+    }
+
+    /**
+     * Format Date to datetime-local input format
+     */
+    function formatDateTimeLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Check Bootstrap is loaded
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap is not loaded!');
+            alert('Error: Bootstrap is not loaded. Cannot create reservations.');
+            return;
+        }
+
         addLog('INIT', 'Initializing FullCalendar v6');
         
         // Button text translations based on locale
@@ -234,6 +511,14 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     end: info.event.end,
                     extendedProps: info.event.extendedProps
                 }, 'info');
+
+                // Open edit modal
+                try {
+                    displayEventModal(info.event);
+                } catch (error) {
+                    console.error('Error in displayEventModal:', error);
+                    alert('Error opening modal: ' + error.message);
+                }
             },
             eventMouseEnter: function(info) {
                 addLog('EVENT_MOUSE_ENTER', 'Mouse over event', {
@@ -257,8 +542,16 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                         button: info.jsEvent.button
                     }
                 }, 'success');
-                
-                // Deselect after showing the info
+
+                // Open create modal with selected time range
+                try {
+                    displayEventModal(null, info.start, info.end);
+                } catch (error) {
+                    console.error('Error in displayEventModal:', error);
+                    alert('Error opening modal: ' + error.message);
+                }
+
+                // Deselect after showing the modal
                 calendar.unselect();
             },
             dateClick: function(info) {
@@ -270,6 +563,19 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                         button: info.jsEvent.button
                     }
                 }, 'info');
+
+                // If clicking on a time slot (not all day), open create modal with 1-hour duration
+                if (!info.allDay) {
+                    const startDate = info.date;
+                    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+
+                    try {
+                        displayEventModal(null, startDate, endDate);
+                    } catch (error) {
+                        console.error('Error in displayEventModal:', error);
+                        alert('Error opening modal: ' + error.message);
+                    }
+                }
             },
             datesSet: function(info) {
                 addLog('DATES_SET', 'Calendar view changed', {
@@ -329,6 +635,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                             eventId: info.event.id,
                             error: data.error
                         }, 'error');
+                        // Show error message to user
+                        alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
                         // Revert the change
                         info.revert();
                     }
@@ -338,6 +646,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                         eventId: info.event.id,
                         error: error.message
                     }, 'error');
+                    // Show error message to user
+                    alert(TRANSLATIONS.error_prefix + ': ' + error.message);
                     // Revert the change
                     info.revert();
                 });
@@ -431,5 +741,10 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         addLog('INIT', 'FullCalendar v6 instance created');
         calendar.render();
         addLog('INIT', 'FullCalendar rendered successfully', null, 'success');
+
+        // Add event listener for save button
+        document.getElementById('saveEventBtn').addEventListener('click', function() {
+            saveEventChanges(calendar);
+        });
     });
 </script>
