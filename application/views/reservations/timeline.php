@@ -341,14 +341,6 @@ $this->load->view('bs_banner');
                 <h4><?php echo $this->lang->line('reservations_timeline_desc') ?: 'Disponibilité des aéronefs par jour'; ?></h4>
             </div>
             <div class="timeline-controls">
-                <div class="btn-group btn-group-sm me-3" role="group">
-                    <button type="button" class="btn btn-outline-primary active" id="btnViewDay" title="Vue jour">
-                        <i class="fas fa-calendar-day"></i> <?php echo $this->lang->line('day') ?: 'Jour'; ?>
-                    </button>
-                    <button type="button" class="btn btn-outline-primary" id="btnViewWeek" title="Vue semaine">
-                        <i class="fas fa-calendar-week"></i> <?php echo $this->lang->line('week') ?: 'Semaine'; ?>
-                    </button>
-                </div>
                 <button class="btn btn-outline-secondary btn-sm" id="btnPrevious" title="Previous day">
                     <i class="fas fa-chevron-left"></i> <?php echo $this->lang->line('previous') ?: 'Précédent'; ?>
                 </button>
@@ -1320,41 +1312,20 @@ $this->load->view('bs_banner');
          * Setup date navigation buttons
          */
         function setupDateNavigation() {
-            // View mode buttons
-            document.getElementById('btnViewDay').addEventListener('click', function() {
-                state.viewMode = 'day';
-                updateViewModeButtons();
-                loadTimelineData();
-            });
-            
-            document.getElementById('btnViewWeek').addEventListener('click', function() {
-                state.viewMode = 'week';
-                updateViewModeButtons();
-                loadTimelineData();
-            });
-            
             // Navigation buttons
             document.getElementById('btnPrevious').addEventListener('click', function() {
                 const date = new Date(state.currentDate);
-                if (state.viewMode === 'day') {
-                    date.setDate(date.getDate() - 1);
-                } else {
-                    date.setDate(date.getDate() - 7);
-                }
+                date.setDate(date.getDate() - 1);
                 navigateToDate(date);
             });
-            
+
             document.getElementById('btnToday').addEventListener('click', function() {
                 navigateToDate(new Date());
             });
-            
+
             document.getElementById('btnNext').addEventListener('click', function() {
                 const date = new Date(state.currentDate);
-                if (state.viewMode === 'day') {
-                    date.setDate(date.getDate() + 1);
-                } else {
-                    date.setDate(date.getDate() + 7);
-                }
+                date.setDate(date.getDate() + 1);
                 navigateToDate(date);
             });
             
@@ -1362,14 +1333,6 @@ $this->load->view('bs_banner');
                 const selectedDate = new Date(e.target.value + 'T12:00:00');
                 navigateToDate(selectedDate);
             });
-        }
-        
-        /**
-         * Update view mode button states
-         */
-        function updateViewModeButtons() {
-            document.getElementById('btnViewDay').classList.toggle('active', state.viewMode === 'day');
-            document.getElementById('btnViewWeek').classList.toggle('active', state.viewMode === 'week');
         }
         
         /**
