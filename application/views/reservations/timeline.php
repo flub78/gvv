@@ -439,6 +439,10 @@ $this->load->view('bs_banner');
             OPTIONS.instructors = <?php echo json_encode($instructors_options); ?>;
             console.log('OPTIONS initialized from PHP:', OPTIONS);
 
+            // Initialize TRANSLATIONS from PHP data
+            TRANSLATIONS = <?php echo json_encode($translations); ?>;
+            console.log('TRANSLATIONS initialized from PHP:', TRANSLATIONS);
+
             loadTimelineData();
             setupDateNavigation();
         });
@@ -449,6 +453,9 @@ $this->load->view('bs_banner');
             pilots: [],
             instructors: []
         };
+
+        // Global translations storage - will be initialized from PHP
+        let TRANSLATIONS = {};
         
         /**
          * Load timeline data from server
@@ -917,7 +924,7 @@ $this->load->view('bs_banner');
 
                 // Set title based on create vs edit mode
                 const isCreate = (event.id === null || event.id === undefined);
-                titleEl.textContent = isCreate ? 'Nouvelle Réservation' : 'Modifier Réservation';
+                titleEl.textContent = isCreate ? TRANSLATIONS.modal_new : TRANSLATIONS.modal_edit;
                 
                 // Extract and safely prepare data
                 // Handle different date formats from FullCalendar
@@ -959,7 +966,7 @@ $this->load->view('bs_banner');
                 
                 // Build aircraft select (OPTIONS.aircraft is an associative array: id => label)
                 let aircraftSelect = '<select class="form-control" id="eventAircraft">';
-                aircraftSelect += '<option value="">-- Select Aircraft --</option>';
+                aircraftSelect += `<option value="">${TRANSLATIONS.select_aircraft}</option>`;
                 if (OPTIONS.aircraft) {
                     for (const [id, label] of Object.entries(OPTIONS.aircraft)) {
                         const selected = String(id) === String(props.aircraft_id) ? 'selected' : '';
@@ -967,10 +974,10 @@ $this->load->view('bs_banner');
                     }
                 }
                 aircraftSelect += '</select>';
-                
+
                 // Build pilot select (OPTIONS.pilots is an associative array: id => label)
                 let pilotSelect = '<select class="form-control" id="eventPilot">';
-                pilotSelect += '<option value="">-- Select Pilot --</option>';
+                pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
                 if (OPTIONS.pilots) {
                     for (const [id, label] of Object.entries(OPTIONS.pilots)) {
                         const selected = String(id) === String(props.pilot_member_id) ? 'selected' : '';
@@ -981,7 +988,7 @@ $this->load->view('bs_banner');
 
                 // Build instructor select (OPTIONS.instructors is an associative array: id => label)
                 let instructorSelect = '<select class="form-control" id="eventInstructor">';
-                instructorSelect += '<option value="">-- None --</option>';
+                instructorSelect += `<option value="">${TRANSLATIONS.select_instructor_none}</option>`;
                 if (OPTIONS.instructors) {
                     for (const [id, label] of Object.entries(OPTIONS.instructors)) {
                         const selected = String(id) === String(props.instructor_member_id) ? 'selected' : '';
@@ -993,48 +1000,48 @@ $this->load->view('bs_banner');
                 // Build main form HTML
                 const formHtml = `<form id="eventEditForm">
                     <div class="mb-3">
-                        <label for="eventAircraft" class="form-label"><strong>Aircraft:</strong></label>
+                        <label for="eventAircraft" class="form-label"><strong>${TRANSLATIONS.form_aircraft}:</strong></label>
                         ${aircraftSelect}
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventPilot" class="form-label"><strong>Pilot:</strong></label>
+                        <label for="eventPilot" class="form-label"><strong>${TRANSLATIONS.form_pilot}:</strong></label>
                         ${pilotSelect}
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventInstructor" class="form-label"><strong>Instructor:</strong> <span class="text-muted">(optionnel)</span></label>
+                        <label for="eventInstructor" class="form-label"><strong>${TRANSLATIONS.form_instructor}:</strong> <span class="text-muted">${TRANSLATIONS.form_instructor_optional}</span></label>
                         ${instructorSelect}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="eventStart" class="form-label"><strong>Start Time:</strong></label>
+                            <label for="eventStart" class="form-label"><strong>${TRANSLATIONS.form_start_time}:</strong></label>
                             <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="eventEnd" class="form-label"><strong>End Time:</strong></label>
+                            <label for="eventEnd" class="form-label"><strong>${TRANSLATIONS.form_end_time}:</strong></label>
                             <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventPurpose" class="form-label"><strong>Purpose:</strong></label>
+                        <label for="eventPurpose" class="form-label"><strong>${TRANSLATIONS.form_purpose}:</strong></label>
                         <input type="text" class="form-control" id="eventPurpose" value="${purpose}">
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventNotes" class="form-label"><strong>Notes:</strong></label>
+                        <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
                         <textarea class="form-control" id="eventNotes" rows="2">${notes}</textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventStatus" class="form-label"><strong>Status:</strong></label>
+                        <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus">
-                            <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-                            <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="completed" ${status === 'completed' ? 'selected' : ''}>Completed</option>
-                            <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>No Show</option>
+                            <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>${TRANSLATIONS.status_confirmed}</option>
+                            <option value="pending" ${status === 'pending' ? 'selected' : ''}>${TRANSLATIONS.status_pending}</option>
+                            <option value="completed" ${status === 'completed' ? 'selected' : ''}>${TRANSLATIONS.status_completed}</option>
+                            <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>${TRANSLATIONS.status_no_show}</option>
                         </select>
                     </div>
                 </form>`;
@@ -1042,8 +1049,8 @@ $this->load->view('bs_banner');
                 bodyEl.innerHTML = formHtml;
 
                 // Update footer with buttons
-                const saveButtonText = isCreate ? 'Créer Réservation' : 'Enregistrer';
-                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                const saveButtonText = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
+                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>
                     <button type="button" class="btn btn-primary" id="saveEventBtn">${saveButtonText}</button>`;
                 
                 // Attach event listener for save button
@@ -1076,11 +1083,11 @@ $this->load->view('bs_banner');
 
             // Validation
             if (!aircraftId) {
-                alert('Veuillez sélectionner un avion');
+                alert(TRANSLATIONS.error_no_aircraft);
                 return;
             }
             if (!pilotId) {
-                alert('Veuillez sélectionner un pilote');
+                alert(TRANSLATIONS.error_no_pilot);
                 return;
             }
 
@@ -1116,12 +1123,12 @@ $this->load->view('bs_banner');
                     bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
                     loadTimelineData();
                 } else {
-                    alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+                    alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
                 }
             })
             .catch(error => {
                 console.error('Error saving reservation:', error);
-                alert('Erreur lors de la sauvegarde: ' + error.message);
+                alert(TRANSLATIONS.error_saving + ': ' + error.message);
             });
         }
         

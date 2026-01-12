@@ -95,6 +95,7 @@ class Reservations extends CI_Controller {
         $this->load->model('avions_model');
         $this->load->model('membres_model');
         $this->load->config('program');
+        $this->lang->load('reservations');
         
         // Get date from request, default to today
         $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
@@ -123,6 +124,36 @@ class Reservations extends CI_Controller {
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
         $date_formatted = $date_obj->format('l, d F Y');
 
+        // Prepare translations for JavaScript
+        $translations = array(
+            'form_aircraft' => $this->lang->line('reservations_form_aircraft'),
+            'form_pilot' => $this->lang->line('reservations_form_pilot'),
+            'form_instructor' => $this->lang->line('reservations_form_instructor'),
+            'form_instructor_optional' => $this->lang->line('reservations_form_instructor_optional'),
+            'form_start_time' => $this->lang->line('reservations_form_start_time'),
+            'form_end_time' => $this->lang->line('reservations_form_end_time'),
+            'form_purpose' => $this->lang->line('reservations_form_purpose'),
+            'form_notes' => $this->lang->line('reservations_form_notes'),
+            'form_status' => $this->lang->line('reservations_form_status'),
+            'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
+            'select_pilot' => $this->lang->line('reservations_select_pilot'),
+            'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
+            'status_confirmed' => $this->lang->line('reservations_status_confirmed'),
+            'status_pending' => $this->lang->line('reservations_status_pending'),
+            'status_completed' => $this->lang->line('reservations_status_completed'),
+            'status_no_show' => $this->lang->line('reservations_status_no_show'),
+            'modal_new' => $this->lang->line('reservations_modal_new'),
+            'modal_edit' => $this->lang->line('reservations_modal_edit'),
+            'btn_create' => $this->lang->line('reservations_btn_create'),
+            'btn_save' => $this->lang->line('reservations_btn_save'),
+            'btn_cancel' => $this->lang->line('reservations_btn_cancel'),
+            'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
+            'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
+            'error_unknown' => $this->lang->line('reservations_error_unknown'),
+            'error_saving' => $this->lang->line('reservations_error_saving'),
+            'error_prefix' => $this->lang->line('reservations_error_prefix')
+        );
+
         // Prepare data for view
         $data = array(
             'current_date' => $date,
@@ -132,7 +163,8 @@ class Reservations extends CI_Controller {
             'timeline_increment' => $this->config->item('timeline_increment'),
             'aircraft_options' => $aircraft_options,
             'pilots_options' => $pilots_options,
-            'instructors_options' => $instructors_options
+            'instructors_options' => $instructors_options,
+            'translations' => $translations
         );
         
         load_last_view('reservations/timeline', $data);
