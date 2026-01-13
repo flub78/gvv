@@ -564,17 +564,25 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     }
                 }, 'info');
 
-                // If clicking on a time slot (not all day), open create modal with 1-hour duration
-                if (!info.allDay) {
-                    const startDate = info.date;
-                    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                // Open create modal with 1-hour duration
+                let startDate, endDate;
 
-                    try {
-                        displayEventModal(null, startDate, endDate);
-                    } catch (error) {
-                        console.error('Error in displayEventModal:', error);
-                        alert('Error opening modal: ' + error.message);
-                    }
+                if (info.allDay) {
+                    // If clicking on a day (month view), set default time to 9:00-10:00
+                    startDate = new Date(info.date);
+                    startDate.setHours(9, 0, 0, 0);
+                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                } else {
+                    // If clicking on a time slot (week/day view), use clicked time
+                    startDate = info.date;
+                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                }
+
+                try {
+                    displayEventModal(null, startDate, endDate);
+                } catch (error) {
+                    console.error('Error in displayEventModal:', error);
+                    alert('Error opening modal: ' + error.message);
                 }
             },
             datesSet: function(info) {

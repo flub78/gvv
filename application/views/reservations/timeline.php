@@ -917,8 +917,10 @@ $this->load->view('bs_banner');
             document.removeEventListener('mousemove', onSlotSelectionMove);
             document.removeEventListener('mouseup', onSlotSelectionEnd);
 
-            const resourceRow = state.selectionStartSlot.parentElement;
-            const resourceId = state.selectionStartSlot.getAttribute('data-resource-id');
+            // Preserve the clicked slot before resetting state
+            const clickedSlot = state.selectionStartSlot;
+            const resourceRow = clickedSlot.parentElement;
+            const resourceId = clickedSlot.getAttribute('data-resource-id');
 
             // Calculate selected time range
             const selectionLeft = parseInt(state.selectionElement.style.left);
@@ -945,21 +947,21 @@ $this->load->view('bs_banner');
                 state.selectionElement = null;
             }
 
-            // Reset selection state
-            state.isSelecting = false;
-            state.selectionStartSlot = null;
-
             console.log('Selection completed:', resourceId, startTime, 'to', endTime);
 
             // Check if it was just a click (no significant drag)
             const dragDistance = Math.abs(e.clientX - state.selectionStartX);
             if (dragDistance < 5) {
                 // Just a click, use 1-hour default duration
-                handleSlotClick(state.selectionStartSlot);
+                handleSlotClick(clickedSlot);
             } else {
                 // It was a drag, open modal with selected time range
                 showCreateReservationModal(resourceId, startTime, endTime);
             }
+
+            // Reset selection state (after handling click/drag)
+            state.isSelecting = false;
+            state.selectionStartSlot = null;
         }
 
         /**

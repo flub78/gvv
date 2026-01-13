@@ -50,6 +50,7 @@ $lang['gvv_menu_airplane'] = "Avions";
 $lang['gvv_menu_airplane_list'] = "Liste des vols";
 $lang['gvv_menu_airplane_input'] = "Saisie des vols";
 $lang['gvv_menu_airplane_machines'] = "Machines";
+$lang['gvv_menu_airplane_reservations'] = "Réservations";
 
 $lang['gvv_menu_reports'] = "Rapports";
 $lang['gvv_menu_reports_my_bill'] = "Ma facture";

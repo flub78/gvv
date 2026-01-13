@@ -37,6 +37,7 @@ $lang['gvv_menu_airplane'] = "Motorvliegen";
 $lang['gvv_menu_airplane_list'] = "Vluchtenlijst";
 $lang['gvv_menu_airplane_input'] = "Invoer vlucht";
 $lang['gvv_menu_airplane_machines'] = "Toestellen";
+$lang['gvv_menu_airplane_reservations'] = "Reservaties";
 
 $lang['gvv_menu_reports'] = "Rapporten";
 $lang['gvv_menu_reports_my_bill'] = "Mijn rekening";
