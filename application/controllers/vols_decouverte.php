@@ -57,14 +57,14 @@ class Vols_decouverte extends Gvv_Controller {
     public function filter() {
         $post = $this->input->post();
         $button = $post['button'] ?? '';
-        
+
         if ($button == $this->lang->line("gvv_str_select")) {
             // Enable filtering - validate and store filter parameters
             $start_date = $this->_validate_date($post['startDate'] ?? '');
             $end_date = $this->_validate_date($post['endDate'] ?? '');
             $filter_type = $this->_validate_filter_type($post['filter_type'] ?? '');
             $year = $this->_validate_year($post['year'] ?? date('Y'));
-            
+
             // Date logic validation
             if ($start_date && $end_date && $start_date > $end_date) {
                 $this->session->set_userdata('vd_filter_error', 'La date de début doit être antérieure à la date de fin.');
@@ -101,14 +101,14 @@ class Vols_decouverte extends Gvv_Controller {
         if (empty($date)) {
             return '';
         }
-        
+
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $date_parts = explode('-', $date);
             if (checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
                 return $date;
             }
         }
-        
+
         return '';
     }
 
@@ -137,7 +137,7 @@ class Vols_decouverte extends Gvv_Controller {
         if (empty($return_url)) {
             return '';
         }
-        
+
         // Only allow internal URLs (relative paths)
         $parsed_url = parse_url($return_url);
         if (!isset($parsed_url['scheme']) && !isset($parsed_url['host'])) {
@@ -146,7 +146,7 @@ class Vols_decouverte extends Gvv_Controller {
                 return $return_url;
             }
         }
-        
+
         return '';
     }
 
@@ -376,33 +376,11 @@ class Vols_decouverte extends Gvv_Controller {
         $use_unified_cfg = (bool) $this->config->item('use_standard_email_configuration_for_vd');
 
         // Prepare email library
-        $this->email->clear();
-
-        if ($use_unified_cfg) {
-            // Use global configuration from application/config/email.php
-            gvv_debug('VD email: using standard email configuration (config/email.php)', 'email_config');
-            // No per-feature initialization; rely on global Email config
-        } else {
-            // Legacy per-feature SMTP settings
-            $smtp_host = $this->configuration_model->get_param('vd.email.smtp_host');
-            $smtp_pass = $this->configuration_model->get_param('vd.email.smtp_password');
-            $smtp_crypto = $this->configuration_model->get_param('vd.email.smtp_crypto');
-            $smtp_port = $this->configuration_model->get_param('vd.email.smtp_port');
-            $config = array(
-                'protocol'    => 'smtp',
-                'smtp_host'   => $smtp_host,
-                'smtp_port'   => $smtp_port,
-                'smtp_user'   => $sender,
-                'smtp_pass'   => $smtp_pass,
-                'smtp_crypto' => $smtp_crypto,
-                'mailtype'    => 'html',
-                'charset'     => 'utf-8',
-                'wordwrap'    => TRUE,
-                'newline'     => "\r\n"
-            );
-            gvv_debug(var_export($config, true), 'email_config');
-            $this->email->initialize($config);
-        }
+        $this->email->clear(true); // also clears attachments
+        $this->email->set_mailtype('html');
+        $this->email->set_newline("\r\n");
+        $this->email->set_crlf("\r\n");
+        gvv_debug('VD email: using standard email configuration (config/email.php)', 'email_config');
 
         // Set email parameters
         $this->email->from($sender, 'Aéroclub d\'Abbeville');
@@ -731,5 +709,4 @@ EOD;
         ));
         $pdf->Output();
     }
-
 }

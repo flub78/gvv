@@ -872,10 +872,6 @@ class GVVMetadata extends Metadata {
                         "vd.email.sender_email" => "Email sender email",
                         "vd.email.sender_name" => "Email sender Name",
                         "vd.email.sender_signature" => "Email sender Signature",
-                        "vd.email.smtp_host" => "SMTP Host",
-                        "vd.email.smtp_port" => "SMTP Port",
-                        "vd.email.smtp_crypto" => "SMTP Crypto",
-                        "vd.email.smtp_password" => "SMTP password",
 
                         "vd.avion.contact_name" => "Nom du contact avion",
                         "vd.avion.contact_tel" => "Téléphone du contact avion",
