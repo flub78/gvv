@@ -60,15 +60,6 @@ class Calendar extends CI_Controller {
      * Affiche le calendrier
      */
     function index() {
-        // Check if calendar_id is configured
-        $calendar_id = $this->config->item('calendar_id');
-
-        // If no calendar_id is configured, redirect to local presences management
-        if (empty($calendar_id)) {
-            redirect('presences');
-            return;
-        }
-
         $this->load->model('membres_model');
         $this->lang->load('membre');
 
@@ -81,7 +72,7 @@ class Calendar extends CI_Controller {
         $data['mlogin'] = $this->membres_model->default_id();
         $data['event_id'] = "";
 
-        $data['cal_id'] = $calendar_id;
+        $data['cal_id'] = $this->config->item('calendar_id');
         load_last_view('calendar', $data);
     }
 }
