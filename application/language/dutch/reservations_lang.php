@@ -36,16 +36,20 @@ $lang['reservations_modal_edit'] = "Reservering Bewerken";
 $lang['reservations_btn_create'] = "Reservering Aanmaken";
 $lang['reservations_btn_save'] = "Opslaan";
 $lang['reservations_btn_cancel'] = "Annuleren";
+$lang['reservations_btn_delete'] = "Verwijderen";
 
 // Validation messages
 $lang['reservations_error_no_aircraft'] = "Selecteer een vliegtuig";
 $lang['reservations_error_no_pilot'] = "Selecteer een piloot";
 $lang['reservations_error_unknown'] = "Onbekende fout";
 $lang['reservations_error_saving'] = "Fout bij opslaan";
+$lang['reservations_error_deleting'] = "Fout bij verwijderen";
 $lang['reservations_error_prefix'] = "Fout";
+$lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages
 $lang['reservations_success_saved'] = "Reservering succesvol opgeslagen";
+$lang['reservations_success_deleted'] = "Reservering succesvol verwijderd";
 
 // Conflict messages
 $lang['reservations_conflict_aircraft_conflict'] = "Dit vliegtuig is al gereserveerd voor dit tijdvak";

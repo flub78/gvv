@@ -1213,13 +1213,23 @@ $this->load->view('bs_banner');
 
                 // Update footer with buttons
                 const saveButtonText = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
-                footerEl.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>
+                const deleteButtonHtml = isCreate ? '' : `<button type="button" class="btn btn-danger" id="deleteEventBtn">${TRANSLATIONS.btn_delete}</button>`;
+                footerEl.innerHTML = `${deleteButtonHtml}
+                    <div class="flex-grow-1"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>
                     <button type="button" class="btn btn-primary" id="saveEventBtn">${saveButtonText}</button>`;
-                
+
                 // Attach event listener for save button
                 document.getElementById('saveEventBtn').addEventListener('click', function() {
                     saveEventChanges(event);
                 });
+
+                // Attach event listener for delete button (if editing)
+                if (!isCreate) {
+                    document.getElementById('deleteEventBtn').addEventListener('click', function() {
+                        deleteEventReservation(event);
+                    });
+                }
                 
                 console.log('Modal setup complete, showing modal');
                 modal.show();
@@ -1294,8 +1304,49 @@ $this->load->view('bs_banner');
                 alert(TRANSLATIONS.error_saving + ': ' + error.message);
             });
         }
-        
-        
+
+        /**
+         * Delete event reservation
+         */
+        function deleteEventReservation(event) {
+            if (!event || !event.id) {
+                alert(TRANSLATIONS.error_unknown);
+                return;
+            }
+
+            // Confirm deletion
+            if (!confirm(TRANSLATIONS.confirm_delete)) {
+                return;
+            }
+
+            const reservationId = event.id;
+
+            // Send delete request to server
+            fetch(CONFIG.baseUrl + 'reservations/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'reservation_id=' + encodeURIComponent(reservationId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Reservation deleted successfully');
+                    // Close modal and reload data
+                    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                    loadTimelineData();
+                } else {
+                    alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting reservation:', error);
+                alert(TRANSLATIONS.error_deleting + ': ' + error.message);
+            });
+        }
+
+
         /**
          * Show event tooltip
          */

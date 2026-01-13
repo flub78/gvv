@@ -304,6 +304,18 @@ class Reservations_model extends Common_Model {
     }
 
     /**
+     * Delete a reservation
+     *
+     * @param int $reservation_id Reservation ID to delete
+     * @return bool True on success, false on failure
+     */
+    public function delete_reservation($reservation_id) {
+        $where = array($this->primary_key => $reservation_id);
+        $this->delete($where);
+        return ($this->db->affected_rows() > 0);
+    }
+
+    /**
      * Get color code for reservation status
      *
      * @param string $status Status value

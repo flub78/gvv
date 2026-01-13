@@ -89,12 +89,16 @@ class Reservations extends CI_Controller {
             'btn_create' => $this->lang->line('reservations_btn_create'),
             'btn_save' => $this->lang->line('reservations_btn_save'),
             'btn_cancel' => $this->lang->line('reservations_btn_cancel'),
+            'btn_delete' => $this->lang->line('reservations_btn_delete'),
             'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
             'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
             'error_unknown' => $this->lang->line('reservations_error_unknown'),
             'error_saving' => $this->lang->line('reservations_error_saving'),
+            'error_deleting' => $this->lang->line('reservations_error_deleting'),
             'error_prefix' => $this->lang->line('reservations_error_prefix'),
-            'success_saved' => $this->lang->line('reservations_success_saved')
+            'success_saved' => $this->lang->line('reservations_success_saved'),
+            'success_deleted' => $this->lang->line('reservations_success_deleted'),
+            'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
         $data = array(
@@ -196,11 +200,16 @@ class Reservations extends CI_Controller {
             'btn_create' => $this->lang->line('reservations_btn_create'),
             'btn_save' => $this->lang->line('reservations_btn_save'),
             'btn_cancel' => $this->lang->line('reservations_btn_cancel'),
+            'btn_delete' => $this->lang->line('reservations_btn_delete'),
             'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
             'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
             'error_unknown' => $this->lang->line('reservations_error_unknown'),
             'error_saving' => $this->lang->line('reservations_error_saving'),
-            'error_prefix' => $this->lang->line('reservations_error_prefix')
+            'error_deleting' => $this->lang->line('reservations_error_deleting'),
+            'error_prefix' => $this->lang->line('reservations_error_prefix'),
+            'success_saved' => $this->lang->line('reservations_success_saved'),
+            'success_deleted' => $this->lang->line('reservations_success_deleted'),
+            'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
         // Prepare data for view
@@ -612,6 +621,40 @@ class Reservations extends CI_Controller {
 
         } catch (Exception $e) {
             gvv_error("Error in update_reservation: " . $e->getMessage());
+            echo json_encode(array('success' => false, 'error' => $e->getMessage()));
+        }
+    }
+
+    /**
+     * Delete a reservation (AJAX endpoint)
+     */
+    function delete() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json; charset=UTF-8');
+        
+        try {
+            $reservation_id = isset($_POST['reservation_id']) ? intval($_POST['reservation_id']) : null;
+            
+            if (!$reservation_id) {
+                throw new Exception('Missing reservation_id');
+            }
+            
+            $this->load->model('reservations_model');
+            
+            // Delete the reservation
+            $success = $this->reservations_model->delete_reservation($reservation_id);
+            
+            if ($success) {
+                gvv_info("Reservation deleted successfully: ID " . $reservation_id);
+                echo json_encode(array('success' => true));
+            } else {
+                throw new Exception('Failed to delete reservation');
+            }
+        } catch (Exception $e) {
+            gvv_error("Error in delete: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));
         }
     }

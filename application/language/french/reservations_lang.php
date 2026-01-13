@@ -36,16 +36,20 @@ $lang['reservations_modal_edit'] = "Modifier Réservation";
 $lang['reservations_btn_create'] = "Créer Réservation";
 $lang['reservations_btn_save'] = "Enregistrer";
 $lang['reservations_btn_cancel'] = "Annuler";
+$lang['reservations_btn_delete'] = "Supprimer";
 
 // Validation messages
 $lang['reservations_error_no_aircraft'] = "Veuillez sélectionner un avion";
 $lang['reservations_error_no_pilot'] = "Veuillez sélectionner un pilote";
 $lang['reservations_error_unknown'] = "Erreur inconnue";
 $lang['reservations_error_saving'] = "Erreur lors de la sauvegarde";
+$lang['reservations_error_deleting'] = "Erreur lors de la suppression";
 $lang['reservations_error_prefix'] = "Erreur";
+$lang['reservations_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cette réservation ?";
 
 // Success messages
 $lang['reservations_success_saved'] = "Réservation enregistrée avec succès";
+$lang['reservations_success_deleted'] = "Réservation supprimée avec succès";
 
 // Conflict messages
 $lang['reservations_conflict_aircraft_conflict'] = "Cet avion est déjà réservé pour ce créneau horaire";

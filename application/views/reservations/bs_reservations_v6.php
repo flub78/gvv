@@ -27,24 +27,8 @@ $this->load->view('bs_banner');
 ?>
 
 <div class="container-fluid p-4">
-    <div class="row">
-        <div class="col-md-9">
-            <h2>Aircraft Reservations - FullCalendar v6</h2>
-            <div id='calendar' style="height: 100%"></div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5>FullCalendar Events Log</h5>
-                </div>
-                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
-                    <div id="event-log">
-                        <p class="text-muted">Waiting for events...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h2>Aircraft Reservations - FullCalendar v6</h2>
+    <div id='calendar' style="height: 100%"></div>
 </div>
 
 <!-- Reservation Modal -->
@@ -59,6 +43,8 @@ $this->load->view('bs_banner');
                 <!-- Populated by JavaScript -->
             </div>
             <div class="modal-footer" id="eventModalFooter">
+                <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display: none;">Supprimer</button>
+                <div class="flex-grow-1"></div>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelEventBtn">Annuler</button>
                 <button type="button" class="btn btn-primary" id="saveEventBtn">Enregistrer</button>
             </div>
@@ -90,40 +76,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         font-size: 14px;
     }
-    
-    .event-log-item {
-        padding: 8px;
-        margin-bottom: 8px;
-        border-left: 3px solid #007bff;
-        background-color: #f8f9fa;
-        border-radius: 3px;
-        font-size: 12px;
-        font-family: monospace;
-    }
-    
-    .event-log-item.error {
-        border-left-color: #dc3545;
-        background-color: #f8d7da;
-    }
-    
-    .event-log-item.warning {
-        border-left-color: #ffc107;
-        background-color: #fff3cd;
-    }
-    
-    .event-log-item.success {
-        border-left-color: #28a745;
-        background-color: #d4edda;
-    }
-    
-    .log-timestamp {
-        color: #666;
-        font-weight: bold;
-    }
-    
-    .log-content {
-        margin-top: 2px;
-    }
 </style>
 
 <script>
@@ -137,58 +89,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     const TRANSLATIONS = <?php echo json_encode($translations); ?>;
     const BASE_URL = '<?php echo base_url(); ?>';
 
-    let eventLog = [];
-    const MAX_LOG_ENTRIES = 50;
     let currentEditingEvent = null;
-    
-    /**
-     * Add an event to the log display
-     */
-    function addLog(category, message, data = null, type = 'info') {
-        const timestamp = new Date().toLocaleTimeString('fr-FR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        const logEntry = {
-            timestamp,
-            category,
-            message,
-            data,
-            type
-        };
-        
-        eventLog.unshift(logEntry);
-        if (eventLog.length > MAX_LOG_ENTRIES) {
-            eventLog.pop();
-        }
-        
-        renderLog();
-        
-        // Also log to console
-        console.log(`[${timestamp}] [${category}] ${message}`, data);
-    }
-    
-    /**
-     * Render the event log to the UI
-     */
-    function renderLog() {
-        const logContainer = document.getElementById('event-log');
-        logContainer.innerHTML = '';
-        
-        eventLog.forEach(entry => {
-            const div = document.createElement('div');
-            div.className = `event-log-item ${entry.type}`;
-            
-            let html = `<div class="log-timestamp">${entry.timestamp}</div>`;
-            html += `<div class="log-content"><strong>[${entry.category}]</strong> ${entry.message}`;
-            
-            if (entry.data) {
-                html += `<pre>${JSON.stringify(entry.data, null, 2)}</pre>`;
-            }
-            
-            html += '</div>';
-            div.innerHTML = html;
-            logContainer.appendChild(div);
-        });
-    }
 
     /**
      * Display modal for creating or editing a reservation
@@ -205,6 +106,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const bodyEl = document.getElementById('eventModalBody');
             const saveBtn = document.getElementById('saveEventBtn');
             const cancelBtn = document.getElementById('cancelEventBtn');
+            const deleteBtn = document.getElementById('deleteEventBtn');
 
             if (!titleEl || !bodyEl) {
                 throw new Error('Modal elements not found');
@@ -215,6 +117,16 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             titleEl.textContent = isCreate ? TRANSLATIONS.modal_new : TRANSLATIONS.modal_edit;
             saveBtn.textContent = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
             cancelBtn.textContent = TRANSLATIONS.btn_cancel;
+
+            // Show/hide delete button based on mode
+            if (deleteBtn) {
+                if (isCreate) {
+                    deleteBtn.style.display = 'none';
+                } else {
+                    deleteBtn.style.display = 'inline-block';
+                    deleteBtn.textContent = TRANSLATIONS.btn_delete;
+                }
+            }
 
             // Store current editing event
             currentEditingEvent = event;
@@ -390,21 +302,56 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                addLog('SAVE', isCreate ? 'Reservation created successfully' : 'Reservation updated successfully', null, 'success');
                 // Close modal and reload calendar
                 bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
                 calendar.refetchEvents();
-                // Show success message
-                alert(TRANSLATIONS.success_saved);
             } else {
-                addLog('SAVE', 'Failed to save reservation', { error: data.error }, 'error');
                 alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
             }
         })
         .catch(error => {
             console.error('Error saving reservation:', error);
-            addLog('SAVE', 'Error saving reservation', { error: error.message }, 'error');
             alert(TRANSLATIONS.error_saving + ': ' + error.message);
+        });
+    }
+
+    /**
+     * Delete event reservation
+     */
+    function deleteEventReservation(calendar) {
+        if (!currentEditingEvent || !currentEditingEvent.id) {
+            alert(TRANSLATIONS.error_unknown);
+            return;
+        }
+
+        // Confirm deletion
+        if (!confirm(TRANSLATIONS.confirm_delete)) {
+            return;
+        }
+
+        const reservationId = currentEditingEvent.id;
+
+        // Send delete request to server
+        fetch(BASE_URL + 'index.php/reservations/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'reservation_id=' + encodeURIComponent(reservationId)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal and reload calendar
+                bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                calendar.refetchEvents();
+            } else {
+                alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting reservation:', error);
+            alert(TRANSLATIONS.error_deleting + ': ' + error.message);
         });
     }
 
@@ -438,7 +385,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             return;
         }
 
-        addLog('INIT', 'Initializing FullCalendar v6');
         
         // Button text translations based on locale
         var buttonTextMap = {
@@ -497,21 +443,12 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             events: {
                 url: '<?= base_url('index.php/reservations/get_events') ?>',
                 failure: function() {
-                    addLog('EVENTS', 'Error loading events from server', null, 'error');
                 }
             },
             editable: true,
             selectable: true,
             selectConstraint: 'businessHours',
             eventClick: function(info) {
-                addLog('EVENT_CLICK', 'Event clicked', {
-                    eventId: info.event.id,
-                    title: info.event.title,
-                    start: info.event.start,
-                    end: info.event.end,
-                    extendedProps: info.event.extendedProps
-                }, 'info');
-
                 // Open edit modal
                 try {
                     displayEventModal(info.event);
@@ -520,29 +457,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     alert('Error opening modal: ' + error.message);
                 }
             },
-            eventMouseEnter: function(info) {
-                addLog('EVENT_MOUSE_ENTER', 'Mouse over event', {
-                    eventId: info.event.id,
-                    title: info.event.title
-                }, 'info');
-            },
-            eventMouseLeave: function(info) {
-                addLog('EVENT_MOUSE_LEAVE', 'Mouse left event', {
-                    eventId: info.event.id,
-                    title: info.event.title
-                }, 'info');
-            },
             select: function(info) {
-                addLog('SELECT', 'Date/time range selected', {
-                    start: info.start,
-                    end: info.end,
-                    allDay: info.allDay,
-                    jsEvent: {
-                        type: info.jsEvent.type,
-                        button: info.jsEvent.button
-                    }
-                }, 'success');
-
                 // Open create modal with selected time range
                 try {
                     displayEventModal(null, info.start, info.end);
@@ -555,14 +470,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 calendar.unselect();
             },
             dateClick: function(info) {
-                addLog('DATE_CLICK', 'Date clicked', {
-                    date: info.date,
-                    allDay: info.allDay,
-                    jsEvent: {
-                        type: info.jsEvent.type,
-                        button: info.jsEvent.button
-                    }
-                }, 'info');
 
                 // Open create modal with 1-hour duration
                 let startDate, endDate;
@@ -585,24 +492,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     alert('Error opening modal: ' + error.message);
                 }
             },
-            datesSet: function(info) {
-                addLog('DATES_SET', 'Calendar view changed', {
-                    start: info.start,
-                    end: info.end,
-                    startStr: info.startStr,
-                    endStr: info.endStr
-                }, 'warning');
-            },
             eventChange: function(info) {
-                addLog('EVENT_CHANGE', 'Event modified (drag/resize)', {
-                    eventId: info.event.id,
-                    title: info.event.title,
-                    oldStart: info.oldEvent.start,
-                    newStart: info.event.start,
-                    oldEnd: info.oldEvent.end,
-                    newEnd: info.event.end
-                }, 'warning');
-                
                 // Persist changes to server
                 // Convert to local datetime string (not UTC)
                 function toLocalDatetimeString(date) {
@@ -632,17 +522,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        addLog('EVENT_CHANGE_SAVED', 'Event changes saved to server', {
-                            eventId: info.event.id,
-                            start: startStr,
-                            end: endStr
-                        }, 'success');
-                    } else {
-                        addLog('EVENT_CHANGE_FAILED', 'Failed to save event changes', {
-                            eventId: info.event.id,
-                            error: data.error
-                        }, 'error');
+                    if (!data.success) {
                         // Show error message to user
                         alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
                         // Revert the change
@@ -650,109 +530,28 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     }
                 })
                 .catch(error => {
-                    addLog('EVENT_CHANGE_ERROR', 'Error saving event changes', {
-                        eventId: info.event.id,
-                        error: error.message
-                    }, 'error');
                     // Show error message to user
                     alert(TRANSLATIONS.error_prefix + ': ' + error.message);
                     // Revert the change
                     info.revert();
                 });
             },
-            eventDidMount: function(info) {
-                addLog('EVENT_DID_MOUNT', 'Event rendered to DOM', {
-                    eventId: info.event.id,
-                    title: info.event.title
-                }, 'info');
-            },
-            eventAdd: function(info) {
-                addLog('EVENT_ADD', 'Event added to calendar', {
-                    eventId: info.event.id,
-                    title: info.event.title,
-                    start: info.event.start,
-                    end: info.event.end
-                }, 'success');
-            },
-            eventRemove: function(info) {
-                addLog('EVENT_REMOVE', 'Event removed from calendar', {
-                    eventId: info.event.id,
-                    title: info.event.title
-                }, 'warning');
-            },
-            loading: function(isLoading) {
-                addLog('LOADING', isLoading ? 'Calendar loading started' : 'Calendar loading finished', {
-                    isLoading: isLoading
-                }, isLoading ? 'warning' : 'success');
-            },
-            datesDestroy: function() {
-                addLog('DATES_DESTROY', 'Dates destroyed (view switching)', null, 'warning');
-            },
-            windowResize: function(view) {
-                addLog('WINDOW_RESIZE', 'Window resized', {
-                    viewType: view.type,
-                    viewTitle: view.title
-                }, 'info');
-            },
             viewDidMount: function(info) {
                 // Save view preference to localStorage
                 localStorage.setItem('reservationsCalendarView', info.view.type);
-                addLog('VIEW_DID_MOUNT', 'View mounted to DOM', {
-                    viewType: info.view.type,
-                    viewTitle: info.view.title
-                }, 'success');
-            },
-            viewWillUnmount: function(info) {
-                addLog('VIEW_WILL_UNMOUNT', 'View will be unmounted', {
-                    viewType: info.view.type,
-                    viewTitle: info.view.title
-                }, 'warning');
-            },
-            eventDid: function(info) {
-                addLog('EVENT_DID', 'Generic event callback', {
-                    eventId: info.event?.id,
-                    title: info.event?.title
-                }, 'info');
-            },
-            moreLinkClick: function(info) {
-                addLog('MORE_LINK_CLICK', 'More link clicked (day with too many events)', {
-                    date: info.date,
-                    allDay: info.allDay,
-                    numEvents: info.num,
-                    hiddenEventCount: info.hiddenSegs?.length || 0
-                }, 'info');
-            },
-            drop: function(info) {
-                addLog('DROP', 'External element dropped on calendar', {
-                    draggedEl: info.draggedEl?.id,
-                    start: info.date,
-                    allDay: info.allDay
-                }, 'warning');
-            },
-            receive: function(info) {
-                addLog('RECEIVE', 'Event received from external source', {
-                    event: {
-                        id: info.event?.id,
-                        title: info.event?.title
-                    },
-                    date: info.date
-                }, 'success');
-            },
-            eventError: function(info) {
-                addLog('EVENT_ERROR', 'Error loading events', {
-                    errorMessage: info.message,
-                    error: info.error?.message || info.error
-                }, 'error');
             }
         });
         
-        addLog('INIT', 'FullCalendar v6 instance created');
         calendar.render();
-        addLog('INIT', 'FullCalendar rendered successfully', null, 'success');
 
         // Add event listener for save button
         document.getElementById('saveEventBtn').addEventListener('click', function() {
             saveEventChanges(calendar);
+        });
+
+        // Add event listener for delete button
+        document.getElementById('deleteEventBtn').addEventListener('click', function() {
+            deleteEventReservation(calendar);
         });
     });
 </script>

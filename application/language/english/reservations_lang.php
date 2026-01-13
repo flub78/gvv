@@ -36,16 +36,20 @@ $lang['reservations_modal_edit'] = "Edit Reservation";
 $lang['reservations_btn_create'] = "Create Reservation";
 $lang['reservations_btn_save'] = "Save";
 $lang['reservations_btn_cancel'] = "Cancel";
+$lang['reservations_btn_delete'] = "Delete";
 
 // Validation messages
 $lang['reservations_error_no_aircraft'] = "Please select an aircraft";
 $lang['reservations_error_no_pilot'] = "Please select a pilot";
 $lang['reservations_error_unknown'] = "Unknown error";
 $lang['reservations_error_saving'] = "Error while saving";
+$lang['reservations_error_deleting'] = "Error while deleting";
 $lang['reservations_error_prefix'] = "Error";
+$lang['reservations_confirm_delete'] = "Are you sure you want to delete this reservation?";
 
 // Success messages
 $lang['reservations_success_saved'] = "Reservation saved successfully";
+$lang['reservations_success_deleted'] = "Reservation deleted successfully";
 
 // Conflict messages
 $lang['reservations_conflict_aircraft_conflict'] = "This aircraft is already reserved for this time slot";
