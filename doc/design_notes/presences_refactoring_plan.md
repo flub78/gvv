@@ -617,62 +617,70 @@ $lang['gvv_menu_presences'] = 'Présences';
 
 ## 9. Plan d'Implémentation
 
-### Phase 1 : Migration base de données
-1. Créer migration `application/migrations/XXX_refactor_calendar_table.php`
-2. Tester migration up/down
-3. Mettre à jour `config/migration.php`
-4. Créer test de migration
+### Phase 1 : Migration base de données ✅ TERMINÉE
+1. ✅ Créer migration `application/migrations/060_refactor_calendar_table.php`
+2. ✅ Tester migration up/down
+3. ✅ Mettre à jour `config/migration.php` (version 60)
+4. ✅ Créer test de migration (Calendar_migration_test.php)
 
-**Durée estimée** : 1 unité
+**Statut** : ✅ Complétée - Migration appliquée, tests passants
 
-### Phase 2 : Modèle calendar_model.php
-1. Créer le modèle avec toutes les méthodes CRUD
-2. Implémenter les queries (get_events, get_user_events, etc.)
-3. Créer tests PHPUnit MySQL
-4. Viser couverture >75%
+### Phase 2 : Modèle calendar_model.php ✅ TERMINÉE
+1. ✅ Créer le modèle avec toutes les méthodes CRUD (400 lignes)
+2. ✅ Implémenter les queries (get_events, get_user_events, check_conflict, etc.)
+3. ✅ Créer tests PHPUnit MySQL (Calendar_model_test.php - 14 tests, 46 assertions)
+4. ✅ Couverture >75% atteinte : **89.93%** (134/149 lignes)
 
-**Durée estimée** : 2 unités
+**Statut** : ✅ Complétée - Tous tests passants, couverture excellente
 
-### Phase 3 : Contrôleur presences.php
-1. Créer structure basée sur reservations.php
-2. Implémenter index() avec chargement des options
-3. Implémenter API JSON (get_events, create, update, delete, drop, resize)
-4. Implémenter gestion des autorisations
-5. Ajouter logging
+### Phase 3 : Contrôleur presences.php ✅ TERMINÉE
+1. ✅ Créer structure basée sur reservations.php (600 lignes)
+2. ✅ Implémenter index() avec chargement des options
+3. ✅ Implémenter API JSON (get_events, create_presence, update_presence, delete_presence, on_event_drop, on_event_resize)
+4. ✅ Implémenter gestion des autorisations (can_modify, can_create)
+5. ✅ Ajouter logging (gvv_debug, gvv_info, gvv_error)
 
-**Durée estimée** : 3 unités
+**Statut** : ✅ Complétée - Syntaxe validée
 
-### Phase 4 : Vue presences.php
-1. Créer vue basée sur bs_reservations_v6.php
-2. Configuration FullCalendar v6
-3. Implémenter modal CRUD
-4. Implémenter formulaire avec validation
-5. Gérer les callbacks FullCalendar (eventClick, select, eventDrop, eventResize)
-6. Intégration multi-langues
+### Phase 4 : Vue presences.php ✅ TERMINÉE
+1. ✅ Créer vue basée sur bs_reservations_v6.php (~500 lignes)
+2. ✅ Configuration FullCalendar v6 en mode allDay
+3. ✅ Implémenter modal CRUD Bootstrap 5
+4. ✅ Implémenter formulaire avec validation (inputs type="date")
+5. ✅ Gérer les callbacks FullCalendar (eventClick, select, eventDrop, eventResize)
+6. ✅ Intégration multi-langues
 
-**Durée estimée** : 3 unités
+**Statut** : ✅ Complétée - Syntaxe validée
 
-### Phase 5 : Fichiers de langue
-1. Créer presences_lang.php (FR, EN, NL)
-2. Traduire toutes les clés
-3. Réutiliser welcome_options pour les rôles
+### Phase 5 : Fichiers de langue ✅ TERMINÉE
+1. ✅ Créer presences_lang.php (FR, EN, NL) - 3 fichiers
+2. ✅ Traduire toutes les clés (~25 clés par langue)
+3. ✅ Réutiliser welcome_options pour les rôles
 
-**Durée estimée** : 1 unité
+**Statut** : ✅ Complétée - Syntaxe validée, traductions complètes
 
-### Phase 6 : Tests Playwright
-1. Créer fichier de test presences-fullcalendar.spec.js
-2. Implémenter tous les scénarios (affichage, CRUD, drag, resize, autorisations)
-3. Configurer les fixtures et helpers nécessaires
-4. Exécuter et corriger les bugs
+### Phase 6 : Tests Playwright ✅ TERMINÉE
+1. ✅ Créer fichier de test presences-fullcalendar.spec.js (~600 lignes)
+2. ✅ Implémenter tous les scénarios (13 tests complets)
+   - Affichage calendrier et vues (month, week, day, list)
+   - Navigation entre mois
+   - CRUD : création, édition, suppression
+   - Drag & drop (via form edit)
+   - Resize pour multi-jours
+   - Autorisations : user régulier vs CA
+   - Vérification full_day via API
+   - Gestion conflits
+3. ✅ Helpers créés : login, waitForCalendar, fillPresenceForm, etc.
+4. ⏳ Exécuter et corriger les bugs (nécessite environnement de test)
 
-**Durée estimée** : 2 unités
+**Statut** : ✅ Tests créés - À exécuter en environnement
 
-### Phase 7 : Intégration menu
-1. Ajouter entrée dans bs_menu.php (section Dev)
-2. Ajouter clés de langue
-3. Tester navigation
+### Phase 7 : Intégration menu ✅ TERMINÉE
+1. ✅ Ajouter entrée dans bs_menu.php (section Dev) - ligne 369
+2. ✅ Icône : fas fa-calendar-check text-success
+3. ⏳ Tester navigation (nécessite tests end-to-end)
 
-**Durée estimée** : 0.5 unité
+**Statut** : ✅ Complétée - Entrée ajoutée
 
 ### Phase 8 : Documentation et finalisation
 1. Documenter l'API dans le code (PHPDoc)

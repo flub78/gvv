@@ -129,7 +129,7 @@ $this->lang->load('welcome');
                     <div class="sub-card text-center">
                         <i class="fas fa-calendar-alt text-primary"></i>
                         <div class="card-title">Calendrier</div>
-                        <div class="card-text text-muted">Planning club</div>
+                        <div class="card-text text-muted">Présences planeur</div>
                         <a href="<?= controller_url('calendar') ?>" class="btn btn-primary btn-sm">Voir</a>
                     </div>
                 </div>

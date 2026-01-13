@@ -30,9 +30,11 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('welcome');
 $this->lang->load('config');
+$this->lang->load('presences');
 ?>
 <section class="container-fluid">
 	<article class="">
+		<h2><?= $this->lang->line('presences_title') ?></h2>
 		<input type="hidden" name="base_url" value="<?= base_url() ?>" />
 		<input type="hidden" name="cal_id" value="<?= $cal_id ?>" />
 

@@ -171,7 +171,7 @@ $section_count = $CI->sections_model->safe_count_all();
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
-            <li><a class="dropdown-item" href="<?= controller_url("calendar") ?>"><i class="fas fa-calendar-alt text-info"></i> <?= translation("gvv_menu_membres_calendar") ?></a></li>
+            
 
           </ul>
         </li>
@@ -180,6 +180,7 @@ $section_count = $CI->sections_model->safe_count_all();
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_glider") ?></a>
             <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="<?= controller_url("calendar") ?>"><i class="fas fa-calendar-alt text-info"></i> <?= translation("gvv_menu_membres_calendar") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/page") ?>"><i class="fas fa-list text-primary"></i> <?= translation("gvv_menu_glider_list") ?></a></li>
               <?php if (has_role('planchiste')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/create") ?>"><i class="fas fa-plus text-success"></i> <?= translation("gvv_menu_glider_input") ?></a></li>
@@ -366,6 +367,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
               <li><a class="dropdown-item" href="<?= controller_url("tests_ciunit/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("reservations") ?>"><i class="fas fa-calendar-alt text-primary"></i> Réservations (FullCalendar)</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("presences") ?>"><i class="fas fa-calendar-check text-success"></i> Présences (FullCalendar v6)</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
