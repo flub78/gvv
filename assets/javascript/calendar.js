@@ -17,7 +17,7 @@ function add_event() {
 			+ commentaire;
 	console.log(str);
 
-	var url = $("[name='base_url']").val() + 'index.php/presences/ajout/json';
+	var url = $("[name='base_url']").val() + 'index.php/calendar/ajout/json';
 
 	console.log('url=' + url);
 	console.log("data=" + $('#event_add_form').serialize());
@@ -125,10 +125,10 @@ function renderCalendar() {
  * Called when user confirm delete
  */
 function confirmDelete() {
-	var url = $("[name='base_url']").val() + 'index.php/presences/delete/'
+	var url = $("[name='base_url']").val() + 'index.php/calendar/delete/'
 			+ id + '/json';
 	// id = 4v2lh776fmis7no9r43usl48uc
-	// http://localhost/gvv2/index.php/presences/delete/4v2lh776fmis7no9r43usl48uc
+	// http://localhost/gvv2/index.php/calendar/delete/4v2lh776fmis7no9r43usl48uc
 
 	$.ajax({
 		url : url,
@@ -273,7 +273,7 @@ function revert_on_error (revertFunc, msg) {
  */
 function update_event (event, revertFunc) {
 
-	var url = $("[name='base_url']").val() + 'index.php/presences/update';
+	var url = $("[name='base_url']").val() + 'index.php/calendar/update';
 	var result = "";
 	var serialized_event = serialize(event);
 	

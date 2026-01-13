@@ -37,6 +37,7 @@ $this->lang->load('presences');
 		<h2><?= $this->lang->line('presences_title') ?></h2>
 		<input type="hidden" name="base_url" value="<?= base_url() ?>" />
 		<input type="hidden" name="cal_id" value="<?= $cal_id ?>" />
+		<input type="hidden" name="gvv_user" value="<?= $this->dx_auth->get_username() ?>" />
 
 		<?php
 		echo p($this->lang->line("welcome_intro1"));
@@ -63,6 +64,11 @@ $this->lang->load('presences');
 		# Le calendrier lui même
 		if ($cal_id) {
 			e_div('', array('id' => 'calendar'));
+		} else {
+			echo '<div class="alert alert-info">';
+			echo '<p>' . $this->lang->line("welcome_calendar_not_configured") . '</p>';
+			echo '<p>Pour activer le calendrier Google, configurez <code>$config[\'calendar_id\']</code> dans <code>application/config/club.php</code></p>';
+			echo '</div>';
 		}
 		# ----------------------------------------------------------------------------------------------
 		# Formulaire de création
@@ -135,6 +141,14 @@ $this->lang->load('presences');
 
 	</article>
 </section>
+
+<script type="text/javascript">
+	// Variables for calendar.js
+	var button_save = "<?= $this->lang->line('gvv_button_save') ?>";
+	var button_cancel = "<?= $this->lang->line('gvv_button_cancel') ?>";
+	var button_delete = "<?= $this->lang->line('gvv_button_delete') ?>";
+	var button_change = "<?= $this->lang->line('gvv_button_change') ?>";
+</script>
 <script type="text/javascript" src="<?= js_url('calendar') ?>"></script>
 
 <style>
