@@ -51,6 +51,10 @@ $lang['gvv_menu_reports_admin_report'] = "DGLV";
 $lang['dashboard_my_account'] = "Mijn rekening";
 $lang['dashboard_my_account_section'] = "Mijn rekening - %s";
 $lang['dashboard_consult'] = "Bekijken";
+$lang['dashboard_timeline'] = "Tijdlijn";
+$lang['dashboard_new_flight'] = "Nieuwe vlucht";
+$lang['dashboard_quick_entry'] = "Snelle invoer";
+$lang['dashboard_input'] = "Invoeren";
 
 $lang['gvv_menu_accounting'] = "Boekhouding";
 $lang['gvv_menu_accounting_journal'] = "Journaal";
@@ -108,6 +112,7 @@ $lang['gvv_button_upload'] = "Upload";
 $lang['gvv_button_show_list'] = "Toon lijst";
 $lang['gvv_button_file'] = "Kies een bestand";
 $lang['gvv_no_upload_file'] = "Geen bestand geselecteerd";
+$lang['gvv_button_open'] = "Openen";
 
 # Authorization - Roles
 $lang['role_user'] = "Gebruiker";

@@ -240,27 +240,27 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-list text-primary"></i>
-                        <div class="card-title">Carnets de vol</div>
-                        <div class="card-text text-muted">Consulter</div>
-                        <a href="<?= controller_url('vols_planeur/page') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= translation('gvv_menu_glider_list') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
+                        <a href="<?= controller_url('vols_planeur/page') ?>" class="btn btn-primary btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>
-                        <div class="card-title">Saisie des vols</div>
-                        <div class="card-text text-muted">Nouveau vol</div>
-                        <a href="<?= controller_url('vols_planeur/create') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= translation('gvv_menu_glider_input') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_new_flight') ?></div>
+                        <a href="<?= controller_url('vols_planeur/create') ?>" class="btn btn-success btn-sm"><?= translation('dashboard_input') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-magic text-info"></i>
-                        <div class="card-title">Planche auto</div>
-                        <div class="card-text text-muted">Saisie rapide</div>
-                        <a href="<?= controller_url('vols_planeur/plancheauto_select') ?>" class="btn btn-info btn-sm">Ouvrir</a>
+                        <div class="card-title"><?= translation('gvv_menu_glider_input_automatic') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_quick_entry') ?></div>
+                        <a href="<?= controller_url('vols_planeur/plancheauto_select') ?>" class="btn btn-info btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
 
@@ -272,18 +272,27 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-list text-primary"></i>
-                        <div class="card-title">Carnets de vol</div>
-                        <div class="card-text text-muted">Consulter</div>
-                        <a href="<?= controller_url('vols_avion/page') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= translation('gvv_menu_airplane_list') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
+                        <a href="<?= controller_url('vols_avion/page') ?>" class="btn btn-primary btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>
-                        <div class="card-title">Saisie des vols</div>
-                        <div class="card-text text-muted">Nouveau vol</div>
-                        <a href="<?= controller_url('vols_avion/create') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= translation('gvv_menu_airplane_input') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_new_flight') ?></div>
+                        <a href="<?= controller_url('vols_avion/create') ?>" class="btn btn-success btn-sm"><?= translation('dashboard_input') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-clock text-info"></i>
+                        <div class="card-title"><?= translation('gvv_menu_airplane_reservations') ?></div>
+                        <div class="card-text text-muted"><?= translation('dashboard_timeline') ?></div>
+                        <a href="<?= controller_url('reservations/timeline') ?>" class="btn btn-info btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
             </div>

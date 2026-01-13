@@ -57,6 +57,10 @@ $lang['gvv_menu_reports_admin_report'] = "DGAC";
 $lang['dashboard_my_account'] = "My account";
 $lang['dashboard_my_account_section'] = "My account - %s";
 $lang['dashboard_consult'] = "View";
+$lang['dashboard_timeline'] = "Timeline";
+$lang['dashboard_new_flight'] = "New flight";
+$lang['dashboard_quick_entry'] = "Quick entry";
+$lang['dashboard_input'] = "Enter";
 
 $lang['gvv_menu_accounting'] = "Accounting";
 $lang['gvv_menu_accounting_journal'] = "Journal entries";
@@ -114,6 +118,7 @@ $lang['gvv_button_upload'] = "Upload";
 $lang['gvv_button_show_list'] = "Show list";
 $lang['gvv_button_file'] = "Choose a file";
 $lang['gvv_no_upload_file'] = "No file selected";
+$lang['gvv_button_open'] = "Open";
 
 # Authorization - Roles
 $lang['role_user'] = "User";
