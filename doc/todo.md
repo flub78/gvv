@@ -34,7 +34,7 @@
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
-* [ ] supprimer la configuration des emails dans la base de données.
+* [x] supprimer la configuration des emails dans la base de données.
 
 * [] Gestion des visites médicales
   

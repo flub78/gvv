@@ -163,5 +163,3 @@ $this->lang->load('email_lists');
     </div>
 
 </div>
-
-<?php $this->load->view('bs_footer'); ?>
