@@ -190,6 +190,11 @@ echo '<div class="mb-3">'
     . '<i class="fas fa-plus" aria-hidden="true"></i> '
     . $this->lang->line('gvv_button_create')
     . '</a>'
+    . ' '
+    . '<a href="' . site_url('vols_planeur/gesasso') . '" class="btn btn-sm btn-primary">'
+    . '<i class="fas fa-sync" aria-hidden="true"></i> '
+    . 'Export GESASSO'
+    . '</a>'
     . '</div>';
 
 if ($ajax) {

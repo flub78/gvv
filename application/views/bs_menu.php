@@ -185,7 +185,6 @@ $section_count = $CI->sections_model->safe_count_all();
               <?php if (has_role('planchiste')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/create") ?>"><i class="fas fa-plus text-success"></i> <?= translation("gvv_menu_glider_input") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/plancheauto_select") ?>"><i class="fas fa-magic text-info"></i> <?= translation("gvv_menu_glider_input_automatic") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/gesasso") ?>"><i class="fas fa-sync text-primary"></i> <?= translation("GESASSO") ?></a></li>
               <?php endif; ?>
               <li><a class="dropdown-item" href="<?= controller_url("planeur/page") ?>"><i class="fas fa-plane text-success"></i> <?= translation("gvv_menu_glider_machines") ?></a></li>
 

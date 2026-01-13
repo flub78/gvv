@@ -241,7 +241,7 @@ class Calendar_model extends Common_Model {
                 $pilot_name = $event['mlogin'];
             }
 
-            // Build title: "Pilot Name - Role" or just "Pilot Name" or "Commentaire"
+            // Build title: "Pilot Name - Role - Commentaire" or combinations
             $title_parts = array();
 
             if (!empty($pilot_name)) {
@@ -252,7 +252,7 @@ class Calendar_model extends Common_Model {
                 $title_parts[] = $event['role'];
             }
 
-            if (empty($title_parts) && !empty($event['commentaire'])) {
+            if (!empty($event['commentaire'])) {
                 $title_parts[] = $event['commentaire'];
             }
 
