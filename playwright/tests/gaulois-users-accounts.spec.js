@@ -179,7 +179,7 @@ test.describe('Gaulois Test Users - Account Verification', () => {
                 await page.fill('input[name="username"]', user.username);
                 await page.fill('input[name="password"]', PASSWORD);
                 await page.selectOption('select[name="section"]', unauthorizedSectionId);
-                await page.click('button[type="submit"]');
+                await page.click('input[type="submit"], button[type="submit"]');
 
                 // Wait for page to load
                 await page.waitForLoadState('domcontentloaded');
