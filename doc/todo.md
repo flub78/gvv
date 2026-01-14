@@ -15,8 +15,8 @@
 
 * [ ] tests migration
   * [ ] phpunit
-    * [ ] checks if there are still some CIUnit tests to migrate
-    * [ ] migrate them
+    * [x] checks if there are still some CIUnit tests to migrate
+    * [x] migrate them
     * [ ] Implement missing phpunit tests according to the test plan
     * [ ] Investigate the coverage reporting which looks underestimated
   * [ ] playwright
@@ -44,7 +44,7 @@
   
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   
-* [x] Reservation des avions                                   10j (plan OK)
+* [x] Reservation des avions                                  10j (plan OK)
 
 * [] Paiements en ligne                                       10j (PRD OK)
 

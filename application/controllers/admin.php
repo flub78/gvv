@@ -1598,8 +1598,8 @@ class Admin extends CI_Controller {
             $gaulois_created = $gaulois_result['created'];
             
             if ($gaulois_created > 0) {
-                $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'OK', 
-                    'details' => "$gaulois_created utilisateurs créés (asterix, obelix, abraracourcix, goudurix)");
+                $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'OK',
+                    'details' => "$gaulois_created utilisateurs créés (asterix, obelix, abraracourcix, goudurix, panoramix)");
             } else if (!empty($gaulois_result['errors'])) {
                 $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'WARNING', 
                     'details' => 'Erreurs: ' . implode('; ', $gaulois_result['errors']));
@@ -1762,7 +1762,7 @@ class Admin extends CI_Controller {
                     throw new Exception("CRITIQUE: Échec de la restauration. Base en état anonymisé! Erreur: " . implode("\n", $output));
                 }
                 $results[] = array('step' => 'Restauration base', 'status' => 'OK', 'details' => 'Base restaurée à l\'état initial');
-                $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip (base restaurée)";
+                $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip (base de test non installée)";
             } else {
                 $results[] = array('step' => 'Restauration base', 'status' => 'SKIPPED', 'details' => 'Base gardée anonymisée pour les tests');
                 $success_message = "Base de test générée avec succès dans install/base_de_test.enc.zip (base anonymisée active)";
@@ -2124,6 +2124,13 @@ INSERT INTO `terrains` (`oaci`, `nom`, `freq1`, `freq2`, `comment`) VALUES
 ('LFYG', 'Cambrai', 999.999, 0.000, ''),
 ('LFYR', 'Romorantin', 119.070, 0.000, '');
 
+-- Use new authorization for Gaulois test users only
+INSERT INTO `use_new_authorization` (`username`, `created_at`, `notes`) VALUES
+('asterix', NOW(), 'Gaulois test user - created by initial schema'),
+('goudurix', NOW(), 'Gaulois test user - created by initial schema'),
+('panoramix', NOW(), 'Gaulois test user - created by initial schema'),
+('abraracourcix', NOW(), 'Gaulois test user - created by initial schema');
+
 SQL;
 
         return $sql;
@@ -2179,7 +2186,8 @@ SQL;
                 'cp' => 22000,
                 'ville' => 'Village gaulois',
                 'sections' => array($planeur_section, $general_section),
-                'roles_bits' => 0
+                'roles_bits' => 0,
+                'is_admin' => 0
             ),
             array(
                 'username' => 'obelix',
@@ -2190,7 +2198,8 @@ SQL;
                 'cp' => 22000,
                 'ville' => 'Village gaulois',
                 'sections' => array($planeur_section, $ulm_section, $general_section),
-                'roles_bits' => $REMORQUEUR
+                'roles_bits' => $REMORQUEUR,
+                'is_admin' => 0
             ),
             array(
                 'username' => 'abraracourcix',
@@ -2201,7 +2210,8 @@ SQL;
                 'cp' => 22000,
                 'ville' => 'Village gaulois',
                 'sections' => array($planeur_section, $avion_section, $ulm_section, $general_section),
-                'roles_bits' => $REMORQUEUR + $FI_AVION + $CA_BIT
+                'roles_bits' => $REMORQUEUR + $FI_AVION + $CA_BIT,
+                'is_admin' => 0
             ),
             array(
                 'username' => 'goudurix',
@@ -2212,7 +2222,20 @@ SQL;
                 'cp' => 22000,
                 'ville' => 'Village gaulois',
                 'sections' => array($avion_section, $general_section),
-                'roles_bits' => $TRESORIER
+                'roles_bits' => $TRESORIER,
+                'is_admin' => 0
+            ),
+            array(
+                'username' => 'panoramix',
+                'nom' => 'Panoramix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'panoramix@gmail.com',
+                'adresse' => '1 rue du Menhir',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                'sections' => array(),
+                'roles_bits' => 0,
+                'is_admin' => 1
             )
         );
         
@@ -2220,13 +2243,34 @@ SQL;
         foreach ($test_users as $user_data) {
             try {
                 $username = $user_data['username'];
-                
-                // Check if user already exists
+
+                // Check if user already exists and delete if so
                 $existing = $this->db->where('username', $username)->get('users');
                 if ($existing->num_rows() > 0) {
-                    continue;  // Skip if already exists
+                    $user_id = $existing->row()->id;
+
+                    // Delete in correct order to respect foreign key constraints
+                    // 1. Delete from use_new_authorization
+                    $this->db->where('username', $username)->delete('use_new_authorization');
+
+                    // 2. Delete from user_roles_per_section (FK to users)
+                    $this->db->where('user_id', $user_id)->delete('user_roles_per_section');
+
+                    // 3. Delete from comptes (411 accounts)
+                    $this->db->where('pilote', $username)->where('codec', 411)->delete('comptes');
+
+                    // 4. Delete from membres
+                    $this->db->where('username', $username)->delete('membres');
+
+                    // 5. Delete from user_profile (FK to users)
+                    $this->db->where('user_id', $user_id)->delete('user_profile');
+
+                    // 6. Delete from users (last, as other tables reference it)
+                    $this->db->where('id', $user_id)->delete('users');
+
+                    log_message('info', "Deleted existing Gaulois user: $username");
                 }
-                
+
                 // 1. Create user in users table
                 $user_insert = array(
                     'role_id' => 1,
@@ -2325,7 +2369,15 @@ SQL;
                         $this->db->insert('user_roles_per_section', $role_insert);
                     }
                 }
-                
+
+                // 5. Add to new authorization system
+                $auth_insert = array(
+                    'username' => $username,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'notes' => 'Gaulois test user - created by generate_test_database'
+                );
+                $this->db->insert('use_new_authorization', $auth_insert);
+
                 $result['created']++;
                 
             } catch (Exception $e) {

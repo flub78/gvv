@@ -4,6 +4,10 @@
 
 The playwright tests require Node.js and npm to be installed.
 
+They are also dependent on the "Test database" which contains predefined users and data. You can generate this test database by navigating to `/admin/generate_test_database` in your GVV installation.
+
+This method generates the database but does not load it. You must load the test database by restoring install/base_de_test.enc.zip into your test environment.
+
 ## Configuration
 
 ### Base URL

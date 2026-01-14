@@ -1,16 +1,306 @@
 {
-    "pilots": [],
-    "instructors": {
-        "glider": [],
-        "airplane": []
-    },
-    "gliders": {
-        "two_seater": []
-    },
-    "tow_planes": [],
     "metadata": {
-        "extracted_at": "2026-01-04 22:23:25",
+        "extracted_at": "2026-01-14 07:52:37",
         "database": "gvv2",
         "version": "1.0"
-    }
+    },
+    "pilots": [
+        {
+            "login": "abraracourcix",
+            "full_name": "Abraracourcix Le Gaulois",
+            "first_name": "Le Gaulois",
+            "last_name": "Abraracourcix",
+            "account_id": 1457,
+            "account_label": "(411) Abraracourcix Le Gaulois"
+        },
+        {
+            "login": "calegre",
+            "full_name": "Alexandre Julien",
+            "first_name": "Julien",
+            "last_name": "Alexandre",
+            "account_id": 1117,
+            "account_label": "(411) Alexandre Julien"
+        },
+        {
+            "login": "astal",
+            "full_name": "Alonso Olivier",
+            "first_name": "Olivier",
+            "last_name": "Alonso",
+            "account_id": 1346,
+            "account_label": "(411) Alonso Olivier"
+        },
+        {
+            "login": "slejosne",
+            "full_name": "Alves Eric",
+            "first_name": "Eric",
+            "last_name": "Alves",
+            "account_id": 269,
+            "account_label": "(411) Alves Eric"
+        }
+    ],
+    "instructors": {
+        "glider": [
+            {
+                "login": "fduvollet",
+                "full_name": "Weber David",
+                "first_name": "David",
+                "last_name": "Weber",
+                "qualification": "",
+                "account_id": 42,
+                "account_label": "(411) Weber David"
+            },
+            {
+                "login": "fpeignot",
+                "full_name": "Lucas Kevin",
+                "first_name": "Kevin",
+                "last_name": "Lucas",
+                "qualification": "",
+                "account_id": 37,
+                "account_label": "(411) Lucas Kevin"
+            },
+            {
+                "login": "gpruvost",
+                "full_name": "Dumas Oscar",
+                "first_name": "Oscar",
+                "last_name": "Dumas",
+                "qualification": "",
+                "account_id": 53,
+                "account_label": "(411) Dumas Oscar"
+            },
+            {
+                "login": "jftrancart",
+                "full_name": "Poulain Eric",
+                "first_name": "Eric",
+                "last_name": "Poulain",
+                "qualification": "",
+                "account_id": 151,
+                "account_label": "(411) Poulain Eric"
+            },
+            {
+                "login": "jpl",
+                "full_name": "Vallet Rene",
+                "first_name": "Rene",
+                "last_name": "Vallet",
+                "qualification": "",
+                "account_id": 38,
+                "account_label": "(411) Vallet Rene"
+            },
+            {
+                "login": "MRT",
+                "full_name": "Carre Antoine",
+                "first_name": "Antoine",
+                "last_name": "Carre",
+                "qualification": "",
+                "account_id": 301,
+                "account_label": "(411) Carre Antoine"
+            }
+        ],
+        "airplane": [
+            {
+                "login": "abraracourcix",
+                "full_name": "Abraracourcix Le Gaulois",
+                "first_name": "Le Gaulois",
+                "last_name": "Abraracourcix",
+                "qualification": null,
+                "account_id": 1457,
+                "account_label": "(411) (411) Abraracourcix Le Gaulois"
+            },
+            {
+                "login": "dcoquel",
+                "full_name": "Thomas Henri",
+                "first_name": "Henri",
+                "last_name": "Thomas",
+                "qualification": "",
+                "account_id": 320,
+                "account_label": "(411) Thomas Henri"
+            },
+            {
+                "login": "fduvollet",
+                "full_name": "Weber David",
+                "first_name": "David",
+                "last_name": "Weber",
+                "qualification": "",
+                "account_id": 42,
+                "account_label": "(411) Weber David"
+            },
+            {
+                "login": "fpeignot",
+                "full_name": "Lucas Kevin",
+                "first_name": "Kevin",
+                "last_name": "Lucas",
+                "qualification": "",
+                "account_id": 37,
+                "account_label": "(411) Lucas Kevin"
+            },
+            {
+                "login": "ftissot",
+                "full_name": "Schmitt Julien",
+                "first_name": "Julien",
+                "last_name": "Schmitt",
+                "qualification": "",
+                "account_id": 1196,
+                "account_label": "(411) Schmitt Julien"
+            },
+            {
+                "login": "gpruvost",
+                "full_name": "Dumas Oscar",
+                "first_name": "Oscar",
+                "last_name": "Dumas",
+                "qualification": "",
+                "account_id": 53,
+                "account_label": "(411) Dumas Oscar"
+            },
+            {
+                "login": "jpl",
+                "full_name": "Vallet Rene",
+                "first_name": "Rene",
+                "last_name": "Vallet",
+                "qualification": "",
+                "account_id": 38,
+                "account_label": "(411) Vallet Rene"
+            },
+            {
+                "login": "pdeloye",
+                "full_name": "Lejeune Claude",
+                "first_name": "Claude",
+                "last_name": "Lejeune",
+                "qualification": "",
+                "account_id": 1143,
+                "account_label": "(411) Lejeune Claude"
+            }
+        ]
+    },
+    "gliders": {
+        "two_seater": [
+            {
+                "registration": "F-CDYO",
+                "model": "ASK13",
+                "manufacturer": "A.SCHLEICHER",
+                "seats": 2,
+                "autonomous": false
+            },
+            {
+                "registration": "F-CFOU",
+                "model": "Duo Discus XLT",
+                "manufacturer": "Schempp-Hirth",
+                "seats": 2,
+                "autonomous": false
+            },
+            {
+                "registration": "F-CJRG",
+                "model": "Ask21",
+                "manufacturer": "Alexander Schleicher",
+                "seats": 2,
+                "autonomous": false
+            }
+        ],
+        "single_seater": []
+    },
+    "tow_planes": [
+        {
+            "registration": "F-BLIT",
+            "model": "MS893-L",
+            "manufacturer": "SOCATA"
+        },
+        {
+            "registration": "F-JRYP",
+            "model": "Ikarus C42 C",
+            "manufacturer": "Comco Ikarus-TROYES"
+        },
+        {
+            "registration": "F-JUFA",
+            "model": "Dynamic",
+            "manufacturer": "AEROPOOL"
+        },
+        {
+            "registration": "YP",
+            "model": "Ikarus C42 B",
+            "manufacturer": "Comco Ikarus LILLE"
+        }
+    ],
+    "accounts": [
+        {
+            "id": 1457,
+            "name": "(411) Abraracourcix Le Gaulois",
+            "pilot_login": "abraracourcix",
+            "code": "411",
+            "label": "(411) (411) Abraracourcix Le Gaulois"
+        },
+        {
+            "id": 1453,
+            "name": "(411) Asterix Le Gaulois",
+            "pilot_login": "asterix",
+            "code": "411",
+            "label": "(411) (411) Asterix Le Gaulois"
+        },
+        {
+            "id": 1461,
+            "name": "(411) Goudurix Le Gaulois",
+            "pilot_login": "goudurix",
+            "code": "411",
+            "label": "(411) (411) Goudurix Le Gaulois"
+        },
+        {
+            "id": 1455,
+            "name": "(411) Obelix Le Gaulois",
+            "pilot_login": "obelix",
+            "code": "411",
+            "label": "(411) (411) Obelix Le Gaulois"
+        },
+        {
+            "id": 883,
+            "name": "Alexandre Cedric",
+            "pilot_login": "bbreton",
+            "code": "411",
+            "label": "(411) Alexandre Cedric"
+        },
+        {
+            "id": 924,
+            "name": "Alexandre Claude",
+            "pilot_login": "hvan_der_wielen",
+            "code": "411",
+            "label": "(411) Alexandre Claude"
+        },
+        {
+            "id": 1118,
+            "name": "Alexandre Julien",
+            "pilot_login": "calegre",
+            "code": "411",
+            "label": "(411) Alexandre Julien"
+        },
+        {
+            "id": 220,
+            "name": "Alonso Adrien",
+            "pilot_login": "amonchaux",
+            "code": "411",
+            "label": "(411) Alonso Adrien"
+        },
+        {
+            "id": 1347,
+            "name": "Alonso Olivier",
+            "pilot_login": "astal",
+            "code": "411",
+            "label": "(411) Alonso Olivier"
+        }
+    ],
+    "balance_search_tests": [
+        {
+            "description": "Search for Adam using ADA",
+            "search_term": "ADA",
+            "expected_name": "Adam",
+            "expected_account_code": "411"
+        },
+        {
+            "description": "Search for Alonso using ALO",
+            "search_term": "ALO",
+            "expected_name": "Alonso",
+            "expected_account_code": "411"
+        },
+        {
+            "description": "Search for Barbier using BAR",
+            "search_term": "BAR",
+            "expected_name": "Barbier",
+            "expected_account_code": "411"
+        }
+    ]
 }

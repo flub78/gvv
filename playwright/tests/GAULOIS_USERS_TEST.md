@@ -2,7 +2,7 @@
 
 ## Description
 
-Ce test Playwright vérifie que les 4 utilisateurs gaulois créés par la procédure `/admin/generate_test_database` peuvent :
+Ce test Playwright vérifie que les utilisateurs gaulois créés par la procédure `/admin/generate_test_database` peuvent :
 
 1. ✅ Se connecter avec succès
 2. ✅ Accéder à leurs comptes via `/compta/mon_compte/{section_id}`
@@ -10,6 +10,8 @@ Ce test Playwright vérifie que les 4 utilisateurs gaulois créés par la procé
 4. ✅ Être redirigés lorsqu'ils tentent d'accéder à une section non autorisée
 
 **Note importante** : Les utilisateurs ordinaires n'ont PAS accès à `/comptes/balance` (réservé aux administrateurs). Ils doivent utiliser `/compta/mon_compte/{section_id}` pour consulter leurs comptes.
+
+**Utilisateur admin** : **panoramix** est un administrateur sans sections assignées et a accès à `/comptes/balance`.
 
 ## Utilisateurs testés
 
@@ -19,13 +21,14 @@ Ce test Playwright vérifie que les 4 utilisateurs gaulois créés par la procé
 | **obelix** | Planeur, ULM, Général | Remorqueur | 3 |
 | **abraracourcix** | Planeur, Avion, ULM, Général | CA + Instructeur Avion | 4 |
 | **goudurix** | Avion, Général | Trésorier | 2 |
+| **panoramix** | Aucune | Admin | 0 |
 
 Mot de passe pour tous : `password`
 
 ## Prérequis
 
 1. Base de données de test générée via `/admin/generate_test_database`
-2. Les 4 utilisateurs gaulois doivent exister dans la base
+2. Les 5 utilisateurs gaulois doivent exister dans la base
 3. Playwright configuré et opérationnel
 
 ## Exécution
@@ -99,12 +102,17 @@ Tous les tests doivent passer (✓ en vert) si :
 
 1. **Vérifier que les utilisateurs existent** :
    ```bash
-   mysql -u gvv_user -p gvv2 -e "SELECT username FROM users WHERE username IN ('asterix', 'obelix', 'abraracourcix', 'goudurix');"
+   mysql -u gvv_user -p gvv2 -e "SELECT username FROM users WHERE username IN ('asterix', 'obelix', 'abraracourcix', 'goudurix', 'panoramix');"
    ```
 
 2. **Vérifier les comptes** :
    ```bash
    mysql -u gvv_user -p gvv2 -e "SELECT pilote, COUNT(*) as compte_count FROM comptes WHERE pilote IN ('asterix', 'obelix', 'abraracourcix', 'goudurix') AND codec=411 GROUP BY pilote;"
+   ```
+
+3. **Vérifier que panoramix est admin** :
+   ```bash
+   mysql -u gvv_user -p gvv2 -e "SELECT username, admin FROM use_new_authorization WHERE username IN ('asterix', 'obelix', 'abraracourcix', 'goudurix', 'panoramix');"
    ```
 
 3. **Regénérer la base de test** :
