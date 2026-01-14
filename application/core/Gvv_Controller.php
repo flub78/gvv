@@ -164,16 +164,46 @@ class Gvv_Controller extends CI_Controller
         // Get current section
         $section_id = $this->session->userdata('section');
 
+        log_message('debug', "GVV_Controller: _check_login_permission called for user_id={$this->user_id}, section_id={$section_id}");
+
+        // If no section is set, auto-select first section where user has 'user' role
+        if (!$section_id) {
+            log_message('debug', "GVV_Controller: No section in session, auto-selecting first available section for user");
+
+            $this->db->where('user_id', $this->user_id);
+            $this->db->where('types_roles_id', 1); // 'user' role
+            $this->db->where('revoked_at IS NULL');
+            $this->db->order_by('section_id', 'ASC');
+            $this->db->limit(1);
+            $query = $this->db->get('user_roles_per_section');
+
+            if ($query && $query->num_rows() > 0) {
+                $section_id = $query->row()->section_id;
+                $this->session->set_userdata('section', $section_id);
+                log_message('debug', "GVV_Controller: Auto-selected section {$section_id} for user");
+            } else {
+                // User has no 'user' role in any section - deny login
+                $username = $this->dx_auth->get_username();
+                log_message('error', "GVV_Controller: User '$username' (ID: {$this->user_id}) has no 'user' role in ANY section");
+                $this->dx_auth->logout();
+                redirect('auth/login?error=no_user_role');
+            }
+        }
+
         // Check if user has the 'user' role (role_id = 1) for this section
         // Non-hierarchical: planchiste (5), ca (6), etc. do NOT imply 'user' role
         // User must explicitly have role_id = 1 to login
         $this->db->where('user_id', $this->user_id);
         $this->db->where('section_id', $section_id);
         $this->db->where('types_roles_id', 1); // Specifically 'user' role (id=1)
-        $this->db->where('revoked_at IS NULL', null, false); // IS NULL check
+        $this->db->where('revoked_at IS NULL'); // IS NULL check - must use string form
         $query = $this->db->get('user_roles_per_section');
 
+        // Log the generated SQL query for debugging
+        log_message('debug', "GVV_Controller: SQL query: " . $this->db->last_query());
+
         $has_user_role = ($query && $query->num_rows() > 0);
+        log_message('debug', "GVV_Controller: Query returned " . ($query ? $query->num_rows() : 0) . " rows, has_user_role=" . ($has_user_role ? 'true' : 'false'));
 
         if (!$has_user_role) {
             // User does NOT have 'user' role for this section - deny login
@@ -183,7 +213,7 @@ class Gvv_Controller extends CI_Controller
             // Log what roles they DO have for debugging
             $this->db->where('user_id', $this->user_id);
             $this->db->where('section_id', $section_id);
-            $this->db->where('revoked_at IS NULL', null, false);
+            $this->db->where('revoked_at IS NULL');
             $this->db->select('types_roles_id');
             $other_roles = $this->db->get('user_roles_per_section');
             if ($other_roles && $other_roles->num_rows() > 0) {

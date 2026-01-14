@@ -2127,9 +2127,10 @@ INSERT INTO `terrains` (`oaci`, `nom`, `freq1`, `freq2`, `comment`) VALUES
 -- Use new authorization for Gaulois test users only
 INSERT INTO `use_new_authorization` (`username`, `created_at`, `notes`) VALUES
 ('asterix', NOW(), 'Gaulois test user - created by initial schema'),
+('obelix', NOW(), 'Gaulois test user - created by initial schema'),
+('abraracourcix', NOW(), 'Gaulois test user - created by initial schema'),
 ('goudurix', NOW(), 'Gaulois test user - created by initial schema'),
-('panoramix', NOW(), 'Gaulois test user - created by initial schema'),
-('abraracourcix', NOW(), 'Gaulois test user - created by initial schema');
+('panoramix', NOW(), 'Gaulois test user - created by initial schema');
 
 SQL;
 
