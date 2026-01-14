@@ -218,33 +218,27 @@ $this->load->view('bs_banner');
             white-space: nowrap;
             transition: box-shadow 0.2s;
         }
-        
+
         .reservation-event:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             z-index: 6;
         }
-        
-        .reservation-event.pending {
-            background-color: #FFC107;
-            border-color: #ffb300;
-            color: #333;
-        }
-        
-        .reservation-event.confirmed {
+
+        .reservation-event.reservation {
             background-color: #28A745;
             border-color: #20c997;
             color: white;
         }
-        
-        .reservation-event.completed {
-            background-color: #6C757D;
-            border-color: #5a6268;
+
+        .reservation-event.maintenance {
+            background-color: #007BFF;
+            border-color: #0056b3;
             color: white;
         }
-        
-        .reservation-event.no_show {
-            background-color: #E83E8C;
-            border-color: #c6113b;
+
+        .reservation-event.unavailable {
+            background-color: #DC3545;
+            border-color: #a71d2a;
             color: white;
         }
         
@@ -278,23 +272,18 @@ $this->load->view('bs_banner');
             margin-top: 4px;
         }
         
-        .status-badge.pending {
-            background-color: #FFC107;
-            color: #333;
-        }
-        
-        .status-badge.confirmed {
+        .status-badge.reservation {
             background-color: #28A745;
             color: white;
         }
-        
-        .status-badge.completed {
-            background-color: #6C757D;
+
+        .status-badge.maintenance {
+            background-color: #007BFF;
             color: white;
         }
-        
-        .status-badge.no_show {
-            background-color: #E83E8C;
+
+        .status-badge.unavailable {
+            background-color: #DC3545;
             color: white;
         }
         
@@ -607,7 +596,7 @@ $this->load->view('bs_banner');
             eventEl.setAttribute('data-start', event.start);
             eventEl.setAttribute('data-end', event.end);
             eventEl.textContent = event.title;
-            eventEl.title = `${event.title} (${event.status})`;
+            eventEl.title = event.title;
             
             // Add resize handle
             const resizeHandle = document.createElement('div');
@@ -1039,9 +1028,8 @@ $this->load->view('bs_banner');
                     aircraft_id: resourceId,
                     pilot_member_id: null,
                     instructor_member_id: null,
-                    purpose: '',
                     notes: '',
-                    status: 'confirmed'
+                    status: 'reservation'
                 }
             };
 
@@ -1114,9 +1102,8 @@ $this->load->view('bs_banner');
                 
                 const aircraftModel = props.aircraft_model ? String(props.aircraft_model).replace(/"/g, '&quot;') : '';
                 const pilot = props.pilot ? String(props.pilot).replace(/"/g, '&quot;') : '';
-                const purpose = props.purpose ? String(props.purpose).replace(/"/g, '&quot;') : '';
                 const notes = props.notes ? String(props.notes).replace(/"/g, '&quot;') : '';
-                const status = props.status || 'confirmed';
+                const status = props.status || 'reservation';
                 const instructor = props.instructor ? String(props.instructor).replace(/"/g, '&quot;') : '';
 
                 console.log('Building selects with OPTIONS:', OPTIONS);
@@ -1189,11 +1176,6 @@ $this->load->view('bs_banner');
                     </div>
 
                     <div class="mb-3">
-                        <label for="eventPurpose" class="form-label"><strong>${TRANSLATIONS.form_purpose}:</strong></label>
-                        <input type="text" class="form-control" id="eventPurpose" value="${purpose}">
-                    </div>
-
-                    <div class="mb-3">
                         <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
                         <textarea class="form-control" id="eventNotes" rows="2">${notes}</textarea>
                     </div>
@@ -1201,10 +1183,9 @@ $this->load->view('bs_banner');
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus">
-                            <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>${TRANSLATIONS.status_confirmed}</option>
-                            <option value="pending" ${status === 'pending' ? 'selected' : ''}>${TRANSLATIONS.status_pending}</option>
-                            <option value="completed" ${status === 'completed' ? 'selected' : ''}>${TRANSLATIONS.status_completed}</option>
-                            <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>${TRANSLATIONS.status_no_show}</option>
+                            <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
+                            <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
+                            <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
                         </select>
                     </div>
                 </form>`;
@@ -1247,7 +1228,6 @@ $this->load->view('bs_banner');
         function saveEventChanges(event) {
             const startStr = document.getElementById('eventStart').value.replace('T', ' ') + ':00';
             const endStr = document.getElementById('eventEnd').value.replace('T', ' ') + ':00';
-            const purpose = document.getElementById('eventPurpose').value;
             const notes = document.getElementById('eventNotes').value;
             const status = document.getElementById('eventStatus').value;
             const aircraftId = document.getElementById('eventAircraft').value;
@@ -1259,7 +1239,8 @@ $this->load->view('bs_banner');
                 alert(TRANSLATIONS.error_no_aircraft);
                 return;
             }
-            if (!pilotId) {
+            // Pilot is required only for regular reservations, not for maintenance/unavailable
+            if (!pilotId && status === 'reservation') {
                 alert(TRANSLATIONS.error_no_pilot);
                 return;
             }
@@ -1269,7 +1250,6 @@ $this->load->view('bs_banner');
             // Build request body
             let requestBody = 'start_datetime=' + encodeURIComponent(startStr) +
                              '&end_datetime=' + encodeURIComponent(endStr) +
-                             '&purpose=' + encodeURIComponent(purpose) +
                              '&notes=' + encodeURIComponent(notes) +
                              '&status=' + encodeURIComponent(status) +
                              '&aircraft_id=' + encodeURIComponent(aircraftId) +

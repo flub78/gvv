@@ -74,16 +74,14 @@ class Reservations extends CI_Controller {
             'form_instructor_optional' => $this->lang->line('reservations_form_instructor_optional'),
             'form_start_time' => $this->lang->line('reservations_form_start_time'),
             'form_end_time' => $this->lang->line('reservations_form_end_time'),
-            'form_purpose' => $this->lang->line('reservations_form_purpose'),
             'form_notes' => $this->lang->line('reservations_form_notes'),
             'form_status' => $this->lang->line('reservations_form_status'),
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_confirmed' => $this->lang->line('reservations_status_confirmed'),
-            'status_pending' => $this->lang->line('reservations_status_pending'),
-            'status_completed' => $this->lang->line('reservations_status_completed'),
-            'status_no_show' => $this->lang->line('reservations_status_no_show'),
+            'status_reservation' => $this->lang->line('reservations_status_reservation'),
+            'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
+            'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -185,16 +183,14 @@ class Reservations extends CI_Controller {
             'form_instructor_optional' => $this->lang->line('reservations_form_instructor_optional'),
             'form_start_time' => $this->lang->line('reservations_form_start_time'),
             'form_end_time' => $this->lang->line('reservations_form_end_time'),
-            'form_purpose' => $this->lang->line('reservations_form_purpose'),
             'form_notes' => $this->lang->line('reservations_form_notes'),
             'form_status' => $this->lang->line('reservations_form_status'),
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_confirmed' => $this->lang->line('reservations_status_confirmed'),
-            'status_pending' => $this->lang->line('reservations_status_pending'),
-            'status_completed' => $this->lang->line('reservations_status_completed'),
-            'status_no_show' => $this->lang->line('reservations_status_no_show'),
+            'status_reservation' => $this->lang->line('reservations_status_reservation'),
+            'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
+            'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -494,14 +490,16 @@ class Reservations extends CI_Controller {
             $reservation_id = isset($_POST['reservation_id']) ? $_POST['reservation_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
-            $purpose = isset($_POST['purpose']) ? $_POST['purpose'] : '';
             $notes = isset($_POST['notes']) ? $_POST['notes'] : '';
-            $status = isset($_POST['status']) ? $_POST['status'] : 'confirmed';
+            $status = isset($_POST['status']) ? $_POST['status'] : 'reservation';
             $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
             $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
             $instructor_member_id = isset($_POST['instructor_member_id']) ? $_POST['instructor_member_id'] : null;
 
-            // Clean instructor_member_id: empty string should be null
+            // Clean pilot_member_id and instructor_member_id: empty string should be null
+            if ($pilot_member_id === '') {
+                $pilot_member_id = null;
+            }
             if ($instructor_member_id === '') {
                 $instructor_member_id = null;
             }
@@ -510,9 +508,12 @@ class Reservations extends CI_Controller {
             if (!$aircraft_id) {
                 throw new Exception('Aircraft ID is required');
             }
-            if (!$pilot_member_id) {
-                throw new Exception('Pilot member ID is required');
+
+            // Pilot is required for 'reservation' status, optional for 'maintenance' and 'unavailable'
+            if (!$pilot_member_id && $status === 'reservation') {
+                throw new Exception('Pilot member ID is required for reservations');
             }
+
             if (!$start_datetime || !$end_datetime) {
                 throw new Exception('Start and end datetime are required');
             }
@@ -565,7 +566,6 @@ class Reservations extends CI_Controller {
                     'instructor_member_id' => $instructor_member_id,
                     'start_datetime' => $start_datetime,
                     'end_datetime' => $end_datetime,
-                    'purpose' => $purpose,
                     'notes' => $notes,
                     'status' => $status,
                     'created_by' => $username
@@ -590,7 +590,6 @@ class Reservations extends CI_Controller {
                 $update_data = array(
                     'start_datetime' => $start_datetime,
                     'end_datetime' => $end_datetime,
-                    'purpose' => $purpose,
                     'notes' => $notes,
                     'status' => $status,
                     'aircraft_id' => $aircraft_id,

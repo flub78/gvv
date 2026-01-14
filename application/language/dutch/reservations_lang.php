@@ -23,10 +23,9 @@ $lang['reservations_select_pilot'] = "-- Selecteer piloot --";
 $lang['reservations_select_instructor_none'] = "-- Geen --";
 
 // Status options
-$lang['reservations_status_confirmed'] = "Bevestigd";
-$lang['reservations_status_pending'] = "In afwachting";
-$lang['reservations_status_completed'] = "Voltooid";
-$lang['reservations_status_no_show'] = "Niet verschenen";
+$lang['reservations_status_reservation'] = "Reservering";
+$lang['reservations_status_maintenance'] = "Onderhoud";
+$lang['reservations_status_unavailable'] = "Niet beschikbaar";
 
 // Modal titles
 $lang['reservations_modal_new'] = "Nieuwe Reservering";

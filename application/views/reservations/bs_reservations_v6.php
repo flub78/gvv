@@ -158,9 +158,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const aircraftId = props.aircraft_id || props.aircraft || '';
             const pilotId = props.pilot_member_id || '';
             const instructorId = props.instructor_member_id || '';
-            const purpose = props.purpose || '';
             const notes = props.notes || '';
-            const status = props.status || 'confirmed';
+            const status = props.status || 'reservation';
 
             // Build aircraft select
             let aircraftSelect = '<select class="form-control" id="eventAircraft">';
@@ -224,11 +223,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 </div>
 
                 <div class="mb-3">
-                    <label for="eventPurpose" class="form-label"><strong>${TRANSLATIONS.form_purpose}:</strong></label>
-                    <input type="text" class="form-control" id="eventPurpose" value="${escapeHtml(purpose)}">
-                </div>
-
-                <div class="mb-3">
                     <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
                     <textarea class="form-control" id="eventNotes" rows="2">${escapeHtml(notes)}</textarea>
                 </div>
@@ -236,10 +230,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 <div class="mb-3">
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus">
-                        <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>${TRANSLATIONS.status_confirmed}</option>
-                        <option value="pending" ${status === 'pending' ? 'selected' : ''}>${TRANSLATIONS.status_pending}</option>
-                        <option value="completed" ${status === 'completed' ? 'selected' : ''}>${TRANSLATIONS.status_completed}</option>
-                        <option value="no_show" ${status === 'no_show' ? 'selected' : ''}>${TRANSLATIONS.status_no_show}</option>
+                        <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
+                        <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
+                        <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
                     </select>
                 </div>
             </form>`;
@@ -258,7 +251,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     function saveEventChanges(calendar) {
         const startStr = document.getElementById('eventStart').value.replace('T', ' ') + ':00';
         const endStr = document.getElementById('eventEnd').value.replace('T', ' ') + ':00';
-        const purpose = document.getElementById('eventPurpose').value;
         const notes = document.getElementById('eventNotes').value;
         const status = document.getElementById('eventStatus').value;
         const aircraftId = document.getElementById('eventAircraft').value;
@@ -270,7 +262,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             alert(TRANSLATIONS.error_no_aircraft);
             return;
         }
-        if (!pilotId) {
+        // Pilot is required only for regular reservations, not for maintenance/unavailable
+        if (!pilotId && status === 'reservation') {
             alert(TRANSLATIONS.error_no_pilot);
             return;
         }
@@ -280,7 +273,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         // Build request body
         let requestBody = 'start_datetime=' + encodeURIComponent(startStr) +
                          '&end_datetime=' + encodeURIComponent(endStr) +
-                         '&purpose=' + encodeURIComponent(purpose) +
                          '&notes=' + encodeURIComponent(notes) +
                          '&status=' + encodeURIComponent(status) +
                          '&aircraft_id=' + encodeURIComponent(aircraftId) +

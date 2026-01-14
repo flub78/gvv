@@ -42,7 +42,6 @@ class Reservations_model extends Common_Model {
             ->join('machinesa m', 'r.aircraft_id = m.macimmat', 'left')
             ->join('membres ma', 'r.pilot_member_id = ma.mlogin', 'left')
             ->join('membres mi', 'r.instructor_member_id = mi.mlogin', 'left')
-            ->where('r.status !=', 'cancelled')
             ->order_by('r.start_datetime', 'asc');
 
         // Filter by date range if provided
@@ -70,12 +69,14 @@ class Reservations_model extends Common_Model {
             }
 
             // Use unified title format: "HH:MM-HH:MM IMMAT Pilot + Instructor"
+            // For maintenance/unavailable, show status instead of pilot
             $title = $this->format_reservation_title(
                 $reservation['start_datetime'],
                 $reservation['end_datetime'],
                 $reservation['macimmat'],
                 $pilot_name,
-                $instructor_name
+                $instructor_name,
+                $reservation['status']
             );
 
             $event = array(
@@ -149,7 +150,6 @@ class Reservations_model extends Common_Model {
         $this->db->select('COUNT(*) as conflict_count')
             ->from('reservations')
             ->where('aircraft_id', $aircraft_id)
-            ->where('status !=', 'cancelled')
             ->where('(start_datetime < "' . $end_datetime . '" AND end_datetime > "' . $start_datetime . '")');
 
         if ($exclude_reservation_id) {
@@ -173,10 +173,14 @@ class Reservations_model extends Common_Model {
      * @return bool True if available, false if conflict
      */
     public function is_pilot_available($pilot_member_id, $start_datetime, $end_datetime, $exclude_reservation_id = null) {
+        // If no pilot specified (maintenance/unavailable reservations), no conflict possible
+        if (empty($pilot_member_id)) {
+            return true;
+        }
+
         $this->db->select('COUNT(*) as conflict_count')
             ->from('reservations')
             ->where('pilot_member_id', $pilot_member_id)
-            ->where('status !=', 'cancelled')
             ->where('(start_datetime < "' . $end_datetime . '" AND end_datetime > "' . $start_datetime . '")');
 
         if ($exclude_reservation_id) {
@@ -208,7 +212,6 @@ class Reservations_model extends Common_Model {
         $this->db->select('COUNT(*) as conflict_count')
             ->from('reservations')
             ->where('instructor_member_id', $instructor_member_id)
-            ->where('status !=', 'cancelled')
             ->where('(start_datetime < "' . $end_datetime . '" AND end_datetime > "' . $start_datetime . '")');
 
         if ($exclude_reservation_id) {
@@ -268,8 +271,15 @@ class Reservations_model extends Common_Model {
      */
     public function create_reservation($data) {
         // Ensure required fields
-        if (!isset($data['aircraft_id']) || !isset($data['start_datetime']) || !isset($data['end_datetime']) || !isset($data['pilot_member_id'])) {
+        if (!isset($data['aircraft_id']) || !isset($data['start_datetime']) || !isset($data['end_datetime'])) {
             gvv_error("Reservations_model::create_reservation - Missing required fields");
+            return 0;
+        }
+
+        // Pilot is required only for regular reservations
+        $status = isset($data['status']) ? $data['status'] : 'reservation';
+        if ($status === 'reservation' && (empty($data['pilot_member_id']) || !isset($data['pilot_member_id']))) {
+            gvv_error("Reservations_model::create_reservation - pilot_member_id required for reservations");
             return 0;
         }
 
@@ -278,7 +288,7 @@ class Reservations_model extends Common_Model {
             $data['section_id'] = $this->section_id;
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'pending';
+            $data['status'] = 'reservation';
         }
 
         $CI = &get_instance();
@@ -323,14 +333,12 @@ class Reservations_model extends Common_Model {
      */
     private function get_status_color($status) {
         $colors = array(
-            'pending' => '#FFC107',     // Amber
-            'confirmed' => '#28A745',   // Green
-            'completed' => '#6C757D',   // Gray
-            'cancelled' => '#DC3545',   // Red
-            'no_show' => '#E83E8C'      // Pink
+            'reservation' => '#28A745',   // Green
+            'maintenance' => '#007BFF',   // Blue
+            'unavailable' => '#DC3545'    // Red
         );
 
-        return isset($colors[$status]) ? $colors[$status] : '#007BFF'; // Default blue
+        return isset($colors[$status]) ? $colors[$status] : '#28A745'; // Default green
     }
 
     /**
@@ -433,12 +441,19 @@ class Reservations_model extends Common_Model {
      * @param string $instructor_name Instructor name (optional)
      * @return string Formatted title: "HH:MM-HH:MM IMMAT Pilot + Instructor"
      */
-    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '') {
+    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = 'reservation') {
         // Extract time from datetime
         $start_time = substr($start_datetime, 11, 5); // HH:MM
         $end_time = substr($end_datetime, 11, 5); // HH:MM
 
-        // Build title: "HH:MM-HH:MM IMMAT Pilot"
+        // For maintenance and unavailable, show status instead of pilot
+        if ($status === 'maintenance') {
+            return $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Maintenance';
+        } else if ($status === 'unavailable') {
+            return $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Indisponible';
+        }
+
+        // Build title: "HH:MM-HH:MM IMMAT Pilot" (for regular reservations)
         $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' ' . $pilot_name;
 
         // Add instructor if present
@@ -467,7 +482,8 @@ class Reservations_model extends Common_Model {
                 $res['end_datetime'],
                 $res['aircraft_immat'],
                 $res['pilot_name'],
-                $res['instructor_name']
+                $res['instructor_name'],
+                $res['status']
             );
 
             $event = array(

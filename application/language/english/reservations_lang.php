@@ -23,10 +23,9 @@ $lang['reservations_select_pilot'] = "-- Select Pilot --";
 $lang['reservations_select_instructor_none'] = "-- None --";
 
 // Status options
-$lang['reservations_status_confirmed'] = "Confirmed";
-$lang['reservations_status_pending'] = "Pending";
-$lang['reservations_status_completed'] = "Completed";
-$lang['reservations_status_no_show'] = "No Show";
+$lang['reservations_status_reservation'] = "Reservation";
+$lang['reservations_status_maintenance'] = "Maintenance";
+$lang['reservations_status_unavailable'] = "Unavailable";
 
 // Modal titles
 $lang['reservations_modal_new'] = "New Reservation";
