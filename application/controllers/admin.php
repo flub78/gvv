@@ -1567,31 +1567,22 @@ class Admin extends CI_Controller {
             $total_anonymized = $membres_updated + $users_updated + $vd_updated;
             $results[] = array('step' => 'Anonymisation', 'status' => 'OK', 'details' => "$total_anonymized enregistrements anonymisés");
 
-            // Step 3: Add test users
-            log_message('info', 'Step 3: Adding test users');
-            $test_users_script = FCPATH . 'bin/create_test_users.sh';
-            
-            $script_users_count = 0;
-            if (file_exists($test_users_script)) {
-                $env_vars = sprintf(
-                    'MYSQL_HOST=%s MYSQL_USER=%s MYSQL_PASSWORD=%s MYSQL_DATABASE=%s',
-                    escapeshellarg($db_config['hostname']),
-                    escapeshellarg($db_config['username']),
-                    escapeshellarg($db_config['password']),
-                    escapeshellarg($db_config['database'])
-                );
-                
-                exec("$env_vars bash $test_users_script 2>&1", $output, $return_code);
-                if ($return_code === 0) {
-                    $script_users_count = 6;
-                    $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'OK', 'details' => '6 utilisateurs créés');
-                } else {
-                    $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'WARNING', 'details' => 'Script échoué: ' . implode("\n", $output));
-                }
+            // Step 3: Add legacy test users (testuser, testadmin, etc.)
+            log_message('info', 'Step 3: Adding legacy test users');
+            $legacy_result = $this->_create_test_legacy_users();
+            $legacy_created = $legacy_result['created'];
+
+            if ($legacy_created > 0) {
+                $results[] = array('step' => 'Utilisateurs legacy', 'status' => 'OK',
+                    'details' => "$legacy_created utilisateurs créés (testuser, testadmin, testplanchiste, testca, testbureau, testtresorier)");
+            } else if (!empty($legacy_result['errors'])) {
+                $results[] = array('step' => 'Utilisateurs legacy', 'status' => 'WARNING',
+                    'details' => 'Erreurs: ' . implode('; ', $legacy_result['errors']));
             } else {
-                $results[] = array('step' => 'Utilisateurs de test (script)', 'status' => 'SKIPPED', 'details' => 'Script non trouvé');
+                $results[] = array('step' => 'Utilisateurs legacy', 'status' => 'INFO',
+                    'details' => 'Aucun utilisateur créé');
             }
-            
+
             // Step 3b: Add Gaulois test users with full profiles
             log_message('info', 'Step 3b: Adding Gaulois test users');
             $gaulois_result = $this->_create_test_gaulois_users();
@@ -2387,6 +2378,193 @@ SQL;
             }
         }
         
+        return $result;
+    }
+
+    /**
+     * Create legacy test users (testuser, testadmin, etc.) with known state
+     * These users use the legacy DX_Auth authorization system
+     * Called by generate_test_database to ensure consistent test environment
+     * @return array Result array with 'created' count
+     */
+    private function _create_test_legacy_users() {
+        $result = array('created' => 0, 'errors' => array());
+
+        // Get default section ID (usually 1 = Planeur)
+        $section_query = $this->db->select('id')->limit(1)->get('sections');
+        if ($section_query->num_rows() === 0) {
+            $result['errors'][] = 'No sections found in database';
+            return $result;
+        }
+        $default_section = $section_query->row()->id;
+
+        // Get types_roles IDs for new authorization system
+        $types_roles = array(
+            'user' => 1,
+            'planchiste' => 5,
+            'ca' => 6,
+            'bureau' => 7,
+            'tresorier' => 8,
+            'club-admin' => 10
+        );
+
+        // Query for actual role IDs
+        $roles_query = $this->db->get('types_roles');
+        foreach ($roles_query->result() as $role) {
+            $types_roles[$role->nom] = $role->id;
+        }
+
+        // Test users definition
+        // IMPORTANT: These users use LEGACY authorization (DX_Auth) and should NOT be in use_new_authorization table
+        $test_users = array(
+            array(
+                'username' => 'testuser',
+                'password_hash' => '$1$wu3.3t2.$Wgk43dHPPi3PTv5atdpnz0',
+                'email' => 'testuser@free.fr',
+                'role_id' => 1,  // Legacy: membre
+                'types_roles_id' => $types_roles['user']  // New: user
+            ),
+            array(
+                'username' => 'testadmin',
+                'password_hash' => '$1$uM1.f95.$AnUHH1W/xLS9fxDbt8RPo0',
+                'email' => 'frederic.peignot@free.fr',
+                'role_id' => 2,  // Legacy: admin
+                'types_roles_id' => $types_roles['club-admin']  // New: club-admin
+            ),
+            array(
+                'username' => 'testplanchiste',
+                'password_hash' => '$1$DT0.QJ1.$yXqRz6gf/jWC4MzY2D05Y.',
+                'email' => 'testplanchiste@free.fr',
+                'role_id' => 7,  // Legacy: planchiste
+                'types_roles_id' => $types_roles['planchiste']  // New: planchiste
+            ),
+            array(
+                'username' => 'testca',
+                'password_hash' => '$1$9h..cY3.$NzkeKkCoSa2oxL7bQCq4v1',
+                'email' => 'testca@free.fr',
+                'role_id' => 8,  // Legacy: ca
+                'types_roles_id' => $types_roles['ca']  // New: ca
+            ),
+            array(
+                'username' => 'testbureau',
+                'password_hash' => '$1$NC0.SN5.$qwnSUxiPbyh6v2JrhA1fH1',
+                'email' => 'testbureau@free.fr',
+                'role_id' => 3,  // Legacy: bureau
+                'types_roles_id' => $types_roles['bureau']  // New: bureau
+            ),
+            array(
+                'username' => 'testtresorier',
+                'password_hash' => '$1$8XMCm61f$CS0gO5YjH.xHm2ZyaZNQt/',
+                'email' => 'testresorier@free.fr',
+                'role_id' => 9,  // Legacy: tresorier
+                'types_roles_id' => $types_roles['tresorier']  // New: tresorier
+            )
+        );
+
+        // Create each user
+        foreach ($test_users as $user_data) {
+            try {
+                $username = $user_data['username'];
+
+                // Check if user already exists and delete if so
+                $existing = $this->db->where('username', $username)->get('users');
+                if ($existing->num_rows() > 0) {
+                    $user_id = $existing->row()->id;
+
+                    // Delete in correct order to respect foreign key constraints
+                    // NOTE: Don't delete from use_new_authorization as these users should NOT be there
+
+                    // 1. Delete from user_roles_per_section (FK to users)
+                    $this->db->where('user_id', $user_id)->delete('user_roles_per_section');
+
+                    // 2. Delete from comptes (411 accounts)
+                    $this->db->where('pilote', $username)->where('codec', 411)->delete('comptes');
+
+                    // 3. Delete from membres
+                    $this->db->where('username', $username)->delete('membres');
+
+                    // 4. Delete from user_profile (FK to users)
+                    $this->db->where('user_id', $user_id)->delete('user_profile');
+
+                    // 5. Delete from users (last, as other tables reference it)
+                    $this->db->where('id', $user_id)->delete('users');
+
+                    log_message('info', "Deleted existing legacy test user: $username");
+                }
+
+                // 1. Create user in users table with LEGACY role_id
+                $user_insert = array(
+                    'role_id' => $user_data['role_id'],  // IMPORTANT: Legacy role for DX_Auth
+                    'username' => $username,
+                    'password' => $user_data['password_hash'],  // All have password "password"
+                    'email' => $user_data['email'],
+                    'banned' => 0,
+                    'last_ip' => '127.0.0.1',
+                    'last_login' => date('Y-m-d H:i:s'),
+                    'created' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('users', $user_insert);
+                $user_id = $this->db->insert_id();
+
+                // 2. Create membre entry (if not admin - admins might not be in membres)
+                if ($user_data['role_id'] != 2) {  // Not admin
+                    $membre_insert = array(
+                        'mlogin' => $username,
+                        'mnom' => ucfirst($username),
+                        'mprenom' => 'Test',
+                        'memail' => $user_data['email'],
+                        'madresse' => '1 rue de Test',
+                        'cp' => 75000,
+                        'ville' => 'Paris',
+                        'pays' => 'France',
+                        'msexe' => 'M',
+                        'mniveaux' => 0,
+                        'macces' => 0,
+                        'club' => 0,
+                        'ext' => 0,
+                        'actif' => 1,
+                        'username' => $username,
+                        'categorie' => '0'
+                    );
+                    $this->db->insert('membres', $membre_insert);
+                }
+
+                // 3. Create 411 account in default section (if not admin)
+                if ($user_data['role_id'] != 2) {  // Not admin
+                    $compte_insert = array(
+                        'nom' => '(411) ' . ucfirst($username),
+                        'pilote' => $username,
+                        'desc' => 'Compte client 411 ' . ucfirst($username),
+                        'codec' => 411,
+                        'actif' => 1,
+                        'debit' => 0.0,
+                        'credit' => 0.0,
+                        'club' => $default_section,
+                        'saisie_par' => 'testadmin'
+                    );
+                    $this->db->insert('comptes', $compte_insert);
+                }
+
+                // 4. Create user roles per section for new authorization system
+                // Even though these users use legacy auth, we create the roles
+                // so they can be migrated to new system if needed
+                $role_insert = array(
+                    'user_id' => $user_id,
+                    'types_roles_id' => $user_data['types_roles_id'],
+                    'section_id' => $default_section,
+                    'granted_at' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('user_roles_per_section', $role_insert);
+
+                $result['created']++;
+                log_message('info', "Created legacy test user: $username (role_id={$user_data['role_id']})");
+
+            } catch (Exception $e) {
+                $result['errors'][] = "Erreur création {$user_data['username']}: " . $e->getMessage();
+                log_message('error', "Failed to create legacy test user {$user_data['username']}: " . $e->getMessage());
+            }
+        }
+
         return $result;
     }
 
