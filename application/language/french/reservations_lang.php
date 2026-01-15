@@ -44,6 +44,7 @@ $lang['reservations_error_unknown'] = "Erreur inconnue";
 $lang['reservations_error_saving'] = "Erreur lors de la sauvegarde";
 $lang['reservations_error_deleting'] = "Erreur lors de la suppression";
 $lang['reservations_error_prefix'] = "Erreur";
+$lang['reservations_error_invalid_datetime'] = "Date ou heure invalide";
 $lang['reservations_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cette réservation ?";
 
 // Success messages

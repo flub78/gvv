@@ -317,7 +317,8 @@ class Reservations extends CI_Controller {
         try {
             $this->load->model('reservations_model');
             $this->load->config('program');
-            
+            $this->lang->load('reservations');
+
             $event_id = isset($_POST['event_id']) ? $_POST['event_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
@@ -333,7 +334,12 @@ class Reservations extends CI_Controller {
                 !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $end_datetime)) {
                 throw new Exception('Invalid datetime format');
             }
-            
+
+            // Validate actual datetime values (e.g., hours must be 0-23)
+            if (!$this->_is_valid_datetime($start_datetime) || !$this->_is_valid_datetime($end_datetime)) {
+                throw new Exception($this->lang->line('reservations_error_invalid_datetime'));
+            }
+
             // Apply timeline increment constraint
             $increment = $this->config->item('timeline_increment');
             if ($increment && is_numeric($increment) && $increment > 0) {
@@ -439,6 +445,21 @@ class Reservations extends CI_Controller {
         );
         
         return $dt->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * Validate that a datetime string represents a valid date and time
+     * @param string $datetime DateTime string in format 'YYYY-MM-DD HH:MM:SS'
+     * @return bool True if valid, false otherwise
+     */
+    private function _is_valid_datetime($datetime) {
+        try {
+            $dt = new DateTime($datetime);
+            // Verify the parsed datetime matches the input (catches invalid dates like Feb 30)
+            return $dt->format('Y-m-d H:i:s') === $datetime;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**

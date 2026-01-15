@@ -44,6 +44,7 @@ $lang['reservations_error_unknown'] = "Onbekende fout";
 $lang['reservations_error_saving'] = "Fout bij opslaan";
 $lang['reservations_error_deleting'] = "Fout bij verwijderen";
 $lang['reservations_error_prefix'] = "Fout";
+$lang['reservations_error_invalid_datetime'] = "Ongeldige datum of tijd";
 $lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages
