@@ -331,17 +331,42 @@ class Comptes extends Gvv_Controller {
         // Récupérer le paramètre start_expanded depuis la query string
         $this->data['start_expanded'] = ($this->input->get('start_expanded') === 'true');
 
-        // Récupération de la balance générale
-        $result_general = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], $filter_solde, $filter_masked);
-        
-        // Organisation des comptes détaillés par codec
+        // Récupération de la balance générale SANS filtre de solde
+        // Le filtre de solde sera appliqué uniquement aux comptes détaillés
+        $result_general = $this->gvv_model->select_page_general($selection, $this->data['balance_date'], 0, $filter_masked);
+
+        // Organisation des comptes détaillés par codec avec filtre de solde
         $details_by_codec = array();
-        foreach ($result_general as $general_row) {
+        foreach ($result_general as $key => $general_row) {
             $codec_key = $general_row['codec'];
-            // Récupération de la balance détaillée pour ce codec spécifique
+            // Récupération de la balance détaillée pour ce codec spécifique AVEC filtre de solde
             $selection_detail = "codec = \"$codec_key\"";
             $result_detail = $this->gvv_model->select_page($selection_detail, $this->data['balance_date'], $filter_solde, $filter_masked);
+
+            // Si un filtre de solde est actif et qu'il n'y a pas de comptes détaillés,
+            // on supprime aussi la ligne générale
+            if ($filter_solde != 0 && empty($result_detail)) {
+                unset($result_general[$key]);
+                continue;
+            }
+
             $details_by_codec[$codec_key] = $result_detail;
+
+            // Recalculer les totaux de la ligne générale basés sur les comptes filtrés
+            if ($filter_solde != 0 && !empty($result_detail)) {
+                $total_debit = 0;
+                $total_credit = 0;
+                foreach ($result_detail as $detail) {
+                    if (!empty($detail['solde_debit'])) {
+                        $total_debit += $detail['solde_debit'];
+                    }
+                    if (!empty($detail['solde_credit'])) {
+                        $total_credit += $detail['solde_credit'];
+                    }
+                }
+                $result_general[$key]['solde_debit'] = $total_debit > 0 ? $total_debit : '';
+                $result_general[$key]['solde_credit'] = $total_credit > 0 ? $total_credit : '';
+            }
         }
 
         $total = array(
