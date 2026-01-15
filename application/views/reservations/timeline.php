@@ -389,7 +389,7 @@ $this->load->view('bs_banner');
     <script>
         // Configuration
         const CONFIG = {
-            baseUrl: '<?php echo base_url(); ?>',
+            baseUrl: '<?php echo site_url(); ?>',
             currentDate: '<?php echo $current_date; ?>',
             pixelsPerHour: 60,
             slotWidthPx: 60,

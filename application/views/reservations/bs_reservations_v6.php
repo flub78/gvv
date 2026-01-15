@@ -87,7 +87,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     };
 
     const TRANSLATIONS = <?php echo json_encode($translations); ?>;
-    const BASE_URL = '<?php echo base_url(); ?>';
+    const BASE_URL = '<?php echo site_url(); ?>';
 
     let currentEditingEvent = null;
 
@@ -284,7 +284,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         }
 
         // Send to server
-        fetch(BASE_URL + 'index.php/reservations/update_reservation', {
+        fetch(BASE_URL + 'reservations/update_reservation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -324,7 +324,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         const reservationId = currentEditingEvent.id;
 
         // Send delete request to server
-        fetch(BASE_URL + 'index.php/reservations/delete', {
+        fetch(BASE_URL + 'reservations/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -433,7 +433,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             snapDuration: '00:' + String(timelineIncrement).padStart(2, '0') + ':00',
             slotMinTime: '06:00:00',
             events: {
-                url: '<?= base_url('index.php/reservations/get_events') ?>',
+                url: '<?= site_url('reservations/get_events') ?>',
                 failure: function() {
                 }
             },
@@ -501,7 +501,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 const endStr = info.event.end ? toLocalDatetimeString(info.event.end) : startStr;
                 const resourceId = info.event.extendedProps.aircraft || '';
                 
-                fetch('<?= base_url('index.php/reservations/on_event_drop') ?>', {
+                fetch('<?= site_url('reservations/on_event_drop') ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
