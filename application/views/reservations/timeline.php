@@ -447,7 +447,7 @@ $this->load->view('bs_banner');
          * Load timeline data from server
          */
         function loadTimelineData() {
-            fetch(CONFIG.baseUrl + 'reservations/get_timeline_data?date=' + state.currentDate)
+            fetch(CONFIG.baseUrl + '/reservations/get_timeline_data?date=' + state.currentDate)
                 .then(response => response.json())
                 .then(data => {
                     state.timelineData = data;
@@ -654,7 +654,7 @@ $this->load->view('bs_banner');
             console.log('Event clicked:', event.id);
             
             // Send trace to server
-            fetch(CONFIG.baseUrl + 'reservations/on_event_click', {
+            fetch(CONFIG.baseUrl + '/reservations/on_event_click', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -776,7 +776,7 @@ $this->load->view('bs_banner');
             eventEl.setAttribute('data-end', newEnd);
             
             // Send to server
-            fetch(CONFIG.baseUrl + 'reservations/on_event_drop', {
+            fetch(CONFIG.baseUrl + '/reservations/on_event_drop', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -964,7 +964,7 @@ $this->load->view('bs_banner');
             console.log('Slot clicked:', resourceId, clickedTime);
 
             // Send trace to server
-            fetch(CONFIG.baseUrl + 'reservations/on_slot_click', {
+            fetch(CONFIG.baseUrl + '/reservations/on_slot_click', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -1261,7 +1261,7 @@ $this->load->view('bs_banner');
             }
 
             // Send to server
-            fetch(CONFIG.baseUrl + 'reservations/update_reservation', {
+            fetch(CONFIG.baseUrl + '/reservations/update_reservation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -1302,7 +1302,7 @@ $this->load->view('bs_banner');
             const reservationId = event.id;
 
             // Send delete request to server
-            fetch(CONFIG.baseUrl + 'reservations/delete', {
+            fetch(CONFIG.baseUrl + '/reservations/delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
