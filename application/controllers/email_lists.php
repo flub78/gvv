@@ -24,6 +24,14 @@ if (!defined('BASEPATH'))
  * Controller for email distribution lists management
  *
  * @see doc/design_notes/gestion_emails_design.md
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/email-lists-create-debug.spec.js
+ *   - npx playwright test tests/email-lists-simple-creation.spec.js
+ *   - npx playwright test tests/email-lists-validation-simple.spec.js
+ *   - npx playwright test tests/email-lists-validation.spec.js
+ *   - npx playwright test tests/email-lists-workflow-v14.spec.js
+ *   - npx playwright test tests/email_lists_sublists_smoke.spec.js
  */
 
 include_once(APPPATH . '/libraries/Gvv_Controller.php');

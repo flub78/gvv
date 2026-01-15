@@ -20,6 +20,9 @@
  * @package controllers
  *
  * controleur de gestion des vols planeur
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/bugfix-payeur-selector.spec.js
  */
 include ('./application/libraries/Gvv_Controller.php');
 

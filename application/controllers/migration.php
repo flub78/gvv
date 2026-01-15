@@ -21,6 +21,9 @@
  * @filesource migration.php
  * @package controllers
  *
+ * Playwright tests:
+ *   - npx playwright test tests/migration-test.spec.js
+ *
  */
 set_include_path(getcwd() . "/..:" . get_include_path());
 class Migration extends CI_Controller {

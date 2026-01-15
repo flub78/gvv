@@ -17,8 +17,9 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @filesource avion.php
- * @package controllers
+ * @filesource avion.php *
+ * Playwright tests:
+ *   - npx playwright test tests/licences-checkbox.spec.js * @package controllers
  * Controleur de gestion des avions.
  */
 include ('./application/libraries/Gvv_Controller.php');

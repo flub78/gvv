@@ -22,6 +22,9 @@
  * @filesource admin.php
  * @package controllers
  *
+ * Playwright tests:
+ *   - npx playwright test tests/migration-test.spec.js
+ *
  */
 class Admin extends CI_Controller {
     protected $controller = "admin";

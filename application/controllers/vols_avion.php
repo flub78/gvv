@@ -19,6 +19,9 @@
  *
  * @filesource vols_avion.php
  * @package controllers
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/bugfix-payeur-selector.spec.js
  */
 include('./application/libraries/Gvv_Controller.php');
 

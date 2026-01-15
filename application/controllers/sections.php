@@ -22,6 +22,9 @@
  * Controleur des sections / CRUD
  *
  * Sections
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/sections_ordre_affichage.spec.js
  */
 
 /**

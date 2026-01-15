@@ -25,6 +25,11 @@ require_once(APPPATH . 'core/Gvv_Controller.php');
  * @filesource welcome.php
  * @package controllers
  *          Page d'acceuil
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/migration-test.spec.js
+ *   - npx playwright test tests/resultat-par-sections.spec.js
+ *   - npx playwright test tests/section-unique.spec.js
  */
 class Welcome extends Gvv_Controller {
 

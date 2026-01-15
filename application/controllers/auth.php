@@ -1,4 +1,29 @@
 <?php
+/**
+ * Auth Controller
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/balance-search-debug.spec.js
+ *   - npx playwright test tests/compta_frozen_entry_buttons.spec.js
+ *   - npx playwright test tests/compta_journal_serverside.spec.js
+ *   - npx playwright test tests/debug-balance-page.spec.js
+ *   - npx playwright test tests/diagnostic-remote.spec.js
+ *   - npx playwright test tests/email-lists-create-debug.spec.js
+ *   - npx playwright test tests/email-lists-simple-creation.spec.js
+ *   - npx playwright test tests/email-lists-validation-simple.spec.js
+ *   - npx playwright test tests/email-lists-validation.spec.js
+ *   - npx playwright test tests/email-lists-workflow-v14.spec.js
+ *   - npx playwright test tests/email_lists_sublists_smoke.spec.js
+ *   - npx playwright test tests/legacy-users-accounts.spec.js
+ *   - npx playwright test tests/login-page-capture.spec.js
+ *   - npx playwright test tests/migration-test.spec.js
+ *   - npx playwright test tests/presences-fullcalendar.spec.js
+ *   - npx playwright test tests/resultat-par-sections.spec.js
+ *   - npx playwright test tests/resultat_par_sections_detail_links.spec.js
+ *   - npx playwright test tests/section-unique.spec.js
+ *   - npx playwright test tests/sections_ordre_affichage.spec.js
+ *   - npx playwright test tests/smoke.spec.js
+ */
 class Auth extends CI_Controller {
     // Used for registering and changing password form validation
     var $min_username = 4;

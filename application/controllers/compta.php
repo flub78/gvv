@@ -23,6 +23,13 @@
  *
  * Controleur de gestion des écritures comptables
  * TODO: renomer en Ecriture (ou pas pour limiter les risques)
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/compta_frozen_entry_buttons.spec.js
+ *   - npx playwright test tests/compta_journal_search.spec.js
+ *   - npx playwright test tests/diagnostic-remote.spec.js
+ *   - npx playwright test tests/gaulois-users-accounts.spec.js
+ *   - npx playwright test tests/saisie-cotisation.spec.js
  */
 include('./application/libraries/Gvv_Controller.php');
 class Compta extends Gvv_Controller {

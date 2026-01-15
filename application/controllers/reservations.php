@@ -19,6 +19,9 @@ if (! defined('BASEPATH'))
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Aircraft Reservations - FullCalendar v6 Experimentation
+ *
+ * Playwright tests:
+ *   - npx playwright test tests/reservations-timeline-create.spec.js
  */
 set_include_path(getcwd() . "/..:" . get_include_path());
 
