@@ -77,7 +77,7 @@ class ReservationsConflictTest extends TestCase
     /**
      * Helper method to create a test reservation
      */
-    private function createTestReservation($aircraft_id, $pilot_id, $instructor_id, $start, $end, $status = 'confirmed')
+    private function createTestReservation($aircraft_id, $pilot_id, $instructor_id, $start, $end, $status = 'reservation')
     {
         $data = array(
             'aircraft_id' => $aircraft_id,
@@ -307,22 +307,25 @@ class ReservationsConflictTest extends TestCase
     }
 
     /**
-     * Test cancelled reservations are ignored in conflict detection
+     * Test deleted reservations are ignored in conflict detection
      */
-    public function testCancelledReservationsIgnored()
+    public function testDeletedReservationsIgnored()
     {
-        // Create a cancelled reservation
+        // Create a reservation then delete it
         $id1 = $this->createTestReservation(
             $this->test_aircraft_id,
             $this->test_pilot_id,
             $this->test_instructor_id,
             '2026-06-15 18:00:00',
-            '2026-06-15 19:00:00',
-            'cancelled'
+            '2026-06-15 19:00:00'
         );
-        $this->created_reservation_ids[] = $id1;
 
-        // Try to create another reservation in the same slot - should be valid since first is cancelled
+        // Delete the reservation
+        $this->CI->db->delete('reservations', array('id' => $id1));
+        // Remove from cleanup list since it's already deleted
+        $this->created_reservation_ids = array_diff($this->created_reservation_ids, array($id1));
+
+        // Try to create another reservation in the same slot - should be valid since first is deleted
         $conflict_check = $this->model->check_reservation_conflicts(
             $this->test_aircraft_id,
             $this->test_pilot_id,
@@ -332,8 +335,8 @@ class ReservationsConflictTest extends TestCase
             null
         );
 
-        $this->assertTrue($conflict_check['valid'], "Should ignore cancelled reservations");
-        $this->assertEmpty($conflict_check['conflicts'], "Should have no conflicts with cancelled reservations");
+        $this->assertTrue($conflict_check['valid'], "Should ignore deleted reservations");
+        $this->assertEmpty($conflict_check['conflicts'], "Should have no conflicts with deleted reservations");
     }
 
     /**
