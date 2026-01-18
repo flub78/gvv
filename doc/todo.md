@@ -24,12 +24,12 @@
     * [x] checks if there are still some Dusk tests to migrate
     * [x] migrate them
     * [ ] Implement missing playwright tests according to the test plan
-    
-
-  
+     
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
   * [] donner les droits dans les controllers
+  
+* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 

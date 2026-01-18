@@ -32,6 +32,7 @@ $lang['auth_disconnect_before'] = 'Déconnectez vous avant de vous enregistrer.'
 $lang['auth_account_enabled'] = "Votre compte a été activé.";
 $lang['auth_incorrect_activation'] = "Votre code d'activation est incorrect. Vérifiez vos emails.";
 $lang['auth_forgot_pw_msg'] = 'Un courriel vous a été envoyé avec les instructions pour activer votre nouveau mot de passe.';
+$lang['auth_forgot_password_email_error'] = 'Erreur lors de l\'envoi de l\'email de réinitialisation, contactez l\'administrateur.';
 $lang['auth_reinit_password'] = 'Votre mot de passe a été réinitialisé, utilisez celui que vous avez reçu par courriel, ';
 $lang['auth_reinit_password_failed'] = 'Echec de la réinitialisation. Votre identifiant ou mot de passe sont incorrects. Les instructions de réinitialisation on du vous être envoyées par courriel.';
 $lang['auth_password_changed'] = 'Votre mot de passe a été changé';

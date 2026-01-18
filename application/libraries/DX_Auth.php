@@ -157,7 +157,13 @@ class DX_Auth {
         $email->subject($subject);
         $email->message($message);
 
-        return $email->send();
+        $result = $email->send();
+        
+        if (!$result) {
+            gvv_error("Erreur lors de l'envoi d'email à " . $to . ": " . $email->print_debugger());
+        }
+        
+        return $result;
     }
 
     // Set last ip and last login function when user login
@@ -846,7 +852,9 @@ class DX_Auth {
                 $this->ci->dx_auth_event->sending_activation_email($new_user, $message);
 
                 // Send email with activation link
-                $this->_email($email, $from, $subject, $message);
+                if (!$this->_email($email, $from, $subject, $message)) {
+                    gvv_error("Email d'activation du compte non envoyé à " . $email);
+                }
             } else {
                 // Check if need to email account details
                 if ($this->ci->config->item('DX_email_account_details')) {
@@ -858,7 +866,9 @@ class DX_Auth {
                     $this->ci->dx_auth_event->sending_account_email($new_user, $message);
 
                     // Send email with account details
-                    $this->_email($email, $from, $subject, $message);
+                    if (!$this->_email($email, $from, $subject, $message)) {
+                        gvv_error("Email des détails du compte non envoyé à " . $email);
+                    }
                 }
             }
         }
@@ -946,9 +956,11 @@ class DX_Auth {
                     $this->ci->dx_auth_event->sending_forgot_password_email($data, $message);
 
                     // Send instruction email
-                    $this->_email($row->email, $from, $subject, $message);
-
-                    $result = TRUE;
+                    $result = $this->_email($row->email, $from, $subject, $message);
+                    
+                    if (!$result) {
+                        $this->_auth_error = $this->ci->lang->line('auth_forgot_password_email_error');
+                    }
                 } else {
                     // There is already new password waiting to be activated
                     $this->_auth_error = $this->ci->lang->line('auth_request_sent');

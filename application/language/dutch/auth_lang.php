@@ -32,6 +32,7 @@ $lang['auth_disconnect_before'] = 'Meld af alvorens u te registreren.';
 $lang['auth_account_enabled'] = "Uw account is geactiveerd.";
 $lang['auth_incorrect_activation'] = "Uw activatiecode is niet correct. Controleer uw mailbox.";
 $lang['auth_forgot_pw_msg'] = 'Er werden u instructies gemaild om een nieuw wachtwoord te activeren.';
+$lang['auth_forgot_password_email_error'] = 'Fout bij het verzenden van de wachtwoordresetstuurmail, neem contact op met de beheerder.';
 $lang['auth_reinit_password'] = 'Uw wachtwoord werd opnieuw ingesteld, gebruik hetgene u per mail hebt ontvangen.';
 $lang['auth_reinit_password_failed'] = 'Fout bij de initialisatie. Uw gegevens zijn foutief. De instructies werden u per mail toegestuurd.';
 $lang['auth_password_changed'] = 'Uw wachtwoord werd gewijzigd';

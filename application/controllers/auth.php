@@ -328,10 +328,22 @@ class Auth extends CI_Controller {
 
         // Validate rules and call forgot password function
         if ($val->run() and $this->dx_auth->forgot_password($val->set_value('login'))) {
+            // Get user email for logging
+            $this->load->model('dx_auth/users', 'users');
+            $login = $val->set_value('login');
+            if ($query = $this->users->get_login($login) and $query->num_rows() == 1) {
+                $row = $query->row();
+                gvv_info("Demande de réinitialisation de mot de passe envoyée à " . $row->email);
+            }
+            
             $data['auth_message'] = $this->lang->line("auth_forgot_pw_msg");
             load_last_view($this->dx_auth->forgot_password_success_view, $data);
         } else {
-            load_last_view($this->dx_auth->forgot_password_view);
+            // If dx_auth has set an error, use it in the view
+            if ($this->dx_auth->_auth_error) {
+                $data['auth_error'] = $this->dx_auth->_auth_error;
+            }
+            load_last_view($this->dx_auth->forgot_password_view, $data);
         }
     }
     function reset_password() {

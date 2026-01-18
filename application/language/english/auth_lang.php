@@ -32,6 +32,7 @@ $lang['auth_disconnect_before'] = 'Log out before to register.';
 $lang['auth_account_enabled'] = "Your account have been successfully activated.";
 $lang['auth_incorrect_activation'] = 'The activation code you entered was incorrect. Please check your email again.';
 $lang['auth_forgot_pw_msg'] = 'An email has been sent with instructions to activate your new password.';
+$lang['auth_forgot_password_email_error'] = 'Error sending password reset email, please contact the administrator.';
 $lang['auth_reinit_password'] = 'Your password has been reset. use the one that you have received by email, ';
 $lang['auth_reinit_password_failed'] = 'Reinitialisation failure. User name or password are incorrect. Instructions for reinitialisation has been sent by email.';
 $lang['auth_password_changed'] = 'Your password has been changed';
