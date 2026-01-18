@@ -1,3 +1,68 @@
+/**
+ * GVV - Résultat par sections detail view tests
+ * 
+ * Test suite for the detail view of "Résultat par sections" page.
+ * Verifies table structure, navigation, and export functionality.
+ * 
+ * @fileoverview Tests for resultat_par_sections_detail page
+ * @requires @playwright/test
+ */
+
+/**
+ * Test suite: Résultat par sections detail view
+ * 
+ * @describe Résultat par sections detail view
+ */
+
+/**
+ * Setup before each test
+ * 
+ * Performs login as admin and navigates to the application,
+ * selecting a section if the section selection page appears.
+ * 
+ * @beforeEach
+ * @async
+ * @param {Object} context - Playwright test context
+ * @param {Page} context.page - Playwright page object
+ */
+
+/**
+ * Test: Verify simplified table structure with Section column
+ * 
+ * Navigates to resultat_par_sections page, opens a detail link,
+ * and verifies that the detail table has the correct column structure:
+ * Code, Libellé, Section, Year N, Year N-1
+ * 
+ * @test
+ * @async
+ * @param {Object} context - Playwright test context
+ * @param {Page} context.page - Playwright page object
+ */
+
+/**
+ * Test: Access detail page directly via codec 607
+ * 
+ * Navigates directly to a known codec detail page and verifies
+ * that the page loads successfully with correct table structure
+ * and data rows.
+ * 
+ * @test
+ * @async
+ * @param {Object} context - Playwright test context
+ * @param {Page} context.page - Playwright page object
+ */
+
+/**
+ * Test: Verify CSV and PDF export buttons
+ * 
+ * Navigates to the detail page and verifies that export buttons
+ * for Excel and PDF formats are visible and accessible.
+ * 
+ * @test
+ * @async
+ * @param {Object} context - Playwright test context
+ * @param {Page} context.page - Playwright page object
+ */
 const { test, expect } = require('@playwright/test');
 
 test.describe('Résultat par sections detail view', () => {

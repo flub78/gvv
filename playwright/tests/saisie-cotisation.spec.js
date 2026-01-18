@@ -1,3 +1,26 @@
+/**
+ * @file saisie-cotisation.spec.js
+ * @description E2E tests for the membership fee entry (Saisie Cotisation) feature
+ * Tests the complete workflow for recording membership fees including form display,
+ * member selection, account assignment, payment details, and form submission validation.
+ * 
+ * @requires @playwright/test
+ * @requires ./helpers/LoginPage
+ * 
+ * @author GVV
+ * @version 1.0.0
+ * @since [Date]
+ * 
+ * @test {Membership Fee Entry (Saisie Cotisation)}
+ * - Displays membership fee entry form with all required sections
+ * - Creates membership fee successfully with proper validation
+ * - Re-enables submit button when form is modified after submission
+ * - Rejects duplicate memberships for same pilot and year
+ * - Membership fee entry is accessible from application menu
+ * 
+ * @note Tests require authentication as 'testadmin' user with 'tresorier' role
+ * @note Some tests may be skipped depending on application state
+ */
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
 

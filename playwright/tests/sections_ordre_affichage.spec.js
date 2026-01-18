@@ -1,3 +1,53 @@
+/**
+ * @fileoverview Playwright tests for sections display order (ordre_affichage) functionality
+ * @description Tests the display order field in the sections management interface.
+ *              Validates that the ordre_affichage field is properly displayed in the sections list,
+ *              can be edited for existing sections, and is available when creating new sections.
+ * 
+ * @module tests/sections_ordre_affichage.spec
+ * @requires @playwright/test
+ * 
+ * @author GVV Development Team
+ * @version 1.0.0
+ * @since 2024
+ */
+
+/**
+ * Test suite for sections display order functionality
+ * @test {Sections} ordre_affichage field management
+ */
+
+/**
+ * Setup hook - runs before each test
+ * Authenticates as admin user and handles section selection if required
+ * @async
+ * @param {Object} page - Playwright page object
+ * @returns {Promise<void>}
+ */
+
+/**
+ * Test: Verify ordre_affichage column is visible in sections list
+ * @test {Table} should display ordre_affichage field in sections list
+ * @async
+ * @param {Object} page - Playwright page object
+ * @returns {Promise<void>}
+ */
+
+/**
+ * Test: Edit a section and set the ordre_affichage value
+ * @test {Form} should be able to edit a section and set ordre_affichage
+ * @async
+ * @param {Object} page - Playwright page object
+ * @returns {Promise<void>}
+ */
+
+/**
+ * Test: Create a new section with ordre_affichage field
+ * @test {Form} should create a new section with ordre_affichage
+ * @async
+ * @param {Object} page - Playwright page object
+ * @returns {Promise<void>}
+ */
 const { test, expect } = require('@playwright/test');
 
 test.describe('Sections ordre affichage', () => {

@@ -25,8 +25,7 @@
     * [x] migrate them
     * [ ] Implement missing playwright tests according to the test plan
     
-* [] Création d'une vue planche ULM ()
-* [] Mes vols Avion/ULM (wip)
+
   
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
@@ -215,4 +214,5 @@
 * [x] Ajout d'une date de validité aux vols de découvertes. 
 * [x] **Déconnexion intempestive**  (plus de plaintes depuis le changement des paramètres de timeout dans le php.ini du serveur)
 * [x] problème d'alignement sur la page résultats, les chiffres devraient être alignés à droite.
-
+* [x] Création d'une vue planche ULM ()
+* [x] Mes vols Avion/ULM
