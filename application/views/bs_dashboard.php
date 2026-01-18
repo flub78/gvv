@@ -172,7 +172,7 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane-departure text-info"></i>
-                        <div class="card-title">Mes vols avion</div>
+                        <div class="card-title">Mes vols avion/ULM</div>
                         <div class="card-text text-muted">Historique</div>
                         <a href="<?= controller_url('vols_avion/vols_du_pilote/' . $username) ?>" class="btn btn-info btn-sm">Voir</a>
                     </div>

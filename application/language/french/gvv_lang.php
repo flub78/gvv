@@ -46,7 +46,7 @@ $lang['gvv_menu_glider_input'] = "Saisie des vols";
 $lang['gvv_menu_glider_input_automatic'] = "Planche automatique";
 $lang['gvv_menu_glider_machines'] = "Machines";
 
-$lang['gvv_menu_airplane'] = "Avions";
+$lang['gvv_menu_airplane'] = "Avions/ULM";
 $lang['gvv_menu_airplane_list'] = "Liste des vols";
 $lang['gvv_menu_airplane_input'] = "Saisie des vols";
 $lang['gvv_menu_airplane_machines'] = "Machines";
