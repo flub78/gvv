@@ -139,6 +139,18 @@ const TEST_PAGES = {
         description: 'Account balance',
         allowedRoles: ['tresorier', 'club-admin', 'bureau']
     },
+    compta_dashboard: {
+        path: '/comptes/dashboard',
+        description: 'Accounting dashboard',
+        // CA members have partial access to accounting: dashboard and tresorerie only
+        allowedRoles: ['ca', 'bureau', 'tresorier', 'club-admin']
+    },
+    compta_tresorerie: {
+        path: '/comptes/tresorerie',
+        description: 'Treasury overview',
+        // CA members have partial access to accounting: dashboard and tresorerie only
+        allowedRoles: ['ca', 'bureau', 'tresorier', 'club-admin']
+    },
     terrains_page: {
         path: '/terrains/page',
         description: 'Airfield listing',
@@ -434,4 +446,44 @@ test('testtresorier should have access to financial pages', async ({ page }) => 
     await logoutUser(page);
 
     console.log('✓ Treasurer access verification complete');
+});
+
+/**
+ * Test: CA member partial accounting access
+ * CA members should have access to dashboard and tresorerie only, not to full accounting
+ */
+test('testca should have partial access to accounting (dashboard and tresorerie only)', async ({ page }) => {
+    console.log('\n[TEST] CA member partial accounting access verification');
+
+    await loginUser(page, 'testca', 'password');
+
+    // CA should have access to these accounting pages
+    const allowedPaths = [
+        '/comptes/dashboard',
+        '/comptes/tresorerie'
+    ];
+
+    for (const path of allowedPaths) {
+        const url = buildUrl(path);
+        const result = await checkPageAccess(page, url);
+        console.log(`  ${url}: ${result.allowed ? '✓ ALLOWED' : '✗ DENIED'}`);
+        expect(result.allowed, `Expected access ALLOWED for ${url}, but got: ${result.reason}`).toBeTruthy();
+    }
+
+    // CA should NOT have access to these accounting pages (bureau+ only)
+    const restrictedPaths = [
+        '/comptes/balance',
+        '/compta/create'
+    ];
+
+    for (const path of restrictedPaths) {
+        const url = buildUrl(path);
+        const result = await checkPageAccess(page, url);
+        console.log(`  ${url}: ${result.allowed ? '✗ WRONGLY ALLOWED' : '✓ CORRECTLY DENIED'}`);
+        expect(result.allowed, `Expected access DENIED for ${url}, but got: ${result.reason}`).toBeFalsy();
+    }
+
+    await logoutUser(page);
+
+    console.log('✓ CA member partial accounting access verification complete');
 });

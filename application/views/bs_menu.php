@@ -235,56 +235,51 @@ $section_count = $CI->sections_model->safe_count_all();
           </ul>
         </li>
 
-        <?php if (has_role('bureau')) : ?>
+        <?php if (has_role('ca')) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_accounting") ?></a>
             <ul class="dropdown-menu">
 
               <?php if (has_role('bureau')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("compta/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("gvv_menu_accounting_journal") ?></a></li>
-
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
-              <?php endif; ?>
-
-              <?php if (has_role('ca')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/512?start_expanded=true") ?>"><i class="fas fa-university text-primary"></i> <?= translation("gvv_menu_accounting_banking_accounts") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/411?start_expanded=true") ?>"><i class="fas fa-user-check text-success"></i> <?= translation("gvv_menu_accounting_pilot_balance") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat") ?>"><i class="fas fa-chart-pie text-warning"></i> <?= translation("gvv_menu_accounting_results") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat_par_sections") ?>"><i class="fas fa-table text-info"></i> <?= translation("gvv_menu_accounting_results_by_sections") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/bilan") ?>"><i class="fas fa-calculator text-primary"></i> <?= translation("gvv_menu_accounting_bilan") ?></a></li>
+              <?php endif; ?>
 
-                <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><i class="fas fa-tachometer-alt text-primary"></i> <?= translation("gvv_menu_accounting_dashboard") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><i class="fas fa-tachometer-alt text-primary"></i> <?= translation("gvv_menu_accounting_dashboard") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><i class="fas fa-money-bill-wave text-success"></i> <?= translation("gvv_menu_accounting_cash") ?></a></li>
+
+              <?php if (has_role('bureau')) : ?>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
-
                 <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><i class="fas fa-shopping-bag text-success"></i> <?= translation("gvv_menu_accounting_sales") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><i class="fas fa-money-bill-wave text-success"></i> <?= translation("gvv_menu_accounting_cash") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><i class="fas fa-paperclip text-info"></i> <?= translation("gvv_attachments_title") ?></a></li>
+              <?php endif; ?>
 
+              <?php if (has_role('tresorier')) : ?>
+                <?php if ($this->config->item('gestion_of')) : ?>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
 
-                <?php if (has_role('tresorier')) : ?>
-                  <?php if ($this->config->item('gestion_of')) : ?>
-                    <li>
-                      <hr class="dropdown-divider">
-                    </li>
+                  <li><a class="dropdown-item" href="#"><i class="fas fa-sync text-info"></i> Synchronisation OpenFlyers</a>
+                    <ul class="submenu dropdown-menu">
 
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-sync text-info"></i> Synchronisation OpenFlyers</a>
-                      <ul class="submenu dropdown-menu">
+                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>"><i class="fas fa-download text-success"></i> Import des opérations</a></li>
 
-                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>"><i class="fas fa-download text-success"></i> Import des opérations</a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>"><i class="fas fa-check-double text-success"></i> Import/vérification des soldes</a></li>
 
-                        <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>"><i class="fas fa-check-double text-success"></i> Import/vérification des soldes</a></li>
-
-                        <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>"><i class="fas fa-link text-primary"></i> Associations des comptes OpenFlyers</a></li>
-                      </ul>
-                    </li>
-                  <?php endif; ?>
-                  <?php if ($this->config->item('gestion_rapprochements')) : ?>
-                    <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><i class="fas fa-list-check text-warning"></i> <?= translation("gvv_menu_rapprochements") ?></a></li>
-                  <?php endif; ?>
-
-
+                      <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>"><i class="fas fa-link text-primary"></i> Associations des comptes OpenFlyers</a></li>
+                    </ul>
+                  </li>
+                <?php endif; ?>
+                <?php if ($this->config->item('gestion_rapprochements')) : ?>
+                  <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><i class="fas fa-list-check text-warning"></i> <?= translation("gvv_menu_rapprochements") ?></a></li>
                 <?php endif; ?>
               <?php endif; ?>
 
