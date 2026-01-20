@@ -1446,27 +1446,41 @@ class Admin extends CI_Controller {
             'extracted' => count($test_data['accounts'])
         );
 
-        // Add balance search test cases
-        $test_data['balance_search_tests'] = array(
-            array(
-                'description' => 'Search for Adam using ADA',
-                'search_term' => 'ADA',
-                'expected_name' => 'Adam',
+        // Add balance search test cases - dynamically generated from extracted accounts
+        $test_data['balance_search_tests'] = array();
+        $used_prefixes = array();
+
+        foreach ($test_data['accounts'] as $account) {
+            // Extract last name (first word of account name)
+            $name_parts = explode(' ', $account['name']);
+            $last_name = $name_parts[0];
+
+            // Skip names that are too short or start with special characters
+            if (strlen($last_name) < 3 || preg_match('/^[^a-zA-Z]/', $last_name)) {
+                continue;
+            }
+
+            // Get first 3 letters as search term (uppercase)
+            $search_term = strtoupper(substr($last_name, 0, 3));
+
+            // Skip if we already have a test case with this prefix
+            if (in_array($search_term, $used_prefixes)) {
+                continue;
+            }
+
+            $used_prefixes[] = $search_term;
+            $test_data['balance_search_tests'][] = array(
+                'description' => "Search for {$last_name} using {$search_term}",
+                'search_term' => $search_term,
+                'expected_name' => $last_name,
                 'expected_account_code' => '411'
-            ),
-            array(
-                'description' => 'Search for Alonso using ALO',
-                'search_term' => 'ALO',
-                'expected_name' => 'Alonso',
-                'expected_account_code' => '411'
-            ),
-            array(
-                'description' => 'Search for Barbier using BAR',
-                'search_term' => 'BAR',
-                'expected_name' => 'Barbier',
-                'expected_account_code' => '411'
-            )
-        );
+            );
+
+            // Limit to 3 test cases
+            if (count($test_data['balance_search_tests']) >= 3) {
+                break;
+            }
+        }
 
         // Create output directory if needed
         $output_dir = FCPATH . 'playwright/test-data';

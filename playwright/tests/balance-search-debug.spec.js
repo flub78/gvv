@@ -83,8 +83,8 @@ test.describe('Balance Search Bug Fix', () => {
                 console.log(`After retry: ${finalVisibleItems} visible items`);
             }
 
-            // Look for the expected name in the page content
-            const nameVisible = await page.locator(`text=${testCase.expected_name}`).isVisible();
+            // Look for the expected name in the page content (use .first() since multiple matches are expected for common names)
+            const nameVisible = await page.locator(`text=${testCase.expected_name}`).first().isVisible();
             console.log(`${testCase.expected_name} visible: ${nameVisible}`);
 
             // If not visible, let's check if the accordions are collapsed
@@ -95,7 +95,7 @@ test.describe('Balance Search Bug Fix', () => {
                     await clientAccordion.locator('.accordion-button').click();
                     await page.waitForTimeout(500);
 
-                    const nameAfterExpand = await page.locator(`text=${testCase.expected_name}`).isVisible();
+                    const nameAfterExpand = await page.locator(`text=${testCase.expected_name}`).first().isVisible();
                     console.log(`${testCase.expected_name} visible after expanding: ${nameAfterExpand}`);
                 }
             }
