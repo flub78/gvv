@@ -24,8 +24,19 @@
 const { test, expect } = require('@playwright/test');
 
 // Test configuration
-const BASE_URL = '/index.php';
-const LOGIN_URL = '/index.php/auth/login';
+// URL_PREFIX: empty string for servers with URL rewriting, '/index.php' for servers without
+const URL_PREFIX = process.env.GVV_URL_PREFIX || '';
+
+/**
+ * Build URL with appropriate prefix for the server configuration
+ * @param {string} path - The path without index.php (e.g., '/auth/login')
+ * @returns {string} Full URL path
+ */
+function buildUrl(path) {
+    return URL_PREFIX + path;
+}
+
+const LOGIN_URL = buildUrl('/auth/login');
 
 // Test users from bin/create_test_users.sh
 const TEST_USERS = {
@@ -74,69 +85,72 @@ const TEST_USERS = {
 };
 
 // Pages to test with expected access per role
+// Note: 'path' does not include /index.php - use buildUrl(path) to get full URL
 const TEST_PAGES = {
     welcome: {
-        url: '/index.php/welcome/index',
+        path: '/welcome/index',
         description: 'Welcome dashboard',
         allowedRoles: ['user', 'planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     membre_page: {
-        url: '/index.php/membre/page',
+        path: '/membre/page',
         description: 'Member listing',
         allowedRoles: ['user', 'planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     membre_create: {
-        url: '/index.php/membre/create',
+        path: '/membre/create',
         description: 'Create new member',
         allowedRoles: ['club-admin', 'bureau']
     },
     vols_planeur: {
-        url: '/index.php/vols_planeur/page',
+        path: '/vols_planeur/page',
         description: 'Glider flights listing',
         allowedRoles: ['user', 'planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     vols_planeur_create: {
-        url: '/index.php/vols_planeur/create',
+        path: '/vols_planeur/create',
         description: 'Create glider flight',
         allowedRoles: ['planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     vols_avion: {
-        url: '/index.php/vols_avion/page',
+        path: '/vols_avion/page',
         description: 'Airplane flights listing',
         allowedRoles: ['user', 'planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     compta_mon_compte: {
-        url: '/index.php/compta/mon_compte/1',
+        path: '/compta/mon_compte/1',
         description: 'View own account',
         allowedRoles: ['user', 'planchiste', 'ca', 'bureau', 'tresorier', 'club-admin']
     },
     compta_ecritures: {
-        url: '/index.php/compta/ecritures',
+        path: '/compta/create',
         description: 'Accounting entries',
-        allowedRoles: ['tresorier', 'club-admin', 'bureau']
+        // Bureau can VIEW accounting data but cannot CREATE/MODIFY entries
+        // Only tresorier (and admin who inherits from tresorier) can create entries
+        allowedRoles: ['tresorier', 'club-admin']
     },
     compta_comptes: {
-        url: '/index.php/comptes/page',
+        path: '/comptes/page',
         description: 'Chart of accounts',
         allowedRoles: ['tresorier', 'club-admin', 'bureau']
     },
     compta_balance: {
-        url: '/index.php/comptes/balance',
+        path: '/comptes/balance',
         description: 'Account balance',
         allowedRoles: ['tresorier', 'club-admin', 'bureau']
     },
     terrains_page: {
-        url: '/index.php/terrains/page',
+        path: '/terrains/page',
         description: 'Airfield listing',
         allowedRoles: ['ca', 'bureau', 'tresorier', 'club-admin']
     },
     backend_users: {
-        url: '/index.php/backend/users',
+        path: '/backend/users',
         description: 'User administration',
         allowedRoles: ['club-admin']
     },
     admin_index: {
-        url: '/index.php/admin/index',
+        path: '/admin/index',
         description: 'Administration panel',
         allowedRoles: ['club-admin']
     }
@@ -212,7 +226,7 @@ async function logoutUser(page) {
     }
     
     // Fallback: direct logout URL
-    await page.goto('/index.php/auth/logout');
+    await page.goto(buildUrl('/auth/logout'));
     await page.waitForLoadState('networkidle');
     console.log(`✓ Logged out (via direct URL)`);
     return true;
@@ -287,19 +301,20 @@ for (const [userKey, user] of Object.entries(TEST_USERS)) {
         
         for (const [pageKey, pageInfo] of Object.entries(TEST_PAGES)) {
             const shouldHaveAccess = pageInfo.allowedRoles.includes(user.role);
-            
+
             test(`should ${shouldHaveAccess ? 'allow' : 'deny'} access to ${pageInfo.description}`, async ({ page }) => {
-                console.log(`\n[TEST] ${user.username} accessing ${pageInfo.url}`);
+                const url = buildUrl(pageInfo.path);
+                console.log(`\n[TEST] ${user.username} accessing ${url}`);
                 console.log(`  Expected: ${shouldHaveAccess ? 'ALLOW' : 'DENY'}`);
-                
-                const result = await checkPageAccess(page, pageInfo.url);
-                
+
+                const result = await checkPageAccess(page, url);
+
                 console.log(`  Result: ${result.allowed ? 'ALLOWED' : 'DENIED'} (${result.reason})`);
-                
+
                 if (shouldHaveAccess) {
-                    expect(result.allowed).toBeTruthy();
+                    expect(result.allowed, `Expected access ALLOWED for ${url}, but got: ${result.reason}`).toBeTruthy();
                 } else {
-                    expect(result.allowed).toBeFalsy();
+                    expect(result.allowed, `Expected access DENIED for ${url}, but got: ${result.reason}`).toBeFalsy();
                 }
             });
         }
@@ -339,24 +354,25 @@ test('all users should be able to login and logout sequentially', async ({ page 
  */
 test('testadmin should have access to all admin pages', async ({ page }) => {
     console.log('\n[TEST] Admin full access verification');
-    
+
     await loginUser(page, 'testadmin', 'password');
-    
-    const adminPages = [
-        '/index.php/admin/index',
-        '/index.php/backend/users',
-        '/index.php/authorization/user_roles',
-        '/index.php/comptes/balance'
+
+    const adminPaths = [
+        '/admin/index',
+        '/backend/users',
+        '/authorization/user_roles',
+        '/comptes/balance'
     ];
-    
-    for (const url of adminPages) {
+
+    for (const path of adminPaths) {
+        const url = buildUrl(path);
         const result = await checkPageAccess(page, url);
         console.log(`  ${url}: ${result.allowed ? '✓ ALLOWED' : '✗ DENIED'}`);
-        expect(result.allowed).toBeTruthy();
+        expect(result.allowed, `Expected access ALLOWED for ${url}, but got: ${result.reason}`).toBeTruthy();
     }
-    
+
     await logoutUser(page);
-    
+
     console.log('✓ Admin access verification complete');
 });
 
@@ -365,20 +381,21 @@ test('testadmin should have access to all admin pages', async ({ page }) => {
  */
 test('testuser should NOT have access to admin/treasurer pages', async ({ page }) => {
     console.log('\n[TEST] Basic user restriction verification');
-    
+
     await loginUser(page, 'testuser', 'password');
-    
-    const restrictedPages = [
-        '/index.php/admin/index',
-        '/index.php/backend/users',
-        '/index.php/compta/ecritures',
-        '/index.php/comptes/balance'
+
+    const restrictedPaths = [
+        '/admin/index',
+        '/backend/users',
+        '/compta/create',
+        '/comptes/balance'
     ];
-    
-    for (const url of restrictedPages) {
+
+    for (const path of restrictedPaths) {
+        const url = buildUrl(path);
         const result = await checkPageAccess(page, url);
         console.log(`  ${url}: ${result.allowed ? '✗ WRONGLY ALLOWED' : '✓ CORRECTLY DENIED'}`);
-        expect(result.allowed).toBeFalsy();
+        expect(result.allowed, `Expected access DENIED for ${url}, but got: ${result.reason}`).toBeFalsy();
     }
     
     await logoutUser(page);
@@ -391,28 +408,30 @@ test('testuser should NOT have access to admin/treasurer pages', async ({ page }
  */
 test('testtresorier should have access to financial pages', async ({ page }) => {
     console.log('\n[TEST] Treasurer financial access verification');
-    
+
     await loginUser(page, 'testtresorier', 'password');
-    
-    const financialPages = [
-        '/index.php/compta/ecritures',
-        '/index.php/comptes/page',
-        '/index.php/comptes/balance',
-        '/index.php/compta/mon_compte/1'
+
+    const financialPaths = [
+        '/compta/create',
+        '/comptes/page',
+        '/comptes/balance',
+        '/compta/mon_compte/1'
     ];
-    
-    for (const url of financialPages) {
+
+    for (const path of financialPaths) {
+        const url = buildUrl(path);
         const result = await checkPageAccess(page, url);
         console.log(`  ${url}: ${result.allowed ? '✓ ALLOWED' : '✗ DENIED'}`);
-        expect(result.allowed).toBeTruthy();
+        expect(result.allowed, `Expected access ALLOWED for ${url}, but got: ${result.reason}`).toBeTruthy();
     }
-    
+
     // But should NOT have admin access
-    const adminResult = await checkPageAccess(page, '/index.php/admin/index');
-    console.log(`  /index.php/admin/index: ${adminResult.allowed ? '✗ WRONGLY ALLOWED' : '✓ CORRECTLY DENIED'}`);
-    expect(adminResult.allowed).toBeFalsy();
-    
+    const adminUrl = buildUrl('/admin/index');
+    const adminResult = await checkPageAccess(page, adminUrl);
+    console.log(`  ${adminUrl}: ${adminResult.allowed ? '✗ WRONGLY ALLOWED' : '✓ CORRECTLY DENIED'}`);
+    expect(adminResult.allowed, `Expected access DENIED for ${adminUrl}, but got: ${adminResult.reason}`).toBeFalsy();
+
     await logoutUser(page);
-    
+
     console.log('✓ Treasurer access verification complete');
 });

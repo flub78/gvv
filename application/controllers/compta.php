@@ -70,6 +70,11 @@ class Compta extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
+        // Check authorization - only users with modification_level role can edit entries
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            $this->dx_auth->deny_access();
+            return;
+        }
 
         $section = $this->gvv_model->section();
         if (!$section) {
@@ -280,6 +285,12 @@ class Compta extends Gvv_Controller {
      *            | VISUALISATION | MODIFICATION
      */
     public function formValidation($action, $return_on_success = false) {
+        // Check authorization - only users with modification_level role can submit entries
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
         $button = $this->input->post('button');
 
         if ($button == "Abandonner") {
@@ -435,6 +446,11 @@ class Compta extends Gvv_Controller {
      * Écriture entre deux comptes
      */
     function ecriture(string $title_key, $emploi_selection, $resource_selection, $message = "") {
+        // Check authorization - only users with modification_level role can create entries
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            $this->dx_auth->deny_access();
+            return;
+        }
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
 
