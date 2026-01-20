@@ -36,6 +36,10 @@
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 * [x] supprimer la configuration des emails dans la base de données.
 
+* [] Ajout des types vol de découverte et vol propriétaire dans les réservations.
+
+* [] Interdire les réservations sans cotisation et sans argent sur le compte.
+
 * [] Gestion des visites médicales
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
