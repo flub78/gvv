@@ -68,10 +68,12 @@ $config['categories_pilote'] = array(
  */
 $config['categories_vol_avion'] = array(
   0 => 'Standard',
-  1 => "Vol d'initiation",
+  1 => "Vol de découverte",
   2 => "Vol d'essai",
   3 => "Remorquage",
-  // 4 => "Ependage"
+  4 => "Vol propriétaire",
+  5 => "Vol porte ouverte",
+  6 => "Vol BIA"
 );
 
 /*
@@ -79,10 +81,12 @@ $config['categories_vol_avion'] = array(
  */
 $config['categories_vol_avion_short'] = array(
   0 => 'Std',
-  1 => "VI",
+  1 => "VD",
   2 => "VE",
   3 => "R",
-  // 4 => "E"
+  4 => "PROP",
+  5 => "PO",
+  6 => "BIA"
 );
 
 /*
@@ -90,9 +94,11 @@ $config['categories_vol_avion_short'] = array(
  */
 $config['categories_vol_planeur'] = array(
   0 => 'Standard',
-  1 => "Vol d'initiation",
+  1 => "Vol de découverte",
   2 => "Vol d'essai",
-  3 => "Concours"
+  3 => "Concours",
+  4 => "Vol Porte Ouverte",
+  5 => "Vol BIA"
 );
 
 /*
@@ -102,7 +108,9 @@ $config['categories_vol_planeur_short'] = array(
   0 => 'Std',
   1 => "VI",
   2 => "VE",
-  3 => "CONC"
+  3 => "CONC",
+  4 => "PO",
+  5 => "BIA"
 );
 
 /*
