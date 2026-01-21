@@ -291,6 +291,7 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['actif']['Name'] = 'Actif';
                 $this->field['machinesa']['maprix']['Name'] = 'Prix';
                 $this->field['machinesa']['maprixdc']['Name'] = 'Prix DC';
+                $this->field['machinesa']['maprixproprio']['Name'] = 'Prix Proprio';
                 $this->field['machinesa']['vols']['Name'] = 'Vols';
                 $this->field['machinesa']['fabrication']['Name'] = 'Mise en service';
 
@@ -303,6 +304,8 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['maprix']['Selector'] = 'produit_selector';
                 $this->field['machinesa']['maprixdc']['Subtype'] = 'selector';
                 $this->field['machinesa']['maprixdc']['Selector'] = 'produit_selector';
+                $this->field['machinesa']['maprixproprio']['Subtype'] = 'selector';
+                $this->field['machinesa']['maprixproprio']['Selector'] = 'produit_selector';
 
                 $this->field['machinesa']['prix']['Name'] = 'Prix';
 

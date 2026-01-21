@@ -57,6 +57,7 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'maprive' => $maprive,
     'maprix' => $maprix,
     'maprixdc' => $maprixdc,
+    'maprixproprio' => $maprixproprio,
     'horametre_en_minutes' => $horametre_en_minutes,
     'actif' => $actif,
     'fabrication' => $fabrication,
