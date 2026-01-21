@@ -100,7 +100,7 @@ const TEST_PAGES = {
     membre_create: {
         path: '/membre/create',
         description: 'Create new member',
-        allowedRoles: ['club-admin', 'bureau']
+        allowedRoles: ['ca', 'bureau', 'tresorier', 'club-admin']
     },
     vols_planeur: {
         path: '/vols_planeur/page',
