@@ -66,6 +66,18 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Affiche le formulaire de création
+     * Accès restreint aux rôles CA et supérieurs
+     */
+    function create() {
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+        parent::create();
+    }
+
+    /**
      * Hook activé avant la mise à jour
      */
     function pre_update($id, &$data = array()) {

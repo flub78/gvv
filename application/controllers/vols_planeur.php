@@ -619,7 +619,7 @@ class Vols_planeur extends Gvv_Controller {
      *            à afficher
      */
     function page($premier = 0, $message = '', $selection = array()) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->dx_auth->is_logged_in()) {
             $this->dx_auth->deny_access();
         }
         
