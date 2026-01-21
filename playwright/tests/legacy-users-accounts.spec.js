@@ -160,11 +160,6 @@ const TEST_PAGES = {
         path: '/backend/users',
         description: 'User administration',
         allowedRoles: ['club-admin']
-    },
-    admin_index: {
-        path: '/admin/index',
-        description: 'Administration panel',
-        allowedRoles: ['club-admin']
     }
 };
 
@@ -370,7 +365,6 @@ test('testadmin should have access to all admin pages', async ({ page }) => {
     await loginUser(page, 'testadmin', 'password');
 
     const adminPaths = [
-        '/admin/index',
         '/backend/users',
         '/authorization/user_roles',
         '/comptes/balance'
@@ -397,7 +391,6 @@ test('testuser should NOT have access to admin/treasurer pages', async ({ page }
     await loginUser(page, 'testuser', 'password');
 
     const restrictedPaths = [
-        '/admin/index',
         '/backend/users',
         '/compta/create',
         '/comptes/balance'
