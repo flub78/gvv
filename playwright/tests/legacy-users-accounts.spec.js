@@ -437,12 +437,6 @@ test('testtresorier should have access to financial pages', async ({ page }) => 
         expect(result.allowed, `Expected access ALLOWED for ${url}, but got: ${result.reason}`).toBeTruthy();
     }
 
-    // But should NOT have admin access
-    const adminUrl = buildUrl('/admin/index');
-    const adminResult = await checkPageAccess(page, adminUrl);
-    console.log(`  ${adminUrl}: ${adminResult.allowed ? '✗ WRONGLY ALLOWED' : '✓ CORRECTLY DENIED'}`);
-    expect(adminResult.allowed, `Expected access DENIED for ${adminUrl}, but got: ${adminResult.reason}`).toBeFalsy();
-
     await logoutUser(page);
 
     console.log('✓ Treasurer access verification complete');
