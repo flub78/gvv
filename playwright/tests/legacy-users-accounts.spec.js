@@ -168,14 +168,19 @@ const TEST_PAGES = {
  */
 async function loginUser(page, username, password) {
     await page.goto(LOGIN_URL);
-    await page.waitForLoadState('networkidle');
-    
+    await page.waitForLoadState('domcontentloaded');
+
+    // Wait for login form to be ready
+    await page.waitForSelector('input[name="username"]', { state: 'visible' });
+
     await page.fill('input[name="username"]', username);
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"], input[type="submit"]');
-    
-    await page.waitForLoadState('networkidle');
-    
+
+    // Wait for navigation away from login page
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForSelector('body', { state: 'visible' });
+
     // Check for login error message
     const bodyText = await page.locator('body').innerText();
     if (bodyText.includes('mot de passe est incorrect') || 
@@ -223,7 +228,7 @@ async function logoutUser(page) {
             const logoutElement = page.locator(selector).first();
             if (await logoutElement.isVisible({ timeout: 2000 })) {
                 await logoutElement.click();
-                await page.waitForLoadState('networkidle');
+                await page.waitForLoadState('domcontentloaded');
                 console.log(`✓ Logged out`);
                 return true;
             }
@@ -231,10 +236,10 @@ async function logoutUser(page) {
             continue;
         }
     }
-    
+
     // Fallback: direct logout URL
     await page.goto(buildUrl('/auth/logout'));
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log(`✓ Logged out (via direct URL)`);
     return true;
 }
@@ -244,8 +249,11 @@ async function logoutUser(page) {
  */
 async function checkPageAccess(page, url) {
     await page.goto(url);
-    await page.waitForLoadState('networkidle');
-    
+    await page.waitForLoadState('domcontentloaded');
+
+    // Wait for page to stabilize
+    await page.waitForSelector('body', { state: 'visible' });
+
     const pathname = new URL(page.url()).pathname;
     
     // Check if redirected to login (access denied)
