@@ -93,15 +93,33 @@ L'acceptation enregistre automatiquement :
 **Formule de réception**
 > "Je soussigné(e) [Prénom Nom Élève], reconnais avoir reçu la formation [titre] dispensée par [Prénom Nom Instructeur] le [date]."
 
-### Responsable Club
+### Responsable Club / Pilote Vol de Découverte
 
 **Initiation d'une signature externe**
 - Déclencher une session de signature pour un document externe
-- Deux modes de présentation :
+- Trois modes de présentation :
   - **Mode direct** : présenter la page de signature sur un smartphone/tablette au club
   - **Mode lien** : générer un lien temporaire à envoyer sur le smartphone de la personne
+  - **Mode papier** : imprimer le formulaire, le faire signer manuscritement, puis télécharger la copie numérisée
 - Le lien temporaire a une durée de validité limitée (ex: 24h)
 - Visualiser les sessions de signature en cours et leur statut
+
+**Mode papier (formulaire imprimé)**
+
+Ce mode est adapté aux situations où la signature numérique n'est pas pratique (pas de tablette disponible, passager peu à l'aise avec le numérique, conditions terrain).
+
+Processus :
+1. Le pilote imprime le formulaire vierge depuis le système (PDF pré-formaté)
+2. Le passager remplit et signe le formulaire papier
+3. Le pilote prend en photo ou scanne le document signé
+4. Le pilote télécharge l'image dans le système en renseignant :
+   - Nom et prénom du signataire (tels qu'inscrits sur le formulaire)
+   - Date de signature
+   - Fichier image (JPEG, PNG) ou PDF du document signé
+5. Le système archive le document avec les métadonnées
+
+**Formule d'attestation pilote** (enregistrée automatiquement) :
+> "Je soussigné(e) [Prénom Nom Pilote], certifie que le document ci-joint a été signé en ma présence par [Prénom Nom Passager] le [date de signature]."
 
 ### Utilisateur Externe
 
@@ -126,6 +144,8 @@ L'acceptation enregistre automatiquement :
 - Pour les utilisateurs externes, la signature manuscrite ou électronique fait foi
 - Les données personnelles des utilisateurs externes doivent être protégées (RGPD)
 - Les liens de signature externe doivent être temporaires, à usage unique, et non devinables (token aléatoire)
+- Pour le mode papier : les fichiers uploadés (JPEG, PNG, PDF) sont limités à 10 Mo
+- Le pilote qui uploade un document papier engage sa responsabilité via l'attestation de présence
 
 ### Processus de lecture obligatoire
 
@@ -170,7 +190,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Indicateur de respect de la date limite (dans les temps / en retard)
 - Date et heure de chaque action
 - Pour double validation : statut de chaque partie (ex: "Instructeur: validé, Élève: en attente")
-- Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session
+- Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session, mode utilisé (direct/lien/papier)
 - Filtre pour afficher uniquement les acceptations en retard ou proches de l'échéance
 
 ### Utilisateur Interne (Membre)
@@ -217,14 +237,26 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 **Historique des formations reçues**
 - Liste des formations confirmées avec dates et instructeurs
 
-### Responsable Club
+### Responsable Club / Pilote Vol de Découverte
 
 **Initiation de signature externe**
 - Sélection du document à faire signer
 - Choix du mode :
   - Bouton "Présenter sur cet écran" → affiche directement la page de signature
   - Bouton "Envoyer un lien" → génère un lien temporaire avec option de copie ou envoi par email/SMS
+  - Bouton "Mode papier" → accède au formulaire d'upload de document signé
 - Liste des sessions en cours avec statut (en attente, signé, expiré)
+
+**Mode papier**
+- Bouton "Imprimer le formulaire vierge" → génère et télécharge le PDF à imprimer
+- Formulaire d'upload après signature :
+  - Champ : Nom du signataire
+  - Champ : Prénom du signataire
+  - Champ : Date de signature (par défaut : aujourd'hui)
+  - Zone d'upload : glisser-déposer ou sélection de fichier (formats acceptés : JPEG, PNG, PDF)
+  - Case à cocher : "J'atteste que ce document a été signé en ma présence"
+  - Bouton "Valider et archiver"
+- Message de confirmation après validation
 
 ### Utilisateur Externe
 
@@ -252,7 +284,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Conformité réglementaire pour les vols de découverte ULM
 - Traçabilité complète des acceptations (documents, formations, contrôles)
 - Réduction de la gestion papier
-- Simplification du processus pour les passagers (signature sur tablette)
+- Simplification du processus pour les passagers (signature sur tablette ou papier)
 - Acceptation en un clic pour les membres connectés
 - Double validation instructeur/élève pour les formations
 - Visibilité immédiate des éléments non acceptés ou en attente de confirmation
