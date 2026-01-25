@@ -33,14 +33,14 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 1.5 - Tests PHPUnit : migrations et modèles
 - [x] 1.6 - Middleware d'activation de la fonctionnalité
 
-### Phase 2 : Programmes de Formation ⏳ 0/8
-- [ ] 2.1 - Parser Markdown pour programmes de formation
-- [ ] 2.2 - Contrôleur de gestion des programmes
-- [ ] 2.3 - Vues d'administration des programmes
-- [ ] 2.4 - Import/export de fichiers Markdown
-- [ ] 2.5 - Gestion des versions de programmes
-- [ ] 2.6 - Fichiers de langue pour les programmes
-- [ ] 2.7 - Tests PHPUnit : parser et gestion des programmes
+### Phase 2 : Programmes de Formation ⏳ 7/8
+- [x] 2.1 - Parser Markdown pour programmes de formation
+- [x] 2.2 - Contrôleur de gestion des programmes
+- [x] 2.3 - Vues d'administration des programmes
+- [x] 2.4 - Import/export de fichiers Markdown
+- [x] 2.5 - Gestion des versions de programmes
+- [x] 2.6 - Fichiers de langue pour les programmes
+- [x] 2.7 - Tests PHPUnit : parser et gestion des programmes
 - [ ] 2.8 - Tests Playwright : CRUD programmes
 
 ### Phase 3 : Inscriptions aux Formations ⏳ 0/7
@@ -94,7 +94,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [ ] 8.4 - Validation couverture de tests (>70%)
 - [ ] 8.5 - Smoke tests Playwright complet
 
-**Progression globale** : 6/53 tâches (11%)
+**Progression globale** : 13/53 tâches (25%)
 
 ---
 

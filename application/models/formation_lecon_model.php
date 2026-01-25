@@ -87,6 +87,17 @@ class Formation_lecon_model extends Common_Model {
     }
 
     /**
+     * Count lessons for a program
+     *
+     * @param int $programme_id Program ID
+     * @return int Number of lessons
+     */
+    public function count_by_programme($programme_id) {
+        $this->db->where('programme_id', $programme_id);
+        return $this->db->count_all_results($this->table);
+    }
+
+    /**
      * Get lessons with subjects count for display
      *
      * @param int $programme_id Program ID
