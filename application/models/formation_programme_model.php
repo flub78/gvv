@@ -139,7 +139,13 @@ class Formation_programme_model extends Common_Model {
      */
     public function update_programme($id, $data) {
         $data['date_modification'] = date('Y-m-d H:i:s');
-        return $this->update('id', $data, $id);
+        log_message('debug', 'FORMATION_PROGRAMME_MODEL: Calling update with id=' . $id);
+        log_message('debug', 'FORMATION_PROGRAMME_MODEL: Data: ' . print_r($data, TRUE));
+        $result = $this->update('id', $data, $id);
+        log_message('debug', 'FORMATION_PROGRAMME_MODEL: update() returned: ' . var_export($result, TRUE));
+        log_message('debug', 'FORMATION_PROGRAMME_MODEL: affected_rows: ' . $this->db->affected_rows());
+        // Return true if at least one row was affected
+        return $this->db->affected_rows() > 0;
     }
 
     /**

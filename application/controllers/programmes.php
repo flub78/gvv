@@ -224,7 +224,9 @@ class Programmes extends Gvv_Controller
         // Validation
         $this->form_validation->set_rules('titre', $this->lang->line('formation_programme_titre'), 'required|max_length[255]');
         $this->form_validation->set_rules('description', $this->lang->line('formation_programme_description'), 'max_length[1000]');
-        $this->form_validation->set_rules('objectifs', $this->lang->line('formation_programme_objectifs'), 'max_length[2000]');
+
+        log_message('debug', 'PROGRAMMES: Validation run result: ' . ($this->form_validation->run() ? 'TRUE' : 'FALSE'));
+        log_message('debug', 'PROGRAMMES: Validation errors: ' . validation_errors());
 
         if ($this->form_validation->run() === FALSE) {
             // Validation failed - redisplay form
@@ -235,15 +237,17 @@ class Programmes extends Gvv_Controller
         $update_data = array(
             'titre' => $this->input->post('titre'),
             'description' => $this->input->post('description'),
-            'objectifs' => $this->input->post('objectifs'),
             'section_id' => $this->input->post('section_id') ?: NULL,
-            'actif' => $this->input->post('actif') ? 1 : 0,
-            'version' => $programme['version'] + 1,
-            'date_modification' => date('Y-m-d H:i:s')
+            'statut' => $this->input->post('statut') ?: 'actif'
         );
 
-        $success = $this->formation_programme_model->update($id, $update_data);
+        log_message('debug', 'PROGRAMMES: update_data: ' . print_r($update_data, TRUE));
+        
+        $success = $this->formation_programme_model->update_programme($id, $update_data);
 
+        log_message('debug', 'PROGRAMMES: update_programme returned: ' . ($success ? 'TRUE' : 'FALSE'));
+        log_message('debug', 'PROGRAMMES: DB error: ' . $this->db->_error_message());
+        
         if (!$success) {
             $this->session->set_flashdata('error', $this->lang->line('formation_programme_update_error'));
             return $this->edit($id);
@@ -251,7 +255,7 @@ class Programmes extends Gvv_Controller
 
         // Success
         $this->session->set_flashdata('success', $this->lang->line('formation_programme_update_success'));
-        redirect('programmes/view/' . $id);
+        redirect('programmes');
     }
 
     /**
