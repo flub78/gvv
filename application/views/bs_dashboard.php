@@ -287,6 +287,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <?php if ($this->config->item('gestion_reservations')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-clock text-info"></i>
@@ -295,6 +296,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('reservations/timeline') ?>" class="btn btn-info btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         </div>

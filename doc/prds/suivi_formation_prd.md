@@ -2,25 +2,60 @@
 
 ## Objectif
 
-Permettre aux clubs de vélivoles de définir des programmes de formation structurés, de suivre les séances d'instruction et de visualiser la progression des élèves à travers des fiches de progression détaillées.
+Permettre aux aéroclubs de définir des programmes de formation structurés, de suivre les séances d'instruction, de visualiser la progression des élèves à travers des fiches de progression détaillées et d'accéder à des rapports synthétiques.
 
 ## Contexte
 
-La formation au pilotage planeur nécessite un suivi rigoureux et structuré. Les instructeurs doivent pouvoir :
+La formation au pilotage nécessite un suivi rigoureux et structuré. Les instructeurs doivent pouvoir :
 - Suivre un programme de formation standardisé
 - Enregistrer chaque séance avec le détail des compétences travaillées
 - Évaluer la progression sur chaque sujet
 - Planifier les prochaines étapes de formation
 
-Actuellement, ce suivi est souvent réalisé sur papier ou dans des outils non intégrés. L'intégration dans GVV permettrait de centraliser ces informations avec les données de vol existantes.
+Actuellement, ce suivi est souvent réalisé sur papier. L'intégration dans GVV permettrait de centraliser ces informations avec les données de vol existantes.
+
+---
+
+## Activation de la Fonctionnalité
+
+La gestion des formations est une fonctionnalité **optionnelle** qui doit être activée explicitement pour chaque club via un flag de configuration.
+
+### Flag de Configuration
+
+- **Nom du flag** : `gestion_formations`
+- **Type** : Booléen (0 = désactivé, 1 = activé)
+- **Défaut** : Désactivé (0)
+- **Niveau** : Configuration globale du club
+
+### Comportement
+
+**Lorsque le flag est désactivé (par défaut) :**
+- Les menus et liens liés aux formations n'apparaissent pas dans l'interface
+- Les routes d'accès aux contrôleurs de formation retournent une erreur 403 (Accès refusé)
+- Les tables de données relatives aux formations sont quand même créées lors de l'installation
+- Aucune donnée de formation n'est stockée ou traitée
+
+**Lorsque le flag est activé :**
+- Les menus de gestion des formations apparaissent dans le menu principal (pour les utilisateurs autorisés)
+- Les contrôleurs de formation sont accessibles selon les permissions de l'utilisateur
+- Toutes les fonctionnalités décrites dans ce document sont disponibles
+
+### Activation
+
+L'activation de la fonctionnalité nécessite :
+1. Une modification du fichier de configuration `program.php` pour définir le flag "gestion_formations" à `true`
+
+### Désactivation
+
+La désactivation du flag masque les fonctionnalités mais **conserve les données existantes** dans la base de données. Une réactivation ultérieure restaure l'accès aux données.
 
 ---
 
 ## Rôles et Permissions
 
-### Administrateur (Gestionnaire des Formations)
+### Administrateur (Responsable Pédagogique)
 
-L'administrateur des formations est responsable de la configuration et de la gestion globale du système de formation.
+Le responsable pédagogique est responsable de la configuration et de la gestion globale du système de formation.
 
 **Responsabilités :**
 - Créer, modifier et archiver les programmes de formation
@@ -359,6 +394,7 @@ Programme : [Nom du programme]
 Élève : [Nom de l'élève]
 Date de début : [Date première séance]
 Dernière séance : [Date dernière séance]
+Progression : 45% des sujets acquis (9/20)
 
 Leçon 1 : [Titre]
 ├── Sujet 1.1 : [Titre]
@@ -377,7 +413,31 @@ Leçon 2 : [Titre]
 │   └── Dernière date : -
 ```
 
-#### 4.2 Informations Affichées par Sujet
+#### 4.2 Indicateur de Progression Globale
+
+En tête de la fiche de progression, un **indicateur de progression** affiche le pourcentage de sujets acquis :
+
+**Formule de calcul :**
+```
+Pourcentage = (Nombre de sujets avec dernier niveau "Q") / (Nombre total de sujets du programme) × 100
+```
+
+**Affichage :**
+- Format : "X% des sujets acquis (N/Total)"
+- Exemple : "45% des sujets acquis (9/20)"
+- Barre de progression visuelle (jauge colorée)
+- Couleur de la jauge :
+  - **Rouge** : 0-25%
+  - **Orange** : 26-50%
+  - **Jaune** : 51-75%
+  - **Vert** : 76-100%
+
+**Règles :**
+- Seuls les sujets avec statut "Q" (Acquis) sont comptabilisés comme acquis
+- Les sujets non abordés (-), abordés (A) ou à revoir (R) ne sont pas comptabilisés comme acquis
+- Le total inclut tous les sujets du programme, qu'ils aient été travaillés ou non
+
+#### 4.3 Informations Affichées par Sujet
 
 | Information | Description |
 |-------------|-------------|
@@ -386,14 +446,14 @@ Leçon 2 : [Titre]
 | Date dernière évaluation | Date de la dernière séance ayant évalué ce sujet |
 | Historique | Liste des évaluations chronologiques (optionnel, en détail) |
 
-#### 4.3 Indicateurs Visuels
+#### 4.4 Indicateurs Visuels par Sujet
 
 - **Vert** : Sujet acquis (Q)
 - **Orange** : Sujet à revoir (R)
 - **Bleu** : Sujet abordé (A)
 - **Gris** : Sujet non abordé (-)
 
-#### 4.4 Vue Détaillée d'un Sujet
+#### 4.5 Vue Détaillée d'un Sujet
 
 En cliquant sur un sujet, l'utilisateur peut accéder à :
 - L'historique complet des évaluations
@@ -597,8 +657,9 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 
 ### Instructeur - Liste des Élèves
 
-- Tableau des élèves en formation avec : nom, programme, statut inscription, progression globale, dernière séance
+- Tableau des élèves en formation avec : nom, programme, statut inscription, progression globale (% sujets acquis), dernière séance
 - Indicateur visuel du statut (vert=ouverte, orange=suspendue)
+- Colonne progression : affichage du pourcentage de sujets acquis avec mini-jauge colorée
 - Actions : voir fiche de progression, nouvelle séance, gérer inscription (suspendre/clôturer)
 - Filtres : par programme, par statut, par avancement
 - Bouton "Nouvelle inscription" pour ouvrir une formation
@@ -606,6 +667,10 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 ### Fiche de Progression
 
 - En-tête : élève, programme, dates de début/dernière séance
+- **Indicateur de progression** : 
+  - Barre de progression colorée avec pourcentage
+  - Format : "X% des sujets acquis (N/Total)"
+  - Couleur variable selon le pourcentage (rouge → orange → jaune → vert)
 - Statistiques générales : nombre de séances, heures totales, atterrissages totaux
 - Arborescence des leçons et sujets avec indicateurs visuels
 - Possibilité d'expansion pour voir le détail
@@ -615,7 +680,8 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 
 - Carte "Ma formation" avec :
   - Programme actuel
-  - Progression globale (jauge ou pourcentage)
+  - **Progression globale** : barre de progression colorée + pourcentage de sujets acquis
+  - Format : "X% des sujets acquis (N/Total)"
   - Prochaines leçons recommandées
   - Lien vers fiche détaillée
 
