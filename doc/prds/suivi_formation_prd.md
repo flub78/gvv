@@ -335,13 +335,32 @@ Une inscription représente l'engagement d'un pilote dans un programme de format
 
 ### 3. Gestion des Séances de Formation
 
-#### 3.1 Attributs d'une Séance
+#### 3.1 Types de Séances
+
+Le système permet deux types de séances :
+
+**Séance liée à une inscription (Formation structurée)**
+- Rattachée à une inscription active d'un pilote
+- Utilise le programme de formation de l'inscription
+- Suit la progression structurée avec évaluations des sujets
+- Contribue à la fiche de progression officielle
+
+**Séance libre (Sans inscription)**
+- Pour des pilotes non inscrits à une formation formelle
+- Permet de sélectionner un programme de formation comme référence
+- Permet d'indiquer et d'archiver les sujets abordés
+- Sert d'historique et de préparation avant une inscription formelle
+- Ne génère pas de fiche de progression officielle
+- Utile pour : vols de perfectionnement, remise à niveau, découverte
+
+#### 3.2 Attributs d'une Séance
 
 | Attribut | Description | Obligatoire |
 |----------|-------------|-------------|
 | Date | Date de la séance | Oui |
 | Élève | Pilote en formation | Oui |
 | Instructeur | Instructeur dispensant la formation | Oui (auto-rempli) |
+| Inscription | Inscription à une formation (optionnel) | Non |
 | Programme | Programme de formation suivi | Oui |
 | Machine | Aéronef utilisé | Oui |
 | Durée | Durée totale de vol (HH:MM) | Oui |
@@ -350,7 +369,13 @@ Une inscription représente l'engagement d'un pilote dans un programme de format
 | Commentaires généraux | Observations libres sur la séance | Non |
 | Prochaines leçons | Leçons recommandées pour la suite | Non |
 
-#### 3.2 Évaluation par Sujet
+**Règles de gestion** :
+- Si `inscription_id` est NULL → séance libre (pilote non inscrit)
+- Si `inscription_id` est renseigné → séance liée à une formation structurée
+- Le programme peut être sélectionné librement pour une séance libre
+- Les évaluations sont enregistrées de la même manière dans les deux cas
+
+#### 3.3 Évaluation par Sujet
 
 Pour chaque sujet du programme, l'instructeur peut indiquer :
 
@@ -361,7 +386,13 @@ Pour chaque sujet du programme, l'instructeur peut indiquer :
 | R | À revoir | Le sujet nécessite d'être retravaillé |
 | Q | Acquis | Le sujet est maîtrisé par l'élève |
 
-#### 3.3 Conditions Météorologiques
+**Pour les séances libres (sans inscription)** :
+- Les évaluations sont enregistrées de la même manière
+- Elles servent d'historique et de référence
+- Elles ne contribuent pas à une fiche de progression officielle
+- Elles peuvent être consultées ultérieurement pour évaluer le niveau du pilote
+
+#### 3.4 Conditions Météorologiques
 
 Sélection multiple parmi des conditions prédéfinies :
 
@@ -377,9 +408,11 @@ Sélection multiple parmi des conditions prédéfinies :
 - Couvert
 - Turbulences
 
-#### 3.4 Analyse des Commentaires
+#### 3.5 Analyse des Commentaires
 
 Les commentaires de l'instructeur sont enregistrés librement. Le système peut les associer aux compétences travaillées pour faciliter la restitution dans les fiches de progression.
+
+**Pour les séances libres** : Les commentaires sont archivés et peuvent être consultés par l'instructeur pour référence future lors de l'ouverture d'une formation formelle.
 
 ---
 
@@ -500,10 +533,10 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 ### Instructeur
 
 **Ouvrir une formation pour un pilote**
-1. Accéder à "Nouvelle inscription" ou depuis la fiche du pilote
+1. Accéder à "Nouvelle inscription" 
 2. Sélectionner le pilote
 3. Sélectionner le programme de formation
-4. Optionnel : se désigner comme instructeur référent
+4. Optionnel : désigner un instructeur référent
 5. Ajouter des commentaires si nécessaire
 6. Valider l'ouverture
 7. Le système enregistre la date d'ouverture et la version du programme
@@ -538,19 +571,38 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 5. Valider
 
 **Consulter les formations en cours**
-1. Accéder à "Mes élèves" ou à la liste des inscriptions
+1. Accéder à "Formations en cours"
 2. Visualiser les inscriptions ouvertes et suspendues
 3. Filtrer par programme si nécessaire
 
-**Enregistrer une séance de formation**
+**Enregistrer une séance de formation (avec inscription)**
 1. Accéder à "Nouvelle séance de formation"
 2. Sélectionner l'élève
-3. Sélectionner le programme (ou utiliser celui en cours de l'élève)
-4. Saisir les informations de vol (date, machine, durée, atterrissages, météo)
-5. Pour chaque sujet de la leçon travaillée, indiquer le niveau (-, A, R, Q)
-6. Rédiger les commentaires généraux
-7. Indiquer les prochaines leçons recommandées
+3. Le système propose les inscriptions ouvertes de l'élève
+4. Sélectionner l'inscription (le programme est automatiquement associé)
+5. Saisir les informations de vol (date, machine, durée, atterrissages, météo)
+6. Pour chaque sujet de la leçon travaillée, indiquer le niveau (-, A, R, Q)
+7. Rédiger les commentaires généraux
+8. Indiquer les prochaines leçons recommandées
+9. Valider
+
+**Enregistrer une séance libre (sans inscription)**
+1. Accéder à "Nouvelle séance de formation"
+2. Sélectionner l'élève (pilote non inscrit ou inscription non sélectionnée)
+3. Cocher "Séance libre (sans inscription formelle)"
+4. Sélectionner un programme de formation comme référence
+5. Saisir les informations de vol (date, machine, durée, atterrissages, météo)
+6. Sélectionner les leçons/sujets abordés et indiquer le niveau (-, A, R, Q)
+7. Rédiger les commentaires (ex: "Vol de perfectionnement", "Remise à niveau")
 8. Valider
+9. La séance est archivée et consultable ultérieurement
+
+**Consulter l'historique des séances d'un pilote**
+1. Accéder à la fiche du pilote
+2. Onglet "Séances de formation"
+3. Visualiser toutes les séances : avec inscription (formations structurées) et libres
+4. Filtrer par type, par programme, par période
+5. Consulter les sujets abordés et les évaluations
 
 **Consulter la progression d'un élève**
 1. Accéder à la fiche de l'élève ou à la liste des progressions
@@ -648,12 +700,35 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 
 ### Instructeur - Saisie de Séance
 
+- **Sélection du type de séance** :
+  - Case à cocher "Séance libre (sans inscription formelle)"
+  - Par défaut : séance liée à une inscription
+  
+- **Si séance avec inscription** :
+  - Sélecteur d'élève
+  - Sélecteur d'inscription parmi les inscriptions ouvertes de l'élève
+  - Le programme est automatiquement associé
+  
+- **Si séance libre** :
+  - Sélecteur de pilote (avec recherche)
+  - Sélecteur de programme de formation comme référence
+  - Message : "Cette séance ne sera pas liée à une inscription formelle"
+
 - Formulaire en deux parties :
-  1. **Informations générales** : date, élève, machine, durée, atterrissages, météo
+  1. **Informations générales** : date, machine, durée, atterrissages, météo
   2. **Évaluation par leçon** : affichage des sujets de la leçon avec sélecteur de niveau
 - Zone de commentaires libres
 - Sélecteur des prochaines leçons (parmi les leçons du programme)
 - Bouton de validation
+
+### Instructeur - Historique des Séances
+
+- Tableau listant toutes les séances avec : date, pilote, type (inscription/libre), programme, durée
+- Badge visuel pour distinguer :
+  - **Badge bleu "Formation"** : séance liée à une inscription
+  - **Badge gris "Libre"** : séance libre
+- Filtres : par pilote, par type, par programme, par période
+- Actions : voir détail, modifier (si autorisé), dupliquer
 
 ### Instructeur - Liste des Élèves
 
@@ -690,14 +765,18 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 ## Contraintes
 
 - Les programmes de formation doivent pouvoir être versionnés pour gérer les évolutions
-- Les données de progression sont liées à une version spécifique du programme
+- Les données de progression sont liées à une version spécifique du programme (uniquement pour les inscriptions)
 - La suppression d'un sujet dans un programme ne doit pas supprimer l'historique
 - Un élève peut avoir plusieurs inscriptions ouvertes simultanément (formations différentes)
+- **Les séances peuvent être enregistrées avec ou sans inscription** :
+  - Séances avec inscription : contribuent à la fiche de progression officielle
+  - Séances libres : archivées pour référence, ne génèrent pas de fiche de progression
+- Les séances libres permettent de garder une trace des sujets abordés avant une inscription formelle
 - Les programmes de section ne sont visibles que par les utilisateurs de cette section
 - Les programmes marqués "Toutes" sont visibles par toutes les sections
 - Les séances doivent pouvoir être liées aux vols existants dans GVV (optionnel)
 - Le Markdown doit être validé syntaxiquement avant enregistrement
-- Export PDF des fiches de progression
+- Export PDF des fiches de progression (uniquement pour les inscriptions)
 
 ---
 
@@ -709,6 +788,7 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 - Vidéos ou supports multimédias intégrés aux programmes
 - Système de messagerie intégré instructeur-élève
 - Planification automatique des séances
+- Migration automatique des séances libres vers une inscription lors de l'ouverture d'une formation
 
 ---
 
@@ -721,3 +801,5 @@ En cliquant sur un sujet, l'utilisateur peut accéder à :
 - Visibilité pour l'élève sur son avancement
 - Statistiques de formation pour le club
 - Identification rapide des points à retravailler
+- **Archivage des séances de perfectionnement et remises à niveau** sans formalisme d'inscription
+- **Historique consultable** pour évaluer le niveau d'un pilote avant ouverture de formation

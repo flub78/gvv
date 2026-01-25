@@ -1034,6 +1034,197 @@ class GVVMetadata extends Metadata {
                 $this->field['email_lists']['updated_at']['Type'] = 'datetime';
                 $this->field['email_lists']['updated_at']['Subtype'] = 'date_time';
 
+                /**
+                 * Suivi de formation - Programmes
+                 */
+                $this->field['formation_programmes']['id']['Name'] = 'ID';
+                $this->field['formation_programmes']['id']['Type'] = 'int';
+                $this->field['formation_programmes']['code']['Name'] = 'Code';
+                $this->field['formation_programmes']['code']['Type'] = 'varchar';
+                $this->field['formation_programmes']['code']['Mandatory'] = TRUE;
+                $this->field['formation_programmes']['titre']['Name'] = 'Titre';
+                $this->field['formation_programmes']['titre']['Type'] = 'varchar';
+                $this->field['formation_programmes']['titre']['Mandatory'] = TRUE;
+                $this->field['formation_programmes']['description']['Name'] = 'Description';
+                $this->field['formation_programmes']['description']['Type'] = 'text';
+                $this->field['formation_programmes']['contenu_markdown']['Name'] = 'Contenu';
+                $this->field['formation_programmes']['contenu_markdown']['Type'] = 'longtext';
+                $this->field['formation_programmes']['contenu_markdown']['Subtype'] = 'markdown';
+                $this->field['formation_programmes']['section_id']['Name'] = 'Section';
+                $this->field['formation_programmes']['section_id']['Type'] = 'int';
+                $this->field['formation_programmes']['section_id']['Subtype'] = 'selector';
+                $this->field['formation_programmes']['section_id']['Selector'] = 'section_selector';
+                $this->field['formation_programmes']['version']['Name'] = 'Version';
+                $this->field['formation_programmes']['version']['Type'] = 'int';
+                $this->field['formation_programmes']['statut']['Name'] = 'Statut';
+                $this->field['formation_programmes']['statut']['Type'] = 'enum';
+                $this->field['formation_programmes']['statut']['Subtype'] = 'enumerate';
+                $this->field['formation_programmes']['statut']['Enumerate'] = [
+                        'actif' => 'Actif',
+                        'archive' => 'Archivé'
+                ];
+                $this->field['formation_programmes']['date_creation']['Name'] = 'Créé le';
+                $this->field['formation_programmes']['date_creation']['Type'] = 'datetime';
+                $this->field['formation_programmes']['date_creation']['Subtype'] = 'date_time';
+                $this->field['formation_programmes']['date_modification']['Name'] = 'Modifié le';
+                $this->field['formation_programmes']['date_modification']['Type'] = 'datetime';
+                $this->field['formation_programmes']['date_modification']['Subtype'] = 'date_time';
+
+                /**
+                 * Suivi de formation - Lecons
+                 */
+                $this->field['formation_lecons']['id']['Name'] = 'ID';
+                $this->field['formation_lecons']['id']['Type'] = 'int';
+                $this->field['formation_lecons']['programme_id']['Name'] = 'Programme';
+                $this->field['formation_lecons']['programme_id']['Type'] = 'int';
+                $this->field['formation_lecons']['programme_id']['Mandatory'] = TRUE;
+                $this->field['formation_lecons']['numero']['Name'] = 'Numéro';
+                $this->field['formation_lecons']['numero']['Type'] = 'int';
+                $this->field['formation_lecons']['numero']['Mandatory'] = TRUE;
+                $this->field['formation_lecons']['titre']['Name'] = 'Titre';
+                $this->field['formation_lecons']['titre']['Type'] = 'varchar';
+                $this->field['formation_lecons']['titre']['Mandatory'] = TRUE;
+                $this->field['formation_lecons']['description']['Name'] = 'Description';
+                $this->field['formation_lecons']['description']['Type'] = 'text';
+                $this->field['formation_lecons']['ordre']['Name'] = 'Ordre';
+                $this->field['formation_lecons']['ordre']['Type'] = 'int';
+
+                /**
+                 * Suivi de formation - Sujets
+                 */
+                $this->field['formation_sujets']['id']['Name'] = 'ID';
+                $this->field['formation_sujets']['id']['Type'] = 'int';
+                $this->field['formation_sujets']['lecon_id']['Name'] = 'Leçon';
+                $this->field['formation_sujets']['lecon_id']['Type'] = 'int';
+                $this->field['formation_sujets']['lecon_id']['Mandatory'] = TRUE;
+                $this->field['formation_sujets']['numero']['Name'] = 'Numéro';
+                $this->field['formation_sujets']['numero']['Type'] = 'varchar';
+                $this->field['formation_sujets']['numero']['Mandatory'] = TRUE;
+                $this->field['formation_sujets']['titre']['Name'] = 'Titre';
+                $this->field['formation_sujets']['titre']['Type'] = 'varchar';
+                $this->field['formation_sujets']['titre']['Mandatory'] = TRUE;
+                $this->field['formation_sujets']['description']['Name'] = 'Description';
+                $this->field['formation_sujets']['description']['Type'] = 'text';
+                $this->field['formation_sujets']['objectifs']['Name'] = 'Objectifs';
+                $this->field['formation_sujets']['objectifs']['Type'] = 'text';
+                $this->field['formation_sujets']['ordre']['Name'] = 'Ordre';
+                $this->field['formation_sujets']['ordre']['Type'] = 'int';
+
+                /**
+                 * Suivi de formation - Inscriptions
+                 */
+                $this->field['formation_inscriptions']['id']['Name'] = 'ID';
+                $this->field['formation_inscriptions']['id']['Type'] = 'int';
+                $this->field['formation_inscriptions']['pilote_id']['Name'] = 'Élève';
+                $this->field['formation_inscriptions']['pilote_id']['Type'] = 'varchar';
+                $this->field['formation_inscriptions']['pilote_id']['Subtype'] = 'selector';
+                $this->field['formation_inscriptions']['pilote_id']['Selector'] = 'pilote_selector';
+                $this->field['formation_inscriptions']['pilote_id']['Mandatory'] = TRUE;
+                $this->field['formation_inscriptions']['programme_id']['Name'] = 'Programme';
+                $this->field['formation_inscriptions']['programme_id']['Type'] = 'int';
+                $this->field['formation_inscriptions']['programme_id']['Subtype'] = 'selector';
+                $this->field['formation_inscriptions']['programme_id']['Selector'] = 'programme_formation_selector';
+                $this->field['formation_inscriptions']['programme_id']['Mandatory'] = TRUE;
+                $this->field['formation_inscriptions']['version_programme']['Name'] = 'Version prog.';
+                $this->field['formation_inscriptions']['version_programme']['Type'] = 'int';
+                $this->field['formation_inscriptions']['instructeur_referent_id']['Name'] = 'Instructeur référent';
+                $this->field['formation_inscriptions']['instructeur_referent_id']['Type'] = 'varchar';
+                $this->field['formation_inscriptions']['instructeur_referent_id']['Subtype'] = 'selector';
+                $this->field['formation_inscriptions']['instructeur_referent_id']['Selector'] = 'instructeur_selector';
+                $this->field['formation_inscriptions']['statut']['Name'] = 'Statut';
+                $this->field['formation_inscriptions']['statut']['Type'] = 'enum';
+                $this->field['formation_inscriptions']['statut']['Subtype'] = 'enumerate';
+                $this->field['formation_inscriptions']['statut']['Enumerate'] = [
+                        'ouverte' => 'Ouverte',
+                        'suspendue' => 'Suspendue',
+                        'cloturee' => 'Clôturée',
+                        'abandonnee' => 'Abandonnée'
+                ];
+                $this->field['formation_inscriptions']['date_ouverture']['Name'] = 'Date ouverture';
+                $this->field['formation_inscriptions']['date_ouverture']['Type'] = 'date';
+                $this->field['formation_inscriptions']['date_ouverture']['Mandatory'] = TRUE;
+                $this->field['formation_inscriptions']['date_suspension']['Name'] = 'Date suspension';
+                $this->field['formation_inscriptions']['date_suspension']['Type'] = 'date';
+                $this->field['formation_inscriptions']['motif_suspension']['Name'] = 'Motif suspension';
+                $this->field['formation_inscriptions']['motif_suspension']['Type'] = 'text';
+                $this->field['formation_inscriptions']['date_cloture']['Name'] = 'Date clôture';
+                $this->field['formation_inscriptions']['date_cloture']['Type'] = 'date';
+                $this->field['formation_inscriptions']['motif_cloture']['Name'] = 'Motif clôture';
+                $this->field['formation_inscriptions']['motif_cloture']['Type'] = 'text';
+                $this->field['formation_inscriptions']['commentaires']['Name'] = 'Commentaires';
+                $this->field['formation_inscriptions']['commentaires']['Type'] = 'text';
+
+                /**
+                 * Suivi de formation - Seances
+                 */
+                $this->field['formation_seances']['id']['Name'] = 'ID';
+                $this->field['formation_seances']['id']['Type'] = 'int';
+                $this->field['formation_seances']['inscription_id']['Name'] = 'Inscription';
+                $this->field['formation_seances']['inscription_id']['Type'] = 'int';
+                $this->field['formation_seances']['inscription_id']['Subtype'] = 'selector';
+                $this->field['formation_seances']['inscription_id']['Selector'] = 'inscription_formation_selector';
+                $this->field['formation_seances']['inscription_id']['Mandatory'] = FALSE;
+                $this->field['formation_seances']['pilote_id']['Name'] = 'Élève';
+                $this->field['formation_seances']['pilote_id']['Type'] = 'varchar';
+                $this->field['formation_seances']['pilote_id']['Subtype'] = 'selector';
+                $this->field['formation_seances']['pilote_id']['Selector'] = 'pilote_selector';
+                $this->field['formation_seances']['pilote_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['programme_id']['Name'] = 'Programme';
+                $this->field['formation_seances']['programme_id']['Type'] = 'int';
+                $this->field['formation_seances']['programme_id']['Subtype'] = 'selector';
+                $this->field['formation_seances']['programme_id']['Selector'] = 'programme_formation_selector';
+                $this->field['formation_seances']['programme_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['date_seance']['Name'] = 'Date';
+                $this->field['formation_seances']['date_seance']['Type'] = 'date';
+                $this->field['formation_seances']['date_seance']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['instructeur_id']['Name'] = 'Instructeur';
+                $this->field['formation_seances']['instructeur_id']['Type'] = 'varchar';
+                $this->field['formation_seances']['instructeur_id']['Subtype'] = 'selector';
+                $this->field['formation_seances']['instructeur_id']['Selector'] = 'instructeur_selector';
+                $this->field['formation_seances']['instructeur_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['machine_id']['Name'] = 'Machine';
+                $this->field['formation_seances']['machine_id']['Type'] = 'varchar';
+                $this->field['formation_seances']['machine_id']['Subtype'] = 'selector';
+                $this->field['formation_seances']['machine_id']['Selector'] = 'planeur_selector';
+                $this->field['formation_seances']['machine_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['duree']['Name'] = 'Durée';
+                $this->field['formation_seances']['duree']['Type'] = 'time';
+                $this->field['formation_seances']['duree']['Subtype'] = 'duration';
+                $this->field['formation_seances']['duree']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['nb_atterrissages']['Name'] = 'Atterrissages';
+                $this->field['formation_seances']['nb_atterrissages']['Type'] = 'int';
+                $this->field['formation_seances']['nb_atterrissages']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['meteo']['Name'] = 'Météo';
+                $this->field['formation_seances']['meteo']['Type'] = 'text';
+                $this->field['formation_seances']['meteo']['Subtype'] = 'json_array';
+                $this->field['formation_seances']['commentaires']['Name'] = 'Commentaires';
+                $this->field['formation_seances']['commentaires']['Type'] = 'text';
+                $this->field['formation_seances']['prochaines_lecons']['Name'] = 'Prochaines leçons';
+                $this->field['formation_seances']['prochaines_lecons']['Type'] = 'varchar';
+
+                /**
+                 * Suivi de formation - Evaluations
+                 */
+                $this->field['formation_evaluations']['id']['Name'] = 'ID';
+                $this->field['formation_evaluations']['id']['Type'] = 'int';
+                $this->field['formation_evaluations']['seance_id']['Name'] = 'Séance';
+                $this->field['formation_evaluations']['seance_id']['Type'] = 'int';
+                $this->field['formation_evaluations']['seance_id']['Mandatory'] = TRUE;
+                $this->field['formation_evaluations']['sujet_id']['Name'] = 'Sujet';
+                $this->field['formation_evaluations']['sujet_id']['Type'] = 'int';
+                $this->field['formation_evaluations']['sujet_id']['Mandatory'] = TRUE;
+                $this->field['formation_evaluations']['niveau']['Name'] = 'Niveau';
+                $this->field['formation_evaluations']['niveau']['Type'] = 'enum';
+                $this->field['formation_evaluations']['niveau']['Subtype'] = 'enumerate';
+                $this->field['formation_evaluations']['niveau']['Enumerate'] = [
+                        '-' => 'Non abordé',
+                        'A' => 'Abordé',
+                        'R' => 'À revoir',
+                        'Q' => 'Acquis'
+                ];
+                $this->field['formation_evaluations']['commentaire']['Name'] = 'Commentaire';
+                $this->field['formation_evaluations']['commentaire']['Type'] = 'text';
+
                 // $this->dump();
         }
 }
