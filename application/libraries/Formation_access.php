@@ -26,7 +26,7 @@ class Formation_access {
      */
     public function __construct() {
         $this->CI =& get_instance();
-        $this->CI->config->load('program', TRUE);
+        // program.php is auto-loaded in config/autoload.php
     }
 
     /**
@@ -35,7 +35,7 @@ class Formation_access {
      * @return bool True if gestion_formations flag is enabled
      */
     public function is_enabled() {
-        return (bool) $this->CI->config->item('gestion_formations', 'program');
+        return (bool) $this->CI->config->item('gestion_formations');
     }
 
     /**

@@ -81,7 +81,7 @@ $this->lang->load('formation');
                 </thead>
                 <tbody>
                     <?php foreach ($programmes as $programme): ?>
-                        <tr class="<?= $programme['actif'] ? '' : 'table-secondary' ?>">
+                        <tr class="<?= $programme['statut'] === 'actif' ? '' : 'table-secondary' ?>">
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="<?= controller_url($controller) ?>/view/<?= $programme['id'] ?>" 
@@ -130,10 +130,10 @@ $this->lang->load('formation');
                                 <span class="badge bg-secondary">v<?= $programme['version'] ?></span>
                             </td>
                             <td class="text-center">
-                                <?php if ($programme['actif']): ?>
-                                    <i class="fas fa-check-circle text-success" aria-hidden="true"></i>
+                                <?php if ($programme['statut'] === 'actif'): ?>
+                                    <span class="badge bg-success">Actif</span>
                                 <?php else: ?>
-                                    <i class="fas fa-times-circle text-muted" aria-hidden="true"></i>
+                                    <span class="badge bg-secondary">Archivé</span>
                                 <?php endif; ?>
                             </td>
                             <td>
@@ -149,7 +149,3 @@ $this->lang->load('formation');
         </div>
     <?php endif; ?>
 </div>
-
-<?php
-$this->load->view('bs_footer');
-?>

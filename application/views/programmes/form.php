@@ -52,10 +52,29 @@ $form_url = $is_edit ?
     // Display validation errors
     if (validation_errors()) {
         echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-        echo '<strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></strong><br>';
+        echo '<strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Erreurs de validation</strong><br>';
         echo validation_errors();
         echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
         echo '</div>';
+    }
+
+    // Display import errors
+    if (isset($import_error) && !empty($import_error)) {
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+        echo '<strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Erreur d\'import Markdown</strong><br><br>';
+        echo '<pre style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 4px;">';
+        echo htmlspecialchars($import_error);
+        echo '</pre>';
+        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        echo '</div>';
+        
+        // Auto-switch to import tab if import error
+        echo '<script>';
+        echo 'document.addEventListener("DOMContentLoaded", function() {';
+        echo '  var importTab = new bootstrap.Tab(document.getElementById("import-tab"));';
+        echo '  importTab.show();';
+        echo '});';
+        echo '</script>';
     }
     ?>
 
@@ -204,11 +223,92 @@ $form_url = $is_edit ?
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
-                                <div class="alert alert-info mt-3 mb-0">
-                                    <i class="fas fa-info-circle" aria-hidden="true"></i> 
-                                    Pour modifier la structure des leçons, exportez le programme en Markdown, 
-                                    modifiez le fichier, puis importez-le à nouveau.
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-code" aria-hidden="true"></i> 
+                                            Modifier la structure
+                                        </h6>
+                                        <button type="button" class="btn btn-sm btn-primary" id="toggleEditStructure">
+                                            <i class="fas fa-edit" aria-hidden="true"></i> Éditer
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="editStructurePanel" style="display: none;">
+                                        <ul class="nav nav-tabs mb-3" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active" id="edit-text-tab" data-bs-toggle="tab" 
+                                                        data-bs-target="#edit-text-panel" type="button" role="tab">
+                                                    <i class="fas fa-edit" aria-hidden="true"></i> Éditer le texte
+                                                </button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="upload-file-tab" data-bs-toggle="tab" 
+                                                        data-bs-target="#upload-file-panel" type="button" role="tab">
+                                                    <i class="fas fa-file-upload" aria-hidden="true"></i> Importer un fichier
+                                                </button>
+                                            </li>
+                                        </ul>
+
+                                        <div class="tab-content">
+                                            <!-- Text editor tab -->
+                                            <div class="tab-pane fade show active" id="edit-text-panel" role="tabpanel">
+                                                <?= form_open(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                                                    <div class="mb-3">
+                                                        <label for="markdown_content" class="form-label">Contenu Markdown</label>
+                                                        <textarea class="form-control font-monospace" 
+                                                                  id="markdown_content" 
+                                                                  name="markdown_content" 
+                                                                  rows="15" 
+                                                                  style="font-size: 0.9rem;"><?= htmlspecialchars($programme['contenu_markdown']) ?></textarea>
+                                                        <div class="form-text">
+                                                            Modifiez la structure en Markdown. Syntaxe : # Titre, ## Leçon, ### Sujet
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-save" aria-hidden="true"></i> Enregistrer
+                                                    </button>
+                                                <?= form_close() ?>
+                                            </div>
+
+                                            <!-- File upload tab -->
+                                            <div class="tab-pane fade" id="upload-file-panel" role="tabpanel">
+                                                <?= form_open_multipart(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                                                    <div class="mb-3">
+                                                        <label for="markdown_file_update" class="form-label">Fichier Markdown</label>
+                                                        <input type="file" class="form-control" id="markdown_file_update" 
+                                                               name="markdown_file" accept=".md,.markdown,.txt" required>
+                                                        <div class="form-text">
+                                                            Sélectionnez un fichier pour remplacer la structure.
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-upload" aria-hidden="true"></i> Importer
+                                                    </button>
+                                                <?= form_close() ?>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
+                                <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const toggleBtn = document.getElementById('toggleEditStructure');
+                                    const editPanel = document.getElementById('editStructurePanel');
+                                    
+                                    if (toggleBtn && editPanel) {
+                                        toggleBtn.addEventListener('click', function() {
+                                            if (editPanel.style.display === 'none') {
+                                                editPanel.style.display = 'block';
+                                                toggleBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Fermer';
+                                            } else {
+                                                editPanel.style.display = 'none';
+                                                toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Éditer';
+                                            }
+                                        });
+                                    }
+                                });
+                                </script>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -285,7 +385,3 @@ $form_url = $is_edit ?
         </div>
     <?php endif; ?>
 </div>
-
-<?php
-$this->load->view('bs_footer');
-?>

@@ -136,7 +136,7 @@ class Programmes extends Gvv_Controller
             'date_creation' => date('Y-m-d H:i:s')
         );
 
-        $programme_id = $this->formation_programme_model->insert($programme_data);
+        $programme_id = $this->formation_programme_model->create($programme_data);
 
         if (!$programme_id) {
             $this->session->set_flashdata('error', $this->lang->line('formation_programme_create_error'));
@@ -179,8 +179,10 @@ class Programmes extends Gvv_Controller
      * Edit - Display form for editing program
      *
      * @param int $id Program ID
+     * @param bool $load_view Unused, for parent compatibility
+     * @param int $action Unused, for parent compatibility
      */
-    public function edit($id)
+    public function edit($id = '', $load_view = TRUE, $action = MODIFICATION)
     {
         log_message('debug', 'PROGRAMMES: edit() method called for id=' . $id);
 
@@ -289,6 +291,38 @@ class Programmes extends Gvv_Controller
     }
 
     /**
+     * Generate a unique program code from title
+     * 
+     * @param string $titre Program title
+     * @return string Unique code (max 50 chars)
+     */
+    private function generate_programme_code($titre)
+    {
+        // Convert to uppercase and remove accents
+        $code = strtoupper($titre);
+        $code = iconv('UTF-8', 'ASCII//TRANSLIT', $code);
+        
+        // Keep only alphanumeric and spaces
+        $code = preg_replace('/[^A-Z0-9\s]/', '', $code);
+        
+        // Replace spaces with underscores
+        $code = str_replace(' ', '_', $code);
+        
+        // Limit to 40 chars to leave room for uniqueness suffix
+        $code = substr($code, 0, 40);
+        
+        // Check if code already exists
+        $original_code = $code;
+        $counter = 1;
+        while (!$this->formation_programme_model->is_code_unique($code)) {
+            $code = $original_code . '_' . $counter;
+            $counter++;
+        }
+        
+        return $code;
+    }
+
+    /**
      * Import from Markdown file
      */
     private function import_from_markdown()
@@ -297,16 +331,23 @@ class Programmes extends Gvv_Controller
 
         // Check file upload
         if (!isset($_FILES['markdown_file']) || $_FILES['markdown_file']['error'] != UPLOAD_ERR_OK) {
-            $this->session->set_flashdata('error', $this->lang->line('formation_import_error_upload'));
-            return $this->create();
+            $data['title'] = $this->lang->line('formation_programmes_create');
+            $data['controller'] = $this->controller;
+            $data['action'] = 'create';
+            $data['import_error'] = $this->lang->line('formation_import_error_upload');
+            return load_last_view('programmes/form', $data, $this->unit_test);
         }
 
         // Read file content
         $markdown_content = file_get_contents($_FILES['markdown_file']['tmp_name']);
+        $filename = $_FILES['markdown_file']['name'];
         
         if ($markdown_content === FALSE || empty($markdown_content)) {
-            $this->session->set_flashdata('error', $this->lang->line('formation_import_error_empty'));
-            return $this->create();
+            $data['title'] = $this->lang->line('formation_programmes_create');
+            $data['controller'] = $this->controller;
+            $data['action'] = 'create';
+            $data['import_error'] = "Erreur de lecture du fichier '$filename' :\n\nLe fichier est vide ou illisible.";
+            return load_last_view('programmes/form', $data, $this->unit_test);
         }
 
         // Parse Markdown
@@ -316,36 +357,72 @@ class Programmes extends Gvv_Controller
             // Validate structure
             $validation_result = $this->formation_markdown_parser->validate($parsed_data);
             if ($validation_result !== TRUE) {
-                $this->session->set_flashdata('error', $this->lang->line('formation_import_error_invalid') . ': ' . $validation_result);
-                return $this->create();
+                $data['title'] = $this->lang->line('formation_programmes_create');
+                $data['controller'] = $this->controller;
+                $data['action'] = 'create';
+                $data['import_error'] = "Erreurs de validation dans le fichier '$filename' :\n\n" . $validation_result;
+                return load_last_view('programmes/form', $data, $this->unit_test);
             }
         } catch (Exception $e) {
             log_message('error', 'PROGRAMMES: Parse error: ' . $e->getMessage());
-            $this->session->set_flashdata('error', $this->lang->line('formation_import_error_parse') . ': ' . $e->getMessage());
-            return $this->create();
+            $data['title'] = $this->lang->line('formation_programmes_create');
+            $data['controller'] = $this->controller;
+            $data['action'] = 'create';
+            $data['import_error'] = "Erreur d'analyse du fichier '$filename' :\n\n" . $e->getMessage();
+            return load_last_view('programmes/form', $data, $this->unit_test);
         }
 
         // Start transaction
         $this->db->trans_start();
 
+        // Generate a unique code based on title
+        $code = $this->generate_programme_code($parsed_data['titre']);
+
         // Create program
         $programme_data = array(
+            'code' => $code,
             'titre' => $parsed_data['titre'],
             'description' => isset($parsed_data['description']) ? $parsed_data['description'] : '',
-            'objectifs' => isset($parsed_data['objectifs']) ? $parsed_data['objectifs'] : '',
+            'contenu_markdown' => $markdown_content,
             'section_id' => $this->input->post('section_id') ?: NULL,
             'version' => 1,
-            'actif' => 1,
-            'contenu_markdown' => $markdown_content,
+            'statut' => 'actif',
             'date_creation' => date('Y-m-d H:i:s')
         );
 
-        $programme_id = $this->formation_programme_model->insert($programme_data);
+        $programme_id = $this->formation_programme_model->create($programme_data);
+        
+        // Get DB errors immediately (before any other operation)
+        $db_error_msg = $this->db->_error_message();
+        $db_error_num = $this->db->_error_number();
+        $last_query = $this->db->last_query();
 
         if (!$programme_id) {
             $this->db->trans_rollback();
-            $this->session->set_flashdata('error', $this->lang->line('formation_import_error_db'));
-            return $this->create();
+            log_message('error', 'PROGRAMMES: DB error creating programme: ' . $db_error_num . ' - ' . $db_error_msg);
+            log_message('error', 'PROGRAMMES: Last query: ' . $last_query);
+            log_message('error', 'PROGRAMMES: Programme data: ' . print_r($programme_data, true));
+            
+            $data['title'] = $this->lang->line('formation_programmes_create');
+            $data['controller'] = $this->controller;
+            $data['action'] = 'create';
+            $data['import_error'] = "Erreur lors de la création du programme dans la base de données :\n\n";
+            $data['import_error'] .= "Titre : " . $programme_data['titre'] . "\n\n";
+            
+            if (!empty($db_error_msg)) {
+                $data['import_error'] .= "Erreur MySQL :\n";
+                $data['import_error'] .= "Code : #" . $db_error_num . "\n";
+                $data['import_error'] .= "Message : " . $db_error_msg . "\n\n";
+            }
+            
+            $data['import_error'] .= "Requête SQL tentée :\n" . $last_query . "\n\n";
+            $data['import_error'] .= "Données soumises :\n";
+            foreach ($programme_data as $key => $value) {
+                $display_value = is_null($value) ? 'NULL' : $value;
+                $data['import_error'] .= "  - {$key} : " . $display_value . "\n";
+            }
+            
+            return load_last_view('programmes/form', $data, $this->unit_test);
         }
 
         // Create lessons and subjects
@@ -355,16 +432,42 @@ class Programmes extends Gvv_Controller
                 'numero' => $lecon_data['numero'],
                 'titre' => $lecon_data['titre'],
                 'description' => isset($lecon_data['description']) ? $lecon_data['description'] : '',
-                'objectifs' => isset($lecon_data['objectifs']) ? $lecon_data['objectifs'] : '',
                 'ordre' => $lecon_data['numero']
             );
 
-            $lecon_id = $this->formation_lecon_model->insert($lecon_record);
+            $lecon_id = $this->formation_lecon_model->create($lecon_record);
+            
+            // Get DB errors immediately
+            $db_error_msg = $this->db->_error_message();
+            $db_error_num = $this->db->_error_number();
+            $last_query = $this->db->last_query();
 
             if (!$lecon_id) {
                 $this->db->trans_rollback();
-                $this->session->set_flashdata('error', $this->lang->line('formation_import_error_lecon'));
-                return $this->create();
+                log_message('error', 'PROGRAMMES: DB error creating lesson: ' . $db_error_num . ' - ' . $db_error_msg);
+                log_message('error', 'PROGRAMMES: Last query: ' . $last_query);
+                log_message('error', 'PROGRAMMES: Lesson data: ' . print_r($lecon_record, true));
+                
+                $data['title'] = $this->lang->line('formation_programmes_create');
+                $data['controller'] = $this->controller;
+                $data['action'] = 'create';
+                $data['import_error'] = "Erreur lors de la création de la leçon :\n\n";
+                $data['import_error'] .= "Leçon {$lecon_data['numero']} : {$lecon_data['titre']}\n\n";
+                
+                if (!empty($db_error_msg)) {
+                    $data['import_error'] .= "Erreur MySQL :\n";
+                    $data['import_error'] .= "Code : #" . $db_error_num . "\n";
+                    $data['import_error'] .= "Message : " . $db_error_msg . "\n\n";
+                }
+                
+                $data['import_error'] .= "Requête SQL tentée :\n" . $last_query . "\n\n";
+                $data['import_error'] .= "Données de la leçon :\n";
+                foreach ($lecon_record as $key => $value) {
+                    $display_value = is_null($value) ? 'NULL' : $value;
+                    $data['import_error'] .= "  - {$key} : " . $display_value . "\n";
+                }
+                
+                return load_last_view('programmes/form', $data, $this->unit_test);
             }
 
             // Create subjects for this lesson
@@ -379,12 +482,40 @@ class Programmes extends Gvv_Controller
                         'ordre' => $sujet_data['numero']
                     );
 
-                    $sujet_id = $this->formation_sujet_model->insert($sujet_record);
+                    $sujet_id = $this->formation_sujet_model->create($sujet_record);
+                    
+                    // Get DB errors immediately
+                    $db_error_msg = $this->db->_error_message();
+                    $db_error_num = $this->db->_error_number();
+                    $last_query = $this->db->last_query();
 
                     if (!$sujet_id) {
                         $this->db->trans_rollback();
-                        $this->session->set_flashdata('error', $this->lang->line('formation_import_error_sujet'));
-                        return $this->create();
+                        log_message('error', 'PROGRAMMES: DB error creating subject: ' . $db_error_num . ' - ' . $db_error_msg);
+                        log_message('error', 'PROGRAMMES: Last query: ' . $last_query);
+                        log_message('error', 'PROGRAMMES: Subject data: ' . print_r($sujet_record, true));
+                        
+                        $data['title'] = $this->lang->line('formation_programmes_create');
+                        $data['controller'] = $this->controller;
+                        $data['action'] = 'create';
+                        $data['import_error'] = "Erreur lors de la création du sujet :\n\n";
+                        $data['import_error'] .= "Sujet {$sujet_data['numero']} : {$sujet_data['titre']}\n";
+                        $data['import_error'] .= "Dans la leçon {$lecon_data['numero']} : {$lecon_data['titre']}\n\n";
+                        
+                        if (!empty($db_error_msg)) {
+                            $data['import_error'] .= "Erreur MySQL :\n";
+                            $data['import_error'] .= "Code : #" . $db_error_num . "\n";
+                            $data['import_error'] .= "Message : " . $db_error_msg . "\n\n";
+                        }
+                        
+                        $data['import_error'] .= "Requête SQL tentée :\n" . $last_query . "\n\n";
+                        $data['import_error'] .= "Données du sujet :\n";
+                        foreach ($sujet_record as $key => $value) {
+                            $display_value = is_null($value) ? 'NULL' : $value;
+                            $data['import_error'] .= "  - {$key} : " . $display_value . "\n";
+                        }
+                        
+                        return load_last_view('programmes/form', $data, $this->unit_test);
                     }
                 }
             }
@@ -394,14 +525,166 @@ class Programmes extends Gvv_Controller
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
-            $this->session->set_flashdata('error', $this->lang->line('formation_import_error_transaction'));
-            return $this->create();
+            $db_error_msg = $this->db->_error_message();
+            $db_error_num = $this->db->_error_number();
+            log_message('error', 'PROGRAMMES: Transaction failed: ' . $db_error_num . ' - ' . $db_error_msg);
+            $data['title'] = $this->lang->line('formation_programmes_create');
+            $data['controller'] = $this->controller;
+            $data['action'] = 'create';
+            $data['import_error'] = "Erreur lors de la validation de la transaction en base de données :\n\n";
+            if (!empty($db_error_msg)) {
+                $data['import_error'] .= "Message d'erreur : " . $db_error_msg . "\n";
+                $data['import_error'] .= "Code d'erreur : " . $db_error_num . "\n\n";
+            }
+            $data['import_error'] .= "Les données n'ont pas été enregistrées. Veuillez réessayer.";
+            return load_last_view('programmes/form', $data, $this->unit_test);
         }
 
         // Success
         log_message('info', 'PROGRAMMES: Successfully imported program from Markdown: ' . $programme_data['titre']);
         $this->session->set_flashdata('success', $this->lang->line('formation_import_success'));
         redirect('programmes/view/' . $programme_id);
+    }
+
+    /**
+     * Update programme structure from Markdown (text or file upload)
+     * 
+     * @param int $id Program ID
+     */
+    public function update_structure($id)
+    {
+        log_message('debug', 'PROGRAMMES: update_structure() called for id=' . $id);
+
+        // Get existing program
+        $programme = $this->formation_programme_model->get($id);
+        if (!$programme) {
+            show_404();
+        }
+
+        // Determine source: text or file
+        $markdown_content = '';
+        $filename = '';
+
+        if (!empty($_FILES['markdown_file']['name'])) {
+            // File upload
+            if ($_FILES['markdown_file']['error'] != UPLOAD_ERR_OK) {
+                $this->session->set_flashdata('error', $this->lang->line('formation_import_error_upload'));
+                redirect('programmes/view/' . $id);
+                return;
+            }
+            $markdown_content = file_get_contents($_FILES['markdown_file']['tmp_name']);
+            $filename = $_FILES['markdown_file']['name'];
+        } else {
+            // Text editor
+            $markdown_content = $this->input->post('markdown_content');
+            $filename = 'édition manuelle';
+        }
+
+        if (empty($markdown_content)) {
+            $this->session->set_flashdata('error', 'Le contenu Markdown est vide.');
+            redirect('programmes/view/' . $id);
+            return;
+        }
+
+        // Parse Markdown
+        try {
+            $parsed_data = $this->formation_markdown_parser->parse($markdown_content);
+            
+            // Validate structure
+            $validation_result = $this->formation_markdown_parser->validate($parsed_data);
+            if ($validation_result !== TRUE) {
+                $this->session->set_flashdata('error', "Erreurs de validation ($filename) :\n\n" . $validation_result);
+                redirect('programmes/view/' . $id);
+                return;
+            }
+        } catch (Exception $e) {
+            log_message('error', 'PROGRAMMES: Parse error in update_structure: ' . $e->getMessage());
+            $this->session->set_flashdata('error', "Erreur d'analyse ($filename) :\n\n" . $e->getMessage());
+            redirect('programmes/view/' . $id);
+            return;
+        }
+
+        // Start transaction
+        $this->db->trans_start();
+
+        // Delete existing lessons and subjects (cascade will handle subjects)
+        $this->db->where('programme_id', $id);
+        $this->db->delete('formation_lecons');
+
+        // Update program metadata
+        $programme_update = array(
+            'titre' => $parsed_data['titre'],
+            'description' => isset($parsed_data['description']) ? $parsed_data['description'] : '',
+            'contenu_markdown' => $markdown_content,
+            'date_modification' => date('Y-m-d H:i:s')
+        );
+        $this->formation_programme_model->update('id', $programme_update, $id);
+
+        // Increment version
+        $this->formation_programme_model->increment_version($id);
+
+        // Recreate lessons and subjects
+        foreach ($parsed_data['lecons'] as $lecon_data) {
+            $lecon_record = array(
+                'programme_id' => $id,
+                'numero' => $lecon_data['numero'],
+                'titre' => $lecon_data['titre'],
+                'description' => isset($lecon_data['description']) ? $lecon_data['description'] : '',
+                'ordre' => $lecon_data['numero']
+            );
+
+            $lecon_id = $this->formation_lecon_model->create($lecon_record);
+
+            if (!$lecon_id) {
+                $this->db->trans_rollback();
+                $db_error_msg = $this->db->_error_message();
+                $db_error_num = $this->db->_error_number();
+                log_message('error', 'PROGRAMMES: DB error updating lesson: ' . $db_error_num . ' - ' . $db_error_msg);
+                $this->session->set_flashdata('error', "Erreur lors de la mise à jour de la leçon {$lecon_data['numero']} : {$lecon_data['titre']}\nErreur MySQL: " . $db_error_msg);
+                redirect('programmes/view/' . $id);
+                return;
+            }
+
+            // Create subjects for this lesson
+            if (isset($lecon_data['sujets'])) {
+                foreach ($lecon_data['sujets'] as $sujet_data) {
+                    $sujet_record = array(
+                        'lecon_id' => $lecon_id,
+                        'numero' => $sujet_data['numero'],
+                        'titre' => $sujet_data['titre'],
+                        'description' => isset($sujet_data['description']) ? $sujet_data['description'] : '',
+                        'objectifs' => isset($sujet_data['objectifs']) ? $sujet_data['objectifs'] : '',
+                        'ordre' => $sujet_data['numero']
+                    );
+
+                    $sujet_id = $this->formation_sujet_model->create($sujet_record);
+
+                    if (!$sujet_id) {
+                        $this->db->trans_rollback();
+                        $db_error_msg = $this->db->_error_message();
+                        $db_error_num = $this->db->_error_number();
+                        log_message('error', 'PROGRAMMES: DB error updating subject: ' . $db_error_num . ' - ' . $db_error_msg);
+                        $this->session->set_flashdata('error', "Erreur lors de la mise à jour du sujet {$sujet_data['numero']} : {$sujet_data['titre']}\nErreur MySQL: " . $db_error_msg);
+                        redirect('programmes/view/' . $id);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Commit transaction
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->session->set_flashdata('error', 'Erreur lors de la mise à jour de la structure du programme.');
+            redirect('programmes/view/' . $id);
+            return;
+        }
+
+        // Success
+        log_message('info', 'PROGRAMMES: Successfully updated structure for program id=' . $id);
+        $this->session->set_flashdata('success', 'Structure du programme mise à jour avec succès. Version incrémentée.');
+        redirect('programmes/view/' . $id);
     }
 
     /**

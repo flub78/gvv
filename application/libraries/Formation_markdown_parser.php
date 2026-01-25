@@ -59,12 +59,12 @@ class Formation_markdown_parser
      *
      * @param string $markdown_content Full Markdown content
      * @return array Structured data with title, lecons, and sujets
-     * @throws Exception if parsing fails
+     * @throws Exception if parsing fails with detailed error message
      */
     public function parse($markdown_content)
     {
         if (empty($markdown_content)) {
-            throw new Exception('Empty Markdown content');
+            throw new Exception('Contenu Markdown vide');
         }
 
         $lines = explode("\n", $markdown_content);
@@ -76,13 +76,22 @@ class Formation_markdown_parser
         $current_lecon = null;
         $current_sujet = null;
         $current_content = [];
+        $titre_found = false;
 
         foreach ($lines as $line_num => $line) {
             $line = rtrim($line);
 
             // H1 - Program title
             if (preg_match('/^#\s+(.+)$/', $line, $matches)) {
+                if ($titre_found) {
+                    throw new Exception(sprintf(
+                        "Erreur ligne %d : Plusieurs titres H1 trouvés\nLigne : %s\nUn seul titre # est autorisé au début du fichier",
+                        $line_num + 1,
+                        $line
+                    ));
+                }
                 $result['titre'] = trim($matches[1]);
+                $titre_found = true;
                 continue;
             }
 
@@ -126,7 +135,11 @@ class Formation_markdown_parser
                 }
 
                 if ($current_lecon === null) {
-                    throw new Exception("Sujet found before any Leçon at line " . ($line_num + 1));
+                    throw new Exception(sprintf(
+                        "Erreur ligne %d : Sujet trouvé avant toute leçon\nLigne : %s\nUn sujet (###) doit être précédé d'une leçon (##)",
+                        $line_num + 1,
+                        $line
+                    ));
                 }
 
                 // Parse sujet title: "Sujet X.Y : Title"
@@ -168,13 +181,34 @@ class Formation_markdown_parser
             $this->save_sujet($result['lecons'][$current_lecon], $current_sujet, $current_content);
         }
 
-        // Validate
+        // Validate basic structure
         if (empty($result['titre'])) {
-            throw new Exception('No program title found (expecting # Title)');
+            throw new Exception(
+                "Erreur : Titre du programme manquant\n" .
+                "Le fichier doit commencer par un titre de niveau H1 :\n" .
+                "Exemple : # Formation Initiale Planeur"
+            );
         }
 
         if (empty($result['lecons'])) {
-            throw new Exception('No lessons found (expecting ## Leçon)');
+            throw new Exception(
+                "Erreur : Aucune leçon trouvée\n" .
+                "Le programme doit contenir au moins une leçon (##) :\n" .
+                "Exemple : ## Leçon 1 : Découverte du planeur"
+            );
+        }
+
+        // Validate each lesson has at least one sujet
+        foreach ($result['lecons'] as $lecon) {
+            if (empty($lecon['sujets'])) {
+                throw new Exception(sprintf(
+                    "Erreur : Leçon %d '%s' ne contient aucun sujet\n" .
+                    "Chaque leçon doit contenir au moins un sujet (###) :\n" .
+                    "Exemple : ### Sujet 1.1 : Présentation de l'aéronef",
+                    $lecon['numero'],
+                    $lecon['titre']
+                ));
+            }
         }
 
         return $result;
@@ -212,46 +246,50 @@ class Formation_markdown_parser
      * Validate parsed structure
      *
      * @param array $parsed_data Data from parse()
-     * @return array Array of validation errors (empty if valid)
+     * @return true|string TRUE if valid, detailed error message if invalid
      */
     public function validate($parsed_data)
     {
         $errors = [];
 
         if (empty($parsed_data['titre'])) {
-            $errors[] = 'Missing program title';
+            $errors[] = 'Titre du programme manquant';
         }
 
         if (empty($parsed_data['lecons'])) {
-            $errors[] = 'No lessons found';
-            return $errors; // Cannot continue validation
+            $errors[] = 'Aucune leçon trouvée';
+            return "Validation échouée :\n- " . implode("\n- ", $errors);
         }
 
         foreach ($parsed_data['lecons'] as $idx => $lecon) {
             $lecon_label = "Leçon {$lecon['numero']}";
 
             if (empty($lecon['titre'])) {
-                $errors[] = "$lecon_label: Missing title";
+                $errors[] = "$lecon_label : Titre manquant";
             }
 
             if (empty($lecon['sujets'])) {
-                $errors[] = "$lecon_label: No sujets found";
+                $errors[] = "$lecon_label : Aucun sujet trouvé";
             }
 
             foreach ($lecon['sujets'] as $sujet_idx => $sujet) {
                 $sujet_label = "$lecon_label > Sujet {$sujet['numero']}";
 
                 if (empty($sujet['titre'])) {
-                    $errors[] = "$sujet_label: Missing title";
+                    $errors[] = "$sujet_label : Titre manquant";
                 }
 
-                if (empty($sujet['description'])) {
-                    $errors[] = "$sujet_label: Missing description";
+                if (empty($sujet['description']) && empty($sujet['objectifs'])) {
+                    $errors[] = "$sujet_label : Aucun contenu (description ou objectifs)";
                 }
             }
         }
 
-        return $errors;
+        if (!empty($errors)) {
+            return "Validation échouée :\n- " . implode("\n- ", $errors);
+        }
+
+        return TRUE;
     }
 
     /**

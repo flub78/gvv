@@ -32,6 +32,24 @@ class Formation_programme_model extends Common_Model {
     }
 
     /**
+     * Get all programs
+     *
+     * @param bool $active_only If true, only return active programs
+     * @return array List of all programs
+     */
+    public function get_all($active_only = false) {
+        $this->db->select('*')
+            ->from($this->table)
+            ->order_by('titre', 'asc');
+
+        if ($active_only) {
+            $this->db->where('actif', 1);
+        }
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
      * Get a program by its code
      *
      * @param string $code Program code (e.g., SPL, BPP)

@@ -78,12 +78,10 @@ $this->lang->load('formation');
                     </p>
                     <p class="mb-1">
                         <strong><?= $this->lang->line("formation_programme_actif") ?>:</strong>
-                        <?php if ($programme['actif']): ?>
-                            <i class="fas fa-check-circle text-success" aria-hidden="true"></i>
-                            <?= translation("Oui") ?>
+                        <?php if ($programme['statut'] === 'actif'): ?>
+                            <span class="badge bg-success">Actif</span>
                         <?php else: ?>
-                            <i class="fas fa-times-circle text-muted" aria-hidden="true"></i>
-                            <?= translation("Non") ?>
+                            <span class="badge bg-secondary">Archivé</span>
                         <?php endif; ?>
                     </p>
                 </div>
@@ -127,6 +125,122 @@ $this->lang->load('formation');
             </div>
         </div>
     </div>
+
+    <!-- Edit structure section -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-code" aria-hidden="true"></i> 
+                <?= $this->lang->line("formation_structure_markdown") ?>
+            </h5>
+            <button type="button" class="btn btn-primary btn-sm" id="toggleEditStructure">
+                <i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure
+            </button>
+        </div>
+        <div class="card-body" id="editStructurePanel" style="display: none;">
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="edit-text-tab" data-bs-toggle="tab" 
+                            data-bs-target="#edit-text-panel" type="button" role="tab">
+                        <i class="fas fa-edit" aria-hidden="true"></i> Éditer le texte
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="upload-file-tab" data-bs-toggle="tab" 
+                            data-bs-target="#upload-file-panel" type="button" role="tab">
+                        <i class="fas fa-file-upload" aria-hidden="true"></i> Importer un fichier
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Text editor tab -->
+                <div class="tab-pane fade show active" id="edit-text-panel" role="tabpanel">
+                    <?= form_open(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                        <div class="mb-3">
+                            <label for="markdown_content" class="form-label">Contenu Markdown</label>
+                            <textarea class="form-control font-monospace" 
+                                      id="markdown_content" 
+                                      name="markdown_content" 
+                                      rows="20" 
+                                      style="font-size: 0.9rem;"><?= htmlspecialchars($programme['contenu_markdown']) ?></textarea>
+                            <div class="form-text">
+                                Modifiez la structure du programme en Markdown. 
+                                Respectez la syntaxe : # Titre, ## Leçon, ### Sujet
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save" aria-hidden="true"></i> Enregistrer les modifications
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelEdit">
+                                <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                            </button>
+                        </div>
+                    <?= form_close() ?>
+                </div>
+
+                <!-- File upload tab -->
+                <div class="tab-pane fade" id="upload-file-panel" role="tabpanel">
+                    <?= form_open_multipart(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                        <div class="mb-3">
+                            <label for="markdown_file_update" class="form-label">Fichier Markdown</label>
+                            <input type="file" class="form-control" id="markdown_file_update" 
+                                   name="markdown_file" accept=".md,.markdown,.txt" required>
+                            <div class="form-text">
+                                Sélectionnez un fichier Markdown pour remplacer la structure actuelle du programme.
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload" aria-hidden="true"></i> Importer et mettre à jour
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelUpload">
+                                <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                            </button>
+                        </div>
+                    <?= form_close() ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleEditStructure');
+        const editPanel = document.getElementById('editStructurePanel');
+        const cancelEditBtn = document.getElementById('cancelEdit');
+        const cancelUploadBtn = document.getElementById('cancelUpload');
+        
+        toggleBtn.addEventListener('click', function() {
+            if (editPanel.style.display === 'none') {
+                editPanel.style.display = 'block';
+                toggleBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Fermer';
+                toggleBtn.classList.remove('btn-primary');
+                toggleBtn.classList.add('btn-secondary');
+            } else {
+                editPanel.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure';
+                toggleBtn.classList.remove('btn-secondary');
+                toggleBtn.classList.add('btn-primary');
+            }
+        });
+        
+        cancelEditBtn.addEventListener('click', function() {
+            editPanel.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure';
+            toggleBtn.classList.remove('btn-secondary');
+            toggleBtn.classList.add('btn-primary');
+        });
+        
+        cancelUploadBtn.addEventListener('click', function() {
+            editPanel.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure';
+            toggleBtn.classList.remove('btn-secondary');
+            toggleBtn.classList.add('btn-primary');
+        });
+    });
+    </script>
 
     <!-- Lessons details -->
     <?php if (!empty($lecons)): ?>
@@ -230,7 +344,3 @@ $this->lang->load('formation');
         </div>
     <?php endif; ?>
 </div>
-
-<?php
-$this->load->view('bs_footer');
-?>

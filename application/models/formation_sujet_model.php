@@ -140,19 +140,6 @@ class Formation_sujet_model extends Common_Model {
     }
 
     /**
-     * Count topics for a program
-     *
-     * @param int $programme_id Program ID
-     * @return int Number of topics
-     */
-    public function count_by_programme($programme_id) {
-        $this->db->from($this->table . ' s')
-            ->join('formation_lecons l', 's.lecon_id = l.id')
-            ->where('l.programme_id', $programme_id);
-        return $this->db->count_all_results();
-    }
-
-    /**
      * Get topic selector for dropdown (within a lesson)
      *
      * @param int $lecon_id Lesson ID
