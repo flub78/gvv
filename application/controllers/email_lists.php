@@ -624,48 +624,6 @@ class Email_lists extends Gvv_Controller
     }
 
     /**
-     * Addresses - Interface to get email addresses from lists
-     * Similar to mails/addresses but using email_lists
-     *
-     * @param int $email_list_id Optional list ID to preselect and load addresses
-     */
-    public function addresses($email_list_id = NULL)
-    {
-        $data['controller'] = $this->controller;
-        $data['action'] = 'addresses';
-
-        // Get email lists visible to current user (public + their private lists)
-        $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
-        $user_lists = $this->email_lists_model->get_user_lists($user_id, $is_admin);
-        $data['selection'] = array();
-        foreach ($user_lists as $list) {
-            $data['selection'][$list['id']] = $list['name'];
-        }
-
-        // Default values
-        $data['selected_list'] = '';
-        $data['email_addresses'] = '';
-        $data['subject'] = '';
-        $data['send_to_self'] = false;
-
-        // If list_id provided, preload the addresses
-        if ($email_list_id) {
-            $list = $this->email_lists_model->get_list($email_list_id);
-            if ($list) {
-                $data['selected_list'] = $email_list_id;
-
-                // Get email addresses
-                $email_array = $this->email_lists_model->textual_list($email_list_id);
-                $data['email_addresses'] = is_array($email_array) ? implode(', ', $email_array) : '';
-                $data['address_count'] = is_array($email_array) ? count($email_array) : 0;
-            }
-        }
-
-        return load_last_view('email_lists/addresses', $data, $this->unit_test);
-    }
-
-    /**
      * AJAX: Get email addresses for the selected list
      */
     public function ajax_get_addresses()

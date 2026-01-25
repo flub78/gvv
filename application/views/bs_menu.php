@@ -104,7 +104,6 @@ $section_count = $CI->sections_model->safe_count_all();
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("email_lists/addresses") ?>"><i class="fas fa-paper-plane text-info"></i> <?= translation("Envoi email") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>

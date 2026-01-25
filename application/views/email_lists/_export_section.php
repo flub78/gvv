@@ -10,151 +10,158 @@ $email_addresses = array_column($emails, 'email');
 $email_list_json = json_encode($email_addresses);
 ?>
 
-<!-- Chunking options -->
+<!-- Section 1: Envoi d'email -->
 <div class="card mb-3">
-    <div class="card-body">
-        <h6 class="card-title">
-            <i class="bi bi-scissors"></i>
-            <?= $this->lang->line("email_lists_chunk_emails") ?>
-        </h6>
-        <div class="row">
-            <div class="col-md-4 mb-2">
-                <label for="chunk_size" class="form-label">
-                    <?= $this->lang->line("email_lists_chunk_size") ?>:
-                </label>
-                <input type="number"
-                       class="form-control form-control-sm"
-                       id="chunk_size"
-                       value="20"
-                       min="1"
-                       max="<?= count($email_addresses) ?>"
-                       onchange="updateChunkDisplay()">
-            </div>
-            <div class="col-md-4 mb-2">
-                <label for="chunk_part" class="form-label">
-                    <?= $this->lang->line("email_lists_chunk_part") ?>:
-                </label>
-                <select class="form-select form-select-sm" id="chunk_part"></select>
-            </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label">&nbsp;</label>
-                <div id="chunk_info" class="text-muted small"></div>
-            </div>
-        </div>
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="bi bi-envelope"></i>
+            <?= $this->lang->line("email_lists_send_section") ?>
+        </h5>
     </div>
-</div>
-
-<div class="row">
-    <!-- Clipboard copy -->
-    <div class="col-md-6 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="bi bi-clipboard"></i>
-                    <?= $this->lang->line("email_lists_export_clipboard") ?>
-                </h6>
-                <div class="mb-2">
-                    <label for="separator" class="form-label">
-                        <?= $this->lang->line("email_lists_separator") ?>:
+    <div class="card-body">
+        <!-- Chunking options -->
+        <div class="border rounded p-3 mb-3 bg-light">
+            <h6 class="card-title">
+                <i class="bi bi-scissors"></i>
+                <?= $this->lang->line("email_lists_chunk_emails") ?>
+            </h6>
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <label for="chunk_size" class="form-label">
+                        <?= $this->lang->line("email_lists_chunk_size") ?>:
                     </label>
-                    <select class="form-select form-select-sm" id="separator">
-                        <option value=", "><?= $this->lang->line("email_lists_separator_comma") ?> (, )</option>
-                        <option value="; "><?= $this->lang->line("email_lists_separator_semicolon") ?> (; )</option>
-                    </select>
+                    <input type="number"
+                           class="form-control form-control-sm"
+                           id="chunk_size"
+                           value="20"
+                           min="1"
+                           max="<?= count($email_addresses) ?>"
+                           onchange="updateChunkDisplay()">
                 </div>
-                <button type="button"
-                        class="btn btn-primary btn-sm w-100"
-                        onclick="copyEmailsToClipboard()">
-                    <i class="bi bi-clipboard"></i>
-                    <?= $this->lang->line("email_lists_copy") ?>
-                </button>
+                <div class="col-md-4 mb-2">
+                    <label for="chunk_part" class="form-label">
+                        <?= $this->lang->line("email_lists_chunk_part") ?>:
+                    </label>
+                    <select class="form-select form-select-sm" id="chunk_part"></select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div id="chunk_info" class="text-muted small"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- File exports -->
-    <div class="col-md-6 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="bi bi-download"></i>
-                    <?= $this->lang->line("email_lists_export") ?>
-                </h6>
-                <div class="d-grid gap-2">
-                    <a href="<?= controller_url($controller) ?>/download_txt/<?= $list['id'] ?>"
-                       class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <?= $this->lang->line("email_lists_export_txt") ?>
-                    </a>
-                    <a href="<?= controller_url($controller) ?>/download_md/<?= $list['id'] ?>"
-                       class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-file-earmark-richtext"></i>
-                        <?= $this->lang->line("email_lists_export_md") ?>
-                    </a>
+        <div class="row">
+            <!-- mailto options -->
+            <div class="col-md-8 mb-3">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="card-title">
+                        <i class="bi bi-envelope-open"></i>
+                        <?= $this->lang->line("email_lists_mailto") ?>
+                    </h6>
+                    <p class="text-muted small mb-2">
+                        <?= $this->lang->line("email_lists_mailto_help") ?>
+                    </p>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label for="mailto_field" class="form-label">
+                                <?= $this->lang->line("email_lists_mailto_field") ?>:
+                            </label>
+                            <select class="form-select form-select-sm" id="mailto_field">
+                                <option value="to"><?= $this->lang->line("email_lists_mailto_to") ?></option>
+                                <option value="cc"><?= $this->lang->line("email_lists_mailto_cc") ?></option>
+                                <option value="bcc" selected><?= $this->lang->line("email_lists_mailto_bcc") ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="mailto_subject" class="form-label">
+                                <?= $this->lang->line("email_lists_mailto_subject") ?>:
+                            </label>
+                            <input type="text"
+                                   class="form-control form-control-sm"
+                                   id="mailto_subject"
+                                   placeholder="<?= $this->lang->line("gvv_str_optional") ?>">
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <label for="mailto_reply_to" class="form-label">
+                                <?= $this->lang->line("email_lists_mailto_reply_to") ?>:
+                            </label>
+                            <input type="email"
+                                   class="form-control form-control-sm"
+                                   id="mailto_reply_to"
+                                   placeholder="<?= $this->lang->line("gvv_str_optional") ?>">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-success btn-sm"
+                                onclick="openMailtoLink()">
+                            <i class="bi bi-envelope-open"></i>
+                            <?= $this->lang->line("email_lists_mailto") ?>
+                        </button>
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                onclick="saveMailtoPreferences()">
+                            <i class="bi bi-save"></i>
+                            <?= $this->lang->line("email_lists_mailto_save_prefs") ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clipboard copy -->
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="card-title">
+                        <i class="bi bi-clipboard"></i>
+                        <?= $this->lang->line("email_lists_export_clipboard") ?>
+                    </h6>
+                    <div class="mb-2">
+                        <label for="separator" class="form-label">
+                            <?= $this->lang->line("email_lists_separator") ?>:
+                        </label>
+                        <select class="form-select form-select-sm" id="separator">
+                            <option value=", "><?= $this->lang->line("email_lists_separator_comma") ?> (, )</option>
+                            <option value="; "><?= $this->lang->line("email_lists_separator_semicolon") ?> (; )</option>
+                        </select>
+                    </div>
+                    <button type="button"
+                            class="btn btn-primary btn-sm w-100"
+                            onclick="copyEmailsToClipboard()">
+                        <i class="bi bi-clipboard"></i>
+                        <?= $this->lang->line("email_lists_copy") ?>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- mailto options -->
+<!-- Section 2: Export fichiers -->
 <div class="card mb-3">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">
+            <i class="bi bi-download"></i>
+            <?= $this->lang->line("email_lists_export") ?>
+        </h5>
+    </div>
     <div class="card-body">
-        <h6 class="card-title">
-            <i class="bi bi-envelope-open"></i>
-            <?= $this->lang->line("email_lists_mailto") ?>
-        </h6>
-        <p class="text-muted small">
-            <?= $this->lang->line("email_lists_mailto_help") ?>
-        </p>
-
-        <div class="row mb-2">
-            <div class="col-md-3">
-                <label for="mailto_field" class="form-label">
-                    <?= $this->lang->line("email_lists_mailto_field") ?>:
-                </label>
-                <select class="form-select form-select-sm" id="mailto_field">
-                    <option value="to"><?= $this->lang->line("email_lists_mailto_to") ?></option>
-                    <option value="cc"><?= $this->lang->line("email_lists_mailto_cc") ?></option>
-                    <option value="bcc" selected><?= $this->lang->line("email_lists_mailto_bcc") ?></option>
-                </select>
-            </div>
-            <div class="col-md-9">
-                <label for="mailto_subject" class="form-label">
-                    <?= $this->lang->line("email_lists_mailto_subject") ?>:
-                </label>
-                <input type="text"
-                       class="form-control form-control-sm"
-                       id="mailto_subject"
-                       placeholder="<?= $this->lang->line("gvv_str_optional") ?>">
-            </div>
-        </div>
-
-        <div class="row mb-2">
-            <div class="col-md-12">
-                <label for="mailto_reply_to" class="form-label">
-                    <?= $this->lang->line("email_lists_mailto_reply_to") ?>:
-                </label>
-                <input type="email"
-                       class="form-control form-control-sm"
-                       id="mailto_reply_to"
-                       placeholder="<?= $this->lang->line("gvv_str_optional") ?>">
-            </div>
-        </div>
-
         <div class="d-flex gap-2">
-            <button type="button"
-                    class="btn btn-success btn-sm"
-                    onclick="openMailtoLink()">
-                <i class="bi bi-envelope-open"></i>
-                <?= $this->lang->line("email_lists_mailto") ?>
-            </button>
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm"
-                    onclick="saveMailtoPreferences()">
-                <i class="bi bi-save"></i>
-                <?= $this->lang->line("email_lists_mailto_save_prefs") ?>
-            </button>
+            <a href="<?= controller_url($controller) ?>/download_txt/<?= $list['id'] ?>"
+               class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-text"></i>
+                <?= $this->lang->line("email_lists_export_txt") ?>
+            </a>
+            <a href="<?= controller_url($controller) ?>/download_md/<?= $list['id'] ?>"
+               class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-richtext"></i>
+                <?= $this->lang->line("email_lists_export_md") ?>
+            </a>
         </div>
     </div>
 </div>
@@ -202,7 +209,7 @@ function copyEmailsToClipboard() {
     const emails = getCurrentEmailChunk();
     const text = emails.join(separator);
 
-    copyToClipboard(text, 
+    copyToClipboard(text,
         function() {
             // Success callback
             showToast('<?= $this->lang->line("email_lists_copy_success") ?>', 'success');
@@ -420,13 +427,13 @@ function openMailtoLink() {
     // Check URL length (browser limit ~2000 chars)
     if (mailto.length > 2000) {
         if (confirm('<?= $this->lang->line("email_lists_mailto_too_long") ?>')) {
-            copyToClipboard(emails.join(', '), 
+            copyToClipboard(emails.join(', '),
                 function() {
                     // Success callback
                     showToast('<?= $this->lang->line("email_lists_copy_success") ?>', 'success');
                 },
                 function(error) {
-                    // Error callback  
+                    // Error callback
                     showToast('<?= $this->lang->line("email_lists_copy_error") ?>', 'danger');
                 }
             );

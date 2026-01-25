@@ -745,15 +745,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-paper-plane text-info"></i>
-                        <div class="card-title">Envoi email</div>
-                        <div class="card-text text-muted">Envoyer</div>
-                        <a href="<?= controller_url('email_lists/addresses') ?>" class="btn btn-info btn-sm">Accéder</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-certificate text-warning"></i>
                         <div class="card-title">Formation</div>
                         <div class="card-text text-muted">Certificats</div>

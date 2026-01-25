@@ -57,9 +57,6 @@ $this->lang->load('email_lists');
         <a href="<?= controller_url($controller) ?>/create" class="btn btn-primary">
             <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("email_lists_create") ?>
         </a>
-        <a href="<?= controller_url($controller) ?>/addresses" class="btn btn-info ms-2">
-            <i class="fas fa-paper-plane" aria-hidden="true"></i> <?= translation("Envoi email") ?>
-        </a>
     </div>
 
     <!-- Lists table -->
@@ -72,7 +69,7 @@ $this->lang->load('email_lists');
             <table class="table table-striped table-hover datatable" id="email-lists-table">
                 <thead>
                     <tr>
-                        <th class="text-center" style="width: 120px;"><?= $this->lang->line("gvv_str_actions") ?></th>
+                        <th class="text-center" style="width: 150px;"><?= $this->lang->line("gvv_str_actions") ?></th>
                         <th><?= $this->lang->line("email_lists_name") ?></th>
                         <th><?= $this->lang->line("email_lists_description") ?></th>
                         <th class="text-center"><?= $this->lang->line("email_lists_recipient_count") ?></th>
@@ -85,6 +82,10 @@ $this->lang->load('email_lists');
                         <tr>
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>" class="btn btn-success"
+                                        title="<?= $this->lang->line("email_lists_send_email") ?>">
+                                        <i class="fas fa-envelope text-white" aria-hidden="true"></i>
+                                    </a>
                                     <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>" class="btn btn-primary"
                                         title="<?= $this->lang->line("email_lists_view") ?>">
                                         <i class="fas fa-eye text-white" aria-hidden="true"></i>

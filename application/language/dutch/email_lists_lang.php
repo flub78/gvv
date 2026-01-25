@@ -20,6 +20,7 @@ $lang['email_lists_recipient_count'] = 'Ontvangers';
 $lang['email_lists_create'] = 'Nieuwe Lijst';
 $lang['email_lists_edit'] = 'Lijst Bewerken';
 $lang['email_lists_view'] = 'Lijst Bekijken';
+$lang['email_lists_send_email'] = 'E-mail Verzenden';
 $lang['email_lists_use'] = 'Deze Lijst Gebruiken';
 $lang['email_lists_delete'] = 'Verwijderen';
 $lang['email_lists_delete_confirm'] = 'Weet u zeker dat u de lijst {name} wilt verwijderen?';
@@ -58,6 +59,9 @@ $lang['email_lists_external_addresses'] = 'Externe adressen';
 $lang['email_lists_import_csv'] = 'CSV Importeren';
 $lang['email_lists_upload_file'] = 'Bestand Uploaden';
 $lang['email_lists_parse'] = 'Analyseren';
+
+// Sections
+$lang['email_lists_send_section'] = 'E-mail Verzenden';
 
 // Export
 $lang['email_lists_export_txt'] = 'Exporteer TXT';

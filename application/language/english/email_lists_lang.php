@@ -20,6 +20,7 @@ $lang['email_lists_recipient_count'] = 'Recipients';
 $lang['email_lists_create'] = 'New List';
 $lang['email_lists_edit'] = 'Edit List';
 $lang['email_lists_view'] = 'View List';
+$lang['email_lists_send_email'] = 'Send Email';
 $lang['email_lists_use'] = 'Use This List';
 $lang['email_lists_delete'] = 'Delete';
 $lang['email_lists_delete_confirm'] = 'Are you sure you want to delete the list {name}?';
@@ -58,6 +59,9 @@ $lang['email_lists_external_addresses'] = 'External addresses';
 $lang['email_lists_import_csv'] = 'CSV Import';
 $lang['email_lists_upload_file'] = 'Upload a file';
 $lang['email_lists_parse'] = 'Parse';
+
+// Sections
+$lang['email_lists_send_section'] = 'Send Email';
 
 // Export
 $lang['email_lists_export_txt'] = 'Export TXT';
