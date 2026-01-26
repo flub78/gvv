@@ -9,9 +9,8 @@ DB_USER="${MYSQL_USER:-gvv_user}"
 DB_PASS="${MYSQL_PASSWORD:-lfoyfgbj}"
 DB_NAME="${MYSQL_DATABASE:-gvv2}"
 
-# Password hashes for "password" (pre-computed using the same salt as existing test users)
-# These are MD5 crypt hashes from the existing test users
-TESTUSER_HASH='$1$wu3.3t2.$Wgk43dHPPi3PTv5atdpnz0'
+# Password hashes for "password" (working hashes from database)
+TESTUSER_HASH='$1$RMO5L0Z4$dK0agqu3OImkLjgIfi5BD1'
 TESTADMIN_HASH='$1$uM1.f95.$AnUHH1W/xLS9fxDbt8RPo0'
 TESTPLANCHISTE_HASH='$1$DT0.QJ1.$yXqRz6gf/jWC4MzY2D05Y.'
 TESTCA_HASH='$1$9h..cY3.$NzkeKkCoSa2oxL7bQCq4v1'
@@ -28,7 +27,7 @@ fi
 
 echo "Using section ID: $SECTION_ID"
 
-# Function to create user if not exists
+# Function to create or update user
 create_user() {
     local username=$1
     local password_hash=$2
@@ -61,7 +60,17 @@ EOF
             echo "✗ Error creating user $username"
         fi
     else
-        echo "- User $username already exists, skipping"
+        echo "User $username already exists, updating password..."
+        
+        # Update password for existing user
+        mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e \
+            "UPDATE users SET password='$password_hash' WHERE username='$username';"
+        
+        if [ $? -eq 0 ]; then
+            echo "✓ Password updated for user $username"
+        else
+            echo "✗ Error updating password for user $username"
+        fi
     fi
 }
 
