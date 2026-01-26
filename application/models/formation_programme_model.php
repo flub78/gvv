@@ -74,7 +74,7 @@ class Formation_programme_model extends Common_Model {
         
         // Dans CI 2.x, on doit construire la condition OR manuellement
         if ($section_id !== null) {
-            $this->db->where("(section_id IS NULL OR section_id = " . $this->db->escape($section_id) . ")", null, false);
+            $this->db->where("(section_id IS NULL OR section_id = " . (int) $section_id . ")", null, false);
         } else {
             $this->db->where('section_id IS NULL');
         }

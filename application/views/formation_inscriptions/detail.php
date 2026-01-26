@@ -294,10 +294,10 @@ function get_statut_badge($statut) {
                                 <tr>
                                     <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
                                     <td><?= htmlspecialchars($seance['instructeur_nom'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($seance['avion_immat'] ?? '-') ?></td>
-                                    <td><?= $seance['duree_vol'] ?> min</td>
+                                    <td><?= htmlspecialchars($seance['machine_modele'] ?? '-') ?></td>
+                                    <td><?= isset($seance['duree']) ? substr($seance['duree'], 0, 5) : '-' ?></td>
                                     <td>
-                                        <span class="badge bg-info"><?= $seance['nb_sujets'] ?? 0 ?> sujets</span>
+                                        <span class="badge bg-info"><?= $seance['nb_atterrissages'] ?? 0 ?> att.</span>
                                     </td>
                                     <td>
                                         <a href="<?= controller_url('formation_seances') ?>/detail/<?= $seance['id'] ?>" 

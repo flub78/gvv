@@ -131,29 +131,87 @@ $lang['formation_inscription_date_debut'] = 'Date de début';
 $lang['formation_inscription_date_fin'] = 'Date de fin';
 $lang['formation_inscription_resultat'] = 'Résultat';
 
-// Séances
+// Séances - Général
 $lang['formation_seance'] = 'Séance';
 $lang['formation_seances'] = 'Séances';
+$lang['formation_seances_title'] = 'Séances de formation';
+$lang['formation_seances_create'] = 'Nouvelle séance';
+$lang['formation_seances_edit'] = 'Modifier la séance';
+$lang['formation_seances_detail'] = 'Détail de la séance';
+$lang['formation_seances_empty'] = 'Aucune séance enregistrée.';
+$lang['formation_seances_back'] = 'Retour aux séances';
+
+// Séances - Champs
 $lang['formation_seance_date'] = 'Date';
-$lang['formation_seance_duree'] = 'Durée (minutes)';
 $lang['formation_seance_pilote'] = 'Pilote';
 $lang['formation_seance_instructeur'] = 'Instructeur';
+$lang['formation_seance_machine'] = 'Aéronef';
+$lang['formation_seance_duree'] = 'Durée du vol';
+$lang['formation_seance_duree_help'] = 'Format HH:MM';
+$lang['formation_seance_nb_atterrissages'] = 'Nombre d\'atterrissages';
+$lang['formation_seance_commentaire'] = 'Commentaires';
+$lang['formation_seance_prochaines_lecons'] = 'Prochaines leçons recommandées';
+$lang['formation_seance_programme'] = 'Programme';
+
+// Séances - Types
 $lang['formation_seance_inscription'] = 'Inscription';
 $lang['formation_seance_libre'] = 'Séance libre (sans inscription)';
+$lang['formation_seance_libre_info'] = 'Cette séance sera archivée mais ne contribuera pas à une fiche de progression.';
+$lang['formation_seance_inscription_info'] = 'Séance liée à la formation';
+$lang['formation_seance_type'] = 'Type';
+$lang['formation_seance_type_formation'] = 'Formation';
+$lang['formation_seance_type_libre'] = 'Libre';
+$lang['formation_seance_type_toutes'] = 'Toutes';
+$lang['formation_seance_mode_inscription'] = 'Avec inscription';
+$lang['formation_seance_mode_libre'] = 'Sans inscription (séance libre)';
+$lang['formation_seance_select_inscription'] = '-- Sélectionnez une inscription --';
+
+// Séances - Météo
 $lang['formation_seance_meteo'] = 'Conditions météo';
-$lang['formation_seance_commentaire'] = 'Commentaire';
+$lang['formation_seance_meteo_cavok'] = 'CAVOK';
+$lang['formation_seance_meteo_vent_faible'] = 'Vent faible';
+$lang['formation_seance_meteo_vent_modere'] = 'Vent modéré';
+$lang['formation_seance_meteo_vent_fort'] = 'Vent fort';
+$lang['formation_seance_meteo_thermiques'] = 'Thermiques';
+$lang['formation_seance_meteo_turbulences'] = 'Turbulences';
+$lang['formation_seance_meteo_nuageux'] = 'Nuageux';
+$lang['formation_seance_meteo_couvert'] = 'Couvert';
+$lang['formation_seance_meteo_pluie'] = 'Pluie';
+$lang['formation_seance_meteo_vent_travers'] = 'Vent de travers';
+
+// Séances - Messages
+$lang['formation_seance_create_success'] = 'Séance enregistrée avec succès.';
+$lang['formation_seance_create_error'] = 'Erreur lors de l\'enregistrement de la séance.';
+$lang['formation_seance_update_success'] = 'Séance mise à jour avec succès.';
+$lang['formation_seance_update_error'] = 'Erreur lors de la mise à jour de la séance.';
+$lang['formation_seance_delete_success'] = 'Séance supprimée avec succès.';
+$lang['formation_seance_delete_error'] = 'Erreur lors de la suppression de la séance.';
+$lang['formation_seance_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer cette séance ?';
+$lang['formation_seance_inscription_required'] = 'Veuillez sélectionner une inscription ouverte.';
+$lang['formation_seance_inscription_not_open'] = 'L\'inscription sélectionnée n\'est pas ouverte.';
+$lang['formation_seance_pilote_programme_required'] = 'Le pilote et le programme sont obligatoires pour une séance libre.';
+
+// Séances - Filtres
+$lang['formation_seance_filtre_pilote'] = 'Filtrer par pilote';
+$lang['formation_seance_filtre_instructeur'] = 'Filtrer par instructeur';
+$lang['formation_seance_filtre_programme'] = 'Filtrer par programme';
+$lang['formation_seance_filtre_type'] = 'Filtrer par type';
+$lang['formation_seance_filtre_date_debut'] = 'Date de début';
+$lang['formation_seance_filtre_date_fin'] = 'Date de fin';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Évaluation';
 $lang['formation_evaluations'] = 'Évaluations';
 $lang['formation_evaluation_sujet'] = 'Sujet';
 $lang['formation_evaluation_niveau'] = 'Niveau';
-$lang['formation_evaluation_niveau_non_vu'] = 'Non vu';
-$lang['formation_evaluation_niveau_debutant'] = 'Débutant';
-$lang['formation_evaluation_niveau_progresse'] = 'En progression';
+$lang['formation_evaluation_niveau_non_aborde'] = 'Non abordé';
+$lang['formation_evaluation_niveau_aborde'] = 'Abordé';
+$lang['formation_evaluation_niveau_a_revoir'] = 'À revoir';
 $lang['formation_evaluation_niveau_acquis'] = 'Acquis';
-$lang['formation_evaluation_niveau_maitrise'] = 'Maîtrisé';
 $lang['formation_evaluation_commentaire'] = 'Commentaire';
+$lang['formation_evaluation_lecon'] = 'Leçon';
+$lang['formation_evaluation_select_lecon'] = '-- Sélectionnez une leçon --';
+$lang['formation_evaluation_aucune'] = 'Aucune évaluation enregistrée';
 
 // Form elements
 $lang['formation_form_required'] = 'Champs obligatoires';

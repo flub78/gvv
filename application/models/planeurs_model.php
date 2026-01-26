@@ -84,6 +84,25 @@ class Planeurs_model extends Common_Model {
     }
 
     /**
+     * Get active gliders for dropdown selector
+     *
+     * @return array [mpimmat => "Modèle - Immat"]
+     */
+    public function get_selector() {
+        $this->db->select('mpimmat, mpmodele')
+            ->from($this->table)
+            ->where('actif', 1)
+            ->order_by('mpmodele', 'asc');
+
+        $results = $this->db->get()->result_array();
+        $selector = array('' => '');
+        foreach ($results as $row) {
+            $selector[$row['mpimmat']] = $row['mpmodele'] . ' - ' . $row['mpimmat'];
+        }
+        return $selector;
+    }
+
+    /**
      * Delete a glider with validation
      * Checks if the glider is referenced in flight records before deletion
      * 

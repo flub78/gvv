@@ -87,7 +87,7 @@ class Formation_seance_model extends Common_Model {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
             mp.mpmodele as machine_modele,
-            CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre')
+            CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
@@ -138,7 +138,7 @@ class Formation_seance_model extends Common_Model {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             mp.mpmodele as machine_modele,
-            CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre')
+            CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres m', 's.pilote_id = m.mlogin', 'left')
@@ -242,7 +242,7 @@ class Formation_seance_model extends Common_Model {
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
             mp.mpmodele as machine_modele,
-            CASE WHEN s.inscription_id IS NULL THEN "Libre" ELSE "Formation" END as type_seance')
+            CASE WHEN s.inscription_id IS NULL THEN "Libre" ELSE "Formation" END as type_seance', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres m', 's.pilote_id = m.mlogin', 'left')

@@ -1,7 +1,7 @@
 # Plan d'Implémentation - Suivi de Formation
 
 **Référence PRD** : [doc/prds/suivi_formation_prd.md](../prds/suivi_formation_prd.md)
-**Statut global** : 🟡 En cours (Phases 1, 2 et 3 complétées)
+**Statut global** : 🟡 En cours (Phases 1, 2, 3 et 4 complétées)
 **Date de création** : 25 janvier 2026
 
 ---
@@ -52,16 +52,16 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 3.6 - Tests PHPUnit : cycle de vie des inscriptions
 - [x] 3.7 - Tests Playwright : workflow complet d'inscription
 
-### Phase 4 : Séances de Formation ⏳ 0/9
-- [ ] 4.1 - Contrôleur d'enregistrement des séances
-- [ ] 4.2 - Support des séances avec et sans inscription
-- [ ] 4.3 - Formulaire de saisie de séance (mode inscription/libre)
-- [ ] 4.4 - Évaluation par sujet (-, A, R, Q)
-- [ ] 4.5 - Gestion des conditions météo
-- [ ] 4.6 - Historique des séances (avec distinction inscription/libre)
-- [ ] 4.7 - Fichiers de langue pour les séances
-- [ ] 4.8 - Tests PHPUnit : enregistrement et évaluation
-- [ ] 4.9 - Tests Playwright : saisie de séance complète (avec/sans inscription)
+### Phase 4 : Séances de Formation ✅ 9/9
+- [x] 4.1 - Contrôleur d'enregistrement des séances
+- [x] 4.2 - Support des séances avec et sans inscription
+- [x] 4.3 - Formulaire de saisie de séance (mode inscription/libre)
+- [x] 4.4 - Évaluation par sujet (-, A, R, Q)
+- [x] 4.5 - Gestion des conditions météo
+- [x] 4.6 - Historique des séances (avec distinction inscription/libre)
+- [x] 4.7 - Fichiers de langue pour les séances
+- [x] 4.8 - Tests PHPUnit : enregistrement et évaluation
+- [x] 4.9 - Tests Playwright : saisie de séance complète (avec/sans inscription)
 
 ### Phase 5 : Fiches de Progression ⏳ 0/7
 - [ ] 5.1 - Calcul de la progression par élève
@@ -94,7 +94,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [ ] 8.4 - Validation couverture de tests (>70%)
 - [ ] 8.5 - Smoke tests Playwright complet
 
-**Progression globale** : 21/53 tâches (40%)
+**Progression globale** : 30/53 tâches (57%)
 
 ---
 
@@ -717,8 +717,8 @@ class Programmes extends CI_Controller {
 
 ## Phase 3 : Inscriptions aux Formations
 
-**Statut** : 🔴 Non commencé  
-**Durée estimée** : 2-3 jours  
+**Statut** : ✅ Complétée
+**Date de complétion** : 26 janvier 2026
 **Objectif** : Cycle de vie complet des inscriptions
 
 ### 3.1 - Contrôleur Inscriptions
@@ -802,9 +802,38 @@ npx playwright test tests/formation/inscriptions.spec.js --reporter=line
 
 ## Phase 4 : Séances de Formation
 
-**Statut** : 🔴 Non commencé  
-**Durée estimée** : 4-5 jours  
+**Statut** : ✅ Complétée
+**Date de complétion** : 26 janvier 2026
 **Objectif** : Enregistrement séances avec ou sans inscription, évaluations
+
+### Résumé de l'implémentation
+
+**Fichiers créés** :
+- `application/controllers/formation_seances.php` - Contrôleur avec index, create, store, edit, update, detail, delete, ajax_inscriptions_pilote, ajax_programme_structure
+- `application/views/formation_seances/index.php` - Liste avec filtres (pilote, instructeur, programme, type, dates) et badges Formation/Libre
+- `application/views/formation_seances/form.php` - Formulaire mode inscription/libre avec toggle, évaluations dynamiques AJAX, météo checkboxes
+- `application/views/formation_seances/detail.php` - Détail avec évaluations groupées par leçon, badges niveaux colorés
+- `application/tests/mysql/SuiviSeanceModelTest.php` - 11 tests, 39 assertions
+- `playwright/tests/formation/seances.spec.js` - 10 tests e2e workflow complet
+
+**Fichiers modifiés** :
+- `application/language/french/formation_lang.php` - ~60 nouvelles clés de traduction (séances, évaluations, météo)
+- `application/models/formation_seance_model.php` - Fix CASE WHEN dans select() (ajout `FALSE` pour désactiver l'escaping CI 2.x)
+- `application/models/formation_evaluation_model.php` - Fix injection SQL dans `get_dernier_niveau_par_sujet()` (cast `(int)` au lieu de placeholder `?`)
+- `application/models/formation_programme_model.php` - Fix `get_by_section()` (cast `(int)` au lieu de `$this->db->escape()`)
+- `application/models/planeurs_model.php` - Ajout méthode `get_selector()` pour dropdown aéronefs
+- `application/views/formation_inscriptions/detail.php` - Fix noms de champs (machine_modele, duree, nb_atterrissages)
+
+**Fonctionnalités clés** :
+- **Deux modes de séance** : inscription (contribue à la progression) et libre (archivage uniquement)
+- **Évaluations** : sélection par sujet avec niveaux -, A, R, Q et commentaires
+- **Météo** : 10 conditions sélectionnables (CAVOK, vent faible/modéré/fort, thermiques, turbulences, etc.)
+- **AJAX** : chargement dynamique des inscriptions par pilote et structure du programme
+- **Filtres** : par pilote, instructeur, programme, type (formation/libre), période
+
+**Résultats des tests** :
+- PHPUnit : 843 tests, 0 échecs, 2 skips pré-existants
+- Playwright : 10 tests e2e passent (création libre, détail, édition, filtrage, création inscription, suppression)
 
 ### 4.1 - Contrôleur Séances
 
@@ -1758,4 +1787,4 @@ Ce plan doit être mis à jour régulièrement pour refléter :
 - ⚠️ Blocages ou difficultés rencontrées
 - 📊 Pourcentage de progression mis à jour
 
-**Dernière mise à jour** : 26 janvier 2026 - Phase 2 complétée (8 tests Playwright CRUD passent)
+**Dernière mise à jour** : 26 janvier 2026 - Phase 4 complétée (843 PHPUnit tests, 10 Playwright tests séances)

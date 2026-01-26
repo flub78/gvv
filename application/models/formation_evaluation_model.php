@@ -97,11 +97,14 @@ class Formation_evaluation_model extends Common_Model {
      * @return array [sujet_id => ['niveau' => 'Q', 'date' => '2025-01-20']]
      */
     public function get_dernier_niveau_par_sujet($inscription_id) {
+        // Cast to integer for safe use in subquery
+        $safe_id = (int) $inscription_id;
+
         // Subquery to get the most recent seance date for each sujet
         $subquery = "SELECT e.sujet_id, MAX(se.date_seance) as max_date
             FROM {$this->table} e
             JOIN formation_seances se ON e.seance_id = se.id
-            WHERE se.inscription_id = ?
+            WHERE se.inscription_id = {$safe_id}
             GROUP BY e.sujet_id";
 
         $this->db->select('e.sujet_id, e.niveau, se.date_seance')
