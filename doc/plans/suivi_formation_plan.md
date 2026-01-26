@@ -763,8 +763,40 @@ class Formation_inscriptions extends CI_Controller {
 - Détail avec timeline
 
 **Tests** :
-- PHPUnit : transitions de statut, validations
-- Playwright : workflow complet ouvrir→suspendre→réactiver→clôturer
+
+1. **PHPUnit** : `application/tests/integration/FormationInscriptionIntegrationTest.php`
+   - `test_ouvrir_inscription_creates_new_inscription()` - Création inscription
+   - `test_cannot_open_duplicate_inscription()` - Validation doublons
+   - `test_suspendre_inscription_changes_status()` - Suspension
+   - `test_reactiver_inscription_restores_open_status()` - Réactivation
+   - `test_cloturer_inscription_with_success()` - Clôture succès
+   - `test_cloturer_inscription_with_abandon()` - Clôture abandon
+   - `test_complete_inscription_lifecycle()` - Workflow complet
+   - `test_get_all_with_filters()` - Filtres
+   - `test_calculate_progression_returns_structure()` - Calcul progression
+
+2. **Playwright** : `playwright/tests/formation/inscriptions.spec.js`
+   - Step 1: Access inscriptions list page
+   - Step 2: Verify active programme exists
+   - Step 3: Open new inscription
+   - Step 4: View inscription details
+   - Step 5: Suspend inscription
+   - Step 6: Reactivate inscription
+   - Step 7: Close inscription (success)
+   - Step 8: List closed inscription
+   - Step 9: Complete workflow validation
+
+**Commandes de test** :
+```bash
+# PHPUnit
+source setenv.sh
+phpunit --bootstrap application/tests/integration_bootstrap.php \
+  application/tests/integration/FormationInscriptionIntegrationTest.php
+
+# Playwright
+cd playwright
+npx playwright test tests/formation/inscriptions.spec.js --reporter=line
+```
 
 ---
 

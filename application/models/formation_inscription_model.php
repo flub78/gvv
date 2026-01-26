@@ -250,13 +250,23 @@ class Formation_inscription_model extends Common_Model {
      * @return bool Success
      */
     public function reactiver($id) {
-        $data = array(
-            'statut' => 'ouverte',
-            'date_suspension' => null,
-            'motif_suspension' => null
-        );
-        $this->update('id', $data, $id);
-        // update() throws error on failure, so if we're here it succeeded
+        // Direct SQL update to handle NULL values correctly
+        // Cast to int for security since it's the primary key
+        $id = (int) $id;
+        $sql = "UPDATE {$this->table} SET 
+                statut = 'ouverte',
+                date_suspension = NULL,
+                motif_suspension = NULL
+                WHERE id = {$id}";
+        
+        $this->db->query($sql);
+        
+        // Check for errors
+        $error_msg = $this->db->_error_message();
+        if (!empty($error_msg)) {
+            gvv_error("MySQL Error: $error_msg");
+        }
+        
         return true;
     }
 
