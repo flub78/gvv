@@ -1,7 +1,7 @@
 # Plan d'Implémentation - Suivi de Formation
 
 **Référence PRD** : [doc/prds/suivi_formation_prd.md](../prds/suivi_formation_prd.md)
-**Statut global** : 🟡 En cours (Phases 1 et 2 complétées)
+**Statut global** : 🟡 En cours (Phases 1, 2 et 3 complétées)
 **Date de création** : 25 janvier 2026
 
 ---
@@ -43,14 +43,14 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 2.7 - Tests PHPUnit : parser et gestion des programmes
 - [x] 2.8 - Tests Playwright : CRUD programmes
 
-### Phase 3 : Inscriptions aux Formations ⏳ 0/7
-- [ ] 3.1 - Contrôleur de gestion des inscriptions
-- [ ] 3.2 - Vues pour ouvrir/suspendre/clôturer formations
-- [ ] 3.3 - Gestion du cycle de vie des inscriptions
-- [ ] 3.4 - Filtrage et recherche d'inscriptions
-- [ ] 3.5 - Fichiers de langue pour les inscriptions
-- [ ] 3.6 - Tests PHPUnit : cycle de vie des inscriptions
-- [ ] 3.7 - Tests Playwright : workflow complet d'inscription
+### Phase 3 : Inscriptions aux Formations ✅ 7/7
+- [x] 3.1 - Contrôleur de gestion des inscriptions
+- [x] 3.2 - Vues pour ouvrir/suspendre/clôturer formations
+- [x] 3.3 - Gestion du cycle de vie des inscriptions
+- [x] 3.4 - Filtrage et recherche d'inscriptions
+- [x] 3.5 - Fichiers de langue pour les inscriptions
+- [x] 3.6 - Tests PHPUnit : cycle de vie des inscriptions
+- [x] 3.7 - Tests Playwright : workflow complet d'inscription
 
 ### Phase 4 : Séances de Formation ⏳ 0/9
 - [ ] 4.1 - Contrôleur d'enregistrement des séances
@@ -94,7 +94,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [ ] 8.4 - Validation couverture de tests (>70%)
 - [ ] 8.5 - Smoke tests Playwright complet
 
-**Progression globale** : 14/53 tâches (26%)
+**Progression globale** : 21/53 tâches (40%)
 
 ---
 
@@ -723,7 +723,7 @@ class Programmes extends CI_Controller {
 
 ### 3.1 - Contrôleur Inscriptions
 
-**Fichier** : `application/controllers/Formation_inscriptions.php`
+**Fichier** : `application/controllers/formation_inscriptions.php`
 
 ```php
 class Formation_inscriptions extends CI_Controller {

@@ -650,6 +650,42 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
+    <?php if ($this->config->item('gestion_formations')): ?>
+    <!-- Section Formation -->
+    <div class="accordion-item section-card formation">
+        <h2 class="accordion-header" id="headingFormation">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormation" aria-expanded="false" aria-controls="collapseFormation">
+                <i class="fas fa-graduation-cap text-primary me-2"></i>
+                Formation
+            </button>
+        </h2>
+        <div id="collapseFormation" class="accordion-collapse collapse" aria-labelledby="headingFormation" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
+            <div class="row g-2">
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-book text-primary"></i>
+                        <div class="card-title">Programmes</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('programmes') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-user-graduate text-success"></i>
+                        <div class="card-title">Inscriptions</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('formation_inscriptions') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <?php if ($is_ca): ?>
     <!-- Section Administration Club -->
     <div class="accordion-item section-card admin">

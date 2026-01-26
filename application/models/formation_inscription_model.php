@@ -99,6 +99,92 @@ class Formation_inscription_model extends Common_Model {
     }
 
     /**
+     * Get all enrollments with optional filters
+     *
+     * @param array $filters Optional filters (pilote_id, programme_id, statut, instructeur_referent_id)
+     * @return array List of enrollments with details
+     */
+    public function get_all($filters = array()) {
+        return $this->select_page($filters, 1000, 0);
+    }
+    
+    /**
+     * Get enrollment with full details (program, pilot, instructor info)
+     *
+     * @param int $id Enrollment ID
+     * @return array Enrollment with related data
+     */
+    public function get_with_details($id) {
+        return $this->get_full($id);
+    }
+    
+    /**
+     * Get enrollment by pilot and program with optional status filter
+     *
+     * @param string $pilote_id Pilot member login
+     * @param int $programme_id Program ID
+     * @param string|null $statut Optional status filter
+     * @return array Enrollment data or empty array
+     */
+    public function get_by_pilote_programme($pilote_id, $programme_id, $statut = null) {
+        $this->db->where('pilote_id', $pilote_id)
+            ->where('programme_id', $programme_id);
+        
+        if ($statut) {
+            $this->db->where('statut', $statut);
+        }
+        
+        $result = $this->db->get($this->table)->row_array();
+        gvv_debug("sql: " . $this->db->last_query());
+        return $result ?: array();
+    }
+    
+    /**
+     * Calculate progression percentage for an enrollment
+     *
+     * @param int $inscription_id Enrollment ID
+     * @return array Array with 'total_sujets', 'sujets_acquis', 'pourcentage'
+     */
+    public function calculate_progression($inscription_id) {
+        // Get inscription
+        $inscription = $this->get($inscription_id);
+        if (!$inscription) {
+            return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+        
+        // Count total subjects in programme
+        $this->db->select('COUNT(DISTINCT fs.id) as total')
+            ->from('formation_lecons fl')
+            ->join('formation_sujets fs', 'fl.id = fs.lecon_id', 'left')
+            ->where('fl.programme_id', $inscription['programme_id']);
+        
+        $total_result = $this->db->get()->row_array();
+        $total_sujets = $total_result['total'] ?? 0;
+        
+        if ($total_sujets == 0) {
+            return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+        
+        // Count acquired subjects (niveau = 'Q')
+        $this->db->select('COUNT(DISTINCT fe.sujet_id) as acquis')
+            ->from('formation_seances fse')
+            ->join('formation_evaluations fe', 'fse.id = fe.seance_id', 'left')
+            ->where('fse.inscription_id', $inscription_id)
+            ->where('fe.niveau', 'Q');
+        
+        $acquis_result = $this->db->get()->row_array();
+        $sujets_acquis = $acquis_result['acquis'] ?? 0;
+        
+        $pourcentage = $total_sujets > 0 ? round(($sujets_acquis / $total_sujets) * 100, 1) : 0;
+        
+        return array(
+            'total_sujets' => $total_sujets,
+            'sujets_acquis' => $sujets_acquis,
+            'pourcentage' => $pourcentage
+        );
+    }
+
+    /**
      * Get enrollment selector for a pilot (open enrollments only)
      *
      * @param string $pilote_id Pilot member login
@@ -152,7 +238,9 @@ class Formation_inscription_model extends Common_Model {
             'date_suspension' => date('Y-m-d'),
             'motif_suspension' => $motif
         );
-        return $this->update('id', $data, $id);
+        $this->update('id', $data, $id);
+        // update() throws error on failure, so if we're here it succeeded
+        return true;
     }
 
     /**
@@ -167,7 +255,9 @@ class Formation_inscription_model extends Common_Model {
             'date_suspension' => null,
             'motif_suspension' => null
         );
-        return $this->update('id', $data, $id);
+        $this->update('id', $data, $id);
+        // update() throws error on failure, so if we're here it succeeded
+        return true;
     }
 
     /**
@@ -184,7 +274,9 @@ class Formation_inscription_model extends Common_Model {
             'date_cloture' => date('Y-m-d'),
             'motif_cloture' => $motif
         );
-        return $this->update('id', $data, $id);
+        $this->update('id', $data, $id);
+        // update() throws error on failure, so if we're here it succeeded
+        return true;
     }
 
     /**

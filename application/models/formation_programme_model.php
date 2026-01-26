@@ -69,14 +69,18 @@ class Formation_programme_model extends Common_Model {
      * @return array List of programs
      */
     public function get_by_section($section_id = null) {
-        $this->db->select('*')
-            ->from($this->table)
-            ->group_start()
-                ->where('section_id IS NULL')
-                ->or_where('section_id', $section_id)
-            ->group_end()
-            ->where('statut', 'actif')
-            ->order_by('titre', 'asc');
+        $this->db->select('*');
+        $this->db->from($this->table);
+        
+        // Dans CI 2.x, on doit construire la condition OR manuellement
+        if ($section_id !== null) {
+            $this->db->where("(section_id IS NULL OR section_id = " . $this->db->escape($section_id) . ")", null, false);
+        } else {
+            $this->db->where('section_id IS NULL');
+        }
+        
+        $this->db->where('statut', 'actif');
+        $this->db->order_by('titre', 'asc');
 
         $result = $this->db->get()->result_array();
         gvv_debug("sql: " . $this->db->last_query());

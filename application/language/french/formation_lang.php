@@ -76,18 +76,60 @@ $lang['formation_sujet_ordre'] = 'Ordre';
 // Inscriptions
 $lang['formation_inscription'] = 'Inscription';
 $lang['formation_inscriptions'] = 'Inscriptions';
+$lang['formation_inscriptions_title'] = 'Inscriptions aux formations';
+$lang['formation_inscriptions_ouvrir'] = 'Ouvrir une inscription';
+$lang['formation_inscriptions_empty'] = 'Aucune inscription enregistrée.';
+$lang['formation_inscriptions_count'] = 'inscription(s)';
 $lang['formation_inscription_pilote'] = 'Pilote';
 $lang['formation_inscription_programme'] = 'Programme';
-$lang['formation_inscription_instructeur'] = 'Instructeur';
-$lang['formation_inscription_date_debut'] = 'Date de début';
-$lang['formation_inscription_date_fin'] = 'Date de fin';
+$lang['formation_inscription_instructeur'] = 'Instructeur référent';
+$lang['formation_inscription_date_ouverture'] = 'Date d\'ouverture';
+$lang['formation_inscription_date_suspension'] = 'Date de suspension';
+$lang['formation_inscription_date_cloture'] = 'Date de clôture';
 $lang['formation_inscription_statut'] = 'Statut';
+$lang['formation_inscription_commentaire'] = 'Commentaire';
+
+// Inscriptions - Statuts
 $lang['formation_inscription_statut_ouverte'] = 'Ouverte';
 $lang['formation_inscription_statut_suspendue'] = 'Suspendue';
-$lang['formation_inscription_statut_terminee'] = 'Terminée';
+$lang['formation_inscription_statut_cloturee'] = 'Clôturée';
 $lang['formation_inscription_statut_abandonnee'] = 'Abandonnée';
+$lang['formation_inscription_ouverte'] = 'Formation terminée avec succès';
+$lang['formation_inscription_cloturee'] = 'Clôturée avec succès';
+$lang['formation_inscription_abandonnee'] = 'Abandonnée';
+
+// Inscriptions - Actions
+$lang['formation_inscription_detail_title'] = 'Détail de l\'inscription';
+$lang['formation_inscription_suspendre_title'] = 'Suspendre l\'inscription';
+$lang['formation_inscription_suspendre_confirm'] = 'Êtes-vous sûr de vouloir suspendre cette inscription ?';
+$lang['formation_inscription_suspendre_confirm_btn'] = 'Confirmer la suspension';
+$lang['formation_inscription_cloturer_title'] = 'Clôturer l\'inscription';
+$lang['formation_inscription_cloturer_info'] = 'Vous allez clôturer cette inscription. Choisissez le type de clôture.';
+$lang['formation_inscription_cloturer_confirm_btn'] = 'Confirmer la clôture';
+$lang['formation_inscription_type_cloture'] = 'Type de clôture';
+$lang['formation_inscription_motif_suspension'] = 'Motif de suspension';
+$lang['formation_inscription_motif_cloture'] = 'Motif de clôture';
+$lang['formation_inscription_motif_required'] = 'Le motif est obligatoire.';
+
+// Inscriptions - Messages
+$lang['formation_inscription_create_success'] = 'Inscription créée avec succès.';
+$lang['formation_inscription_create_error'] = 'Erreur lors de la création de l\'inscription.';
+$lang['formation_inscription_update_success'] = 'Inscription mise à jour avec succès.';
+$lang['formation_inscription_update_error'] = 'Erreur lors de la mise à jour de l\'inscription.';
+$lang['formation_inscription_suspend_success'] = 'Inscription suspendue avec succès.';
+$lang['formation_inscription_suspend_error'] = 'Erreur lors de la suspension de l\'inscription.';
+$lang['formation_inscription_reactivate_success'] = 'Inscription réactivée avec succès.';
+$lang['formation_inscription_reactivate_error'] = 'Erreur lors de la réactivation de l\'inscription.';
+$lang['formation_inscription_close_success'] = 'Inscription clôturée avec succès.';
+$lang['formation_inscription_close_error'] = 'Erreur lors de la clôture de l\'inscription.';
+$lang['formation_inscription_already_open'] = 'Ce pilote a déjà une inscription ouverte pour ce programme.';
+$lang['formation_inscription_cannot_suspend'] = 'Impossible de suspendre cette inscription (statut incorrect).';
+$lang['formation_inscription_cannot_reactivate'] = 'Impossible de réactiver cette inscription (statut incorrect).';
+$lang['formation_inscription_cannot_close'] = 'Impossible de clôturer cette inscription (statut incorrect).';
+$lang['formation_inscription_type_required'] = 'Le type de clôture est obligatoire.';
+$lang['formation_inscription_date_debut'] = 'Date de début';
+$lang['formation_inscription_date_fin'] = 'Date de fin';
 $lang['formation_inscription_resultat'] = 'Résultat';
-$lang['formation_inscription_commentaire'] = 'Commentaire';
 
 // Séances
 $lang['formation_seance'] = 'Séance';
