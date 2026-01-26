@@ -128,28 +128,102 @@ class Programmes extends Gvv_Controller
         // Generate a unique code from the title
         $code = $this->generate_programme_code($this->input->post('titre'));
 
+        // Get markdown content if provided
+        $markdown_content = $this->input->post('contenu_markdown');
+        $parsed_data = null;
+
+        if (!empty($markdown_content)) {
+            // Parse and validate markdown
+            try {
+                $parsed_data = $this->formation_markdown_parser->parse($markdown_content);
+                $validation_result = $this->formation_markdown_parser->validate($parsed_data);
+                if ($validation_result !== TRUE) {
+                    $this->session->set_flashdata('error', "Erreurs de validation du Markdown :\n\n" . $validation_result);
+                    return $this->create();
+                }
+            } catch (Exception $e) {
+                log_message('error', 'PROGRAMMES: Parse error in store: ' . $e->getMessage());
+                $this->session->set_flashdata('error', "Erreur d'analyse du Markdown :\n\n" . $e->getMessage());
+                return $this->create();
+            }
+        }
+
         // Prepare program data
         $programme_data = array(
             'code' => $code,
             'titre' => $this->input->post('titre'),
             'description' => $this->input->post('description'),
-            'contenu_markdown' => '',
+            'contenu_markdown' => $markdown_content ?: '',
             'section_id' => $this->input->post('section_id') ?: NULL,
             'version' => 1,
             'statut' => 'actif',
             'date_creation' => date('Y-m-d H:i:s')
         );
 
+        // Start transaction
+        $this->db->trans_start();
+
         $programme_id = $this->formation_programme_model->create($programme_data);
 
         if (!$programme_id) {
+            $this->db->trans_rollback();
             $this->session->set_flashdata('error', $this->lang->line('formation_programme_create_error'));
             return $this->create();
         }
 
-        // Success - redirect to edit to add lessons
+        // Create lessons and subjects from parsed markdown
+        if ($parsed_data && !empty($parsed_data['lecons'])) {
+            foreach ($parsed_data['lecons'] as $lecon_data) {
+                $lecon_record = array(
+                    'programme_id' => $programme_id,
+                    'numero' => $lecon_data['numero'],
+                    'titre' => $lecon_data['titre'],
+                    'description' => isset($lecon_data['description']) ? $lecon_data['description'] : '',
+                    'ordre' => $lecon_data['numero']
+                );
+
+                $lecon_id = $this->formation_lecon_model->create($lecon_record);
+
+                if (!$lecon_id) {
+                    $this->db->trans_rollback();
+                    $this->session->set_flashdata('error', "Erreur lors de la création de la leçon {$lecon_data['numero']} : {$lecon_data['titre']}");
+                    return $this->create();
+                }
+
+                if (isset($lecon_data['sujets'])) {
+                    foreach ($lecon_data['sujets'] as $sujet_data) {
+                        $sujet_record = array(
+                            'lecon_id' => $lecon_id,
+                            'numero' => $sujet_data['numero'],
+                            'titre' => $sujet_data['titre'],
+                            'description' => isset($sujet_data['description']) ? $sujet_data['description'] : '',
+                            'objectifs' => isset($sujet_data['objectifs']) ? $sujet_data['objectifs'] : '',
+                            'ordre' => $sujet_data['numero']
+                        );
+
+                        $sujet_id = $this->formation_sujet_model->create($sujet_record);
+
+                        if (!$sujet_id) {
+                            $this->db->trans_rollback();
+                            $this->session->set_flashdata('error', "Erreur lors de la création du sujet {$sujet_data['numero']} : {$sujet_data['titre']}");
+                            return $this->create();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Commit transaction
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->session->set_flashdata('error', 'Erreur lors de la transaction en base de données.');
+            return $this->create();
+        }
+
+        // Success - redirect to view
         $this->session->set_flashdata('success', $this->lang->line('formation_programme_create_success'));
-        redirect('programmes/edit/' . $programme_id);
+        redirect('programmes/view/' . $programme_id);
     }
 
     /**

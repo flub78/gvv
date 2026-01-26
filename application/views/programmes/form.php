@@ -179,6 +179,32 @@ $form_url = $is_edit ?
                         </div>
                     </div>
 
+                    <?php if (!$is_edit): ?>
+                        <!-- Markdown content for manual creation -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-code" aria-hidden="true"></i>
+                                    Structure du programme (Markdown)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="contenu_markdown" class="form-label">Contenu Markdown</label>
+                                    <textarea class="form-control font-monospace"
+                                              id="contenu_markdown"
+                                              name="contenu_markdown"
+                                              rows="15"
+                                              style="font-size: 0.9rem;"><?= set_value('contenu_markdown', '') ?></textarea>
+                                    <div class="form-text">
+                                        Syntaxe : <code># Titre du programme</code>, <code>## Leçon X : Titre</code>, <code>### Sujet X.Y : Titre</code>.
+                                        Ce champ est optionnel. Vous pouvez aussi ajouter la structure après la création.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($is_edit && !empty($lecons)): ?>
                         <!-- Lessons display (read-only in edit form) -->
                         <div class="card mb-3">
@@ -383,8 +409,25 @@ $form_url = $is_edit ?
                                 </div>
                             </div>
 
-                            <!-- Section (optional) -->
-                            <input type="hidden" name="section_id" value="">
+                            <!-- Section -->
+                            <div class="mb-3">
+                                <label for="section_id_import" class="form-label">
+                                    <?= $this->lang->line("formation_programme_section") ?>
+                                </label>
+                                <?php
+                                $this->load->model('sections_model');
+                                $sections = $this->sections_model->section_selector_with_null();
+                                echo form_dropdown(
+                                    'section_id',
+                                    $sections,
+                                    set_value('section_id', ''),
+                                    'class="form-select" id="section_id_import"'
+                                );
+                                ?>
+                                <div class="form-text">
+                                    <?= $this->lang->line("formation_programme_section_help") ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

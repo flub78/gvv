@@ -65,21 +65,28 @@ class Formation_programme_model extends Common_Model {
     /**
      * Get all programs for a section (including "all sections" programs)
      *
-     * @param int|null|string $section_id Section ID (null/empty/'toutes' = all programs, otherwise programs for section + global)
+     * @param int|null|string $section_id Section ID (null/empty/invalid = all programs, otherwise programs for section + global)
      * @return array List of programs
      */
     public function get_by_section($section_id = null) {
+        // Vérifier si la section_id correspond à une section existante
+        // Si section_id est NULL, vide, ou ne correspond pas à une section réelle (comme l'index "Toutes")
+        // alors on affiche TOUS les programmes
+        $section_exists = false;
+        if ($section_id !== null && $section_id !== '') {
+            $query = $this->db->where('id', $section_id)->get('sections');
+            $section_exists = $query->num_rows() > 0;
+        }
+
         $this->db->select('*');
         $this->db->from($this->table);
-        
-        // Si section_id est NULL, vide ou 'toutes' : afficher TOUS les programmes
-        // Sinon : afficher les programmes globaux (section_id IS NULL) + ceux de la section
-        if ($section_id !== null && $section_id !== '' && $section_id !== 'toutes') {
-            // Dans CI 2.x, on doit construire la condition OR manuellement
+
+        if ($section_exists) {
+            // Section valide : afficher programmes globaux (section_id IS NULL) + ceux de cette section
             $this->db->where("(section_id IS NULL OR section_id = " . (int) $section_id . ")", null, false);
         }
-        // Si section_id est NULL/vide/toutes : pas de filtre, on voit tout
-        
+        // Sinon (section invalide/Toutes/NULL/vide) : pas de filtre, on voit tout
+
         $this->db->where('statut', 'actif');
         $this->db->order_by('titre', 'asc');
 
