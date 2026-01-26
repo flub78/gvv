@@ -65,19 +65,20 @@ class Formation_programme_model extends Common_Model {
     /**
      * Get all programs for a section (including "all sections" programs)
      *
-     * @param int|null $section_id Section ID (null = only global programs)
+     * @param int|null|string $section_id Section ID (null/empty/'toutes' = all programs, otherwise programs for section + global)
      * @return array List of programs
      */
     public function get_by_section($section_id = null) {
         $this->db->select('*');
         $this->db->from($this->table);
         
-        // Dans CI 2.x, on doit construire la condition OR manuellement
-        if ($section_id !== null) {
+        // Si section_id est NULL, vide ou 'toutes' : afficher TOUS les programmes
+        // Sinon : afficher les programmes globaux (section_id IS NULL) + ceux de la section
+        if ($section_id !== null && $section_id !== '' && $section_id !== 'toutes') {
+            // Dans CI 2.x, on doit construire la condition OR manuellement
             $this->db->where("(section_id IS NULL OR section_id = " . (int) $section_id . ")", null, false);
-        } else {
-            $this->db->where('section_id IS NULL');
         }
+        // Si section_id est NULL/vide/toutes : pas de filtre, on voit tout
         
         $this->db->where('statut', 'actif');
         $this->db->order_by('titre', 'asc');

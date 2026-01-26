@@ -12,6 +12,7 @@ $lang['formation_programme_titre'] = 'Titre';
 $lang['formation_programme_description'] = 'Description';
 $lang['formation_programme_objectifs'] = 'Objectifs';
 $lang['formation_programme_section'] = 'Section';
+$lang['formation_programme_section_help'] = 'Si "Globale", le programme sera visible dans toutes les sections. Sinon, seulement dans la section sélectionnée.';
 $lang['formation_programme_version'] = 'Version';
 $lang['formation_programme_actif'] = 'Actif';
 $lang['formation_programme_date_creation'] = 'Date de création';
@@ -37,7 +38,7 @@ $lang['formation_programme_update_success'] = 'Programme mis à jour avec succè
 $lang['formation_programme_update_error'] = 'Erreur lors de la mise à jour du programme.';
 $lang['formation_programme_delete_success'] = 'Programme supprimé avec succès.';
 $lang['formation_programme_delete_error'] = 'Erreur lors de la suppression du programme.';
-$lang['formation_programme_delete_error_used'] = 'Ce programme ne peut pas être supprimé car il est utilisé dans des inscriptions actives.';
+$lang['formation_programme_delete_error_used'] = 'Ce programme ne peut pas être supprimé car il est utilisé dans des formations actives.';
 
 // Import/Export
 $lang['formation_import_file'] = 'Fichier Markdown';
@@ -74,12 +75,12 @@ $lang['formation_sujet_objectifs'] = 'Objectifs';
 $lang['formation_sujet_ordre'] = 'Ordre';
 
 // Inscriptions
-$lang['formation_inscription'] = 'Inscription';
-$lang['formation_inscriptions'] = 'Inscriptions';
-$lang['formation_inscriptions_title'] = 'Inscriptions aux formations';
-$lang['formation_inscriptions_ouvrir'] = 'Ouvrir une inscription';
-$lang['formation_inscriptions_empty'] = 'Aucune inscription enregistrée.';
-$lang['formation_inscriptions_count'] = 'inscription(s)';
+$lang['formation_inscription'] = 'Formation';
+$lang['formation_inscriptions'] = 'Formations';
+$lang['formation_inscriptions_title'] = 'Formations en cours';
+$lang['formation_inscriptions_ouvrir'] = 'Ouvrir une formation';
+$lang['formation_inscriptions_empty'] = 'Aucune formation enregistrée.';
+$lang['formation_inscriptions_count'] = 'formation(s)';
 $lang['formation_inscription_pilote'] = 'Pilote';
 $lang['formation_inscription_programme'] = 'Programme';
 $lang['formation_inscription_instructeur'] = 'Instructeur référent';
@@ -99,12 +100,12 @@ $lang['formation_inscription_cloturee'] = 'Clôturée avec succès';
 $lang['formation_inscription_abandonnee'] = 'Abandonnée';
 
 // Inscriptions - Actions
-$lang['formation_inscription_detail_title'] = 'Détail de l\'inscription';
-$lang['formation_inscription_suspendre_title'] = 'Suspendre l\'inscription';
-$lang['formation_inscription_suspendre_confirm'] = 'Êtes-vous sûr de vouloir suspendre cette inscription ?';
+$lang['formation_inscription_detail_title'] = 'Détail de la formation';
+$lang['formation_inscription_suspendre_title'] = 'Suspendre la formation';
+$lang['formation_inscription_suspendre_confirm'] = 'Êtes-vous sûr de vouloir suspendre cette formation ?';
 $lang['formation_inscription_suspendre_confirm_btn'] = 'Confirmer la suspension';
-$lang['formation_inscription_cloturer_title'] = 'Clôturer l\'inscription';
-$lang['formation_inscription_cloturer_info'] = 'Vous allez clôturer cette inscription. Choisissez le type de clôture.';
+$lang['formation_inscription_cloturer_title'] = 'Clôturer la formation';
+$lang['formation_inscription_cloturer_info'] = 'Vous allez clôturer cette formation. Choisissez le type de clôture.';
 $lang['formation_inscription_cloturer_confirm_btn'] = 'Confirmer la clôture';
 $lang['formation_inscription_type_cloture'] = 'Type de clôture';
 $lang['formation_inscription_motif_suspension'] = 'Motif de suspension';
@@ -112,20 +113,20 @@ $lang['formation_inscription_motif_cloture'] = 'Motif de clôture';
 $lang['formation_inscription_motif_required'] = 'Le motif est obligatoire.';
 
 // Inscriptions - Messages
-$lang['formation_inscription_create_success'] = 'Inscription créée avec succès.';
-$lang['formation_inscription_create_error'] = 'Erreur lors de la création de l\'inscription.';
-$lang['formation_inscription_update_success'] = 'Inscription mise à jour avec succès.';
-$lang['formation_inscription_update_error'] = 'Erreur lors de la mise à jour de l\'inscription.';
-$lang['formation_inscription_suspend_success'] = 'Inscription suspendue avec succès.';
-$lang['formation_inscription_suspend_error'] = 'Erreur lors de la suspension de l\'inscription.';
-$lang['formation_inscription_reactivate_success'] = 'Inscription réactivée avec succès.';
-$lang['formation_inscription_reactivate_error'] = 'Erreur lors de la réactivation de l\'inscription.';
-$lang['formation_inscription_close_success'] = 'Inscription clôturée avec succès.';
-$lang['formation_inscription_close_error'] = 'Erreur lors de la clôture de l\'inscription.';
-$lang['formation_inscription_already_open'] = 'Ce pilote a déjà une inscription ouverte pour ce programme.';
-$lang['formation_inscription_cannot_suspend'] = 'Impossible de suspendre cette inscription (statut incorrect).';
-$lang['formation_inscription_cannot_reactivate'] = 'Impossible de réactiver cette inscription (statut incorrect).';
-$lang['formation_inscription_cannot_close'] = 'Impossible de clôturer cette inscription (statut incorrect).';
+$lang['formation_inscription_create_success'] = 'Formation créée avec succès.';
+$lang['formation_inscription_create_error'] = 'Erreur lors de la création de la formation.';
+$lang['formation_inscription_update_success'] = 'Formation mise à jour avec succès.';
+$lang['formation_inscription_update_error'] = 'Erreur lors de la mise à jour de la formation.';
+$lang['formation_inscription_suspend_success'] = 'Formation suspendue avec succès.';
+$lang['formation_inscription_suspend_error'] = 'Erreur lors de la suspension de la formation.';
+$lang['formation_inscription_reactivate_success'] = 'Formation réactivée avec succès.';
+$lang['formation_inscription_reactivate_error'] = 'Erreur lors de la réactivation de la formation.';
+$lang['formation_inscription_close_success'] = 'Formation clôturée avec succès.';
+$lang['formation_inscription_close_error'] = 'Erreur lors de la clôture de la formation.';
+$lang['formation_inscription_already_open'] = 'Ce pilote a déjà une formation ouverte pour ce programme.';
+$lang['formation_inscription_cannot_suspend'] = 'Impossible de suspendre cette formation (statut incorrect).';
+$lang['formation_inscription_cannot_reactivate'] = 'Impossible de réactiver cette formation (statut incorrect).';
+$lang['formation_inscription_cannot_close'] = 'Impossible de clôturer cette formation (statut incorrect).';
 $lang['formation_inscription_type_required'] = 'Le type de clôture est obligatoire.';
 $lang['formation_inscription_date_debut'] = 'Date de début';
 $lang['formation_inscription_date_fin'] = 'Date de fin';
@@ -154,17 +155,17 @@ $lang['formation_seance_prochaines_lecons'] = 'Prochaines leçons recommandées'
 $lang['formation_seance_programme'] = 'Programme';
 
 // Séances - Types
-$lang['formation_seance_inscription'] = 'Inscription';
-$lang['formation_seance_libre'] = 'Séance libre (sans inscription)';
+$lang['formation_seance_inscription'] = 'Formation';
+$lang['formation_seance_libre'] = 'Séance libre (hors formation)';
 $lang['formation_seance_libre_info'] = 'Cette séance sera archivée mais ne contribuera pas à une fiche de progression.';
 $lang['formation_seance_inscription_info'] = 'Séance liée à la formation';
 $lang['formation_seance_type'] = 'Type';
 $lang['formation_seance_type_formation'] = 'Formation';
 $lang['formation_seance_type_libre'] = 'Libre';
 $lang['formation_seance_type_toutes'] = 'Toutes';
-$lang['formation_seance_mode_inscription'] = 'Avec inscription';
-$lang['formation_seance_mode_libre'] = 'Sans inscription (séance libre)';
-$lang['formation_seance_select_inscription'] = '-- Sélectionnez une inscription --';
+$lang['formation_seance_mode_inscription'] = 'Avec formation';
+$lang['formation_seance_mode_libre'] = 'Hors formation (séance libre)';
+$lang['formation_seance_select_inscription'] = '-- Sélectionnez une formation --';
 
 // Séances - Météo
 $lang['formation_seance_meteo'] = 'Conditions météo';
@@ -187,8 +188,8 @@ $lang['formation_seance_update_error'] = 'Erreur lors de la mise à jour de la s
 $lang['formation_seance_delete_success'] = 'Séance supprimée avec succès.';
 $lang['formation_seance_delete_error'] = 'Erreur lors de la suppression de la séance.';
 $lang['formation_seance_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer cette séance ?';
-$lang['formation_seance_inscription_required'] = 'Veuillez sélectionner une inscription ouverte.';
-$lang['formation_seance_inscription_not_open'] = 'L\'inscription sélectionnée n\'est pas ouverte.';
+$lang['formation_seance_inscription_required'] = 'Veuillez sélectionner une formation ouverte.';
+$lang['formation_seance_inscription_not_open'] = 'La formation sélectionnée n\'est pas ouverte.';
 $lang['formation_seance_pilote_programme_required'] = 'Le pilote et le programme sont obligatoires pour une séance libre.';
 
 // Séances - Filtres

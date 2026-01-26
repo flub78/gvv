@@ -76,8 +76,8 @@ class Programmes extends Gvv_Controller
         $data['title'] = $this->lang->line('formation_programmes_title');
         $data['controller'] = $this->controller;
 
-        // Get all programs
-        $data['programmes'] = $this->formation_programme_model->get_all();
+        // Get programs visible to current section
+        $data['programmes'] = $this->formation_programme_model->get_visibles();
 
         // Count lessons for each program
         foreach ($data['programmes'] as &$programme) {

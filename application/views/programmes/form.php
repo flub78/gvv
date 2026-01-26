@@ -134,8 +134,25 @@ $form_url = $is_edit ?
                                 </div>
                             </div>
 
-                            <!-- Section (optional, for future multi-section support) -->
-                            <input type="hidden" name="section_id" value="">
+                            <!-- Section -->
+                            <div class="mb-3">
+                                <label for="section_id" class="form-label">
+                                    <?= $this->lang->line("formation_programme_section") ?>
+                                </label>
+                                <?php
+                                $this->load->model('sections_model');
+                                $sections = $this->sections_model->section_selector_with_null();
+                                echo form_dropdown(
+                                    'section_id',
+                                    $sections,
+                                    set_value('section_id', $programme['section_id'] ?? ''),
+                                    'class="form-select" id="section_id"'
+                                );
+                                ?>
+                                <div class="form-text">
+                                    <?= $this->lang->line("formation_programme_section_help") ?>
+                                </div>
+                            </div>
 
                             <?php if ($is_edit): ?>
                                 <!-- Statut radio buttons (edit only) -->
