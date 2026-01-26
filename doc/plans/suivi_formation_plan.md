@@ -1,7 +1,7 @@
 # Plan d'Implémentation - Suivi de Formation
 
 **Référence PRD** : [doc/prds/suivi_formation_prd.md](../prds/suivi_formation_prd.md)
-**Statut global** : 🟡 En cours (Phase 1 complétée)
+**Statut global** : 🟡 En cours (Phases 1 et 2 complétées)
 **Date de création** : 25 janvier 2026
 
 ---
@@ -33,7 +33,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 1.5 - Tests PHPUnit : migrations et modèles
 - [x] 1.6 - Middleware d'activation de la fonctionnalité
 
-### Phase 2 : Programmes de Formation ⏳ 7/8
+### Phase 2 : Programmes de Formation ✅ 8/8
 - [x] 2.1 - Parser Markdown pour programmes de formation
 - [x] 2.2 - Contrôleur de gestion des programmes
 - [x] 2.3 - Vues d'administration des programmes
@@ -41,7 +41,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 2.5 - Gestion des versions de programmes
 - [x] 2.6 - Fichiers de langue pour les programmes
 - [x] 2.7 - Tests PHPUnit : parser et gestion des programmes
-- [ ] 2.8 - Tests Playwright : CRUD programmes
+- [x] 2.8 - Tests Playwright : CRUD programmes
 
 ### Phase 3 : Inscriptions aux Formations ⏳ 0/7
 - [ ] 3.1 - Contrôleur de gestion des inscriptions
@@ -94,7 +94,7 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [ ] 8.4 - Validation couverture de tests (>70%)
 - [ ] 8.5 - Smoke tests Playwright complet
 
-**Progression globale** : 13/53 tâches (25%)
+**Progression globale** : 14/53 tâches (26%)
 
 ---
 
@@ -555,9 +555,27 @@ class FormationAccessTest extends TestCase {
 
 ## Phase 2 : Programmes de Formation
 
-**Statut** : 🔴 Non commencé  
-**Durée estimée** : 3-4 jours  
+**Statut** : ✅ Complétée
+**Date de complétion** : 26 janvier 2026
 **Objectif** : Parser Markdown, CRUD programmes, gestion versions
+
+### Résumé de l'implémentation
+
+**Fichiers créés/modifiés** :
+- `application/controllers/programmes.php` - Contrôleur CRUD (index, create, store, edit, update, view, delete, export, import_from_markdown, update_structure)
+- `application/views/programmes/index.php` - Liste des programmes avec DataTable
+- `application/views/programmes/form.php` - Formulaire création/édition avec onglets (manuel/import Markdown)
+- `application/views/programmes/view.php` - Détail programme avec accordéon leçons/sujets
+- `application/libraries/Formation_markdown_parser.php` - Parser Markdown → structure leçons/sujets
+- `playwright/tests/formation/programmes.spec.js` - 8 tests e2e CRUD complet
+
+**Bugs corrigés lors de la phase 2.8 (tests Playwright)** :
+- `programmes.php:store()` : champ `code` manquant (NOT NULL en BDD), `actif => 1` remplacé par `statut => 'actif'`, ajout de `contenu_markdown`
+- `programmes.php:delete()` : appel `delete($id)` corrigé en `delete(array('id' => $id))` (signature Common_Model), vérification via `affected_rows()` au lieu du retour void
+- `formation_programme_model.php:get_all()` : filtre `actif = 1` corrigé en `statut = 'actif'` (colonne réelle en BDD)
+- `formation_inscription_model.php` : ajout méthode manquante `get_by_programme()` (appelée par le contrôleur de suppression)
+
+**Note sur les noms de fichiers** : Le contrôleur est `programmes.php` (pas `Formation_programmes.php`) et les vues sont dans `application/views/programmes/` (pas `application/views/formation/programmes/`).
 
 ### 2.1 - Parser Markdown
 
@@ -620,10 +638,10 @@ class FormationMarkdownParserTest extends TestCase {
 
 ### 2.2 - Contrôleur Programmes
 
-**Fichier** : `application/controllers/Formation_programmes.php`
+**Fichier** : `application/controllers/programmes.php`
 
 ```php
-class Formation_programmes extends CI_Controller {
+class Programmes extends CI_Controller {
     
     public function __construct() {
         parent::__construct();
@@ -672,10 +690,10 @@ class Formation_programmes extends CI_Controller {
 
 ### 2.3 - Vues Programmes
 
-**Fichiers à créer** :
-- `application/views/formation/programmes/index.php` - Liste
-- `application/views/formation/programmes/edit.php` - Formulaire édition
-- `application/views/formation/programmes/preview.php` - Prévisualisation structure
+**Fichiers créés** :
+- `application/views/programmes/index.php` - Liste avec DataTable
+- `application/views/programmes/form.php` - Formulaire création/édition (onglets manuel/import)
+- `application/views/programmes/view.php` - Détail avec accordéon leçons/sujets
 
 **Composants UI** :
 - Tableau avec filtres (section, statut)
@@ -1613,7 +1631,7 @@ source setenv.sh
 php -v  # Doit afficher PHP 7.4
 
 # Valider syntaxe
-php -l application/controllers/Formation_programmes.php
+php -l application/controllers/programmes.php
 ```
 
 ### Base de données
@@ -1646,7 +1664,7 @@ cd playwright && npx playwright test formation/smoke.spec.ts
 ### Vérifications
 ```bash
 # Valider un fichier PHP
-find application/controllers/Formation_* -name "*.php" -exec php -l {} \;
+php -l application/controllers/programmes.php
 
 # Chercher métadonnées manquantes dans les logs
 tail -f application/logs/log-*.php | grep "GVV: input_field"
@@ -1708,4 +1726,4 @@ Ce plan doit être mis à jour régulièrement pour refléter :
 - ⚠️ Blocages ou difficultés rencontrées
 - 📊 Pourcentage de progression mis à jour
 
-**Dernière mise à jour** : 25 janvier 2026 - Phase 1 complétée
+**Dernière mise à jour** : 26 janvier 2026 - Phase 2 complétée (8 tests Playwright CRUD passent)

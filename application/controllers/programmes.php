@@ -125,14 +125,18 @@ class Programmes extends Gvv_Controller
             return $this->create();
         }
 
+        // Generate a unique code from the title
+        $code = $this->generate_programme_code($this->input->post('titre'));
+
         // Prepare program data
         $programme_data = array(
+            'code' => $code,
             'titre' => $this->input->post('titre'),
             'description' => $this->input->post('description'),
-            'objectifs' => $this->input->post('objectifs'),
+            'contenu_markdown' => '',
             'section_id' => $this->input->post('section_id') ?: NULL,
             'version' => 1,
-            'actif' => 1,
+            'statut' => 'actif',
             'date_creation' => date('Y-m-d H:i:s')
         );
 
@@ -283,12 +287,12 @@ class Programmes extends Gvv_Controller
         }
 
         // Delete program (cascade will handle lessons and subjects)
-        $success = $this->formation_programme_model->delete($id);
+        $this->formation_programme_model->delete(array('id' => $id));
 
-        if (!$success) {
-            $this->session->set_flashdata('error', $this->lang->line('formation_programme_delete_error'));
-        } else {
+        if ($this->db->affected_rows() > 0) {
             $this->session->set_flashdata('success', $this->lang->line('formation_programme_delete_success'));
+        } else {
+            $this->session->set_flashdata('error', $this->lang->line('formation_programme_delete_error'));
         }
 
         redirect('programmes');

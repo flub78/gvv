@@ -76,6 +76,19 @@ class Formation_inscription_model extends Common_Model {
     }
 
     /**
+     * Get all enrollments for a programme
+     *
+     * @param int $programme_id Programme ID
+     * @return array List of enrollments
+     */
+    public function get_by_programme($programme_id) {
+        return $this->db->select('*')
+            ->from($this->table)
+            ->where('programme_id', $programme_id)
+            ->get()->result_array();
+    }
+
+    /**
      * Get open enrollments for a pilot
      *
      * @param string $pilote_id Pilot member login

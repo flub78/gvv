@@ -43,7 +43,7 @@ class Formation_programme_model extends Common_Model {
             ->order_by('titre', 'asc');
 
         if ($active_only) {
-            $this->db->where('actif', 1);
+            $this->db->where('statut', 'actif');
         }
 
         return $this->db->get()->result_array();
