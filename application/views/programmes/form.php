@@ -154,6 +154,30 @@ $form_url = $is_edit ?
                                 </div>
                             </div>
 
+                            <!-- Type aéronef -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <?= $this->lang->line("formation_programme_type_aeronef") ?>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type_aeronef" id="type_planeur" value="planeur" <?= set_radio('type_aeronef', 'planeur', !isset($programme['type_aeronef']) || $programme['type_aeronef'] === 'planeur') ?>>
+                                        <label class="form-check-label" for="type_planeur">
+                                            <i class="fas fa-plane" aria-hidden="true"></i>
+                                            <?= $this->lang->line("formation_programme_type_planeur") ?>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type_aeronef" id="type_avion" value="avion" <?= set_radio('type_aeronef', 'avion', isset($programme['type_aeronef']) && $programme['type_aeronef'] === 'avion') ?>>
+                                        <label class="form-check-label" for="type_avion">
+                                            <i class="fas fa-fighter-jet" aria-hidden="true"></i>
+                                            <?= $this->lang->line("formation_programme_type_avion") ?>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <?php if ($is_edit): ?>
                                 <!-- Statut radio buttons (edit only) -->
                                 <div class="mb-3">

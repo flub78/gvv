@@ -155,6 +155,7 @@ class Programmes extends Gvv_Controller
             'description' => $this->input->post('description'),
             'contenu_markdown' => $markdown_content ?: '',
             'section_id' => $this->input->post('section_id') ?: NULL,
+            'type_aeronef' => $this->input->post('type_aeronef') ?: 'planeur',
             'version' => 1,
             'statut' => 'actif',
             'date_creation' => date('Y-m-d H:i:s')
@@ -316,6 +317,7 @@ class Programmes extends Gvv_Controller
             'titre' => $this->input->post('titre'),
             'description' => $this->input->post('description'),
             'section_id' => $this->input->post('section_id') ?: NULL,
+            'type_aeronef' => $this->input->post('type_aeronef') ?: 'planeur',
             'statut' => $this->input->post('statut') ?: 'actif'
         );
 
@@ -467,6 +469,7 @@ class Programmes extends Gvv_Controller
             'description' => isset($parsed_data['description']) ? $parsed_data['description'] : '',
             'contenu_markdown' => $markdown_content,
             'section_id' => $this->input->post('section_id') ?: NULL,
+            'type_aeronef' => $this->input->post('type_aeronef') ?: 'planeur',
             'version' => 1,
             'statut' => 'actif',
             'date_creation' => date('Y-m-d H:i:s')

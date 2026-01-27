@@ -41,14 +41,17 @@ class Formation_seance_model extends Common_Model {
      */
     public function get_full($id) {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
+            p.type_aeronef,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
-            mp.mpmodele as machine_modele, mp.mpimmat as machine_immat')
+            COALESCE(mp.mpmodele, ma.macmodele) as machine_modele,
+            s.machine_id as machine_immat', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres m', 's.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
             ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
             ->where('s.id', $id);
 
         $result = $this->db->get()->row_array();
@@ -64,10 +67,11 @@ class Formation_seance_model extends Common_Model {
      */
     public function get_by_inscription($inscription_id) {
         $this->db->select('s.*, inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
-            mp.mpmodele as machine_modele')
+            COALESCE(mp.mpmodele, ma.macmodele) as machine_modele', FALSE)
             ->from($this->table . ' s')
             ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
             ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
             ->where('s.inscription_id', $inscription_id)
             ->order_by('s.date_seance', 'desc');
 
@@ -86,12 +90,13 @@ class Formation_seance_model extends Common_Model {
     public function get_by_pilote($pilote_id, $filters = array()) {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
-            mp.mpmodele as machine_modele,
+            COALESCE(mp.mpmodele, ma.macmodele) as machine_modele,
             CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
             ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
             ->where('s.pilote_id', $pilote_id);
 
         // Apply filters
@@ -137,12 +142,13 @@ class Formation_seance_model extends Common_Model {
     public function get_by_instructeur($instructeur_id, $filters = array()) {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
-            mp.mpmodele as machine_modele,
+            COALESCE(mp.mpmodele, ma.macmodele) as machine_modele,
             CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres m', 's.pilote_id = m.mlogin', 'left')
             ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
             ->where('s.instructeur_id', $instructeur_id);
 
         // Apply filters
@@ -241,13 +247,14 @@ class Formation_seance_model extends Common_Model {
         $this->db->select('s.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
-            mp.mpmodele as machine_modele,
+            COALESCE(mp.mpmodele, ma.macmodele) as machine_modele,
             CASE WHEN s.inscription_id IS NULL THEN "Libre" ELSE "Formation" END as type_seance', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('membres m', 's.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
-            ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left');
+            ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left');
 
         // Apply filters
         if (!empty($filters['pilote_id'])) {

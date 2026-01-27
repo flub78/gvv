@@ -39,6 +39,7 @@ class Formation_seances extends CI_Controller {
         $this->load->model('formation_sujet_model');
         $this->load->model('membres_model');
         $this->load->model('planeurs_model');
+        $this->load->model('avions_model');
 
         // Load libraries
         $this->load->library('gvvmetadata');
@@ -119,7 +120,8 @@ class Formation_seances extends CI_Controller {
             }
         }
 
-        $data = $this->_prepare_form_data($inscription, $is_libre);
+        $programme_id = $inscription ? $inscription['programme_id'] : $this->input->get('programme_id');
+        $data = $this->_prepare_form_data($inscription, $is_libre, $programme_id);
         $data['action'] = 'create';
         $data['seance'] = array(
             'date_seance' => date('Y-m-d'),
@@ -218,7 +220,8 @@ class Formation_seances extends CI_Controller {
             $inscription = $this->formation_inscription_model->get_with_details($seance['inscription_id']);
         }
 
-        $data = $this->_prepare_form_data($inscription, $is_libre);
+        $programme_id = !empty($seance['programme_id']) ? $seance['programme_id'] : null;
+        $data = $this->_prepare_form_data($inscription, $is_libre, $programme_id);
         $data['action'] = 'edit';
         $data['seance'] = $seance;
 
@@ -402,6 +405,25 @@ class Formation_seances extends CI_Controller {
         echo json_encode($lecons);
     }
 
+    /**
+     * AJAX: Retourne les machines (multi-place) selon le type d'aéronef du programme
+     */
+    public function ajax_machines_programme() {
+        $programme_id = $this->input->get('programme_id');
+        $machines = $this->_get_machines_for_programme($programme_id);
+
+        // Convert to array format for JSON (remove empty key)
+        $result = array();
+        foreach ($machines as $id => $nom) {
+            if ($id) {
+                $result[] = array('id' => $id, 'nom' => $nom);
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($result);
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
@@ -411,9 +433,18 @@ class Formation_seances extends CI_Controller {
      *
      * @param array|null $inscription Inscription data if in inscription mode
      * @param bool $is_libre Whether this is a free session
+     * @param int|null $programme_id Programme ID to determine aircraft type
      * @return array Data for the view
      */
-    private function _prepare_form_data($inscription, $is_libre) {
+    private function _prepare_form_data($inscription, $is_libre, $programme_id = null) {
+        // Determine programme_id from inscription if not explicitly given
+        if (!$programme_id && $inscription && !empty($inscription['programme_id'])) {
+            $programme_id = $inscription['programme_id'];
+        }
+
+        // Load machines based on programme type_aeronef
+        $machines = $this->_get_machines_for_programme($programme_id);
+
         $data = array(
             'controller' => 'formation_seances',
             'is_libre' => $is_libre,
@@ -421,7 +452,7 @@ class Formation_seances extends CI_Controller {
             'pilotes' => $this->membres_model->get_selector(),
             'instructeurs' => $this->membres_model->get_selector_instructeurs(),
             'programmes' => $this->formation_programme_model->get_selector(),
-            'machines' => $this->planeurs_model->get_selector(),
+            'machines' => $machines,
             'meteo_options' => $this->meteo_options,
             'lecons' => array(),
             'existing_evaluations' => array()
@@ -447,6 +478,23 @@ class Formation_seances extends CI_Controller {
             $lecon['sujets'] = $this->formation_sujet_model->get_by_lecon($lecon['id']);
         }
         return $lecons;
+    }
+
+    /**
+     * Get multi-seat machines based on programme's type_aeronef
+     *
+     * @param int|null $programme_id Programme ID
+     * @return array Machine selector data
+     */
+    private function _get_machines_for_programme($programme_id) {
+        if ($programme_id) {
+            $programme = $this->formation_programme_model->get($programme_id);
+            if ($programme && isset($programme['type_aeronef']) && $programme['type_aeronef'] === 'avion') {
+                return $this->avions_model->get_selector_multiplace();
+            }
+        }
+        // Default: multi-seat gliders
+        return $this->planeurs_model->get_selector_multiplace();
     }
 
     /**

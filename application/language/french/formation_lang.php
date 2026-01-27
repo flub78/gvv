@@ -19,6 +19,9 @@ $lang['formation_programme_date_creation'] = 'Date de création';
 $lang['formation_programme_date_modification'] = 'Dernière modification';
 $lang['formation_programme_nb_lecons'] = 'Nombre de leçons';
 $lang['formation_programme_nb_sujets'] = 'Nombre de sujets';
+$lang['formation_programme_type_aeronef'] = 'Type d\'aéronef';
+$lang['formation_programme_type_planeur'] = 'Planeur';
+$lang['formation_programme_type_avion'] = 'Avion';
 
 // Programmes - Actions
 $lang['formation_programmes_create'] = 'Nouveau programme';
@@ -55,6 +58,7 @@ $lang['formation_import_error_lecon'] = 'Erreur lors de la création d\'une leç
 $lang['formation_import_error_sujet'] = 'Erreur lors de la création d\'un sujet.';
 $lang['formation_import_error_transaction'] = 'Erreur lors de la transaction en base de données.';
 $lang['formation_export_markdown'] = 'Exporter en Markdown';
+$lang['formation_structure_markdown'] = 'Structure du programme';
 
 // Leçons
 $lang['formation_lecon'] = 'Leçon';

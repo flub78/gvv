@@ -103,6 +103,30 @@ class Planeurs_model extends Common_Model {
     }
 
     /**
+     * Get active multi-seat gliders (biplace) for dropdown selector
+     *
+     * @return array [mpimmat => "Modèle - Immat"]
+     */
+    public function get_selector_multiplace() {
+        $this->db->select('mpimmat, mpmodele')
+            ->from($this->table)
+            ->where('actif', 1)
+            ->where('mpbiplace >', '1')
+            ->order_by('mpmodele', 'asc');
+
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+
+        $results = $this->db->get()->result_array();
+        $selector = array('' => '');
+        foreach ($results as $row) {
+            $selector[$row['mpimmat']] = $row['mpmodele'] . ' - ' . $row['mpimmat'];
+        }
+        return $selector;
+    }
+
+    /**
      * Delete a glider with validation
      * Checks if the glider is referenced in flight records before deletion
      * 

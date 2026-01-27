@@ -145,6 +145,30 @@ class Avions_model extends Common_Model {
     }
 
     /**
+     * Get active multi-seat airplanes for dropdown selector
+     *
+     * @return array [macimmat => "Modèle - Immat"]
+     */
+    public function get_selector_multiplace() {
+        $this->db->select('macimmat, macmodele')
+            ->from($this->table)
+            ->where('actif', 1)
+            ->where('macplaces >', 1)
+            ->order_by('macmodele', 'asc');
+
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+
+        $results = $this->db->get()->result_array();
+        $selector = array('' => '');
+        foreach ($results as $row) {
+            $selector[$row['macimmat']] = $row['macmodele'] . ' - ' . $row['macimmat'];
+        }
+        return $selector;
+    }
+
+    /**
      * Delete an airplane with validation
      * Checks if the airplane is referenced in flight records before deletion
      * 

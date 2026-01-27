@@ -69,6 +69,7 @@ class Migration_Add_formation_tables extends CI_Migration {
                 `contenu_markdown` LONGTEXT NOT NULL COMMENT 'Full program content in Markdown',
                 `section_id` INT(11) NULL COMMENT 'Section ID (NULL = all sections)',
                 `version` INT(11) NOT NULL DEFAULT 1 COMMENT 'Program version number',
+                `type_aeronef` ENUM('planeur', 'avion') NOT NULL DEFAULT 'planeur' COMMENT 'Aircraft type: planeur or avion',
                 `statut` ENUM('actif', 'archive') NOT NULL DEFAULT 'actif' COMMENT 'Program status',
                 `date_creation` DATETIME NOT NULL COMMENT 'Creation date',
                 `date_modification` DATETIME NULL COMMENT 'Last modification date',
@@ -171,9 +172,8 @@ class Migration_Add_formation_tables extends CI_Migration {
                 CONSTRAINT `fk_form_seance_prog` FOREIGN KEY (`programme_id`)
                     REFERENCES `formation_programmes` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
                 CONSTRAINT `fk_form_seance_inst` FOREIGN KEY (`instructeur_id`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE RESTRICT ON UPDATE CASCADE,
-                CONSTRAINT `fk_form_seance_machine` FOREIGN KEY (`machine_id`)
-                    REFERENCES `machinesp` (`mpimmat`) ON DELETE RESTRICT ON UPDATE CASCADE
+                    REFERENCES `membres` (`mlogin`) ON DELETE RESTRICT ON UPDATE CASCADE
+                -- No FK on machine_id: references machinesp or machinesa depending on programme type_aeronef
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Training sessions (with or without enrollment)'",
 

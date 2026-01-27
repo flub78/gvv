@@ -73,6 +73,14 @@ $this->lang->load('formation');
             <div class="row">
                 <div class="col-md-6">
                     <p class="mb-1">
+                        <strong><?= $this->lang->line("formation_programme_type_aeronef") ?>:</strong>
+                        <?php if (isset($programme['type_aeronef']) && $programme['type_aeronef'] === 'avion'): ?>
+                            <span class="badge bg-info"><i class="fas fa-fighter-jet" aria-hidden="true"></i> <?= $this->lang->line("formation_programme_type_avion") ?></span>
+                        <?php else: ?>
+                            <span class="badge bg-primary"><i class="fas fa-plane" aria-hidden="true"></i> <?= $this->lang->line("formation_programme_type_planeur") ?></span>
+                        <?php endif; ?>
+                    </p>
+                    <p class="mb-1">
                         <strong><?= $this->lang->line("formation_programme_version") ?>:</strong>
                         <span class="badge bg-secondary">v<?= $programme['version'] ?></span>
                     </p>

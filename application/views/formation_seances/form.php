@@ -465,6 +465,7 @@ $(document).ready(function() {
         var programmeId = $selected.data('programme_id');
         if (programmeId) {
             loadProgrammeStructure(programmeId);
+            loadMachinesForProgramme(programmeId);
         }
     });
 
@@ -473,8 +474,28 @@ $(document).ready(function() {
         var programmeId = $(this).val();
         if (programmeId) {
             loadProgrammeStructure(programmeId);
+            loadMachinesForProgramme(programmeId);
         }
     });
+
+    // Reload machine selector based on programme type_aeronef
+    function loadMachinesForProgramme(programmeId) {
+        var $machineSelect = $('#machine_id');
+        var currentVal = $machineSelect.val();
+        $machineSelect.html('<option value="">-- Aéronef --</option>');
+
+        if (!programmeId) return;
+
+        $.getJSON('<?= controller_url($controller) ?>/ajax_machines_programme', {programme_id: programmeId}, function(machines) {
+            $.each(machines, function(i, machine) {
+                var $opt = $('<option>').val(machine.id).text(machine.nom);
+                if (machine.id === currentVal) {
+                    $opt.prop('selected', true);
+                }
+                $machineSelect.append($opt);
+            });
+        });
+    }
 
     // Load programme structure via AJAX
     function loadProgrammeStructure(programmeId) {
