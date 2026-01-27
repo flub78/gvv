@@ -202,14 +202,16 @@ class Formation_markdown_parser
         foreach ($result['lecons'] as $lecon) {
             if (empty($lecon['sujets'])) {
                 throw new Exception(sprintf(
-                    "Erreur : Leçon %d '%s' ne contient aucun sujet\n" .
+                    "Erreur : Leçon '%s' ne contient aucun sujet\n" .
                     "Chaque leçon doit contenir au moins un sujet (###) :\n" .
                     "Exemple : ### Sujet 1.1 : Présentation de l'aéronef",
-                    $lecon['numero'],
                     $lecon['titre']
                 ));
             }
         }
+
+        // Renumber lessons and subjects sequentially
+        $this->renumber($result);
 
         return $result;
     }
@@ -240,6 +242,30 @@ class Formation_markdown_parser
         }
 
         $lecon['sujets'][] = $sujet;
+    }
+
+    /**
+     * Renumber lessons and subjects sequentially.
+     *
+     * Lessons are numbered 1, 2, 3, ...
+     * Subjects are numbered X.1, X.2, X.3, ... where X is the lesson number.
+     * This allows concatenating parts of programs without manual renumbering.
+     *
+     * @param array &$result Parsed data (modified in place)
+     */
+    private function renumber(&$result)
+    {
+        foreach ($result['lecons'] as $lecon_idx => &$lecon) {
+            $lecon_num = $lecon_idx + 1;
+            $lecon['numero'] = $lecon_num;
+            $lecon['ordre'] = $lecon_num;
+
+            foreach ($lecon['sujets'] as $sujet_idx => &$sujet) {
+                $sujet_num = $sujet_idx + 1;
+                $sujet['numero'] = $lecon_num . '.' . $sujet_num;
+                $sujet['ordre'] = $sujet_num;
+            }
+        }
     }
 
     /**
@@ -279,9 +305,7 @@ class Formation_markdown_parser
                     $errors[] = "$sujet_label : Titre manquant";
                 }
 
-                if (empty($sujet['description']) && empty($sujet['objectifs'])) {
-                    $errors[] = "$sujet_label : Aucun contenu (description ou objectifs)";
-                }
+                // Description et objectifs sont optionnels pour les sujets
             }
         }
 

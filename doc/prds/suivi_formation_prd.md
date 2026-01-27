@@ -135,6 +135,7 @@ Les programmes de formation sont définis au format Markdown, permettant une ré
 - Chaque `##` crée une nouvelle leçon
 - Chaque `###` crée un sujet rattaché à la leçon précédente
 - Le texte entre un titre et le titre suivant constitue la description
+- Le contenu (description, objectifs) des sujets est optionnel
 - Les listes à puces et le formatage (gras, italique) sont préservés dans les descriptions
 
 #### 1.2 Exemple Complet de Programme

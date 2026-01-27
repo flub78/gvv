@@ -277,96 +277,115 @@ $form_url = $is_edit ?
 
                 <?= form_close() ?>
 
-                <?php if ($is_edit && !empty($lecons)): ?>
+                <?php if ($is_edit): ?>
                     <!-- Structure editing panel (outside main form to avoid nesting) -->
                     <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-code" aria-hidden="true"></i> 
-                                    Modifier la structure
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-primary" id="toggleEditStructure">
-                                    <i class="fas fa-edit" aria-hidden="true"></i> Éditer
-                                </button>
-                            </div>
-                            
-                            <div id="editStructurePanel" style="display: none;">
-                                <ul class="nav nav-tabs mb-3" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="edit-text-tab" data-bs-toggle="tab" 
-                                                data-bs-target="#edit-text-panel" type="button" role="tab">
-                                            <i class="fas fa-edit" aria-hidden="true"></i> Éditer le texte
-                                        </button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="upload-file-tab" data-bs-toggle="tab" 
-                                                data-bs-target="#upload-file-panel" type="button" role="tab">
-                                            <i class="fas fa-file-upload" aria-hidden="true"></i> Importer un fichier
-                                        </button>
-                                    </li>
-                                </ul>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-code" aria-hidden="true"></i>
+                                <?= $this->lang->line("formation_structure_markdown") ?>
+                            </h5>
+                            <button type="button" class="btn btn-primary btn-sm" id="toggleEditStructure">
+                                <i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure
+                            </button>
+                        </div>
+                        <div class="card-body" id="editStructurePanel" style="display: none;">
+                            <ul class="nav nav-tabs mb-3" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="edit-text-tab" data-bs-toggle="tab"
+                                            data-bs-target="#edit-text-panel" type="button" role="tab">
+                                        <i class="fas fa-edit" aria-hidden="true"></i> Éditer le texte
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="upload-file-tab" data-bs-toggle="tab"
+                                            data-bs-target="#upload-file-panel" type="button" role="tab">
+                                        <i class="fas fa-file-upload" aria-hidden="true"></i> Importer un fichier
+                                    </button>
+                                </li>
+                            </ul>
 
-                                <div class="tab-content">
-                                    <!-- Text editor tab -->
-                                    <div class="tab-pane fade show active" id="edit-text-panel" role="tabpanel">
-                                        <?= form_open(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
-                                            <div class="mb-3">
-                                                <label for="markdown_content" class="form-label">Contenu Markdown</label>
-                                                <textarea class="form-control font-monospace" 
-                                                          id="markdown_content" 
-                                                          name="markdown_content" 
-                                                          rows="15" 
-                                                          style="font-size: 0.9rem;"><?= htmlspecialchars($programme['contenu_markdown']) ?></textarea>
-                                                <div class="form-text">
-                                                    Modifiez la structure en Markdown. Syntaxe : # Titre, ## Leçon, ### Sujet
-                                                </div>
+                            <div class="tab-content">
+                                <!-- Text editor tab -->
+                                <div class="tab-pane fade show active" id="edit-text-panel" role="tabpanel">
+                                    <?= form_open(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                                        <div class="mb-3">
+                                            <label for="markdown_content" class="form-label">Contenu Markdown</label>
+                                            <textarea class="form-control font-monospace"
+                                                      id="markdown_content"
+                                                      name="markdown_content"
+                                                      rows="20"
+                                                      style="font-size: 0.9rem;"><?= htmlspecialchars($programme['contenu_markdown'] ?? '') ?></textarea>
+                                            <div class="form-text">
+                                                Modifiez la structure du programme en Markdown.
+                                                Respectez la syntaxe : # Titre, ## Leçon, ### Sujet
                                             </div>
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="fas fa-save" aria-hidden="true"></i> Enregistrer
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-save" aria-hidden="true"></i> Enregistrer les modifications
                                             </button>
-                                        <?= form_close() ?>
-                                    </div>
+                                            <button type="button" class="btn btn-secondary" id="cancelEdit">
+                                                <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                                            </button>
+                                        </div>
+                                    <?= form_close() ?>
+                                </div>
 
-                                    <!-- File upload tab -->
-                                    <div class="tab-pane fade" id="upload-file-panel" role="tabpanel">
-                                        <?= form_open_multipart(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
-                                            <div class="mb-3">
-                                                <label for="markdown_file_update" class="form-label">Fichier Markdown</label>
-                                                <input type="file" class="form-control" id="markdown_file_update" 
-                                                       name="markdown_file" accept=".md,.markdown,.txt" required>
-                                                <div class="form-text">
-                                                    Sélectionnez un fichier pour remplacer la structure.
-                                                </div>
+                                <!-- File upload tab -->
+                                <div class="tab-pane fade" id="upload-file-panel" role="tabpanel">
+                                    <?= form_open_multipart(controller_url($controller) . '/update_structure/' . $programme['id']) ?>
+                                        <div class="mb-3">
+                                            <label for="markdown_file_update" class="form-label">Fichier Markdown</label>
+                                            <input type="file" class="form-control" id="markdown_file_update"
+                                                   name="markdown_file" accept=".md,.markdown,.txt" required>
+                                            <div class="form-text">
+                                                Sélectionnez un fichier Markdown pour remplacer la structure actuelle du programme.
                                             </div>
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="fas fa-upload" aria-hidden="true"></i> Importer
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-upload" aria-hidden="true"></i> Importer et mettre à jour
                                             </button>
-                                        <?= form_close() ?>
-                                    </div>
+                                            <button type="button" class="btn btn-secondary" id="cancelUpload">
+                                                <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                                            </button>
+                                        </div>
+                                    <?= form_close() ?>
                                 </div>
                             </div>
-                            
-                            <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const toggleBtn = document.getElementById('toggleEditStructure');
-                                const editPanel = document.getElementById('editStructurePanel');
-                                
-                                if (toggleBtn && editPanel) {
-                                    toggleBtn.addEventListener('click', function() {
-                                        if (editPanel.style.display === 'none') {
-                                            editPanel.style.display = 'block';
-                                            toggleBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Fermer';
-                                        } else {
-                                            editPanel.style.display = 'none';
-                                            toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Éditer';
-                                        }
-                                    });
-                                }
-                            });
-                            </script>
                         </div>
                     </div>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const toggleBtn = document.getElementById('toggleEditStructure');
+                        const editPanel = document.getElementById('editStructurePanel');
+                        const cancelEditBtn = document.getElementById('cancelEdit');
+                        const cancelUploadBtn = document.getElementById('cancelUpload');
+
+                        function closePanel() {
+                            editPanel.style.display = 'none';
+                            toggleBtn.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure';
+                            toggleBtn.classList.remove('btn-secondary');
+                            toggleBtn.classList.add('btn-primary');
+                        }
+
+                        toggleBtn.addEventListener('click', function() {
+                            if (editPanel.style.display === 'none') {
+                                editPanel.style.display = 'block';
+                                toggleBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Fermer';
+                                toggleBtn.classList.remove('btn-primary');
+                                toggleBtn.classList.add('btn-secondary');
+                            } else {
+                                closePanel();
+                            }
+                        });
+
+                        cancelEditBtn.addEventListener('click', closePanel);
+                        cancelUploadBtn.addEventListener('click', closePanel);
+                    });
+                    </script>
                 <?php endif; ?>
 
     <?php if (!$is_edit): ?>

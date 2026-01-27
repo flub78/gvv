@@ -611,6 +611,7 @@ class Formation_markdown_parser {
         $errors = [];
         // Vérifier titre unique
         // Vérifier que chaque sujet a une leçon parente
+        // Description et objectifs des sujets sont optionnels
         return $errors;
     }
     

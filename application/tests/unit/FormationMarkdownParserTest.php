@@ -22,7 +22,7 @@ class FormationMarkdownParserTest extends TransactionalTestCase
 
         // Get CodeIgniter instance
         $this->CI =& get_instance();
-        
+
         // Load parser library
         $this->CI->load->library('Formation_markdown_parser');
         $this->parser = $this->CI->formation_markdown_parser;
@@ -142,7 +142,7 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testParseEmptyContentThrowsException()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Empty Markdown content');
+        $this->expectExceptionMessage('Contenu Markdown vide');
         $this->parser->parse('');
     }
 
@@ -152,9 +152,9 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testParseWithoutTitleThrowsException()
     {
         $markdown = "## Leçon 1 : Test\n### Sujet 1.1 : Test";
-        
+
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('No program title found');
+        $this->expectExceptionMessage('Titre du programme manquant');
         $this->parser->parse($markdown);
     }
 
@@ -164,9 +164,9 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testParseWithoutLessonsThrowsException()
     {
         $markdown = "# Test Programme\n\nSome content";
-        
+
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('No lessons found');
+        $this->expectExceptionMessage('Aucune leçon trouvée');
         $this->parser->parse($markdown);
     }
 
@@ -176,9 +176,9 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testSujetBeforeLeconThrowsException()
     {
         $markdown = "# Test Programme\n### Sujet 1.1 : Test";
-        
+
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Sujet found before any Leçon');
+        $this->expectExceptionMessage('Sujet trouvé avant toute leçon');
         $this->parser->parse($markdown);
     }
 
@@ -188,9 +188,9 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testValidateValidStructure()
     {
         $result = $this->parser->parse($this->test_markdown);
-        $errors = $this->parser->validate($result);
-        
-        $this->assertEmpty($errors, 'Valid structure should have no errors: ' . implode(', ', $errors));
+        $validation = $this->parser->validate($result);
+
+        $this->assertTrue($validation, 'Valid structure should return TRUE');
     }
 
     /**
@@ -199,9 +199,10 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testValidateDetectsMissingTitle()
     {
         $data = ['titre' => '', 'lecons' => []];
-        $errors = $this->parser->validate($data);
-        
-        $this->assertContains('Missing program title', $errors);
+        $validation = $this->parser->validate($data);
+
+        $this->assertIsString($validation);
+        $this->assertStringContainsString('Titre du programme manquant', $validation);
     }
 
     /**
@@ -210,9 +211,10 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     public function testValidateDetectsMissingLessons()
     {
         $data = ['titre' => 'Test', 'lecons' => []];
-        $errors = $this->parser->validate($data);
-        
-        $this->assertContains('No lessons found', $errors);
+        $validation = $this->parser->validate($data);
+
+        $this->assertIsString($validation);
+        $this->assertStringContainsString('Aucune leçon trouvée', $validation);
     }
 
     /**
@@ -226,10 +228,10 @@ class FormationMarkdownParserTest extends TransactionalTestCase
                 ['numero' => 1, 'titre' => 'Lecon 1', 'sujets' => []]
             ]
         ];
-        $errors = $this->parser->validate($data);
-        
-        $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('No sujets found', implode(', ', $errors));
+        $validation = $this->parser->validate($data);
+
+        $this->assertIsString($validation);
+        $this->assertStringContainsString('Aucun sujet trouvé', $validation);
     }
 
     /**
@@ -239,10 +241,10 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     {
         // Parse original
         $result = $this->parser->parse($this->test_markdown);
-        
+
         // Export back to Markdown
         $exported = $this->parser->export($result['titre'], $result['lecons']);
-        
+
         // Should contain key elements
         $this->assertStringContainsString('# Formation Initiale Planeur', $exported);
         $this->assertStringContainsString('## Leçon 1 : Découverte du planeur', $exported);
@@ -257,17 +259,17 @@ class FormationMarkdownParserTest extends TransactionalTestCase
     {
         // Parse original
         $result1 = $this->parser->parse($this->test_markdown);
-        
+
         // Export to markdown
         $exported = $this->parser->export($result1['titre'], $result1['lecons']);
-        
+
         // Parse again
         $result2 = $this->parser->parse($exported);
-        
+
         // Compare key elements
         $this->assertEquals($result1['titre'], $result2['titre']);
         $this->assertCount(count($result1['lecons']), $result2['lecons']);
-        
+
         // Compare first lecon
         $this->assertEquals($result1['lecons'][0]['numero'], $result2['lecons'][0]['numero']);
         $this->assertEquals($result1['lecons'][0]['titre'], $result2['lecons'][0]['titre']);
@@ -293,9 +295,126 @@ MD;
 
         $result = $this->parser->parse($markdown);
         $lecon = $result['lecons'][0];
-        
+
         $this->assertNotEmpty($lecon['description']);
         $this->assertStringContainsString('lesson description', $lecon['description']);
+    }
+
+    /**
+     * Test renumbering: lessons and subjects without numbers are auto-numbered
+     */
+    public function testRenumberUnnumberedContent()
+    {
+        $markdown = <<<MD
+# Programme concaténé
+
+## Découverte du planeur
+
+### Présentation de l'aéronef
+Description du sujet.
+
+### Effets primaires des commandes
+Description du sujet.
+
+## Le vol rectiligne
+
+### Assiette et trajectoire
+Description du sujet.
+MD;
+
+        $result = $this->parser->parse($markdown);
+
+        // Lessons renumbered sequentially
+        $this->assertCount(2, $result['lecons']);
+        $this->assertEquals(1, $result['lecons'][0]['numero']);
+        $this->assertEquals('Découverte du planeur', $result['lecons'][0]['titre']);
+        $this->assertEquals(2, $result['lecons'][1]['numero']);
+        $this->assertEquals('Le vol rectiligne', $result['lecons'][1]['titre']);
+
+        // Subjects renumbered sequentially within each lesson
+        $this->assertCount(2, $result['lecons'][0]['sujets']);
+        $this->assertEquals('1.1', $result['lecons'][0]['sujets'][0]['numero']);
+        $this->assertEquals('Présentation de l\'aéronef', $result['lecons'][0]['sujets'][0]['titre']);
+        $this->assertEquals('1.2', $result['lecons'][0]['sujets'][1]['numero']);
+
+        $this->assertCount(1, $result['lecons'][1]['sujets']);
+        $this->assertEquals('2.1', $result['lecons'][1]['sujets'][0]['numero']);
+    }
+
+    /**
+     * Test renumbering: concatenated programs with conflicting numbers are renumbered
+     */
+    public function testRenumberConcatenatedPrograms()
+    {
+        $markdown = <<<MD
+# Programme fusionné
+
+## Leçon 1 : Première partie
+
+### Sujet 1.1 : Sujet A
+Contenu A.
+
+### Sujet 1.2 : Sujet B
+Contenu B.
+
+## Leçon 1 : Deuxième partie
+
+### Sujet 1.1 : Sujet C
+Contenu C.
+
+## Leçon 3 : Troisième partie
+
+### Sujet 3.1 : Sujet D
+Contenu D.
+MD;
+
+        $result = $this->parser->parse($markdown);
+
+        // All lessons renumbered sequentially regardless of original numbers
+        $this->assertCount(3, $result['lecons']);
+        $this->assertEquals(1, $result['lecons'][0]['numero']);
+        $this->assertEquals('Première partie', $result['lecons'][0]['titre']);
+        $this->assertEquals(2, $result['lecons'][1]['numero']);
+        $this->assertEquals('Deuxième partie', $result['lecons'][1]['titre']);
+        $this->assertEquals(3, $result['lecons'][2]['numero']);
+        $this->assertEquals('Troisième partie', $result['lecons'][2]['titre']);
+
+        // Subjects renumbered within their new lesson numbers
+        $this->assertEquals('1.1', $result['lecons'][0]['sujets'][0]['numero']);
+        $this->assertEquals('1.2', $result['lecons'][0]['sujets'][1]['numero']);
+        $this->assertEquals('2.1', $result['lecons'][1]['sujets'][0]['numero']);
+        $this->assertEquals('3.1', $result['lecons'][2]['sujets'][0]['numero']);
+    }
+
+    /**
+     * Test renumbering: mixed numbered and unnumbered content
+     */
+    public function testRenumberMixedContent()
+    {
+        $markdown = <<<MD
+# Programme mixte
+
+## Leçon 5 : Avec numéro
+
+### Sujet 5.1 : Sujet numéroté
+Contenu.
+
+## Sans numéro
+
+### Aussi sans numéro
+Contenu.
+MD;
+
+        $result = $this->parser->parse($markdown);
+
+        // Both renumbered sequentially
+        $this->assertEquals(1, $result['lecons'][0]['numero']);
+        $this->assertEquals('Avec numéro', $result['lecons'][0]['titre']);
+        $this->assertEquals(2, $result['lecons'][1]['numero']);
+        $this->assertEquals('Sans numéro', $result['lecons'][1]['titre']);
+
+        $this->assertEquals('1.1', $result['lecons'][0]['sujets'][0]['numero']);
+        $this->assertEquals('2.1', $result['lecons'][1]['sujets'][0]['numero']);
     }
 }
 
