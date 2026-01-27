@@ -680,6 +680,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-chart-line text-info"></i>
+                        <div class="card-title">Progressions</div>
+                        <div class="card-text text-muted">Suivi</div>
+                        <a href="<?= controller_url('formation_progressions') ?>" class="btn btn-info btn-sm">Voir</a>
+                    </div>
+                </div>
+
             </div>
         </div>
         </div>

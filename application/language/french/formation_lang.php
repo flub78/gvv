@@ -218,6 +218,27 @@ $lang['formation_evaluation_lecon'] = 'Leçon';
 $lang['formation_evaluation_select_lecon'] = '-- Sélectionnez une leçon --';
 $lang['formation_evaluation_aucune'] = 'Aucune évaluation enregistrée';
 
+// Progressions
+$lang['formation_progressions_title'] = 'Fiches de progression';
+$lang['formation_progressions_empty'] = 'Aucune fiche de progression disponible.';
+$lang['formation_progression_titre'] = 'Progression';
+$lang['formation_progression_fiche_title'] = 'Fiche de progression';
+$lang['formation_progression_voir'] = 'Voir';
+$lang['formation_progression_voir_fiche'] = 'Voir la fiche de progression';
+$lang['formation_progression_export_pdf'] = 'Exporter en PDF';
+$lang['formation_progression_statistiques'] = 'Statistiques';
+$lang['formation_progression_nb_seances'] = 'Nombre de séances';
+$lang['formation_progression_heures_vol'] = 'Heures de vol';
+$lang['formation_progression_atterrissages'] = 'Atterrissages';
+$lang['formation_progression_pourcentage_acquis'] = 'Pourcentage acquis';
+$lang['formation_progression_sujets_acquis'] = 'des sujets acquis';
+$lang['formation_progression_detail_lecons'] = 'Détail par leçon';
+$lang['formation_progression_no_lecons'] = 'Aucune leçon définie dans ce programme.';
+$lang['formation_progression_no_sujets'] = 'Aucun sujet défini pour cette leçon.';
+$lang['formation_progression_nb_seances_sujet'] = 'Séances';
+$lang['formation_progression_derniere_eval'] = 'Dernière évaluation';
+$lang['formation_progression_historique'] = 'Historique';
+
 // Form elements
 $lang['formation_form_required'] = 'Champs obligatoires';
 $lang['formation_form_optional'] = 'Champs optionnels';
