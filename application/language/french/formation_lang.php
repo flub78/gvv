@@ -104,7 +104,7 @@ $lang['formation_inscription_cloturee'] = 'Clôturée avec succès';
 $lang['formation_inscription_abandonnee'] = 'Abandonnée';
 
 // Inscriptions - Actions
-$lang['formation_inscription_detail_title'] = 'Détail de la formation';
+$lang['formation_inscription_detail_title'] = 'Fiche de progression';
 $lang['formation_inscription_suspendre_title'] = 'Suspendre la formation';
 $lang['formation_inscription_suspendre_confirm'] = 'Êtes-vous sûr de vouloir suspendre cette formation ?';
 $lang['formation_inscription_suspendre_confirm_btn'] = 'Confirmer la suspension';

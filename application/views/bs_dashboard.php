@@ -684,7 +684,7 @@ $this->lang->load('welcome');
                     <div class="sub-card text-center">
                         <i class="fas fa-chart-line text-info"></i>
                         <div class="card-title">Progressions</div>
-                        <div class="card-text text-muted">Suivi</div>
+                        <div class="card-text text-muted">Fiches</div>
                         <a href="<?= controller_url('formation_progressions') ?>" class="btn btn-info btn-sm">Voir</a>
                     </div>
                 </div>

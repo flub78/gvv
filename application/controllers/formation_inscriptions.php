@@ -351,25 +351,23 @@ class Formation_inscriptions extends CI_Controller {
         // Get seances
         $seances = $this->formation_seance_model->get_by_inscription($id);
         
-        // Get programme structure
-        $this->load->model('formation_lecon_model');
-        $this->load->model('formation_sujet_model');
-        
-        $lecons = $this->formation_lecon_model->get_by_programme($inscription['programme_id']);
-        foreach ($lecons as &$lecon) {
-            $lecon['sujets'] = $this->formation_sujet_model->get_by_lecon($lecon['id']);
-        }
-        
-        // Calculate progression
-        $progression = $this->formation_inscription_model->calculate_progression($id);
+        // Use Formation_progression library for rich progression data
+        $this->load->library('Formation_progression');
+        $progression_data = $this->formation_progression->calculer($id);
         
         // Prepare data for view
         $data = array(
             'controller' => 'formation_inscriptions',
             'inscription' => $inscription,
             'seances' => $seances,
-            'lecons' => $lecons,
-            'progression' => $progression
+            'lecons' => $progression_data ? $progression_data['lecons'] : array(),
+            'stats' => $progression_data ? $progression_data['stats'] : array(),
+            'progression' => $progression_data ? array(
+                'total_sujets' => $progression_data['stats']['nb_sujets_total'],
+                'sujets_acquis' => $progression_data['stats']['nb_sujets_acquis'],
+                'pourcentage' => $progression_data['stats']['pourcentage_acquis']
+            ) : array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0),
+            'formation_progression' => $this->formation_progression
         );
         
         $this->load->view('formation_inscriptions/detail', $data);
