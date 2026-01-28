@@ -375,13 +375,18 @@ class Formation_seances extends CI_Controller {
             }
         }
 
+        // Check if current user is the student (read-only mode)
+        $current_user = $this->dx_auth->get_username();
+        $is_student_view = ($current_user === $seance['pilote_id']);
+
         $data = array(
             'controller' => 'formation_seances',
             'seance' => $seance,
             'evaluations' => $evaluations,
             'meteo' => $meteo,
             'meteo_options' => $this->meteo_options,
-            'is_libre' => empty($seance['inscription_id'])
+            'is_libre' => empty($seance['inscription_id']),
+            'is_student_view' => $is_student_view
         );
 
         $this->load->view('formation_seances/detail', $data);
@@ -447,6 +452,7 @@ class Formation_seances extends CI_Controller {
 
     /**
      * AJAX: Retourne les leçons et sujets d'un programme
+     * Optionnel: inscription_id pour inclure les évaluations précédentes
      */
     public function ajax_programme_structure() {
         $programme_id = $this->input->get('programme_id');
@@ -460,8 +466,15 @@ class Formation_seances extends CI_Controller {
             $lecon['sujets'] = $this->formation_sujet_model->get_by_lecon($lecon['id']);
         }
 
+        // Include previous evaluations if inscription_id is provided
+        $inscription_id = $this->input->get('inscription_id');
+        $previous = array();
+        if (!empty($inscription_id)) {
+            $previous = $this->formation_evaluation_model->get_dernier_niveau_par_sujet($inscription_id);
+        }
+
         header('Content-Type: application/json');
-        echo json_encode($lecons);
+        echo json_encode(array('lecons' => $lecons, 'previous_evaluations' => $previous));
     }
 
     /**
@@ -514,12 +527,18 @@ class Formation_seances extends CI_Controller {
             'machines' => $machines,
             'meteo_options' => $this->meteo_options,
             'lecons' => array(),
-            'existing_evaluations' => array()
+            'existing_evaluations' => array(),
+            'previous_evaluations' => array()
         );
 
         // Load programme structure if we know the programme
         if ($programme_id) {
             $data['lecons'] = $this->_get_programme_structure($programme_id);
+        }
+
+        // Load previous evaluations if we have an inscription
+        if ($inscription && !empty($inscription['id'])) {
+            $data['previous_evaluations'] = $this->formation_evaluation_model->get_dernier_niveau_par_sujet($inscription['id']);
         }
 
         return $data;

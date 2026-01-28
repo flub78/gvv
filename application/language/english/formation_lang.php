@@ -103,6 +103,7 @@ $lang['formation_seance_commentaire'] = 'Comment';
 $lang['formation_seance_type_formation_label'] = 'Training session';
 $lang['formation_seance_type_libre_label'] = 'Refresher session for licensed pilot';
 $lang['formation_seances_libres_title'] = 'Refresher sessions';
+$lang['formation_seance_precedente'] = 'Previous session';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Assessment';
@@ -115,6 +116,29 @@ $lang['formation_evaluation_niveau_progresse'] = 'Progressing';
 $lang['formation_evaluation_niveau_acquis'] = 'Acquired';
 $lang['formation_evaluation_niveau_maitrise'] = 'Mastered';
 $lang['formation_evaluation_commentaire'] = 'Comment';
+
+// Reports
+$lang['formation_rapports_title'] = 'Training reports';
+$lang['formation_rapports_cloturees_succes'] = 'Successfully completed trainings';
+$lang['formation_rapports_abandonnees'] = 'Abandoned trainings';
+$lang['formation_rapports_suspendues'] = 'Suspended trainings';
+// My training (student view)
+$lang['formation_mes_formations_title'] = 'My Training';
+$lang['formation_mes_formations_empty'] = 'You are not enrolled in any training program.';
+$lang['formation_mes_formations_info'] = 'View your training programs and progress.';
+$lang['formation_voir_ma_progression'] = 'View my progress';
+$lang['formation_voir_mes_seances'] = 'View my sessions';$lang['formation_rapports_ouvertes'] = 'Opened trainings';
+$lang['formation_rapports_en_cours'] = 'Ongoing trainings';
+$lang['formation_rapports_reentrainement'] = 'Refresher sessions';
+$lang['formation_rapports_par_instructeur'] = 'By instructor';
+$lang['formation_rapports_nb_seances'] = 'Sessions';
+$lang['formation_rapports_nb_seances_formation'] = 'Training sessions';
+$lang['formation_rapports_nb_seances_libre'] = 'Refresher sessions';
+$lang['formation_rapports_progression'] = 'Progression';
+$lang['formation_rapports_aucune'] = 'None';
+$lang['formation_rapports_date_cloture'] = 'Closing date';
+$lang['formation_rapports_motif'] = 'Reason';
+$lang['formation_rapports_date_suspension'] = 'Suspension date';
 
 // Form elements
 $lang['formation_form_required'] = 'Required fields';

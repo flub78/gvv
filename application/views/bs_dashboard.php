@@ -215,6 +215,17 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if ($this->config->item('gestion_formations') && !empty($user_formations)): ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-graduation-cap text-primary"></i>
+                        <div class="card-title">Mes formations</div>
+                        <div class="card-text text-muted"><?= count($user_formations) ?> formation(s)</div>
+                        <a href="<?= controller_url('formation_progressions/mes_formations') ?>" class="btn btn-primary btn-sm">Consulter</a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         </div>
@@ -682,15 +693,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-chart-line text-info"></i>
-                        <div class="card-title">Progressions</div>
-                        <div class="card-text text-muted">Fiches</div>
-                        <a href="<?= controller_url('formation_progressions') ?>" class="btn btn-info btn-sm">Voir</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-chalkboard-teacher text-warning"></i>
                         <div class="card-title">Séances</div>
                         <div class="card-text text-muted">Gestion</div>
@@ -704,6 +706,15 @@ $this->lang->load('welcome');
                         <div class="card-title">Ré-entrainement</div>
                         <div class="card-text text-muted">Séances</div>
                         <a href="<?= controller_url('formation_seances') ?>/libres" class="btn btn-warning btn-sm">Voir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-chart-bar text-info"></i>
+                        <div class="card-title">Rapports</div>
+                        <div class="card-text text-muted">Synthèse</div>
+                        <a href="<?= controller_url('formation_rapports') ?>" class="btn btn-info btn-sm">Voir</a>
                     </div>
                 </div>
 

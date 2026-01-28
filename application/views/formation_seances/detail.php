@@ -147,20 +147,22 @@ $niveau_labels = array(
             <?php endif; ?>
         </div>
 
-        <!-- Action buttons -->
-        <div class="card-footer">
-            <div class="d-flex gap-2">
-                <a href="<?= controller_url($controller) ?>/edit/<?= $seance['id'] ?>"
-                   class="btn btn-warning">
-                    <i class="fas fa-edit" aria-hidden="true"></i> Modifier
-                </a>
-                <a href="<?= controller_url($controller) ?>/delete/<?= $seance['id'] ?>"
-                   class="btn btn-danger"
-                   onclick="return confirm('<?= $this->lang->line("formation_seance_delete_confirm") ?>');">
-                    <i class="fas fa-trash" aria-hidden="true"></i> Supprimer
-                </a>
+        <!-- Action buttons (hidden for student view) -->
+        <?php if (!isset($is_student_view) || !$is_student_view): ?>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    <a href="<?= controller_url($controller) ?>/edit/<?= $seance['id'] ?>"
+                       class="btn btn-warning">
+                        <i class="fas fa-edit" aria-hidden="true"></i> Modifier
+                    </a>
+                    <a href="<?= controller_url($controller) ?>/delete/<?= $seance['id'] ?>"
+                       class="btn btn-danger"
+                       onclick="return confirm('<?= $this->lang->line("formation_seance_delete_confirm") ?>');">    
+                        <i class="fas fa-trash" aria-hidden="true"></i> Supprimer
+                    </a>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Évaluations -->

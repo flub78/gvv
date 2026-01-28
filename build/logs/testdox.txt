@@ -1,9 +1,1 @@
-Formation Progression
- [ ] Calculer return structure
- [ ] Pourcentage acquis calculation
- [x] Progress bar class
- [x] Niveau badge class
- [x] Niveau label
- [ ] Calculer with no seances
- [ ] Derniere evaluation selection
 

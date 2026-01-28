@@ -52,7 +52,7 @@ function get_statut_badge($statut) {
                class="btn btn-danger">
                 <i class="fas fa-file-pdf" aria-hidden="true"></i> <?= $this->lang->line("formation_progression_export_pdf") ?>
             </a>
-            <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
+            <a href="<?= isset($is_student_view) && $is_student_view ? controller_url('formation_progressions/mes_formations') : controller_url($controller) ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line("gvv_str_back") ?>
             </a>
         </div>
@@ -151,35 +151,37 @@ function get_statut_badge($statut) {
             <?php endif; ?>
         </div>
 
-        <!-- Action buttons -->
-        <?php if (in_array($inscription['statut'], array('ouverte', 'suspendue'))): ?>
-            <div class="card-footer">
-                <div class="d-flex gap-2">
-                    <?php if ($inscription['statut'] === 'ouverte'): ?>
-                        <a href="<?= controller_url('formation_seances') ?>/create?inscription_id=<?= $inscription['id'] ?>"
-                           class="btn btn-success">
-                            <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle séance
-                        </a>
-                        <a href="<?= controller_url($controller) ?>/suspendre/<?= $inscription['id'] ?>"
-                           class="btn btn-warning">
-                            <i class="fas fa-pause" aria-hidden="true"></i> Suspendre
-                        </a>
-                        <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>"
-                           class="btn btn-primary">
-                            <i class="fas fa-check" aria-hidden="true"></i> Clôturer
-                        </a>
-                    <?php elseif ($inscription['statut'] === 'suspendue'): ?>
-                        <a href="<?= controller_url($controller) ?>/reactiver/<?= $inscription['id'] ?>"
-                           class="btn btn-success">
-                            <i class="fas fa-play" aria-hidden="true"></i> Réactiver
-                        </a>
-                        <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>"
-                           class="btn btn-danger">
-                            <i class="fas fa-times" aria-hidden="true"></i> Abandonner
-                        </a>
-                    <?php endif; ?>
+        <!-- Action buttons (hidden for student view) -->
+        <?php if (!isset($is_student_view) || !$is_student_view): ?>
+            <?php if (in_array($inscription['statut'], array('ouverte', 'suspendue'))): ?>
+                <div class="card-footer">
+                    <div class="d-flex gap-2">
+                        <?php if ($inscription['statut'] === 'ouverte'): ?>
+                            <a href="<?= controller_url('formation_seances') ?>/create?inscription_id=<?= $inscription['id'] ?>"
+                               class="btn btn-success">
+                                <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle séance
+                            </a>
+                            <a href="<?= controller_url($controller) ?>/suspendre/<?= $inscription['id'] ?>"
+                               class="btn btn-warning">
+                                <i class="fas fa-pause" aria-hidden="true"></i> Suspendre
+                            </a>
+                            <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>"
+                               class="btn btn-primary">
+                                <i class="fas fa-check" aria-hidden="true"></i> Clôturer
+                            </a>
+                        <?php elseif ($inscription['statut'] === 'suspendue'): ?>
+                            <a href="<?= controller_url($controller) ?>/reactiver/<?= $inscription['id'] ?>"
+                               class="btn btn-success">
+                                <i class="fas fa-play" aria-hidden="true"></i> Réactiver
+                            </a>
+                            <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>"
+                               class="btn btn-danger">
+                                <i class="fas fa-times" aria-hidden="true"></i> Abandonner
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 

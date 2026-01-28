@@ -201,6 +201,66 @@ class Formation_progression {
         ];
     }
     
+
+    /**
+     * Calcule le pourcentage de progression cumulatif jusqu'à une date limite
+     *
+     * @param int $inscription_id ID de la formation
+     * @param string $date_limite Date limite (format Y-m-d)
+     * @return array ['total_sujets' => int, 'sujets_acquis' => int, 'pourcentage' => float]
+     */
+    public function calculer_pourcentage_a_date($inscription_id, $date_limite) {
+        // Charger l'inscription
+        $inscription = $this->CI->formation_inscription_model->get($inscription_id);
+        if (!$inscription) {
+            return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+
+        // Compter le nombre total de sujets dans le programme
+        $this->CI->db->select('COUNT(DISTINCT fs.id) as total')
+            ->from('formation_lecons fl')
+            ->join('formation_sujets fs', 'fl.id = fs.lecon_id', 'left')
+            ->where('fl.programme_id', $inscription['programme_id']);
+        $total_result = $this->CI->db->get()->row_array();
+        $total_sujets = (int) ($total_result['total'] ?? 0);
+
+        if ($total_sujets == 0) {
+            return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+
+        // Pour chaque sujet, trouver le dernier niveau évalué avant date_limite
+        // et compter ceux qui sont acquis (Q)
+        $sql = "SELECT COUNT(DISTINCT fe.sujet_id) as acquis
+                FROM formation_evaluations fe
+                JOIN formation_seances fse ON fe.seance_id = fse.id
+                WHERE fse.inscription_id = ?
+                AND fse.date_seance <= ?
+                AND fe.niveau = 'Q'
+                AND fe.id = (
+                    SELECT fe2.id FROM formation_evaluations fe2
+                    JOIN formation_seances fs2 ON fe2.seance_id = fs2.id
+                    WHERE fe2.sujet_id = fe.sujet_id
+                    AND fs2.inscription_id = ?
+                    AND fs2.date_seance <= ?
+                    ORDER BY fs2.date_seance DESC, fe2.id DESC
+                    LIMIT 1
+                )";
+
+        $query = $this->CI->db->query($sql, array(
+            $inscription_id, $date_limite, $inscription_id, $date_limite
+        ));
+        $acquis_result = $query->row_array();
+        $sujets_acquis = (int) ($acquis_result['acquis'] ?? 0);
+
+        $pourcentage = round(($sujets_acquis / $total_sujets) * 100, 1);
+
+        return array(
+            'total_sujets' => $total_sujets,
+            'sujets_acquis' => $sujets_acquis,
+            'pourcentage' => $pourcentage
+        );
+    }
+
     /**
      * Détermine la classe CSS pour la barre de progression
      * 

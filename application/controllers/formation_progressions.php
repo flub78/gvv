@@ -62,28 +62,30 @@ class Formation_progressions extends CI_Controller
     }
 
     /**
-     * Affiche la fiche de progression d'une formation
-     * 
-     * @param int $inscription_id ID de la formation
+     * Liste les formations du pilote connecté (vue élève)
      */
-    public function fiche($inscription_id)
+    public function mes_formations()
     {
-        log_message('debug', 'FORMATION_PROGRESSIONS: fiche(' . $inscription_id . ') called');
+        log_message('debug', 'FORMATION_PROGRESSIONS: mes_formations() called');
 
-        // Calculer la progression
-        $progression = $this->formation_progression->calculer($inscription_id);
+        // Récupérer le pilote connecté
+        $pilote_id = $this->dx_auth->get_username();
 
-        if (!$progression) {
-            show_error('Formation introuvable', 404);
-            return;
-        }
-
-        $data['title'] = $this->lang->line('formation_progression_fiche_title');
+        $data['title'] = $this->lang->line('formation_mes_formations_title');
         $data['controller'] = $this->controller;
-        $data['progression'] = $progression;
-        $data['formation_progression'] = $this->formation_progression; // Pour les helpers
+        $data['pilote_id'] = $pilote_id;
 
-        return load_last_view('formation_progressions/fiche', $data, $this->unit_test);
+        // Récupérer les formations du pilote (ouvertes et clôturées récemment)
+        $formations = $this->formation_inscription_model->get_by_pilote($pilote_id);
+        
+        // Filtrer pour garder les formations ouvertes et celles clôturées dans les 6 derniers mois
+        $date_limite = date('Y-m-d', strtotime('-6 months'));
+        $data['formations'] = array_filter($formations, function($f) use ($date_limite) {
+            return $f['statut'] === 'ouverte' || 
+                   ($f['statut'] === 'cloturee' && isset($f['date_cloture']) && $f['date_cloture'] >= $date_limite);
+        });
+
+        return load_last_view('formation_progressions/mes_formations', $data, $this->unit_test);
     }
 
     /**

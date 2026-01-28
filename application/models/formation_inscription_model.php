@@ -389,6 +389,126 @@ class Formation_inscription_model extends Common_Model {
         return ($this->db->count_all_results($this->table) > 0);
     }
 
+
+    /**
+     * Get formations grouped by status for a given year
+     *
+     * @param int $year Year to filter
+     * @return array Associative array with keys: cloturees, abandonnees, suspendues, ouvertes, en_cours
+     */
+    public function get_by_year($year) {
+        $result = array(
+            'cloturees' => array(),
+            'abandonnees' => array(),
+            'suspendues' => array(),
+            'ouvertes' => array(),
+            'en_cours' => array()
+        );
+
+        $select = 'i.*, p.code as programme_code, p.titre as programme_titre,
+            m.mnom as pilote_nom, m.mprenom as pilote_prenom,
+            inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom';
+
+        // Clôturées avec succès dans l'année
+        $this->db->select($select)
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
+            ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
+            ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
+            ->where('i.statut', 'cloturee')
+            ->where('YEAR(i.date_cloture)', $year)
+            ->order_by('i.date_cloture', 'desc');
+        $result['cloturees'] = $this->db->get()->result_array();
+
+        // Abandonnées dans l'année
+        $this->db->select($select)
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
+            ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
+            ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
+            ->where('i.statut', 'abandonnee')
+            ->where('YEAR(i.date_cloture)', $year)
+            ->order_by('i.date_cloture', 'desc');
+        $result['abandonnees'] = $this->db->get()->result_array();
+
+        // Suspendues dans l'année
+        $this->db->select($select)
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
+            ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
+            ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
+            ->where('i.statut', 'suspendue')
+            ->where('YEAR(i.date_suspension)', $year)
+            ->order_by('i.date_suspension', 'desc');
+        $result['suspendues'] = $this->db->get()->result_array();
+
+        // Ouvertes dans l'année (toutes formations ouvertes cette année, quel que soit le statut actuel)
+        $this->db->select($select)
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
+            ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
+            ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
+            ->where('YEAR(i.date_ouverture)', $year)
+            ->order_by('i.date_ouverture', 'desc');
+        $result['ouvertes'] = $this->db->get()->result_array();
+
+        // En cours (ouvertes avant ou pendant l'année)
+        $this->db->select($select)
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
+            ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
+            ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
+            ->where('i.statut', 'ouverte')
+            ->where('YEAR(i.date_ouverture) <=', $year)
+            ->order_by('i.date_ouverture', 'desc');
+        $result['en_cours'] = $this->db->get()->result_array();
+
+        return $result;
+    }
+
+    /**
+     * Get year selector from inscription dates
+     *
+     * @return array Year options [year => year]
+     */
+    public function getYearSelector() {
+        // Get years from date_ouverture
+        $query = $this->db->select('YEAR(date_ouverture) as year')
+            ->from($this->table)
+            ->where('date_ouverture IS NOT NULL')
+            ->order_by('year', 'ASC')
+            ->group_by('year')
+            ->get();
+
+        $years = array();
+        if ($query) {
+            foreach ($query->result_array() as $row) {
+                if (!empty($row['year'])) {
+                    $years[$row['year']] = $row['year'];
+                }
+            }
+        }
+
+        // Also get years from date_cloture
+        $query2 = $this->db->select('YEAR(date_cloture) as year')
+            ->from($this->table)
+            ->where('date_cloture IS NOT NULL')
+            ->order_by('year', 'ASC')
+            ->group_by('year')
+            ->get();
+
+        if ($query2) {
+            foreach ($query2->result_array() as $row) {
+                if (!empty($row['year'])) {
+                    $years[$row['year']] = $row['year'];
+                }
+            }
+        }
+
+        ksort($years);
+        return $years;
+    }
+
     /**
      * Get enrollment image for display
      *

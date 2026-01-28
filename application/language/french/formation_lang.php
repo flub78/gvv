@@ -158,6 +158,7 @@ $lang['formation_seance_nb_atterrissages'] = 'Nombre d\'atterrissages';
 $lang['formation_seance_commentaire'] = 'Commentaires';
 $lang['formation_seance_prochaines_lecons'] = 'Préparation des prochaines leçons';
 $lang['formation_seance_programme'] = 'Programme';
+$lang['formation_seance_precedente'] = 'Séance précédente';
 
 // Séances - Types
 $lang['formation_seance_inscription'] = 'Formation';
@@ -241,6 +242,31 @@ $lang['formation_progression_no_sujets'] = 'Aucun sujet défini pour cette leço
 $lang['formation_progression_nb_seances_sujet'] = 'Séances';
 $lang['formation_progression_derniere_eval'] = 'Dernière évaluation';
 $lang['formation_progression_historique'] = 'Historique';
+
+// Rapports
+$lang['formation_rapports_title'] = 'Rapports de formation';
+$lang['formation_rapports_cloturees_succes'] = 'Formations clôturées avec succès';
+$lang['formation_rapports_abandonnees'] = 'Formations abandonnées';
+$lang['formation_rapports_suspendues'] = 'Formations suspendues';
+
+// Mes formations (vue élève)
+$lang['formation_mes_formations_title'] = 'Mes formations';
+$lang['formation_mes_formations_empty'] = 'Vous n\'êtes inscrit à aucune formation actuellement.';
+$lang['formation_mes_formations_info'] = 'Consultez vos formations et votre progression.';
+$lang['formation_voir_ma_progression'] = 'Voir ma progression';
+$lang['formation_voir_mes_seances'] = 'Voir mes séances';
+$lang['formation_rapports_ouvertes'] = 'Formations ouvertes';
+$lang['formation_rapports_en_cours'] = 'Formations en cours';
+$lang['formation_rapports_reentrainement'] = 'Séances de ré-entrainement';
+$lang['formation_rapports_par_instructeur'] = 'Par instructeur';
+$lang['formation_rapports_nb_seances'] = 'Séances';
+$lang['formation_rapports_nb_seances_formation'] = 'Séances de formation';
+$lang['formation_rapports_nb_seances_libre'] = 'Séances de ré-entrainement';
+$lang['formation_rapports_progression'] = 'Progression';
+$lang['formation_rapports_aucune'] = 'Aucune';
+$lang['formation_rapports_date_cloture'] = 'Date de clôture';
+$lang['formation_rapports_motif'] = 'Motif';
+$lang['formation_rapports_date_suspension'] = 'Date de suspension';
 
 // Form elements
 $lang['formation_form_required'] = 'Champs obligatoires';

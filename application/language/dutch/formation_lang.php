@@ -103,6 +103,7 @@ $lang['formation_seance_commentaire'] = 'Opmerking';
 $lang['formation_seance_type_formation_label'] = 'Opleidingssessie';
 $lang['formation_seance_type_libre_label'] = 'Herhalingssessie voor gebrevetteerde piloot';
 $lang['formation_seances_libres_title'] = 'Herhalingssessies';
+$lang['formation_seance_precedente'] = 'Vorige sessie';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Beoordeling';
@@ -115,6 +116,29 @@ $lang['formation_evaluation_niveau_progresse'] = 'In ontwikkeling';
 $lang['formation_evaluation_niveau_acquis'] = 'Verworven';
 $lang['formation_evaluation_niveau_maitrise'] = 'Beheerst';
 $lang['formation_evaluation_commentaire'] = 'Opmerking';
+
+// Rapporten
+$lang['formation_rapports_title'] = 'Opleidingsrapporten';
+$lang['formation_rapports_cloturees_succes'] = 'Succesvol afgeronde opleidingen';
+$lang['formation_rapports_abandonnees'] = 'Afgebroken opleidingen';
+$lang['formation_rapports_suspendues'] = 'Opgeschorte opleidingen';
+// Mijn opleidingen (studentenweergave)
+$lang['formation_mes_formations_title'] = 'Mijn opleidingen';
+$lang['formation_mes_formations_empty'] = 'U bent momenteel niet ingeschreven voor een opleiding.';
+$lang['formation_mes_formations_info'] = 'Bekijk uw opleidingen en voortgang.';
+$lang['formation_voir_ma_progression'] = 'Mijn voortgang bekijken';
+$lang['formation_voir_mes_seances'] = 'Mijn sessies bekijken';$lang['formation_rapports_ouvertes'] = 'Geopende opleidingen';
+$lang['formation_rapports_en_cours'] = 'Lopende opleidingen';
+$lang['formation_rapports_reentrainement'] = 'Herhalingssessies';
+$lang['formation_rapports_par_instructeur'] = 'Per instructeur';
+$lang['formation_rapports_nb_seances'] = 'Sessies';
+$lang['formation_rapports_nb_seances_formation'] = 'Opleidingssessies';
+$lang['formation_rapports_nb_seances_libre'] = 'Herhalingssessies';
+$lang['formation_rapports_progression'] = 'Voortgang';
+$lang['formation_rapports_aucune'] = 'Geen';
+$lang['formation_rapports_date_cloture'] = 'Sluitingsdatum';
+$lang['formation_rapports_motif'] = 'Reden';
+$lang['formation_rapports_date_suspension'] = 'Opschortingsdatum';
 
 // Form elements
 $lang['formation_form_required'] = 'Verplichte velden';

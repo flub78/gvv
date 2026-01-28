@@ -90,6 +90,19 @@ class Welcome extends Gvv_Controller {
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');
         $data['ticket_management_active'] = $this->config->item('ticket_management') == true;
 
+        // Formations du pilote (si gestion formations activée)
+        $data['user_formations'] = array();
+        if ($this->config->item('gestion_formations')) {
+            $this->load->model('formation_inscription_model');
+            // Récupérer les formations ouvertes et clôturées récemment (derniers 6 mois)
+            $formations = $this->formation_inscription_model->get_by_pilote($data['username']);
+            $date_limite = date('Y-m-d', strtotime('-6 months'));
+            $data['user_formations'] = array_filter($formations, function($f) use ($date_limite) {
+                return $f['statut'] === 'ouverte' || 
+                       ($f['statut'] === 'cloturee' && $f['date_cloture'] >= $date_limite);
+            });
+        }
+
         // MOD (Message of the Day) handling
         $this->load->helper('file');
         // Date du dernier MOD

@@ -332,6 +332,86 @@ class Formation_seance_model extends Common_Model {
         return $result ?: array('nb_seances' => 0, 'heures_totales' => '00:00:00', 'atterrissages_totaux' => 0);
     }
 
+
+    /**
+     * Get session statistics grouped by instructor for a given year
+     *
+     * @param int $year Year to filter
+     * @return array Array grouped by instructor with formation and libre counts
+     */
+    public function get_stats_par_instructeur($year) {
+        $this->db->select('s.instructeur_id, s.inscription_id, s.programme_id,
+            inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
+            p.code as programme_code, p.titre as programme_titre,
+            m.mnom as pilote_nom, m.mprenom as pilote_prenom,
+            COUNT(*) as nb_seances,
+            CASE WHEN s.inscription_id IS NULL THEN 1 ELSE 0 END as is_libre', FALSE)
+            ->from($this->table . ' s')
+            ->join('membres inst', 's.instructeur_id = inst.mlogin', 'left')
+            ->join('formation_programmes p', 's.programme_id = p.id', 'left')
+            ->join('formation_inscriptions fi', 's.inscription_id = fi.id', 'left')
+            ->join('membres m', 'fi.pilote_id = m.mlogin', 'left')
+            ->where('YEAR(s.date_seance)', $year)
+            ->group_by('s.instructeur_id, s.inscription_id, s.programme_id')
+            ->order_by('inst.mnom', 'asc')
+            ->order_by('inst.mprenom', 'asc');
+
+        $rows = $this->db->get()->result_array();
+
+        // Restructure by instructor
+        $instructeurs = array();
+        foreach ($rows as $row) {
+            $iid = $row['instructeur_id'];
+            if (!isset($instructeurs[$iid])) {
+                $instructeurs[$iid] = array(
+                    'id' => $iid,
+                    'nom' => $row['instructeur_nom'],
+                    'prenom' => $row['instructeur_prenom'],
+                    'formations' => array(),
+                    'nb_seances_libres' => 0
+                );
+            }
+
+            if (empty($row['inscription_id'])) {
+                $instructeurs[$iid]['nb_seances_libres'] += (int) $row['nb_seances'];
+            } else {
+                $instructeurs[$iid]['formations'][] = array(
+                    'inscription_id' => $row['inscription_id'],
+                    'programme_code' => $row['programme_code'],
+                    'programme_titre' => $row['programme_titre'],
+                    'pilote_nom' => $row['pilote_nom'],
+                    'pilote_prenom' => $row['pilote_prenom'],
+                    'nb_seances' => (int) $row['nb_seances']
+                );
+            }
+        }
+
+        return array_values($instructeurs);
+    }
+
+    /**
+     * Get year selector for all seances (formation + libre)
+     *
+     * @return array Year options [year => year]
+     */
+    public function getYearSelector() {
+        $query = $this->db->select('YEAR(date_seance) as year')
+            ->from($this->table)
+            ->order_by('year', 'ASC')
+            ->group_by('year')
+            ->get();
+
+        $year_selector = array();
+        if ($query) {
+            foreach ($query->result_array() as $row) {
+                if (!empty($row['year'])) {
+                    $year_selector[$row['year']] = $row['year'];
+                }
+            }
+        }
+        return $year_selector;
+    }
+
     /**
      * Get session image for display
      *

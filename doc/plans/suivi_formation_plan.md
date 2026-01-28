@@ -64,11 +64,11 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [x] 4.9 - Tests Playwright : saisie de séance complète (avec/sans inscription)
 
 ### Phase 5 : Fiches de Progression ⏳ 0/7
-- [ ] 5.1 - Calcul de la progression par élève
-- [ ] 5.2 - Indicateur de progression (% sujets acquis)
-- [ ] 5.3 - Vue arborescente leçons/sujets
-- [ ] 5.4 - Export PDF des fiches
-- [ ] 5.5 - Fichiers de langue pour les progressions
+- [x] 5.1 - Calcul de la progression par élève
+- [x] 5.2 - Indicateur de progression (% sujets acquis)
+- [x] 5.3 - Vue arborescente leçons/sujets
+- [x] 5.4 - Export PDF des fiches
+- [x] 5.5 - Fichiers de langue pour les progressions
 - [ ] 5.6 - Tests PHPUnit : calcul de progression
 - [ ] 5.7 - Tests Playwright : affichage et export des fiches
 
@@ -81,8 +81,8 @@ Implémentation d'un système complet de suivi de formation pour les clubs de pl
 - [ ] 6.6 - Tests Playwright : accès selon rôles
 
 ### Phase 7 : Interface Utilisateur ⏳ 0/5
-- [ ] 7.1 - Menu principal (conditionné par flag)
-- [ ] 7.2 - Tableaux de bord instructeur
+- [x] 7.1 - Menu principal (conditionné par flag)
+- [x] 7.2 - Tableaux de bord instructeur
 - [ ] 7.3 - Tableau de bord élève
 - [ ] 7.4 - Tableaux de bord administrateur
 - [ ] 7.5 - Tests Playwright : navigation complète

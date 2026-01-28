@@ -313,6 +313,7 @@ if (!empty($existing_evaluations)) {
                                                     <tr>
                                                         <th style="width:60px">#</th>
                                                         <th><?= $this->lang->line("formation_evaluation_sujet") ?></th>
+                                                        <th style="width:120px" class="text-center"><?= $this->lang->line("formation_seance_precedente") ?></th>
                                                         <th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>
                                                         <th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>
                                                     </tr>
@@ -322,10 +323,23 @@ if (!empty($existing_evaluations)) {
                                                         <?php
                                                         $current_niveau = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['niveau'] : '-';
                                                         $current_comment = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['commentaire'] : '';
+                                                        $prev_niveau = isset($previous_evaluations[$sujet['id']]) ? $previous_evaluations[$sujet['id']]['niveau'] : '-';
+                                                        $prev_badge_classes = array('-' => 'bg-secondary', 'A' => 'bg-info', 'R' => 'bg-warning', 'Q' => 'bg-success');
+                                                        $prev_badge_class = isset($prev_badge_classes[$prev_niveau]) ? $prev_badge_classes[$prev_niveau] : 'bg-secondary';
+                                                        $prev_niveau_labels = array(
+                                                            '-' => $this->lang->line('formation_evaluation_niveau_non_aborde'),
+                                                            'A' => $this->lang->line('formation_evaluation_niveau_aborde'),
+                                                            'R' => $this->lang->line('formation_evaluation_niveau_a_revoir'),
+                                                            'Q' => $this->lang->line('formation_evaluation_niveau_acquis')
+                                                        );
+                                                        $prev_niveau_label = isset($prev_niveau_labels[$prev_niveau]) ? $prev_niveau_labels[$prev_niveau] : '';
                                                         ?>
                                                         <tr>
                                                             <td class="text-muted"><?= htmlspecialchars($sujet['numero']) ?></td>
                                                             <td><?= htmlspecialchars($sujet['titre']) ?></td>
+                                                            <td class="text-center">
+                                                                <span class="badge <?= $prev_badge_class ?>" data-bs-toggle="tooltip" title="<?= htmlspecialchars($prev_niveau_label) ?>"><?= $prev_niveau ?></span>
+                                                            </td>
                                                             <td>
                                                                 <select class="form-select form-select-sm eval-niveau"
                                                                         name="eval[<?= $sujet['id'] ?>][niveau]">
@@ -415,6 +429,10 @@ function get_statut_badge_seance($statut) {
 
 <script>
 $(document).ready(function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(el) { return new bootstrap.Tooltip(el); });
+
     // Load inscriptions when pilot is selected (inscription mode)
     $('#insc_pilote_id').on('change', function() {
         var piloteId = $(this).val();
@@ -436,8 +454,9 @@ $(document).ready(function() {
     $('#inscription_id').on('change', function() {
         var $selected = $(this).find(':selected');
         var programmeId = $selected.data('programme_id');
+        var inscriptionId = $(this).val();
         if (programmeId) {
-            loadProgrammeStructure(programmeId);
+            loadProgrammeStructure(programmeId, inscriptionId);
             loadMachinesForProgramme(programmeId);
         }
     });
@@ -446,7 +465,7 @@ $(document).ready(function() {
     $('#programme_id').on('change', function() {
         var programmeId = $(this).val();
         if (programmeId) {
-            loadProgrammeStructure(programmeId);
+            loadProgrammeStructure(programmeId, null);
             loadMachinesForProgramme(programmeId);
         }
     });
@@ -471,19 +490,34 @@ $(document).ready(function() {
     }
 
     // Load programme structure via AJAX
-    function loadProgrammeStructure(programmeId) {
-        $.getJSON('<?= controller_url($controller) ?>/ajax_programme_structure', {programme_id: programmeId}, function(lecons) {
+    function loadProgrammeStructure(programmeId, inscriptionId) {
+        var params = {programme_id: programmeId};
+        if (inscriptionId) {
+            params.inscription_id = inscriptionId;
+        }
+        $.getJSON('<?= controller_url($controller) ?>/ajax_programme_structure', params, function(response) {
             var $container = $('#evaluations-dynamic');
             var $placeholder = $('#evaluations-placeholder');
 
             $container.empty();
 
-            if (!lecons || lecons.length === 0) {
+            var lecons = response.lecons || [];
+            var prevEvals = response.previous_evaluations || {};
+
+            if (lecons.length === 0) {
                 $placeholder.show();
                 return;
             }
 
             $placeholder.hide();
+
+            var badgeClasses = {'-': 'bg-secondary', 'A': 'bg-info', 'R': 'bg-warning', 'Q': 'bg-success'};
+            var niveauLabels = {
+                '-': '<?= addslashes($this->lang->line("formation_evaluation_niveau_non_aborde")) ?>',
+                'A': '<?= addslashes($this->lang->line("formation_evaluation_niveau_aborde")) ?>',
+                'R': '<?= addslashes($this->lang->line("formation_evaluation_niveau_a_revoir")) ?>',
+                'Q': '<?= addslashes($this->lang->line("formation_evaluation_niveau_acquis")) ?>'
+            };
 
             var accordionHtml = '<div class="accordion" id="evaluationsAccordionDynamic">';
 
@@ -509,14 +543,19 @@ $(document).ready(function() {
                     accordionHtml += '<thead class="table-light"><tr>';
                     accordionHtml += '<th style="width:60px">#</th>';
                     accordionHtml += '<th><?= $this->lang->line("formation_evaluation_sujet") ?></th>';
+                    accordionHtml += '<th style="width:120px" class="text-center"><?= $this->lang->line("formation_seance_precedente") ?></th>';
                     accordionHtml += '<th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>';
                     accordionHtml += '<th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>';
                     accordionHtml += '</tr></thead><tbody>';
 
                     $.each(lecon.sujets, function(j, sujet) {
+                        var prevNiveau = (prevEvals[sujet.id] && prevEvals[sujet.id].niveau) ? prevEvals[sujet.id].niveau : '-';
+                        var prevClass = badgeClasses[prevNiveau] || 'bg-secondary';
                         accordionHtml += '<tr>';
                         accordionHtml += '<td class="text-muted">' + escapeHtml(sujet.numero) + '</td>';
                         accordionHtml += '<td>' + escapeHtml(sujet.titre) + '</td>';
+                        var prevLabel = niveauLabels[prevNiveau] || '';
+                        accordionHtml += '<td class="text-center"><span class="badge ' + prevClass + '" data-bs-toggle="tooltip" title="' + escapeHtml(prevLabel) + '">' + prevNiveau + '</span></td>';
                         accordionHtml += '<td><select class="form-select form-select-sm eval-niveau" name="eval[' + sujet.id + '][niveau]">';
                         accordionHtml += '<option value="-"><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></option>';
                         accordionHtml += '<option value="A"><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></option>';
@@ -535,6 +574,9 @@ $(document).ready(function() {
 
             accordionHtml += '</div>';
             $container.html(accordionHtml);
+
+            // Initialize tooltips on dynamic content
+            $container.find('[data-bs-toggle="tooltip"]').each(function() { new bootstrap.Tooltip(this); });
 
             // Apply color coding to evaluation selects
             applyEvalColors();

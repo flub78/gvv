@@ -355,6 +355,10 @@ class Formation_inscriptions extends CI_Controller {
         $this->load->library('Formation_progression');
         $progression_data = $this->formation_progression->calculer($id);
         
+        // Check if current user is the student (read-only mode)
+        $current_user = $this->dx_auth->get_username();
+        $is_student_view = ($current_user === $inscription['pilote_id']);
+        
         // Prepare data for view
         $data = array(
             'controller' => 'formation_inscriptions',
@@ -367,7 +371,8 @@ class Formation_inscriptions extends CI_Controller {
                 'sujets_acquis' => $progression_data['stats']['nb_sujets_acquis'],
                 'pourcentage' => $progression_data['stats']['pourcentage_acquis']
             ) : array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0),
-            'formation_progression' => $this->formation_progression
+            'formation_progression' => $this->formation_progression,
+            'is_student_view' => $is_student_view
         );
         
         $this->load->view('formation_inscriptions/detail', $data);
