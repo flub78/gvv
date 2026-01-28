@@ -145,6 +145,7 @@ $lang['formation_seances_edit'] = 'Modifier la séance';
 $lang['formation_seances_detail'] = 'Détail de la séance';
 $lang['formation_seances_empty'] = 'Aucune séance enregistrée.';
 $lang['formation_seances_back'] = 'Retour aux séances';
+$lang['formation_seances_back_to_formation'] = 'Retour à la formation';
 $lang['formation_seances_libres_title'] = 'Séances de ré-entrainement';
 
 // Séances - Champs

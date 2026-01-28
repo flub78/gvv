@@ -33,9 +33,15 @@ $niveau_labels = array(
             <?= $this->lang->line("formation_seances_detail") ?>
         </h3>
         <div>
-            <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
-                <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line("formation_seances_back") ?>
-            </a>
+            <?php if (!empty($seance['inscription_id'])): ?>
+                <a href="<?= controller_url('formation_inscriptions/detail/' . $seance['inscription_id']) ?>" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line("formation_seances_back_to_formation") ?>
+                </a>
+            <?php else: ?>
+                <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line("formation_seances_back") ?>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 

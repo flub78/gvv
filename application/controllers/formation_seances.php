@@ -528,7 +528,8 @@ class Formation_seances extends CI_Controller {
             'meteo_options' => $this->meteo_options,
             'lecons' => array(),
             'existing_evaluations' => array(),
-            'previous_evaluations' => array()
+            'previous_evaluations' => array(),
+            'lecons_progression' => array() // Progression par leçon
         );
 
         // Load programme structure if we know the programme
@@ -539,6 +540,29 @@ class Formation_seances extends CI_Controller {
         // Load previous evaluations if we have an inscription
         if ($inscription && !empty($inscription['id'])) {
             $data['previous_evaluations'] = $this->formation_evaluation_model->get_dernier_niveau_par_sujet($inscription['id']);
+            
+            // Calculer la progression par leçon
+            $this->load->library('Formation_progression');
+            $progression_data = $this->formation_progression->calculer($inscription['id']);
+            if ($progression_data && !empty($progression_data['lecons'])) {
+                // Indexer par lecon_id pour un accès rapide
+                foreach ($progression_data['lecons'] as $lecon) {
+                    $nb_sujets = count($lecon['sujets']);
+                    $nb_acquis = 0;
+                    foreach ($lecon['sujets'] as $sujet) {
+                        if (isset($sujet['dernier_niveau']) && $sujet['dernier_niveau'] === 'Q') {
+                            $nb_acquis++;
+                        }
+                    }
+                    $pourcentage = $nb_sujets > 0 ? round(($nb_acquis / $nb_sujets) * 100) : 0;
+                    $data['lecons_progression'][$lecon['id']] = array(
+                        'nb_sujets' => $nb_sujets,
+                        'nb_acquis' => $nb_acquis,
+                        'pourcentage' => $pourcentage
+                    );
+                }
+            }
+            $data['formation_progression'] = $this->formation_progression;
         }
 
         return $data;

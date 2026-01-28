@@ -140,6 +140,14 @@ $lang['formation_rapports_date_cloture'] = 'Sluitingsdatum';
 $lang['formation_rapports_motif'] = 'Reden';
 $lang['formation_rapports_date_suspension'] = 'Opschortingsdatum';
 
+// Sessies
+$lang['formation_seances_create'] = 'Nieuwe Sessie';
+$lang['formation_seances_edit'] = 'Sessie Bewerken';
+$lang['formation_seances_detail'] = 'Sessie Details';
+$lang['formation_seances_empty'] = 'Geen sessies geregistreerd.';
+$lang['formation_seances_back'] = 'Terug naar Sessies';
+$lang['formation_seances_back_to_formation'] = 'Terug naar Opleiding';
+
 // Form elements
 $lang['formation_form_required'] = 'Verplichte velden';
 $lang['formation_form_optional'] = 'Optionele velden';

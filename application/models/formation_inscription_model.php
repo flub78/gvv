@@ -298,6 +298,14 @@ class Formation_inscription_model extends Common_Model {
      * @return array Enrollments with related info
      */
     public function select_page($filters = array(), $limit = 100, $offset = 0) {
+        // Check if section exists BEFORE starting query construction
+        $section_filter_needed = false;
+        if ($this->section_id !== null && $this->section_id !== '') {
+            $query = $this->db->where('id', $this->section_id)->get('sections');
+            $section_filter_needed = ($query->num_rows() > 0);
+        }
+
+        // Now build the main query
         $this->db->select('i.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom')
@@ -305,6 +313,12 @@ class Formation_inscription_model extends Common_Model {
             ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left');
+
+        // Filter by section: show only inscriptions for programs visible to current section
+        if ($section_filter_needed) {
+            // Section valide : afficher inscriptions des programmes globaux (p.section_id IS NULL) + ceux de cette section
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
 
         // Apply filters
         if (!empty($filters['statut'])) {
@@ -335,7 +349,22 @@ class Formation_inscription_model extends Common_Model {
      * @return int Count
      */
     public function count_filtered($filters = array()) {
-        $this->db->from($this->table . ' i');
+        // Check if section exists BEFORE starting query construction
+        $section_filter_needed = false;
+        if ($this->section_id !== null && $this->section_id !== '') {
+            $query = $this->db->where('id', $this->section_id)->get('sections');
+            $section_filter_needed = ($query->num_rows() > 0);
+        }
+
+        // Now build the main query
+        $this->db->from($this->table . ' i')
+            ->join('formation_programmes p', 'i.programme_id = p.id', 'left');
+
+        // Filter by section: show only inscriptions for programs visible to current section
+        if ($section_filter_needed) {
+            // Section valide : afficher inscriptions des programmes globaux + ceux de cette section
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
 
         if (!empty($filters['statut'])) {
             $this->db->where('i.statut', $filters['statut']);
@@ -358,12 +387,26 @@ class Formation_inscription_model extends Common_Model {
      * @return array List of enrollments
      */
     public function get_by_instructeur($instructeur_id, $statut = null) {
+        // Check if section exists BEFORE starting query construction
+        $section_filter_needed = false;
+        if ($this->section_id !== null && $this->section_id !== '') {
+            $query = $this->db->where('id', $this->section_id)->get('sections');
+            $section_filter_needed = ($query->num_rows() > 0);
+        }
+
+        // Now build the main query
         $this->db->select('i.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom')
             ->from($this->table . ' i')
             ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->where('i.instructeur_referent_id', $instructeur_id);
+
+        // Filter by section: show only inscriptions for programs visible to current section
+        if ($section_filter_needed) {
+            // Section valide : afficher inscriptions des programmes globaux + ceux de cette section
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
 
         if ($statut) {
             $this->db->where('i.statut', $statut);
@@ -469,13 +512,14 @@ class Formation_inscription_model extends Common_Model {
     /**
      * Get year selector from inscription dates
      *
+     * @param string $date_field Date field name (default: 'date_ouverture')
      * @return array Year options [year => year]
      */
-    public function getYearSelector() {
-        // Get years from date_ouverture
-        $query = $this->db->select('YEAR(date_ouverture) as year')
+    public function getYearSelector($date_field = 'date_ouverture') {
+        // Get years from specified date field
+        $query = $this->db->select("YEAR($date_field) as year")
             ->from($this->table)
-            ->where('date_ouverture IS NOT NULL')
+            ->where("$date_field IS NOT NULL")
             ->order_by('year', 'ASC')
             ->group_by('year')
             ->get();

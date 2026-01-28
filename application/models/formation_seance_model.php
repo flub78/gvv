@@ -392,10 +392,11 @@ class Formation_seance_model extends Common_Model {
     /**
      * Get year selector for all seances (formation + libre)
      *
+     * @param string $date_field Date field name (default: 'date_seance')
      * @return array Year options [year => year]
      */
-    public function getYearSelector() {
-        $query = $this->db->select('YEAR(date_seance) as year')
+    public function getYearSelector($date_field = 'date_seance') {
+        $query = $this->db->select("YEAR($date_field) as year")
             ->from($this->table)
             ->order_by('year', 'ASC')
             ->group_by('year')

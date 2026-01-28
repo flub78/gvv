@@ -140,6 +140,14 @@ $lang['formation_rapports_date_cloture'] = 'Closing date';
 $lang['formation_rapports_motif'] = 'Reason';
 $lang['formation_rapports_date_suspension'] = 'Suspension date';
 
+// Sessions
+$lang['formation_seances_create'] = 'New Session';
+$lang['formation_seances_edit'] = 'Edit Session';
+$lang['formation_seances_detail'] = 'Session Details';
+$lang['formation_seances_empty'] = 'No sessions recorded.';
+$lang['formation_seances_back'] = 'Back to Sessions';
+$lang['formation_seances_back_to_formation'] = 'Back to Training';
+
 // Form elements
 $lang['formation_form_required'] = 'Required fields';
 $lang['formation_form_optional'] = 'Optional fields';

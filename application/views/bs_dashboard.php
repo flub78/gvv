@@ -661,7 +661,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($this->config->item('gestion_formations')): ?>
+    <?php if ($this->config->item('gestion_formations') && ($is_ca || $is_admin)): ?>
     <!-- Section Formation -->
     <div class="accordion-item section-card formation">
         <h2 class="accordion-header" id="headingFormation">

@@ -151,7 +151,3 @@ $this->lang->load('gvv');
         </div>
     <?php endif; ?>
 </div>
-
-<?php
-$this->load->view('bs_footer');
-?>

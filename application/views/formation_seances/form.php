@@ -290,17 +290,37 @@ if (!empty($existing_evaluations)) {
                     <!-- Static evaluations from known programme (accordion) -->
                     <div class="accordion" id="evaluationsAccordion">
                     <?php foreach ($lecons as $lecon_idx => $lecon): ?>
-                        <?php $collapse_id = 'lecon-collapse-' . $lecon_idx; ?>
+                        <?php 
+                        $collapse_id = 'lecon-collapse-' . $lecon_idx; 
+                        // Récupérer la progression pour cette leçon
+                        $prog_lecon = isset($lecons_progression[$lecon['id']]) ? $lecons_progression[$lecon['id']] : null;
+                        $pct_lecon = $prog_lecon ? $prog_lecon['pourcentage'] : 0;
+                        $nb_sujets = !empty($lecon['sujets']) ? count($lecon['sujets']) : 0;
+                        ?>
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="lecon-heading-<?= $lecon_idx ?>">
                                 <button class="accordion-button collapsed py-2" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#<?= $collapse_id ?>"
                                         aria-expanded="false" aria-controls="<?= $collapse_id ?>">
-                                    <i class="fas fa-book text-primary me-2" aria-hidden="true"></i>
-                                    <?= $this->lang->line("formation_lecon") ?> <?= htmlspecialchars($lecon['numero']) ?>: <?= htmlspecialchars($lecon['titre']) ?>
-                                    <?php if (!empty($lecon['sujets'])): ?>
-                                        <span class="badge bg-secondary ms-2"><?= count($lecon['sujets']) ?></span>
-                                    <?php endif; ?>
+                                    <span class="d-flex align-items-center flex-wrap gap-2 w-100">
+                                        <span>
+                                            <i class="fas fa-book text-primary me-2" aria-hidden="true"></i>
+                                            <?= $this->lang->line("formation_lecon") ?> <?= htmlspecialchars($lecon['numero']) ?>: <?= htmlspecialchars($lecon['titre']) ?>
+                                        </span>
+                                        <span class="badge bg-secondary"><?= $nb_sujets ?></span>
+                                        <?php if ($prog_lecon): ?>
+                                        <span class="d-flex align-items-center gap-1 ms-auto me-2" style="min-width: 140px;">
+                                            <div class="progress flex-grow-1" style="height: 12px;">
+                                                <div class="progress-bar <?= isset($formation_progression) ? $formation_progression->get_progress_bar_class($pct_lecon) : 'bg-secondary' ?>"
+                                                     role="progressbar"
+                                                     style="width: <?= $pct_lecon ?>%"
+                                                     aria-valuenow="<?= $pct_lecon ?>" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-nowrap"><?= $pct_lecon ?>%</small>
+                                        </span>
+                                        <?php endif; ?>
+                                    </span>
                                 </button>
                             </h2>
                             <div id="<?= $collapse_id ?>" class="accordion-collapse collapse"
