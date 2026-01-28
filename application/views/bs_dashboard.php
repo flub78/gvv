@@ -693,15 +693,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-chalkboard-teacher text-warning"></i>
-                        <div class="card-title">Séances</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('formation_seances') ?>" class="btn btn-warning btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-plane text-warning"></i>
                         <div class="card-title">Ré-entrainement</div>
                         <div class="card-text text-muted">Séances</div>
