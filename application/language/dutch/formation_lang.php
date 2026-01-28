@@ -100,6 +100,9 @@ $lang['formation_seance_inscription'] = 'Inschrijving';
 $lang['formation_seance_libre'] = 'Vrije sessie (geen inschrijving)';
 $lang['formation_seance_meteo'] = 'Weersomstandigheden';
 $lang['formation_seance_commentaire'] = 'Opmerking';
+$lang['formation_seance_type_formation_label'] = 'Opleidingssessie';
+$lang['formation_seance_type_libre_label'] = 'Herhalingssessie voor gebrevetteerde piloot';
+$lang['formation_seances_libres_title'] = 'Herhalingssessies';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Beoordeling';

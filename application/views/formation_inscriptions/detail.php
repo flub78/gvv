@@ -90,7 +90,6 @@ function get_statut_badge($statut) {
                         
                         <dt class="col-sm-5"><?= $this->lang->line("formation_inscription_programme") ?>:</dt>
                         <dd class="col-sm-7">
-                            <strong><?= htmlspecialchars($inscription['programme_code']) ?></strong> -
                             <?= htmlspecialchars($inscription['programme_titre']) ?>
                         </dd>
                         

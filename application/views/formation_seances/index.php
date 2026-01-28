@@ -168,7 +168,7 @@ $this->load->view('bs_banner');
                                             <span class="badge bg-primary"><?= $this->lang->line("formation_seance_type_formation") ?></span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= htmlspecialchars($seance['programme_code'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($seance['programme_titre'] ?? '') ?></td>
                                     <td><?= htmlspecialchars($seance['machine_modele'] ?? '') ?></td>
                                     <td><?= substr($seance['duree'], 0, 5) ?></td>
                                     <td><?= $seance['nb_atterrissages'] ?></td>

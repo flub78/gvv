@@ -279,6 +279,9 @@ class Formation_seance_model extends Common_Model {
                 $this->db->where('s.inscription_id IS NOT NULL');
             }
         }
+        if (!empty($filters['year'])) {
+            $this->db->where('YEAR(s.date_seance)', $filters['year']);
+        }
 
         $this->db->order_by('s.date_seance', 'desc')
             ->limit($limit, $offset);
@@ -286,6 +289,29 @@ class Formation_seance_model extends Common_Model {
         $result = $this->db->get()->result_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result;
+    }
+
+    /**
+     * Get year selector for libre sessions (no inscription)
+     *
+     * @return array Year options for dropdown
+     */
+    public function getYearSelectorLibres() {
+        $query = $this->db->select('YEAR(date_seance) as year')
+            ->from($this->table)
+            ->where('inscription_id IS NULL')
+            ->order_by('year ASC')
+            ->group_by('year')
+            ->get();
+
+        $year_selector = array();
+        if ($query) {
+            $results = $query->result_array();
+            foreach ($results as $row) {
+                $year_selector[$row['year']] = $row['year'];
+            }
+        }
+        return $year_selector;
     }
 
     /**

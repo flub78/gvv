@@ -56,26 +56,6 @@ class Formation_progressions extends CI_Controller
         $filters = [];
         $formations = $this->formation_inscription_model->get_all($filters);
 
-        // Enrichir avec infos pilote et programme
-        foreach ($formations as &$formation) {
-            // Récupérer pilote
-            $pilote_query = $this->db->where('id', $formation['pilote_id'])->get('membres');
-            if ($pilote_query && $pilote_query->num_rows() > 0) {
-                $pilote = $pilote_query->row();
-                $formation['pilote_nom'] = $pilote->nom ?? '';
-                $formation['pilote_prenom'] = $pilote->prenom ?? '';
-            } else {
-                $formation['pilote_nom'] = '';
-                $formation['pilote_prenom'] = '';
-            }
-            
-            // Récupérer programme
-            $programme = $this->formation_programme_model->get($formation['programme_id']);
-            $formation['programme_titre'] = $programme->titre ?? '';
-            $formation['programme_code'] = $programme->code ?? '';
-        }
-        unset($formation);
-
         $data['formations'] = $formations;
 
         return load_last_view('formation_progressions/index', $data, $this->unit_test);
@@ -108,7 +88,7 @@ class Formation_progressions extends CI_Controller
 
     /**
      * Exporte la fiche de progression en PDF
-     * 
+     *
      * @param int $inscription_id ID de la formation
      */
     public function export_pdf($inscription_id)
@@ -123,166 +103,121 @@ class Formation_progressions extends CI_Controller
             return;
         }
 
-        // Charger TCPDF
-        $this->load->library('pdf');
+        $this->load->library('Pdf');
+        $pdf = new Pdf('P', 'mm', 'A4');
 
-        // Configuration du PDF
-        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-
-        // Informations du document
-        $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor($this->config->item('club_name'));
-        $pdf->SetTitle('Fiche de progression - ' . $progression['pilote']['prenom'] . ' ' . $progression['pilote']['nom']);
-        $pdf->SetSubject('Formation ' . $progression['programme']['titre']);
-
-        // Supprimer header/footer par défaut
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-
-        // Marges
-        $pdf->SetMargins(15, 15, 15);
-        $pdf->SetAutoPageBreak(TRUE, 15);
-
-        // Police
-        $pdf->SetFont('helvetica', '', 10);
-
-        // Ajouter une page
-        $pdf->AddPage();
-
-        // Générer le contenu HTML
-        $html = $this->_generate_pdf_html($progression);
-
-        // Écrire le HTML
-        $pdf->writeHTML($html, true, false, true, false, '');
-
-        // Nom du fichier
-        $filename = 'progression_' . 
-                    strtolower($progression['pilote']['nom']) . '_' .
-                    strtolower($progression['programme']['code']) . '_' .
-                    date('Ymd') . '.pdf';
-
-        // Output PDF
-        $pdf->Output($filename, 'D'); // D = téléchargement
-    }
-
-    /**
-     * Génère le HTML pour le PDF
-     * 
-     * @param array $progression Données de progression
-     * @return string HTML
-     */
-    private function _generate_pdf_html($progression)
-    {
-        $stats = $progression['stats'];
         $pilote = $progression['pilote'];
         $programme = $progression['programme'];
+        $inscription = $progression['inscription'];
+        $stats = $progression['stats'];
 
-        $html = '<h1 style="color: #0066cc;">Fiche de Progression</h1>';
+        $pilote_name = $pilote['mprenom'] . ' ' . $pilote['mnom'];
+        $pdf->SetTitle('Fiche de progression - ' . $pilote_name);
+        $pdf->set_title('Fiche de progression');
 
-        // En-tête
-        $html .= '<table style="width: 100%; border: 1px solid #ddd; margin-bottom: 20px;">';
-        $html .= '<tr>';
-        $html .= '<td style="width: 50%; padding: 10px;"><strong>Élève :</strong> ' . htmlspecialchars($pilote['prenom'] . ' ' . $pilote['nom']) . '</td>';
-        $html .= '<td style="width: 50%; padding: 10px;"><strong>Programme :</strong> ' . htmlspecialchars($programme['titre']) . '</td>';
-        $html .= '</tr>';
-        $html .= '<tr>';
-        $html .= '<td style="padding: 10px;"><strong>Date d\'ouverture :</strong> ' . date('d/m/Y', strtotime($progression['inscription']['date_ouverture'])) . '</td>';
-        $html .= '<td style="padding: 10px;"><strong>Statut :</strong> ' . $this->lang->line('formation_inscription_statut_' . $progression['inscription']['statut']) . '</td>';
-        $html .= '</tr>';
-        $html .= '</table>';
+        // Page 1: infos + statistiques + progression
+        $pdf->AddPage('P');
+        $pdf->title('Fiche de Progression', 1);
+
+        // En-tête: élève et programme
+        $pdf->SetFont('DejaVu', 'B', 9);
+        $pdf->Cell(30, 6, 'Elève :', 0, 0);
+        $pdf->SetFont('DejaVu', '', 9);
+        $pdf->Cell(60, 6, $pilote_name, 0, 0);
+        $pdf->SetFont('DejaVu', 'B', 9);
+        $pdf->Cell(30, 6, 'Programme :', 0, 0);
+        $pdf->SetFont('DejaVu', '', 9);
+        $pdf->Cell(0, 6, $programme['titre'], 0, 1);
+
+        $pdf->SetFont('DejaVu', 'B', 9);
+        $pdf->Cell(30, 6, 'Ouverture :', 0, 0);
+        $pdf->SetFont('DejaVu', '', 9);
+        $pdf->Cell(60, 6, date('d/m/Y', strtotime($inscription['date_ouverture'])), 0, 0);
+        $pdf->SetFont('DejaVu', 'B', 9);
+        $pdf->Cell(30, 6, 'Statut :', 0, 0);
+        $pdf->SetFont('DejaVu', '', 9);
+        $pdf->Cell(0, 6, $this->lang->line('formation_inscription_statut_' . $inscription['statut']), 0, 1);
+        $pdf->Ln(4);
 
         // Statistiques
-        $html .= '<h2 style="color: #0066cc; margin-top: 20px;">Statistiques</h2>';
-        $html .= '<table style="width: 100%; border: 1px solid #ddd; margin-bottom: 20px;">';
-        $html .= '<tr>';
-        $html .= '<td style="width: 33%; padding: 10px; text-align: center; background-color: #f0f0f0;">';
-        $html .= '<strong>Séances</strong><br/><span style="font-size: 20px; color: #0066cc;">' . $stats['nb_seances'] . '</span>';
-        $html .= '</td>';
-        $html .= '<td style="width: 33%; padding: 10px; text-align: center; background-color: #f8f8f8;">';
-        $html .= '<strong>Heures de vol</strong><br/><span style="font-size: 20px; color: #0066cc;">' . $stats['heures_totales'] . '</span>';
-        $html .= '</td>';
-        $html .= '<td style="width: 33%; padding: 10px; text-align: center; background-color: #f0f0f0;">';
-        $html .= '<strong>Atterrissages</strong><br/><span style="font-size: 20px; color: #0066cc;">' . $stats['atterrissages_totaux'] . '</span>';
-        $html .= '</td>';
-        $html .= '</tr>';
-        $html .= '</table>';
-
-        // Progression
-        $pourcentage = $stats['pourcentage_acquis'];
-        $html .= '<h2 style="color: #0066cc; margin-top: 20px;">Progression</h2>';
-        $html .= '<p style="font-size: 14px;"><strong>' . $pourcentage . '%</strong> des sujets acquis (' . $stats['nb_sujets_acquis'] . '/' . $stats['nb_sujets_total'] . ')</p>';
-        
-        // Barre de progression simplifiée
-        $bar_color = '#dc3545'; // rouge
-        if ($pourcentage >= 75) {
-            $bar_color = '#28a745'; // vert
-        } elseif ($pourcentage >= 50) {
-            $bar_color = '#17a2b8'; // bleu
-        } elseif ($pourcentage >= 25) {
-            $bar_color = '#ffc107'; // orange
-        }
-        
-        $html .= '<div style="width: 100%; height: 30px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; margin-bottom: 20px;">';
-        $html .= '<div style="width: ' . $pourcentage . '%; height: 100%; background-color: ' . $bar_color . ';"></div>';
-        $html .= '</div>';
+        $pdf->title('Statistiques', 2);
+        $col_w = [45, 45, 45, 45];
+        $col_a = ['C', 'C', 'C', 'C'];
+        $pdf->set_table_header($col_w, 6, $col_a, [
+            ['Séances', 'Heures de vol', 'Atterrissages', '% Acquis']
+        ]);
+        $pdf->row($col_w, 6, $col_a, [
+            $stats['nb_seances'],
+            $stats['heures_totales'],
+            $stats['atterrissages_totaux'],
+            $stats['pourcentage_acquis'] . '%'
+        ]);
+        $pdf->Ln(4);
 
         // Répartition des niveaux
-        $html .= '<table style="width: 100%; border: 1px solid #ddd; margin-bottom: 20px; font-size: 12px;">';
-        $html .= '<tr style="background-color: #f0f0f0;">';
-        $html .= '<td style="padding: 8px; text-align: center;"><strong>Non abordés</strong></td>';
-        $html .= '<td style="padding: 8px; text-align: center;"><strong>Abordés</strong></td>';
-        $html .= '<td style="padding: 8px; text-align: center;"><strong>À revoir</strong></td>';
-        $html .= '<td style="padding: 8px; text-align: center;"><strong>Acquis</strong></td>';
-        $html .= '</tr>';
-        $html .= '<tr>';
-        $html .= '<td style="padding: 8px; text-align: center; font-size: 18px;">' . $stats['nb_sujets_non_abordes'] . '</td>';
-        $html .= '<td style="padding: 8px; text-align: center; font-size: 18px;">' . $stats['nb_sujets_abordes'] . '</td>';
-        $html .= '<td style="padding: 8px; text-align: center; font-size: 18px;">' . $stats['nb_sujets_a_revoir'] . '</td>';
-        $html .= '<td style="padding: 8px; text-align: center; font-size: 18px; color: #28a745;"><strong>' . $stats['nb_sujets_acquis'] . '</strong></td>';
-        $html .= '</tr>';
-        $html .= '</table>';
+        $pdf->title('Répartition des niveaux', 2);
+        $col_w2 = [45, 45, 45, 45];
+        $col_a2 = ['C', 'C', 'C', 'C'];
+        $pdf->set_table_header($col_w2, 6, $col_a2, [
+            ['Non abordés', 'Abordés', 'A revoir', 'Acquis']
+        ]);
+        $pdf->row($col_w2, 6, $col_a2, [
+            $stats['nb_sujets_non_abordes'],
+            $stats['nb_sujets_abordes'],
+            $stats['nb_sujets_a_revoir'],
+            $stats['nb_sujets_acquis']
+        ]);
+        $pdf->Ln(4);
 
         // Détail par leçon
-        $html .= '<h2 style="color: #0066cc; margin-top: 20px;">Détail par leçon</h2>';
+        $pdf->title('Détail par leçon', 2);
+
+        $sub_w = [15, 80, 30, 20, 30];
+        $sub_a = ['L', 'L', 'C', 'C', 'C'];
 
         foreach ($progression['lecons'] as $lecon) {
-            $html .= '<h3 style="color: #495057; margin-top: 15px; margin-bottom: 10px;">Leçon ' . $lecon['numero'] . ' : ' . htmlspecialchars($lecon['titre']) . '</h3>';
-            
+            // Titre de la leçon
+            $pdf->SetFont('DejaVu', 'B', 8);
+            $pdf->Cell(0, 6, 'Leçon ' . $lecon['numero'] . ' : ' . $lecon['titre'], 0, 1);
+            $pdf->SetFont('DejaVu', '', 7);
+
             if (empty($lecon['sujets'])) {
-                $html .= '<p style="font-style: italic; color: #999;">Aucun sujet défini</p>';
+                $pdf->SetFont('DejaVu', 'I', 7);
+                $pdf->Cell(0, 5, 'Aucun sujet défini', 0, 1);
+                $pdf->SetFont('DejaVu', '', 7);
                 continue;
             }
-            
-            $html .= '<table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px;">';
-            $html .= '<tr style="background-color: #f8f9fa;">';
-            $html .= '<th style="border: 1px solid #ddd; padding: 8px; text-align: left; width: 10%;">N°</th>';
-            $html .= '<th style="border: 1px solid #ddd; padding: 8px; text-align: left; width: 50%;">Sujet</th>';
-            $html .= '<th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 15%;">Niveau</th>';
-            $html .= '<th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 10%;">Séances</th>';
-            $html .= '<th style="border: 1px solid #ddd; padding: 8px; text-align: center; width: 15%;">Dernière éval</th>';
-            $html .= '</tr>';
-            
+
+            $pdf->set_table_header($sub_w, 5, $sub_a, [
+                ['N°', 'Sujet', 'Niveau', 'Séances', 'Dernière éval']
+            ]);
+
             foreach ($lecon['sujets'] as $sujet) {
                 $niveau_label = $this->formation_progression->get_niveau_label($sujet['dernier_niveau']);
                 $date_eval = $sujet['date_derniere_eval'] ? date('d/m/Y', strtotime($sujet['date_derniere_eval'])) : '-';
-                
-                $html .= '<tr>';
-                $html .= '<td style="border: 1px solid #ddd; padding: 8px;">' . $sujet['numero'] . '</td>';
-                $html .= '<td style="border: 1px solid #ddd; padding: 8px;">' . htmlspecialchars($sujet['titre']) . '</td>';
-                $html .= '<td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>' . $niveau_label . '</strong></td>';
-                $html .= '<td style="border: 1px solid #ddd; padding: 8px; text-align: center;">' . $sujet['nb_seances'] . '</td>';
-                $html .= '<td style="border: 1px solid #ddd; padding: 8px; text-align: center;">' . $date_eval . '</td>';
-                $html .= '</tr>';
+
+                $pdf->row($sub_w, 5, $sub_a, [
+                    $sujet['numero'],
+                    $sujet['titre'],
+                    $sujet['dernier_niveau'] . ' - ' . $niveau_label,
+                    $sujet['nb_seances'],
+                    $date_eval
+                ]);
             }
-            
-            $html .= '</table>';
+            $pdf->Ln(3);
         }
 
         // Pied de page
-        $html .= '<p style="margin-top: 30px; font-size: 10px; color: #999; text-align: center;">';
-        $html .= 'Document généré le ' . date('d/m/Y à H:i') . ' - ' . $this->config->item('club_name');
-        $html .= '</p>';
+        $pdf->Ln(5);
+        $pdf->SetFont('DejaVu', 'I', 7);
+        $pdf->Cell(0, 5, 'Document généré le ' . date('d/m/Y à H:i'), 0, 1, 'C');
 
-        return $html;
+        // Nom du fichier
+        $filename = 'progression_' .
+                    strtolower($pilote['mnom']) . '_' .
+                    strtolower($programme['code']) . '_' .
+                    date('Ymd') . '.pdf';
+
+        $pdf->Output($filename, 'I');
     }
 }

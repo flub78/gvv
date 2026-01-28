@@ -31,19 +31,19 @@ class Formation_progression {
      */
     public function calculer($inscription_id) {
         // Charger l'inscription
-        $inscription = $this->CI->formation_inscription_model->get_by_id($inscription_id);
+        $inscription = $this->CI->formation_inscription_model->get($inscription_id);
         if (!$inscription) {
             return false;
         }
-        
+
         // Charger le programme et ses détails
-        $programme = $this->CI->formation_programme_model->get_by_id($inscription['programme_id']);
+        $programme = $this->CI->formation_programme_model->get($inscription['programme_id']);
         if (!$programme) {
             return false;
         }
-        
+
         // Charger l'élève
-        $pilote = $this->CI->membres_model->get_by_id($inscription['pilote_id']);
+        $pilote = $this->CI->membres_model->get_by_id('mlogin', $inscription['pilote_id']);
         
         // Charger toutes les leçons du programme
         $lecons = $this->CI->formation_lecon_model->get_by_programme($programme['id']);
@@ -180,7 +180,6 @@ class Formation_progression {
                 'numero' => $lecon['numero'],
                 'titre' => $lecon['titre'],
                 'description' => $lecon['description'],
-                'objectifs' => $lecon['objectifs'],
                 'sujets' => $sujets_progression
             ];
         }

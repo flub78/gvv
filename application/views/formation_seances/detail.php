@@ -87,7 +87,6 @@ $niveau_labels = array(
 
                         <dt class="col-sm-5"><?= $this->lang->line("formation_seance_programme") ?>:</dt>
                         <dd class="col-sm-7">
-                            <strong><?= htmlspecialchars($seance['programme_code'] ?? '') ?></strong> -
                             <?= htmlspecialchars($seance['programme_titre'] ?? '') ?>
                         </dd>
                     </dl>

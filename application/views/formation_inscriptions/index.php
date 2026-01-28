@@ -144,7 +144,6 @@ $this->lang->load('gvv');
                                 <?= htmlspecialchars($inscription['pilote_prenom'] . ' ' . $inscription['pilote_nom']) ?>
                             </td>
                             <td>
-                                <strong><?= htmlspecialchars($inscription['programme_code']) ?></strong> -
                                 <?= htmlspecialchars($inscription['programme_titre']) ?>
                             </td>
                             <td>
@@ -186,25 +185,10 @@ $this->lang->load('gvv');
                                     <i class="fas fa-eye" aria-hidden="true"></i>
                                 </a>
                                 
-                                <?php if ($inscription['statut'] === 'ouverte'): ?>
-                                    <a href="<?= controller_url($controller) ?>/suspendre/<?= $inscription['id'] ?>" 
-                                       class="btn btn-sm btn-warning" title="Suspendre">
-                                        <i class="fas fa-pause" aria-hidden="true"></i>
-                                    </a>
-                                    <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>" 
-                                       class="btn btn-sm btn-success" title="Clôturer">
-                                        <i class="fas fa-check" aria-hidden="true"></i>
-                                    </a>
-                                <?php elseif ($inscription['statut'] === 'suspendue'): ?>
-                                    <a href="<?= controller_url($controller) ?>/reactiver/<?= $inscription['id'] ?>" 
-                                       class="btn btn-sm btn-success" title="Réactiver">
-                                        <i class="fas fa-play" aria-hidden="true"></i>
-                                    </a>
-                                    <a href="<?= controller_url($controller) ?>/cloturer/<?= $inscription['id'] ?>" 
-                                       class="btn btn-sm btn-danger" title="Abandonner">
-                                        <i class="fas fa-times" aria-hidden="true"></i>
-                                    </a>
-                                <?php endif; ?>
+                                <a href="<?= site_url('formation_seances/create?inscription_id=' . $inscription['id']) ?>" 
+                                   class="btn btn-sm btn-primary" title="Ajouter une séance">
+                                    <i class="fas fa-plus" aria-hidden="true"></i>
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

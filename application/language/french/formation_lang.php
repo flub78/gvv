@@ -145,6 +145,7 @@ $lang['formation_seances_edit'] = 'Modifier la séance';
 $lang['formation_seances_detail'] = 'Détail de la séance';
 $lang['formation_seances_empty'] = 'Aucune séance enregistrée.';
 $lang['formation_seances_back'] = 'Retour aux séances';
+$lang['formation_seances_libres_title'] = 'Séances de ré-entrainement';
 
 // Séances - Champs
 $lang['formation_seance_date'] = 'Date';
@@ -155,7 +156,7 @@ $lang['formation_seance_duree'] = 'Durée du vol';
 $lang['formation_seance_duree_help'] = 'Format HH:MM';
 $lang['formation_seance_nb_atterrissages'] = 'Nombre d\'atterrissages';
 $lang['formation_seance_commentaire'] = 'Commentaires';
-$lang['formation_seance_prochaines_lecons'] = 'Prochaines leçons recommandées';
+$lang['formation_seance_prochaines_lecons'] = 'Préparation des prochaines leçons';
 $lang['formation_seance_programme'] = 'Programme';
 
 // Séances - Types
@@ -169,6 +170,8 @@ $lang['formation_seance_type_libre'] = 'Libre';
 $lang['formation_seance_type_toutes'] = 'Toutes';
 $lang['formation_seance_mode_inscription'] = 'Avec formation';
 $lang['formation_seance_mode_libre'] = 'Hors formation (séance libre)';
+$lang['formation_seance_type_formation_label'] = 'Séance de formation';
+$lang['formation_seance_type_libre_label'] = 'Séance de ré-entrainement pour pilote breveté';
 $lang['formation_seance_select_inscription'] = '-- Sélectionnez une formation --';
 
 // Séances - Météo

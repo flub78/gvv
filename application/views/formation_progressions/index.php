@@ -62,7 +62,6 @@ $this->lang->load('gvv');
                                 <?= htmlspecialchars($formation['pilote_prenom'] . ' ' . $formation['pilote_nom']) ?>
                             </td>
                             <td>
-                                <strong><?= htmlspecialchars($formation['programme_code']) ?></strong> - 
                                 <?= htmlspecialchars($formation['programme_titre']) ?>
                             </td>
                             <td>
@@ -127,6 +126,3 @@ $(document).ready(function() {
 });
 </script>
 
-<?php
-$this->load->view('bs_footer');
-?>

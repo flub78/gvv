@@ -108,7 +108,9 @@ class Formation_seances extends CI_Controller {
     public function create() {
         log_message('debug', 'FORMATION_SEANCES: create() method called');
 
-        $inscription_id = $this->input->get('inscription_id');
+        $inscription_id = $this->input->post('inscription_id')
+            ? $this->input->post('inscription_id')
+            : $this->input->get('inscription_id');
         $inscription = null;
         $is_libre = true;
 
@@ -120,7 +122,14 @@ class Formation_seances extends CI_Controller {
             }
         }
 
-        $programme_id = $inscription ? $inscription['programme_id'] : $this->input->get('programme_id');
+        // Check POST mode_seance to preserve mode after validation failure
+        if ($this->input->post('mode_seance') === 'libre') {
+            $is_libre = true;
+        } elseif ($this->input->post('mode_seance') === 'inscription') {
+            $is_libre = false;
+        }
+
+        $programme_id = $inscription ? $inscription['programme_id'] : ($this->input->post('programme_id') ?: $this->input->get('programme_id'));
         $data = $this->_prepare_form_data($inscription, $is_libre, $programme_id);
         $data['action'] = 'create';
         $data['seance'] = array(
@@ -136,6 +145,34 @@ class Formation_seances extends CI_Controller {
             'instructeur_id' => '',
             'machine_id' => ''
         );
+
+        // Repopulate from POST data after validation failure
+        if ($_POST) {
+            $data['seance']['date_seance'] = $this->input->post('date_seance') ?: $data['seance']['date_seance'];
+            $data['seance']['nb_atterrissages'] = $this->input->post('nb_atterrissages') ?: $data['seance']['nb_atterrissages'];
+            $data['seance']['duree'] = $this->input->post('duree') ?: $data['seance']['duree'];
+            $data['seance']['commentaires'] = $this->input->post('commentaires') ?: $data['seance']['commentaires'];
+            $data['seance']['prochaines_lecons'] = $this->input->post('prochaines_lecons') ?: $data['seance']['prochaines_lecons'];
+            $data['seance']['instructeur_id'] = $this->input->post('instructeur_id') ?: $data['seance']['instructeur_id'];
+            $data['seance']['machine_id'] = $this->input->post('machine_id') ?: $data['seance']['machine_id'];
+            $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
+            $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
+            $data['seance']['inscription_id'] = $this->input->post('inscription_id') ?: $data['seance']['inscription_id'];
+
+            // Rebuild meteo from POST checkboxes
+            $meteo = array();
+            foreach ($this->meteo_options as $option) {
+                if ($this->input->post('meteo_' . $option)) {
+                    $meteo[] = $option;
+                }
+            }
+            $data['seance']['meteo'] = json_encode($meteo);
+
+            // Load programme structure for libre mode so evaluations are displayed
+            if ($is_libre && !empty($data['seance']['programme_id']) && empty($data['lecons'])) {
+                $data['lecons'] = $this->_get_programme_structure($data['seance']['programme_id']);
+            }
+        }
 
         $this->load->view('formation_seances/form', $data);
     }
@@ -227,6 +264,28 @@ class Formation_seances extends CI_Controller {
 
         // Load existing evaluations
         $data['existing_evaluations'] = $this->formation_evaluation_model->get_by_seance($id);
+
+        // Repopulate from POST data after validation failure
+        if ($_POST) {
+            $data['seance']['date_seance'] = $this->input->post('date_seance') ?: $data['seance']['date_seance'];
+            $data['seance']['nb_atterrissages'] = $this->input->post('nb_atterrissages') ?: $data['seance']['nb_atterrissages'];
+            $data['seance']['duree'] = $this->input->post('duree') ?: $data['seance']['duree'];
+            $data['seance']['commentaires'] = $this->input->post('commentaires') ?: $data['seance']['commentaires'];
+            $data['seance']['prochaines_lecons'] = $this->input->post('prochaines_lecons') ?: $data['seance']['prochaines_lecons'];
+            $data['seance']['instructeur_id'] = $this->input->post('instructeur_id') ?: $data['seance']['instructeur_id'];
+            $data['seance']['machine_id'] = $this->input->post('machine_id') ?: $data['seance']['machine_id'];
+            $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
+            $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
+
+            // Rebuild meteo from POST checkboxes
+            $meteo = array();
+            foreach ($this->meteo_options as $option) {
+                if ($this->input->post('meteo_' . $option)) {
+                    $meteo[] = $option;
+                }
+            }
+            $data['seance']['meteo'] = json_encode($meteo);
+        }
 
         $this->load->view('formation_seances/form', $data);
     }
@@ -459,8 +518,8 @@ class Formation_seances extends CI_Controller {
         );
 
         // Load programme structure if we know the programme
-        if ($inscription && !empty($inscription['programme_id'])) {
-            $data['lecons'] = $this->_get_programme_structure($inscription['programme_id']);
+        if ($programme_id) {
+            $data['lecons'] = $this->_get_programme_structure($programme_id);
         }
 
         return $data;
@@ -584,5 +643,41 @@ class Formation_seances extends CI_Controller {
         }
 
         return $evaluations;
+    }
+
+    /**
+     * Liste des séances libres (ré-entrainement) avec sélecteur d'année
+     */
+    public function libres() {
+        $year = $this->session->userdata('year');
+        if (empty($year)) {
+            $year = date('Y');
+        }
+
+        $filters = array(
+            'type' => 'libre',
+            'year' => $year
+        );
+
+        $seances = $this->formation_seance_model->select_page($filters);
+
+        $data = array(
+            'controller' => 'formation_seances',
+            'seances' => $seances,
+            'year' => $year,
+            'year_selector' => $this->formation_seance_model->getYearSelectorLibres()
+        );
+
+        $this->load->view('formation_seances/libres', $data);
+    }
+
+    /**
+     * Change d'année et redirige vers la page des séances libres
+     *
+     * @param string $year Année sélectionnée
+     */
+    public function new_year($year) {
+        $this->session->set_userdata('year', $year);
+        redirect('formation_seances/libres');
     }
 }

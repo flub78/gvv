@@ -77,37 +77,16 @@ if (!empty($existing_evaluations)) {
 
     <?= form_open($form_url, array('id' => 'seance-form', 'class' => 'needs-validation', 'novalidate' => '')) ?>
 
-        <!-- Section 1: Mode de séance -->
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-exchange-alt" aria-hidden="true"></i>
-                    <?= $this->lang->line("formation_seance_type") ?>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="btn-group" role="group" aria-label="Mode de séance">
-                    <input type="radio" class="btn-check" name="mode_seance" id="mode_inscription" value="inscription"
-                           <?= $current_mode === 'inscription' ? 'checked' : '' ?> autocomplete="off">
-                    <label class="btn btn-outline-primary" for="mode_inscription">
-                        <i class="fas fa-user-graduate" aria-hidden="true"></i>
-                        <?= $this->lang->line("formation_seance_mode_inscription") ?>
-                    </label>
-
-                    <input type="radio" class="btn-check" name="mode_seance" id="mode_libre" value="libre"
-                           <?= $current_mode === 'libre' ? 'checked' : '' ?> autocomplete="off">
-                    <label class="btn btn-outline-secondary" for="mode_libre">
-                        <i class="fas fa-plane" aria-hidden="true"></i>
-                        <?= $this->lang->line("formation_seance_mode_libre") ?>
-                    </label>
-                </div>
-
-                <!-- Info message for libre mode -->
-                <div id="libre-info" class="alert alert-info mt-3 mb-0" style="display: <?= $current_mode === 'libre' ? 'block' : 'none' ?>;">
-                    <i class="fas fa-info-circle" aria-hidden="true"></i>
-                    <?= $this->lang->line("formation_seance_libre_info") ?>
-                </div>
-            </div>
+        <!-- Section 1: Type de séance (déterminé automatiquement) -->
+        <input type="hidden" name="mode_seance" value="<?= $current_mode ?>">
+        <div class="alert <?= $current_mode === 'inscription' ? 'alert-primary' : 'alert-secondary' ?> mb-3">
+            <?php if ($current_mode === 'inscription'): ?>
+                <i class="fas fa-user-graduate" aria-hidden="true"></i>
+                <strong><?= $this->lang->line("formation_seance_type_formation_label") ?></strong>
+            <?php else: ?>
+                <i class="fas fa-plane" aria-hidden="true"></i>
+                <strong><?= $this->lang->line("formation_seance_type_libre_label") ?></strong>
+            <?php endif; ?>
         </div>
 
         <!-- Section 2: Informations générales -->
@@ -129,7 +108,7 @@ if (!empty($existing_evaluations)) {
                                 <label class="form-label"><?= $this->lang->line("formation_seance_inscription") ?></label>
                                 <div class="form-control-plaintext">
                                     <strong><?= htmlspecialchars($inscription['pilote_prenom'] . ' ' . $inscription['pilote_nom']) ?></strong> -
-                                    <?= htmlspecialchars($inscription['programme_code'] . ' - ' . $inscription['programme_titre']) ?>
+                                    <?= htmlspecialchars($inscription['programme_titre']) ?>
                                     <?php echo get_statut_badge_seance($inscription['statut']); ?>
                                 </div>
                             </div>
@@ -308,56 +287,71 @@ if (!empty($existing_evaluations)) {
             </div>
             <div class="card-body" id="evaluations-container">
                 <?php if (!empty($lecons)): ?>
-                    <!-- Static evaluations from known programme -->
-                    <?php foreach ($lecons as $lecon): ?>
-                        <div class="mb-3">
-                            <h6 class="text-primary">
-                                <i class="fas fa-book" aria-hidden="true"></i>
-                                <?= $this->lang->line("formation_lecon") ?> <?= htmlspecialchars($lecon['numero']) ?>: <?= htmlspecialchars($lecon['titre']) ?>
-                            </h6>
-                            <?php if (!empty($lecon['sujets'])): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-bordered">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th style="width:60px">#</th>
-                                                <th><?= $this->lang->line("formation_evaluation_sujet") ?></th>
-                                                <th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>
-                                                <th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($lecon['sujets'] as $sujet): ?>
-                                                <?php
-                                                $current_niveau = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['niveau'] : '-';
-                                                $current_comment = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['commentaire'] : '';
-                                                ?>
-                                                <tr>
-                                                    <td class="text-muted"><?= htmlspecialchars($sujet['numero']) ?></td>
-                                                    <td><?= htmlspecialchars($sujet['titre']) ?></td>
-                                                    <td>
-                                                        <select class="form-select form-select-sm eval-niveau"
-                                                                name="eval[<?= $sujet['id'] ?>][niveau]">
-                                                            <option value="-" <?= $current_niveau === '-' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></option>
-                                                            <option value="A" <?= $current_niveau === 'A' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></option>
-                                                            <option value="R" <?= $current_niveau === 'R' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?></option>
-                                                            <option value="Q" <?= $current_niveau === 'Q' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_acquis") ?></option>
-                                                        </select>
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" class="form-control form-control-sm"
-                                                               name="eval[<?= $sujet['id'] ?>][commentaire]"
-                                                               value="<?= htmlspecialchars($current_comment) ?>"
-                                                               placeholder="<?= $this->lang->line("formation_evaluation_commentaire") ?>">
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
+                    <!-- Static evaluations from known programme (accordion) -->
+                    <div class="accordion" id="evaluationsAccordion">
+                    <?php foreach ($lecons as $lecon_idx => $lecon): ?>
+                        <?php $collapse_id = 'lecon-collapse-' . $lecon_idx; ?>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="lecon-heading-<?= $lecon_idx ?>">
+                                <button class="accordion-button collapsed py-2" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#<?= $collapse_id ?>"
+                                        aria-expanded="false" aria-controls="<?= $collapse_id ?>">
+                                    <i class="fas fa-book text-primary me-2" aria-hidden="true"></i>
+                                    <?= $this->lang->line("formation_lecon") ?> <?= htmlspecialchars($lecon['numero']) ?>: <?= htmlspecialchars($lecon['titre']) ?>
+                                    <?php if (!empty($lecon['sujets'])): ?>
+                                        <span class="badge bg-secondary ms-2"><?= count($lecon['sujets']) ?></span>
+                                    <?php endif; ?>
+                                </button>
+                            </h2>
+                            <div id="<?= $collapse_id ?>" class="accordion-collapse collapse"
+                                 aria-labelledby="lecon-heading-<?= $lecon_idx ?>">
+                                <div class="accordion-body p-2">
+                                    <?php if (!empty($lecon['sujets'])): ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width:60px">#</th>
+                                                        <th><?= $this->lang->line("formation_evaluation_sujet") ?></th>
+                                                        <th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>
+                                                        <th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($lecon['sujets'] as $sujet): ?>
+                                                        <?php
+                                                        $current_niveau = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['niveau'] : '-';
+                                                        $current_comment = isset($eval_index[$sujet['id']]) ? $eval_index[$sujet['id']]['commentaire'] : '';
+                                                        ?>
+                                                        <tr>
+                                                            <td class="text-muted"><?= htmlspecialchars($sujet['numero']) ?></td>
+                                                            <td><?= htmlspecialchars($sujet['titre']) ?></td>
+                                                            <td>
+                                                                <select class="form-select form-select-sm eval-niveau"
+                                                                        name="eval[<?= $sujet['id'] ?>][niveau]">
+                                                                    <option value="-" <?= $current_niveau === '-' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></option>
+                                                                    <option value="A" <?= $current_niveau === 'A' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></option>
+                                                                    <option value="R" <?= $current_niveau === 'R' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?></option>
+                                                                    <option value="Q" <?= $current_niveau === 'Q' ? 'selected' : '' ?>><?= $this->lang->line("formation_evaluation_niveau_acquis") ?></option>
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                       name="eval[<?= $sujet['id'] ?>][commentaire]"
+                                                                       value="<?= htmlspecialchars($current_comment) ?>"
+                                                                       placeholder="<?= $this->lang->line("formation_evaluation_commentaire") ?>">
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     <?php endforeach; ?>
+                    </div>
                 <?php else: ?>
                     <!-- Dynamic evaluations: loaded via AJAX when programme is selected -->
                     <div id="evaluations-placeholder">
@@ -421,27 +415,6 @@ function get_statut_badge_seance($statut) {
 
 <script>
 $(document).ready(function() {
-    // Toggle between inscription and libre modes
-    $('input[name="mode_seance"]').on('change', function() {
-        var mode = $(this).val();
-        if (mode === 'libre') {
-            $('#inscription-fields').hide();
-            $('#libre-fields').show();
-            $('#libre-info').show();
-            // Clear inscription field requirement
-            $('#inscription_id').prop('required', false);
-            $('#pilote_id').prop('required', true);
-            $('#programme_id').prop('required', true);
-        } else {
-            $('#inscription-fields').show();
-            $('#libre-fields').hide();
-            $('#libre-info').hide();
-            $('#inscription_id').prop('required', true);
-            $('#pilote_id').prop('required', false);
-            $('#programme_id').prop('required', false);
-        }
-    });
-
     // Load inscriptions when pilot is selected (inscription mode)
     $('#insc_pilote_id').on('change', function() {
         var piloteId = $(this).val();
@@ -512,40 +485,56 @@ $(document).ready(function() {
 
             $placeholder.hide();
 
-            $.each(lecons, function(i, lecon) {
-                var html = '<div class="mb-3">';
-                html += '<h6 class="text-primary"><i class="fas fa-book"></i> ';
-                html += '<?= $this->lang->line("formation_lecon") ?> ' + escapeHtml(lecon.numero) + ': ' + escapeHtml(lecon.titre) + '</h6>';
+            var accordionHtml = '<div class="accordion" id="evaluationsAccordionDynamic">';
 
-                if (lecon.sujets && lecon.sujets.length > 0) {
-                    html += '<div class="table-responsive"><table class="table table-sm table-bordered">';
-                    html += '<thead class="table-light"><tr>';
-                    html += '<th style="width:60px">#</th>';
-                    html += '<th><?= $this->lang->line("formation_evaluation_sujet") ?></th>';
-                    html += '<th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>';
-                    html += '<th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>';
-                    html += '</tr></thead><tbody>';
+            $.each(lecons, function(i, lecon) {
+                var collapseId = 'dyn-lecon-collapse-' + i;
+                var headingId = 'dyn-lecon-heading-' + i;
+                var nbSujets = (lecon.sujets && lecon.sujets.length > 0) ? lecon.sujets.length : 0;
+
+                accordionHtml += '<div class="accordion-item">';
+                accordionHtml += '<h2 class="accordion-header" id="' + headingId + '">';
+                accordionHtml += '<button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#' + collapseId + '" aria-expanded="false" aria-controls="' + collapseId + '">';
+                accordionHtml += '<i class="fas fa-book text-primary me-2"></i> ';
+                accordionHtml += '<?= $this->lang->line("formation_lecon") ?> ' + escapeHtml(lecon.numero) + ': ' + escapeHtml(lecon.titre);
+                if (nbSujets > 0) {
+                    accordionHtml += ' <span class="badge bg-secondary ms-2">' + nbSujets + '</span>';
+                }
+                accordionHtml += '</button></h2>';
+                accordionHtml += '<div id="' + collapseId + '" class="accordion-collapse collapse" aria-labelledby="' + headingId + '">';
+                accordionHtml += '<div class="accordion-body p-2">';
+
+                if (nbSujets > 0) {
+                    accordionHtml += '<div class="table-responsive"><table class="table table-sm table-bordered mb-0">';
+                    accordionHtml += '<thead class="table-light"><tr>';
+                    accordionHtml += '<th style="width:60px">#</th>';
+                    accordionHtml += '<th><?= $this->lang->line("formation_evaluation_sujet") ?></th>';
+                    accordionHtml += '<th style="width:200px"><?= $this->lang->line("formation_evaluation_niveau") ?></th>';
+                    accordionHtml += '<th style="width:250px"><?= $this->lang->line("formation_evaluation_commentaire") ?></th>';
+                    accordionHtml += '</tr></thead><tbody>';
 
                     $.each(lecon.sujets, function(j, sujet) {
-                        html += '<tr>';
-                        html += '<td class="text-muted">' + escapeHtml(sujet.numero) + '</td>';
-                        html += '<td>' + escapeHtml(sujet.titre) + '</td>';
-                        html += '<td><select class="form-select form-select-sm eval-niveau" name="eval[' + sujet.id + '][niveau]">';
-                        html += '<option value="-"><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></option>';
-                        html += '<option value="A"><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></option>';
-                        html += '<option value="R"><?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?></option>';
-                        html += '<option value="Q"><?= $this->lang->line("formation_evaluation_niveau_acquis") ?></option>';
-                        html += '</select></td>';
-                        html += '<td><input type="text" class="form-control form-control-sm" name="eval[' + sujet.id + '][commentaire]" placeholder="<?= $this->lang->line("formation_evaluation_commentaire") ?>"></td>';
-                        html += '</tr>';
+                        accordionHtml += '<tr>';
+                        accordionHtml += '<td class="text-muted">' + escapeHtml(sujet.numero) + '</td>';
+                        accordionHtml += '<td>' + escapeHtml(sujet.titre) + '</td>';
+                        accordionHtml += '<td><select class="form-select form-select-sm eval-niveau" name="eval[' + sujet.id + '][niveau]">';
+                        accordionHtml += '<option value="-"><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></option>';
+                        accordionHtml += '<option value="A"><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></option>';
+                        accordionHtml += '<option value="R"><?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?></option>';
+                        accordionHtml += '<option value="Q"><?= $this->lang->line("formation_evaluation_niveau_acquis") ?></option>';
+                        accordionHtml += '</select></td>';
+                        accordionHtml += '<td><input type="text" class="form-control form-control-sm" name="eval[' + sujet.id + '][commentaire]" placeholder="<?= $this->lang->line("formation_evaluation_commentaire") ?>"></td>';
+                        accordionHtml += '</tr>';
                     });
 
-                    html += '</tbody></table></div>';
+                    accordionHtml += '</tbody></table></div>';
                 }
 
-                html += '</div>';
-                $container.append(html);
+                accordionHtml += '</div></div></div>';
             });
+
+            accordionHtml += '</div>';
+            $container.html(accordionHtml);
 
             // Apply color coding to evaluation selects
             applyEvalColors();

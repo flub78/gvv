@@ -65,9 +65,9 @@ $lecons = $progression['lecons'];
             <div class="row">
                 <div class="col-md-6">
                     <p><strong><?= $this->lang->line("formation_inscription_pilote") ?> :</strong> 
-                       <?= htmlspecialchars($pilote['prenom'] . ' ' . $pilote['nom']) ?></p>
+                       <?= htmlspecialchars($pilote['mprenom'] . ' ' . $pilote['mnom']) ?></p>
                     <p><strong><?= $this->lang->line("formation_inscription_programme") ?> :</strong> 
-                       <?= htmlspecialchars($programme['titre']) ?> (<?= htmlspecialchars($programme['code']) ?>)</p>
+                       <?= htmlspecialchars($programme['titre']) ?></p>
                 </div>
                 <div class="col-md-6">
                     <p><strong><?= $this->lang->line("formation_inscription_date_ouverture") ?> :</strong> 
@@ -294,6 +294,3 @@ $lecons = $progression['lecons'];
     </div>
 </div>
 
-<?php
-$this->load->view('bs_footer');
-?>

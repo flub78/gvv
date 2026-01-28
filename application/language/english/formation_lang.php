@@ -100,6 +100,9 @@ $lang['formation_seance_inscription'] = 'Enrollment';
 $lang['formation_seance_libre'] = 'Free session (no enrollment)';
 $lang['formation_seance_meteo'] = 'Weather Conditions';
 $lang['formation_seance_commentaire'] = 'Comment';
+$lang['formation_seance_type_formation_label'] = 'Training session';
+$lang['formation_seance_type_libre_label'] = 'Refresher session for licensed pilot';
+$lang['formation_seances_libres_title'] = 'Refresher sessions';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Assessment';
