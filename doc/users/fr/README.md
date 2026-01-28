@@ -116,6 +116,18 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 
 ---
 
+### 🎓 Formation
+
+#### [11. Gestion des Formations](11_formations.md)
+**Suivi pédagogique des élèves**
+- Programmes de formation (leçons, sujets)
+- Fiches de progression des élèves
+- Séances de formation et évaluations
+- Ré-entraînement des pilotes brevetés
+- Rapports d'activité formation
+
+---
+
 ### 🔗 Guides d'Intégration
 
 #### [OpenFlyers Integration](../openflyers_user.md)
@@ -150,7 +162,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 2. **[💳 Cotisations](10_gestion_cotisations.md)** - Gestion des adhésions
 3. **[📈 Rapports](08_rapports.md)** - Analyser les performances
 4. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
-5. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+5. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
+6. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 
