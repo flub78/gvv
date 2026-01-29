@@ -46,6 +46,14 @@ $this->lang->load('formation');
     </div>
 
     <?php
+    // Show error message
+    if ($this->session->flashdata('error')) {
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+        echo '<strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></strong> ';
+        echo nl2br(htmlspecialchars($this->session->flashdata('error')));
+        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        echo '</div>';
+    }
     // Show success message
     if ($this->session->flashdata('success')) {
         echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';

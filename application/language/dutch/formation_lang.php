@@ -38,6 +38,7 @@ $lang['formation_programme_update_error'] = 'Fout bij het bijwerken van programm
 $lang['formation_programme_delete_success'] = 'Programma succesvol verwijderd.';
 $lang['formation_programme_delete_error'] = 'Fout bij het verwijderen van programma.';
 $lang['formation_programme_delete_error_used'] = 'Dit programma kan niet worden verwijderd omdat het wordt gebruikt in actieve inschrijvingen.';
+$lang['formation_programme_update_structure_blocked'] = 'De structuur van dit programma kan niet worden gewijzigd omdat er %d inschrijving(en) aan gekoppeld zijn. Om de structuur te wijzigen, maak een nieuw afgeleid programma (kopie) en archiveer het oude zodra de inschrijvingen zijn voltooid.';
 
 // Import/Export
 $lang['formation_import_file'] = 'Markdown Bestand';

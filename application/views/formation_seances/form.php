@@ -120,7 +120,7 @@ if (!empty($existing_evaluations)) {
                                         <?= $this->lang->line("formation_seance_pilote") ?>
                                         <span class="text-danger">*</span>
                                     </label>
-                                    <select class="form-select" id="insc_pilote_id" name="insc_pilote_id">
+                                    <select class="form-select big_select" id="insc_pilote_id" name="insc_pilote_id">
                                         <option value="">-- Sélectionnez un pilote --</option>
                                         <?php foreach ($pilotes as $id => $nom): ?>
                                             <?php if ($id): ?>
@@ -150,7 +150,7 @@ if (!empty($existing_evaluations)) {
                                     <?= $this->lang->line("formation_seance_pilote") ?>
                                     <span class="text-danger">*</span>
                                 </label>
-                                <select class="form-select" id="pilote_id" name="pilote_id">
+                                <select class="form-select big_select" id="pilote_id" name="pilote_id">
                                     <option value="">-- Sélectionnez un pilote --</option>
                                     <?php foreach ($pilotes as $id => $nom): ?>
                                         <?php if ($id): ?>
@@ -197,7 +197,7 @@ if (!empty($existing_evaluations)) {
                                 <?= $this->lang->line("formation_seance_instructeur") ?>
                                 <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select" id="instructeur_id" name="instructeur_id" required>
+                            <select class="form-select big_select" id="instructeur_id" name="instructeur_id" required>
                                 <option value="">-- Instructeur --</option>
                                 <?php foreach ($instructeurs as $id => $nom): ?>
                                     <?php if ($id): ?>

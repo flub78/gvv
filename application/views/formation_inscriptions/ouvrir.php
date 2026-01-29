@@ -77,7 +77,7 @@ $this->lang->load('gvv');
                         <?= $this->lang->line("formation_inscription_pilote") ?> 
                         <span class="text-danger">*</span>
                     </label>
-                    <select class="form-select" id="pilote_id" name="pilote_id" required>
+                    <select class="form-select big_select" id="pilote_id" name="pilote_id" required>
                         <option value="">-- Sélectionnez un pilote --</option>
                         <?php foreach ($pilotes as $id => $nom): ?>
                             <option value="<?= $id ?>" <?= set_select('pilote_id', $id) ?>>
@@ -108,7 +108,7 @@ $this->lang->load('gvv');
                     <label for="instructeur_referent_id" class="form-label">
                         <?= $this->lang->line("formation_inscription_instructeur") ?>
                     </label>
-                    <select class="form-select" id="instructeur_referent_id" name="instructeur_referent_id">
+                    <select class="form-select big_select" id="instructeur_referent_id" name="instructeur_referent_id">
                         <option value="">-- Aucun --</option>
                         <?php foreach ($instructeurs as $id => $nom): ?>
                             <option value="<?= $id ?>" <?= set_select('instructeur_referent_id', $id) ?>>

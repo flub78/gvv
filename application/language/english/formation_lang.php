@@ -38,6 +38,7 @@ $lang['formation_programme_update_error'] = 'Error updating program.';
 $lang['formation_programme_delete_success'] = 'Program deleted successfully.';
 $lang['formation_programme_delete_error'] = 'Error deleting program.';
 $lang['formation_programme_delete_error_used'] = 'This program cannot be deleted because it is used in active enrollments.';
+$lang['formation_programme_update_structure_blocked'] = 'The structure of this program cannot be modified because %d enrollment(s) are associated with it. To modify the structure, create a new derived program (copy) and archive the old one once enrollments are completed.';
 
 // Import/Export
 $lang['formation_import_file'] = 'Markdown File';

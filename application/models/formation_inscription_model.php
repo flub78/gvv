@@ -88,6 +88,18 @@ class Formation_inscription_model extends Common_Model {
             ->get()->result_array();
     }
 
+
+    /**
+     * Count enrollments for a programme
+     *
+     * @param int $programme_id Programme ID
+     * @return int Number of enrollments
+     */
+    public function count_by_programme($programme_id) {
+        return $this->db->where('programme_id', $programme_id)
+            ->count_all_results($this->table);
+    }
+
     /**
      * Get open enrollments for a pilot
      *

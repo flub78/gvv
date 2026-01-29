@@ -42,6 +42,7 @@ $lang['formation_programme_update_error'] = 'Erreur lors de la mise à jour du p
 $lang['formation_programme_delete_success'] = 'Programme supprimé avec succès.';
 $lang['formation_programme_delete_error'] = 'Erreur lors de la suppression du programme.';
 $lang['formation_programme_delete_error_used'] = 'Ce programme ne peut pas être supprimé car il est utilisé dans des formations actives.';
+$lang['formation_programme_update_structure_blocked'] = 'La structure de ce programme ne peut pas être modifiée car %d formation(s) lui sont associées. Pour modifier la structure, créez un nouveau programme dérivé (copie) et archivez l\'ancien une fois les formations terminées.';
 
 // Import/Export
 $lang['formation_import_file'] = 'Fichier Markdown';

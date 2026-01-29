@@ -1120,6 +1120,7 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_inscriptions']['pilote_id']['Subtype'] = 'selector';
                 $this->field['formation_inscriptions']['pilote_id']['Selector'] = 'pilote_selector';
                 $this->field['formation_inscriptions']['pilote_id']['Mandatory'] = TRUE;
+                $this->field['formation_inscriptions']['pilote_id']['Attrs'] = array('class' => 'big_select');
                 $this->field['formation_inscriptions']['programme_id']['Name'] = 'Programme';
                 $this->field['formation_inscriptions']['programme_id']['Type'] = 'int';
                 $this->field['formation_inscriptions']['programme_id']['Subtype'] = 'selector';
@@ -1131,6 +1132,7 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_inscriptions']['instructeur_referent_id']['Type'] = 'varchar';
                 $this->field['formation_inscriptions']['instructeur_referent_id']['Subtype'] = 'selector';
                 $this->field['formation_inscriptions']['instructeur_referent_id']['Selector'] = 'instructeur_selector';
+                $this->field['formation_inscriptions']['instructeur_referent_id']['Attrs'] = array('class' => 'big_select');
                 $this->field['formation_inscriptions']['statut']['Name'] = 'Statut';
                 $this->field['formation_inscriptions']['statut']['Type'] = 'enum';
                 $this->field['formation_inscriptions']['statut']['Subtype'] = 'enumerate';
@@ -1169,6 +1171,7 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_seances']['pilote_id']['Subtype'] = 'selector';
                 $this->field['formation_seances']['pilote_id']['Selector'] = 'pilote_selector';
                 $this->field['formation_seances']['pilote_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['pilote_id']['Attrs'] = array('class' => 'big_select');
                 $this->field['formation_seances']['programme_id']['Name'] = 'Programme';
                 $this->field['formation_seances']['programme_id']['Type'] = 'int';
                 $this->field['formation_seances']['programme_id']['Subtype'] = 'selector';
@@ -1182,6 +1185,7 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_seances']['instructeur_id']['Subtype'] = 'selector';
                 $this->field['formation_seances']['instructeur_id']['Selector'] = 'instructeur_selector';
                 $this->field['formation_seances']['instructeur_id']['Mandatory'] = TRUE;
+                $this->field['formation_seances']['instructeur_id']['Attrs'] = array('class' => 'big_select');
                 $this->field['formation_seances']['machine_id']['Name'] = 'Machine';
                 $this->field['formation_seances']['machine_id']['Type'] = 'varchar';
                 $this->field['formation_seances']['machine_id']['Subtype'] = 'selector';

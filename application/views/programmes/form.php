@@ -303,16 +303,31 @@ $form_url = $is_edit ?
 
                 <?php if ($is_edit): ?>
                     <!-- Structure editing panel (outside main form to avoid nesting) -->
+                    <?php $has_inscriptions = isset($nb_inscriptions) && $nb_inscriptions > 0; ?>
                     <div class="card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <i class="fas fa-code" aria-hidden="true"></i>
                                 <?= $this->lang->line("formation_structure_markdown") ?>
                             </h5>
-                            <button type="button" class="btn btn-primary btn-sm" id="toggleEditStructure">
-                                <i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure
-                            </button>
+                            <?php if ($has_inscriptions): ?>
+                                <span class="btn btn-secondary btn-sm disabled" title="<?= sprintf($this->lang->line("formation_programme_update_structure_blocked"), $nb_inscriptions) ?>">
+                                    <i class="fas fa-lock" aria-hidden="true"></i> Modification bloquée
+                                </span>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-primary btn-sm" id="toggleEditStructure">
+                                    <i class="fas fa-edit" aria-hidden="true"></i> Modifier la structure
+                                </button>
+                            <?php endif; ?>
                         </div>
+                        <?php if ($has_inscriptions): ?>
+                        <div class="card-body">
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                                <?= sprintf($this->lang->line("formation_programme_update_structure_blocked"), $nb_inscriptions) ?>
+                            </div>
+                        </div>
+                        <?php else: ?>
                         <div class="card-body" id="editStructurePanel" style="display: none;">
                             <ul class="nav nav-tabs mb-3" role="tablist">
                                 <li class="nav-item" role="presentation">
@@ -379,8 +394,10 @@ $form_url = $is_edit ?
                                 </div>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
 
+                    <?php if (!$has_inscriptions): ?>
                     <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         const toggleBtn = document.getElementById('toggleEditStructure');
@@ -410,6 +427,7 @@ $form_url = $is_edit ?
                         cancelUploadBtn.addEventListener('click', closePanel);
                     });
                     </script>
+                    <?php endif; ?>
                 <?php endif; ?>
 
     <?php if (!$is_edit): ?>

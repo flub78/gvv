@@ -99,16 +99,23 @@ $this->lang->load('formation');
                                        title="<?= $this->lang->line("formation_programmes_export") ?>">
                                         <i class="fas fa-download text-white" aria-hidden="true"></i>
                                     </a>
-                                    <?php 
-                                    $confirm_msg = str_replace('{name}', $programme['titre'], 
-                                                              $this->lang->line("formation_programmes_delete_confirm")); 
-                                    ?>
-                                    <a href="<?= controller_url($controller) ?>/delete/<?= $programme['id'] ?>"
-                                       class="btn btn-danger" 
-                                       title="<?= $this->lang->line("formation_programmes_delete") ?>"
-                                       onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">
-                                        <i class="fas fa-trash text-white" aria-hidden="true"></i>
-                                    </a>
+                                    <?php if ($programme['nb_inscriptions'] > 0): ?>
+                                        <span class="btn btn-secondary disabled"
+                                              title="<?= $this->lang->line("formation_programme_delete_error_used") ?>">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                        </span>
+                                    <?php else: ?>
+                                        <?php
+                                        $confirm_msg = str_replace('{name}', $programme['titre'],
+                                                                  $this->lang->line("formation_programmes_delete_confirm"));
+                                        ?>
+                                        <a href="<?= controller_url($controller) ?>/delete/<?= $programme['id'] ?>"
+                                           class="btn btn-danger"
+                                           title="<?= $this->lang->line("formation_programmes_delete") ?>"
+                                           onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">
+                                            <i class="fas fa-trash text-white" aria-hidden="true"></i>
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                             <td>

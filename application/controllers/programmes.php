@@ -60,6 +60,7 @@ class Programmes extends Gvv_Controller
         $this->load->model('formation_programme_model');
         $this->load->model('formation_lecon_model');
         $this->load->model('formation_sujet_model');
+        $this->load->model('formation_inscription_model');
         $this->load->library('formation_markdown_parser');
         $this->load->library('form_validation');
         $this->lang->load('formation');
@@ -79,10 +80,11 @@ class Programmes extends Gvv_Controller
         // Get programs visible to current section
         $data['programmes'] = $this->formation_programme_model->get_visibles();
 
-        // Count lessons for each program
+        // Count lessons and inscriptions for each program
         foreach ($data['programmes'] as &$programme) {
             $programme['nb_lecons'] = $this->formation_lecon_model->count_by_programme($programme['id']);
             $programme['nb_sujets'] = $this->formation_sujet_model->count_by_programme($programme['id']);
+            $programme['nb_inscriptions'] = $this->formation_inscription_model->count_by_programme($programme['id']);
         }
 
         return load_last_view('programmes/index', $data, $this->unit_test);
@@ -280,6 +282,9 @@ class Programmes extends Gvv_Controller
         foreach ($data['lecons'] as &$lecon) {
             $lecon['sujets'] = $this->formation_sujet_model->get_by_lecon($lecon['id']);
         }
+
+        // Count inscriptions to determine if structure can be modified
+        $data['nb_inscriptions'] = $this->formation_inscription_model->count_by_programme($id);
 
         return load_last_view('programmes/form', $data, $this->unit_test);
     }
@@ -644,6 +649,16 @@ class Programmes extends Gvv_Controller
         $programme = $this->formation_programme_model->get($id);
         if (!$programme) {
             show_404();
+        }
+
+        // Check if there are any enrollments associated with this program
+        $inscriptions = $this->formation_inscription_model->get_by_programme($id);
+        if (!empty($inscriptions)) {
+            $count = count($inscriptions);
+            $message = sprintf($this->lang->line('formation_programme_update_structure_blocked'), $count);
+            $this->session->set_flashdata('error', $message);
+            redirect('programmes/view/' . $id);
+            return;
         }
 
         // Determine source: text or file
