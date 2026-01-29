@@ -1,4 +1,4 @@
-# Formation au vol de découverte en ULM
+# Formation pilote vol de découverte en ULM
 
 ## Leçon 1 : Cadre réglementaire
 
