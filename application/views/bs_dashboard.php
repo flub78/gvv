@@ -982,6 +982,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-user-secret text-warning"></i>
+                        <div class="card-title">Login As</div>
+                        <div class="card-text text-muted">Changer d'utilisateur</div>
+                        <a href="<?= controller_url('login_as') ?>" class="btn btn-warning btn-sm">Accéder</a>
+                    </div>
+                </div>
+
                 <!-- Outils de Développement -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> Outils de développement</h6>
