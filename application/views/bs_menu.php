@@ -386,6 +386,15 @@ $section_count = $CI->sections_model->safe_count_all();
         $gvv_user = $CI->dx_auth->get_username();
         $gvv_role = $CI->dx_auth->get_role_name();
 
+        // Récupérer le nom complet du membre pour affichage
+        $CI->load->model('membres_model');
+        $membre_data = $CI->membres_model->get_by_id('mlogin', $gvv_user);
+        if (!empty($membre_data) && !empty($membre_data['mprenom']) && !empty($membre_data['mnom'])) {
+            $gvv_display_name = $membre_data['mprenom'] . ' ' . $membre_data['mnom'];
+        } else {
+            $gvv_display_name = $gvv_user;
+        }
+
         if (strlen($gvv_user) > 1) {
           // if someone is logged in
           echo form_hidden('gvv_user', $gvv_user);
@@ -397,7 +406,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
         <form class="d-flex ms-5 bg-dark border-0">
           <div class="text-white bg-dark me-1 text-center">
-            <?= $gvv_user ?>
+            <?= $gvv_display_name ?>
             <div class="text-white me-1 text-center">
               <?= $gvv_role ?>
             </div>

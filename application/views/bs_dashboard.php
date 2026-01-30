@@ -231,8 +231,7 @@ $this->lang->load('welcome');
         </div>
     </div>
 
-    <?php if ($is_planchiste): ?>
-    <!-- Section Planchiste -->
+    <!-- Gestion des vols -->
     <div class="accordion-item section-card flights">
         <h2 class="accordion-header" id="headingFlights">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFlights" aria-expanded="false" aria-controls="collapseFlights">
@@ -312,7 +311,6 @@ $this->lang->load('welcome');
         </div>
         </div>
     </div>
-    <?php endif; ?>
 
     <?php if ($is_bureau): ?>
     <!-- Section Trésorier -->

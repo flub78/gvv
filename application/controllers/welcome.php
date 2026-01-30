@@ -67,7 +67,15 @@ class Welcome extends Gvv_Controller {
 
         // Get current username
         $data['username'] = $this->dx_auth->get_username();
-        $data['user_name'] = $data['username']; // Can be enhanced with full name from membres table
+
+        // Récupérer le nom complet du membre si disponible
+        $this->load->model('membres_model');
+        $membre = $this->membres_model->get_by_id('mlogin', $data['username']);
+        if (!empty($membre) && !empty($membre['mprenom']) && !empty($membre['mnom'])) {
+            $data['user_name'] = $membre['mprenom'] . ' ' . $membre['mnom'];
+        } else {
+            $data['user_name'] = $data['username'];
+        }
 
         // Comptes multi-sections pour le pilote courant
         $this->load->model('comptes_model');
