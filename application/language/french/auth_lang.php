@@ -12,6 +12,7 @@ $lang['auth_password_change'] = "Changement de mot de passe";
 $lang['auth_confirmation_code'] = "Code de Confirmation";
 $lang['auth_forgoten_password'] = "Mot de passe oublié";
 $lang['auth_save_id'] = "Enregistrer mon identification sur cet ordinateur";
+$lang['auth_remember_user_section'] = "Se souvenir de l'utilisateur et de la section";
 
 $lang['auth_identification'] = "Identification";
 $lang['auth_login'] = "Connexion";

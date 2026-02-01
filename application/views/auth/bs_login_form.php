@@ -1,10 +1,15 @@
 <!-- VIEW: application/views/auth/bs_login_form.php -->
 <?php
+// Set defaults if variables are not defined
+$remembered_username = isset($remembered_username) ? $remembered_username : '';
+$remembered_section = isset($remembered_section) ? $remembered_section : 1;
+$remember_me_checked = isset($remember_me_checked) ? $remember_me_checked : false;
+
 $username = array(
 	'name'	=> 'username',
 	'id'	=> 'username',
 	'size'	=> 30,
-	'value' => set_value('username')
+	'value' => set_value('username', $remembered_username)
 );
 
 $password = array(
@@ -17,7 +22,7 @@ $remember = array(
 	'name'	=> 'remember',
 	'id'	=> 'remember',
 	'value'	=> 1,
-	'checked'	=> set_value('remember'),
+	'checked'	=> set_value('remember', $remember_me_checked),
 	'style' => 'margin:0;padding:0'
 );
 
@@ -77,7 +82,7 @@ if ($locked) {
 	<?php if ($section_count > 1) : ?>
 		<dt><?php echo form_label($this->lang->line("gvv_sections_element"), 'section'); ?></dt>
 		<dd>
-			<?= dropdown_field('section', $section, $sections_selector, 'class="form-control" id="section" ') ?>
+			<?= dropdown_field('section', set_value('section', $remembered_section), $sections_selector, 'class="form-control" id="section" ') ?>
 			<?php echo form_error('section'); ?>
 		</dd>
 	<?php endif; ?>
@@ -97,10 +102,9 @@ if ($locked) {
 
 	<dt></dt>
 	<dd>
-		<!-- 
 		<?php echo form_checkbox($remember); ?> 
-		<?php echo form_label($this->lang->line("auth_save_id"), $remember['id']); ?> 
-		-->
+		<?php echo form_label($this->lang->line("auth_remember_user_section"), $remember['id']); ?> 
+		<br>
 		<?php echo anchor($this->dx_auth->forgot_password_uri, $this->lang->line("auth_forgoten_password")); ?>
 		<?php
 		if ($this->dx_auth->allow_registration) {

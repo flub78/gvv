@@ -39,6 +39,7 @@ class Auth extends CI_Controller {
 
         $this->load->helper('url');
         $this->load->helper('form');
+        $this->load->helper('cookie');
 
         $this->lang->load('auth');
         $this->load->model('sections_model');
@@ -102,9 +103,25 @@ class Auth extends CI_Controller {
         $data['section_count'] =
             $this->sections_model->safe_count_all();
 
+        // Read remembered values from cookies
+        $remembered_username = get_cookie('gvv_remembered_username');
+        $remembered_section = get_cookie('gvv_remembered_section');
+        
+        // Try reading directly from $_COOKIE if get_cookie returns null
+        if (!$remembered_username && isset($_COOKIE['gvv_remembered_username'])) {
+            $remembered_username = $_COOKIE['gvv_remembered_username'];
+        }
+        if (!$remembered_section && isset($_COOKIE['gvv_remembered_section'])) {
+            $remembered_section = $_COOKIE['gvv_remembered_section'];
+        }
+        
+        $data['remembered_username'] = $remembered_username ? $remembered_username : '';
+        $data['remembered_section'] = $remembered_section ? $remembered_section : 1;
+        $data['remember_me_checked'] = !empty($remembered_username);
+
         // default = planeur, I should use a better strategy
         // Why a default ? the user has to select one anyway
-        $data['section'] = 1;
+        $data['section'] = $data['remembered_section'];
 
         // The section selector cannot be initialized in the GVV controllers because some controllers do not inherit from GVV
         // put it in the session makes it easy to access everywhere
@@ -162,6 +179,22 @@ class Auth extends CI_Controller {
                 }
                 $this->session->set_userdata($session);
 
+                // Handle remember me cookies - use PHP setcookie directly before redirect
+                $cookie_expire = 30 * 24 * 60 * 60; // 30 days
+                
+                if ($val->set_value('remember')) {
+                    // Use PHP setcookie directly to ensure cookies are set before redirect
+                    setcookie('gvv_remembered_username', $val->set_value('username'), time() + $cookie_expire, '/');
+                    
+                    if ($this->input->post('section')) {
+                        setcookie('gvv_remembered_section', $this->input->post('section'), time() + $cookie_expire, '/');
+                    }
+                } else {
+                    // Delete cookies if remember is not checked
+                    setcookie('gvv_remembered_username', '', time() - 3600, '/');
+                    setcookie('gvv_remembered_section', '', time() - 3600, '/');
+                }
+
                 $requested_url =  $this->session->userdata('requested_url');
 
                 if ($requested_url) {
@@ -216,6 +249,9 @@ class Auth extends CI_Controller {
         gvv_info("Logout: " . $this->dx_auth->get_username());
 
         // Il faut aller chercher les info de sessions avant de quitter la session
+
+        // Note: We do NOT delete remember me cookies on logout
+        // The cookies should persist so the login form is pre-filled on next visit
 
         $this->dx_auth->logout();
         redirect("auth/login");

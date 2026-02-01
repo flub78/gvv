@@ -12,6 +12,7 @@ $lang['auth_password_change'] = "Wijzig wachtwoord";
 $lang['auth_confirmation_code'] = "Bevestigingscode";
 $lang['auth_forgoten_password'] = "Wachtwoord vergeten";
 $lang['auth_save_id'] = "Bewaar mijn gegevens op deze computer";
+$lang['auth_remember_user_section'] = "Onthoud gebruiker en sectie";
 
 $lang['auth_identification'] = "Identificatie";
 $lang['auth_login'] = "Aanmelden";
