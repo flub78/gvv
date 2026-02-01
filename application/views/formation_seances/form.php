@@ -484,21 +484,21 @@ $(document).ready(function() {
     // Load programme structure when programme is selected (libre mode)
     $('#programme_id').on('change', function() {
         var programmeId = $(this).val();
+        // Always reload machines (with or without programme)
+        loadMachinesForProgramme(programmeId);
         if (programmeId) {
             loadProgrammeStructure(programmeId, null);
-            loadMachinesForProgramme(programmeId);
         }
     });
 
     // Reload machine selector based on programme type_aeronef
+    // If no programme is selected, loads all multi-seat aircraft from current section
     function loadMachinesForProgramme(programmeId) {
         var $machineSelect = $('#machine_id');
         var currentVal = $machineSelect.val();
         $machineSelect.html('<option value="">-- Aéronef --</option>');
 
-        if (!programmeId) return;
-
-        $.getJSON('<?= controller_url($controller) ?>/ajax_machines_programme', {programme_id: programmeId}, function(machines) {
+        $.getJSON('<?= controller_url($controller) ?>/ajax_machines_programme', {programme_id: programmeId || ''}, function(machines) {
             $.each(machines, function(i, machine) {
                 var $opt = $('<option>').val(machine.id).text(machine.nom);
                 if (machine.id === currentVal) {

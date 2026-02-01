@@ -596,9 +596,20 @@ class Formation_seances extends CI_Controller {
             if ($programme && isset($programme['type_aeronef']) && $programme['type_aeronef'] === 'avion') {
                 return $this->avions_model->get_selector_multiplace();
             }
+            // Programme with planeur type
+            return $this->planeurs_model->get_selector_multiplace();
         }
-        // Default: multi-seat gliders
-        return $this->planeurs_model->get_selector_multiplace();
+        // No programme: return all multi-seat aircraft from current section (planeurs + avions)
+        $planeurs = $this->planeurs_model->get_selector_multiplace();
+        $avions = $this->avions_model->get_selector_multiplace();
+        // Merge arrays, keeping empty key from first array only
+        $result = $planeurs;
+        foreach ($avions as $id => $nom) {
+            if ($id) {
+                $result[$id] = $nom;
+            }
+        }
+        return $result;
     }
 
     /**
