@@ -52,9 +52,9 @@ class Programmes extends Gvv_Controller
         $this->load->library('formation_access');
         $this->formation_access->check_access_or_403();
 
-        // Authorization: Only admins can manage programs
-        if (!$this->dx_auth->is_admin()) {
-            show_error('Vous devez être administrateur pour gérer les programmes de formation.', 403, 'Accès refusé');
+        // Authorization: use Formation_access to allow admins and CA members
+        if (!$this->formation_access->can_manage_programmes()) {
+            show_error('Accès refusé : vous n\'avez pas les droits pour gérer les programmes de formation.', 403, 'Accès refusé');
         }
 
         $this->load->model('formation_programme_model');
