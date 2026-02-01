@@ -201,7 +201,7 @@ class Formation_progressions extends CI_Controller
                 $pdf->row($sub_w, 5, $sub_a, [
                     $sujet['numero'],
                     $sujet['titre'],
-                    $sujet['dernier_niveau'] . ' - ' . $niveau_label,
+                    $niveau_label,
                     $sujet['nb_seances'],
                     $date_eval
                 ]);
