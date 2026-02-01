@@ -212,14 +212,15 @@ class Formation_seances extends CI_Controller {
 
         if ($this->form_validation->run() === FALSE) {
             log_message('debug', 'FORMATION_SEANCES: Validation failed: ' . validation_errors());
-            return $this->create();
+            return $this->_show_create_form_with_error(null);
         }
 
         // Build seance data
         $seance_data = $this->_build_seance_data($is_libre);
 
         if ($seance_data === false) {
-            return $this->create();
+            // Error message already set in _build_seance_data via $this->_form_error
+            return $this->_show_create_form_with_error($this->_form_error);
         }
 
         // Collect evaluations
@@ -233,17 +234,85 @@ class Formation_seances extends CI_Controller {
             $db_error_num = $this->db->_error_number();
             $error_msg = $this->lang->line('formation_seance_create_error');
             if (!empty($db_error_msg)) {
-                $error_msg .= '<br><strong>Erreur technique:</strong> ' . htmlspecialchars($db_error_msg) . ' (Code: ' . $db_error_num . ')';
+                $error_msg .= '<br><strong>Détail:</strong> ' . htmlspecialchars($db_error_msg) . ' (Code: ' . $db_error_num . ')';
                 log_message('error', 'FORMATION_SEANCES: Database error: ' . $db_error_num . ' - ' . $db_error_msg);
+            } else {
+                $error_msg .= '<br><strong>Détail:</strong> La base de données n\'a pas retourné d\'identifiant pour la nouvelle séance.';
             }
             log_message('error', 'FORMATION_SEANCES: Last query: ' . $this->db->last_query());
-            $this->session->set_flashdata('error', $error_msg);
-            return $this->create();
+            return $this->_show_create_form_with_error($error_msg);
         }
 
         log_message('debug', 'FORMATION_SEANCES: Seance created with ID: ' . $seance_id);
         $this->session->set_flashdata('success', $this->lang->line('formation_seance_create_success'));
         redirect('formation_seances/detail/' . $seance_id);
+    }
+
+    /**
+     * Affiche le formulaire de création avec un message d'erreur
+     *
+     * @param string|null $error Message d'erreur à afficher
+     */
+    private function _show_create_form_with_error($error) {
+        $inscription_id = $this->input->post('inscription_id')
+            ? $this->input->post('inscription_id')
+            : $this->input->get('inscription_id');
+        $inscription = null;
+        $is_libre = true;
+
+        if ($inscription_id) {
+            $inscription = $this->formation_inscription_model->get_with_details($inscription_id);
+            if ($inscription && $inscription['statut'] === 'ouverte') {
+                $is_libre = false;
+            }
+        }
+
+        if ($this->input->post('mode_seance') === 'libre') {
+            $is_libre = true;
+        } elseif ($this->input->post('mode_seance') === 'inscription') {
+            $is_libre = false;
+        }
+
+        $programme_id = $inscription ? $inscription['programme_id'] : ($this->input->post('programme_id') ?: $this->input->get('programme_id'));
+        $data = $this->_prepare_form_data($inscription, $is_libre, $programme_id);
+        $data['action'] = 'create';
+        $data['error'] = $error;
+        $data['seance'] = array(
+            'date_seance' => $this->input->post('date_seance') ?: date('Y-m-d'),
+            'nb_atterrissages' => $this->input->post('nb_atterrissages') ?: 1,
+            'duree' => $this->input->post('duree') ?: '',
+            'meteo' => '[]',
+            'commentaires' => $this->input->post('commentaires') ?: '',
+            'prochaines_lecons' => $this->input->post('prochaines_lecons') ?: '',
+            'inscription_id' => $this->input->post('inscription_id') ?: ($inscription_id ?: ''),
+            'pilote_id' => $this->input->post('pilote_id') ?: ($inscription ? $inscription['pilote_id'] : ''),
+            'programme_id' => $this->input->post('programme_id') ?: ($inscription ? $inscription['programme_id'] : ''),
+            'instructeur_id' => $this->input->post('instructeur_id') ?: '',
+            'machine_id' => $this->input->post('machine_id') ?: '',
+            'categorie_seance' => ''
+        );
+
+        // Handle multiple categories from checkboxes
+        $categories = $this->input->post('categories_seance');
+        if (!empty($categories) && is_array($categories)) {
+            $data['seance']['categorie_seance'] = implode(', ', $categories);
+        }
+
+        // Rebuild meteo from POST checkboxes
+        $meteo = array();
+        foreach ($this->meteo_options as $option) {
+            if ($this->input->post('meteo_' . $option)) {
+                $meteo[] = $option;
+            }
+        }
+        $data['seance']['meteo'] = json_encode($meteo);
+
+        // Load programme structure for libre mode
+        if ($is_libre && !empty($data['seance']['programme_id']) && empty($data['lecons'])) {
+            $data['lecons'] = $this->_get_programme_structure($data['seance']['programme_id']);
+        }
+
+        $this->load->view('formation_seances/form', $data);
     }
 
     /**
@@ -726,29 +795,11 @@ class Formation_seances extends CI_Controller {
     }
 
     /**
-     * Liste des séances libres (ré-entrainement) avec sélecteur d'année
+     * Liste des séances libres (ré-entrainement)
+     * Redirige vers la vue principale avec le filtre type=libre
      */
     public function libres() {
-        $year = $this->session->userdata('year');
-        if (empty($year)) {
-            $year = date('Y');
-        }
-
-        $filters = array(
-            'type' => 'libre',
-            'year' => $year
-        );
-
-        $seances = $this->formation_seance_model->select_page($filters);
-
-        $data = array(
-            'controller' => 'formation_seances',
-            'seances' => $seances,
-            'year' => $year,
-            'year_selector' => $this->formation_seance_model->getYearSelectorLibres()
-        );
-
-        $this->load->view('formation_seances/libres', $data);
+        redirect('formation_seances?type=libre');
     }
 
     /**

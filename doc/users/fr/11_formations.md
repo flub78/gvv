@@ -39,6 +39,33 @@ Chaque programme contient des leçons organisées, elles-mêmes composées de su
 
 Les programmes peuvent être exportés en Markdown pour archivage ou partage.
 
+### Format des formations
+
+Le format des programmes de formation est volontairement très simple et basé sur Markdown (format texte):
+
+- **Titre du programme** : titre de niveau 1 ou 2 (`#` ou `##`).
+- **Leçons** : titres de niveau 3 ou 4 (`###` / `####`) pour organiser le cursus.
+- **Sujets** : listes à puces sous la leçon correspondante pour détailler les points à travailler.
+
+Ce choix rend l'implémentation d'un programme existant très rapide : il suffit de copier-coller les titres et listes depuis un document déjà utilisé, ou d'écrire le programme dans n'importe quel éditeur de texte. Le format est lisible tel quel pour la documentation et facilement transformable (export PDF, import automatique).
+
+Exemple minimal :
+
+```markdown
+# Programme : Initiation Pilote
+
+### Leçon 1 — Préparations au sol
+- Préparation de l'aéronef
+- Vérifications pré-vol
+
+### Leçon 2 — Premiers vols
+- Décollage
+- Virages de base
+- Atterrissage
+```
+
+Astuce : ajoutez des métadonnées (durée estimée, niveau, prérequis, liens vers de vidéos) dans la partie description.
+
 ### Ouverture d'une formation
 
 Pour inscrire un élève à une formation :

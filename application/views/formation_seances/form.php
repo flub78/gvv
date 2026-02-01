@@ -67,9 +67,14 @@ if (!empty($existing_evaluations)) {
         echo '</div>';
     }
 
-    if ($this->session->flashdata('error')) {
+    // Show error from flashdata or passed directly via $data
+    $error_message = $this->session->flashdata('error');
+    if (empty($error_message) && isset($error)) {
+        $error_message = $error;
+    }
+    if ($error_message) {
         echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-        echo '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' . $this->session->flashdata('error');
+        echo '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' . $error_message;
         echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
         echo '</div>';
     }
