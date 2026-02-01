@@ -173,7 +173,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             aircraftSelect += '</select>';
 
             // Build pilot select
-            let pilotSelect = '<select class="form-control" id="eventPilot">';
+            let pilotSelect = '<select class="form-control big_select" id="eventPilot">';
             pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
             if (OPTIONS.pilots) {
                 for (const [id, label] of Object.entries(OPTIONS.pilots)) {
@@ -184,7 +184,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             pilotSelect += '</select>';
 
             // Build instructor select
-            let instructorSelect = '<select class="form-control" id="eventInstructor">';
+            let instructorSelect = '<select class="form-control big_select" id="eventInstructor">';
             instructorSelect += `<option value="">${TRANSLATIONS.select_instructor_none}</option>`;
             if (OPTIONS.instructors) {
                 for (const [id, label] of Object.entries(OPTIONS.instructors)) {
@@ -239,6 +239,14 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
 
             bodyEl.innerHTML = formHtml;
             modal.show();
+
+            // Initialize Select2 on dynamically created selects
+            $('#eventPilot, #eventInstructor').select2({
+                placeholder: 'Filtre...',
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#eventModal')
+            });
         } catch (error) {
             console.error('Error in displayEventModal:', error);
             alert('Error displaying reservation form: ' + error.message);

@@ -1126,7 +1126,7 @@ $this->load->view('bs_banner');
                 aircraftSelect += '</select>';
 
                 // Build pilot select (OPTIONS.pilots is an associative array: id => label)
-                let pilotSelect = '<select class="form-control" id="eventPilot">';
+                let pilotSelect = '<select class="form-control big_select" id="eventPilot">';
                 pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
                 if (OPTIONS.pilots) {
                     for (const [id, label] of Object.entries(OPTIONS.pilots)) {
@@ -1137,7 +1137,7 @@ $this->load->view('bs_banner');
                 pilotSelect += '</select>';
 
                 // Build instructor select (OPTIONS.instructors is an associative array: id => label)
-                let instructorSelect = '<select class="form-control" id="eventInstructor">';
+                let instructorSelect = '<select class="form-control big_select" id="eventInstructor">';
                 instructorSelect += `<option value="">${TRANSLATIONS.select_instructor_none}</option>`;
                 if (OPTIONS.instructors) {
                     for (const [id, label] of Object.entries(OPTIONS.instructors)) {
@@ -1214,6 +1214,15 @@ $this->load->view('bs_banner');
                 
                 console.log('Modal setup complete, showing modal');
                 modal.show();
+
+                // Initialize Select2 on dynamically created selects
+                $('#eventPilot, #eventInstructor').select2({
+                    placeholder: 'Filtre...',
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: $('#eventModal')
+                });
+
                 console.log('Modal shown');
                 
             } catch (error) {
