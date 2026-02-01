@@ -122,11 +122,20 @@ class Common_Model extends CI_Model {
     public function create($data) {
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
-
             gvv_debug("create successful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
+
+            // Temporary debug: if insert_id() is empty even though insert() succeeded,
+            // log the last query and DB error info to help diagnose AUTO_INCREMENT / driver issues.
             if (! $last_id) {
-                $last_id = $data[$this->primary_key];
-                gvv_debug("\$last_id=$last_id (\$data[primary_key])");
+                gvv_debug("insert_id returned empty for table=" . $this->table . "; last_query=" . $this->db->last_query());
+                $db_err_msg = $this->db->_error_message();
+                $db_err_num = $this->db->_error_number();
+                if (!empty($db_err_msg) || !empty($db_err_num)) {
+                    gvv_debug("DB error while insert: (" . $db_err_num . ") " . $db_err_msg);
+                }
+                // Fallback to primary key value in provided data if present
+                $last_id = isset($data[$this->primary_key]) ? $data[$this->primary_key] : null;
+                gvv_debug("\$last_id fallback value=" . var_export($last_id, true));
             }
             return $last_id;
         } else {
