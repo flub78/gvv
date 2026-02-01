@@ -368,7 +368,7 @@ function get_statut_badge($statut) {
                                                             </td>
                                                             <td class="text-center">
                                                                 <span class="badge <?= $formation_progression->get_niveau_badge_class($sujet['dernier_niveau']) ?>">
-                                                                    <?= $sujet['dernier_niveau'] ?> - <?= $formation_progression->get_niveau_label($sujet['dernier_niveau']) ?>
+                                                                    <?= $formation_progression->get_niveau_label($sujet['dernier_niveau']) ?>
                                                                 </span>
                                                             </td>
                                                             <td class="text-center">
