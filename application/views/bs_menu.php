@@ -70,10 +70,8 @@ $section_count = $CI->sections_model->safe_count_all();
                 <ul class="submenu dropdown-menu">
 
                   <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("gvv_menu_validities") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
                   <?php if (has_role('bureau')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_financial_reports") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("tickets/solde") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_reports_remaining_tickets") ?></a></li>
                   <?php endif; ?>
                   <?php if (has_role('ca')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("reports/page") ?>"><i class="fas fa-file-alt text-primary"></i> <?= translation("gvv_menu_reports_user_reports") ?></a></li>
@@ -130,6 +128,10 @@ $section_count = $CI->sections_model->safe_count_all();
                     <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><i class="fas fa-pencil-alt text-info"></i> <?= translation("welcome_global_entries_title") ?></a></li>
 
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-chart-line text-success"></i> <?= translation("welcome_global_financial_report") ?></a></li>
+                    <?php if ($this->config->item('gestion_tickets')) : ?>
+                      <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
+                      <li><a class="dropdown-item" href="<?= controller_url("tickets/solde") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_reports_remaining_tickets") ?></a></li>
+                    <?php endif; ?>
 
                   </ul>
                 </li>
