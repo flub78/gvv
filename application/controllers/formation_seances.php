@@ -196,7 +196,8 @@ class Formation_seances extends CI_Controller {
 
         if ($is_libre) {
             $this->form_validation->set_rules('pilote_id', $this->lang->line('formation_seance_pilote'), 'required');
-            $this->form_validation->set_rules('programme_id', $this->lang->line('formation_seance_programme'), 'required|integer');
+            // programme_id is optional for libre sessions (ré-entraînement)
+            $this->form_validation->set_rules('programme_id', $this->lang->line('formation_seance_programme'), 'integer');
         } else {
             $this->form_validation->set_rules('inscription_id', $this->lang->line('formation_seance_inscription'), 'required|integer');
         }
@@ -314,7 +315,8 @@ class Formation_seances extends CI_Controller {
 
         if ($is_libre) {
             $this->form_validation->set_rules('pilote_id', $this->lang->line('formation_seance_pilote'), 'required');
-            $this->form_validation->set_rules('programme_id', $this->lang->line('formation_seance_programme'), 'required|integer');
+            // programme_id is optional for libre sessions (ré-entraînement)
+            $this->form_validation->set_rules('programme_id', $this->lang->line('formation_seance_programme'), 'integer');
         } else {
             $this->form_validation->set_rules('inscription_id', $this->lang->line('formation_seance_inscription'), 'required|integer');
         }
@@ -440,7 +442,7 @@ class Formation_seances extends CI_Controller {
         foreach ($inscriptions as $insc) {
             $result[] = array(
                 'id' => $insc['id'],
-                'label' => $insc['programme_code'] . ' - ' . $insc['programme_titre'] .
+                'label' => $insc['programme_titre'] .
                     ' (depuis ' . $insc['date_ouverture'] . ')',
                 'programme_id' => $insc['programme_id']
             );
@@ -635,7 +637,9 @@ class Formation_seances extends CI_Controller {
             // Free session: pilote_id and programme_id from form
             $seance_data['inscription_id'] = null;
             $seance_data['pilote_id'] = $this->input->post('pilote_id');
-            $seance_data['programme_id'] = (int) $this->input->post('programme_id');
+            // programme_id is optional for ré-entraînement sessions
+            $programme_id = $this->input->post('programme_id');
+            $seance_data['programme_id'] = !empty($programme_id) ? (int) $programme_id : null;
         } else {
             // Inscription session: get pilote and programme from inscription
             $inscription_id = (int) $this->input->post('inscription_id');

@@ -165,10 +165,10 @@ if (!empty($existing_evaluations)) {
                             <div class="col-md-6">
                                 <label for="programme_id" class="form-label">
                                     <?= $this->lang->line("formation_seance_programme") ?>
-                                    <span class="text-danger">*</span>
+                                    <span class="text-muted">(<?= $this->lang->line("authorization_optional") ?>)</span>
                                 </label>
                                 <select class="form-select" id="programme_id" name="programme_id">
-                                    <option value="">-- Sélectionnez un programme --</option>
+                                    <option value="">-- <?= $this->lang->line("formation_seance_aucun_programme") ?> --</option>
                                     <?php foreach ($programmes as $id => $titre): ?>
                                         <?php if ($id): ?>
                                             <option value="<?= $id ?>"

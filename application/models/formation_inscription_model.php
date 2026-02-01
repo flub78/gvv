@@ -200,14 +200,14 @@ class Formation_inscription_model extends Common_Model {
      * Get enrollment selector for a pilot (open enrollments only)
      *
      * @param string $pilote_id Pilot member login
-     * @return array [id => "Programme - Date ouverture"]
+     * @return array [id => "Programme (depuis Date ouverture)"]
      */
     public function get_selector_for_pilote($pilote_id) {
         $inscriptions = $this->get_ouvertes($pilote_id);
         $result = array('' => '-- Aucune (seance libre) --');
         foreach ($inscriptions as $inscription) {
-            $result[$inscription['id']] = $inscription['programme_code'] . ' - ' .
-                $inscription['programme_titre'] . ' (depuis ' . $inscription['date_ouverture'] . ')';
+            $result[$inscription['id']] = $inscription['programme_titre'] .
+                ' (depuis ' . $inscription['date_ouverture'] . ')';
         }
         return $result;
     }

@@ -116,7 +116,7 @@ class Formation_programme_model extends Common_Model {
         $programs = $this->get_visibles();
         $result = array('' => '');
         foreach ($programs as $program) {
-            $result[$program['id']] = $program['code'] . ' - ' . $program['titre'];
+            $result[$program['id']] = $program['titre'];
         }
         return $result;
     }
@@ -268,12 +268,12 @@ class Formation_programme_model extends Common_Model {
      * Get program title for display
      *
      * @param int $id Program ID
-     * @return string "[CODE] - Titre" or empty string
+     * @return string Program title or empty string
      */
     public function image($id) {
         $program = $this->get($id);
         if ($program) {
-            return $program['code'] . ' - ' . $program['titre'];
+            return $program['titre'];
         }
         return '';
     }

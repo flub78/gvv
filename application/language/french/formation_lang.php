@@ -160,6 +160,7 @@ $lang['formation_seance_nb_atterrissages'] = 'Nombre d\'atterrissages';
 $lang['formation_seance_commentaire'] = 'Commentaires';
 $lang['formation_seance_prochaines_lecons'] = 'Préparation des prochaines leçons';
 $lang['formation_seance_programme'] = 'Programme';
+$lang['formation_seance_aucun_programme'] = 'Aucun programme';
 $lang['formation_seance_precedente'] = 'Séance précédente';
 
 // Séances - Types
