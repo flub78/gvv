@@ -95,6 +95,15 @@ $niveau_labels = array(
                         <dd class="col-sm-7">
                             <?= htmlspecialchars($seance['programme_titre'] ?? '') ?>
                         </dd>
+
+                        <?php if (!empty($seance['categorie_seance'])): ?>
+                            <dt class="col-sm-5"><?= $this->lang->line("formation_seance_categorie") ?>:</dt>
+                            <dd class="col-sm-7">
+                                <?php foreach (array_map('trim', explode(',', $seance['categorie_seance'])) as $cat): ?>
+                                    <span class="badge bg-info"><?= htmlspecialchars($cat) ?></span>
+                                <?php endforeach; ?>
+                            </dd>
+                        <?php endif; ?>
                     </dl>
                 </div>
 

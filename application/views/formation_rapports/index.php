@@ -356,6 +356,52 @@ $this->load->view('bs_banner');
     </div>
 
     <!-- ============================================ -->
+    <!-- SECTION: PAR CATEGORIE                       -->
+    <!-- ============================================ -->
+
+    <?php if (!empty($stats_par_categorie)): ?>
+    <h4 class="mt-4 mb-3">
+        <i class="fas fa-tags" aria-hidden="true"></i>
+        <?= $this->lang->line("formation_rapports_par_categorie") ?>
+    </h4>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><?= $this->lang->line("formation_seance_categorie") ?></th>
+                            <th class="text-center" style="width: 120px"><?= $this->lang->line("formation_rapports_nb_seances") ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($stats_par_categorie as $cat => $count): ?>
+                            <tr>
+                                <td>
+                                    <?php if ($cat === 'Non catégorisé'): ?>
+                                        <em class="text-muted"><?= $cat ?></em>
+                                    <?php else: ?>
+                                        <span class="badge bg-info"><?= htmlspecialchars($cat) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center"><strong><?= $count ?></strong></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th><?= $this->lang->line("gvv_str_total") ?></th>
+                            <th class="text-center"><?= array_sum($stats_par_categorie) ?></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- ============================================ -->
     <!-- SECTION: PAR INSTRUCTEUR                     -->
     <!-- ============================================ -->
 

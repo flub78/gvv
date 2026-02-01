@@ -92,6 +92,9 @@ class Formation_rapports extends CI_Controller
         // Statistiques par instructeur
         $instructeurs = $this->formation_seance_model->get_stats_par_instructeur($year);
 
+        // Statistiques par catégorie de séance
+        $stats_par_categorie = $this->formation_seance_model->count_by_categorie($year);
+
         $data = array(
             'title' => $this->lang->line('formation_rapports_title'),
             'controller' => $this->controller,
@@ -100,6 +103,7 @@ class Formation_rapports extends CI_Controller
             'formations' => $formations,
             'seances_libres' => $seances_libres,
             'instructeurs' => $instructeurs,
+            'stats_par_categorie' => $stats_par_categorie,
             'formation_progression' => $this->formation_progression
         );
 

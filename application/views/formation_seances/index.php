@@ -107,6 +107,21 @@ $this->load->view('bs_banner');
                     </select>
                 </div>
 
+                <div class="col-md-2">
+                    <label for="filter_categorie" class="form-label form-label-sm"><?= $this->lang->line("formation_seance_categorie") ?></label>
+                    <select class="form-select form-select-sm" id="filter_categorie" name="categorie_seance">
+                        <option value=""><?= $this->lang->line("formation_seance_categorie_toutes") ?></option>
+                        <?php foreach ($categories as $cat_value => $cat_label): ?>
+                            <?php if ($cat_value): ?>
+                                <option value="<?= htmlspecialchars($cat_value) ?>"
+                                    <?= (isset($filters['categorie_seance']) && $filters['categorie_seance'] == $cat_value) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cat_label) ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="col-md-1">
                     <label for="filter_date_debut" class="form-label form-label-sm">Du</label>
                     <input type="date" class="form-control form-control-sm" id="filter_date_debut" name="date_debut"
@@ -148,6 +163,7 @@ $this->load->view('bs_banner');
                                 <th><?= $this->lang->line("formation_seance_date") ?></th>
                                 <th><?= $this->lang->line("formation_seance_pilote") ?></th>
                                 <th><?= $this->lang->line("formation_seance_type") ?></th>
+                                <th><?= $this->lang->line("formation_seance_categorie") ?></th>
                                 <th><?= $this->lang->line("formation_seance_programme") ?></th>
                                 <th><?= $this->lang->line("formation_seance_machine") ?></th>
                                 <th><?= $this->lang->line("formation_seance_duree") ?></th>
@@ -166,6 +182,13 @@ $this->load->view('bs_banner');
                                             <span class="badge bg-secondary"><?= $this->lang->line("formation_seance_type_libre") ?></span>
                                         <?php else: ?>
                                             <span class="badge bg-primary"><?= $this->lang->line("formation_seance_type_formation") ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($seance['categorie_seance'])): ?>
+                                            <?php foreach (array_map('trim', explode(',', $seance['categorie_seance'])) as $cat): ?>
+                                                <span class="badge bg-info"><?= htmlspecialchars($cat) ?></span>
+                                            <?php endforeach; ?>
                                         <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($seance['programme_titre'] ?? '') ?></td>

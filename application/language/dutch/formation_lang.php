@@ -107,6 +107,9 @@ $lang['formation_seance_type_formation_label'] = 'Opleidingssessie';
 $lang['formation_seance_type_libre_label'] = 'Herhalingssessie voor gebrevetteerde piloot';
 $lang['formation_seances_libres_title'] = 'Herhalingssessies';
 $lang['formation_seance_precedente'] = 'Vorige sessie';
+$lang['formation_seance_categorie'] = 'Categorie';
+$lang['formation_seance_categorie_aucune'] = 'Geen categorie';
+$lang['formation_seance_categorie_toutes'] = 'Alle categorieën';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Beoordeling';
@@ -134,6 +137,7 @@ $lang['formation_voir_mes_seances'] = 'Mijn sessies bekijken';$lang['formation_r
 $lang['formation_rapports_en_cours'] = 'Lopende opleidingen';
 $lang['formation_rapports_reentrainement'] = 'Herhalingssessies';
 $lang['formation_rapports_par_instructeur'] = 'Per instructeur';
+$lang['formation_rapports_par_categorie'] = 'Per sessiecategorie';
 $lang['formation_rapports_nb_seances'] = 'Sessies';
 $lang['formation_rapports_nb_seances_formation'] = 'Opleidingssessies';
 $lang['formation_rapports_nb_seances_libre'] = 'Herhalingssessies';

@@ -247,6 +247,40 @@ if (!empty($existing_evaluations)) {
                                    required>
                         </div>
                     </div>
+
+                    <!-- Category checkboxes -->
+                    <?php
+                    // Parse selected categories from seance data
+                    $selected_categories = array();
+                    if (!empty($seance['categorie_seance'])) {
+                        $selected_categories = array_map('trim', explode(',', $seance['categorie_seance']));
+                    }
+                    ?>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <?= $this->lang->line("formation_seance_categorie") ?>
+                            </label>
+                            <div class="row">
+                                <?php foreach ($categories as $cat_value => $cat_label): ?>
+                                    <?php if ($cat_value): ?>
+                                        <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="cat_<?= md5($cat_value) ?>"
+                                                       name="categories_seance[]"
+                                                       value="<?= htmlspecialchars($cat_value) ?>"
+                                                       <?= in_array($cat_value, $selected_categories) ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="cat_<?= md5($cat_value) ?>">
+                                                    <?= htmlspecialchars($cat_label) ?>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

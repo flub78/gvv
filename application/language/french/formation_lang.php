@@ -177,6 +177,9 @@ $lang['formation_seance_mode_libre'] = 'Hors formation (séance libre)';
 $lang['formation_seance_type_formation_label'] = 'Séance de formation';
 $lang['formation_seance_type_libre_label'] = 'Séance de ré-entrainement pour pilote breveté';
 $lang['formation_seance_select_inscription'] = '-- Sélectionnez une formation --';
+$lang['formation_seance_categorie'] = 'Catégorie';
+$lang['formation_seance_categorie_aucune'] = 'Aucune catégorie';
+$lang['formation_seance_categorie_toutes'] = 'Toutes les catégories';
 
 // Séances - Météo
 $lang['formation_seance_meteo'] = 'Conditions météo';
@@ -262,6 +265,7 @@ $lang['formation_rapports_ouvertes'] = 'Formations ouvertes';
 $lang['formation_rapports_en_cours'] = 'Formations en cours';
 $lang['formation_rapports_reentrainement'] = 'Séances de ré-entrainement';
 $lang['formation_rapports_par_instructeur'] = 'Par instructeur';
+$lang['formation_rapports_par_categorie'] = 'Par catégorie de séance';
 $lang['formation_rapports_nb_seances'] = 'Séances';
 $lang['formation_rapports_nb_seances_formation'] = 'Séances de formation';
 $lang['formation_rapports_nb_seances_libre'] = 'Séances de ré-entrainement';

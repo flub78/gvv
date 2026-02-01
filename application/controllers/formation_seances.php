@@ -72,6 +72,7 @@ class Formation_seances extends CI_Controller {
             'instructeur_id' => $this->input->get('instructeur_id'),
             'programme_id' => $this->input->get('programme_id'),
             'type' => $this->input->get('type'),
+            'categorie_seance' => $this->input->get('categorie_seance'),
             'date_debut' => $this->input->get('date_debut'),
             'date_fin' => $this->input->get('date_fin')
         );
@@ -91,7 +92,8 @@ class Formation_seances extends CI_Controller {
             'filters' => $filters,
             'pilotes' => $this->membres_model->get_selector(),
             'instructeurs' => $this->membres_model->get_selector_instructeurs(),
-            'programmes' => $this->formation_programme_model->get_selector()
+            'programmes' => $this->formation_programme_model->get_selector(),
+            'categories' => $this->formation_seance_model->get_categories_selector()
         );
 
         $this->load->view('formation_seances/index', $data);
@@ -143,7 +145,8 @@ class Formation_seances extends CI_Controller {
             'pilote_id' => $inscription ? $inscription['pilote_id'] : '',
             'programme_id' => $inscription ? $inscription['programme_id'] : '',
             'instructeur_id' => '',
-            'machine_id' => ''
+            'machine_id' => '',
+            'categorie_seance' => $is_libre ? '' : 'Formation'
         );
 
         // Repopulate from POST data after validation failure
@@ -158,6 +161,11 @@ class Formation_seances extends CI_Controller {
             $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
             $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
             $data['seance']['inscription_id'] = $this->input->post('inscription_id') ?: $data['seance']['inscription_id'];
+            // Handle multiple categories from checkboxes
+            $categories = $this->input->post('categories_seance');
+            if (!empty($categories) && is_array($categories)) {
+                $data['seance']['categorie_seance'] = implode(', ', $categories);
+            }
 
             // Rebuild meteo from POST checkboxes
             $meteo = array();
@@ -277,6 +285,11 @@ class Formation_seances extends CI_Controller {
             $data['seance']['machine_id'] = $this->input->post('machine_id') ?: $data['seance']['machine_id'];
             $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
             $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
+            // Handle multiple categories from checkboxes
+            $categories = $this->input->post('categories_seance');
+            if (!empty($categories) && is_array($categories)) {
+                $data['seance']['categorie_seance'] = implode(', ', $categories);
+            }
 
             // Rebuild meteo from POST checkboxes
             $meteo = array();
@@ -527,6 +540,7 @@ class Formation_seances extends CI_Controller {
             'instructeurs' => $this->membres_model->get_selector_instructeurs(),
             'programmes' => $this->formation_programme_model->get_selector(),
             'machines' => $machines,
+            'categories' => $this->formation_seance_model->get_categories_selector(),
             'meteo_options' => $this->meteo_options,
             'lecons' => array(),
             'existing_evaluations' => array(),
@@ -633,6 +647,13 @@ class Formation_seances extends CI_Controller {
             $duree .= ':00'; // Add seconds
         }
 
+        // Handle multiple categories from checkboxes
+        $categories = $this->input->post('categories_seance');
+        $categorie_seance = null;
+        if (!empty($categories) && is_array($categories)) {
+            $categorie_seance = implode(', ', $categories);
+        }
+
         $seance_data = array(
             'date_seance' => $this->input->post('date_seance'),
             'instructeur_id' => $this->input->post('instructeur_id'),
@@ -641,7 +662,8 @@ class Formation_seances extends CI_Controller {
             'nb_atterrissages' => (int) $this->input->post('nb_atterrissages'),
             'meteo' => json_encode($meteo),
             'commentaires' => $this->input->post('commentaires'),
-            'prochaines_lecons' => $this->input->post('prochaines_lecons')
+            'prochaines_lecons' => $this->input->post('prochaines_lecons'),
+            'categorie_seance' => $categorie_seance
         );
 
         if ($is_libre) {

@@ -26,6 +26,8 @@
 
 * Vérification administrative du pilote et de l’ULM
 * Vérification de la masse et du centrage
+* Vérification des quantités de carburant en tenant compte des conditions
+météorologiques et des retards possibles
 * Analyse des performances
 * Analyse météorologique adaptée aux vols de découverte
 * Définition des marges de sécurité
@@ -52,6 +54,7 @@
 ### Sujet 3.2 : Vol en palier et évolution
 
 * Maintien des conditions VMC
+* Pas de VFR on top
 * Gestion de la trajectoire locale
 * Communication avec le passager
 * Surveillance carburant et moteur

@@ -107,6 +107,9 @@ $lang['formation_seance_type_formation_label'] = 'Training session';
 $lang['formation_seance_type_libre_label'] = 'Refresher session for licensed pilot';
 $lang['formation_seances_libres_title'] = 'Refresher sessions';
 $lang['formation_seance_precedente'] = 'Previous session';
+$lang['formation_seance_categorie'] = 'Category';
+$lang['formation_seance_categorie_aucune'] = 'No category';
+$lang['formation_seance_categorie_toutes'] = 'All categories';
 
 // Évaluations
 $lang['formation_evaluation'] = 'Assessment';
@@ -134,6 +137,7 @@ $lang['formation_voir_mes_seances'] = 'View my sessions';$lang['formation_rappor
 $lang['formation_rapports_en_cours'] = 'Ongoing trainings';
 $lang['formation_rapports_reentrainement'] = 'Refresher sessions';
 $lang['formation_rapports_par_instructeur'] = 'By instructor';
+$lang['formation_rapports_par_categorie'] = 'By session category';
 $lang['formation_rapports_nb_seances'] = 'Sessions';
 $lang['formation_rapports_nb_seances_formation'] = 'Training sessions';
 $lang['formation_rapports_nb_seances_libre'] = 'Refresher sessions';

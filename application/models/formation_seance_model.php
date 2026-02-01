@@ -282,6 +282,11 @@ class Formation_seance_model extends Common_Model {
         if (!empty($filters['year'])) {
             $this->db->where('YEAR(s.date_seance)', $filters['year']);
         }
+        if (!empty($filters['categorie_seance'])) {
+            // Use FIND_IN_SET for comma-separated categories
+            $escaped = $this->db->escape_str($filters['categorie_seance']);
+            $this->db->where("FIND_IN_SET('" . $escaped . "', REPLACE(s.categorie_seance, ', ', ',')) > 0", NULL, FALSE);
+        }
 
         $this->db->order_by('s.date_seance', 'desc')
             ->limit($limit, $offset);
@@ -426,6 +431,65 @@ class Formation_seance_model extends Common_Model {
                 $seance['pilote_nom'] . ' - ' . $seance['programme_code'];
         }
         return '';
+    }
+
+    /**
+     * Get session categories selector from configuration
+     *
+     * @return array Categories as [value => label] for dropdown
+     */
+    public function get_categories_selector() {
+        $this->load->model('configuration_model');
+        $config_value = $this->configuration_model->get_param('formation.categories_seance');
+
+        $categories = array('' => '');
+        if (!empty($config_value)) {
+            $items = array_map('trim', explode(',', $config_value));
+            foreach ($items as $item) {
+                if (!empty($item)) {
+                    $categories[$item] = $item;
+                }
+            }
+        }
+        return $categories;
+    }
+
+    /**
+     * Count sessions by category for a given year
+     * Handles sessions with multiple categories (comma-separated)
+     *
+     * @param int $year Year to filter
+     * @return array Array of [categorie => count]
+     */
+    public function count_by_categorie($year) {
+        // Fetch all sessions with categories for the year
+        $this->db->select('categorie_seance')
+            ->from($this->table)
+            ->where('YEAR(date_seance)', $year)
+            ->where('categorie_seance IS NOT NULL')
+            ->where('categorie_seance !=', '');
+
+        $result = $this->db->get()->result_array();
+        gvv_debug("sql: " . $this->db->last_query());
+
+        // Count each category separately (sessions can have multiple categories)
+        $stats = array();
+        foreach ($result as $row) {
+            $categories = array_map('trim', explode(',', $row['categorie_seance']));
+            foreach ($categories as $cat) {
+                if (!empty($cat)) {
+                    if (!isset($stats[$cat])) {
+                        $stats[$cat] = 0;
+                    }
+                    $stats[$cat]++;
+                }
+            }
+        }
+
+        // Sort by count descending
+        arsort($stats);
+        
+        return $stats;
     }
 }
 
