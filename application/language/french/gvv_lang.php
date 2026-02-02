@@ -645,3 +645,14 @@ $lang['email_lists_uploaded_on'] = 'Importé le';
 $lang['email_lists_addresses_count'] = 'Nombre d\'adresses';
 $lang['email_lists_confirm_delete_file'] = 'Êtes-vous sûr de vouloir supprimer ce fichier et toutes ses adresses ?';
 $lang['email_lists_delete_file'] = 'Supprimer le fichier';
+
+// Adherents Report
+$lang['gvv_menu_adherents_report'] = 'Rapport adhérents';
+$lang['gvv_adherents_report_title'] = 'Rapport Adhérents';
+$lang['gvv_adherents_report_select_year'] = 'Sélectionner une année';
+$lang['gvv_adherents_report_under_25'] = 'Moins de 25 ans';
+$lang['gvv_adherents_report_25_to_59'] = '25-59 ans';
+$lang['gvv_adherents_report_60_and_over'] = '60 ans et plus';
+$lang['gvv_adherents_report_total'] = 'Total';
+$lang['gvv_adherents_report_club_total'] = 'Total Club';
+$lang['gvv_adherents_report_note'] = 'Note : Le total club peut être inférieur à la somme des sections car certains membres pratiquent plusieurs activités.';

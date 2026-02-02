@@ -826,6 +826,15 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-users text-success"></i>
+                        <div class="card-title">Adhérents</div>
+                        <div class="card-text text-muted">Par âge</div>
+                        <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm">Voir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-history text-info"></i>
                         <div class="card-title">Historique</div>
                         <div class="card-text text-muted">Événements</div>

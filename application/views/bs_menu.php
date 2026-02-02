@@ -76,6 +76,7 @@ $section_count = $CI->sections_model->safe_count_all();
                   <?php if (has_role('ca')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("reports/page") ?>"><i class="fas fa-file-alt text-primary"></i> <?= translation("gvv_menu_reports_user_reports") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/ffvv") ?>"><i class="fas fa-flag text-primary"></i> <?= translation("gvv_menu_reports_federal_report") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("adherents_report") ?>"><i class="fas fa-users text-success"></i> <?= translation("gvv_menu_adherents_report") ?></a></li>
                   <?php endif; ?>
                   <?php if (has_role('admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/dgac") ?>"><i class="fas fa-building text-danger"></i> <?= translation("gvv_menu_reports_admin_report") ?></a></li>

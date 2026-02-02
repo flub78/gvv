@@ -633,3 +633,14 @@ $lang['email_lists_uploaded_on'] = 'Geüpload op';
 $lang['email_lists_addresses_count'] = 'Aantal adressen';
 $lang['email_lists_confirm_delete_file'] = 'Weet u zeker dat u dit bestand en al zijn adressen wilt verwijderen?';
 $lang['email_lists_delete_file'] = 'Verwijder bestand';
+
+// Adherents Report
+$lang['gvv_menu_adherents_report'] = 'Ledenrapport';
+$lang['gvv_adherents_report_title'] = 'Ledenrapport';
+$lang['gvv_adherents_report_select_year'] = 'Selecteer jaar';
+$lang['gvv_adherents_report_under_25'] = 'Jonger dan 25';
+$lang['gvv_adherents_report_25_to_59'] = '25-59 jaar';
+$lang['gvv_adherents_report_60_and_over'] = '60 jaar en ouder';
+$lang['gvv_adherents_report_total'] = 'Totaal';
+$lang['gvv_adherents_report_club_total'] = 'Club Totaal';
+$lang['gvv_adherents_report_note'] = 'Opmerking: Het clubtotaal kan lager zijn dan de som van de secties omdat sommige leden meerdere activiteiten beoefenen.';
