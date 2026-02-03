@@ -170,6 +170,52 @@
                 'max-height': '500px',
                 'overflow-y': 'auto'
             });
+
+    // PDF Thumbnail async generation
+    // Generate thumbnails for PDFs that don't have one yet
+    $(document).ready(function() {
+        var pdfElements = $('.pdf-needs-thumbnail');
+        if (pdfElements.length === 0) return;
+
+        // Process PDFs one at a time to avoid overwhelming the server
+        var processQueue = [];
+        pdfElements.each(function() {
+            processQueue.push($(this));
+        });
+
+        function processNextPdf() {
+            if (processQueue.length === 0) return;
+
+            var $element = processQueue.shift();
+            var pdfPath = $element.data('pdf-path');
+            var elementId = $element.attr('id');
+
+            $.ajax({
+                url: '<?= site_url("attachments/generate_thumbnail") ?>',
+                type: 'POST',
+                data: { file_path: pdfPath },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.thumbnail_url) {
+                        // Replace icon with thumbnail image
+                        var $link = $element.parent('a');
+                        var href = $link.attr('href');
+                        var img = '<img class="doc-thumbnail" src="' + response.thumbnail_url + '" title="' + pdfPath + '"/>';
+                        $element.replaceWith(img);
+                    }
+                    // Process next PDF after a small delay
+                    setTimeout(processNextPdf, 100);
+                },
+                error: function() {
+                    // Keep the icon, process next PDF
+                    setTimeout(processNextPdf, 100);
+                }
+            });
+        }
+
+        // Start processing after page load with a small delay
+        setTimeout(processNextPdf, 500);
+    });
     //
     -->
 </script>

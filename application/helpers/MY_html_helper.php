@@ -622,7 +622,24 @@ if (! function_exists('attachment')) {
             $inner_html = $img;
         } else {
             if (str_ends_with($mime_type, 'pdf')) {
-                $inner_html = "<i class=\"fas fa-file-pdf fa-2x text-danger\" title=\"$filename\"></i>";
+                // Check if PDF thumbnail exists
+                $thumb_path = get_pdf_thumbnail_path($filename);
+                if ($thumb_path && file_exists($thumb_path)) {
+                    // Display thumbnail like an image
+                    $base = rtrim(base_url(), '/') . '/';
+                    $thumb_url = $base . ltrim($thumb_path, './');
+                    $img = '<img class="doc-thumbnail"';
+                    $img .= ' src="' . $thumb_url . '"';
+                    $img .= ' title="' . htmlspecialchars($filename) . '"';
+                    $img .= '/>';
+                    $inner_html = $img;
+                } else {
+                    // Display icon with async thumbnail generation trigger
+                    $unique_id = 'pdf-thumb-' . md5($filename);
+                    $inner_html = '<span id="' . $unique_id . '" class="pdf-needs-thumbnail" data-pdf-path="' . htmlspecialchars($filename) . '">';
+                    $inner_html .= "<i class=\"fas fa-file-pdf fa-2x text-danger\" title=\"$filename\"></i>";
+                    $inner_html .= '</span>';
+                }
             } else if (str_ends_with($mime_type, 'txt') || str_ends_with($mime_type, 'text/plain')) {
                 $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
             } else if (str_ends_with($mime_type, 'md') || str_ends_with($mime_type, 'markdown')) {
@@ -640,6 +657,20 @@ if (! function_exists('attachment')) {
             }
         }
         return "<a href=\"$url\" target=\"_self\">$inner_html</a>";
+    }
+}
+
+if (! function_exists('get_pdf_thumbnail_path')) {
+    /**
+     * Get the thumbnail path for a PDF file
+     *
+     * @param string $pdf_path Path to the PDF file
+     * @return string|null Thumbnail path or null
+     */
+    function get_pdf_thumbnail_path($pdf_path) {
+        $dir = dirname($pdf_path);
+        $filename = pathinfo($pdf_path, PATHINFO_FILENAME);
+        return $dir . '/thumb_' . $filename . '.jpg';
     }
 }
 

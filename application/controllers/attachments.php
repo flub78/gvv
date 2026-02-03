@@ -146,9 +146,31 @@ class Attachments extends Gvv_Controller {
 
         $dirname = './uploads/attachments/' . $year . '/' . $section_name . '/';
         if (!file_exists($dirname)) {
-            mkdir($dirname, 0777, true);
-            chmod($dirname, 0777); // Explicitly set permissions to override umask
-        };
+            // Create directory with full permissions
+            $old_umask = umask(0);
+            $created = @mkdir($dirname, 0777, true);
+            umask($old_umask);
+
+            if (!$created) {
+                // Try to provide more information about the failure
+                $parent = dirname($dirname);
+                $error_msg = "Impossible de créer le répertoire: $dirname";
+                if (!file_exists($parent)) {
+                    $error_msg .= " (le parent $parent n'existe pas)";
+                } elseif (!is_writable($parent)) {
+                    $error_msg .= " (le parent $parent n'est pas accessible en écriture)";
+                }
+                $this->data['message'] = '<div class="text-danger">' . $error_msg . '</div>';
+                $this->form_static_element($action);
+                load_last_view($this->form_view, $this->data);
+                return;
+            }
+        } elseif (!is_writable($dirname)) {
+            $this->data['message'] = '<div class="text-danger">Le répertoire ' . $dirname . ' n\'est pas accessible en écriture</div>';
+            $this->form_static_element($action);
+            load_last_view($this->form_view, $this->data);
+            return;
+        }
 
         // I am not sure that we need the capacity to specify a filename ...
         // The description is likely enough
@@ -193,12 +215,29 @@ class Attachments extends Gvv_Controller {
                 log_message('info', "Compression skipped: " . $compression_result['error']);
             }
 
-            // Delete the previous file for this attachment
+            // Generate PDF thumbnail if applicable
+            $final_file_path = $_POST['file'];
+            $mime = mime_content_type($final_file_path);
+            if ($mime === 'application/pdf') {
+                $this->load->library('pdf_thumbnail');
+                $thumb_result = $this->pdf_thumbnail->generate($final_file_path);
+                if ($thumb_result['success']) {
+                    log_message('info', "PDF thumbnail generated: " . $thumb_result['thumbnail_path']);
+                } else {
+                    log_message('debug', "PDF thumbnail not generated: " . $thumb_result['error']);
+                }
+            }
+
+            // Delete the previous file and its thumbnail for this attachment
             $initial_id = $this->session->userdata('initial_id');
 
             if ($initial_id) {
                 $initial_elt = $this->gvv_model->get_by_id('id', $initial_id);
                 if (!empty($initial_elt['file']) && file_exists($initial_elt['file'])) {
+                    // Delete old thumbnail if it exists
+                    $this->load->library('pdf_thumbnail');
+                    $this->pdf_thumbnail->delete_thumbnail($initial_elt['file']);
+                    // Delete old file
                     unlink($initial_elt['file']);
                 }
             }
@@ -220,10 +259,73 @@ class Attachments extends Gvv_Controller {
         $elt = $this->gvv_model->get_by_id('id', $id);
 
         if (!empty($elt['file']) && file_exists($elt['file'])) {
+            // Delete thumbnail if it exists
+            $this->load->library('pdf_thumbnail');
+            $this->pdf_thumbnail->delete_thumbnail($elt['file']);
+            // Delete file
             unlink($elt['file']);
         }
 
         parent::delete($id);
+    }
+
+    /**
+     * Generate PDF thumbnail on demand (AJAX endpoint)
+     * Used for existing PDFs that don't have thumbnails yet
+     *
+     * @param string $file_path Base64 encoded file path
+     */
+    function generate_thumbnail() {
+        // Only allow authenticated users
+        if (!$this->dx_auth->is_logged_in()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        $file_path = $this->input->post('file_path');
+        if (!$file_path) {
+            echo json_encode(['success' => false, 'error' => 'No file path provided']);
+            return;
+        }
+
+        // Security: ensure the file is within uploads directory
+        $real_path = realpath($file_path);
+        $uploads_path = realpath('./uploads');
+        if ($real_path === false || strpos($real_path, $uploads_path) !== 0) {
+            echo json_encode(['success' => false, 'error' => 'Invalid file path']);
+            return;
+        }
+
+        // Check if file exists and is a PDF
+        if (!file_exists($file_path)) {
+            echo json_encode(['success' => false, 'error' => 'File not found']);
+            return;
+        }
+
+        $mime = mime_content_type($file_path);
+        if ($mime !== 'application/pdf') {
+            echo json_encode(['success' => false, 'error' => 'Not a PDF file']);
+            return;
+        }
+
+        // Generate thumbnail
+        $this->load->library('pdf_thumbnail');
+        $result = $this->pdf_thumbnail->generate($file_path);
+
+        if ($result['success']) {
+            // Return the thumbnail URL
+            $base = rtrim(base_url(), '/') . '/';
+            $thumb_url = $base . ltrim($result['thumbnail_path'], './');
+            echo json_encode([
+                'success' => true,
+                'thumbnail_url' => $thumb_url
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'error' => $result['error']
+            ]);
+        }
     }
     /**
      * Test unitaire
