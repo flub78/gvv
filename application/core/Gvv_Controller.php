@@ -94,6 +94,15 @@ class Gvv_Controller extends CI_Controller
         $this->user_id = $this->dx_auth->get_user_id();
         $username = $this->dx_auth->get_username();
 
+        // Ensure section_selector is always available in session
+        // This handles cases where session data is partially lost
+        if (!$this->session->userdata('section_selector')) {
+            $this->load->model('sections_model');
+            $section_selector = $this->sections_model->selector_with_all();
+            $this->session->set_userdata('section_selector', $section_selector);
+            log_message('debug', "GVV_Controller: Reinitialized section_selector in session");
+        }
+
         // Load config to check global authorization flag
         $this->config->load('gvv_config', TRUE);
         $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
