@@ -707,6 +707,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-clipboard-check text-danger"></i>
+                        <div class="card-title">Autorisations Solo</div>
+                        <div class="card-text text-muted">Gérer</div>
+                        <a href="<?= controller_url('formation_autorisations_solo') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                    </div>
+                </div>
+
             </div>
         </div>
         </div>

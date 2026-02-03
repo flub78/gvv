@@ -358,7 +358,11 @@ class Formation_inscriptions extends CI_Controller {
         // Check if current user is the student (read-only mode)
         $current_user = $this->dx_auth->get_username();
         $is_student_view = ($current_user === $inscription['pilote_id']);
-        
+
+        // Get solo authorizations for this inscription
+        $this->load->model('formation_autorisation_solo_model');
+        $autorisations_solo = $this->formation_autorisation_solo_model->get_by_inscription($id);
+
         // Prepare data for view
         $data = array(
             'controller' => 'formation_inscriptions',
@@ -372,9 +376,10 @@ class Formation_inscriptions extends CI_Controller {
                 'pourcentage' => $progression_data['stats']['pourcentage_acquis']
             ) : array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0),
             'formation_progression' => $this->formation_progression,
-            'is_student_view' => $is_student_view
+            'is_student_view' => $is_student_view,
+            'autorisations_solo' => $autorisations_solo
         );
-        
+
         $this->load->view('formation_inscriptions/detail', $data);
     }
 }

@@ -161,5 +161,40 @@ $lang['formation_form_optional'] = 'Optional fields';
 $lang['formation_form_save'] = 'Save';
 $lang['formation_form_cancel'] = 'Cancel';
 
+// Solo flight authorizations
+$lang['formation_autorisation_solo'] = 'Solo Flight Authorization';
+$lang['formation_autorisations_solo'] = 'Solo Flight Authorizations';
+$lang['formation_autorisations_solo_title'] = 'Solo Flight Authorizations';
+$lang['formation_autorisations_solo_list'] = 'Authorization List';
+$lang['formation_autorisations_solo_create'] = 'New Authorization';
+$lang['formation_autorisations_solo_edit'] = 'Edit Authorization';
+$lang['formation_autorisations_solo_detail'] = 'Authorization Details';
+$lang['formation_autorisations_solo_empty'] = 'No solo flight authorizations recorded.';
+$lang['formation_autorisations_solo_back'] = 'Back to Authorizations';
+
+$lang['formation_autorisation_solo_formation'] = 'Training';
+$lang['formation_autorisation_solo_eleve'] = 'Student';
+$lang['formation_autorisation_solo_instructeur'] = 'Instructor';
+$lang['formation_autorisation_solo_date'] = 'Authorization Date';
+$lang['formation_autorisation_solo_section'] = 'Section/Club';
+$lang['formation_autorisation_solo_machine'] = 'Authorized Aircraft';
+$lang['formation_autorisation_solo_consignes'] = 'Instructions';
+$lang['formation_autorisation_solo_consignes_help'] = 'Instructions must contain at least 250 characters.';
+$lang['formation_autorisation_solo_consignes_minlength'] = 'Instructions must contain at least 250 characters.';
+$lang['formation_autorisation_solo_date_creation'] = 'Created on';
+$lang['formation_autorisation_solo_date_modification'] = 'Last modified';
+
+$lang['formation_autorisation_solo_created'] = 'Solo flight authorization created successfully.';
+$lang['formation_autorisation_solo_updated'] = 'Solo flight authorization updated successfully.';
+$lang['formation_autorisation_solo_deleted'] = 'Solo flight authorization deleted successfully.';
+$lang['formation_autorisation_solo_create_error'] = 'Error creating authorization.';
+$lang['formation_autorisation_solo_update_error'] = 'Error updating authorization.';
+$lang['formation_autorisation_solo_delete_confirm'] = 'Are you sure you want to delete this solo flight authorization?';
+$lang['formation_autorisation_solo_delete_confirm_btn'] = 'Confirm Deletion';
+
+$lang['formation_inscription_not_found'] = 'Training not found.';
+$lang['formation_acces_instructeur_requis'] = 'Access restricted to instructors.';
+$lang['formation_acces_refuse'] = 'Access denied.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/english/formation_lang.php */

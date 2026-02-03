@@ -5,6 +5,10 @@ Date : 3 février 2026
 ## Contexte
 L’association doit archiver des documents liés aux pilotes et, potentiellement, à d’autres usages (documents club, déclarations d’activité, renouvellements, etc.). Les documents peuvent avoir une date de validité, être remplacés par des versions plus récentes, nécessiter une validation administrative et faire l’objet d’alertes d’expiration.
 
+Le but n'est pas de se substituer aux outils existants (GESASSO, suivi des exigences médicales par la FFPLUM, espace partagés), mais de fournir un mécanisme simple et intégré pour les cas ou nous avons des obligations réglementaires.
+
+L'espace partagé fournit une fonction de stockage, mais sans gestion des versions, des validations ou des alertes. L’objectif est de combler ces lacunes (et uniquement pour les documents avec exigences)
+
 Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_documents_attachments.md](doc/design_notes/reuse_pilot_documents_attachments.md).
 
 ## Objectifs

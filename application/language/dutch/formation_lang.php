@@ -161,5 +161,40 @@ $lang['formation_form_optional'] = 'Optionele velden';
 $lang['formation_form_save'] = 'Opslaan';
 $lang['formation_form_cancel'] = 'Annuleren';
 
+// Solovlucht autorisaties
+$lang['formation_autorisation_solo'] = 'Solovlucht Autorisatie';
+$lang['formation_autorisations_solo'] = 'Solovlucht Autorisaties';
+$lang['formation_autorisations_solo_title'] = 'Solovlucht Autorisaties';
+$lang['formation_autorisations_solo_list'] = 'Autorisatielijst';
+$lang['formation_autorisations_solo_create'] = 'Nieuwe Autorisatie';
+$lang['formation_autorisations_solo_edit'] = 'Autorisatie Bewerken';
+$lang['formation_autorisations_solo_detail'] = 'Autorisatie Details';
+$lang['formation_autorisations_solo_empty'] = 'Geen solovlucht autorisaties geregistreerd.';
+$lang['formation_autorisations_solo_back'] = 'Terug naar Autorisaties';
+
+$lang['formation_autorisation_solo_formation'] = 'Opleiding';
+$lang['formation_autorisation_solo_eleve'] = 'Leerling';
+$lang['formation_autorisation_solo_instructeur'] = 'Instructeur';
+$lang['formation_autorisation_solo_date'] = 'Autorisatiedatum';
+$lang['formation_autorisation_solo_section'] = 'Sectie/Club';
+$lang['formation_autorisation_solo_machine'] = 'Geautoriseerd Vliegtuig';
+$lang['formation_autorisation_solo_consignes'] = 'Instructies';
+$lang['formation_autorisation_solo_consignes_help'] = 'Instructies moeten minimaal 250 tekens bevatten.';
+$lang['formation_autorisation_solo_consignes_minlength'] = 'Instructies moeten minimaal 250 tekens bevatten.';
+$lang['formation_autorisation_solo_date_creation'] = 'Aangemaakt op';
+$lang['formation_autorisation_solo_date_modification'] = 'Laatst gewijzigd';
+
+$lang['formation_autorisation_solo_created'] = 'Solovlucht autorisatie succesvol aangemaakt.';
+$lang['formation_autorisation_solo_updated'] = 'Solovlucht autorisatie succesvol bijgewerkt.';
+$lang['formation_autorisation_solo_deleted'] = 'Solovlucht autorisatie succesvol verwijderd.';
+$lang['formation_autorisation_solo_create_error'] = 'Fout bij aanmaken autorisatie.';
+$lang['formation_autorisation_solo_update_error'] = 'Fout bij bijwerken autorisatie.';
+$lang['formation_autorisation_solo_delete_confirm'] = 'Weet u zeker dat u deze solovlucht autorisatie wilt verwijderen?';
+$lang['formation_autorisation_solo_delete_confirm_btn'] = 'Bevestig Verwijdering';
+
+$lang['formation_inscription_not_found'] = 'Opleiding niet gevonden.';
+$lang['formation_acces_instructeur_requis'] = 'Toegang beperkt tot instructeurs.';
+$lang['formation_acces_refuse'] = 'Toegang geweigerd.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/dutch/formation_lang.php */

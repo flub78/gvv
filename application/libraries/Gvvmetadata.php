@@ -1229,6 +1229,49 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_evaluations']['commentaire']['Name'] = 'Commentaire';
                 $this->field['formation_evaluations']['commentaire']['Type'] = 'text';
 
+                /**
+                 * Suivi de formation - Autorisations de vol solo
+                 */
+                $this->field['formation_autorisations_solo']['id']['Name'] = 'ID';
+                $this->field['formation_autorisations_solo']['id']['Type'] = 'int';
+                $this->field['formation_autorisations_solo']['inscription_id']['Name'] = 'Formation';
+                $this->field['formation_autorisations_solo']['inscription_id']['Type'] = 'int';
+                $this->field['formation_autorisations_solo']['inscription_id']['Subtype'] = 'selector';
+                $this->field['formation_autorisations_solo']['inscription_id']['Selector'] = 'inscription_formation_selector';
+                $this->field['formation_autorisations_solo']['inscription_id']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['eleve_id']['Name'] = 'Élève';
+                $this->field['formation_autorisations_solo']['eleve_id']['Type'] = 'varchar';
+                $this->field['formation_autorisations_solo']['eleve_id']['Subtype'] = 'selector';
+                $this->field['formation_autorisations_solo']['eleve_id']['Selector'] = 'pilote_selector';
+                $this->field['formation_autorisations_solo']['eleve_id']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['eleve_id']['Attrs'] = array('class' => 'big_select');
+                $this->field['formation_autorisations_solo']['instructeur_id']['Name'] = 'Instructeur';
+                $this->field['formation_autorisations_solo']['instructeur_id']['Type'] = 'varchar';
+                $this->field['formation_autorisations_solo']['instructeur_id']['Subtype'] = 'selector';
+                $this->field['formation_autorisations_solo']['instructeur_id']['Selector'] = 'instructeur_selector';
+                $this->field['formation_autorisations_solo']['instructeur_id']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['instructeur_id']['Attrs'] = array('class' => 'big_select');
+                $this->field['formation_autorisations_solo']['date_autorisation']['Name'] = 'Date';
+                $this->field['formation_autorisations_solo']['date_autorisation']['Type'] = 'date';
+                $this->field['formation_autorisations_solo']['date_autorisation']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['section_id']['Name'] = 'Section';
+                $this->field['formation_autorisations_solo']['section_id']['Type'] = 'int';
+                $this->field['formation_autorisations_solo']['section_id']['Subtype'] = 'selector';
+                $this->field['formation_autorisations_solo']['section_id']['Selector'] = 'section_selector';
+                $this->field['formation_autorisations_solo']['machine_id']['Name'] = 'Machine';
+                $this->field['formation_autorisations_solo']['machine_id']['Type'] = 'varchar';
+                $this->field['formation_autorisations_solo']['machine_id']['Subtype'] = 'selector';
+                $this->field['formation_autorisations_solo']['machine_id']['Selector'] = 'planeur_selector';
+                $this->field['formation_autorisations_solo']['machine_id']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['consignes']['Name'] = 'Consignes';
+                $this->field['formation_autorisations_solo']['consignes']['Type'] = 'text';
+                $this->field['formation_autorisations_solo']['consignes']['Mandatory'] = TRUE;
+                $this->field['formation_autorisations_solo']['consignes']['Attrs'] = array('minlength' => '250', 'rows' => '6');
+                $this->field['formation_autorisations_solo']['date_creation']['Name'] = 'Date création';
+                $this->field['formation_autorisations_solo']['date_creation']['Type'] = 'datetime';
+                $this->field['formation_autorisations_solo']['date_modification']['Name'] = 'Date modification';
+                $this->field['formation_autorisations_solo']['date_modification']['Type'] = 'datetime';
+
                 // $this->dump();
         }
 }

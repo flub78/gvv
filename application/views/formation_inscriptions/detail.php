@@ -461,6 +461,52 @@ function get_statut_badge($statut) {
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Autorisations de vol solo -->
+    <div class="card mb-3">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                <?= $this->lang->line("formation_autorisations_solo") ?> (<?= count($autorisations_solo) ?>)
+            </h5>
+        </div>
+        <div class="card-body">
+            <?php if (empty($autorisations_solo)): ?>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-info-circle" aria-hidden="true"></i>
+                    <?= $this->lang->line("formation_autorisations_solo_empty") ?>
+                </p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th><?= $this->lang->line("formation_autorisation_solo_date") ?></th>
+                                <th><?= $this->lang->line("formation_autorisation_solo_instructeur") ?></th>
+                                <th><?= $this->lang->line("formation_autorisation_solo_machine") ?></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($autorisations_solo as $autorisation): ?>
+                                <tr>
+                                    <td><?= date('d/m/Y', strtotime($autorisation['date_autorisation'])) ?></td>
+                                    <td><?= htmlspecialchars($autorisation['instructeur_prenom'] . ' ' . $autorisation['instructeur_nom']) ?></td>
+                                    <td><span class="badge bg-info"><?= htmlspecialchars($autorisation['machine_id']) ?></span></td>
+                                    <td>
+                                        <a href="<?= controller_url('formation_autorisations_solo') ?>/detail/<?= $autorisation['id'] ?>"
+                                           class="btn btn-sm btn-info" title="Voir les détails">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 
 <?php $this->load->view('bs_footer'); ?>

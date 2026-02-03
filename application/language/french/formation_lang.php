@@ -281,5 +281,40 @@ $lang['formation_form_optional'] = 'Champs optionnels';
 $lang['formation_form_save'] = 'Enregistrer';
 $lang['formation_form_cancel'] = 'Annuler';
 
+// Autorisations de vol solo
+$lang['formation_autorisation_solo'] = 'Autorisation de vol solo';
+$lang['formation_autorisations_solo'] = 'Autorisations de vol solo';
+$lang['formation_autorisations_solo_title'] = 'Autorisations de vol solo';
+$lang['formation_autorisations_solo_list'] = 'Liste des autorisations';
+$lang['formation_autorisations_solo_create'] = 'Nouvelle autorisation';
+$lang['formation_autorisations_solo_edit'] = 'Modifier l\'autorisation';
+$lang['formation_autorisations_solo_detail'] = 'Détail de l\'autorisation';
+$lang['formation_autorisations_solo_empty'] = 'Aucune autorisation de vol solo enregistrée.';
+$lang['formation_autorisations_solo_back'] = 'Retour aux autorisations';
+
+$lang['formation_autorisation_solo_formation'] = 'Formation';
+$lang['formation_autorisation_solo_eleve'] = 'Élève';
+$lang['formation_autorisation_solo_instructeur'] = 'Instructeur';
+$lang['formation_autorisation_solo_date'] = 'Date de l\'autorisation';
+$lang['formation_autorisation_solo_section'] = 'Section/Club';
+$lang['formation_autorisation_solo_machine'] = 'Aéronef autorisé';
+$lang['formation_autorisation_solo_consignes'] = 'Consignes';
+$lang['formation_autorisation_solo_consignes_help'] = 'Les consignes doivent contenir au moins 250 caractères.';
+$lang['formation_autorisation_solo_consignes_minlength'] = 'Les consignes doivent contenir au minimum 250 caractères.';
+$lang['formation_autorisation_solo_date_creation'] = 'Date de création';
+$lang['formation_autorisation_solo_date_modification'] = 'Dernière modification';
+
+$lang['formation_autorisation_solo_created'] = 'Autorisation de vol solo créée avec succès.';
+$lang['formation_autorisation_solo_updated'] = 'Autorisation de vol solo mise à jour avec succès.';
+$lang['formation_autorisation_solo_deleted'] = 'Autorisation de vol solo supprimée avec succès.';
+$lang['formation_autorisation_solo_create_error'] = 'Erreur lors de la création de l\'autorisation.';
+$lang['formation_autorisation_solo_update_error'] = 'Erreur lors de la mise à jour de l\'autorisation.';
+$lang['formation_autorisation_solo_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer cette autorisation de vol solo ?';
+$lang['formation_autorisation_solo_delete_confirm_btn'] = 'Confirmer la suppression';
+
+$lang['formation_inscription_not_found'] = 'Formation introuvable.';
+$lang['formation_acces_instructeur_requis'] = 'Accès réservé aux instructeurs.';
+$lang['formation_acces_refuse'] = 'Accès refusé.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/french/formation_lang.php */
