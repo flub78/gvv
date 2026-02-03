@@ -22,10 +22,10 @@ La compression est centralisée et réutilisable via la librairie `File_compress
 ### Option A — Réutiliser la table `attachments` et le CRUD existant
 **Principe** : conserver la table `attachments` et les écrans actuels, mais isoler les documents pilotes dans un sous-espace dédié au niveau du chemin de stockage.
 
-Exemple de structure :
+Exemple de structure (sans année, pour éviter les effets de bord liés aux durées de validité) :
 
 ```
-uploads/attachments/<année>/<section>/pilotes/<pilot_id>/...
+uploads/documents/pilotes/<pilot_id>/<type_document>/...
 ```
 
 **Avantages**
@@ -34,10 +34,11 @@ uploads/attachments/<année>/<section>/pilotes/<pilot_id>/...
 - Pas de nouvelle table.
 
 **Points d’attention**
-- Le filtrage par année dans [application/models/attachments_model.php](application/models/attachments_model.php) suppose la présence de `/attachments/<year>/` dans le chemin. Il faut donc rester sous `uploads/attachments/<année>/`.
+- Les documents pilotes ont des durées de validité multi-annuelles (1, 2, 5 ans). **Un découpage par année n’est pas adapté** et rend la navigation / maintenance plus complexe.
+- Le filtrage par année dans [application/models/attachments_model.php](application/models/attachments_model.php) suppose la présence de `/attachments/<year>/` dans le chemin. Pour les documents pilotes, il faut **éviter ce filtre** (ou prévoir un affichage dédié qui ne dépend pas du chemin).
 
 ### Option B — Créer un espace dédié hors `attachments`
-**Principe** : utiliser `File_manager` pour un espace autonome (ex. `uploads/pilotes_docs/…`), puis appliquer `File_compressor` après upload.
+**Principe** : utiliser `File_manager` pour un espace autonome (ex. `uploads/pilotes_docs/<pilot_id>/<type_document>/…`), puis appliquer `File_compressor` après upload.
 
 **Avantages**
 - Séparation claire du stockage.
@@ -47,9 +48,13 @@ uploads/attachments/<année>/<section>/pilotes/<pilot_id>/...
 - Nécessite un CRUD et/ou une table spécifique pour lister/relier les fichiers aux pilotes.
 
 ## Recommandation
-Si l’objectif est d’avoir **un stockage séparé mais réutilisable avec le même outil de gestion et la même logique d’archivage**, l’option A est la plus rapide et la plus cohérente avec l’existant. Elle garantit la réutilisation maximale du mécanisme actuel (UI + DB + compression).
+Pour les documents pilotes, **ne pas structurer par année**. Préférer un rangement par pilote et type de document (et éventuellement date d’expiration dans la base ou le nom de fichier).
+
+- Si l’objectif est de **réutiliser le CRUD actuel** avec un minimum de changements, l’option A reste viable, mais il faudra neutraliser le filtre par année et ajuster la logique de listing.
+- Si l’objectif est un **espace autonome clair**, l’option B est plus propre et évite les contraintes liées au modèle `attachments`.
 
 ## Points à clarifier avant implémentation
 - **Clé d’identification du pilote** : `membres.id` ou `membres.mlogin`.
 - **Besoin d’un écran dédié** pour les documents pilotes ou simple réutilisation de l’écran “attachements”.
-- **Structure finale souhaitée** du chemin de stockage (ex. inclure `pilotes/<id>` ou pas).
+- **Structure finale souhaitée** du chemin de stockage (ex. `pilotes/<id>/<type_document>`).
+- **Où stocker la date de validité** (champ en base, métadonnée associée, ou convention de nommage).
