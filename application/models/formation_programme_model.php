@@ -265,15 +265,15 @@ class Formation_programme_model extends Common_Model {
     }
 
     /**
-     * Get program title for display
+     * Get program image for display
      *
      * @param int $id Program ID
-     * @return string Program title or empty string
+     * @return string "CODE - titre" or empty string
      */
     public function image($id) {
         $program = $this->get($id);
         if ($program) {
-            return $program['titre'];
+            return $program['code'] . ' - ' . $program['titre'];
         }
         return '';
     }
