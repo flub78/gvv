@@ -166,7 +166,8 @@ class Attachments extends Gvv_Controller {
         // the purpose of attachment is to upload a file, so it's a fatal error if the file is not uploaded
         if (! $this->upload->do_upload("userfile")) {
             // erreur
-            $this->data['message'] = '<div class="text-danger">' . $this->upload->display_errors() . '</div>';
+            $this->data['message'] = '<div class="text-danger">' . $this->upload->display_errors() .
+                '<br><small>Chemin: ' . htmlspecialchars($dirname) . '</small></div>';
 
             $this->form_static_element($action);
             load_last_view($this->form_view, $this->data);
