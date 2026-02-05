@@ -139,6 +139,8 @@ $lang['gvv_comptes_collapse_all'] = "Alles inklappen";
 
 // Error messages
 $lang['gvv_comptes_error_account_not_found'] = "De rekening bestaat niet of behoort niet tot deze sectie";
+$lang['gvv_comptes_error_411_requires_pilote'] = "Een klantenrekening (411) moet gekoppeld zijn aan een lid";
+$lang['gvv_comptes_error_411_duplicate_in_section'] = "Dit lid heeft al een klantenrekening (411) in deze sectie";
 
 // Resultaat per secties
 $lang['gvv_comptes_title_resultat_par_sections'] = "Bedrijfsresultaat per secties";

@@ -42,7 +42,8 @@ class Comptes extends Gvv_Controller {
     // régles de validation
     protected $rules = [
         'club' => "callback_section_selected",
-        'masked' => "callback_check_masked_with_balance"
+        'masked' => "callback_check_masked_with_balance",
+        'pilote' => "callback_check_pilote_for_411"
     ];
     protected $filter_variables = array(
         'filter_active',
@@ -147,6 +148,54 @@ class Comptes extends Gvv_Controller {
             }
         }
         
+        return TRUE;
+    }
+
+    /**
+     * Validation callback for pilote field
+     * A 411 (client) account must be associated with a member
+     * Only one 411 account per member per section is allowed
+     */
+    public function check_pilote_for_411($pilote_value) {
+        $codec = $this->input->post('codec');
+
+        // Only validate for 411 accounts
+        if ($codec !== '411') {
+            return TRUE;
+        }
+
+        // For 411 accounts, pilote is required
+        if (empty($pilote_value)) {
+            $this->form_validation->set_message(
+                'check_pilote_for_411',
+                $this->lang->line('gvv_comptes_error_411_requires_pilote')
+            );
+            return FALSE;
+        }
+
+        // Check for duplicate: only one 411 account per member per section
+        $section_id = $this->session->userdata('section');
+        $compte_id = $this->input->post('id'); // For modification, exclude current account
+
+        $this->db->where('codec', '411');
+        $this->db->where('pilote', $pilote_value);
+        $this->db->where('club', $section_id);
+
+        // If modifying, exclude the current account from the check
+        if (!empty($compte_id)) {
+            $this->db->where('id !=', $compte_id);
+        }
+
+        $existing = $this->db->get('comptes')->row();
+
+        if ($existing) {
+            $this->form_validation->set_message(
+                'check_pilote_for_411',
+                $this->lang->line('gvv_comptes_error_411_duplicate_in_section')
+            );
+            return FALSE;
+        }
+
         return TRUE;
     }
 

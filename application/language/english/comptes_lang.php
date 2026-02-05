@@ -139,6 +139,8 @@ $lang['gvv_comptes_collapse_all'] = "Collapse All";
 
 // Error messages
 $lang['gvv_comptes_error_account_not_found'] = "The account does not exist or does not belong to this section";
+$lang['gvv_comptes_error_411_requires_pilote'] = "A client account (411) must be associated with a member";
+$lang['gvv_comptes_error_411_duplicate_in_section'] = "This member already has a client account (411) in this section";
 
 // Results by sections
 $lang['gvv_comptes_title_resultat_par_sections'] = "Operating result by sections";
