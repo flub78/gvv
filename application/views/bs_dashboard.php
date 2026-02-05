@@ -1015,21 +1015,12 @@ $this->lang->load('welcome');
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
-                        <i class="fas fa-user-secret text-warning"></i>
-                        <div class="card-title">Anonymiser données</div>
-                        <div class="card-text text-muted">Toutes les données</div>
-                        <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm"
-                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">Exécuter</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-success">
                         <i class="fas fa-file-archive text-success"></i>
                         <div class="card-title">Générer base de test</div>
                         <div class="card-text text-muted">Chiffrée pour CI/CD</div>
-                        <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm">Générer</a>
+                        <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm"
+                           onclick="return confirm('Êtes-vous sûr d\'être sur un environnement de développement ?');">Générer</a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
