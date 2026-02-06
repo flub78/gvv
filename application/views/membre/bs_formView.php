@@ -49,6 +49,9 @@ if ($action != CREATION) {
     if ($this->config->item('gestion_tickets')) {
         $bar[] = array('label' => $this->lang->line("membre_link_tickets"), 'url' => controller_url("tickets/page/0/$compte_ticket"));
     }
+    if ($this->config->item('gestion_documentaire')) {
+        $bar[] = array('label' => $this->lang->line("membre_link_documents"), 'url' => controller_url("archived_documents/pilot_documents/$mlogin"));
+    }
     echo br() . button_bar4($bar);
 }
 

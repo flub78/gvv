@@ -47,22 +47,22 @@ Authorization Controller
  [x] User roles encoding
 
 Authorization Integration
- [x] Grant and revoke role
- [x] Get user roles with scope
- [x] Has role methods
- [x] Add and remove permissions
- [x] Wildcard permissions
- [x] Data access rules with scopes
- [x] Can access data with row level security
- [x] Audit log records role grants
+ [ ] Grant and revoke role
+ [ ] Get user roles with scope
+ [ ] Has role methods
+ [ ] Add and remove permissions
+ [ ] Wildcard permissions
+ [ ] Data access rules with scopes
+ [ ] Can access data with row level security
+ [ ] Audit log records role grants
  [x] Audit log filtering
- [x] Permission caching
- [x] Migration status
- [x] Complete authorization workflow
+ [ ] Permission caching
+ [ ] Migration status
+ [ ] Complete authorization workflow
 
 Authorization Migration
- [x] Grant user role per section
- [x] New authorization bypasses legacy
+ [ ] Grant user role per section
+ [ ] New authorization bypasses legacy
 
 Balance Accordion Search
  [x] Accordion search java script logic
@@ -80,7 +80,7 @@ Categorie Model Integration
  [x] Transaction rollback
 
 Compta Saisie Cotisation
- [x] Validation rejects empty fields
+ [ ] Validation rejects empty fields
  [x] Validation rejects invalid montant
  [x] Validation rejects double cotisation
  [x] Process saisie cotisation creates two ecritures

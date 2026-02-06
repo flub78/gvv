@@ -73,9 +73,8 @@ $this->lang->load('archived_documents');
             <tr>
                 <td><?= htmlspecialchars($doc['type_name']) ?></td>
                 <td>
-                    <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>">
-                        <?= htmlspecialchars($doc['original_filename']) ?>
-                    </a>
+                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
                 </td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -91,6 +90,9 @@ $this->lang->load('archived_documents');
                     $status_label = Archived_documents_model::status_label($status);
                     ?>
                     <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+                    <?php if (!empty($doc['rejection_reason'])): ?>
+                        <span class="text-danger small d-block"><?= htmlspecialchars($doc['rejection_reason']) ?></span>
+                    <?php endif; ?>
                     <?php if ($doc['alarm_disabled']): ?>
                         <span class="badge bg-secondary" title="<?= $this->lang->line('archived_documents_alarm_disabled') ?>">
                             <i class="fas fa-bell-slash"></i>
@@ -111,7 +113,7 @@ $this->lang->load('archived_documents');
                        onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
                         <i class="fas fa-trash"></i>
                     </a>
-                    <?php if (isset($is_admin) && $is_admin): ?>
+                    <?php if (isset($is_bureau) && $is_bureau): ?>
                     <button type="button" class="btn btn-sm btn-outline-warning toggle-alarm"
                             data-id="<?= $doc['id'] ?>"
                             data-disabled="<?= $doc['alarm_disabled'] ?>"
@@ -133,7 +135,7 @@ $this->lang->load('archived_documents');
 
 </div>
 
-<?php if (isset($is_admin) && $is_admin): ?>
+<?php if (isset($is_bureau) && $is_bureau): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.toggle-alarm').forEach(function(btn) {

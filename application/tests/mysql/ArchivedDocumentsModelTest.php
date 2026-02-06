@@ -176,6 +176,45 @@ class ArchivedDocumentsModelTest extends TestCase
         $this->assertEquals(Archived_documents_model::STATUS_ACTIVE, $status);
     }
 
+    public function testArchivedDocumentsModel_ComputeExpirationStatus_Pending()
+    {
+        $doc = array(
+            'valid_until' => date('Y-m-d', strtotime('+1 year')),
+            'alert_days_before' => 30,
+            'validation_status' => 'pending'
+        );
+
+        $status = $this->archived_documents_model->compute_expiration_status($doc);
+
+        $this->assertEquals(Archived_documents_model::STATUS_PENDING, $status);
+    }
+
+    public function testArchivedDocumentsModel_ComputeExpirationStatus_Rejected()
+    {
+        $doc = array(
+            'valid_until' => date('Y-m-d', strtotime('+1 year')),
+            'alert_days_before' => 30,
+            'validation_status' => 'rejected'
+        );
+
+        $status = $this->archived_documents_model->compute_expiration_status($doc);
+
+        $this->assertEquals(Archived_documents_model::STATUS_REJECTED, $status);
+    }
+
+    public function testArchivedDocumentsModel_ComputeExpirationStatus_Approved()
+    {
+        $doc = array(
+            'valid_until' => date('Y-m-d', strtotime('+1 year')),
+            'alert_days_before' => 30,
+            'validation_status' => 'approved'
+        );
+
+        $status = $this->archived_documents_model->compute_expiration_status($doc);
+
+        $this->assertEquals(Archived_documents_model::STATUS_ACTIVE, $status);
+    }
+
     public function testArchivedDocumentsModel_StatusBadgeClass()
     {
         $this->assertEquals('bg-success',
@@ -186,6 +225,10 @@ class ArchivedDocumentsModelTest extends TestCase
             Archived_documents_model::status_badge_class(Archived_documents_model::STATUS_EXPIRED));
         $this->assertEquals('bg-secondary',
             Archived_documents_model::status_badge_class(Archived_documents_model::STATUS_MISSING));
+        $this->assertEquals('bg-info text-dark',
+            Archived_documents_model::status_badge_class(Archived_documents_model::STATUS_PENDING));
+        $this->assertEquals('bg-danger',
+            Archived_documents_model::status_badge_class(Archived_documents_model::STATUS_REJECTED));
     }
 
     public function testArchivedDocumentsModel_StatusLabel()
@@ -198,6 +241,10 @@ class ArchivedDocumentsModelTest extends TestCase
             Archived_documents_model::status_label(Archived_documents_model::STATUS_EXPIRED));
         $this->assertEquals('Manquant',
             Archived_documents_model::status_label(Archived_documents_model::STATUS_MISSING));
+        $this->assertEquals('En attente',
+            Archived_documents_model::status_label(Archived_documents_model::STATUS_PENDING));
+        $this->assertEquals('Refuse',
+            Archived_documents_model::status_label(Archived_documents_model::STATUS_REJECTED));
     }
 
     public function testArchivedDocumentsModel_GetExpiredDocuments_ReturnsArray()

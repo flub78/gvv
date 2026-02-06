@@ -38,10 +38,20 @@ $status_label = Archived_documents_model::status_label($status);
        onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
         <i class="fas fa-trash"></i> <?= $this->lang->line('archived_documents_delete') ?>
     </a>
-    <?php if (isset($is_admin) && $is_admin): ?>
+    <?php if (isset($is_bureau) && $is_bureau): ?>
     <button type="button" class="btn btn-sm btn-warning toggle-alarm" data-id="<?= $document['id'] ?>">
         <i class="fas <?= $document['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
         <?= $document['alarm_disabled'] ? $this->lang->line('archived_documents_enable_alarm') : $this->lang->line('archived_documents_disable_alarm') ?>
+    </button>
+    <?php endif; ?>
+    <?php if (isset($is_admin) && $is_admin && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
+    <a href="<?= site_url('archived_documents/approve/' . $document['id']) ?>"
+       class="btn btn-sm btn-success"
+       onclick="return confirm('<?= $this->lang->line('archived_documents_approve') ?> ?');">
+        <i class="fas fa-check"></i> <?= $this->lang->line('archived_documents_approve') ?>
+    </a>
+    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+        <i class="fas fa-times"></i> <?= $this->lang->line('archived_documents_reject') ?>
     </button>
     <?php endif; ?>
 </div>
@@ -114,6 +124,34 @@ $status_label = Archived_documents_model::status_label($status);
                         <td><?= number_format($document['file_size'] / 1024, 1) ?> Ko</td>
                     </tr>
                     <?php endif; ?>
+                    <?php if (isset($document['validation_status']) && $document['validation_status'] !== 'approved'): ?>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_status') ?></th>
+                        <td>
+                            <span class="badge <?= Archived_documents_model::status_badge_class($document['validation_status'] === 'pending' ? Archived_documents_model::STATUS_PENDING : Archived_documents_model::STATUS_REJECTED) ?>">
+                                <?= Archived_documents_model::status_label($document['validation_status'] === 'pending' ? Archived_documents_model::STATUS_PENDING : Archived_documents_model::STATUS_REJECTED) ?>
+                            </span>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (!empty($document['validated_by'])): ?>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_validated_by') ?></th>
+                        <td><?= htmlspecialchars($document['validated_by']) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (!empty($document['validated_at'])): ?>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_validated_at') ?></th>
+                        <td><?= date('d/m/Y H:i', strtotime($document['validated_at'])) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if (!empty($document['rejection_reason'])): ?>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_rejection_reason') ?></th>
+                        <td><span class="text-danger"><?= htmlspecialchars($document['rejection_reason']) ?></span></td>
+                    </tr>
+                    <?php endif; ?>
                 </table>
             </div>
         </div>
@@ -127,31 +165,15 @@ $status_label = Archived_documents_model::status_label($status);
             </div>
             <div class="card-body text-center">
                 <?php
-                $mime = $document['mime_type'];
-                $file_path = $document['file_path'];
-                $file_url = base_url() . ltrim($file_path, './');
+                $preview_url = site_url('archived_documents/preview/' . $document['id']);
                 ?>
-                <?php if (strpos($mime, 'image/') === 0): ?>
-                    <img src="<?= $file_url ?>" alt="<?= $this->lang->line('archived_documents_preview') ?>" class="img-fluid" style="max-height: 400px;">
-                <?php elseif ($mime === 'application/pdf'): ?>
-                    <?php
-                    // Check for thumbnail
-                    $thumb_path = preg_replace('/\.pdf$/i', '_thumb.jpg', $file_path);
-                    if (file_exists($thumb_path)):
-                        $thumb_url = base_url() . ltrim($thumb_path, './');
-                    ?>
-                        <img src="<?= $thumb_url ?>" alt="<?= $this->lang->line('archived_documents_preview') ?> PDF" class="img-fluid mb-2" style="max-height: 300px;">
-                        <br>
-                    <?php endif; ?>
-                    <a href="<?= $file_url ?>" target="_blank" class="btn btn-outline-primary">
-                        <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_open_pdf') ?>
-                    </a>
-                <?php else: ?>
-                    <p class="text-muted"><?= $this->lang->line('archived_documents_preview_not_available') ?></p>
-                    <a href="<?= site_url('archived_documents/download/' . $document['id']) ?>" class="btn btn-primary">
-                        <i class="fas fa-download"></i> <?= $this->lang->line('archived_documents_download') ?>
-                    </a>
-                <?php endif; ?>
+                <style>.doc-preview-large .doc-thumbnail { width: 300px; max-height: 400px; } .doc-preview-large .fas { font-size: 5em; }</style>
+                <div class="mb-3 doc-preview-large">
+                    <?= attachment($document['id'], $document['file_path'], $preview_url) ?>
+                </div>
+                <a href="<?= $preview_url ?>" class="btn btn-outline-primary">
+                    <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_preview') ?>
+                </a>
             </div>
         </div>
     </div>
@@ -208,7 +230,33 @@ $status_label = Archived_documents_model::status_label($status);
 
 </div>
 
-<?php if (isset($is_admin) && $is_admin): ?>
+<?php if (isset($is_admin) && $is_admin && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
+<!-- Reject modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="<?= site_url('archived_documents/reject/' . $document['id']) ?>">
+                <div class="modal-header">
+                    <h5 class="modal-title"><?= $this->lang->line('archived_documents_reject') ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label"><?= $this->lang->line('archived_documents_rejection_reason') ?></label>
+                        <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('archived_documents_back') ?></button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-times"></i> <?= $this->lang->line('archived_documents_reject') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (isset($is_bureau) && $is_bureau): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.toggle-alarm').forEach(function(btn) {

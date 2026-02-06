@@ -39,6 +39,11 @@ class Document_types extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
+        // Check if feature is enabled
+        if (!$this->config->item('gestion_documentaire')) {
+            show_404();
+        }
+
         // Authorization: Code-based (v2.0) - only for migrated users
         if ($this->use_new_auth) {
             $this->require_roles(['ca']);

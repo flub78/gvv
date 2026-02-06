@@ -18,6 +18,7 @@ $lang['membre_link_certificats'] = "Certificates";
 $lang['membre_link_avion'] = "Airplane flights";
 $lang['membre_link_glider'] = "Glider flights";
 $lang['membre_link_tickets'] = "Tickets";
+$lang['membre_link_documents'] = "My documents";
 
 $lang['membre_tooltip_active'] = "Active pilots are shown in the menus";
 

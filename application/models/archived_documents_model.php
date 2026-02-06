@@ -29,6 +29,10 @@ class Archived_documents_model extends Common_Model {
     const STATUS_EXPIRED = 'expired';
     const STATUS_MISSING = 'missing';
 
+    // Validation status constants
+    const STATUS_PENDING = 'pending';
+    const STATUS_REJECTED = 'rejected';
+
     /**
      * Constructor
      */
@@ -50,6 +54,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.uploaded_at, archived_documents.valid_from,
             archived_documents.valid_until, archived_documents.alarm_disabled,
             archived_documents.is_current_version,
+            archived_documents.file_path, archived_documents.mime_type,
             document_types.name as type_name, document_types.code as type_code,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
@@ -172,8 +177,39 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
+     * Returns documents not associated with any pilot (pilot_login IS NULL)
+     * These are club or section documents without pilot assignment
+     * @param bool $current_only Only return current versions
+     * @return array
+     */
+    public function get_unassociated_documents($current_only = true) {
+        $this->db->select('archived_documents.*, document_types.name as type_name,
+            document_types.code as type_code, sections.nom as section_name');
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+        $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
+        $this->db->where('archived_documents.pilot_login IS NULL');
+
+        if ($current_only) {
+            $this->db->where('archived_documents.is_current_version', 1);
+        }
+
+        $this->db->order_by('document_types.display_order', 'asc');
+        $this->db->order_by('archived_documents.uploaded_at', 'desc');
+
+        $query = $this->db->get();
+        $results = $this->get_to_array($query);
+
+        foreach ($results as &$row) {
+            $row['expiration_status'] = $this->compute_expiration_status($row);
+        }
+
+        return $results;
+    }
+
+    /**
      * Returns expired documents (for admin list)
-     * Excludes documents with disabled alarms
+     * Excludes documents with disabled alarms and non-approved documents
      * @return array
      */
     public function get_expired_documents() {
@@ -185,6 +221,7 @@ class Archived_documents_model extends Common_Model {
         $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
         $this->db->where('archived_documents.is_current_version', 1);
         $this->db->where('archived_documents.alarm_disabled', 0);
+        $this->db->where('archived_documents.validation_status', 'approved');
         $this->db->where('archived_documents.valid_until IS NOT NULL', null, false);
         $this->db->where('archived_documents.valid_until <', date('Y-m-d'));
         $this->db->order_by('archived_documents.valid_until', 'asc');
@@ -201,7 +238,7 @@ class Archived_documents_model extends Common_Model {
 
     /**
      * Returns documents expiring soon (for notifications)
-     * Excludes documents with disabled alarms
+     * Excludes documents with disabled alarms and non-approved documents
      * @return array
      */
     public function get_expiring_soon_documents() {
@@ -212,6 +249,7 @@ class Archived_documents_model extends Common_Model {
                 LEFT JOIN membres m ON ad.pilot_login = m.mlogin
                 WHERE ad.is_current_version = 1
                 AND ad.alarm_disabled = 0
+                AND ad.validation_status = 'approved'
                 AND ad.valid_until IS NOT NULL
                 AND ad.valid_until >= CURDATE()
                 AND ad.valid_until <= DATE_ADD(CURDATE(), INTERVAL dt.alert_days_before DAY)
@@ -243,8 +281,9 @@ class Archived_documents_model extends Common_Model {
         // Index pilot docs by type_id
         $pilot_type_ids = array();
         foreach ($pilot_docs as $doc) {
-            // Only count as valid if not expired
-            if ($doc['expiration_status'] !== self::STATUS_EXPIRED) {
+            // Only count as valid if not expired and approved
+            $is_approved = !isset($doc['validation_status']) || $doc['validation_status'] === 'approved';
+            if ($doc['expiration_status'] !== self::STATUS_EXPIRED && $is_approved) {
                 $pilot_type_ids[$doc['document_type_id']] = true;
             }
         }
@@ -280,6 +319,16 @@ class Archived_documents_model extends Common_Model {
      * @return string One of STATUS_* constants
      */
     public function compute_expiration_status($doc) {
+        // Check validation status first
+        if (isset($doc['validation_status'])) {
+            if ($doc['validation_status'] === 'pending') {
+                return self::STATUS_PENDING;
+            }
+            if ($doc['validation_status'] === 'rejected') {
+                return self::STATUS_REJECTED;
+            }
+        }
+
         // No expiration date = always active
         if (empty($doc['valid_until'])) {
             return self::STATUS_ACTIVE;
@@ -334,6 +383,11 @@ class Archived_documents_model extends Common_Model {
         // Set defaults
         $data['is_current_version'] = 1;
         $data['uploaded_at'] = date('Y-m-d H:i:s');
+
+        // Set validation_status if not already set
+        if (!isset($data['validation_status'])) {
+            $data['validation_status'] = 'pending';
+        }
 
         return $this->create($data);
     }
@@ -423,6 +477,65 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
+     * Approve a pending document
+     * @param int $id Document ID
+     * @param string $validated_by Login of the user who approved
+     * @return bool Success
+     */
+    public function approve_document($id, $validated_by) {
+        $this->db->where('id', $id);
+        $this->db->where('validation_status', 'pending');
+        return $this->db->update($this->table, array(
+            'validation_status' => 'approved',
+            'validated_by' => $validated_by,
+            'validated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+
+    /**
+     * Reject a pending document
+     * @param int $id Document ID
+     * @param string $validated_by Login of the user who rejected
+     * @param string $reason Rejection reason
+     * @return bool Success
+     */
+    public function reject_document($id, $validated_by, $reason = '') {
+        $this->db->where('id', $id);
+        $this->db->where('validation_status', 'pending');
+        return $this->db->update($this->table, array(
+            'validation_status' => 'rejected',
+            'validated_by' => $validated_by,
+            'validated_at' => date('Y-m-d H:i:s'),
+            'rejection_reason' => $reason
+        ));
+    }
+
+    /**
+     * Returns all pending documents (for admin validation list)
+     * @return array
+     */
+    public function get_pending_documents() {
+        $this->db->select('archived_documents.*, document_types.name as type_name,
+            document_types.code as type_code,
+            membres.mnom as pilot_nom, membres.mprenom as pilot_prenom');
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+        $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
+        $this->db->where('archived_documents.validation_status', 'pending');
+        $this->db->where('archived_documents.is_current_version', 1);
+        $this->db->order_by('archived_documents.uploaded_at', 'asc');
+
+        $query = $this->db->get();
+        $results = $this->get_to_array($query);
+
+        foreach ($results as &$row) {
+            $row['expiration_status'] = self::STATUS_PENDING;
+        }
+
+        return $results;
+    }
+
+    /**
      * Returns a human-readable representation of a document
      * @param mixed $key Document ID
      * @return string
@@ -453,6 +566,10 @@ class Archived_documents_model extends Common_Model {
                 return 'bg-danger';
             case self::STATUS_MISSING:
                 return 'bg-secondary';
+            case self::STATUS_PENDING:
+                return 'bg-info text-dark';
+            case self::STATUS_REJECTED:
+                return 'bg-danger';
             default:
                 return 'bg-light text-dark';
         }
@@ -464,18 +581,34 @@ class Archived_documents_model extends Common_Model {
      * @return string
      */
     public static function status_label($status) {
-        switch ($status) {
-            case self::STATUS_ACTIVE:
-                return 'Valide';
-            case self::STATUS_EXPIRING_SOON:
-                return 'Expire bientot';
-            case self::STATUS_EXPIRED:
-                return 'Expire';
-            case self::STATUS_MISSING:
-                return 'Manquant';
-            default:
-                return 'Inconnu';
+        $CI =& get_instance();
+        $lang_keys = array(
+            self::STATUS_ACTIVE => 'archived_documents_status_active',
+            self::STATUS_EXPIRING_SOON => 'archived_documents_status_expiring_soon',
+            self::STATUS_EXPIRED => 'archived_documents_status_expired',
+            self::STATUS_MISSING => 'archived_documents_status_missing',
+            self::STATUS_PENDING => 'archived_documents_status_pending',
+            self::STATUS_REJECTED => 'archived_documents_status_rejected',
+        );
+        $fallbacks = array(
+            self::STATUS_ACTIVE => 'Valide',
+            self::STATUS_EXPIRING_SOON => 'Expire bientot',
+            self::STATUS_EXPIRED => 'Expire',
+            self::STATUS_MISSING => 'Manquant',
+            self::STATUS_PENDING => 'En attente',
+            self::STATUS_REJECTED => 'Refuse',
+        );
+
+        if (!isset($lang_keys[$status])) {
+            return 'Inconnu';
         }
+
+        $translated = $CI->lang->line($lang_keys[$status]);
+        // lang->line returns FALSE or the key itself when not found
+        if ($translated && $translated !== $lang_keys[$status]) {
+            return $translated;
+        }
+        return $fallbacks[$status];
     }
 }
 

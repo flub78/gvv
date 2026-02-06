@@ -34,6 +34,11 @@ $lang['archived_documents_toggle_alarm'] = 'Toggle Alert';
 
 $lang['archived_documents_pilot'] = 'Pilot';
 $lang['archived_documents_section'] = 'Section';
+$lang['archived_documents_unassociated'] = 'Club / section documents (not assigned to a pilot)';
+$lang['archived_documents_pilot_documents'] = 'Documents by pilot';
+$lang['archived_documents_select_pilot'] = 'Select a pilot';
+$lang['archived_documents_show'] = 'Show';
+$lang['archived_documents_documents_of'] = 'Documents of';
 
 $lang['archived_documents_versions'] = 'Version History';
 $lang['archived_documents_current_version'] = 'Current Version';
@@ -59,6 +64,16 @@ $lang['archived_documents_version'] = 'Version';
 $lang['archived_documents_days_remaining'] = 'Days Remaining';
 $lang['archived_documents_days_expired'] = 'Expired Since';
 $lang['archived_documents_file_formats'] = 'Accepted formats: PDF, JPG, PNG, GIF, DOC(X), XLS(X), PPT(X), ODT, ODS, ODP, HTML. Max size: 10 MB';
+
+$lang['archived_documents_status_pending'] = 'Pending Validation';
+$lang['archived_documents_status_rejected'] = 'Rejected';
+$lang['archived_documents_approve'] = 'Approve';
+$lang['archived_documents_reject'] = 'Reject';
+$lang['archived_documents_rejection_reason'] = 'Rejection Reason';
+$lang['archived_documents_pending_documents'] = 'Documents Pending Validation';
+$lang['archived_documents_validated_by'] = 'Validated By';
+$lang['archived_documents_validated_at'] = 'Validated On';
+$lang['archived_documents_pending_notice'] = 'Your document is pending validation by an administrator';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

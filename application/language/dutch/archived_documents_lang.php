@@ -34,6 +34,11 @@ $lang['archived_documents_toggle_alarm'] = 'Waarschuwing Schakelen';
 
 $lang['archived_documents_pilot'] = 'Piloot';
 $lang['archived_documents_section'] = 'Sectie';
+$lang['archived_documents_unassociated'] = 'Club- / sectiedocumenten (niet toegewezen aan een piloot)';
+$lang['archived_documents_pilot_documents'] = 'Documenten per piloot';
+$lang['archived_documents_select_pilot'] = 'Selecteer een piloot';
+$lang['archived_documents_show'] = 'Tonen';
+$lang['archived_documents_documents_of'] = 'Documenten van';
 
 $lang['archived_documents_versions'] = 'Versiegeschiedenis';
 $lang['archived_documents_current_version'] = 'Huidige Versie';
@@ -59,6 +64,16 @@ $lang['archived_documents_version'] = 'Versie';
 $lang['archived_documents_days_remaining'] = 'Resterende Dagen';
 $lang['archived_documents_days_expired'] = 'Verlopen Sinds';
 $lang['archived_documents_file_formats'] = 'Geaccepteerde formaten: PDF, JPG, PNG, GIF, DOC(X), XLS(X), PPT(X), ODT, ODS, ODP, HTML. Max grootte: 10 MB';
+
+$lang['archived_documents_status_pending'] = 'Wacht op validatie';
+$lang['archived_documents_status_rejected'] = 'Afgewezen';
+$lang['archived_documents_approve'] = 'Goedkeuren';
+$lang['archived_documents_reject'] = 'Afwijzen';
+$lang['archived_documents_rejection_reason'] = 'Reden van afwijzing';
+$lang['archived_documents_pending_documents'] = 'Documenten te valideren';
+$lang['archived_documents_validated_by'] = 'Gevalideerd door';
+$lang['archived_documents_validated_at'] = 'Gevalideerd op';
+$lang['archived_documents_pending_notice'] = 'Uw document wacht op validatie door een beheerder';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

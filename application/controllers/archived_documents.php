@@ -48,6 +48,12 @@ class Archived_documents extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Check if feature is enabled
+        if (!$this->config->item('gestion_documentaire')) {
+            show_404();
+        }
+
         $this->lang->load('archived_documents');
         $this->load->model('document_types_model');
         $this->load->model('membres_model');
@@ -55,10 +61,14 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Default page - shows current user's documents
+     * Default page - admins see admin view, pilots see their documents
      */
     function index() {
-        $this->my_documents();
+        if ($this->_is_admin()) {
+            $this->page();
+        } else {
+            $this->my_documents();
+        }
     }
 
     /**
@@ -70,15 +80,18 @@ class Archived_documents extends Gvv_Controller {
         $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login, $this->session->userdata('section'));
         $this->data['controller'] = $this->controller;
-        $this->data['is_admin'] = $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
+        $this->data['is_admin'] = $this->_is_admin();
+        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
         $this->data['pilot_login'] = $pilot_login;
-        $this->data['title'] = 'Mes documents';
+
+        $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
+        $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
 
         load_last_view($this->controller . '/my_documents', $this->data);
     }
 
     /**
-     * Shows all documents (admin only)
+     * Admin view: unassociated documents + pilot selector
      */
     function page($premier = 0, $message = '', $selection = array()) {
         // Check admin access
@@ -89,11 +102,28 @@ class Archived_documents extends Gvv_Controller {
 
         $this->push_return_url("archived_documents page");
 
-        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
+        // Unassociated documents (no pilot)
+        $this->data['unassociated_documents'] = $this->gvv_model->get_unassociated_documents();
+
+        // Pilot selector
+        $this->data['pilot_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
+
+        // Selected pilot documents
+        $selected_pilot = $this->input->get('pilot');
+        $this->data['selected_pilot'] = $selected_pilot;
+        if ($selected_pilot) {
+            $this->data['pilot_documents'] = $this->gvv_model->get_pilot_documents($selected_pilot);
+            $this->data['pilot_missing'] = $this->gvv_model->get_missing_documents($selected_pilot, $this->session->userdata('section'));
+            $pilot = $this->membres_model->get_by_id('mlogin', $selected_pilot);
+            $this->data['pilot_name'] = $pilot ? $pilot['mprenom'] . ' ' . $pilot['mnom'] : $selected_pilot;
+        }
+
+        // Count pending documents for badge
+        $pending_docs = $this->gvv_model->get_pending_documents();
+        $this->data['pending_count'] = count($pending_docs);
+
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
-        $this->data['count'] = $this->gvv_model->count();
-        $this->data['premier'] = $premier;
         $this->data['message'] = $message;
         $this->data['is_admin'] = true;
         $this->data['has_modification_rights'] = true;
@@ -134,11 +164,12 @@ class Archived_documents extends Gvv_Controller {
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
+        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
         $this->data['pilot_login'] = $pilot_login;
 
         // Get pilot info
         $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
-        $this->data['title'] = 'Documents de ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
+        $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
 
         load_last_view($this->controller . '/my_documents', $this->data);
     }
@@ -262,6 +293,9 @@ class Archived_documents extends Gvv_Controller {
             $this->pdf_thumbnail->generate($file_path);
         }
 
+        // Determine validation status: admin/CA = approved, others = pending
+        $validation_status = $this->_is_admin() ? 'approved' : 'pending';
+
         // Prepare document data
         $doc_data = array(
             'document_type_id' => $document_type_id,
@@ -274,17 +308,30 @@ class Archived_documents extends Gvv_Controller {
             'valid_from' => mysql_date($this->input->post('valid_from')) ?: null,
             'valid_until' => mysql_date($this->input->post('valid_until')) ?: null,
             'file_size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
-            'mime_type' => $mime
+            'mime_type' => $mime,
+            'validation_status' => $validation_status
         );
+
+        // If admin approves directly, record validation info
+        if ($validation_status === 'approved') {
+            $doc_data['validated_by'] = $this->dx_auth->get_username();
+            $doc_data['validated_at'] = date('Y-m-d H:i:s');
+        }
 
         // Create document (handles versioning automatically)
         $doc_id = $this->gvv_model->create_document($doc_data);
 
         if ($doc_id) {
-            $this->session->set_flashdata('message', '<div class="alert alert-success">Document ajoute avec succes</div>');
+            if ($validation_status === 'pending') {
+                $this->session->set_flashdata('message', '<div class="alert alert-info"><i class="fas fa-clock"></i> ' . $this->lang->line('archived_documents_pending_notice') . '</div>');
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-success">Document ajoute avec succes</div>');
+            }
             redirect('archived_documents/my_documents');
         } else {
-            $this->data['message'] = '<div class="alert alert-danger">Erreur lors de l\'enregistrement du document</div>';
+            $db_error = $this->db->error();
+            $detail = !empty($db_error['message']) ? htmlspecialchars($db_error['message']) : 'create_document a retourné false';
+            $this->data['message'] = '<div class="alert alert-danger">Erreur lors de l\'enregistrement du document : ' . $detail . '</div>';
             $this->form_static_element($action);
             load_last_view($this->form_view, $this->data);
         }
@@ -313,8 +360,80 @@ class Archived_documents extends Gvv_Controller {
         $this->data['versions'] = $this->gvv_model->get_version_history($id);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
+        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
 
         load_last_view($this->controller . '/view', $this->data);
+    }
+
+    /**
+     * Admin view: documents pending validation
+     */
+    function pending() {
+        if (!$this->_is_admin()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $this->data['pending_documents'] = $this->gvv_model->get_pending_documents();
+        $this->data['controller'] = $this->controller;
+        $this->data['is_admin'] = true;
+
+        load_last_view($this->controller . '/bs_pending', $this->data);
+    }
+
+    /**
+     * Approve a pending document (admin/CA only)
+     */
+    function approve($id) {
+        if (!$this->_is_admin()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc || $doc['validation_status'] !== 'pending') {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
+            redirect('archived_documents/pending');
+            return;
+        }
+
+        $result = $this->gvv_model->approve_document($id, $this->dx_auth->get_username());
+
+        if ($result) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success"><i class="fas fa-check"></i> Document validé avec succès</div>');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Erreur lors de la validation</div>');
+        }
+
+        redirect('archived_documents/pending');
+    }
+
+    /**
+     * Reject a pending document (admin/CA only)
+     */
+    function reject($id) {
+        if (!$this->_is_admin()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc || $doc['validation_status'] !== 'pending') {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
+            redirect('archived_documents/pending');
+            return;
+        }
+
+        $reason = $this->input->post('rejection_reason');
+        $result = $this->gvv_model->reject_document($id, $this->dx_auth->get_username(), $reason);
+
+        if ($result) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success"><i class="fas fa-times"></i> Document refusé</div>');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Erreur lors du refus</div>');
+        }
+
+        redirect('archived_documents/pending');
     }
 
     /**
@@ -354,11 +473,11 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Toggle alarm for a document (admin only, AJAX)
+     * Toggle alarm for a document (bureau only, AJAX)
      */
     function toggle_alarm($id) {
-        // Check admin access
-        if (!$this->_is_admin()) {
+        // Check bureau access
+        if (!$this->dx_auth->is_role('bureau', true, true)) {
             echo json_encode(array('success' => false, 'error' => 'Acces refuse'));
             return;
         }
@@ -402,6 +521,42 @@ class Archived_documents extends Gvv_Controller {
         // Force download
         $this->load->helper('download');
         force_download($doc['original_filename'], file_get_contents($doc['file_path']));
+    }
+
+    /**
+     * Preview/display a document inline in the browser
+     * The browser will display it if it supports the MIME type, otherwise it will offer to download.
+     */
+    function preview($id) {
+        $doc = $this->gvv_model->get_by_id('id', $id);
+
+        if (!$doc) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        // Security check
+        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        if (!file_exists($doc['file_path'])) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Fichier non trouve</div>');
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $mime_type = $doc['mime_type'];
+        if (!$mime_type) {
+            $mime_type = mime_content_type($doc['file_path']);
+        }
+
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . basename($doc['original_filename']) . '"');
+        header('Content-Length: ' . filesize($doc['file_path']));
+        readfile($doc['file_path']);
+        exit;
     }
 
     /**

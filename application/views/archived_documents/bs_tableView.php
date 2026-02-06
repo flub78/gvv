@@ -1,7 +1,7 @@
 <!-- VIEW: application/views/archived_documents/bs_tableView.php -->
 <?php
 /**
- * Table view for all documents (admin only)
+ * Admin view for documents: unassociated documents + pilot selector
  */
 
 $this->load->view('bs_header');
@@ -26,95 +26,212 @@ $this->lang->load('archived_documents');
     <a href="<?= site_url('archived_documents/expired') ?>" class="btn btn-sm btn-outline-warning">
         <i class="fas fa-exclamation-triangle"></i> <?= $this->lang->line('archived_documents_expired') ?>
     </a>
+    <a href="<?= site_url('archived_documents/pending') ?>" class="btn btn-sm btn-outline-info">
+        <i class="fas fa-clock"></i> <?= $this->lang->line('archived_documents_pending_documents') ?>
+        <?php if (!empty($pending_count)): ?>
+            <span class="badge bg-danger"><?= $pending_count ?></span>
+        <?php endif; ?>
+    </a>
     <a href="<?= site_url('archived_documents/create') ?>" class="btn btn-sm btn-success">
         <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
     </a>
 </div>
 
-<?php if (!empty($select_result)): ?>
-<div class="table-responsive">
-    <table class="table table-striped table-hover datatable">
-        <thead>
-            <tr>
-                <th><?= $this->lang->line('archived_documents_pilot') ?></th>
-                <th><?= $this->lang->line('archived_documents_type') ?></th>
-                <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
-                <th><?= $this->lang->line('archived_documents_status') ?></th>
-                <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($select_result as $doc): ?>
-            <tr>
-                <td>
-                    <?php if ($doc['pilot_login']): ?>
-                    <a href="<?= site_url('archived_documents/pilot_documents/' . $doc['pilot_login']) ?>">
-                        <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
-                    </a>
-                    <?php elseif ($doc['section_name']): ?>
-                        <span class="text-muted"><?= htmlspecialchars($doc['section_name']) ?></span>
-                    <?php else: ?>
-                        <span class="text-muted">Club</span>
-                    <?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars($doc['type_name']) ?></td>
-                <td>
-                    <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>">
-                        <?= htmlspecialchars($doc['original_filename']) ?>
-                    </a>
-                </td>
-                <td>
-                    <?php if ($doc['valid_until']): ?>
-                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
-                    <?php else: ?>
-                        <span class="text-muted">-</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php
-                    $status = $doc['expiration_status'];
-                    $badge_class = Archived_documents_model::status_badge_class($status);
-                    $status_label = Archived_documents_model::status_label($status);
-                    ?>
-                    <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
-                    <?php if ($doc['alarm_disabled']): ?>
-                        <span class="badge bg-secondary" title="<?= $this->lang->line('archived_documents_alarm_disabled') ?>">
-                            <i class="fas fa-bell-slash"></i>
-                        </span>
-                    <?php endif; ?>
-                </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
-                <td>
-                    <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
-                        <i class="fas fa-download"></i>
-                    </a>
-                    <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
-                       class="btn btn-sm btn-outline-danger"
-                       title="<?= $this->lang->line('archived_documents_delete') ?>"
-                       onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
-                        <i class="fas fa-trash"></i>
-                    </a>
-                    <button type="button" class="btn btn-sm btn-outline-warning toggle-alarm"
-                            data-id="<?= $doc['id'] ?>"
-                            title="<?= $this->lang->line('archived_documents_toggle_alarm') ?>">
-                        <i class="fas <?= $doc['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
-                    </button>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+<!-- Section 1: Unassociated documents (no pilot) -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-building"></i> <?= $this->lang->line('archived_documents_unassociated') ?></h5>
+    </div>
+    <div class="card-body p-0">
+        <?php if (!empty($unassociated_documents)): ?>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_type') ?></th>
+                        <th><?= $this->lang->line('archived_documents_section') ?></th>
+                        <th><?= $this->lang->line('archived_documents_file') ?></th>
+                        <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
+                        <th><?= $this->lang->line('archived_documents_status') ?></th>
+                        <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($unassociated_documents as $doc): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php if (!empty($doc['section_name'])): ?>
+                                <?= htmlspecialchars($doc['section_name']) ?>
+                            <?php else: ?>
+                                <span class="text-muted">Club</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                            <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                        </td>
+                        <td>
+                            <?php if ($doc['valid_until']): ?>
+                                <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php
+                            $status = $doc['expiration_status'];
+                            $badge_class = Archived_documents_model::status_badge_class($status);
+                            $status_label = Archived_documents_model::status_label($status);
+                            ?>
+                            <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+                            <?php if ($doc['alarm_disabled']): ?>
+                                <span class="badge bg-secondary" title="<?= $this->lang->line('archived_documents_alarm_disabled') ?>">
+                                    <i class="fas fa-bell-slash"></i>
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
+                        <td>
+                            <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
+                               class="btn btn-sm btn-outline-danger"
+                               title="<?= $this->lang->line('archived_documents_delete') ?>"
+                               onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-warning toggle-alarm"
+                                    data-id="<?= $doc['id'] ?>"
+                                    title="<?= $this->lang->line('archived_documents_toggle_alarm') ?>">
+                                <i class="fas <?= $doc['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="p-3 text-muted">
+            <?= $this->lang->line('archived_documents_no_documents') ?>
+        </div>
+        <?php endif; ?>
+    </div>
 </div>
-<?php else: ?>
-<div class="alert alert-info">
-    <?= $this->lang->line('archived_documents_no_documents') ?>
+
+<!-- Section 2: Pilot selector + pilot documents -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-user"></i> <?= $this->lang->line('archived_documents_pilot_documents') ?></h5>
+    </div>
+    <div class="card-body">
+        <form method="get" action="<?= site_url('archived_documents/page') ?>" class="row g-3 align-items-end mb-3">
+            <div class="col-auto">
+                <label for="pilot" class="form-label"><?= $this->lang->line('archived_documents_select_pilot') ?></label>
+                <?= form_dropdown('pilot', $pilot_selector, isset($selected_pilot) ? $selected_pilot : '', 'id="pilot" class="form-select big_select"') ?>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> <?= $this->lang->line('archived_documents_show') ?>
+                </button>
+            </div>
+        </form>
+
+        <?php if (isset($selected_pilot) && $selected_pilot): ?>
+            <h5><?= $this->lang->line('archived_documents_documents_of') ?> <?= htmlspecialchars($pilot_name) ?></h5>
+
+            <!-- Missing required documents for selected pilot -->
+            <?php if (!empty($pilot_missing)): ?>
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-circle"></i> <?= $this->lang->line('archived_documents_required_missing') ?></h6>
+                <ul class="mb-0">
+                    <?php foreach ($pilot_missing as $type): ?>
+                    <li><?= htmlspecialchars($type['name']) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($pilot_documents)): ?>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th><?= $this->lang->line('archived_documents_type') ?></th>
+                            <th><?= $this->lang->line('archived_documents_file') ?></th>
+                            <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
+                            <th><?= $this->lang->line('archived_documents_status') ?></th>
+                            <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($pilot_documents as $doc): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                            <td>
+                                <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                                <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                            </td>
+                            <td>
+                                <?php if ($doc['valid_until']): ?>
+                                    <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php
+                                $status = $doc['expiration_status'];
+                                $badge_class = Archived_documents_model::status_badge_class($status);
+                                $status_label = Archived_documents_model::status_label($status);
+                                ?>
+                                <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+                                <?php if ($doc['alarm_disabled']): ?>
+                                    <span class="badge bg-secondary" title="<?= $this->lang->line('archived_documents_alarm_disabled') ?>">
+                                        <i class="fas fa-bell-slash"></i>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
+                            <td>
+                                <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="<?= $this->lang->line('archived_documents_delete') ?>"
+                                   onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-warning toggle-alarm"
+                                        data-id="<?= $doc['id'] ?>"
+                                        title="<?= $this->lang->line('archived_documents_toggle_alarm') ?>">
+                                    <i class="fas <?= $doc['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php else: ?>
+            <div class="alert alert-info">
+                <?= $this->lang->line('archived_documents_no_documents') ?>
+            </div>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
 </div>
-<?php endif; ?>
 
 </div>
 

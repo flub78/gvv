@@ -20,6 +20,7 @@ $lang['membre_link_certificats'] = "Certificaten";
 $lang['membre_link_avion'] = "Vluchten motorvliegtuig";
 $lang['membre_link_glider'] = "Vluchten zweefvliegtuig";
 $lang['membre_link_tickets'] = "Tickets";
+$lang['membre_link_documents'] = "Mijn documenten";
 
 $lang['membre_tooltip_active'] = "Enkel actieve piloten zijn zichtbaar";
 

@@ -880,6 +880,18 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm">Gérer</a>
                     </div>
                 </div>
+
+                <!-- Archived documents management -->
+                <?php if ($this->config->item('gestion_documentaire')) : ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-archive text-primary"></i>
+                        <div class="card-title">Archivage Réglementaire</div>
+                        <div class="card-text text-muted">Documents</div>
+                        <a href="<?= controller_url('archived_documents') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         </div>

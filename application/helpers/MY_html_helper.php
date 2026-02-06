@@ -644,6 +644,8 @@ if (! function_exists('attachment')) {
                 $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
             } else if (str_ends_with($mime_type, 'md') || str_ends_with($mime_type, 'markdown')) {
                 $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
+            } else if (str_contains($mime_type, 'html')) {
+                $inner_html = "<i class=\"fas fa-file-code fa-2x text-info\" title=\"$filename\"></i>";
             } else if (str_ends_with($mime_type, 'csv')) {
                 $inner_html = "<i class=\"fas fa-file-csv fa-2x\" title=\"$filename\"></i>";
             } else if (str_ends_with($mime_type, 'xlsx') || str_ends_with($mime_type, 'xls') || str_contains($mime_type, 'spreadsheet')) {
