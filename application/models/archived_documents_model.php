@@ -87,6 +87,67 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
+     * Returns filtered documents for alternate view
+     * @param array $filters
+     * @return array
+     */
+    public function get_filtered_documents($filters = array()) {
+        $this->db->select('archived_documents.id, archived_documents.pilot_login,
+            archived_documents.original_filename, archived_documents.description,
+            archived_documents.uploaded_at, archived_documents.valid_from,
+            archived_documents.valid_until, archived_documents.alarm_disabled,
+            archived_documents.is_current_version,
+            archived_documents.file_path, archived_documents.mime_type,
+            archived_documents.validation_status,
+            document_types.name as type_name, document_types.code as type_code,
+            membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
+            sections.nom as section_name');
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
+        $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
+
+        $this->db->where('archived_documents.is_current_version', 1);
+
+        if (!empty($filters['pilot_login'])) {
+            $this->db->where('archived_documents.pilot_login', $filters['pilot_login']);
+        }
+
+        if (!empty($filters['section_id'])) {
+            $this->db->where('archived_documents.section_id', $filters['section_id']);
+        }
+
+        if (!empty($filters['document_type_id'])) {
+            $this->db->where('archived_documents.document_type_id', $filters['document_type_id']);
+        }
+
+        $expired = !empty($filters['expired']);
+        $pending = !empty($filters['pending']);
+
+        if ($expired && $pending) {
+            $this->db->where("(archived_documents.validation_status = 'pending' OR (archived_documents.validation_status = 'approved' AND archived_documents.valid_until IS NOT NULL AND archived_documents.valid_until < CURDATE()))", null, false);
+        } elseif ($pending) {
+            $this->db->where('archived_documents.validation_status', 'pending');
+        } elseif ($expired) {
+            $this->db->where('archived_documents.validation_status', 'approved');
+            $this->db->where('archived_documents.valid_until IS NOT NULL', null, false);
+            $this->db->where('archived_documents.valid_until <', date('Y-m-d'));
+        }
+
+        $this->db->order_by('archived_documents.uploaded_at', 'desc');
+
+        $query = $this->db->get();
+        $results = $this->get_to_array($query);
+
+        foreach ($results as &$row) {
+            $row['expiration_status'] = $this->compute_expiration_status($row);
+        }
+
+        $this->gvvmetadata->store_table("vue_archived_documents", $results);
+        return $results;
+    }
+
+    /**
      * Returns documents for a specific pilot
      * @param string $pilot_login Pilot login
      * @param bool $current_only Only return current versions

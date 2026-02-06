@@ -58,6 +58,8 @@ class Archived_documents extends Gvv_Controller {
         $this->load->model('document_types_model');
         $this->load->model('membres_model');
         $this->load->model('sections_model');
+
+        $this->table_view = $this->controller . '/documentsListView';
     }
 
     /**
@@ -153,6 +155,40 @@ class Archived_documents extends Gvv_Controller {
         $this->data['has_modification_rights'] = true;
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
+    }
+
+    /**
+     * Alternate admin view with datatable and filters
+     */
+    function alternate() {
+        if (!$this->_is_admin()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $this->push_return_url("archived_documents alternate");
+
+        $filters = array(
+            'expired' => $this->input->get('filter_expired') ? true : false,
+            'pending' => $this->input->get('filter_pending') ? true : false,
+            'document_type_id' => $this->input->get('document_type_id'),
+            'section_id' => $this->input->get('section_id'),
+            'pilot_login' => $this->input->get('pilot_login')
+        );
+
+        $this->data['filters'] = $filters;
+        $this->data['documents'] = $this->gvv_model->get_filtered_documents($filters);
+
+        $type_selector = $this->document_types_model->type_selector();
+        $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $type_selector;
+        $this->data['section_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->sections_model->section_selector_with_null();
+        $this->data['pilot_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->membres_model->selector_with_null(array('actif' => 1));
+
+        $this->data['controller'] = $this->controller;
+        $this->data['is_admin'] = true;
+        $this->data['has_modification_rights'] = true;
+
+        return load_last_view($this->controller . '/documentsListView', $this->data, $this->unit_test);
     }
 
     /**
