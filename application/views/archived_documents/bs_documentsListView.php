@@ -31,7 +31,7 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
         <div class="col-sm-2">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_expired" id="filter_expired" value="1" <?= $filter_expired ? 'checked' : '' ?>>
-                <label class="form-check-label" for="filter_expired">
+                <label class="form-check-label <?= (isset($expired_count) && $expired_count > 0) ? 'text-danger fw-bold' : '' ?>" for="filter_expired">
                     <?= $this->lang->line('archived_documents_expired') ?> (<?= isset($expired_count) ? $expired_count : 0 ?>)
                 </label>
             </div>
@@ -39,7 +39,7 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
         <div class="col-sm-2">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_pending" id="filter_pending" value="1" <?= $filter_pending ? 'checked' : '' ?>>
-                <label class="form-check-label" for="filter_pending">
+                <label class="form-check-label <?= (isset($pending_count) && $pending_count > 0) ? 'text-warning fw-bold' : '' ?>" for="filter_pending">
                     <?= $this->lang->line('archived_documents_pending_documents') ?> (<?= isset($pending_count) ? $pending_count : 0 ?>)
                 </label>
             </div>
