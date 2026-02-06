@@ -10,6 +10,7 @@ $lang['archived_documents_expired'] = 'Documents expirés';
 $lang['archived_documents_expiring_soon'] = 'Expirent bientôt';
 
 $lang['archived_documents_add'] = 'Ajouter un document';
+$lang['archived_documents_add_pilot'] = 'Ajouter un document pilote';
 $lang['archived_documents_view'] = 'Voir le document';
 $lang['archived_documents_delete'] = 'Supprimer';
 $lang['archived_documents_download'] = 'Télécharger';
@@ -17,7 +18,7 @@ $lang['archived_documents_download'] = 'Télécharger';
 $lang['archived_documents_type'] = 'Type';
 $lang['archived_documents_file'] = 'Fichier';
 $lang['archived_documents_description'] = 'Description';
-$lang['archived_documents_valid_from'] = 'Valide du';
+$lang['archived_documents_valid_from'] = 'Valide depuis';
 $lang['archived_documents_valid_until'] = 'Valide jusqu\'au';
 $lang['archived_documents_uploaded_at'] = 'Déposé le';
 $lang['archived_documents_uploaded_by'] = 'Déposé par';
@@ -74,6 +75,7 @@ $lang['archived_documents_pending_documents'] = 'Documents à valider';
 $lang['archived_documents_validated_by'] = 'Validé par';
 $lang['archived_documents_validated_at'] = 'Validé le';
 $lang['archived_documents_pending_notice'] = 'Votre document est en attente de validation par un administrateur';
+$lang['archived_documents_filter_all'] = 'Tous';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/french/archived_documents_lang.php */

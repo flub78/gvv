@@ -19,21 +19,10 @@ $this->lang->load('archived_documents');
     <?= $this->session->flashdata('message') ?>
 <?php endif; ?>
 
-<?php if (isset($is_admin) && $is_admin): ?>
-<div class="mb-3">
-    <a href="<?= site_url('archived_documents/page') ?>" class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-list"></i> <?= $this->lang->line('archived_documents_all_documents') ?>
-    </a>
-    <a href="<?= site_url('archived_documents/expired') ?>" class="btn btn-sm btn-outline-warning">
-        <i class="fas fa-exclamation-triangle"></i> <?= $this->lang->line('archived_documents_expired') ?>
-    </a>
-</div>
-<?php endif; ?>
-
 <!-- Add document button -->
 <div class="mb-3">
-    <a href="<?= site_url('archived_documents/create') ?>" class="btn btn-sm btn-success">
-        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
+    <a href="<?= site_url('archived_documents/create_pilot') ?>" class="btn btn-sm btn-success">
+        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add_pilot') ?>
     </a>
 </div>
 
@@ -45,7 +34,7 @@ $this->lang->load('archived_documents');
         <?php foreach ($missing as $type): ?>
         <li>
             <?= htmlspecialchars($type['name']) ?>
-            <a href="<?= site_url('archived_documents/create?type=' . $type['id']) ?>" class="btn btn-sm btn-outline-primary ms-2">
+            <a href="<?= site_url('archived_documents/create_pilot?type=' . $type['id']) ?>" class="btn btn-sm btn-outline-primary ms-2">
                 <i class="fas fa-plus"></i> Ajouter
             </a>
         </li>

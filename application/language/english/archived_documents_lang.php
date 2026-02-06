@@ -10,6 +10,7 @@ $lang['archived_documents_expired'] = 'Expired Documents';
 $lang['archived_documents_expiring_soon'] = 'Expiring Soon';
 
 $lang['archived_documents_add'] = 'Add Document';
+$lang['archived_documents_add_pilot'] = 'Add Pilot Document';
 $lang['archived_documents_view'] = 'View Document';
 $lang['archived_documents_delete'] = 'Delete';
 $lang['archived_documents_download'] = 'Download';
@@ -74,6 +75,7 @@ $lang['archived_documents_pending_documents'] = 'Documents Pending Validation';
 $lang['archived_documents_validated_by'] = 'Validated By';
 $lang['archived_documents_validated_at'] = 'Validated On';
 $lang['archived_documents_pending_notice'] = 'Your document is pending validation by an administrator';
+$lang['archived_documents_filter_all'] = 'All';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

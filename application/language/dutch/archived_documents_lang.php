@@ -10,6 +10,7 @@ $lang['archived_documents_expired'] = 'Verlopen Documenten';
 $lang['archived_documents_expiring_soon'] = 'Verloopt Binnenkort';
 
 $lang['archived_documents_add'] = 'Document Toevoegen';
+$lang['archived_documents_add_pilot'] = 'Pilootdocument Toevoegen';
 $lang['archived_documents_view'] = 'Document Bekijken';
 $lang['archived_documents_delete'] = 'Verwijderen';
 $lang['archived_documents_download'] = 'Downloaden';
@@ -74,6 +75,7 @@ $lang['archived_documents_pending_documents'] = 'Documenten te valideren';
 $lang['archived_documents_validated_by'] = 'Gevalideerd door';
 $lang['archived_documents_validated_at'] = 'Gevalideerd op';
 $lang['archived_documents_pending_notice'] = 'Uw document wacht op validatie door een beheerder';
+$lang['archived_documents_filter_all'] = 'Alle';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

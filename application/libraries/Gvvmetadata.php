@@ -860,7 +860,7 @@ class GVVMetadata extends Metadata {
                 $this->field['archived_documents']['uploaded_by']['Name'] = 'Depose par';
                 $this->field['archived_documents']['uploaded_at']['Name'] = 'Date depot';
                 $this->field['archived_documents']['uploaded_at']['Type'] = 'datetime';
-                $this->field['archived_documents']['valid_from']['Name'] = 'Valide du';
+                $this->field['archived_documents']['valid_from']['Name'] = 'Valide depuis';
                 $this->field['archived_documents']['valid_from']['Type'] = 'date';
                 $this->field['archived_documents']['valid_until']['Name'] = 'Valide jusqu\'au';
                 $this->field['archived_documents']['valid_until']['Type'] = 'date';
@@ -886,7 +886,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_archived_documents']['description']['Name'] = 'Description';
                 $this->field['vue_archived_documents']['uploaded_at']['Name'] = 'Date depot';
                 $this->field['vue_archived_documents']['uploaded_at']['Type'] = 'datetime';
-                $this->field['vue_archived_documents']['valid_from']['Name'] = 'Valide du';
+                $this->field['vue_archived_documents']['valid_from']['Name'] = 'Valide depuis';
                 $this->field['vue_archived_documents']['valid_from']['Type'] = 'date';
                 $this->field['vue_archived_documents']['valid_until']['Name'] = 'Valide jusqu\'au';
                 $this->field['vue_archived_documents']['valid_until']['Type'] = 'date';

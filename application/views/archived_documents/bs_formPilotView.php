@@ -1,7 +1,7 @@
-<!-- VIEW: application/views/archived_documents/bs_formView.php -->
+<!-- VIEW: application/views/archived_documents/bs_formPilotView.php -->
 <?php
 /**
- * Form view for adding a document (admin view with pilot/section selectors)
+ * Form view for adding a pilot document (simplified, no pilot/section selectors)
  */
 
 $this->load->view('bs_header');
@@ -15,7 +15,7 @@ $this->lang->load('archived_documents');
 
 <h3>
     <?php if ($action == CREATION): ?>
-        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
+        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add_pilot') ?>
     <?php else: ?>
         <i class="fas fa-edit"></i> <?= $this->lang->line('archived_documents_view') ?>
     <?php endif; ?>
@@ -40,29 +40,6 @@ $this->lang->load('archived_documents');
                 $selected_type = isset($_GET['type']) ? $_GET['type'] : (isset($document_type_id) ? $document_type_id : '');
                 echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id" required');
                 ?>
-            </div>
-        </div>
-
-        <!-- Pilot selector -->
-        <div class="mb-3 row">
-            <label for="pilot_login" class="col-sm-3 col-form-label">
-                <?= $this->lang->line('archived_documents_pilot') ?>
-            </label>
-            <div class="col-sm-9">
-                <?php
-                $selected_pilot = isset($pilot_login) ? $pilot_login : '';
-                echo form_dropdown('pilot_login', $pilot_selector, $selected_pilot, 'id="pilot_login" class="form-select big_select"');
-                ?>
-            </div>
-        </div>
-
-        <!-- Section selector -->
-        <div class="mb-3 row">
-            <label for="section_id" class="col-sm-3 col-form-label">
-                <?= $this->lang->line('archived_documents_section') ?>
-            </label>
-            <div class="col-sm-9">
-                <?= form_dropdown('section_id', $section_selector, isset($section_id) ? $section_id : '', 'class="form-select" id="section_id"') ?>
             </div>
         </div>
 
@@ -107,6 +84,7 @@ $this->lang->load('archived_documents');
             </div>
         </div>
 
+        <?= form_hidden('pilot_login', $pilot_login) ?>
         <?= form_hidden('uploaded_by', $uploaded_by) ?>
 
     </div>

@@ -91,7 +91,7 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Admin view: unassociated documents + pilot selector
+     * Admin view: unassociated documents + pilot selector, with optional filter
      */
     function page($premier = 0, $message = '', $selection = array()) {
         // Check admin access
@@ -102,25 +102,43 @@ class Archived_documents extends Gvv_Controller {
 
         $this->push_return_url("archived_documents page");
 
-        // Unassociated documents (no pilot)
-        $this->data['unassociated_documents'] = $this->gvv_model->get_unassociated_documents();
+        // Read filter parameter
+        $filter = $this->input->get('filter');
+        $this->data['active_filter'] = $filter;
 
-        // Pilot selector
-        $this->data['pilot_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
-
-        // Selected pilot documents
-        $selected_pilot = $this->input->get('pilot');
-        $this->data['selected_pilot'] = $selected_pilot;
-        if ($selected_pilot) {
-            $this->data['pilot_documents'] = $this->gvv_model->get_pilot_documents($selected_pilot);
-            $this->data['pilot_missing'] = $this->gvv_model->get_missing_documents($selected_pilot, $this->session->userdata('section'));
-            $pilot = $this->membres_model->get_by_id('mlogin', $selected_pilot);
-            $this->data['pilot_name'] = $pilot ? $pilot['mprenom'] . ' ' . $pilot['mnom'] : $selected_pilot;
-        }
-
-        // Count pending documents for badge
+        // Count pending documents for badge (always needed)
         $pending_docs = $this->gvv_model->get_pending_documents();
         $this->data['pending_count'] = count($pending_docs);
+
+        // Count expired documents for badge (always needed)
+        $expired_docs = $this->gvv_model->get_expired_documents();
+        $expiring_soon_docs = $this->gvv_model->get_expiring_soon_documents();
+        $this->data['expired_count'] = count($expired_docs) + count($expiring_soon_docs);
+
+        if ($filter === 'expired') {
+            // Expired filter: show expired + expiring soon documents
+            $this->data['documents'] = $expired_docs;
+            $this->data['expiring_soon'] = $expiring_soon_docs;
+        } elseif ($filter === 'pending') {
+            // Pending filter: show documents awaiting validation
+            $this->data['pending_documents'] = $pending_docs;
+        } else {
+            // No filter: show unassociated + pilot selector
+            $this->data['unassociated_documents'] = $this->gvv_model->get_unassociated_documents();
+
+            // Pilot selector
+            $this->data['pilot_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
+
+            // Selected pilot documents
+            $selected_pilot = $this->input->get('pilot');
+            $this->data['selected_pilot'] = $selected_pilot;
+            if ($selected_pilot) {
+                $this->data['pilot_documents'] = $this->gvv_model->get_pilot_documents($selected_pilot);
+                $this->data['pilot_missing'] = $this->gvv_model->get_missing_documents($selected_pilot, $this->session->userdata('section'));
+                $pilot = $this->membres_model->get_by_id('mlogin', $selected_pilot);
+                $this->data['pilot_name'] = $pilot ? $pilot['mprenom'] . ' ' . $pilot['mnom'] : $selected_pilot;
+            }
+        }
 
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
@@ -132,22 +150,10 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Shows expired documents list (admin only)
+     * Redirects to page with expired filter
      */
     function expired() {
-        // Check admin access
-        if (!$this->_is_admin()) {
-            redirect('archived_documents/my_documents');
-            return;
-        }
-
-        $this->data['documents'] = $this->gvv_model->get_expired_documents();
-        $this->data['expiring_soon'] = $this->gvv_model->get_expiring_soon_documents();
-        $this->data['controller'] = $this->controller;
-        $this->data['is_admin'] = true;
-        $this->data['title'] = 'Documents expires';
-
-        load_last_view($this->controller . '/expired', $this->data);
+        redirect('archived_documents/page?filter=expired');
     }
 
     /**
@@ -175,19 +181,38 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Create form for adding a new document
+     * Create form for adding a new document (admin view with pilot/section selectors)
      */
     function create() {
+        if (!$this->_is_admin()) {
+            redirect('archived_documents/create_pilot');
+            return;
+        }
+
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
-        // Pre-fill with current user
+        $this->data['pilot_login'] = '';
+        $this->data['uploaded_by'] = $this->dx_auth->get_username();
+
+        $this->form_static_element(CREATION);
+
+        return load_last_view($this->controller . '/formView', $this->data, $this->unit_test);
+    }
+
+    /**
+     * Create form for adding a pilot document (simplified, no pilot/section selectors)
+     */
+    function create_pilot() {
+        $table = $this->gvv_model->table();
+        $this->data = $this->gvvmetadata->defaults_list($table);
+
         $this->data['pilot_login'] = $this->dx_auth->get_username();
         $this->data['uploaded_by'] = $this->dx_auth->get_username();
 
         $this->form_static_element(CREATION);
 
-        return load_last_view($this->form_view, $this->data, $this->unit_test);
+        return load_last_view($this->controller . '/formPilotView', $this->data, $this->unit_test);
     }
 
     /**
@@ -196,16 +221,18 @@ class Archived_documents extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
 
-        // Document type selector
-        $this->data['type_selector'] = $this->document_types_model->type_selector('pilot');
-
-        // Section selector for admins
-        if ($this->_is_admin()) {
-            $this->data['section_selector'] = $this->sections_model->section_selector_with_null();
-            $this->data['pilot_selector'] = $this->membres_model->get_selector();
-        }
-
         $this->data['is_admin'] = $this->_is_admin();
+
+        if ($this->_is_admin()) {
+            // Admin: all document types, pilot and section selectors
+            $this->data['type_selector'] = $this->document_types_model->type_selector();
+            $this->data['section_selector'] = $this->sections_model->section_selector_with_null();
+            $this->data['pilot_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
+        } else {
+            // Pilot: only pilot-scoped types, default section
+            $this->data['type_selector'] = $this->document_types_model->type_selector('pilot');
+            $this->data['default_section_id'] = $this->session->userdata('section');
+        }
     }
 
     /**
@@ -213,6 +240,10 @@ class Archived_documents extends Gvv_Controller {
      */
     public function formValidation($action, $return_on_success = false) {
         $button = $this->input->post('button');
+
+        // Determine which form view to use for error re-rendering
+        $is_admin = $this->_is_admin();
+        $error_view = $is_admin ? $this->controller . '/formView' : $this->controller . '/formPilotView';
 
         if ($button == $this->lang->line("gvv_button_show_list")) {
             redirect('archived_documents/my_documents');
@@ -229,21 +260,23 @@ class Archived_documents extends Gvv_Controller {
         if (!$document_type) {
             $this->data['message'] = '<div class="alert alert-danger">Type de document invalide</div>';
             $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
+            load_last_view($error_view, $this->data);
             return;
         }
 
         // Determine pilot login
         $pilot_login = $this->input->post('pilot_login');
-        if (empty($pilot_login)) {
+        if (!$is_admin && empty($pilot_login)) {
+            // Non-admin: force current user
             $pilot_login = $this->dx_auth->get_username();
         }
+        // Admin: pilot_login may be empty (club/global document)
 
         // Security check: non-admin can only upload for themselves
-        if (!$this->_is_admin() && $pilot_login !== $this->dx_auth->get_username()) {
+        if (!$is_admin && $pilot_login !== $this->dx_auth->get_username()) {
             $this->data['message'] = '<div class="alert alert-danger">Vous ne pouvez ajouter des documents que pour vous-meme</div>';
             $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
+            load_last_view($error_view, $this->data);
             return;
         }
 
@@ -253,7 +286,7 @@ class Archived_documents extends Gvv_Controller {
         if (!$this->_ensure_directory($dirname)) {
             $this->data['message'] = '<div class="alert alert-danger">Impossible de creer le repertoire: ' . $dirname . '</div>';
             $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
+            load_last_view($error_view, $this->data);
             return;
         }
 
@@ -270,7 +303,7 @@ class Archived_documents extends Gvv_Controller {
         if (!$this->upload->do_upload("userfile")) {
             $this->data['message'] = '<div class="alert alert-danger">' . $this->upload->display_errors() . '</div>';
             $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
+            load_last_view($error_view, $this->data);
             return;
         }
 
@@ -294,13 +327,13 @@ class Archived_documents extends Gvv_Controller {
         }
 
         // Determine validation status: admin/CA = approved, others = pending
-        $validation_status = $this->_is_admin() ? 'approved' : 'pending';
+        $validation_status = $is_admin ? 'approved' : 'pending';
 
         // Prepare document data
         $doc_data = array(
             'document_type_id' => $document_type_id,
-            'pilot_login' => $pilot_login,
-            'section_id' => $this->input->post('section_id') ?: null,
+            'pilot_login' => !empty($pilot_login) ? $pilot_login : null,
+            'section_id' => $is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null),
             'file_path' => $file_path,
             'original_filename' => $_FILES['userfile']['name'],
             'description' => $this->input->post('description'),
@@ -324,16 +357,17 @@ class Archived_documents extends Gvv_Controller {
         if ($doc_id) {
             if ($validation_status === 'pending') {
                 $this->session->set_flashdata('message', '<div class="alert alert-info"><i class="fas fa-clock"></i> ' . $this->lang->line('archived_documents_pending_notice') . '</div>');
+                redirect('archived_documents/my_documents');
             } else {
                 $this->session->set_flashdata('message', '<div class="alert alert-success">Document ajoute avec succes</div>');
+                redirect($is_admin ? 'archived_documents/page' : 'archived_documents/my_documents');
             }
-            redirect('archived_documents/my_documents');
         } else {
             $db_error = $this->db->error();
             $detail = !empty($db_error['message']) ? htmlspecialchars($db_error['message']) : 'create_document a retourné false';
             $this->data['message'] = '<div class="alert alert-danger">Erreur lors de l\'enregistrement du document : ' . $detail . '</div>';
             $this->form_static_element($action);
-            load_last_view($this->form_view, $this->data);
+            load_last_view($error_view, $this->data);
         }
     }
 
@@ -366,19 +400,10 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Admin view: documents pending validation
+     * Redirects to page with pending filter
      */
     function pending() {
-        if (!$this->_is_admin()) {
-            redirect('archived_documents/my_documents');
-            return;
-        }
-
-        $this->data['pending_documents'] = $this->gvv_model->get_pending_documents();
-        $this->data['controller'] = $this->controller;
-        $this->data['is_admin'] = true;
-
-        load_last_view($this->controller . '/bs_pending', $this->data);
+        redirect('archived_documents/page?filter=pending');
     }
 
     /**
@@ -393,7 +418,7 @@ class Archived_documents extends Gvv_Controller {
         $doc = $this->gvv_model->get_by_id('id', $id);
         if (!$doc || $doc['validation_status'] !== 'pending') {
             $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
-            redirect('archived_documents/pending');
+            redirect('archived_documents/page?filter=pending');
             return;
         }
 
@@ -405,7 +430,7 @@ class Archived_documents extends Gvv_Controller {
             $this->session->set_flashdata('message', '<div class="alert alert-danger">Erreur lors de la validation</div>');
         }
 
-        redirect('archived_documents/pending');
+        redirect('archived_documents/page?filter=pending');
     }
 
     /**
@@ -420,7 +445,7 @@ class Archived_documents extends Gvv_Controller {
         $doc = $this->gvv_model->get_by_id('id', $id);
         if (!$doc || $doc['validation_status'] !== 'pending') {
             $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
-            redirect('archived_documents/pending');
+            redirect('archived_documents/page?filter=pending');
             return;
         }
 
@@ -433,7 +458,7 @@ class Archived_documents extends Gvv_Controller {
             $this->session->set_flashdata('message', '<div class="alert alert-danger">Erreur lors du refus</div>');
         }
 
-        redirect('archived_documents/pending');
+        redirect('archived_documents/page?filter=pending');
     }
 
     /**
