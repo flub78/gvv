@@ -399,6 +399,8 @@ abstract class Metadata {
             return $left;
         if ($subtype == 'selector')
             return $left;
+        if ($subtype == 'boolean')
+            return $center;
         if ($subtype == 'currency')
             return $right;
         if ($type == 'int')
@@ -2060,6 +2062,8 @@ abstract class Metadata {
                 return null;
             }
             return $formated;
+        } elseif ("selector" == $subtype && ($value === '' || $value === null)) {
+            return null;
         } elseif ("time" == $subtype) {
             return str_replace(":", ".", $value);
         } elseif ("decimal" == $type) {

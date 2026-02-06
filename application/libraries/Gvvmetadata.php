@@ -791,6 +791,110 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_sections']['ordre_affichage']['Type'] = 'int';
 
                 /**
+                 * Document types (archivage documentaire)
+                 */
+                $this->field['document_types']['id']['Type'] = 'int';
+                $this->field['document_types']['id']['Subtype'] = 'key';
+                $this->field['document_types']['code']['Name'] = 'Code';
+                $this->field['document_types']['name']['Name'] = 'Nom';
+                $this->field['document_types']['section_id']['Name'] = 'Section';
+                $this->field['document_types']['section_id']['Subtype'] = 'selector';
+                $this->field['document_types']['section_id']['Selector'] = 'section_selector_with_null';
+                $this->field['document_types']['scope']['Name'] = 'Portee';
+                $this->field['document_types']['scope']['Subtype'] = 'enumerate';
+                $this->field['document_types']['scope']['Enumerate'] = array(
+                    'pilot' => 'Pilote',
+                    'section' => 'Section',
+                    'club' => 'Club'
+                );
+                $this->field['document_types']['required']['Name'] = 'Obligatoire';
+                $this->field['document_types']['required']['Subtype'] = 'checkbox';
+                $this->field['document_types']['has_expiration']['Name'] = 'Avec expiration';
+                $this->field['document_types']['has_expiration']['Subtype'] = 'checkbox';
+                $this->field['document_types']['allow_versioning']['Name'] = 'Versionning';
+                $this->field['document_types']['allow_versioning']['Subtype'] = 'checkbox';
+                $this->field['document_types']['storage_by_year']['Name'] = 'Stockage par annee';
+                $this->field['document_types']['storage_by_year']['Subtype'] = 'checkbox';
+                $this->field['document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
+                $this->field['document_types']['alert_days_before']['Type'] = 'int';
+                $this->field['document_types']['active']['Name'] = 'Actif';
+                $this->field['document_types']['active']['Subtype'] = 'checkbox';
+                $this->field['document_types']['display_order']['Name'] = 'Ordre';
+                $this->field['document_types']['display_order']['Type'] = 'int';
+
+                /**
+                 * Vue document types
+                 */
+                $this->field['vue_document_types']['id']['Type'] = 'int';
+                $this->field['vue_document_types']['id']['Subtype'] = 'key';
+                $this->field['vue_document_types']['code']['Name'] = 'Code';
+                $this->field['vue_document_types']['name']['Name'] = 'Nom';
+                $this->field['vue_document_types']['section_name']['Name'] = 'Section';
+                $this->field['vue_document_types']['scope']['Name'] = 'Portee';
+                $this->field['vue_document_types']['required']['Name'] = 'Obligatoire';
+                $this->field['vue_document_types']['required']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['has_expiration']['Name'] = 'Expiration';
+                $this->field['vue_document_types']['has_expiration']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
+                $this->field['vue_document_types']['active']['Name'] = 'Actif';
+                $this->field['vue_document_types']['active']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['display_order']['Name'] = 'Ordre';
+
+                /**
+                 * Archived documents (archivage documentaire)
+                 */
+                $this->field['archived_documents']['id']['Type'] = 'int';
+                $this->field['archived_documents']['id']['Subtype'] = 'key';
+                $this->field['archived_documents']['document_type_id']['Name'] = 'Type';
+                $this->field['archived_documents']['document_type_id']['Subtype'] = 'selector';
+                $this->field['archived_documents']['document_type_id']['Selector'] = 'type_selector';
+                $this->field['archived_documents']['pilot_login']['Name'] = 'Pilote';
+                $this->field['archived_documents']['pilot_login']['Subtype'] = 'selector';
+                $this->field['archived_documents']['pilot_login']['Selector'] = 'pilote_selector';
+                $this->field['archived_documents']['section_id']['Name'] = 'Section';
+                $this->field['archived_documents']['section_id']['Subtype'] = 'selector';
+                $this->field['archived_documents']['section_id']['Selector'] = 'section_selector_with_null';
+                $this->field['archived_documents']['file_path']['Name'] = 'Fichier';
+                $this->field['archived_documents']['original_filename']['Name'] = 'Nom fichier';
+                $this->field['archived_documents']['description']['Name'] = 'Description';
+                $this->field['archived_documents']['uploaded_by']['Name'] = 'Depose par';
+                $this->field['archived_documents']['uploaded_at']['Name'] = 'Date depot';
+                $this->field['archived_documents']['uploaded_at']['Type'] = 'datetime';
+                $this->field['archived_documents']['valid_from']['Name'] = 'Valide du';
+                $this->field['archived_documents']['valid_from']['Type'] = 'date';
+                $this->field['archived_documents']['valid_until']['Name'] = 'Valide jusqu\'au';
+                $this->field['archived_documents']['valid_until']['Type'] = 'date';
+                $this->field['archived_documents']['alarm_disabled']['Name'] = 'Alerte desactivee';
+                $this->field['archived_documents']['alarm_disabled']['Subtype'] = 'checkbox';
+                $this->field['archived_documents']['is_current_version']['Name'] = 'Version courante';
+                $this->field['archived_documents']['is_current_version']['Subtype'] = 'checkbox';
+                $this->field['archived_documents']['file_size']['Name'] = 'Taille';
+                $this->field['archived_documents']['file_size']['Type'] = 'int';
+                $this->field['archived_documents']['mime_type']['Name'] = 'Type MIME';
+
+                /**
+                 * Vue archived documents
+                 */
+                $this->field['vue_archived_documents']['id']['Type'] = 'int';
+                $this->field['vue_archived_documents']['id']['Subtype'] = 'key';
+                $this->field['vue_archived_documents']['type_name']['Name'] = 'Type';
+                $this->field['vue_archived_documents']['pilot_login']['Name'] = 'Pilote';
+                $this->field['vue_archived_documents']['pilot_nom']['Name'] = 'Nom';
+                $this->field['vue_archived_documents']['pilot_prenom']['Name'] = 'Prenom';
+                $this->field['vue_archived_documents']['section_name']['Name'] = 'Section';
+                $this->field['vue_archived_documents']['original_filename']['Name'] = 'Fichier';
+                $this->field['vue_archived_documents']['description']['Name'] = 'Description';
+                $this->field['vue_archived_documents']['uploaded_at']['Name'] = 'Date depot';
+                $this->field['vue_archived_documents']['uploaded_at']['Type'] = 'datetime';
+                $this->field['vue_archived_documents']['valid_from']['Name'] = 'Valide du';
+                $this->field['vue_archived_documents']['valid_from']['Type'] = 'date';
+                $this->field['vue_archived_documents']['valid_until']['Name'] = 'Valide jusqu\'au';
+                $this->field['vue_archived_documents']['valid_until']['Type'] = 'date';
+                $this->field['vue_archived_documents']['expiration_status']['Name'] = 'Statut';
+                $this->field['vue_archived_documents']['alarm_disabled']['Name'] = 'Alerte desactivee';
+                $this->field['vue_archived_documents']['alarm_disabled']['Subtype'] = 'checkbox';
+
+                /**
                  * Vols de découverte
                  */
                 $this->alias_table["vue_vols_decouverte"] = "vols_decouverte";

@@ -32,10 +32,7 @@ class Authorization_model extends CI_Model {
             // Get roles for specific section
             if ($include_global) {
                 // Include both section-specific roles and global roles (section_id IS NULL)
-                $this->db->group_start();
-                $this->db->where('urps.section_id', $section_id);
-                $this->db->or_where('urps.section_id IS NULL');
-                $this->db->group_end();
+                $this->db->where("(urps.section_id = " . $this->db->escape($section_id) . " OR urps.section_id IS NULL)", null, false);
             } else {
                 $this->db->where('urps.section_id', $section_id);
             }

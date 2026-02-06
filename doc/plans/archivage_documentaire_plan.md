@@ -14,7 +14,8 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - Types de documents initialement supportés : visite médicale, assurance, brevet (pilotes), documents club/sections.
 - Rôles : pilotes et administrateurs (CA).
 - Gestion des types de documents avec règles (obligatoire, portée, expiration, stockage).
-- Possibilité de désactiver les alarmes par pilote (ex. pilote inactif).
+- Pas de workflow de validation — les documents sont immédiatement actifs.
+- Désactivation des alertes par document (clic admin sur l'alerte).
 
 ## Tâches à réaliser
 
@@ -22,45 +23,48 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Cartographier les structures existantes (table `attachments`, stockage uploads/documents, helpers de compression)
 - [x] Définir la stratégie de réutilisation/extension : nouveaux champs, table de liaison, ou nouvelle table dédiée avec continuité
 - [x] Concevoir la migration (schéma, index, contraintes, compatibilité)
-- [ ] Mettre à jour `application/config/migration.php`
-- [ ] Créer tests de migration (up/down) et validation du schéma
+- [x] Mettre à jour `application/config/migration.php` (version 67)
+- [x] Créer migration `067_archived_documents.php`
+- [x] Créer tests de migration `ArchivedDocumentsMigrationTest.php` (18 tests)
 
 ### Lot 2 — Modèles & métadonnées
-- [ ] Implémenter/étendre le modèle pour :
-  - [ ] association à pilote/section/club
-  - [ ] statuts (en attente/validé)
-  - [ ] dates de validité et détection d'expiration (actif/proche/expiré)
-  - [ ] versionning (liens entre versions)
-  - [ ] statut "manquant" pour documents obligatoires sans document valide
-- [ ] Ajouter les métadonnées dans `application/libraries/Gvvmetadata.php`
-- [ ] Définir les règles de validation (types de fichiers, champs requis)
-- [ ] Modéliser les types de documents et leurs règles (obligatoire, portée, expiration, stockage)
+- [x] Implémenter/étendre le modèle pour :
+  - [x] association à pilote/section/club (`archived_documents_model.php`)
+  - [x] dates de validité et détection d'expiration (actif/proche/expiré) (`compute_expiration_status()`)
+  - [x] versionning (liens entre versions) (`create_document()`, `get_version_history()`)
+  - [x] statut "manquant" pour documents obligatoires sans document valide (`get_missing_documents()`)
+  - [x] désactivation d'alerte par document (`toggle_alarm()`, `disable_alarm()`, `enable_alarm()`)
+- [x] Ajouter les métadonnées dans `application/libraries/Gvvmetadata.php`
+- [x] Modéliser les types de documents et leurs règles (`document_types_model.php`)
+- [x] Créer tests des modèles `ArchivedDocumentsModelTest.php` (20 tests)
 
 ### Lot 3 — Contrôleurs & permissions
-- [ ] Créer/étendre les contrôleurs pour :
-  - [ ] dépôt document par pilote
-  - [ ] validation admin
-  - [ ] suppression conditionnelle (en attente uniquement)
-  - [ ] listes "à valider" et "expirés"
-  - [ ] activation/désactivation des alarmes par pilote
-- [ ] Vérifier l'accès par rôle (pilote/admin)
-- [ ] Ajouter les routes nécessaires dans `application/config/routes.php`
+- [x] Créer/étendre les contrôleurs pour :
+  - [x] dépôt document par pilote (`create()`, `formValidation()`)
+  - [x] suppression document (`delete()` - pilote : ses documents, admin : tous)
+  - [x] liste "expirés" pour administrateurs (`expired()`)
+  - [x] désactivation d'alerte par document (`toggle_alarm()` AJAX)
+- [x] Vérifier l'accès par rôle (pilote/admin) (`_is_admin()`)
+- [x] Contrôleur `archived_documents.php` créé
+- [x] Fichier de langue `archived_documents_lang.php` (FR)
+- [x] Vues créées : `my_documents`, `expired`, `view`, `formView`, `tableView`
+- [x] Structure de stockage `uploads/documents/` créée
 
 ### Lot 4 — Vues & UX
-- [ ] Liste documents pilote (statuts, expiration, versions)
-- [ ] Liste admin "à valider"
-- [ ] Liste admin "expirés"
-- [ ] Détail document avec historique de versions
-- [ ] Indicateurs visuels (expiré, proche, en attente, validé, manquant) via Bootstrap 5
+- [x] Liste documents pilote (expiration, versions) — `bs_my_documents.php`
+- [x] Liste admin "expirés" avec bouton désactivation alerte — `bs_expired.php`
+- [x] Détail document avec historique de versions — `bs_view.php`
+- [x] Indicateurs visuels (expiré, proche, manquant, alerte désactivée) via Bootstrap 5
+- [x] Entrées de menu ajoutées dans `bs_menu.php` (Membres → Mes documents, Admin → Documents expirés)
 
 ### Lot 5 — Notifications
-- [ ] Modèle de préférences d'abonnement (par type de document et délai)
+- [ ] Requête de détection des documents proches de l'expiration (excluant `alarm_disabled = 1`)
 - [ ] Tâche d'envoi d'alertes (cron/script existant ou nouveau)
 - [ ] Notification à la connexion (bannière ou alertes en UI)
 
 ### Lot 6 — Internationalisation
-- [ ] Ajouter les libellés FR/EN/NL
-- [ ] Vérifier que tous les libellés UI utilisent `$this->lang->line()`
+- [x] Ajouter les libellés FR/EN/NL — fichiers de langue créés dans `application/language/{french,english,dutch}/archived_documents_lang.php`
+- [x] Vérifier que tous les libellés UI utilisent `$this->lang->line()` — vues mises à jour
 
 ### Lot 7 — Tests & validation
 - [ ] Tests unitaires : modèles, helpers, expiration
@@ -69,8 +73,8 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [ ] Smoke tests : phpunit + playwright
 
 ## Critères de fin
-- Workflow complet : dépôt → validation → versionning → expiration.
-- Listes admin fonctionnelles (à valider, expirés).
+- Workflow complet : dépôt → versionning → expiration → désactivation alerte.
+- Liste admin "expirés" fonctionnelle avec désactivation d'alerte.
 - Notifications envoyées et affichées.
 - Tests unitaires et Playwright green.
 
@@ -134,7 +138,6 @@ CREATE TABLE `document_types` (
   `scope` ENUM('pilot', 'section', 'club') NOT NULL DEFAULT 'pilot' COMMENT 'Portée du document',
   `required` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Document obligatoire',
   `has_expiration` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Document avec date expiration',
-  `default_validity_months` INT(11) NULL COMMENT 'Durée de validité par défaut en mois',
   `allow_versioning` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Autorise le versionning',
   `storage_by_year` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Stockage organisé par année',
   `alert_days_before` INT(11) NULL DEFAULT 30 COMMENT 'Jours avant expiration pour alerte',
@@ -154,19 +157,19 @@ CREATE TABLE `document_types` (
 - La contrainte unique `uk_code_section` permet d'avoir le même code pour différentes sections
 
 **Données initiales** (PRD) :
-| code | name | section_id | scope | required | has_expiration | default_validity_months |
-|------|------|------------|-------|----------|----------------|------------------------|
-| medical | Visite médicale | NULL | pilot | 1 | 1 | 24 |
-| insurance | Assurance | NULL | pilot | 1 | 1 | 12 |
-| license | Brevet/Licence | NULL | pilot | 0 | 1 | 60 |
-| club_doc | Document club | NULL | club | 0 | 0 | NULL |
-| signature | Signature membre | NULL | pilot | 0 | 1 | 180 |
-| ci | Carte d'identité | NULL | pilot | 0 | 1 | 180 |
-| parental | Autorisation parentale | NULL | pilot | 0 | 0 | NULL |
-| bia | Brevet Initiation Aéronautique | NULL | pilot | 0 | 0 | NULL |
+| code | name | section_id | scope | required | has_expiration |
+|------|------|------------|-------|----------|----------------|
+| medical | Visite médicale | NULL | pilot | 1 | 1 |
+| insurance | Assurance | NULL | pilot | 1 | 1 |
+| license | Brevet/Licence | NULL | pilot | 0 | 1 |
+| club_doc | Document club | NULL | club | 0 | 0 |
+| signature | Signature membre | NULL | pilot | 0 | 1 |
+| ci | Carte d'identité | NULL | pilot | 0 | 1 |
+| parental | Autorisation parentale | NULL | pilot | 0 | 0 |
+| bia | Brevet Initiation Aéronautique | NULL | pilot | 0 | 0 |
 
 #### Table `archived_documents`
-Stocke les documents avec leur état de validation et expiration.
+Stocke les documents avec leur état d'expiration et d'alerte.
 
 ```sql
 CREATE TABLE `archived_documents` (
@@ -179,11 +182,9 @@ CREATE TABLE `archived_documents` (
   `description` VARCHAR(255) NULL COMMENT 'Description libre',
   `uploaded_by` VARCHAR(25) NOT NULL COMMENT 'Utilisateur ayant uploadé',
   `uploaded_at` DATETIME NOT NULL COMMENT 'Date upload',
-  `validation_status` ENUM('pending', 'validated', 'rejected') NOT NULL DEFAULT 'pending',
-  `validated_by` VARCHAR(25) NULL COMMENT 'Admin ayant validé',
-  `validated_at` DATETIME NULL COMMENT 'Date validation',
   `valid_from` DATE NULL COMMENT 'Date début validité',
   `valid_until` DATE NULL COMMENT 'Date fin validité',
+  `alarm_disabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Alerte désactivée par admin',
   `previous_version_id` BIGINT(20) UNSIGNED NULL COMMENT 'Lien vers version précédente',
   `is_current_version` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Version courante',
   `file_size` INT(11) UNSIGNED NULL COMMENT 'Taille fichier en octets',
@@ -192,9 +193,9 @@ CREATE TABLE `archived_documents` (
   KEY `idx_pilot` (`pilot_login`),
   KEY `idx_section` (`section_id`),
   KEY `idx_type` (`document_type_id`),
-  KEY `idx_status` (`validation_status`),
   KEY `idx_expiration` (`valid_until`),
   KEY `idx_current` (`is_current_version`),
+  KEY `idx_alarm` (`alarm_disabled`),
   CONSTRAINT `fk_archived_documents_type` FOREIGN KEY (`document_type_id`)
     REFERENCES `document_types` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_archived_documents_pilot` FOREIGN KEY (`pilot_login`)
@@ -203,24 +204,19 @@ CREATE TABLE `archived_documents` (
     REFERENCES `sections` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_archived_documents_prev` FOREIGN KEY (`previous_version_id`)
     REFERENCES `archived_documents` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Documents pilotes avec validation et expiration';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Documents pilotes avec expiration';
 ```
 
-#### Table `document_alerts` (optionnelle, Lot 5)
-Pour les préférences d'abonnement aux alertes.
-
+**Détection des documents à alerter** :
 ```sql
-CREATE TABLE `document_alerts` (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_login` VARCHAR(25) NOT NULL COMMENT 'Utilisateur abonné',
-  `document_type_id` INT(11) UNSIGNED NULL COMMENT 'Type spécifique (NULL = tous)',
-  `alert_days_before` INT(11) NOT NULL DEFAULT 30 COMMENT 'Jours avant expiration',
-  `enabled` TINYINT(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`),
-  KEY `idx_user` (`user_login`),
-  CONSTRAINT `fk_alerts_type` FOREIGN KEY (`document_type_id`)
-    REFERENCES `document_types` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Abonnements alertes expiration';
+SELECT ad.*, dt.name, m.memail
+FROM archived_documents ad
+JOIN document_types dt ON ad.document_type_id = dt.id
+JOIN membres m ON ad.pilot_login = m.mlogin
+WHERE ad.valid_until BETWEEN CURDATE()
+      AND DATE_ADD(CURDATE(), INTERVAL dt.alert_days_before DAY)
+  AND ad.alarm_disabled = 0
+  AND ad.is_current_version = 1;
 ```
 
 ### 4. Stockage fichiers
@@ -249,7 +245,7 @@ uploads/
 
 ### 5. Prochaines étapes
 
-1. **Migration 067** : créer les tables `document_types` et `archived_documents`
-2. **Migration 068** (optionnel, Lot 5) : créer `document_alerts`
-3. Insérer les types de documents initiaux
-4. Tests de migration up/down
+1. ~~**Migration 067** : créer les tables `document_types` et `archived_documents`~~ ✅
+2. ~~Insérer les types de documents initiaux~~ ✅
+3. ~~Tests de migration~~ ✅ (18 tests dans `ArchivedDocumentsMigrationTest.php`)
+4. Lot 2 : Modèles et métadonnées

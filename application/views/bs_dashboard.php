@@ -870,6 +870,16 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm">Gérer</a>
                     </div>
                 </div>
+
+                <!-- Document types management -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-file-alt text-danger"></i>
+                        <div class="card-title">Types de documents</div>
+                        <div class="card-text text-muted">Réglementaires</div>
+                        <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                    </div>
+                </div>
             </div>
         </div>
         </div>

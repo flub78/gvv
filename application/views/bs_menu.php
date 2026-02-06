@@ -28,6 +28,8 @@ $this->lang->load('welcome');
 $this->lang->load('admin');
 $this->lang->load('attachments');
 $this->lang->load('sections');
+$this->lang->load('archived_documents');
+$this->lang->load('document_types');
 
 $CI = &get_instance();
 $CI->load->model('sections_model');
@@ -70,6 +72,7 @@ $section_count = $CI->sections_model->safe_count_all();
                 <ul class="submenu dropdown-menu">
 
                   <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("gvv_menu_validities") ?></a></li>
+                  <li><a class="dropdown-item" href="<?= controller_url("archived_documents/expired") ?>"><i class="fas fa-archive text-danger"></i> <?= translation("archived_documents_expired") ?></a></li>
                   <?php if (has_role('bureau')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_financial_reports") ?></a></li>
                   <?php endif; ?>
@@ -109,6 +112,7 @@ $section_count = $CI->sections_model->safe_count_all();
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><i class="fas fa-chart-bar text-primary"></i> <?= translation("welcome_reports_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('procedures') ?>"><i class="fas fa-book text-primary"></i> Procédures</a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("event/page") ?>"><i class="fas fa-certificate text-warning"></i> <?= translation("welcome_certificates") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("document_types/page") ?>"><i class="fas fa-file-alt text-info"></i> <?= translation("document_types_title") ?></a></li>
                   </ul>
                 </li>
 
@@ -173,7 +177,7 @@ $section_count = $CI->sections_model->safe_count_all();
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
-            
+            <li><a class="dropdown-item" href="<?= controller_url("archived_documents/my_documents") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_my_documents") ?></a></li>
 
           </ul>
         </li>
