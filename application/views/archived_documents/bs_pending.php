@@ -75,7 +75,6 @@ $this->lang->load('archived_documents');
                     </a>
                     <a href="<?= site_url('archived_documents/approve/' . $doc['id']) ?>"
                        class="btn btn-sm btn-success"
-                       onclick="return confirm('<?= $this->lang->line('archived_documents_approve') ?> ?');"
                        title="<?= $this->lang->line('archived_documents_approve') ?>">
                         <i class="fas fa-check"></i>
                     </a>

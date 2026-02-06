@@ -32,7 +32,7 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_expired" id="filter_expired" value="1" <?= $filter_expired ? 'checked' : '' ?>>
                 <label class="form-check-label" for="filter_expired">
-                    <?= $this->lang->line('archived_documents_expired') ?>
+                    <?= $this->lang->line('archived_documents_expired') ?> (<?= isset($expired_count) ? $expired_count : 0 ?>)
                 </label>
             </div>
         </div>
@@ -40,7 +40,7 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_pending" id="filter_pending" value="1" <?= $filter_pending ? 'checked' : '' ?>>
                 <label class="form-check-label" for="filter_pending">
-                    <?= $this->lang->line('archived_documents_pending_documents') ?>
+                    <?= $this->lang->line('archived_documents_pending_documents') ?> (<?= isset($pending_count) ? $pending_count : 0 ?>)
                 </label>
             </div>
         </div>
@@ -120,9 +120,6 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                     $status_label = Archived_documents_model::status_label($status);
                     ?>
                     <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
-                    <?php if (!empty($doc['validation_status']) && $doc['validation_status'] === 'pending'): ?>
-                        <span class="badge bg-info text-dark"><?= $this->lang->line('archived_documents_status_pending') ?></span>
-                    <?php endif; ?>
                 </td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
@@ -138,10 +135,9 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                         <i class="fas fa-trash"></i>
                     </a>
                     <?php if (!empty($is_admin) && !empty($doc['pilot_login']) && !empty($doc['validation_status']) && $doc['validation_status'] === 'pending'): ?>
-                    <a href="<?= site_url('archived_documents/approve/' . $doc['id']) ?>"
-                       class="btn btn-sm btn-success"
-                       onclick="return confirm('<?= $this->lang->line('archived_documents_approve') ?> ?');"
-                       title="<?= $this->lang->line('archived_documents_approve') ?>">
+                          <a href="<?= site_url('archived_documents/approve/' . $doc['id']) ?>"
+                              class="btn btn-sm btn-success"
+                              title="<?= $this->lang->line('archived_documents_approve') ?>">
                         <i class="fas fa-check"></i>
                     </a>
                     <?php endif; ?>

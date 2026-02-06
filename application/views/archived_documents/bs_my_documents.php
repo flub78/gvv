@@ -100,12 +100,14 @@ $this->lang->load('archived_documents');
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>
+                    <?php if (empty($doc['validation_status']) || $doc['validation_status'] !== 'approved'): ?>
                     <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"
                        onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
                         <i class="fas fa-trash"></i>
                     </a>
+                    <?php endif; ?>
                     <?php if (isset($is_bureau) && $is_bureau): ?>
                     <button type="button" class="btn btn-sm btn-outline-warning toggle-alarm"
                             data-id="<?= $doc['id'] ?>"

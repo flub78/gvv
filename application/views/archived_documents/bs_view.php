@@ -34,11 +34,13 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
     <a href="<?= site_url('archived_documents/download/' . $document['id']) ?>" class="btn btn-sm btn-primary">
         <i class="fas fa-download"></i> <?= $this->lang->line('archived_documents_download') ?>
     </a>
+    <?php if (!empty($can_delete)): ?>
     <a href="<?= site_url('archived_documents/delete/' . $document['id']) ?>"
        class="btn btn-sm btn-danger"
        onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
         <i class="fas fa-trash"></i> <?= $this->lang->line('archived_documents_delete') ?>
     </a>
+    <?php endif; ?>
     <?php if (isset($is_bureau) && $is_bureau): ?>
     <button type="button" class="btn btn-sm btn-warning toggle-alarm" data-id="<?= $document['id'] ?>">
         <i class="fas <?= $document['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
@@ -47,8 +49,7 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
     <?php endif; ?>
     <?php if (isset($is_ca) && $is_ca && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
     <a href="<?= site_url('archived_documents/approve/' . $document['id']) ?>"
-       class="btn btn-sm btn-success"
-       onclick="return confirm('<?= $this->lang->line('archived_documents_approve') ?> ?');">
+         class="btn btn-sm btn-success">
         <i class="fas fa-check"></i> <?= $this->lang->line('archived_documents_approve') ?>
     </a>
     <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
