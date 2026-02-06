@@ -79,7 +79,10 @@ $filter = isset($active_filter) ? $active_filter : '';
                                 <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                            <?= htmlspecialchars($type_label) ?>
+                        </td>
                         <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                         <td><?= date('d/m/Y', strtotime($doc['valid_until'])) ?></td>
                         <td><span class="badge bg-warning text-dark"><?= $days_left ?> jours</span></td>
@@ -130,7 +133,10 @@ $filter = isset($active_filter) ? $active_filter : '';
                                 <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                            <?= htmlspecialchars($type_label) ?>
+                        </td>
                         <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                         <td><?= date('d/m/Y', strtotime($doc['valid_until'])) ?></td>
                         <td><span class="badge bg-danger"><?= $days_expired ?> jours</span></td>
@@ -189,7 +195,10 @@ $filter = isset($active_filter) ? $active_filter : '';
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                </td>
                 <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                 <td>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
@@ -286,7 +295,10 @@ $filter = isset($active_filter) ? $active_filter : '';
                 <tbody>
                     <?php foreach ($unassociated_documents as $doc): ?>
                     <tr>
-                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                            <?= htmlspecialchars($type_label) ?>
+                        </td>
                         <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                         <td>
                             <?php if (!empty($doc['section_name'])): ?>
@@ -402,7 +414,10 @@ $filter = isset($active_filter) ? $active_filter : '';
                     <tbody>
                         <?php foreach ($pilot_documents as $doc): ?>
                         <tr>
-                            <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                            <td>
+                                <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                                <?= htmlspecialchars($type_label) ?>
+                            </td>
                             <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                             <td>
                                 <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>

@@ -77,7 +77,12 @@ class Archived_documents extends Gvv_Controller {
     function my_documents() {
         $pilot_login = $this->dx_auth->get_username();
 
+        $this->push_return_url("archived_documents my_documents");
+
         $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
+        $section_id = $this->session->userdata('section');
+        $this->data['section_documents'] = $section_id ? $this->gvv_model->get_section_documents($section_id) : array();
+        $this->data['club_documents'] = $this->gvv_model->get_club_documents();
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login, $this->session->userdata('section'));
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
@@ -144,6 +149,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['message'] = $message;
         $this->data['is_admin'] = true;
+        $this->data['is_ca'] = $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
         $this->data['has_modification_rights'] = true;
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
@@ -165,6 +171,8 @@ class Archived_documents extends Gvv_Controller {
             redirect('archived_documents/my_documents');
             return;
         }
+
+        $this->push_return_url("archived_documents pilot_documents");
 
         $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login);
@@ -209,6 +217,7 @@ class Archived_documents extends Gvv_Controller {
 
         $this->data['pilot_login'] = $this->dx_auth->get_username();
         $this->data['uploaded_by'] = $this->dx_auth->get_username();
+        $this->data['force_pilot_types'] = true;
 
         $this->form_static_element(CREATION);
 
@@ -223,14 +232,23 @@ class Archived_documents extends Gvv_Controller {
 
         $this->data['is_admin'] = $this->_is_admin();
 
+        if (!empty($this->data['force_pilot_types'])) {
+            $type_selector = $this->document_types_model->type_selector('pilot');
+            $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_type_other')) + $type_selector;
+            $this->data['default_section_id'] = $this->session->userdata('section');
+            return;
+        }
+
         if ($this->_is_admin()) {
             // Admin: all document types, pilot and section selectors
-            $this->data['type_selector'] = $this->document_types_model->type_selector();
+            $type_selector = $this->document_types_model->type_selector();
+            $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_type_other')) + $type_selector;
             $this->data['section_selector'] = $this->sections_model->section_selector_with_null();
             $this->data['pilot_selector'] = $this->membres_model->selector_with_null(array('actif' => 1));
         } else {
             // Pilot: only pilot-scoped types, default section
-            $this->data['type_selector'] = $this->document_types_model->type_selector('pilot');
+            $type_selector = $this->document_types_model->type_selector('pilot');
+            $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_type_other')) + $type_selector;
             $this->data['default_section_id'] = $this->session->userdata('section');
         }
     }
@@ -244,6 +262,7 @@ class Archived_documents extends Gvv_Controller {
         // Determine which form view to use for error re-rendering
         $is_admin = $this->_is_admin();
         $error_view = $is_admin ? $this->controller . '/formView' : $this->controller . '/formPilotView';
+        $is_pilot_form = ($this->input->post('source') === 'pilot');
 
         if ($button == $this->lang->line("gvv_button_show_list")) {
             redirect('archived_documents/my_documents');
@@ -255,13 +274,25 @@ class Archived_documents extends Gvv_Controller {
 
         // Get document type to determine storage path
         $document_type_id = $this->input->post('document_type_id');
-        $document_type = $this->document_types_model->get_by_id('id', $document_type_id);
+        if ($document_type_id === '') {
+            $document_type_id = null;
+        }
 
-        if (!$document_type) {
-            $this->data['message'] = '<div class="alert alert-danger">Type de document invalide</div>';
-            $this->form_static_element($action);
-            load_last_view($error_view, $this->data);
-            return;
+        $document_type = null;
+        if (!empty($document_type_id)) {
+            $document_type = $this->document_types_model->get_by_id('id', $document_type_id);
+            if (!$document_type) {
+                $this->data['message'] = '<div class="alert alert-danger">Type de document invalide</div>';
+                $this->form_static_element($action);
+                load_last_view($error_view, $this->data);
+                return;
+            }
+            if (!$is_admin && $document_type['scope'] !== 'pilot') {
+                $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('archived_documents_pilot_only_types') . '</div>';
+                $this->form_static_element($action);
+                load_last_view($error_view, $this->data);
+                return;
+            }
         }
 
         // Determine pilot login
@@ -280,8 +311,11 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
+        // Determine section association
+        $section_id = $is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null);
+
         // Build storage directory
-        $dirname = $this->_get_storage_path($document_type, $pilot_login);
+        $dirname = $this->_get_storage_path($document_type, $pilot_login, $section_id);
 
         if (!$this->_ensure_directory($dirname)) {
             $this->data['message'] = '<div class="alert alert-danger">Impossible de creer le repertoire: ' . $dirname . '</div>';
@@ -327,13 +361,13 @@ class Archived_documents extends Gvv_Controller {
         }
 
         // Determine validation status: admin/CA = approved, others = pending
-        $validation_status = $is_admin ? 'approved' : 'pending';
+        $validation_status = ($is_admin && !$is_pilot_form) ? 'approved' : 'pending';
 
         // Prepare document data
         $doc_data = array(
-            'document_type_id' => $document_type_id,
+            'document_type_id' => $document_type_id ?: null,
             'pilot_login' => !empty($pilot_login) ? $pilot_login : null,
-            'section_id' => $is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null),
+            'section_id' => $section_id,
             'file_path' => $file_path,
             'original_filename' => $_FILES['userfile']['name'],
             'description' => $this->input->post('description'),
@@ -360,7 +394,7 @@ class Archived_documents extends Gvv_Controller {
                 redirect('archived_documents/my_documents');
             } else {
                 $this->session->set_flashdata('message', '<div class="alert alert-success">Document ajoute avec succes</div>');
-                redirect($is_admin ? 'archived_documents/page' : 'archived_documents/my_documents');
+                redirect($is_pilot_form ? 'archived_documents/my_documents' : ($is_admin ? 'archived_documents/page' : 'archived_documents/my_documents'));
             }
         } else {
             $db_error = $this->db->error();
@@ -390,10 +424,13 @@ class Archived_documents extends Gvv_Controller {
 
         $this->data['document'] = $doc;
         $this->data['document']['expiration_status'] = $this->gvv_model->compute_expiration_status($doc);
-        $this->data['type'] = $this->document_types_model->get_by_id('id', $doc['document_type_id']);
+        $this->data['type'] = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
         $this->data['versions'] = $this->gvv_model->get_version_history($id);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
+        $this->data['is_ca'] = $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
         $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
 
         load_last_view($this->controller . '/view', $this->data);
@@ -594,13 +631,23 @@ class Archived_documents extends Gvv_Controller {
     /**
      * Get storage path for a document
      */
-    private function _get_storage_path($document_type, $pilot_login) {
+    private function _get_storage_path($document_type, $pilot_login, $section_id = null) {
         $base = './uploads/documents/';
+
+        if (!$document_type) {
+            if (!empty($pilot_login)) {
+                return $base . 'pilots/' . $pilot_login . '/other/';
+            }
+            if (!empty($section_id)) {
+                return $base . 'sections/' . $section_id . '/other/';
+            }
+            return $base . 'club/other/';
+        }
 
         if ($document_type['scope'] === 'pilot') {
             return $base . 'pilots/' . $pilot_login . '/' . $document_type['code'] . '/';
         } elseif ($document_type['scope'] === 'section') {
-            $section_id = $this->session->userdata('section') ?: 'default';
+            $section_id = $section_id ?: ($this->session->userdata('section') ?: 'default');
             return $base . 'sections/' . $section_id . '/' . $document_type['code'] . '/';
         } else {
             return $base . 'club/' . $document_type['code'] . '/';

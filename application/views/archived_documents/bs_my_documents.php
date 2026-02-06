@@ -43,7 +43,8 @@ $this->lang->load('archived_documents');
 </div>
 <?php endif; ?>
 
-<!-- Documents list -->
+<!-- Pilot documents -->
+<h5 class="mt-4"><i class="fas fa-user"></i> <?= $this->lang->line('archived_documents_pilot_documents_section') ?></h5>
 <?php if (!empty($documents)): ?>
 <div class="table-responsive">
     <table class="table table-striped table-hover">
@@ -60,7 +61,10 @@ $this->lang->load('archived_documents');
         <tbody>
             <?php foreach ($documents as $doc): ?>
             <tr>
-                <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                </td>
                 <td>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
@@ -110,6 +114,110 @@ $this->lang->load('archived_documents');
                         <i class="fas <?= $doc['alarm_disabled'] ? 'fa-bell' : 'fa-bell-slash' ?>"></i>
                     </button>
                     <?php endif; ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+<?php else: ?>
+<div class="alert alert-info">
+    <?= $this->lang->line('archived_documents_no_documents') ?>
+</div>
+<?php endif; ?>
+
+<!-- Section documents -->
+<h5 class="mt-4"><i class="fas fa-layer-group"></i> <?= $this->lang->line('archived_documents_section_documents_section') ?></h5>
+<?php if (!empty($section_documents)): ?>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th><?= $this->lang->line('archived_documents_type') ?></th>
+                <th><?= $this->lang->line('archived_documents_file') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
+                <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($section_documents as $doc): ?>
+            <tr>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                </td>
+                <td>
+                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                </td>
+                <td>
+                    <?php if ($doc['valid_until']): ?>
+                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
+                <td>
+                    <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
+                        <i class="fas fa-download"></i>
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+<?php else: ?>
+<div class="alert alert-info">
+    <?= $this->lang->line('archived_documents_no_documents') ?>
+</div>
+<?php endif; ?>
+
+<!-- Club documents -->
+<h5 class="mt-4"><i class="fas fa-building"></i> <?= $this->lang->line('archived_documents_club_documents_section') ?></h5>
+<?php if (!empty($club_documents)): ?>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th><?= $this->lang->line('archived_documents_type') ?></th>
+                <th><?= $this->lang->line('archived_documents_file') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
+                <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($club_documents as $doc): ?>
+            <tr>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                </td>
+                <td>
+                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                </td>
+                <td>
+                    <?php if ($doc['valid_until']): ?>
+                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
+                <td>
+                    <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
+                        <i class="fas fa-download"></i>
+                    </a>
                 </td>
             </tr>
             <?php endforeach; ?>

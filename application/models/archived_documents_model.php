@@ -59,7 +59,7 @@ class Archived_documents_model extends Common_Model {
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+            $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
         $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
 
@@ -97,7 +97,7 @@ class Archived_documents_model extends Common_Model {
             document_types.code as type_code, document_types.required,
             document_types.has_expiration, document_types.alert_days_before');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.pilot_login', $pilot_login);
 
         if ($current_only) {
@@ -128,9 +128,9 @@ class Archived_documents_model extends Common_Model {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+            $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.section_id', $section_id);
-        $this->db->where('document_types.scope', 'section');
+            $this->db->where('(document_types.scope = "section" OR archived_documents.document_type_id IS NULL)', null, false);
 
         if ($current_only) {
             $this->db->where('archived_documents.is_current_version', 1);
@@ -157,8 +157,8 @@ class Archived_documents_model extends Common_Model {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
-        $this->db->where('document_types.scope', 'club');
+            $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+            $this->db->where('(document_types.scope = "club" OR archived_documents.document_type_id IS NULL)', null, false);
 
         if ($current_only) {
             $this->db->where('archived_documents.is_current_version', 1);
@@ -186,7 +186,7 @@ class Archived_documents_model extends Common_Model {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code, sections.nom as section_name');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
         $this->db->where('archived_documents.pilot_login IS NULL');
 
@@ -359,25 +359,37 @@ class Archived_documents_model extends Common_Model {
      * @return int|false New document ID or false on failure
      */
     public function create_document($data) {
-        // Check for existing current version of same type for same pilot/section
-        $where = array(
-            'document_type_id' => $data['document_type_id'],
-            'is_current_version' => 1
-        );
-
-        if (!empty($data['pilot_login'])) {
-            $where['pilot_login'] = $data['pilot_login'];
-        } elseif (!empty($data['section_id'])) {
-            $where['section_id'] = $data['section_id'];
+        $allow_versioning = true;
+        if (empty($data['document_type_id'])) {
+            $allow_versioning = false;
+        } else {
+            $doc_type = $this->document_types_model->get_by_id('id', $data['document_type_id']);
+            if (!$doc_type || empty($doc_type['allow_versioning'])) {
+                $allow_versioning = false;
+            }
         }
 
-        $existing = $this->get_first($where);
+        if ($allow_versioning) {
+            // Check for existing current version of same type for same pilot/section
+            $where = array(
+                'document_type_id' => $data['document_type_id'],
+                'is_current_version' => 1
+            );
 
-        // If existing, mark it as not current and link
-        if ($existing) {
-            $this->db->where('id', $existing['id']);
-            $this->db->update($this->table, array('is_current_version' => 0));
-            $data['previous_version_id'] = $existing['id'];
+            if (!empty($data['pilot_login'])) {
+                $where['pilot_login'] = $data['pilot_login'];
+            } elseif (!empty($data['section_id'])) {
+                $where['section_id'] = $data['section_id'];
+            }
+
+            $existing = $this->get_first($where);
+
+            // If existing, mark it as not current and link
+            if ($existing) {
+                $this->db->where('id', $existing['id']);
+                $this->db->update($this->table, array('is_current_version' => 0));
+                $data['previous_version_id'] = $existing['id'];
+            }
         }
 
         // Set defaults
@@ -519,7 +531,7 @@ class Archived_documents_model extends Common_Model {
             document_types.code as type_code,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom');
         $this->db->from($this->table);
-        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
         $this->db->where('archived_documents.validation_status', 'pending');
         $this->db->where('archived_documents.is_current_version', 1);

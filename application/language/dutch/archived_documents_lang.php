@@ -14,8 +14,11 @@ $lang['archived_documents_add_pilot'] = 'Pilootdocument Toevoegen';
 $lang['archived_documents_view'] = 'Document Bekijken';
 $lang['archived_documents_delete'] = 'Verwijderen';
 $lang['archived_documents_download'] = 'Downloaden';
+$lang['archived_documents_manage_types'] = 'Types Beheren';
 
 $lang['archived_documents_type'] = 'Type';
+$lang['archived_documents_type_other'] = 'Andere ..';
+$lang['archived_documents_type_help'] = 'Documenten met gedefinieerde types kunnen worden vervangen door hetzelfde document in een latere versie. Bijvoorbeeld een verzekeringsattest kan worden vervangen door dat van het lopende jaar. Als u meerdere versies wilt beheren, maak een documenttype aan.';
 $lang['archived_documents_file'] = 'Bestand';
 $lang['archived_documents_description'] = 'Beschrijving';
 $lang['archived_documents_valid_from'] = 'Geldig Vanaf';
@@ -40,6 +43,9 @@ $lang['archived_documents_pilot_documents'] = 'Documenten per piloot';
 $lang['archived_documents_select_pilot'] = 'Selecteer een piloot';
 $lang['archived_documents_show'] = 'Tonen';
 $lang['archived_documents_documents_of'] = 'Documenten van';
+$lang['archived_documents_pilot_documents_section'] = 'Pilootdocumenten';
+$lang['archived_documents_section_documents_section'] = 'Sectiedocumenten';
+$lang['archived_documents_club_documents_section'] = 'Clubdocumenten';
 
 $lang['archived_documents_versions'] = 'Versiegeschiedenis';
 $lang['archived_documents_current_version'] = 'Huidige Versie';
@@ -76,6 +82,7 @@ $lang['archived_documents_validated_by'] = 'Gevalideerd door';
 $lang['archived_documents_validated_at'] = 'Gevalideerd op';
 $lang['archived_documents_pending_notice'] = 'Uw document wacht op validatie door een beheerder';
 $lang['archived_documents_filter_all'] = 'Alle';
+$lang['archived_documents_pilot_only_types'] = 'Piloten kunnen alleen pilootdocumenttypes selecteren.';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

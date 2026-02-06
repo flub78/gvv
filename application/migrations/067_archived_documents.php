@@ -81,7 +81,7 @@ class Migration_Archived_documents extends CI_Migration {
             // Table: archived_documents - Archived documents with expiration
             "CREATE TABLE IF NOT EXISTS `archived_documents` (
                 `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-                `document_type_id` INT(11) UNSIGNED NOT NULL COMMENT 'Type de document',
+                `document_type_id` INT(11) UNSIGNED NULL COMMENT 'Type de document',
                 `pilot_login` VARCHAR(25) NULL COMMENT 'Pilote associe (NULL si club/section)',
                 `section_id` INT(11) NULL COMMENT 'Section associee',
                 `file_path` VARCHAR(255) NOT NULL COMMENT 'Chemin du fichier',
@@ -96,6 +96,10 @@ class Migration_Archived_documents extends CI_Migration {
                 `is_current_version` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Version courante',
                 `file_size` INT(11) UNSIGNED NULL COMMENT 'Taille fichier en octets',
                 `mime_type` VARCHAR(64) NULL COMMENT 'Type MIME',
+                `validation_status` ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'approved' COMMENT 'Statut de validation',
+                `validated_by` VARCHAR(25) NULL COMMENT 'Utilisateur ayant valide',
+                `validated_at` DATETIME NULL COMMENT 'Date de validation',
+                `rejection_reason` VARCHAR(255) NULL COMMENT 'Motif du refus',
                 PRIMARY KEY (`id`),
                 KEY `idx_pilot` (`pilot_login`),
                 KEY `idx_section` (`section_id`),
@@ -103,6 +107,7 @@ class Migration_Archived_documents extends CI_Migration {
                 KEY `idx_expiration` (`valid_until`),
                 KEY `idx_current` (`is_current_version`),
                 KEY `idx_alarm` (`alarm_disabled`),
+                KEY `idx_validation_status` (`validation_status`),
                 CONSTRAINT `fk_archived_documents_type` FOREIGN KEY (`document_type_id`)
                     REFERENCES `document_types` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
                 CONSTRAINT `fk_archived_documents_pilot` FOREIGN KEY (`pilot_login`)

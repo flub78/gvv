@@ -14,8 +14,11 @@ $lang['archived_documents_add_pilot'] = 'Add Pilot Document';
 $lang['archived_documents_view'] = 'View Document';
 $lang['archived_documents_delete'] = 'Delete';
 $lang['archived_documents_download'] = 'Download';
+$lang['archived_documents_manage_types'] = 'Manage Types';
 
 $lang['archived_documents_type'] = 'Type';
+$lang['archived_documents_type_other'] = 'Other ..';
+$lang['archived_documents_type_help'] = 'Documents with defined types can be replaced by the same document in a later version. For example, an insurance certificate can be replaced by the current year\'s one. If you want to manage multiple versions, create a document type.';
 $lang['archived_documents_file'] = 'File';
 $lang['archived_documents_description'] = 'Description';
 $lang['archived_documents_valid_from'] = 'Valid From';
@@ -40,6 +43,9 @@ $lang['archived_documents_pilot_documents'] = 'Documents by pilot';
 $lang['archived_documents_select_pilot'] = 'Select a pilot';
 $lang['archived_documents_show'] = 'Show';
 $lang['archived_documents_documents_of'] = 'Documents of';
+$lang['archived_documents_pilot_documents_section'] = 'Pilot documents';
+$lang['archived_documents_section_documents_section'] = 'Section documents';
+$lang['archived_documents_club_documents_section'] = 'Club documents';
 
 $lang['archived_documents_versions'] = 'Version History';
 $lang['archived_documents_current_version'] = 'Current Version';
@@ -76,6 +82,7 @@ $lang['archived_documents_validated_by'] = 'Validated By';
 $lang['archived_documents_validated_at'] = 'Validated On';
 $lang['archived_documents_pending_notice'] = 'Your document is pending validation by an administrator';
 $lang['archived_documents_filter_all'] = 'All';
+$lang['archived_documents_pilot_only_types'] = 'Pilots can only select pilot document types.';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

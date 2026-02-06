@@ -32,23 +32,28 @@ $this->lang->load('archived_documents');
 
         <!-- Document type -->
         <div class="mb-3 row">
-            <label for="document_type_id" class="col-sm-3 col-form-label">
-                <?= $this->lang->line('archived_documents_type') ?> <span class="text-danger">*</span>
+            <label for="document_type_id" class="col-sm-2 col-form-label">
+                <?= $this->lang->line('archived_documents_type') ?>
             </label>
-            <div class="col-sm-9">
+            <div class="col-sm-10">
+                <div class="d-flex align-items-center gap-2">
                 <?php
                 $selected_type = isset($_GET['type']) ? $_GET['type'] : (isset($document_type_id) ? $document_type_id : '');
-                echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id" required');
+                echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id"');
                 ?>
+                <button type="button" class="btn btn-outline-secondary btn-sm" title="<?= $this->lang->line('archived_documents_type_help') ?>" aria-label="<?= $this->lang->line('archived_documents_type_help') ?>" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="fas fa-question"></i>
+                </button>
+                </div>
             </div>
         </div>
 
         <!-- File upload -->
         <div class="mb-3 row">
-            <label for="userfile" class="col-sm-3 col-form-label">
+            <label for="userfile" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('archived_documents_file') ?> <span class="text-danger">*</span>
             </label>
-            <div class="col-sm-9">
+            <div class="col-sm-10">
                 <input type="file" name="userfile" id="userfile" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.odt,.ods,.odp,.ppt,.pptx,.html,.htm">
                 <small class="text-muted"><?= $this->lang->line('archived_documents_file_formats') ?></small>
             </div>
@@ -56,36 +61,37 @@ $this->lang->load('archived_documents');
 
         <!-- Description -->
         <div class="mb-3 row">
-            <label for="description" class="col-sm-3 col-form-label">
+            <label for="description" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('archived_documents_description') ?>
             </label>
-            <div class="col-sm-9">
+            <div class="col-sm-10">
                 <?= form_input('description', set_value('description', isset($description) ? $description : ''), 'class="form-control" id="description" maxlength="255"') ?>
             </div>
         </div>
 
         <!-- Valid from -->
         <div class="mb-3 row">
-            <label for="valid_from" class="col-sm-3 col-form-label">
+            <label for="valid_from" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('archived_documents_valid_from') ?>
             </label>
-            <div class="col-sm-9">
+            <div class="col-sm-10">
                 <?= form_input('valid_from', set_value('valid_from', isset($valid_from) ? $valid_from : ''), 'class="form-control datepicker" id="valid_from" placeholder="jj/mm/aaaa"') ?>
             </div>
         </div>
 
         <!-- Valid until -->
         <div class="mb-3 row">
-            <label for="valid_until" class="col-sm-3 col-form-label">
+            <label for="valid_until" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('archived_documents_valid_until') ?>
             </label>
-            <div class="col-sm-9">
+            <div class="col-sm-10">
                 <?= form_input('valid_until', set_value('valid_until', isset($valid_until) ? $valid_until : ''), 'class="form-control datepicker" id="valid_until" placeholder="jj/mm/aaaa"') ?>
             </div>
         </div>
 
         <?= form_hidden('pilot_login', $pilot_login) ?>
         <?= form_hidden('uploaded_by', $uploaded_by) ?>
+        <?= form_hidden('source', 'pilot') ?>
 
     </div>
     <div class="card-footer">

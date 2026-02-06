@@ -14,8 +14,11 @@ $lang['archived_documents_add_pilot'] = 'Ajouter un document pilote';
 $lang['archived_documents_view'] = 'Voir le document';
 $lang['archived_documents_delete'] = 'Supprimer';
 $lang['archived_documents_download'] = 'Télécharger';
+$lang['archived_documents_manage_types'] = 'Gérer les types';
 
 $lang['archived_documents_type'] = 'Type';
+$lang['archived_documents_type_other'] = 'Autre ..';
+$lang['archived_documents_type_help'] = 'Les documents dont les types sont définis peuvent être remplacés par le même document dans une version ultérieure. Par exemple une attestation d\'assurance peut-être remplacée par celle de l\'année en cours. Si vous voulez gérer plusieurs versions créer un type de document';
 $lang['archived_documents_file'] = 'Fichier';
 $lang['archived_documents_description'] = 'Description';
 $lang['archived_documents_valid_from'] = 'Valide depuis';
@@ -40,6 +43,9 @@ $lang['archived_documents_pilot_documents'] = 'Documents par pilote';
 $lang['archived_documents_select_pilot'] = 'Sélectionner un pilote';
 $lang['archived_documents_show'] = 'Afficher';
 $lang['archived_documents_documents_of'] = 'Documents de';
+$lang['archived_documents_pilot_documents_section'] = 'Documents du pilote';
+$lang['archived_documents_section_documents_section'] = 'Documents de la section';
+$lang['archived_documents_club_documents_section'] = 'Documents du club';
 
 $lang['archived_documents_versions'] = 'Historique des versions';
 $lang['archived_documents_current_version'] = 'Version courante';
@@ -76,6 +82,7 @@ $lang['archived_documents_validated_by'] = 'Validé par';
 $lang['archived_documents_validated_at'] = 'Validé le';
 $lang['archived_documents_pending_notice'] = 'Votre document est en attente de validation par un administrateur';
 $lang['archived_documents_filter_all'] = 'Tous';
+$lang['archived_documents_pilot_only_types'] = 'Les pilotes ne peuvent sélectionner que des types de documents pilotes.';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/french/archived_documents_lang.php */

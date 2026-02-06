@@ -57,7 +57,10 @@ $this->lang->load('archived_documents');
                                 <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                            <?= htmlspecialchars($type_label) ?>
+                        </td>
                         <td><?= date('d/m/Y', strtotime($doc['valid_until'])) ?></td>
                         <td>
                             <span class="badge bg-warning text-dark"><?= $days_left ?> jours</span>
@@ -110,7 +113,10 @@ $this->lang->load('archived_documents');
                                 <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                        <td>
+                            <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                            <?= htmlspecialchars($type_label) ?>
+                        </td>
                         <td><?= date('d/m/Y', strtotime($doc['valid_until'])) ?></td>
                         <td>
                             <span class="badge bg-danger"><?= $days_expired ?> jours</span>

@@ -13,13 +13,14 @@ $this->lang->load('archived_documents');
 $status = $document['expiration_status'];
 $badge_class = Archived_documents_model::status_badge_class($status);
 $status_label = Archived_documents_model::status_label($status);
+$type_label = (!empty($type) && !empty($type['name'])) ? $type['name'] : $this->lang->line('archived_documents_type_other');
+$show_type = ($type_label !== $this->lang->line('archived_documents_type_other'));
 ?>
 
 <div id="body" class="body container-fluid">
 
 <h3>
-    <i class="fas fa-file"></i> <?= htmlspecialchars($type['name']) ?>
-    <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+    <i class="fas fa-file"></i> Visualisation d'un document
 </h3>
 
 <?php if ($this->session->flashdata('message')): ?>
@@ -27,7 +28,7 @@ $status_label = Archived_documents_model::status_label($status);
 <?php endif; ?>
 
 <div class="mb-3">
-    <a href="<?= site_url('archived_documents/my_documents') ?>" class="btn btn-sm btn-outline-secondary">
+    <a href="<?= site_url('archived_documents/pop_return_url') ?>" class="btn btn-sm btn-outline-secondary">
         <i class="fas fa-arrow-left"></i> <?= $this->lang->line('archived_documents_back') ?>
     </a>
     <a href="<?= site_url('archived_documents/download/' . $document['id']) ?>" class="btn btn-sm btn-primary">
@@ -44,7 +45,7 @@ $status_label = Archived_documents_model::status_label($status);
         <?= $document['alarm_disabled'] ? $this->lang->line('archived_documents_enable_alarm') : $this->lang->line('archived_documents_disable_alarm') ?>
     </button>
     <?php endif; ?>
-    <?php if (isset($is_admin) && $is_admin && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
+    <?php if (isset($is_ca) && $is_ca && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
     <a href="<?= site_url('archived_documents/approve/' . $document['id']) ?>"
        class="btn btn-sm btn-success"
        onclick="return confirm('<?= $this->lang->line('archived_documents_approve') ?> ?');">
@@ -69,10 +70,12 @@ $status_label = Archived_documents_model::status_label($status);
                         <th style="width: 40%"><?= $this->lang->line('archived_documents_file') ?></th>
                         <td><?= htmlspecialchars($document['original_filename']) ?></td>
                     </tr>
+                    <?php if ($show_type): ?>
                     <tr>
                         <th><?= $this->lang->line('archived_documents_type') ?></th>
-                        <td><?= htmlspecialchars($type['name']) ?></td>
+                        <td><?= htmlspecialchars($type_label) ?></td>
                     </tr>
+                    <?php endif; ?>
                     <?php if ($document['description']): ?>
                     <tr>
                         <th><?= $this->lang->line('archived_documents_description') ?></th>
@@ -99,17 +102,16 @@ $status_label = Archived_documents_model::status_label($status);
                             <?php endif; ?>
                         </td>
                     </tr>
+                    <?php if ($document['alarm_disabled']): ?>
                     <tr>
-                        <th><?= $this->lang->line('archived_documents_status') ?></th>
+                        <th><?= $this->lang->line('archived_documents_alarm_disabled') ?></th>
                         <td>
-                            <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
-                            <?php if ($document['alarm_disabled']): ?>
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-bell-slash"></i> <?= $this->lang->line('archived_documents_alarm_disabled') ?>
-                                </span>
-                            <?php endif; ?>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-bell-slash"></i> <?= $this->lang->line('archived_documents_alarm_disabled') ?>
+                            </span>
                         </td>
                     </tr>
+                    <?php endif; ?>
                     <tr>
                         <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                         <td><?= date('d/m/Y H:i', strtotime($document['uploaded_at'])) ?></td>

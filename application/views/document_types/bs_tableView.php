@@ -47,6 +47,10 @@ echo '<div class="mb-3">'
     . '<a href="' . site_url('document_types/create') . '" class="btn btn-sm btn-success">'
     . '<i class="fas fa-plus" aria-hidden="true"></i> '
     . $this->lang->line('gvv_button_create')
+    . '</a> '
+    . '<a href="' . site_url('archived_documents/page') . '" class="btn btn-sm btn-outline-secondary ms-2">'
+    . '<i class="fas fa-archive" aria-hidden="true"></i> '
+    . $this->lang->line('document_types_manage_documents')
     . '</a>'
     . '</div>';
 

@@ -52,7 +52,10 @@ $this->lang->load('archived_documents');
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars($doc['type_name']) ?></td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                </td>
                 <td>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>

@@ -18,6 +18,104 @@ class Document_types_model extends Common_Model {
     protected $primary_key = 'id';
 
     /**
+     * Normalize display order value
+     * @param mixed $value
+     * @return int|null
+     */
+    private function normalize_display_order($value) {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        return (int)$value;
+    }
+
+    /**
+     * Shift display_order for existing rows to make room at a given position
+     * @param int $order
+     * @param int|null $exclude_id
+     */
+    private function shift_orders_for_insert($order, $exclude_id = null) {
+        $this->db->set('display_order', 'display_order + 1', false);
+        $this->db->where('display_order >=', $order);
+        if (!empty($exclude_id)) {
+            $this->db->where($this->primary_key . ' !=', $exclude_id);
+        }
+        $this->db->update($this->table);
+    }
+
+    /**
+     * Renumber all display_order values to remove holes
+     */
+    private function renumber_orders() {
+        $rows = $this->db->select($this->primary_key)
+            ->from($this->table)
+            ->order_by('display_order', 'asc')
+            ->order_by('name', 'asc')
+            ->order_by($this->primary_key, 'asc')
+            ->get()
+            ->result_array();
+
+        $order = 1;
+        foreach ($rows as $row) {
+            $this->db->where($this->primary_key, $row[$this->primary_key]);
+            $this->db->update($this->table, array('display_order' => $order));
+            $order++;
+        }
+    }
+
+    /**
+     * Create a document type with display_order reindexing
+     * @param array $data
+     * @return int|false
+     */
+    public function create($data) {
+        $order = $this->normalize_display_order(isset($data['display_order']) ? $data['display_order'] : null);
+        if ($order !== null) {
+            $this->shift_orders_for_insert($order);
+        }
+        $id = parent::create($data);
+        if ($id) {
+            $this->renumber_orders();
+        }
+        return $id;
+    }
+
+    /**
+     * Update a document type with display_order reindexing
+     * @param string $keyid
+     * @param array $data
+     * @param string $keyvalue
+     */
+    public function update($keyid, $data, $keyvalue = '') {
+        if ($keyvalue == '') {
+            $keyvalue = $data[$keyid];
+        }
+
+        if (array_key_exists('display_order', $data)) {
+            $new_order = $this->normalize_display_order($data['display_order']);
+            if ($new_order !== null) {
+                $current = $this->get_by_id($keyid, $keyvalue);
+                $current_order = isset($current['display_order']) ? (int)$current['display_order'] : null;
+                if ($current_order !== $new_order) {
+                    $this->shift_orders_for_insert($new_order, $keyvalue);
+                }
+            }
+        }
+
+        parent::update($keyid, $data, $keyvalue);
+        $this->renumber_orders();
+    }
+
+    /**
+     * Delete a document type and renumber display_order
+     * @param array $where
+     */
+    public function delete($where = array()) {
+        parent::delete($where);
+        $this->renumber_orders();
+    }
+
+    /**
      * Returns paginated list for display
      * @return array
      */

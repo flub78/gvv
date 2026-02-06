@@ -9,6 +9,7 @@ $lang['document_types_add'] = 'Ajouter un type';
 $lang['document_types_edit'] = 'Modifier le type';
 $lang['document_types_view'] = 'Voir le type';
 $lang['document_types_delete'] = 'Supprimer';
+$lang['document_types_manage_documents'] = 'Gérer les documents';
 
 $lang['document_types_code'] = 'Code';
 $lang['document_types_name'] = 'Nom';
