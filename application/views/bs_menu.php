@@ -35,6 +35,8 @@ $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
 $section_count = $CI->sections_model->safe_count_all();
+// Always compute section_selector fresh to avoid empty dropdown when session data is lost
+$section_selector = $CI->sections_model->selector_with_all();
 ?>
 
 <body>
@@ -425,7 +427,7 @@ $section_count = $CI->sections_model->safe_count_all();
 
             <?php if ($section_count > 1) : ?>
               <div>
-                <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $this->session->userdata('section_selector'), 'class="" onchange="updateSection(this.value)"') ?>
+                <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="updateSection(this.value)"') ?>
               </div>
             <?php endif; ?>
 
