@@ -230,7 +230,7 @@ class Archived_documents extends Gvv_Controller {
         $storage_file = time() . '_' . rand(1000, 9999) . '_' . $this->_sanitize_filename($_FILES['userfile']['name']);
 
         $config['upload_path'] = $dirname;
-        $config['allowed_types'] = 'gif|jpg|jpeg|png|pdf';
+        $config['allowed_types'] = 'gif|jpg|jpeg|png|pdf|doc|docx|xls|xlsx|odt|ods|odp|ppt|pptx|html|htm';
         $config['max_size'] = 10000; // 10MB
         $config['file_name'] = $storage_file;
 

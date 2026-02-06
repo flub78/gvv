@@ -49,7 +49,7 @@ $this->lang->load('archived_documents');
                 <?= $this->lang->line('archived_documents_file') ?> <span class="text-danger">*</span>
             </label>
             <div class="col-sm-9">
-                <input type="file" name="userfile" id="userfile" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.gif">
+                <input type="file" name="userfile" id="userfile" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.odt,.ods,.odp,.ppt,.pptx,.html,.htm">
                 <small class="text-muted"><?= $this->lang->line('archived_documents_file_formats') ?></small>
             </div>
         </div>

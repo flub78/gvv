@@ -58,7 +58,7 @@ $lang['archived_documents_open_pdf'] = 'Open PDF';
 $lang['archived_documents_version'] = 'Version';
 $lang['archived_documents_days_remaining'] = 'Days Remaining';
 $lang['archived_documents_days_expired'] = 'Expired Since';
-$lang['archived_documents_file_formats'] = 'Accepted formats: PDF, JPG, PNG, GIF. Max size: 10 MB';
+$lang['archived_documents_file_formats'] = 'Accepted formats: PDF, JPG, PNG, GIF, DOC(X), XLS(X), PPT(X), ODT, ODS, ODP, HTML. Max size: 10 MB';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */
