@@ -113,18 +113,9 @@ CREATE TABLE pdf_template_mappings (
     UNIQUE KEY (template_id, champ_pdf)
 );
 
--- Table des PDF générés (archivage)
-CREATE TABLE pdf_generated (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    template_id INT NOT NULL,
-    generated_by VARCHAR(25) NOT NULL,     -- Utilisateur qui a généré
-    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    contexte_data JSON,                    -- Données utilisées (pilote_id, instructeur_id...)
-    fichier VARCHAR(255) NOT NULL,         -- Chemin vers le PDF généré
-    archived TINYINT(1) DEFAULT 0,         -- Archivé dans le système documentaire
-    attachment_id INT,                     -- Lien vers attachments si archivé
-    FOREIGN KEY (template_id) REFERENCES pdf_templates(id)
-);
+-- Les PDF générés sont archivés via la table `archived_documents`
+-- avec le type de document `formulaire_pdf` (scope: pilot).
+-- Le nom du template est inclus dans le champ `description`.
 ```
 
 ### Composants
@@ -148,7 +139,7 @@ Responsabilités :
 - `get_mapping($template_id)` : Charge le mapping depuis la base
 - `collect_data($mapping, $contextes)` : Collecte les données selon le mapping
 - `fill($template_id, $contextes, $output_path)` : Génère le PDF rempli
-- `archive($generated_id, $pilote_id)` : Archive dans le système documentaire
+- `archive($pdf_path, $template, $pilote_login)` : Archive via `archived_documents_model->create_document()` (type `formulaire_pdf`)
 
 #### Contrôleur PHP : `application/controllers/Pdf_forms.php`
 
@@ -156,8 +147,7 @@ Vues :
 - `index` : Liste des templates disponibles
 - `upload` : Upload et analyse d'un nouveau template
 - `mapping/$id` : Interface de mapping pour un template
-- `generate/$id` : Formulaire de sélection des données et génération
-- `history` : Historique des PDF générés
+- `generate/$id` : Formulaire de sélection des données, génération et archivage via `archived_documents`
 
 ### Outils disponibles sur le système
 
@@ -270,9 +260,11 @@ Les caractères accentués doivent être correctement gérés (UTF-8 vers PDF).
 - Contrôle d'accès aux données des pilotes lors de la génération
 - Nettoyage des fichiers temporaires
 
-### Intégration avec l'archivage documentaire
+### Intégration avec le module archived_documents
 
-Les PDF générés peuvent être archivés dans le système documentaire (voir PRD archivage_documentaire) :
-- Association au pilote concerné
-- Type de document : "Attestation de formation"
-- Date de validité : optionnelle selon le type de formulaire
+Les PDF générés sont archivés directement via `archived_documents_model->create_document()` :
+- Type de document : `formulaire_pdf` (créé dans `document_types`, scope `pilot`)
+- Association au pilote concerné via `pilot_login`
+- Description incluant le nom du template utilisé
+- Stockage dans `uploads/documents/pilots/{login}/formulaire_pdf/`
+- L'historique et le re-téléchargement passent par le module `archived_documents`

@@ -34,10 +34,9 @@ L'objectif est de permettre le remplissage automatique de formulaires PDF à par
 - Upload de formulaires PDF (templates) par les administrateurs.
 - Extraction automatique des champs éditables d'un formulaire PDF.
 - Interface de mapping entre champs PDF et sources de données GVV.
-- Génération de PDF remplis avec les données d'un ou plusieurs pilotes.
+- Génération de PDF remplis avec les données d'un pilote.
 - Téléchargement des PDF générés.
-- Archivage optionnel dans le système documentaire.
-- Historique des documents générés.
+- Archivage dans le module `archived_documents` (historique et consultation intégrés).
 
 ### Exclu
 
@@ -69,15 +68,15 @@ L'objectif est de permettre le remplissage automatique de formulaires PDF à par
 
 1. L'instructeur accède à la génération de formulaires.
 2. Il sélectionne le type de formulaire (ex: "Attestation début de formation ULM").
-3. Il sélectionne le(s) pilote(s) concerné(s) selon les contextes requis.
+3. Il sélectionne le pilote concerné selon les contextes requis.
 4. Il visualise un aperçu des données qui seront utilisées.
 5. Il génère le PDF.
-6. Il peut télécharger le PDF et/ou l'archiver dans le dossier du pilote.
+6. Le PDF est archivé automatiquement dans `archived_documents` et peut être téléchargé immédiatement.
 
 ### Parcours 3 : Consultation d'un document archivé (Pilote)
 
-1. Le pilote accède à son espace documents.
-2. Il voit les formulaires générés le concernant.
+1. Le pilote accède à ses documents via le module `archived_documents`.
+2. Il voit les formulaires générés le concernant (type `formulaire_pdf`).
 3. Il peut télécharger les documents.
 
 ## Exigences fonctionnelles
@@ -112,17 +111,14 @@ L'objectif est de permettre le remplissage automatique de formulaires PDF à par
 6. Le système doit permettre le téléchargement immédiat du PDF généré.
 7. Le système doit conserver les caractères accentués correctement.
 
-### EF4 : Archivage
+### EF4 : Archivage et historique
 
-1. Le système doit permettre d'archiver le PDF généré dans le système documentaire.
+L'archivage et l'historique des PDF générés sont délégués au module `archived_documents`.
+
+1. Le système doit archiver le PDF généré via le module `archived_documents` avec le type de document `formulaire_pdf`.
 2. L'archivage doit associer le document au pilote concerné.
-3. Le système doit enregistrer les métadonnées : date de génération, template utilisé, générateur.
-
-### EF5 : Historique
-
-1. Le système doit conserver un historique des documents générés.
-2. L'historique doit inclure : date, template, utilisateur, pilotes concernés.
-3. Le système doit permettre de re-télécharger un document déjà généré.
+3. Le système doit enregistrer les métadonnées : date de génération, template utilisé, générateur (via les champs `description`, `uploaded_by`, `uploaded_at` d'`archived_documents`).
+4. L'historique et le re-téléchargement des documents générés sont accessibles via le module `archived_documents`.
 
 ### EF6 : Contrôle d'accès
 
@@ -142,7 +138,7 @@ L'objectif est de permettre le remplissage automatique de formulaires PDF à par
 ## Contraintes & dépendances
 
 - Nécessite Python avec PyPDF2 (déjà installé sur le système).
-- S'intègre avec le système d'archivage documentaire (PRD archivage_documentaire).
+- S'intègre avec le module `archived_documents` pour l'archivage et l'historique des PDF générés.
 - Les formulaires PDF doivent être au format AcroForm (pas XFA).
 
 ## Mesures de succès
@@ -153,6 +149,6 @@ L'objectif est de permettre le remplissage automatique de formulaires PDF à par
 
 ## Questions ouvertes
 
-- Faut-il permettre la génération en lot (plusieurs pilotes en une fois) ? Oui, pour l'attestation de début de formation par exemple.
+- ~~Faut-il permettre la génération en lot (plusieurs pilotes en une fois) ?~~ Non, hors scope V1.
 - Faut-il permettre l'édition manuelle de certains champs avant génération ? Non dans un premier temps.
 - Quels sont les formulaires prioritaires à configurer ? Le formulaire 134i-Formlic (attestation début de formation ULM).
