@@ -10,6 +10,8 @@ Dans le cadre des vols de découverte ULM et d'autres activités réglementées,
 - **Documents réglementaires** : déclaration initiale, renouvellements, manuel d'exploitation, briefing passager
 - **Formations** : formation opérationnelle, facteurs humains, avec confirmation par l'instructeur ET l'élève
 - **Contrôles de compétence** : vols de contrôle avec validation mutuelle
+- **Conditions passager** : acceptation des conditions de vol par un passager de vol de découverte
+- **Autorisations parentales** : autorisation signée par un parent ou tuteur légal pour un mineur (passager ou élève)
 
 La réglementation exige une traçabilité des acceptations par signature des documents concernés.
 
@@ -23,6 +25,7 @@ Le système supporte plusieurs catégories d'acceptation avec des comportements 
 | `formation` | Reconnaissance de délivrance/réception de formation | Instructeur + Élève (double validation) |
 | `controle` | Validation d'un contrôle de compétence | Contrôleur + Pilote contrôlé |
 | `briefing` | Prise en compte d'un briefing | Une ou plusieurs personnes |
+| `autorisation` | Autorisation donnée par un tiers pour un bénéficiaire (ex: autorisation parentale) | Signataire (parent/tuteur) pour le compte d'un bénéficiaire (mineur) |
 
 L'administrateur peut définir de nouvelles catégories selon les besoins.
 
@@ -97,11 +100,12 @@ L'acceptation enregistre automatiquement :
 
 **Initiation d'une signature externe**
 - Déclencher une session de signature pour un document externe
-- Trois modes de présentation :
+- Quatre modes de présentation :
   - **Mode direct** : présenter la page de signature sur un smartphone/tablette au club
   - **Mode lien** : générer un lien temporaire à envoyer sur le smartphone de la personne
+  - **Mode QR code** : générer un QR code à usage unique pointant vers la page de signature temporaire, affichable à l'écran ou imprimable
   - **Mode papier** : imprimer le formulaire, le faire signer manuscritement, puis télécharger la copie numérisée
-- Le lien temporaire a une durée de validité limitée (ex: 24h)
+- Le lien temporaire (modes lien et QR code) a une durée de validité limitée (ex: 24h) et est à usage unique
 - Visualiser les sessions de signature en cours et leur statut
 
 **Mode papier (formulaire imprimé)**
@@ -120,6 +124,35 @@ Processus :
 
 **Formule d'attestation pilote** (enregistrée automatiquement) :
 > "Je soussigné(e) [Prénom Nom Pilote], certifie que le document ci-joint a été signé en ma présence par [Prénom Nom Passager] le [date de signature]."
+
+### Passager de Vol de Découverte
+
+Le passager est un utilisateur externe. Le responsable club ou pilote initie une session de signature (mode direct, lien ou papier) pour le document "Conditions de vol de découverte".
+
+**Acceptation des conditions de vol**
+- Lire les conditions de vol présentées via le viewer PDF intégré (défilement obligatoire)
+- Saisir son nom et prénom
+- Signer (signature tactile, upload de document signé, ou mode papier)
+- Le système enregistre l'acceptation avec horodatage
+
+**Formule d'acceptation passager** (enregistrée automatiquement) :
+> "Je soussigné(e) [Prénom Nom Passager], reconnais avoir pris connaissance et accepter les conditions de vol de découverte en date du [date]."
+
+### Parent / Tuteur Légal (Autorisation Parentale)
+
+Le parent ou tuteur est un utilisateur externe qui signe pour le compte d'un bénéficiaire mineur. Le responsable club ou pilote initie la session de signature.
+
+**Signature d'une autorisation parentale**
+- Lire le document d'autorisation via le viewer PDF intégré (défilement obligatoire)
+- Saisir ses informations :
+  - Nom et prénom du signataire (parent/tuteur)
+  - Qualité du signataire : père, mère, tuteur légal
+  - Nom et prénom du bénéficiaire (mineur)
+- Signer (signature tactile, upload de document signé, ou mode papier)
+- Le système enregistre l'autorisation avec horodatage
+
+**Formule d'autorisation parentale** (enregistrée automatiquement) :
+> "Je soussigné(e) [Prénom Nom Signataire], en qualité de [qualité], autorise [Prénom Nom Mineur] à [objet de l'autorisation] en date du [date]."
 
 ### Utilisateur Externe
 
@@ -143,7 +176,8 @@ Processus :
 - Pour les utilisateurs internes, l'identité est garantie par l'authentification
 - Pour les utilisateurs externes, la signature manuscrite ou électronique fait foi
 - Les données personnelles des utilisateurs externes doivent être protégées (RGPD)
-- Les liens de signature externe doivent être temporaires, à usage unique, et non devinables (token aléatoire)
+- Les liens de signature externe (mode lien et mode QR code) doivent être temporaires, à usage unique, et non devinables (token aléatoire)
+- Le QR code encode le lien temporaire à usage unique ; une fois utilisé ou expiré, le QR code devient invalide
 - Pour le mode papier : les fichiers uploadés (JPEG, PNG, PDF) sont limités à 10 Mo
 - Le pilote qui uploade un document papier engage sa responsabilité via l'attestation de présence
 
@@ -190,7 +224,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Indicateur de respect de la date limite (dans les temps / en retard)
 - Date et heure de chaque action
 - Pour double validation : statut de chaque partie (ex: "Instructeur: validé, Élève: en attente")
-- Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session, mode utilisé (direct/lien/papier)
+- Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session, mode utilisé (direct/lien/QR code/papier)
 - Filtre pour afficher uniquement les acceptations en retard ou proches de l'échéance
 
 ### Utilisateur Interne (Membre)
@@ -244,14 +278,16 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Choix du mode :
   - Bouton "Présenter sur cet écran" → affiche directement la page de signature
   - Bouton "Envoyer un lien" → génère un lien temporaire avec option de copie ou envoi par email/SMS
+  - Bouton "Générer un QR code" → affiche un QR code à usage unique que la personne scanne avec son smartphone pour accéder à la page de signature ; possibilité de télécharger ou imprimer le QR code
   - Bouton "Mode papier" → accède au formulaire d'upload de document signé
-- Liste des sessions en cours avec statut (en attente, signé, expiré)
+- Liste des sessions en cours avec statut (en attente, signé, expiré) et mode utilisé
 
 **Mode papier**
 - Bouton "Imprimer le formulaire vierge" → génère et télécharge le PDF à imprimer
 - Formulaire d'upload après signature :
   - Champ : Nom du signataire
   - Champ : Prénom du signataire
+  - Pour la catégorie `autorisation` : champs supplémentaires — qualité (père, mère, tuteur légal), nom et prénom du bénéficiaire (mineur)
   - Champ : Date de signature (par défaut : aujourd'hui)
   - Zone d'upload : glisser-déposer ou sélection de fichier (formats acceptés : JPEG, PNG, PDF)
   - Case à cocher : "J'atteste que ce document a été signé en ma présence"
@@ -265,7 +301,8 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Viewer PDF intégré avec défilement obligatoire
 - Bouton de téléchargement du PDF
 - Après défilement complet, affichage du formulaire :
-  - Champs : nom, prénom
+  - Champs : nom, prénom du signataire
+  - Pour la catégorie `autorisation` : champs supplémentaires — qualité (père, mère, tuteur légal), nom et prénom du bénéficiaire (mineur)
   - Zone de signature tactile ou upload de fichier signé
   - Bouton de validation
 - Message d'erreur explicite si le lien est expiré ou invalide
@@ -282,9 +319,10 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 ## Bénéfices Attendus
 
 - Conformité réglementaire pour les vols de découverte ULM
-- Traçabilité complète des acceptations (documents, formations, contrôles)
+- Traçabilité complète des acceptations (documents, formations, contrôles, autorisations parentales)
 - Réduction de la gestion papier
 - Simplification du processus pour les passagers (signature sur tablette ou papier)
+- Gestion des autorisations parentales pour les mineurs (passagers ou élèves)
 - Acceptation en un clic pour les membres connectés
 - Double validation instructeur/élève pour les formations
 - Visibilité immédiate des éléments non acceptés ou en attente de confirmation

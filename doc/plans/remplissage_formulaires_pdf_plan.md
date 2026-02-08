@@ -23,12 +23,14 @@ Permettre le remplissage automatique de formulaires PDF officiels (DGAC, FFPLUM,
 
 ### Lot 1 — Script Python d'extraction et remplissage PDF
 
-- [ ] Créer le script `bin/pdf_forms.py` avec deux commandes :
-  - `extract <pdf_file>` : extraction des champs AcroForm au format JSON (nom, type, valeur par défaut)
-  - `fill <pdf_file> <output> <json_data>` : remplissage d'un PDF avec des données JSON
-- [ ] Gérer les types de champs : texte, checkbox, radio, liste déroulante
-- [ ] Gérer l'encodage UTF-8 (caractères accentués)
-- [ ] Ajouter la gestion d'erreurs (PDF sans champs, fichier invalide, champs inconnus)
+**Base existante** : le script `bin/pdf_extract_fields.py` couvre déjà l'extraction des champs AcroForm (fonction `extract_fields()`), la sortie JSON, la gestion des types texte/checkbox/choice, et la gestion d'erreurs (fichier invalide, PDF sans champs). Il servira de point de départ pour ce lot.
+
+- [ ] Refactorer `bin/pdf_extract_fields.py` en `bin/pdf_forms.py` avec deux sous-commandes :
+  - `extract <pdf_file>` : reprendre la logique existante d'extraction des champs AcroForm au format JSON (nom, type, valeur par défaut)
+  - `fill <pdf_file> <output> <json_data>` : remplissage d'un PDF avec des données JSON (à développer)
+- [ ] Affiner la distinction radio vs checkbox (les deux sont `/Btn` en AcroForm, distinguer via le flag `/Ff` bit 16)
+- [ ] Gérer l'encodage UTF-8 (caractères accentués) lors du remplissage
+- [ ] Compléter la gestion d'erreurs pour la commande `fill` (champs inconnus, données invalides)
 - [ ] Tester manuellement avec le formulaire `134iFormlic.pdf`
 - [ ] Écrire un test PHPUnit vérifiant l'appel au script Python et le parsing du JSON retourné
 
