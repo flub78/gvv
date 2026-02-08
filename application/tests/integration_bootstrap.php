@@ -146,6 +146,13 @@ class RealDatabase {
     public function escape_str($str) {
         return $this->connection->real_escape_string($str);
     }
+
+    public function escape($str) {
+        if (is_string($str)) {
+            return "'" . $this->connection->real_escape_string($str) . "'";
+        }
+        return $str;
+    }
     
     public function insert_id() {
         return $this->connection->insert_id;

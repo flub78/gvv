@@ -2,7 +2,7 @@
 
 ## Objectif
 
-Permettre de définir des éléments (documents, formations, briefings) devant être acceptés ou reconnus par les utilisateurs, avec traçabilité complète. Le système gère différentes catégories d'acceptation : prise en compte de documents, reconnaissance de délivrance de formation, etc.
+Permettre de définir des éléments (documents, formations, briefings) devant être acceptés ou reconnus par les utilisateurs, avec traçabilité complète. Le système gère différentes catégories d'acceptation : prise en compte de documents, reconnaissance de délivrance de formation, etc. Autorisations parentales pour les mineurs (passagers ou élèves) sont également prises en charge. Les acceptations peuvent être réalisées par des utilisateurs internes (membres du club) ou externes (passagers, parents). Le système doit garantir la conformité réglementaire et offrir une expérience utilisateur fluide.
 
 ## Contexte
 
@@ -57,6 +57,13 @@ L'administrateur peut définir de nouvelles catégories selon les besoins.
 - Identifier rapidement les utilisateurs ciblés qui n'ont pas encore accepté
 - Pour les doubles validations : voir le statut de chaque partie (instructeur validé, élève en attente, etc.)
 - Exporter les données d'acceptation
+
+**Rattachement d'une acceptation externe à un pilote**
+- Les acceptations signées par des utilisateurs externes ne sont initialement rattachées à aucun pilote dans le système
+- Un administrateur ou responsable peut ultérieurement rattacher une acceptation externe au dossier d'un pilote inscrit
+- Cas d'usage principal : un parent signe une autorisation parentale avant que l'élève mineur ne soit inscrit au club ; une fois l'inscription effectuée, l'autorisation est rattachée au dossier de l'élève
+- Le rattachement est une action explicite (sélection du pilote dans la liste des membres) et ne modifie pas l'acceptation elle-même (signataire, date, signature inchangés)
+- L'historique du rattachement est tracé (qui a rattaché, quand)
 
 ### Utilisateur Interne (Membre)
 
@@ -150,6 +157,8 @@ Le parent ou tuteur est un utilisateur externe qui signe pour le compte d'un bé
   - Nom et prénom du bénéficiaire (mineur)
 - Signer (signature tactile, upload de document signé, ou mode papier)
 - Le système enregistre l'autorisation avec horodatage
+- L'autorisation n'est pas nécessairement rattachée à un pilote au moment de la signature (le mineur peut ne pas encore être inscrit)
+- Le rattachement au dossier du pilote mineur peut être effectué ultérieurement par un administrateur ou responsable
 
 **Formule d'autorisation parentale** (enregistrée automatiquement) :
 > "Je soussigné(e) [Prénom Nom Signataire], en qualité de [qualité], autorise [Prénom Nom Mineur] à [objet de l'autorisation] en date du [date]."
@@ -226,6 +235,8 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Pour double validation : statut de chaque partie (ex: "Instructeur: validé, Élève: en attente")
 - Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session, mode utilisé (direct/lien/QR code/papier)
 - Filtre pour afficher uniquement les acceptations en retard ou proches de l'échéance
+- Pour les acceptations externes non rattachées : bouton "Rattacher à un pilote" ouvrant un sélecteur de membre
+- Indicateur visuel distinguant les acceptations rattachées et non rattachées à un pilote
 
 ### Utilisateur Interne (Membre)
 
