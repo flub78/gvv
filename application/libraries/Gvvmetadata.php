@@ -895,6 +895,176 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_archived_documents']['alarm_disabled']['Subtype'] = 'checkbox';
 
                 /**
+                 * Acceptance Items - Elements a faire accepter
+                 */
+                $this->field['acceptance_items']['id']['Type'] = 'int';
+                $this->field['acceptance_items']['id']['Subtype'] = 'key';
+                $this->field['acceptance_items']['title']['Name'] = $CI->lang->line('acceptance_title');
+                $this->field['acceptance_items']['category']['Name'] = $CI->lang->line('acceptance_category');
+                $this->field['acceptance_items']['category']['Subtype'] = 'enumerate';
+                $this->field['acceptance_items']['category']['Enumerate'] = array(
+                    'document' => $CI->lang->line('acceptance_category_document'),
+                    'formation' => $CI->lang->line('acceptance_category_formation'),
+                    'controle' => $CI->lang->line('acceptance_category_controle'),
+                    'briefing' => $CI->lang->line('acceptance_category_briefing'),
+                    'autorisation' => $CI->lang->line('acceptance_category_autorisation')
+                );
+                $this->field['acceptance_items']['pdf_path']['Name'] = $CI->lang->line('acceptance_pdf_path');
+                $this->field['acceptance_items']['target_type']['Name'] = $CI->lang->line('acceptance_target_type');
+                $this->field['acceptance_items']['target_type']['Subtype'] = 'enumerate';
+                $this->field['acceptance_items']['target_type']['Enumerate'] = array(
+                    'internal' => $CI->lang->line('acceptance_target_type_internal'),
+                    'external' => $CI->lang->line('acceptance_target_type_external')
+                );
+                $this->field['acceptance_items']['version_date']['Name'] = $CI->lang->line('acceptance_version_date');
+                $this->field['acceptance_items']['version_date']['Type'] = 'date';
+                $this->field['acceptance_items']['mandatory']['Name'] = $CI->lang->line('acceptance_mandatory');
+                $this->field['acceptance_items']['mandatory']['Subtype'] = 'boolean';
+                $this->field['acceptance_items']['deadline']['Name'] = $CI->lang->line('acceptance_deadline');
+                $this->field['acceptance_items']['deadline']['Type'] = 'date';
+                $this->field['acceptance_items']['dual_validation']['Name'] = $CI->lang->line('acceptance_dual_validation');
+                $this->field['acceptance_items']['dual_validation']['Subtype'] = 'checkbox';
+                $this->field['acceptance_items']['role_1']['Name'] = $CI->lang->line('acceptance_role_1');
+                $this->field['acceptance_items']['role_2']['Name'] = $CI->lang->line('acceptance_role_2');
+                $this->field['acceptance_items']['target_roles']['Name'] = $CI->lang->line('acceptance_target_roles');
+                $this->field['acceptance_items']['active']['Name'] = $CI->lang->line('acceptance_active');
+                $this->field['acceptance_items']['active']['Subtype'] = 'boolean';
+                $this->field['acceptance_items']['created_by']['Name'] = $CI->lang->line('acceptance_created_by');
+                $this->field['acceptance_items']['created_at']['Name'] = $CI->lang->line('acceptance_created_at');
+                $this->field['acceptance_items']['created_at']['Type'] = 'datetime';
+                $this->field['acceptance_items']['updated_at']['Name'] = $CI->lang->line('acceptance_updated_at');
+                $this->field['acceptance_items']['updated_at']['Type'] = 'datetime';
+
+                /**
+                 * Vue Acceptance Items
+                 */
+                $this->field['vue_acceptance_items']['id']['Type'] = 'int';
+                $this->field['vue_acceptance_items']['id']['Subtype'] = 'key';
+                $this->field['vue_acceptance_items']['title']['Name'] = $CI->lang->line('acceptance_title');
+                $this->field['vue_acceptance_items']['category']['Name'] = $CI->lang->line('acceptance_category');
+                $this->field['vue_acceptance_items']['target_type']['Name'] = $CI->lang->line('acceptance_target_type');
+                $this->field['vue_acceptance_items']['mandatory']['Name'] = $CI->lang->line('acceptance_mandatory');
+                $this->field['vue_acceptance_items']['mandatory']['Subtype'] = 'boolean';
+                $this->field['vue_acceptance_items']['deadline']['Name'] = $CI->lang->line('acceptance_deadline');
+                $this->field['vue_acceptance_items']['deadline']['Type'] = 'date';
+                $this->field['vue_acceptance_items']['active']['Name'] = $CI->lang->line('acceptance_active');
+                $this->field['vue_acceptance_items']['active']['Subtype'] = 'boolean';
+                $this->field['vue_acceptance_items']['created_by_name']['Name'] = $CI->lang->line('acceptance_created_by');
+
+                $this->db['default_fields']['vue_acceptance_items'] = array(
+                    'title', 'category', 'target_type', 'mandatory', 'deadline', 'active', 'created_by_name'
+                );
+
+                /**
+                 * Acceptance Records - Enregistrements acceptation/refus
+                 */
+                $this->field['acceptance_records']['id']['Type'] = 'int';
+                $this->field['acceptance_records']['id']['Subtype'] = 'key';
+                $this->field['acceptance_records']['item_id']['Name'] = $CI->lang->line('acceptance_item');
+                $this->field['acceptance_records']['item_id']['Subtype'] = 'selector';
+                $this->field['acceptance_records']['item_id']['Selector'] = 'acceptance_item_selector';
+                $this->field['acceptance_records']['user_login']['Name'] = $CI->lang->line('acceptance_user');
+                $this->field['acceptance_records']['user_login']['Subtype'] = 'selector';
+                $this->field['acceptance_records']['user_login']['Selector'] = 'pilote_selector';
+                $this->field['acceptance_records']['external_name']['Name'] = $CI->lang->line('acceptance_external_name');
+                $this->field['acceptance_records']['status']['Name'] = $CI->lang->line('acceptance_status');
+                $this->field['acceptance_records']['status']['Subtype'] = 'enumerate';
+                $this->field['acceptance_records']['status']['Enumerate'] = array(
+                    'pending' => $CI->lang->line('acceptance_status_pending'),
+                    'accepted' => $CI->lang->line('acceptance_status_accepted'),
+                    'refused' => $CI->lang->line('acceptance_status_refused')
+                );
+                $this->field['acceptance_records']['validation_role']['Name'] = $CI->lang->line('acceptance_validation_role');
+                $this->field['acceptance_records']['formula_text']['Name'] = $CI->lang->line('acceptance_formula');
+                $this->field['acceptance_records']['acted_at']['Name'] = $CI->lang->line('acceptance_acted_at');
+                $this->field['acceptance_records']['acted_at']['Type'] = 'datetime';
+                $this->field['acceptance_records']['created_at']['Name'] = $CI->lang->line('acceptance_created_at');
+                $this->field['acceptance_records']['created_at']['Type'] = 'datetime';
+                $this->field['acceptance_records']['initiated_by']['Name'] = $CI->lang->line('acceptance_initiated_by');
+                $this->field['acceptance_records']['signature_mode']['Name'] = $CI->lang->line('acceptance_signature_mode');
+                $this->field['acceptance_records']['signature_mode']['Subtype'] = 'enumerate';
+                $this->field['acceptance_records']['signature_mode']['Enumerate'] = array(
+                    'direct' => $CI->lang->line('acceptance_mode_direct'),
+                    'link' => $CI->lang->line('acceptance_mode_link'),
+                    'qrcode' => $CI->lang->line('acceptance_mode_qrcode'),
+                    'paper' => $CI->lang->line('acceptance_mode_paper')
+                );
+                $this->field['acceptance_records']['linked_pilot_login']['Name'] = $CI->lang->line('acceptance_linked_pilot');
+                $this->field['acceptance_records']['linked_pilot_login']['Subtype'] = 'selector';
+                $this->field['acceptance_records']['linked_pilot_login']['Selector'] = 'pilote_selector';
+                $this->field['acceptance_records']['linked_by']['Name'] = $CI->lang->line('acceptance_linked_by');
+                $this->field['acceptance_records']['linked_at']['Name'] = $CI->lang->line('acceptance_linked_at');
+                $this->field['acceptance_records']['linked_at']['Type'] = 'datetime';
+
+                /**
+                 * Vue Acceptance Records
+                 */
+                $this->field['vue_acceptance_records']['id']['Type'] = 'int';
+                $this->field['vue_acceptance_records']['id']['Subtype'] = 'key';
+                $this->field['vue_acceptance_records']['item_title']['Name'] = $CI->lang->line('acceptance_item');
+                $this->field['vue_acceptance_records']['user_login']['Name'] = $CI->lang->line('acceptance_user');
+                $this->field['vue_acceptance_records']['pilot_nom']['Name'] = 'Nom';
+                $this->field['vue_acceptance_records']['pilot_prenom']['Name'] = 'Prenom';
+                $this->field['vue_acceptance_records']['status']['Name'] = $CI->lang->line('acceptance_status');
+                $this->field['vue_acceptance_records']['acted_at']['Name'] = $CI->lang->line('acceptance_acted_at');
+                $this->field['vue_acceptance_records']['acted_at']['Type'] = 'datetime';
+                $this->field['vue_acceptance_records']['created_at']['Name'] = $CI->lang->line('acceptance_created_at');
+                $this->field['vue_acceptance_records']['created_at']['Type'] = 'datetime';
+
+                $this->db['default_fields']['vue_acceptance_records'] = array(
+                    'item_title', 'user_login', 'pilot_nom', 'pilot_prenom', 'status', 'acted_at'
+                );
+
+                /**
+                 * Acceptance Signatures - Signatures externes
+                 */
+                $this->field['acceptance_signatures']['id']['Type'] = 'int';
+                $this->field['acceptance_signatures']['id']['Subtype'] = 'key';
+                $this->field['acceptance_signatures']['record_id']['Name'] = $CI->lang->line('acceptance_item');
+                $this->field['acceptance_signatures']['signer_first_name']['Name'] = $CI->lang->line('acceptance_signer_first_name');
+                $this->field['acceptance_signatures']['signer_last_name']['Name'] = $CI->lang->line('acceptance_signer_last_name');
+                $this->field['acceptance_signatures']['signer_quality']['Name'] = $CI->lang->line('acceptance_signer_quality');
+                $this->field['acceptance_signatures']['beneficiary_first_name']['Name'] = $CI->lang->line('acceptance_beneficiary_first_name');
+                $this->field['acceptance_signatures']['beneficiary_last_name']['Name'] = $CI->lang->line('acceptance_beneficiary_last_name');
+                $this->field['acceptance_signatures']['signature_type']['Name'] = $CI->lang->line('acceptance_signature_type');
+                $this->field['acceptance_signatures']['signature_type']['Subtype'] = 'enumerate';
+                $this->field['acceptance_signatures']['signature_type']['Enumerate'] = array(
+                    'tactile' => $CI->lang->line('acceptance_signature_tactile'),
+                    'upload' => $CI->lang->line('acceptance_signature_upload')
+                );
+                $this->field['acceptance_signatures']['file_path']['Name'] = $CI->lang->line('acceptance_pdf_path');
+                $this->field['acceptance_signatures']['signed_at']['Name'] = $CI->lang->line('acceptance_signed_at');
+                $this->field['acceptance_signatures']['signed_at']['Type'] = 'datetime';
+                $this->field['acceptance_signatures']['pilot_attestation']['Name'] = $CI->lang->line('acceptance_pilot_attestation');
+                $this->field['acceptance_signatures']['pilot_attestation']['Subtype'] = 'checkbox';
+
+                /**
+                 * Acceptance Tokens - Liens temporaires
+                 */
+                $this->field['acceptance_tokens']['id']['Type'] = 'int';
+                $this->field['acceptance_tokens']['id']['Subtype'] = 'key';
+                $this->field['acceptance_tokens']['token']['Name'] = $CI->lang->line('acceptance_token');
+                $this->field['acceptance_tokens']['item_id']['Name'] = $CI->lang->line('acceptance_item');
+                $this->field['acceptance_tokens']['item_id']['Subtype'] = 'selector';
+                $this->field['acceptance_tokens']['item_id']['Selector'] = 'acceptance_item_selector';
+                $this->field['acceptance_tokens']['mode']['Name'] = $CI->lang->line('acceptance_mode');
+                $this->field['acceptance_tokens']['mode']['Subtype'] = 'enumerate';
+                $this->field['acceptance_tokens']['mode']['Enumerate'] = array(
+                    'direct' => $CI->lang->line('acceptance_mode_direct'),
+                    'link' => $CI->lang->line('acceptance_mode_link'),
+                    'qrcode' => $CI->lang->line('acceptance_mode_qrcode')
+                );
+                $this->field['acceptance_tokens']['created_by']['Name'] = $CI->lang->line('acceptance_created_by');
+                $this->field['acceptance_tokens']['created_at']['Name'] = $CI->lang->line('acceptance_created_at');
+                $this->field['acceptance_tokens']['created_at']['Type'] = 'datetime';
+                $this->field['acceptance_tokens']['expires_at']['Name'] = $CI->lang->line('acceptance_expires_at');
+                $this->field['acceptance_tokens']['expires_at']['Type'] = 'datetime';
+                $this->field['acceptance_tokens']['used']['Name'] = $CI->lang->line('acceptance_used');
+                $this->field['acceptance_tokens']['used']['Subtype'] = 'boolean';
+                $this->field['acceptance_tokens']['used_at']['Name'] = $CI->lang->line('acceptance_used_at');
+                $this->field['acceptance_tokens']['used_at']['Type'] = 'datetime';
+
+                /**
                  * Vols de découverte
                  */
                 $this->alias_table["vue_vols_decouverte"] = "vols_decouverte";

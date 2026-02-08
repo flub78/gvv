@@ -78,12 +78,12 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 
 ### Lot 2 — Modèles de données
 
-- [ ] 2.1 Créer `acceptance_items_model.php` (CRUD éléments, filtres par catégorie/statut/cible)
-- [ ] 2.2 Créer `acceptance_records_model.php` (création acceptation/refus, requêtes par utilisateur, par élément, détection en attente, rattachement à un pilote)
-- [ ] 2.3 Créer `acceptance_signatures_model.php` (stockage signatures tactiles et uploads)
-- [ ] 2.4 Créer `acceptance_tokens_model.php` (génération token, validation, expiration, usage unique)
-- [ ] 2.5 Ajouter les métadonnées dans `Gvvmetadata.php` pour les nouvelles tables
-- [ ] 2.6 Écrire les tests unitaires des modèles
+- [x] 2.1 Créer `acceptance_items_model.php` (CRUD, select_page avec join créateur, get_active_items, get_items_for_user, get_overdue_items, image, selector) — 15 tests
+- [x] 2.2 Créer `acceptance_records_model.php` (CRUD, select_page avec joins, get_by_user, get_by_item, get_pending_for_user, count_pending_for_user, accept, refuse, link_to_pilot, get_linked_records, image) — 15 tests
+- [x] 2.3 Créer `acceptance_signatures_model.php` (CRUD, select_page avec joins, get_by_record, create_tactile, create_upload avec autorisation parentale, image) — 8 tests
+- [x] 2.4 Créer `acceptance_tokens_model.php` (generate_token crypto-sécurisé 64 hex, validate_token, mark_used, cleanup_expired, get_by_item, image) — 16 tests
+- [x] 2.5 Ajouter les métadonnées dans `Gvvmetadata.php` pour les 4 tables + 2 vues + default_fields
+- [x] 2.6 Écrire les tests MySQL des modèles (54 tests, 186 assertions) + fichiers de langue FR/EN/NL
 
 ### Lot 3 — Administration des éléments
 
