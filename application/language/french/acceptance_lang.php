@@ -77,5 +77,54 @@ $lang['acceptance_no_records'] = 'Aucun enregistrement';
 $lang['acceptance_unknown_item'] = 'Élément inconnu';
 $lang['acceptance_unknown_record'] = 'Enregistrement inconnu';
 
+// Admin interface
+$lang['acceptance_admin_title'] = 'Administration des acceptations';
+$lang['acceptance_admin_menu'] = 'Acceptations';
+$lang['acceptance_add_item'] = 'Nouvel élément';
+$lang['acceptance_edit_item'] = 'Modifier l\'élément';
+$lang['acceptance_tracking'] = 'Suivi des acceptations';
+$lang['acceptance_edit'] = 'Modifier';
+$lang['acceptance_download_pdf'] = 'Télécharger PDF';
+$lang['acceptance_current_pdf'] = 'PDF actuel';
+$lang['acceptance_activate'] = 'Activer';
+$lang['acceptance_deactivate'] = 'Désactiver';
+$lang['acceptance_confirm_activate'] = 'Voulez-vous activer cet élément ?';
+$lang['acceptance_confirm_deactivate'] = 'Voulez-vous désactiver cet élément ?';
+$lang['acceptance_item_created'] = 'Élément créé avec succès';
+$lang['acceptance_item_updated'] = 'Élément modifié avec succès';
+$lang['acceptance_item_activated'] = 'Élément activé';
+$lang['acceptance_item_deactivated'] = 'Élément désactivé';
+$lang['acceptance_item_not_found'] = 'Élément introuvable';
+$lang['acceptance_record_not_found'] = 'Enregistrement introuvable';
+$lang['acceptance_pilot_linked'] = 'Acceptation rattachée au pilote avec succès';
+$lang['acceptance_link_to_pilot'] = 'Rattacher à un pilote';
+$lang['acceptance_back_to_list'] = 'Retour à la liste';
+$lang['acceptance_total'] = 'Total';
+$lang['acceptance_linked'] = 'Rattaché';
+$lang['acceptance_unlinked'] = 'Non rattaché';
+$lang['acceptance_link_status'] = 'Rattachement';
+$lang['acceptance_overdue'] = 'En retard';
+$lang['acceptance_filter_all'] = 'Tous';
+$lang['acceptance_yes'] = 'Oui';
+$lang['acceptance_no'] = 'Non';
+
+// Form help texts
+$lang['acceptance_pdf_help'] = 'Format PDF uniquement, 10 Mo maximum';
+$lang['acceptance_mandatory_help'] = 'Cet élément doit être accepté par les personnes ciblées';
+$lang['acceptance_dual_validation_help'] = 'Nécessite la validation par deux personnes (ex: instructeur et élève)';
+$lang['acceptance_role_1_placeholder'] = 'ex: instructeur';
+$lang['acceptance_role_2_placeholder'] = 'ex: élève';
+$lang['acceptance_target_roles_placeholder'] = 'ex: pilotes, instructeurs, bureau';
+$lang['acceptance_target_roles_help'] = 'Rôles séparés par des virgules. Vide = tous les membres.';
+$lang['acceptance_active_help'] = 'Seuls les éléments actifs sont présentés aux membres';
+
+// Error messages
+$lang['acceptance_error_title_required'] = 'Le titre est obligatoire';
+$lang['acceptance_error_category_required'] = 'La catégorie est obligatoire';
+$lang['acceptance_error_create'] = 'Erreur lors de la création';
+$lang['acceptance_error_directory'] = 'Impossible de créer le répertoire de stockage';
+$lang['acceptance_error_pilot_required'] = 'Veuillez sélectionner un pilote';
+$lang['acceptance_error_link'] = 'Erreur lors du rattachement';
+
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/french/acceptance_lang.php */

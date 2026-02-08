@@ -30,6 +30,7 @@ $this->lang->load('attachments');
 $this->lang->load('sections');
 $this->lang->load('archived_documents');
 $this->lang->load('document_types');
+$this->lang->load('acceptance');
 
 $CI = &get_instance();
 $CI->load->model('sections_model');
@@ -78,6 +79,7 @@ $section_selector = $CI->sections_model->selector_with_all();
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/page") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_all_documents") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/pending") ?>"><i class="fas fa-clock text-info"></i> <?= translation("archived_documents_pending_documents") ?></a></li>
                   <?php endif; ?>
+                  <li><a class="dropdown-item" href="<?= controller_url("acceptance_admin/page") ?>"><i class="fas fa-clipboard-check text-info"></i> <?= translation("acceptance_admin_menu") ?></a></li>
                   <?php if (has_role('bureau')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_financial_reports") ?></a></li>
                   <?php endif; ?>

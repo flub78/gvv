@@ -87,20 +87,20 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 
 ### Lot 3 — Administration des éléments
 
-- [ ] 3.1 Créer le contrôleur `acceptance_admin.php` (liste, création, édition, activation/désactivation)
-- [ ] 3.2 Créer la vue liste des éléments (`bs_acceptance_items_list.php`)
-- [ ] 3.3 Créer le formulaire création/édition d'élément (`bs_acceptance_item_form.php`)
-- [ ] 3.4 Implémenter l'upload PDF lors de la création d'un élément (réutiliser `File_compressor`)
-- [ ] 3.5 Créer la vue suivi des acceptations par élément (`bs_acceptance_tracking.php`)
-- [ ] 3.6 Implémenter les filtres : en attente, en retard, proches échéance, non rattachées
-- [ ] 3.7 Implémenter le rattachement d'une acceptation externe à un pilote :
-  - [ ] 3.7.1 Action "Rattacher à un pilote" dans le suivi des acceptations (sélecteur de membre)
-  - [ ] 3.7.2 Enregistrer le rattachement (linked_pilot_login, linked_by, linked_at) sans modifier l'acceptation d'origine
-  - [ ] 3.7.3 Indicateur visuel distinguant les acceptations rattachées et non rattachées
-  - [ ] 3.7.4 L'acceptation rattachée apparaît dans le dossier du pilote concerné
-- [ ] 3.8 Ajouter les entrées menu admin dans `bs_menu.php`
-- [ ] 3.9 Fichiers de langue FR/EN/NL pour l'administration
-- [ ] 3.10 Valider : test Playwright accès page admin, création d'un élément, rattachement à un pilote
+- [x] 3.1 Créer le contrôleur `acceptance_admin.php` (liste, création, édition, activation/désactivation)
+- [x] 3.2 Créer la vue liste des éléments (`bs_itemsListView.php`)
+- [x] 3.3 Créer le formulaire création/édition d'élément (`bs_itemFormView.php`)
+- [x] 3.4 Implémenter l'upload PDF lors de la création d'un élément (réutiliser `File_compressor`)
+- [x] 3.5 Créer la vue suivi des acceptations par élément (`bs_trackingView.php`)
+- [x] 3.6 Implémenter les filtres : en attente, en retard, proches échéance, non rattachées
+- [x] 3.7 Implémenter le rattachement d'une acceptation externe à un pilote :
+  - [x] 3.7.1 Action "Rattacher à un pilote" dans le suivi des acceptations (sélecteur de membre)
+  - [x] 3.7.2 Enregistrer le rattachement (linked_pilot_login, linked_by, linked_at) sans modifier l'acceptation d'origine
+  - [x] 3.7.3 Indicateur visuel distinguant les acceptations rattachées et non rattachées
+  - [x] 3.7.4 L'acceptation rattachée apparaît dans le dossier du pilote concerné
+- [x] 3.8 Ajouter les entrées menu admin dans `bs_menu.php`
+- [x] 3.9 Fichiers de langue FR/EN/NL pour l'administration
+- [x] 3.10 Valider : test Playwright accès page admin, création d'un élément, suivi des acceptations (4 tests, tous passent)
 
 ### Lot 4 — Acceptation interne (utilisateurs membres)
 
