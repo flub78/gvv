@@ -1309,6 +1309,72 @@ class GVVMetadata extends Metadata {
                 $this->field['email_lists']['updated_at']['Subtype'] = 'date_time';
 
                 /**
+                 * Cartes de préparation des vols
+                 */
+                $this->field['preparation_cards']['id']['Type'] = 'int';
+                $this->field['preparation_cards']['id']['Subtype'] = 'key';
+                $this->field['preparation_cards']['title']['Name'] = 'Titre';
+                $this->field['preparation_cards']['title']['Type'] = 'varchar(255)';
+                $this->field['preparation_cards']['title']['Required'] = true;
+                $this->field['preparation_cards']['title']['Attrs'] = array('maxlength' => '255');
+                $this->field['preparation_cards']['type']['Name'] = 'Type';
+                $this->field['preparation_cards']['type']['Type'] = 'enum';
+                $this->field['preparation_cards']['type']['Subtype'] = 'enumerate';
+                $this->field['preparation_cards']['type']['Enumerate'] = array(
+                        'html' => 'HTML embarqué',
+                        'link' => 'Miniature + lien',
+                        'iframe' => 'Aperçu iframe'
+                );
+                $this->field['preparation_cards']['html_fragment']['Name'] = 'HTML';
+                $this->field['preparation_cards']['html_fragment']['Type'] = 'varchar(1024)';
+                $this->field['preparation_cards']['html_fragment']['Subtype'] = 'textarea';
+                $this->field['preparation_cards']['html_fragment']['Attrs'] = array('rows' => '6');
+                $this->field['preparation_cards']['image_url']['Name'] = 'Miniature (URL)';
+                $this->field['preparation_cards']['image_url']['Type'] = 'varchar(255)';
+                $this->field['preparation_cards']['image_url']['Attrs'] = array('maxlength' => '255');
+                $this->field['preparation_cards']['link_url']['Name'] = 'Lien (URL)';
+                $this->field['preparation_cards']['link_url']['Type'] = 'varchar(255)';
+                $this->field['preparation_cards']['link_url']['Attrs'] = array('maxlength' => '255');
+                $this->field['preparation_cards']['category']['Name'] = 'Catégorie';
+                $this->field['preparation_cards']['category']['Type'] = 'varchar(128)';
+                $this->field['preparation_cards']['category']['Attrs'] = array('maxlength' => '128');
+                $this->field['preparation_cards']['display_order']['Name'] = 'Ordre';
+                $this->field['preparation_cards']['display_order']['Type'] = 'int';
+                $this->field['preparation_cards']['visible']['Name'] = 'Visible';
+                $this->field['preparation_cards']['visible']['Type'] = 'tinyint';
+                $this->field['preparation_cards']['visible']['Subtype'] = 'checkbox';
+                $this->field['preparation_cards']['created_at']['Name'] = 'Créé le';
+                $this->field['preparation_cards']['created_at']['Type'] = 'datetime';
+                $this->field['preparation_cards']['created_at']['Subtype'] = 'date_time';
+                $this->field['preparation_cards']['updated_at']['Name'] = 'Modifié le';
+                $this->field['preparation_cards']['updated_at']['Type'] = 'datetime';
+                $this->field['preparation_cards']['updated_at']['Subtype'] = 'date_time';
+
+                // Vue preparation_cards
+                $this->field['vue_preparation_cards']['id']['Type'] = 'int';
+                $this->field['vue_preparation_cards']['id']['Subtype'] = 'key';
+                $this->field['vue_preparation_cards']['title']['Name'] = 'Titre';
+                $this->field['vue_preparation_cards']['type']['Name'] = 'Type';
+                $this->field['vue_preparation_cards']['type']['Subtype'] = 'enumerate';
+                $this->field['vue_preparation_cards']['type']['Enumerate'] = array(
+                        'html' => 'HTML embarqué',
+                        'link' => 'Miniature + lien',
+                        'iframe' => 'Aperçu iframe'
+                );
+                $this->field['vue_preparation_cards']['html_fragment']['Name'] = 'HTML';
+                $this->field['vue_preparation_cards']['image_url']['Name'] = 'Miniature (URL)';
+                $this->field['vue_preparation_cards']['link_url']['Name'] = 'Lien (URL)';
+                $this->field['vue_preparation_cards']['category']['Name'] = 'Catégorie';
+                $this->field['vue_preparation_cards']['display_order']['Name'] = 'Ordre';
+                $this->field['vue_preparation_cards']['display_order']['Type'] = 'int';
+                $this->field['vue_preparation_cards']['visible']['Name'] = 'Visible';
+                $this->field['vue_preparation_cards']['visible']['Subtype'] = 'boolean';
+                $this->field['vue_preparation_cards']['created_at']['Name'] = 'Créé le';
+                $this->field['vue_preparation_cards']['created_at']['Subtype'] = 'date_time';
+                $this->field['vue_preparation_cards']['updated_at']['Name'] = 'Modifié le';
+                $this->field['vue_preparation_cards']['updated_at']['Subtype'] = 'date_time';
+
+                /**
                  * Suivi de formation - Programmes
                  */
                 $this->field['formation_programmes']['id']['Name'] = 'ID';

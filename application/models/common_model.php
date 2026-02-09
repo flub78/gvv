@@ -210,11 +210,20 @@ class Common_Model extends CI_Model {
      * @return integer Le nombre de news satisfaisant la condition
      */
     public function count($where = array(), $where2 = array()) {
+        if (! $this->db->table_exists($this->table)) {
+            gvv_error("count error: table does not exist: " . $this->table);
+            return 0;
+        }
         $this->db->where($where);
         if (isset($where2))
             $this->db->where($where2);
         $res = $this->db->count_all_results($this->table);
         gvv_debug("sql: count: " . $this->db->last_query());
+
+        if ($res === false) {
+            gvv_error("count error on table=" . $this->table . ": " . $this->db->_error_message());
+            return 0;
+        }
 
         return $res;
     }

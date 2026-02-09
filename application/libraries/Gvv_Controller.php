@@ -113,6 +113,30 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
+     * Retrieve raw POST value for a field (bypasses global XSS filtering)
+     *
+     * @param string $field
+     * @return string|null
+     */
+    protected function raw_post_value($field) {
+        $raw = '';
+        if (isset($this->input->raw_input_stream)) {
+            $raw = $this->input->raw_input_stream;
+        }
+        if ($raw === '') {
+            $raw = file_get_contents('php://input');
+        }
+        if (!empty($raw)) {
+            $raw_post = array();
+            parse_str($raw, $raw_post);
+            if (isset($raw_post[$field])) {
+                return $raw_post[$field];
+            }
+        }
+        return $this->input->post($field, false);
+    }
+
+    /**
      * Affiche le formulaire de création
      */
     function create() {
@@ -411,7 +435,11 @@ class Gvv_Controller extends CI_Controller {
             $table = $this->gvv_model->table();
             $fields_list = $this->gvvmetadata->fields_list($table);
             foreach ($fields_list as $field) {
-                $processed_data[$field] = $this->gvvmetadata->post2database($table, $field, $this->input->post($field));
+                $value = $this->input->post($field);
+                if ($table === 'preparation_cards' && $field === 'html_fragment') {
+                    $value = $this->raw_post_value($field);
+                }
+                $processed_data[$field] = $this->gvvmetadata->post2database($table, $field, $value);
             }
 
             if (in_array('club', $fields_list)) {
@@ -506,6 +534,10 @@ class Gvv_Controller extends CI_Controller {
             foreach ($fields_list as $field) {
                 $field_type = $this->gvvmetadata->field_type($table, $field);
                 $value = $this->input->post($field);
+
+                if ($table === 'preparation_cards' && $field === 'html_fragment') {
+                    $value = $this->raw_post_value($field);
+                }
                 
                 // Clean currency input for decimal fields before validation
                 if ($field_type == 'decimal' && $value !== '' && $value !== null) {

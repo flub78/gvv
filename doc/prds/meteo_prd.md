@@ -21,6 +21,7 @@ Les pilotes ont besoin d’un accès rapide aux informations météo et de prép
 - Deux types de cartes :
   - Cartes “HTML embarqué” (snippet fourni par un site tiers).
   - Cartes “Lien avec miniature” pointant vers un site externe.
+> Note : dans ce document, “carte” désigne un widget de type carte de dashboard (bloc UI), et non une carte météo géographique.
 
 ## Personae & rôles
 - Pilote / membre : consulte la page météo.
@@ -100,6 +101,9 @@ Les pilotes ont besoin d’un accès rapide aux informations météo et de prép
 - Réduction des liens externes partagés par email / messagerie interne.
 
 ## Questions ouvertes
-- Souhaite-t-on un champ “catégorie” (METAR, TAF, radar pluie, vent, etc.) ?
-- Faut-il un contrôle de validité des URLs d’images et de liens ?
-- Faut-il une limitation du nombre de cartes ?
+- Souhaite-t-on un champ “catégorie” (METAR, TAF, radar pluie, vent, etc.) ? oui, mais cela doit être une chaine de caractères libre, pas une liste prédéfinie (pour éviter les contraintes de maintenance).
+- Faut-il un contrôle de validité des URLs d’images et de liens ? Non, mais il faut documenter que les administrateurs sont responsables du contenu qu’ils ajoutent.
+- Faut-il une limitation du nombre de cartes ? à priori, non.
+
+## Plan d’implémentation
+Voir le plan détaillé dans [doc/plans/meteo_plan.md](doc/plans/meteo_plan.md).
