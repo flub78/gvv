@@ -73,7 +73,7 @@ test.describe('Reservations Timeline - Create Reservation', () => {
     await expect(page.locator('#eventPilot')).toBeVisible();
     await expect(page.locator('#eventStart')).toBeVisible();
     await expect(page.locator('#eventEnd')).toBeVisible();
-    await expect(page.locator('#eventPurpose')).toBeVisible();
+    await expect(page.locator('#eventInstructor')).toBeVisible();
     await expect(page.locator('#eventNotes')).toBeVisible();
     await expect(page.locator('#eventStatus')).toBeVisible();
 
