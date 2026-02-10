@@ -49,16 +49,26 @@ class PreparationCardsMigrationTest extends TestCase
         return $columns;
     }
 
+    private function loadMigrationClass()
+    {
+        if (!class_exists('CI_Migration')) {
+            require_once BASEPATH . 'libraries/Migration.php';
+        }
+        if (!class_exists('Migration_Create_preparation_cards')) {
+            require_once APPPATH . 'migrations/069_create_preparation_cards.php';
+        }
+    }
+
     private function runMigrationUp()
     {
-        require_once APPPATH . 'migrations/069_create_preparation_cards.php';
+        $this->loadMigrationClass();
         $migration = new Migration_Create_preparation_cards();
         return $migration->up();
     }
 
     private function runMigrationDown()
     {
-        require_once APPPATH . 'migrations/069_create_preparation_cards.php';
+        $this->loadMigrationClass();
         $migration = new Migration_Create_preparation_cards();
         return $migration->down();
     }

@@ -79,7 +79,8 @@ class PreparationCardsModelTest extends TestCase
         }));
 
         $this->assertGreaterThanOrEqual(2, count($test_rows));
-        $this->assertLessThanOrEqual($test_rows[0]['display_order'], $test_rows[1]['display_order']);
+        $this->assertTrue($test_rows[0]['display_order'] <= $test_rows[1]['display_order'],
+            'Rows should be ordered by display_order ascending');
     }
 
     public function testSelectPage_FiltersVisible()

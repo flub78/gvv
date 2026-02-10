@@ -322,9 +322,15 @@ class RealDatabase {
     public function order_by($field, $direction = 'ASC') {
         // Check if field already contains direction (e.g., 'date_vente desc')
         if (stripos($field, ' ASC') !== false || stripos($field, ' DESC') !== false) {
-            $this->order_by_clause = " ORDER BY " . $field;
+            $clause = $field;
         } else {
-            $this->order_by_clause = " ORDER BY " . $field . " " . strtoupper($direction);
+            $clause = $field . " " . strtoupper($direction);
+        }
+
+        if ($this->order_by_clause === '') {
+            $this->order_by_clause = " ORDER BY " . $clause;
+        } else {
+            $this->order_by_clause .= ", " . $clause;
         }
         return $this;
     }
@@ -416,15 +422,26 @@ class RealDatabase {
         return $this->insert_id();
     }
     
-    public function update($table, $data, $where = null) {
+    public function update($table, $data = null, $where = null) {
         $set_clauses = [];
-        foreach ($data as $key => $value) {
-            $set_clauses[] = $key . " = '" . $this->escape_str($value) . "'";
+
+        // Use data array if provided, otherwise use accumulated set() clauses
+        if ($data !== null) {
+            foreach ($data as $key => $value) {
+                $set_clauses[] = $key . " = '" . $this->escape_str($value) . "'";
+            }
+        } else {
+            $set_clauses = $this->set_clauses;
+            $this->set_clauses = [];
+        }
+
+        if (empty($set_clauses)) {
+            return TRUE;
         }
         
         $sql = "UPDATE " . $table . " SET " . implode(', ', $set_clauses);
 
-        if ($where && !empty($this->where_conditions)) {
+        if (!empty($this->where_conditions)) {
             $sql .= " WHERE " . implode(' ', $this->where_conditions);
         }
         
@@ -440,6 +457,13 @@ class RealDatabase {
     }
     
     public function delete($table, $where = null) {
+        // Apply inline where conditions if provided as array
+        if (is_array($where) && !empty($where)) {
+            foreach ($where as $key => $value) {
+                $this->where($key, $value);
+            }
+        }
+
         $sql = "DELETE FROM " . $table;
 
         if (!empty($this->where_conditions)) {
@@ -496,6 +520,41 @@ class RealDatabase {
         return (int) $row->numrows;
     }
     
+
+    /**
+     * Check if a table exists in the database
+     * @param string $table_name
+     * @return bool
+     */
+    public function table_exists($table_name) {
+        $sql = "SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->escape_str($table_name) . "'";
+        $result = $this->query($sql);
+        $row = $result->row_array();
+        return $row['cnt'] > 0;
+    }
+
+    /**
+     * Accumulated SET clauses for update queries
+     */
+    private $set_clauses = [];
+
+    /**
+     * Set a column value for an UPDATE query (Active Record style)
+     * @param string $key Column name
+     * @param string $value Value or expression
+     * @param bool $escape Whether to escape the value
+     * @return $this
+     */
+    public function set($key, $value = '', $escape = TRUE) {
+        if ($escape) {
+            $this->set_clauses[] = $key . " = '" . $this->escape_str($value) . "'";
+        } else {
+            // Raw expression, no escaping
+            $this->set_clauses[] = $key . " = " . $value;
+        }
+        return $this;
+    }
+
     /**
      * Reset query builder state
      * This is called after get() to prevent WHERE clause pollution
@@ -508,6 +567,7 @@ class RealDatabase {
         $this->join_clauses = [];
         $this->from_table = '';
         $this->from_alias = '';
+        $this->set_clauses = [];
         return $this;
     }
 }

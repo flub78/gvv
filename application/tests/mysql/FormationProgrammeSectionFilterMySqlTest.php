@@ -72,13 +72,25 @@ class FormationProgrammeSectionFilterMySqlTest extends PHPUnit\Framework\TestCas
 
     protected function tearDown(): void
     {
-        // Clean up test programmes (with cascade for all related tables)
+        // Clean up test programmes (with cascade through proper foreign keys)
         foreach ($this->test_programme_ids as $id) {
-            // Delete in order of dependencies
-            $this->CI->db->delete('formation_evaluations', ['programme_id' => $id]);
+            // Get lecon IDs for this programme
+            $lecons = $this->CI->db->get_where('formation_lecons', ['programme_id' => $id])->result_array();
+            foreach ($lecons as $lecon) {
+                // Get sujet IDs for this lecon
+                $sujets = $this->CI->db->get_where('formation_sujets', ['lecon_id' => $lecon['id']])->result_array();
+                foreach ($sujets as $sujet) {
+                    $this->CI->db->delete('formation_evaluations', ['sujet_id' => $sujet['id']]);
+                }
+                $this->CI->db->delete('formation_sujets', ['lecon_id' => $lecon['id']]);
+            }
+            // Get seance IDs for this programme
+            $seances = $this->CI->db->get_where('formation_seances', ['programme_id' => $id])->result_array();
+            foreach ($seances as $seance) {
+                $this->CI->db->delete('formation_evaluations', ['seance_id' => $seance['id']]);
+            }
             $this->CI->db->delete('formation_seances', ['programme_id' => $id]);
             $this->CI->db->delete('formation_inscriptions', ['programme_id' => $id]);
-            $this->CI->db->delete('formation_sujets', ['programme_id' => $id]);
             $this->CI->db->delete('formation_lecons', ['programme_id' => $id]);
             $this->CI->db->delete('formation_programmes', ['id' => $id]);
         }
