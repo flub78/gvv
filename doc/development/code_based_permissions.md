@@ -30,7 +30,7 @@
 - Difficult to maintain and error-prone
 
 **After (v2.0 - Code-Based Permissions)**:
-- Permissions declared directly in controller code
+- Required permissions declared directly in controller code
 - Self-documenting and version-controlled
 - Easier to understand and maintain
 

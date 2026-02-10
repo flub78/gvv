@@ -101,8 +101,6 @@ Définir les métadonnees:
    $this->field['volsa']['vapilid']['Selector'] = 'pilote_selector';
 ```
 
-
-
 ## Génération d'un test end-to-end
 
-Dans le projet dusk_gvv
+Créer un test playwright.
