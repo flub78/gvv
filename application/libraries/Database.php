@@ -316,6 +316,16 @@ class Database {
 
 	public function sql($sql, $return_result = false) {
 		$this->CI->db->query("SET sql_mode='NO_AUTO_VALUE_ON_ZERO'");
+
+		// Pre-process: handle DELIMITER blocks from mysqldump (triggers, procedures, functions).
+		// DELIMITER is a mysql client command, not valid SQL for PHP drivers.
+		$sql = $this->preprocess_delimiters($sql);
+
+		// Remove DEFINER clauses from triggers/views/procedures/functions.
+		// mysqldump includes DEFINER=`user`@`host` which requires SUPER privilege
+		// when restoring on a different server with a different user.
+		$sql = $this->strip_definers($sql);
+
 		$reqs = preg_split("/;\n/", $sql); // on sépare les requêtes
 		$all_results = array();
 		foreach ($reqs as $req) { // et on les éxécute
@@ -327,6 +337,64 @@ class Database {
 			}
 		}
 		return $all_results;
+	}
+
+	/**
+	 * Pre-process SQL to handle DELIMITER blocks from mysqldump.
+	 *
+	 * mysqldump wraps triggers/procedures/functions in DELIMITER blocks:
+	 *   DELIMITER ;;
+	 *   CREATE TRIGGER ... ;;
+	 *   DELIMITER ;
+	 *
+	 * Since DELIMITER is a client-side command not understood by PHP database drivers,
+	 * this method removes DELIMITER lines and replaces the custom delimiter with
+	 * standard semicolons so the statements can be executed normally.
+	 */
+	private function preprocess_delimiters($sql) {
+		$lines = explode("\n", $sql);
+		$result = array();
+		$custom_delimiter = null;
+
+		foreach ($lines as $line) {
+			// Match DELIMITER command (e.g. "DELIMITER ;;" or "DELIMITER ;")
+			if (preg_match('/^\s*DELIMITER\s+(\S+)\s*$/', $line, $matches)) {
+				$new_delim = $matches[1];
+				if ($new_delim === ';') {
+					// Restoring default delimiter, end of block
+					$custom_delimiter = null;
+				} else {
+					$custom_delimiter = $new_delim;
+				}
+				continue; // skip the DELIMITER line itself
+			}
+
+			if ($custom_delimiter !== null) {
+				// Replace custom delimiter at end of line with standard semicolon
+				$escaped = preg_quote($custom_delimiter, '/');
+				$line = preg_replace('/' . $escaped . '\s*$/', ';', $line);
+			}
+
+			$result[] = $line;
+		}
+
+		return implode("\n", $result);
+	}
+
+	/**
+	 * Remove DEFINER clauses from mysqldump output.
+	 *
+	 * mysqldump includes DEFINER=`user`@`host` in triggers, views, procedures
+	 * and functions. This requires SUPER privilege when the definer user differs
+	 * from the restoring user, which is always the case when restoring a
+	 * production backup on a development machine.
+	 */
+	private function strip_definers($sql) {
+		// Remove /*!50017 DEFINER=`user`@`host`*/ (triggers/procedures)
+		$sql = preg_replace('/\/\*!\d+\s+DEFINER=`[^`]*`@`[^`]*`\s*\*\//', '', $sql);
+		// Remove DEFINER=`user`@`host` (views, plain syntax)
+		$sql = preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`/', '', $sql);
+		return $sql;
 	}
 
 	/**
