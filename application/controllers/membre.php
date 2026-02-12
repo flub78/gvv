@@ -55,6 +55,12 @@ class Membre extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['user']);
+        }
+
         $this->load->helper('bitfields');
         $this->load->model('vols_avion_model');
         $this->load->model('vols_planeur_model');

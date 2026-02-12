@@ -54,6 +54,12 @@ class Compta extends Gvv_Controller {
                 redirect("auth/login");
             }
         }
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['tresorier']);
+        }
+
         $this->load->model('comptes_model');
         $this->load->model('tarifs_model');
         $this->load->model('categorie_model');

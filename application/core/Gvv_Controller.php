@@ -247,6 +247,32 @@ class Gvv_Controller extends CI_Controller
     }
 
     /**
+     * Require specific roles for controller/action access (helper)
+     *
+     * Wrapper for Gvv_Authorization::require_roles(). Automatically loads
+     * the authorization library if not already loaded.
+     *
+     * @param array|string $roles Role name(s) required
+     * @param int $section_id Section ID (NULL for global, defaults to session section)
+     * @param bool $replace TRUE to replace previous requirements
+     * @return bool TRUE if user has required role
+     */
+    protected function require_roles($roles, $section_id = NULL, $replace = TRUE)
+    {
+        // Load authorization library if not loaded
+        if (!isset($this->gvv_authorization)) {
+            $this->load->library('Gvv_Authorization');
+        }
+
+        // Use session section_id if available and not specified
+        if ($section_id === NULL) {
+            $section_id = $this->session->userdata('section');
+        }
+
+        return $this->gvv_authorization->require_roles($roles, $section_id, $replace);
+    }
+
+    /**
      * Check if user can access a controller/action
      *
      * Routes authorization check to appropriate system (new or legacy)

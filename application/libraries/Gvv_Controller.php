@@ -41,6 +41,11 @@ class Gvv_Controller extends CI_Controller {
     protected $form_view;
     protected $unit_test = FALSE;
 
+    // Authorization system flag (set by _init_auth)
+    protected $use_new_auth = FALSE;
+    protected $user_id;
+    protected $migration_status = 'legacy';
+
     // régles de validation
     protected $fields = array();
 
@@ -68,6 +73,9 @@ class Gvv_Controller extends CI_Controller {
             $this->dx_auth->check_login();
         }
 
+        // Initialize authorization system (new vs legacy)
+        $this->_init_auth();
+
         $this->lang->load('gvv');
 
         $this->load->helper('date');
@@ -92,6 +100,50 @@ class Gvv_Controller extends CI_Controller {
         }
         // On a besoin du clotures_model pour connaitre les dates de gel
         $this->load->model('clotures_model');
+    }
+
+    /**
+     * Initialize authentication and determine which authorization system to use.
+     *
+     * Checks if the current user is in the use_new_authorization table (per-user migration)
+     * or if the global flag is enabled. Sets $this->use_new_auth accordingly.
+     */
+    private function _init_auth()
+    {
+        if (!isset($this->dx_auth) || !$this->dx_auth->is_logged_in()) {
+            return;
+        }
+
+        $this->user_id = $this->dx_auth->get_user_id();
+        $username = $this->dx_auth->get_username();
+
+        $this->config->load('gvv_config', TRUE);
+        $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
+
+        // Priority 1: Check per-user migration table
+        if (!$use_new_authorization) {
+            try {
+                $this->db->where('username', $username);
+                $query = $this->db->get('use_new_authorization');
+            } catch (Exception $e) {
+                log_message('error', "GVV_Controller(lib): Database error querying use_new_authorization: " . $e->getMessage());
+                $query = FALSE;
+            }
+
+            if ($query && $query->num_rows() > 0) {
+                $this->use_new_auth = TRUE;
+                $this->migration_status = 'per_user_pilot';
+                log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (per-user)");
+                return;
+            }
+        }
+
+        // Priority 2: Global flag
+        if ($use_new_authorization) {
+            $this->use_new_auth = TRUE;
+            $this->migration_status = 'global_enabled';
+            log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (global)");
+        }
     }
 
     /**

@@ -54,6 +54,12 @@ class Rapports extends Gvv_Controller {
                         redirect("auth/login");
                 }
                 $this->dx_auth->check_uri_permissions();
+
+                // Authorization: Code-based (v2.0) - only for migrated users
+                if ($this->use_new_auth) {
+                        $this->require_roles(['ca']);
+                }
+
                 $this->load->library('Document');
 
                 $this->annee_exercise = $this->session->userdata('year');

@@ -1,8 +1,8 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.3
-**Date:** 2025-01-08 (Updated: 2025-10-26)
-**Status:** Phase 7 Complete, Per-User Migration Strategy Implemented
+**Document Version:** 2.4
+**Date:** 2025-01-08 (Updated: 2026-02-12)
+**Status:** Phase 7 Complete, Per-User Migration Strategy Implemented, Qualification Migration Planned
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
 
@@ -33,7 +33,17 @@
 - **Timeline**: ~10 weeks additional work
 - **Status**: Can be done AFTER production deployment via Path 1
 
-**Recommendation**: Use **Path 1** to go to production quickly, then optionally pursue **Path 2** for code improvements.
+### 🔄 **Path 3: Qualification Bitmap Migration (POST-PRODUCTION - 2-3 weeks)**
+- Migrate operational qualifications from `membres.mniveaux` bitmap to `user_roles_per_section`
+- Single source of truth for roles AND qualifications
+- Section-aware qualifications (instructor in section 1, not in section 2)
+- Audit trail (granted_at / revoked_at)
+- **Phases**: 13 (Qualification migration)
+- **Timeline**: ~2-3 weeks additional work
+- **Status**: Can be done AFTER Path 1 production deployment
+- **Precedent**: `inst_selector()` already migrated to use `user_roles_per_section`
+
+**Recommendation**: Use **Path 1** to go to production quickly, then pursue **Path 3** for qualification consolidation (high value), and optionally **Path 2** for code improvements.
 
 **Legacy System Status:** The current implementation (Phases 0-6) remains functional and will be maintained during the transition. The `role_permissions` table will be deprecated but preserved for rollback capability.
 
@@ -350,6 +360,152 @@
 
 ---
 
+### Phase 13: Qualification Bitmap Migration (v2.4) 🔵 NEW
+
+**Objectives**: Consolidate operational qualifications from `membres.mniveaux` bitmap into the `user_roles_per_section` table, providing a single source of truth for both access control and member qualifications.
+
+#### Context: Legacy Bitmap System
+
+The `membres.mniveaux` field is a bitmap encoding ~20 qualifications/responsibilities:
+
+```
+Bit  Constant        Value     Current Usage
+───  ──────────────  ────────  ─────────────────────────────────
+ 0   INTERNET        1         Responsabilité (obsolète)
+ 1   PRESIDENT       2         Responsabilité
+ 2   VICE_PRESIDENT  4         Responsabilité
+ 3   TRESORIER       8         Responsabilité → déjà dans types_roles
+ 4   SECRETAIRE      16        Responsabilité
+ 5   SECRETAIRE_ADJ  32        Responsabilité
+ 6   CA              64        Responsabilité → déjà dans types_roles
+ 7   CHEF_PILOTE     128       Qualification opérationnelle
+ 8   VI_PLANEUR      256       Qualification vol (visiteur instruction)
+ 9   VI_AVION        512       Qualification vol
+10   MECANO          1024      Qualification → déjà dans types_roles (id=12)
+11   PILOTE_PLANEUR  2048      Qualification informative
+12   PILOTE_AVION    4096      Qualification informative
+13   REMORQUEUR      8192      Qualification opérationnelle (sélecteur vols)
+14   PLIEUR          16384     Qualification informative
+15   ITP             32768     Instructeur → déjà migré via inst_selector()
+16   IVV             65536     Instructeur → déjà migré via inst_selector()
+17   FI_AVION        131072    Instructeur → déjà migré via inst_selector()
+18   FE_AVION        262144    Instructeur → déjà migré via inst_selector()
+19   TREUILLARD      524288    Qualification opérationnelle (sélecteur vols)
+20   CHEF_DE_PISTE   1048576   Qualification opérationnelle
+```
+
+A second bitmap `membres.macces` ("Responsabilités") exists but is only displayed/saved in the member form, no access control usage.
+
+#### Current Bitmap Usage in Code
+
+| Usage | Files | Pattern |
+|-------|-------|---------|
+| **Sélecteurs formulaires de vol** | `membres_model.php` → `qualif_selector()` | `(mniveaux & $level) != 0` |
+| **Sélecteur instructeurs** | `membres_model.php` → `inst_selector()` | **Déjà migré** → `user_roles_per_section` (id=11) |
+| **Contrôle accès formation** | `Formation_access.php` → `is_instructeur()` | `(mniveaux & (ITP\|IVV\|FI_AVION\|FE_AVION)) != 0` |
+| **Contrôle accès CA formation** | `Formation_access.php` → `can_manage_programmes()` | `(mniveaux & CA) != 0` |
+| **Listes email** | `config/program.php` | `(mniveaux & ($instructeurs)) != 0` |
+| **Fiche membre** | `controllers/membre.php` | `int2array()` / `array2int()` checkboxes |
+| **Backup/restore** | `controllers/admin.php` | `roles_bits` → `mniveaux` |
+
+#### Migration Strategy: What Moves, What Stays
+
+**Phase 13A — Qualifications à migrer vers `user_roles_per_section`** (servent au contrôle d'accès ou aux sélecteurs de formulaires) :
+
+| Bitmap | Nouveau rôle `types_roles` | Justification |
+|--------|---------------------------|---------------|
+| ITP, IVV, FI_AVION, FE_AVION | `instructeur` (id=11) | **Déjà migré** — inst_selector() utilise user_roles_per_section |
+| REMORQUEUR | `remorqueur` (à créer, id=13) | Sélecteur dans formulaires de vol (pilrem_selector) |
+| TREUILLARD | `treuillard` (à créer, id=14) | Sélecteur dans formulaires de vol (treuillard_selector) |
+| MECANO | `mecano` (id=12) | **Déjà dans types_roles** — migrer les données bitmap |
+| CHEF_PILOTE | `chef_pilote` (à créer, id=15) | Qualification opérationnelle |
+| CHEF_DE_PISTE | `chef_de_piste` (à créer, id=16) | Qualification opérationnelle |
+
+**Phase 13B — Qualifications qui restent dans `membres.mniveaux`** (purement informatives, pas de contrôle d'accès) :
+
+| Bitmap | Raison |
+|--------|--------|
+| PILOTE_PLANEUR (2048) | Informatif, pas de sélecteur ni contrôle d'accès |
+| PILOTE_AVION (4096) | Informatif, idem |
+| VI_PLANEUR (256) | Qualification de vol, pas de contrôle d'accès |
+| VI_AVION (512) | Idem |
+| PLIEUR (16384) | Qualification technique informative |
+
+**Phase 13C — Responsabilités déjà couvertes par `types_roles`** (supprimer du bitmap) :
+
+| Bitmap | Rôle types_roles existant | Action |
+|--------|--------------------------|--------|
+| CA (64) | `ca` (id=6) | Supprimer du bitmap, utiliser le rôle |
+| TRESORIER (8) | `tresorier` (id=8) | Idem |
+| PRESIDENT, VICE_PRESIDENT, SECRETAIRE, SECRETAIRE_ADJ | Pas de rôle dédié | Rester dans bitmap ou migrer vers un champ texte "fonction_bureau" |
+
+#### Avantages
+
+1. **Source unique de vérité** : plus de double maintenance entre bits et rôles
+2. **Qualifications par section** : un instructeur planeur peut ne pas être instructeur avion (impossible avec un bitmap global)
+3. **Audit** : `user_roles_per_section` offre `granted_at` / `revoked_at` automatiquement
+4. **Cohérence** : `inst_selector()` est déjà migré, les autres sélecteurs doivent suivre
+5. **Simplification du code** : remplacer les opérations bit à bit par des requêtes relationnelles lisibles
+
+#### Tasks
+
+- [ ] **13.1** Créer les nouveaux rôles dans `types_roles` :
+  - Migration SQL : INSERT `remorqueur` (13), `treuillard` (14), `chef_pilote` (15), `chef_de_piste` (16)
+  - Ajouter traductions FR/EN/NL dans `gvv_lang.php`
+
+- [ ] **13.2** Migration des données bitmap → `user_roles_per_section` :
+  - Script SQL qui pour chaque membre actif, lit `mniveaux` et crée les entrées correspondantes
+  - Exemple : `(mniveaux & 8192) != 0` → INSERT rôle `remorqueur` pour la section du membre
+  - Déterminer la section : utiliser le compte 411 du membre (même logique que `inst_selector`)
+  - Gérer les membres multi-sections
+
+- [ ] **13.3** Migrer `qualif_selector()` vers le modèle `user_roles_per_section` :
+  - Remplacer `qualif_selector($key, $level)` par des méthodes spécifiques basées sur les rôles
+  - Créer `remorqueur_selector()` et `treuillard_selector()` sur le modèle de `inst_selector()`
+  - Identifier et mettre à jour tous les appelants de `qualif_selector()`
+
+- [ ] **13.4** Migrer `Formation_access` :
+  - `is_instructeur()` : remplacer `(mniveaux & flags)` par vérification du rôle `instructeur` dans `user_roles_per_section`
+  - `can_manage_programmes()` : remplacer `(mniveaux & CA)` par vérification du rôle `ca` dans `user_roles_per_section`
+
+- [ ] **13.5** Migrer les requêtes de listes email (`program.php`) :
+  - Remplacer `(mniveaux & ($instructeurs)) != 0` par JOIN sur `user_roles_per_section`
+  - Mettre à jour `listes_de_requetes` dans `program.php` et `program.example.php`
+
+- [ ] **13.6** Mettre à jour la fiche membre :
+  - Retirer des checkboxes les qualifications migrées (remorqueur, treuillard, mecano, chef_pilote, chef_de_piste)
+  - Retirer les responsabilités déjà dans types_roles (CA, trésorier)
+  - Conserver les qualifications informatives (PILOTE_PLANEUR, PILOTE_AVION, VI_*, PLIEUR)
+  - Afficher un lien vers la gestion des rôles pour les qualifications migrées
+  - Mettre à jour `int2array()` / `array2int()` pour ne gérer que les bits restants
+
+- [ ] **13.7** Mettre à jour backup/restore (`admin.php`) :
+  - Le champ `roles_bits` doit refléter les bits restants uniquement
+  - La restauration doit aussi recréer les entrées `user_roles_per_section`
+
+- [ ] **13.8** Tests :
+  - Tests unitaires pour les nouveaux sélecteurs
+  - Test de migration des données (vérifier que les bits sont correctement convertis en rôles)
+  - Test de non-régression des formulaires de vol
+  - Test Playwright : vérifier les dropdowns instructeur/remorqueur/treuillard
+
+- [ ] **13.9** Nettoyage :
+  - Supprimer les constantes bitmap obsolètes de `constants.php` (celles migrées)
+  - Mettre à jour la documentation
+  - Supprimer `qualif_selector()` si plus aucun appelant
+
+**Estimated Effort**: 10-15 days (2-3 weeks)
+
+**Deliverables**:
+- Migration SQL (nouveaux rôles + conversion bitmap → user_roles_per_section)
+- Sélecteurs migrés (remorqueur_selector, treuillard_selector)
+- Formation_access réécrit sans bitmap
+- Listes email migrées
+- Fiche membre simplifiée
+- Tests de non-régression
+
+---
+
 ## Project Status Dashboard (v2.0)
 
 ### Development Phases
@@ -363,8 +519,9 @@
 | **10: Full Migration** | 🔵 Planned | 0% | 15-20 days | 35 remaining controllers (Optional) |
 | **11: Cleanup** | 🔵 Planned | 0% | 5-7 days | Remove legacy code (Optional) |
 | **12: Production Deploy** | 🔵 Planned | 0% | 3-5 days + 1 week | Final deployment (Optional) |
+| **13: Qualification Migration** | 🔵 Planned | 0% | 10-15 days | Bitmap → user_roles_per_section |
 
-**Note**: Phases 8-12 are now **optional** with the feature flag approach. System can go to production after Phase 7 by enabling the flag.
+**Note**: Phases 8-12 are now **optional** with the feature flag approach. System can go to production after Phase 7 by enabling the flag. Phase 13 can be done independently after production deployment.
 
 ### Migration Phases (Feature Flag Based)
 
@@ -1132,10 +1289,22 @@ $config['use_new_authorization'] = FALSE;
 - [ ] 48-hour monitoring clean
 - [ ] User acceptance sign-off
 
-### 🎯 Project Completion Criteria (v2.0)
+### 🔵 Phase 13 Exit Criteria (Qualification Migration)
+- [ ] New roles created in `types_roles` (remorqueur, treuillard, chef_pilote, chef_de_piste)
+- [ ] Bitmap data migrated to `user_roles_per_section` for all active members
+- [ ] `qualif_selector()` replaced by role-based selectors
+- [ ] `Formation_access` uses roles instead of bitmap
+- [ ] Email list queries use `user_roles_per_section` instead of bitmap
+- [ ] Member form updated (migrated qualifications removed from checkboxes)
+- [ ] Flight form dropdowns functional with new selectors
+- [ ] No regression in Playwright tests
+
+### 🎯 Project Completion Criteria (v2.4)
 - [ ] All 53 controllers use code-based permissions
 - [ ] `role_permissions` table deprecated and renamed
 - [ ] Performance improved (no DB lookups for permissions)
+- [ ] Operational qualifications consolidated in `user_roles_per_section`
+- [ ] `membres.mniveaux` bitmap reduced to informational bits only
 - [ ] All documentation updated (PRD, plan, guides)
 - [ ] Administrator and developer training complete
 - [ ] Project retrospective conducted
@@ -1182,6 +1351,14 @@ $config['use_new_authorization'] = FALSE;
   - Created quick reference: `AUTHORIZATION_MIGRATION_QUICKREF.md`
   - Timeline to production: 2-3 weeks via feature flag approach
   - Phases 8-12 marked as optional post-production enhancements
+- **v2.4 (2026-02-12): Qualification bitmap migration analysis**
+  - Added Phase 13: Migration of operational qualifications from `membres.mniveaux` bitmap to `user_roles_per_section`
+  - Added Path 3 in Executive Summary
+  - Analysis of 20 bitmap flags: 6 to migrate, 5 to keep, 6 already covered by types_roles
+  - Precedent: `inst_selector()` already migrated to use roles
+  - New roles to create: remorqueur, treuillard, chef_pilote, chef_de_piste
+  - Impact analysis: qualif_selector, Formation_access, email lists, member form
+  - Routes and permissions reference document created: `doc/authorization/routes_and_permissions.md`
 
 ---
 
