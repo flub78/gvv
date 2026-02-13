@@ -1,0 +1,86 @@
+name: User Story
+description: Template pour créer une nouvelle user story
+title: "[STORY] "
+labels: ["story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📖 Template de User Story
+        Remplissez les sections ci-dessous pour créer une user story complète.
+  
+  - type: textarea
+    id: story
+    attributes:
+      label: Story
+      description: Décrivez la user story au format standard
+      placeholder: |
+        En tant que [type d'utilisateur],
+        Je veux [objectif/fonctionnalité],
+        Afin de [bénéfice/valeur].
+      value: |
+        En tant que 
+        Je veux 
+        Afin de 
+    validations:
+      required: true
+  
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Critères d'acceptation
+      description: Listez les critères qui définissent quand cette story est terminée
+      placeholder: |
+        - [ ] Critère 1
+        - [ ] Critère 2
+        - [ ] Critère 3
+    validations:
+      required: true
+  
+  - type: textarea
+    id: references
+    attributes:
+      label: Références
+      description: Liens vers les PRD, documentation, ou autres ressources pertinentes
+      placeholder: |
+        - [PRD xx](https://github.com/flub78/gvv/blob/main/doc/prds/2025_authorization_refactoring_prd.md)
+        - [Documentation technique](lien)
+    validations:
+      required: false
+  
+  - type: textarea
+    id: related-stories
+    attributes:
+      label: Stories associées
+      description: Numéros des issues liées (format #12, #42)
+      placeholder: "#12, #42"
+    validations:
+      required: false
+  
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      description: Niveau de priorité de cette story
+      options:
+        - Haute
+        - Moyenne
+        - Basse
+    validations:
+      required: false
+  
+  - type: dropdown
+    id: estimation
+    attributes:
+      label: Estimation (Story Points)
+      description: Complexité estimée
+      options:
+        - "1"
+        - "2"
+        - "3"
+        - "5"
+        - "8"
+        - "13"
+        - "21"
+    validations:
+      required: false
