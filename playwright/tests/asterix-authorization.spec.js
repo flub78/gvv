@@ -16,206 +16,196 @@ const LoginPage = require('./helpers/LoginPage');
 
 const ASTERIX = { username: 'asterix', password: 'password', section: '1' };
 
+/**
+ * Helper: login as asterix and navigate to a route
+ */
+async function loginAndGoto(page, route) {
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
+    await loginPage.goto(route);
+    await page.waitForLoadState('domcontentloaded');
+}
+
+/**
+ * Helper: check if access is granted (not on deny page, no error)
+ * Note: Do NOT check for '403' as a substring - normal pages contain account numbers like "403xxx"
+ */
+async function expectAccessGranted(page, route) {
+    const url = page.url();
+    const content = await page.content();
+    const denied = url.includes('/auth/deny') || url.includes('/auth/login')
+        || content.includes('Accès non autorisé') || content.includes('Accès refusé')
+        || content.includes('Accès réservé aux administrateurs');
+
+    expect(denied, `Expected access GRANTED for ${route} but was denied (URL: ${url})`).toBeFalsy();
+}
+
+/**
+ * Helper: check if access is denied (redirect to deny/login page or error message)
+ */
+async function expectAccessDenied(page, route) {
+    const url = page.url();
+    const content = await page.content();
+    const denied = url.includes('/auth/deny') || url.includes('/auth/login')
+        || content.includes('Accès non autorisé') || content.includes('Accès refusé')
+        || content.includes('Accès réservé aux administrateurs')
+        || content.includes('Mot de passe');
+
+    expect(denied, `Expected access DENIED for ${route} but was granted (URL: ${url})`).toBeTruthy();
+}
+
 test.describe('Asterix Authorization - New Auth System', () => {
 
+    // ============================================================
+    // ALLOWED ROUTES - asterix has 'user' role
+    // ============================================================
     test.describe('Allowed routes (role: user)', () => {
 
-        test('asterix can access welcome dashboard', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('welcome');
-            await page.waitForLoadState('domcontentloaded');
-
-            // Should NOT be on the deny page
-            expect(page.url()).not.toContain('/auth/deny');
-            const content = await page.content();
-            expect(content).not.toContain('Accès non autorisé');
-
-            console.log('✓ asterix can access welcome');
+        test('welcome dashboard', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            await expectAccessGranted(page, 'welcome');
         });
 
-        test('asterix can access vols_planeur/page', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('vols_planeur/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            expect(page.url()).not.toContain('/auth/deny');
-            const content = await page.content();
-            expect(content).not.toContain('Accès non autorisé');
-
-            console.log('✓ asterix can access vols_planeur/page');
+        test('vols_planeur/page - flight log viewing', async ({ page }) => {
+            await loginAndGoto(page, 'vols_planeur/page');
+            await expectAccessGranted(page, 'vols_planeur/page');
         });
 
-        test('asterix can access membre/page', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('membre/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            expect(page.url()).not.toContain('/auth/deny');
-            const content = await page.content();
-            expect(content).not.toContain('Accès non autorisé');
-
-            console.log('✓ asterix can access membre/page');
+        test('membre/page - member list', async ({ page }) => {
+            await loginAndGoto(page, 'membre/page');
+            await expectAccessGranted(page, 'membre/page');
         });
 
-        test('asterix can access planeur/page', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
+        test('planeur/page - glider fleet', async ({ page }) => {
+            await loginAndGoto(page, 'planeur/page');
+            await expectAccessGranted(page, 'planeur/page');
+        });
 
-            await loginPage.goto('planeur/page');
-            await page.waitForLoadState('domcontentloaded');
+        test('avion/page - aircraft fleet', async ({ page }) => {
+            await loginAndGoto(page, 'avion/page');
+            await expectAccessGranted(page, 'avion/page');
+        });
 
-            expect(page.url()).not.toContain('/auth/deny');
-            const content = await page.content();
-            expect(content).not.toContain('Accès non autorisé');
+        test('sections/page - sections list', async ({ page }) => {
+            await loginAndGoto(page, 'sections/page');
+            await expectAccessGranted(page, 'sections/page');
+        });
 
-            console.log('✓ asterix can access planeur/page');
+        test('tarifs/page - tariffs list', async ({ page }) => {
+            await loginAndGoto(page, 'tarifs/page');
+            await expectAccessGranted(page, 'tarifs/page');
+        });
+
+        test('vols_avion/page - aircraft flights', async ({ page }) => {
+            await loginAndGoto(page, 'vols_avion/page');
+            await expectAccessGranted(page, 'vols_avion/page');
+        });
+
+        test('tickets/page - flight tickets', async ({ page }) => {
+            await loginAndGoto(page, 'tickets/page');
+            await expectAccessGranted(page, 'tickets/page');
+        });
+
+        test('procedures/page - procedures list', async ({ page }) => {
+            await loginAndGoto(page, 'procedures/page');
+            await expectAccessGranted(page, 'procedures/page');
+        });
+
+        test('alarmes - pilot conditions', async ({ page }) => {
+            await loginAndGoto(page, 'alarmes');
+            await expectAccessGranted(page, 'alarmes');
         });
     });
 
-    test.describe('Denied routes (missing roles)', () => {
+    // ============================================================
+    // DENIED ROUTES - accounting (requires tresorier or bureau)
+    // ============================================================
+    test.describe('Denied routes - accounting (tresorier/bureau)', () => {
 
-        test('asterix cannot access compta/page (requires tresorier)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('compta/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to compta/page');
+        test('compta/page - accounting entries', async ({ page }) => {
+            await loginAndGoto(page, 'compta/page');
+            await expectAccessDenied(page, 'compta/page');
         });
 
-        test('asterix cannot access comptes/page (requires tresorier)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('comptes/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to comptes/page');
+        test('comptes/page - chart of accounts', async ({ page }) => {
+            await loginAndGoto(page, 'comptes/page');
+            await expectAccessDenied(page, 'comptes/page');
         });
 
-        test('asterix cannot access achats/page (requires ca)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('achats/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to achats/page');
+        test('welcome/compta - accounting dashboard', async ({ page }) => {
+            await loginAndGoto(page, 'welcome/compta');
+            await page.waitForTimeout(1000);
+            await expectAccessDenied(page, 'welcome/compta');
         });
 
-        test('asterix cannot access alarmes (requires ca)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
+        test('configuration - club config (requires bureau)', async ({ page }) => {
+            await loginAndGoto(page, 'configuration/page');
+            await expectAccessDenied(page, 'configuration/page');
+        });
+    });
 
-            await loginPage.goto('alarmes');
-            await page.waitForLoadState('domcontentloaded');
+    // ============================================================
+    // DENIED ROUTES - CA (requires ca role)
+    // ============================================================
+    test.describe('Denied routes - CA management', () => {
 
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to alarmes');
+        test('achats/page - purchases', async ({ page }) => {
+            await loginAndGoto(page, 'achats/page');
+            await expectAccessDenied(page, 'achats/page');
         });
 
-        test('asterix cannot access terrains/page (requires ca)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('terrains/page');
-            await page.waitForLoadState('domcontentloaded');
-
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to terrains/page');
+        test('terrains/page - airfields', async ({ page }) => {
+            await loginAndGoto(page, 'terrains/page');
+            await expectAccessDenied(page, 'terrains/page');
         });
 
-        test('asterix cannot access rapports/ffvv (requires ca)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('rapports/ffvv');
-            await page.waitForLoadState('domcontentloaded');
-
-            const url = page.url();
-            const content = await page.content();
-            const denied = url.includes('/auth/deny') || content.includes('Accès non autorisé');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to rapports/ffvv');
+        test('rapports/ffvv - FFVV reports', async ({ page }) => {
+            await loginAndGoto(page, 'rapports/ffvv');
+            await expectAccessDenied(page, 'rapports/ffvv');
         });
 
-        test('asterix cannot access welcome/compta (requires tresorier)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
-
-            await loginPage.goto('welcome/compta');
-            await page.waitForLoadState('domcontentloaded');
-            await page.waitForTimeout(2000);
-
-            const url = page.url();
-            const content = await page.content();
-            console.log(`welcome/compta final URL: ${url}`);
-            const denied = url.includes('/auth/deny') || url.includes('/auth/login')
-                || content.includes('Accès non autorisé') || content.includes('Mot de passe');
-            expect(denied).toBeTruthy();
-
-            console.log('✓ asterix denied access to welcome/compta');
+        test('welcome/ca - CA dashboard', async ({ page }) => {
+            await loginAndGoto(page, 'welcome/ca');
+            await page.waitForTimeout(1000);
+            await expectAccessDenied(page, 'welcome/ca');
         });
 
-        test('asterix cannot access welcome/ca (requires ca)', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
-            await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
+        test('licences/page - licences management', async ({ page }) => {
+            await loginAndGoto(page, 'licences/page');
+            await expectAccessDenied(page, 'licences/page');
+        });
+    });
 
-            await loginPage.goto('welcome/ca');
-            await page.waitForLoadState('domcontentloaded');
-            await page.waitForTimeout(2000);
+    // ============================================================
+    // DENIED ROUTES - instructor (requires instructeur role)
+    // ============================================================
+    test.describe('Denied routes - instructor', () => {
 
-            const url = page.url();
-            const content = await page.content();
-            console.log(`welcome/ca final URL: ${url}`);
-            const denied = url.includes('/auth/deny') || url.includes('/auth/login')
-                || content.includes('Accès non autorisé') || content.includes('Mot de passe');
-            expect(denied).toBeTruthy();
+        test('programmes - training programs', async ({ page }) => {
+            await loginAndGoto(page, 'programmes');
+            await expectAccessDenied(page, 'programmes');
+        });
+    });
 
-            console.log('✓ asterix denied access to welcome/ca');
+    // ============================================================
+    // DENIED ROUTES - admin (requires club-admin)
+    // ============================================================
+    test.describe('Denied routes - admin', () => {
+
+        test('admin/backup - system backup', async ({ page }) => {
+            await loginAndGoto(page, 'admin/backup');
+            await expectAccessDenied(page, 'admin/backup');
+        });
+
+        test('authorization - authorization management', async ({ page }) => {
+            await loginAndGoto(page, 'authorization');
+            await expectAccessDenied(page, 'authorization');
+        });
+
+        test('login_as - user impersonation', async ({ page }) => {
+            await loginAndGoto(page, 'login_as');
+            await expectAccessDenied(page, 'login_as');
         });
     });
 });

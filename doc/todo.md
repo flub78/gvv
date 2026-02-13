@@ -71,7 +71,7 @@ Cela implique de:
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
 
-* [] Gestion des fiches de progressions                       (PRD à rédiger)
+                    
 
 
 ## Dette technique
@@ -235,3 +235,4 @@ Cela implique de:
 * [x] problème d'alignement sur la page résultats, les chiffres devraient être alignés à droite.
 * [x] Création d'une vue planche ULM ()
 * [x] Mes vols Avion/ULM
+* [x] Gestion des fiches de progressions   

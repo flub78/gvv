@@ -32,6 +32,18 @@ class Configuration extends Gvv_Controller {
     protected $rules = array();
 
     /**
+     * Constructor
+     */
+    function __construct() {
+        parent::__construct();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        if ($this->use_new_auth) {
+            $this->require_roles(['bureau']);
+        }
+    }
+
+    /**
      * Génération des éléments statiques à passer au formulaire en cas de création,
      * modification ou ré-affichage après erreur.
      * Sont statiques les parties qui ne changent pas d'un élément sur l'autre.

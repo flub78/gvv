@@ -180,14 +180,8 @@ class Welcome extends Gvv_Controller {
      * Page d'acceuil du comptable
      */
     public function compta() {
-        log_message('error', 'DEBUG welcome/compta: use_new_auth=' . var_export($this->use_new_auth, true));
         if ($this->use_new_auth) {
-            log_message('error', 'DEBUG welcome/compta: user_id=' . var_export($this->dx_auth->get_user_id(), true));
-            $has = $this->gvv_authorization->has_role($this->dx_auth->get_user_id(), 'tresorier', NULL);
-            log_message('error', 'DEBUG welcome/compta: has_role(tresorier)=' . var_export($has, true));
-            log_message('error', 'DEBUG welcome/compta: about to call require_roles(tresorier)');
-            $result = $this->require_roles(['tresorier']);
-            log_message('error', 'DEBUG welcome/compta: require_roles returned ' . var_export($result, true));
+            $this->require_roles(['tresorier']);
         } elseif (! $this->dx_auth->is_role('tresorier')) {
             $this->dx_auth->deny_access();
         }

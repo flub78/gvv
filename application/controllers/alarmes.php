@@ -63,8 +63,9 @@ class Alarmes extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
+        // index accessible to all users (view own conditions), modifications require ca (via modification_level)
         if ($this->use_new_auth) {
-            $this->require_roles(['ca']);
+            $this->require_roles(['user']);
         }
 
         $this->load->model('membres_model');

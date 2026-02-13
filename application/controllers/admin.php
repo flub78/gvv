@@ -39,6 +39,12 @@ class Admin extends CI_Controller {
         // Check if user is logged in or not
         $this->dx_auth->check_login();
 
+        // Authorization: require admin role
+        if (!$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
         $this->load->library('Database');
         $this->load->helper('file');
     }

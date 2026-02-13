@@ -44,13 +44,20 @@ class Procedures extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Authorization: Code-based (v2.0) - only for migrated users
+        // page accessible to all users, view/edit/delete requires ca (via modification_level)
+        if ($this->use_new_auth) {
+            $this->require_roles(['user']);
+        }
+
         $this->lang->load('procedures');
         $this->load->model('procedures_model');
         $this->load->model('sections_model');
         $this->load->library('File_manager');
         $this->load->helper('markdown');
         $this->load->helper('file');
-        
+
         // Pour compatibilité avec le parent Gvv_Controller
         $this->gvv_model = $this->procedures_model;
     }

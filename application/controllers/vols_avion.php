@@ -57,6 +57,12 @@ class Vols_avion extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
+        // Authorization: Code-based (v2.0) - only for migrated users
+        // page/view accessible to all users, create/edit/delete requires planchiste (via modification_level)
+        if ($this->use_new_auth) {
+            $this->require_roles(['user']);
+        }
+
         // remplit les selecteurs depuis la base
         $this->load->model('membres_model');
         $this->load->model('comptes_model');
