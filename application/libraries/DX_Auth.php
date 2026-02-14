@@ -414,7 +414,14 @@ class DX_Auth {
     /* End of Auto login related function */
 
     /* Helper function */
+    // Flag to skip URI permission check (set by Gvv_Controller for new-auth users)
+    public $skip_uri_check = FALSE;
+
     function check_uri_permissions($allow = TRUE) {
+        // Skip legacy URI permission check for new authorization system users
+        if ($this->skip_uri_check) {
+            return;
+        }
         // First check if user already logged in or not
         if ($this->is_logged_in()) {
             // If user is not admin

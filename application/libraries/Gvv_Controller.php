@@ -68,31 +68,18 @@ class Gvv_Controller extends CI_Controller {
         gvv_debug("URL: " . $current_url);
 
         $this->load->library('DX_Auth');
-        if (getenv('TEST') != '1') {
-            // Basic login checks (is logged in? password OK? locked?)
-            if (! $this->dx_auth->is_logged_in()) {
-                redirect("auth/login");
-            }
-            $gvv_user = $this->dx_auth->get_username();
-            if ($this->dx_auth->is_password($gvv_user, $gvv_user)) {
-                redirect("auth/change_password/duplicate");
-            }
-            $this->load->config('program');
-            if ($this->config->item('locked')) {
-                if (! $this->dx_auth->is_admin()) {
-                    redirect("auth/logout");
-                }
-            }
-        }
 
-        // Initialize authorization system (new vs legacy)
+        // Initialize authorization system BEFORE login check
+        // so we can skip legacy URI permissions for new-auth users
         $this->_init_auth();
 
         if (getenv('TEST') != '1') {
-            // Legacy URI permissions only for users NOT on the new auth system
-            if (!$this->use_new_auth) {
-                $this->dx_auth->check_uri_permissions();
+            // For new-auth users, skip legacy URI permission check inside check_login()
+            if ($this->use_new_auth) {
+                $this->dx_auth->skip_uri_check = TRUE;
             }
+            // Checks to be done only when not controlled by PHPUnit
+            $this->dx_auth->check_login();
         }
 
         $this->lang->load('gvv');
