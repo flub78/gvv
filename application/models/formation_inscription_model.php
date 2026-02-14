@@ -47,7 +47,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('i.id', $id);
 
-        $result = $this->db->get()->row_array();
+        $query = $this->db->get();
+        if ($query === false) {
+            return array();
+        }
+        $result = $query->row_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result ?: array();
     }
@@ -70,7 +74,11 @@ class Formation_inscription_model extends Common_Model {
         }
 
         $this->db->order_by('i.date_ouverture', 'desc');
-        $result = $this->db->get()->result_array();
+        $query = $this->db->get();
+        if ($query === false) {
+            return array();
+        }
+        $result = $query->result_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result;
     }
@@ -82,10 +90,11 @@ class Formation_inscription_model extends Common_Model {
      * @return array List of enrollments
      */
     public function get_by_programme($programme_id) {
-        return $this->db->select('*')
+        $query = $this->db->select('*')
             ->from($this->table)
             ->where('programme_id', $programme_id)
-            ->get()->result_array();
+            ->get();
+        return $query ? $query->result_array() : array();
     }
 
 
@@ -146,7 +155,11 @@ class Formation_inscription_model extends Common_Model {
             $this->db->where('statut', $statut);
         }
         
-        $result = $this->db->get($this->table)->row_array();
+        $query = $this->db->get($this->table);
+        if ($query === false) {
+            return array();
+        }
+        $result = $query->row_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result ?: array();
     }
@@ -170,21 +183,29 @@ class Formation_inscription_model extends Common_Model {
             ->join('formation_sujets fs', 'fl.id = fs.lecon_id', 'left')
             ->where('fl.programme_id', $inscription['programme_id']);
         
-        $total_result = $this->db->get()->row_array();
+        $total_query = $this->db->get();
+        if ($total_query === false) {
+            return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+        $total_result = $total_query->row_array();
         $total_sujets = $total_result['total'] ?? 0;
-        
+
         if ($total_sujets == 0) {
             return array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0);
         }
-        
+
         // Count acquired subjects (niveau = 'Q')
         $this->db->select('COUNT(DISTINCT fe.sujet_id) as acquis')
             ->from('formation_seances fse')
             ->join('formation_evaluations fe', 'fse.id = fe.seance_id', 'left')
             ->where('fse.inscription_id', $inscription_id)
             ->where('fe.niveau', 'Q');
-        
-        $acquis_result = $this->db->get()->row_array();
+
+        $acquis_query = $this->db->get();
+        if ($acquis_query === false) {
+            return array('total_sujets' => $total_sujets, 'sujets_acquis' => 0, 'pourcentage' => 0);
+        }
+        $acquis_result = $acquis_query->row_array();
         $sujets_acquis = $acquis_result['acquis'] ?? 0;
         
         $pourcentage = $total_sujets > 0 ? round(($sujets_acquis / $total_sujets) * 100, 1) : 0;
@@ -349,7 +370,11 @@ class Formation_inscription_model extends Common_Model {
         $this->db->order_by('i.date_ouverture', 'desc')
             ->limit($limit, $offset);
 
-        $result = $this->db->get()->result_array();
+        $query = $this->db->get();
+        if ($query === false) {
+            return array();
+        }
+        $result = $query->result_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result;
     }
@@ -425,7 +450,11 @@ class Formation_inscription_model extends Common_Model {
         }
 
         $this->db->order_by('m.mnom', 'asc');
-        $result = $this->db->get()->result_array();
+        $query = $this->db->get();
+        if ($query === false) {
+            return array();
+        }
+        $result = $query->result_array();
         gvv_debug("sql: " . $this->db->last_query());
         return $result;
     }
@@ -473,7 +502,8 @@ class Formation_inscription_model extends Common_Model {
             ->where('i.statut', 'cloturee')
             ->where('YEAR(i.date_cloture)', $year)
             ->order_by('i.date_cloture', 'desc');
-        $result['cloturees'] = $this->db->get()->result_array();
+        $query = $this->db->get();
+        $result['cloturees'] = $query ? $query->result_array() : array();
 
         // Abandonnées dans l'année
         $this->db->select($select)
@@ -484,7 +514,8 @@ class Formation_inscription_model extends Common_Model {
             ->where('i.statut', 'abandonnee')
             ->where('YEAR(i.date_cloture)', $year)
             ->order_by('i.date_cloture', 'desc');
-        $result['abandonnees'] = $this->db->get()->result_array();
+        $query = $this->db->get();
+        $result['abandonnees'] = $query ? $query->result_array() : array();
 
         // Suspendues dans l'année
         $this->db->select($select)
@@ -495,7 +526,8 @@ class Formation_inscription_model extends Common_Model {
             ->where('i.statut', 'suspendue')
             ->where('YEAR(i.date_suspension)', $year)
             ->order_by('i.date_suspension', 'desc');
-        $result['suspendues'] = $this->db->get()->result_array();
+        $query = $this->db->get();
+        $result['suspendues'] = $query ? $query->result_array() : array();
 
         // Ouvertes dans l'année (toutes formations ouvertes cette année, quel que soit le statut actuel)
         $this->db->select($select)
@@ -505,7 +537,8 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('YEAR(i.date_ouverture)', $year)
             ->order_by('i.date_ouverture', 'desc');
-        $result['ouvertes'] = $this->db->get()->result_array();
+        $query = $this->db->get();
+        $result['ouvertes'] = $query ? $query->result_array() : array();
 
         // En cours (ouvertes avant ou pendant l'année)
         $this->db->select($select)
@@ -516,7 +549,8 @@ class Formation_inscription_model extends Common_Model {
             ->where('i.statut', 'ouverte')
             ->where('YEAR(i.date_ouverture) <=', $year)
             ->order_by('i.date_ouverture', 'desc');
-        $result['en_cours'] = $this->db->get()->result_array();
+        $query = $this->db->get();
+        $result['en_cours'] = $query ? $query->result_array() : array();
 
         return $result;
     }
