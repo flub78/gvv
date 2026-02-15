@@ -6,6 +6,8 @@ Il est développé depuis 2011 par Philippe Boissel et Frédéric Peignot sur un
 
 Depuis il est utilisé par au moins cinq ou six associations. Il est difficile d'en tenir le compte exact, puis qu'il s'agit d'un logiciel libre et que certaines associations peuvent l'avoir déployé sans en avoir informé les développeurs.
 
+Sa caractéristique par rapport à d'autres applications similaires (GIVaV, OpenFLyers, GESASSO) est sa capacité à gérer des activités multiples, Avion, ULM, Planeur, tout en maintenant une séparation strict des comptes de chaque activité.
+
 A l'origine le code de GVV était hébergé chez developpez.com, néanmoins depuis le printemps 2024, le projet n'est plus accessible et ils ne répondent plus aux emails. Leur serveur svn semble toujours actif, mais par précaution le projet a été migré vers github.
 
 
