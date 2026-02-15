@@ -47,12 +47,4 @@ class Events_Types extends Gvv_Controller {
         parent::form_static_element($action);
     }
 
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        parent::test($format);
-
-        $this->unit->run('Foo', 'is_string', 'test events_types');
-    }
 }

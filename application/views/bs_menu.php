@@ -380,7 +380,6 @@ $section_selector = $CI->sections_model->selector_with_all();
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
 
-              <li><a class="dropdown-item" href="<?= controller_url("tests_ciunit/index") ?>"><i class="fas fa-vial text-success"></i> <?= translation("Tests") ?></a></li>
               <?php if ($this->config->item('gestion_reservations')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("reservations") ?>"><i class="fas fa-calendar-alt text-primary"></i> Réservations (FullCalendar)</a></li>
               <?php endif; ?>

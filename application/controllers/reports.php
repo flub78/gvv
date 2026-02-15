@@ -214,27 +214,4 @@ class Reports extends Gvv_Controller {
         force_download($filename, $res);
     }
 
-    /**
-     * Legacy unit tests (being migrated to PHPUnit)
-     *
-     * @deprecated Use PHPUnit tests instead
-     */
-    function test_methodes() {
-        $this->unit->run('Foo', 'is_string', 'test reports');
-    }
-
-    /**
-     * Legacy test runner
-     *
-     * @deprecated Use PHPUnit tests instead
-     * @param string $format Output format ('html' or 'text')
-     */
-    function test($format = "html") {
-        parent::test($format);
-
-        $this->test_methodes();
-        $this->test_model("nom");
-
-        $this->tests_results($format);
-    }
 }

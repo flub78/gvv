@@ -1006,15 +1006,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">
-                        <i class="fas fa-flask text-success"></i>
-                        <div class="card-title">Tests unitaires</div>
-                        <div class="card-text text-muted">PHPUnit</div>
-                        <a href="<?= controller_url('tests_ciunit') ?>" class="btn btn-success btn-sm">Accéder</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-warning">
                         <i class="fas fa-info-circle text-primary"></i>
                         <div class="card-title">phpinfo()</div>
                         <div class="card-text text-muted">Config PHP</div>

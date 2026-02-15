@@ -931,26 +931,6 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
-     * Test d'affichage du contrôleur
-     */
-    function test($format = "html") {
-        $this->unit_test = TRUE;
-
-        $this->load->library('unit_test');
-        $res = $this->create();
-        $this->unit->run(($res == ""), FALSE, $this->controller . "/create", "non vide");
-        $this->unit->run(preg_match("/PHP Error/", $res), 0, $this->controller . "/create_no_error", "pas d'erreurs PHP");
-
-        $res = $this->edit();
-        $this->unit->run(($res == ""), FALSE, $this->controller . "/edit", "non vide");
-        $this->unit->run(preg_match("/PHP Error/", $res), 0, $this->controller . "/edit_no_error", "pas d'erreurs PHP");
-
-        $res = $this->page();
-        $this->unit->run(($res == ""), FALSE, $this->controller . "/page", "non vide");
-        $this->unit->run(preg_match("/PHP Error/", $res), 0, $this->controller . "/page_no_error", "pas d'erreurs PHP");
-    }
-
-    /**
      * Définit le nombre d'éléments sur une page d'affichage
      *
      * @param unknown_type $per_page
@@ -978,96 +958,6 @@ class Gvv_Controller extends CI_Controller {
             gvv_debug("validation callback check section selected Error, no section selected");
             return FALSE;
         }
-    }
-
-    /**
-     * Tests unitaire pour le model
-     */
-    function test_model($primary_key) {
-        $model = $this->model;
-        $this->unit->header("Test model $model");
-        $this->load->model($model);
-
-        // test of initial conditions
-        $count = $this->$model->count();
-        $this->unit->run($count >= 0, true, "Nombre d'éléments", "count=$count");
-
-        // Crée des éléments
-
-        $nb = 3;
-        $field_number = 0;
-        for ($i = 0; $i < $nb; $i++) {
-            $elt = $this->test_element($i);
-            $id = $this->test_element_id($i);
-            $this->unit->run($this->check_uniq($id), true, "elt $id n'existe pas");
-            $res = $this->$model->create($elt);
-            $this->unit->run($this->check_uniq($id), false, "elt $id existe");
-            $field_number = count($elt);
-            $this->unit->run($res, true, "creation $id");
-            $expected_count = $count + $i + 1;
-            $this->unit->run($this->$model->count() == $expected_count, true, "Nombre d'élement==$expected_count");
-        }
-
-        // Nominal tests on created data
-        // -----------------------------
-        $key = $this->$model->primary_key();
-        $this->unit->run($key, $primary_key, "Primary key");
-
-        // Lit le premier
-        $elt_initial = $this->$model->get_first();
-        $this->unit->run(count($elt_initial), $field_number, "all fields");
-
-        // Modifie les valeurs
-        $res = $elt_initial;
-        $id = $res[$key];
-        $this->unit->run($this->$model->image($id), $id, "image == $id");
-
-        $this->test_change($res);
-        $this->$model->update($key, $res);
-
-        // Verifie les modifs
-        $res = $this->$model->get_by_id($key, $id);
-        $changes = array_diff($elt_initial, $res);
-        $this->unit->run(count($changes) != 0, true, "changes");
-
-        // Remet en place
-        $this->$model->update($key, $elt_initial);
-        $res = $this->$model->get_by_id($key, $id);
-        $this->unit->run(count(array_diff($elt_initial, $res)), 0, "no changes after restore");
-
-        // Error tests on created data
-        // ---------------------------
-
-        // Attempt to duplicate an entry
-        $this->unit->run($this->$model->create($elt), false, "duplicated entries detected");
-        // $this->db->display_error('my message');
-
-        // Reset database to its initial state
-        for ($i = 0; $i < $nb; $i++) {
-            $id = $this->test_element_id($i);
-            $this->delete($id);
-            $expected_count--;
-            $this->unit->run($this->$model->count() == $expected_count, true, "Avion number==$expected_count");
-        }
-
-        // Selectors
-        $select_with_all = $this->$model->selector_with_all();
-        $select_with_null = $this->$model->selector_with_null();
-        $this->unit->run(count(array_diff($select_with_all, $select_with_null)), 1, "different selector");
-    }
-
-    /**
-     * End of unit tests operations
-     *
-     * @param string $format
-     */
-    public function tests_results($format = "html", $controller = "") {
-        if (!$controller)
-            $controller = $this->controller;
-        $this->unit->XML_result("results/test_$controller.xml", "Test $controller");
-        echo $this->unit->report();
-
-        $this->unit->save_coverage();
     }
 
     // ========================================================================

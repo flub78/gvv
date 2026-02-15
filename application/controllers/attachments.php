@@ -328,34 +328,6 @@ class Attachments extends Gvv_Controller {
         }
     }
     /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-
-        $this->unit_test = TRUE;
-        $this->load->library('unit_test');
-
-        $this->unit->run(true, true, "Tests $this->controller");
-
-        $res = $this->gvv_model->test();
-        $all_passed = !in_array(false, array_column($res, 'result'));
-        if ($all_passed) {
-            $count = count($res);
-            $this->unit->run(true, true, "All " . $count . " Model tests $this->controller are passed");
-        } else {
-            foreach ($res as $t) {
-                $this->unit->run($t["result"], true, $t["description"]);
-            }
-        }
-
-
-        parent::test();
-
-        $this->tests_results('xml');
-        $this->tests_results($format);
-    }
-
-    /**
      * Un test pour les invocations CLI
      * current status:
      * /usr/bin/php7.4 index.php hello joe                      OK

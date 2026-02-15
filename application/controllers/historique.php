@@ -70,24 +70,4 @@ class Historique extends Gvv_Controller {
         parent::page($premier, $message);
     }
 
-    // Le controleur avion est un des plus simples. Pratiquement toutes ses méthodes sont
-    // héritées. Il va donc servir de test unitaire à la classe parente
-
-    /**
-     * Tests unitaires pour le controleur
-     */
-    function test_methodes() {
-        $this->unit->run('Foo', 'is_string', 'test historique');
-    }
-
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        parent::test($format);
-
-        $this->test_methodes();
-
-        $this->tests_results($format);
-    }
 }

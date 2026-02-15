@@ -148,21 +148,6 @@ class Planeur extends Gvv_Controller {
     }
 
     /**
-     * Test unitaire
-     * cd /home/frederic/workspace/gvv2
-     * export TEST=1
-     * php index.php planeur/test
-     */
-    function test($format = "html") {
-        parent::test($format);
-        $this->unit->run('Foo', 'is_string', 'test planeur');
-        $this->unit->XML_result("results/test_planeur.xml", "Test planeur");
-        echo $this->unit->report();
-
-        $this->unit->save_coverage();
-    }
-
-    /**
      * Export de la liste des planeurs en CSV ou PDF
      */
     public function export($mode = 'csv') {

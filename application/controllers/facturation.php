@@ -57,44 +57,4 @@ class Facturation extends Gvv_Controller {
         parent::form_static_element($action);
     }
 
-
-    /**
-     * Test facturation
-     *
-     * Voir classe Facturation pour la documentation
-     */
-    function test_facturation() {
-        // pour les modes de facturation suivants: defaut, accabs, aces
-
-        // reccupère le solde du pilote et payeurs potentiel
-
-        // pour chaque type de vol
-        // crée le vol
-        // vérifie le solde attendu
-        // vérifie lne nombre d'achat attachés au vol
-        // détruit le vol
-        // vérifie le retour aux conditions initiales
-        $this->unit->run(true, true, "test facturation activé");
-
-        // Chargement de la base de données de test
-        $this->load->library('Database');
-        $filename = getcwd() . '/install/gvv_test.sql';
-        $sql = file_get_contents($filename);
-
-        $this->load->library('Database');
-        $this->database->drop_all();
-        $this->database->sql($sql);
-    }
-
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        $this->unit_test = TRUE;
-
-        $this->load->library('unit_test');
-        $this->test_facturation();
-
-        $this->tests_results($format);
-    }
 }

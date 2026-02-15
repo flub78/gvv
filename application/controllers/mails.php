@@ -240,29 +240,6 @@ class Mails extends Gvv_Controller {
     }
 
     /**
-     * Test unitaire pour personalise_message
-     */
-    function test_personalise_message() {
-        $msg = '
-Hello $PRENOM,
-
-Tu es débiteur de $SOLDE.
-';
-        $expected = '
-Hello Joe,
-
-Tu es débiteur de -100.
-';
-
-        $info = array (
-                '#\$PRENOM#' => 'Joe',
-                '#\$SOLDE#' => - 100
-        );
-        $replaced = $this->personalise_message($msg, $info);
-        $this->unit->run($replaced, $expected, 'personalise_message');
-    }
-
-    /**
      * Email address selector - provides a tool to copy email addresses or launch a mailer client
      * instead of sending emails directly from the application
      */
@@ -302,50 +279,4 @@ Tu es débiteur de -100.
         echo json_encode($json);
     }
 
-    /**
-     * Tests unitaires pour le controleur
-     */
-    function test_methodes() {
-        // $this->unit->run('Foo', 'is_string', 'test mails');
-        $this->test_personalise_message();
-    }
-
-    /**
-     * Generate the ID of a test element
-     *
-     * @param number $index
-     */
-    public function test_element_id($index = 0) {
-        return $index;
-    }
-
-    /**
-     * Generate a test element
-     *
-     * @param number $index
-     */
-    public function test_element($index = 0) {
-        // Crée des mails
-        return 0;
-    }
-
-    /**
-     * Change an element to check if the change is taken into account into DB
-     *
-     * @param unknown $elt_ref
-     */
-    public function test_change(&$elt) {
-    }
-
-    /**
-     * Test unitaire
-     */
-    function test($format = "html") {
-        parent::test($format);
-
-        $this->test_methodes();
-        // $this->test_model("mails");
-
-        $this->tests_results($format);
-    }
 }
