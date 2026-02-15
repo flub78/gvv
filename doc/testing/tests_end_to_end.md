@@ -2,7 +2,8 @@
 
 Ils simulent un utilisateur qui interagit avec l'application à l'aide d'un navigateur. Les tests pilotent le navigateur et vérifient ce qui est affiché. 
  
-* Les tests de bout en bout sont gérés dans ce projet (mars 2023): https://github.com/flub78/dusk_gvv
+* Les tests de bout en bout étaient gérés dans ce projet (mars 2023): https://github.com/flub78/dusk_gvv
+* Ils ont été remplacés par des tests playwright.  
 
 ## Régénération de la base de test.
 
@@ -11,7 +12,7 @@ Les tests de bout en bout utilisent une base de donnée par défaut qui contient
 En cas de modification de la structure de la base régénérez la base de test dans installation/dusk_tests.sql.
 
 
-## Lancement des Tests
+## Lancement des Tests Dusk
 
 Sous Windows, la synchro Dropbox doit être désactivée. Modifiez setenv.bat pour changer le serveur de test.
 
@@ -31,7 +32,7 @@ ou, pour afficher chrome:
 
 Vous trouverez les copies d'écran des tests dans le répertoire tests/Browser/screenshots.
 
-## Individual test execution
+### Individual test execution
 
     php artisan dusk --color=always --browse tests/Browser/ExampleTest.php
     php artisan dusk --color=always --browse tests/Browser/CIUnitTest.php
@@ -48,6 +49,10 @@ Vous trouverez les copies d'écran des tests dans le répertoire tests/Browser/s
 
     php artisan dusk --color=always --browse tests/Browser/DbInitTest.php
     php artisan dusk --color=always --browse tests/Browser/GliderFlightTest.php
+
+### Playwright
+
+voir le README.md dans le répertoire.
 
 ## En cas d'erreur
 

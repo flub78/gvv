@@ -14,6 +14,8 @@ Pendant toute la durée du projet j'ai couru derrière les tests, m'approchant s
 
 Les raisons en sont multiples, les version initiales de CodeIgniter n'étaient pas intégrés avec phpunit, elles utilisait un système de test qui était propre à CodeIgniter et difficile à intégrer dans les systèmes d'intégration continue (jenkins). De plus les contrôleurs ne pouvaient pas être testé avec le système de test. Certains développeur ont bien tenté de palier à ces limitations mais comme il s'agissait de modules externes, ils n'ont pas suivi les évolutions de CodeIgniter.
 
-Lest tests sont donc constitués de tests unitaires de bas niveau et de tests de bout en bout Laravel Dusk dans un projet Dusk_Gvv. Les tests Selenium et Watir sont obsolètes depuis le passage à Bootstrap.
+Lest tests sont donc constitués de tests unitaires de bas niveau et de tests de bout en bout Playwright. Les tests Selenium, Watir et Dusk sont obsolètes.
 
 **Fin 2025, une nouvelle migration des tests est en cours. Les tests CodeIgniter ont commencé à être migrés vers phpunit et les tests de bout en bout vers playwright**
+
+En 2026 les tests actifs sont des tests phpunit et playwright.

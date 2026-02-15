@@ -13,7 +13,7 @@ Regardez les fichiers journaux. Ils contiennent des informations sur les erreurs
 * `cat /var/log/apache2/access.log`
 * `cat /var/log/apache2/other_vhosts_access.log`
  
-### Logs des tests Dusk
+### Logs des tests Dusk (depreccated)
 * `dusk_gvv/storage/logs/laravel.log`
 
 ## Investigation sur une machine locale
@@ -28,7 +28,7 @@ dans le fichier `index.php`
 define('ENVIRONMENT', 'production');
 ```
 
-### Les tests Dusk
+### Les tests Playwright
 
 * messages d'erreur
 * les logs d'execution du test
