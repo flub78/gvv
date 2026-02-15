@@ -371,7 +371,11 @@ $section_selector = $CI->sections_model->selector_with_all();
         }
         ?>
 
-        <?php if ($this->config->item('dev_menu')) : ?>
+        <?php
+          $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+          $current_username = $this->session->userdata('DX_username');
+        ?>
+        <?php if (in_array($current_username, $dev_menu_users)) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">

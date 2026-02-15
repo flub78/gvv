@@ -12,7 +12,7 @@ require_once(APPPATH . 'core/Gvv_Controller.php');
  * sans connaître son mot de passe. Utile pour les tests et le débogage.
  *
  * SÉCURITÉ: Cette fonctionnalité n'est accessible que si:
- * - dev_menu est activé dans la configuration
+ * - dev_menu_users contient le username dans la configuration
  * - ET l'utilisateur actuel est admin
  *
  * @package controllers

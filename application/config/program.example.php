@@ -202,7 +202,7 @@ $config['new_layout'] = true;
  */
 $config['medical_id'] = 26;
 
-$config['dev_menu'] = true;
+$config['dev_menu_users'] = '';
 
 /**
  * Ce paramètre s'il existe détermine une section dans laquelle créer un compte 411 supplémentaire 
