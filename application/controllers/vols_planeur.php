@@ -294,8 +294,16 @@ class Vols_planeur extends Gvv_Controller {
      *            à modifier
      */
     function edit($id= '', $load_view = true, $action = MODIFICATION) {
+        // Allow planchiste or the pilot of this flight
         if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+            $flight = $this->model->get_by_id('vpid', $id);
+            $mlogin = $this->dx_auth->get_username();
+            if (empty($flight) || $flight['vppilid'] != $mlogin) {
+                $this->dx_auth->deny_access();
+                return;
+            }
+            // Pilot can only view, not modify their own flight
+            $action = VISUALISATION;
         }
         
         $this->load->model('ecritures_model');
@@ -825,8 +833,11 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche les vols du pilote
      */
     public function vols_du_pilote($pilote) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        // Regular users can view their own flights, planchiste can view any pilot's flights
+        $mlogin = $this->dx_auth->get_username();
+        if ($pilote != $mlogin && !$this->dx_auth->is_role('planchiste')) {
             $this->dx_auth->deny_access();
+            return;
         }
         
         // Enable filtering
@@ -852,9 +863,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche les vols de la machine
      */
     public function vols_de_la_machine($machine) {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
+        // Any logged-in user can view flights by machine
         
         // Enable filtering
         $session ['filter_date'] = '';

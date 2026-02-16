@@ -256,6 +256,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <?php if (has_role('planchiste')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>
@@ -273,6 +274,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('vols_planeur/plancheauto_select') ?>" class="btn btn-info btn-sm"><?= translation('gvv_button_open') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Avion section -->
                 <div class="col-12 mt-3">
@@ -288,6 +290,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <?php if (has_role('planchiste')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>
@@ -296,6 +299,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('vols_avion/create') ?>" class="btn btn-success btn-sm"><?= translation('dashboard_input') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <?php if ($this->config->item('gestion_reservations')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">

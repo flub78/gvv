@@ -56,8 +56,12 @@ class Compta extends Gvv_Controller {
         }
 
         // Authorization: Code-based (v2.0) - only for migrated users
+        // mon_compte and journal_compte are accessible to regular users (own data)
         if ($this->use_new_auth) {
-            $this->require_roles(['tresorier']);
+            $method = $this->router->fetch_method();
+            if (!in_array($method, ['mon_compte', 'journal_compte'])) {
+                $this->require_roles(['tresorier']);
+            }
         }
 
         $this->load->model('comptes_model');
@@ -1856,6 +1860,16 @@ class Compta extends Gvv_Controller {
         if (count($data) == 0) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
             redirect("comptes/balance");
+        }
+
+        // Regular users can only view their own account
+        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+            $owner = $this->comptes_model->user($compte);
+            $mlogin = $this->dx_auth->get_username();
+            if ($owner != $mlogin) {
+                $this->dx_auth->deny_access();
+                return;
+            }
         }
 
         // Determine the expected section context

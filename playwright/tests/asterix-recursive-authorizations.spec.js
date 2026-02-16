@@ -40,6 +40,7 @@ const SKIP_PATTERNS = [
     /\/export/,
     /\/pdf\b/,
     /\/csv\b/,
+    /\/csv_/,                 // CSV download endpoints (csv_month, csv_machine, etc.)
     /\/print\b/,
     /\/imprimer/,
     /\/phpinfo/,

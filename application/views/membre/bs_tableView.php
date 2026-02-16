@@ -151,13 +151,15 @@ if ($this->session->flashdata('error')) {
         'class' => "datatable_style $table_style table table-striped"
     );
 
-    // Create button above the table
-    echo '<div class="mb-3">'
-        . '<a href="' . site_url('membre/create') . '" class="btn btn-sm btn-success">'
-        . '<i class="fas fa-plus" aria-hidden="true"></i> '
-        . $this->lang->line('gvv_button_create')
-        . '</a>'
-        . '</div>';
+    // Create button above the table (only for users with modification rights)
+    if ($has_modification_rights) {
+        echo '<div class="mb-3">'
+            . '<a href="' . site_url('membre/create') . '" class="btn btn-sm btn-success">'
+            . '<i class="fas fa-plus" aria-hidden="true"></i> '
+            . $this->lang->line('gvv_button_create')
+            . '</a>'
+            . '</div>';
+    }
 
     echo $this->gvvmetadata->table("membres", $attrs, "");
 

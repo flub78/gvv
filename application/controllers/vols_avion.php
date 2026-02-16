@@ -235,8 +235,16 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = '', $load_view = true, $action = MODIFICATION) {
+        // Allow planchiste or the pilot of this flight
         if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+            $flight = $this->model->get_by_id('vaid', $id);
+            $mlogin = $this->dx_auth->get_username();
+            if (empty($flight) || $flight['vapilid'] != $mlogin) {
+                $this->dx_auth->deny_access();
+                return;
+            }
+            // Pilot can only view, not modify their own flight
+            $action = VISUALISATION;
         }
 
         $this->load->model('ecritures_model');

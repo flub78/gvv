@@ -203,6 +203,7 @@ $section_selector = $CI->sections_model->selector_with_all();
               <?php endif; ?>
               <li><a class="dropdown-item" href="<?= controller_url("planeur/page") ?>"><i class="fas fa-plane text-success"></i> <?= translation("gvv_menu_glider_machines") ?></a></li>
 
+              <?php if (has_role('planchiste')) : ?>
               <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar text-info"></i> <?= translation("gvv_menu_statistic") ?> &raquo;</a>
                 <ul class="submenu dropdown-menu">
                   <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/statistic") ?>"><i class="fas fa-calendar-day text-primary"></i> <?= translation("gvv_menu_statistic_monthly") ?></a></li>
@@ -211,6 +212,7 @@ $section_selector = $CI->sections_model->selector_with_all();
                   <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/age") ?>"><i class="fas fa-birthday-cake text-warning"></i> <?= translation("gvv_menu_statistic_age") ?></a></li>
                 </ul>
               </li>
+              <?php endif; ?>
               <li><a class="dropdown-item" href="#"><i class="fas fa-graduation-cap text-primary"></i> <?= translation("gvv_menu_formation") ?> &raquo;</a>
                 <ul class="submenu dropdown-menu">
                   <li><a class="dropdown-item" href="<?= controller_url("event/stats") ?>"><i class="fas fa-chart-bar text-info"></i> <?= translation("gvv_menu_formation_annuel") ?></a></li>
