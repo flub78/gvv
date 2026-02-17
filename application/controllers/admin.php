@@ -2178,9 +2178,11 @@ SQL;
         // Get types_roles IDs from database (hardcode fallbacks)
         $types_roles = array(
             'user' => 1,
+            'auto_planchiste' => 2,
             'planchiste' => 5,
             'ca' => 6,
             'tresorier' => 8,
+            'club-admin' => 10,
             'instructeur' => 11
         );
         
@@ -2214,7 +2216,11 @@ SQL;
                 'ville' => 'Village gaulois',
                 'sections' => array($planeur_section, $ulm_section, $general_section),
                 'roles_bits' => $REMORQUEUR,
-                'is_admin' => 0
+                'is_admin' => 0,
+                'section_roles' => array(
+                    $planeur_section => array('planchiste'),
+                    $ulm_section => array('auto_planchiste'),
+                )
             ),
             array(
                 'username' => 'abraracourcix',
@@ -2348,30 +2354,37 @@ SQL;
                 // 4. Create user roles per section
                 foreach ($user_data['sections'] as $section_id) {
                     $section_roles = array();
-                    
+
                     // Always add 'user' role
                     $section_roles[] = $types_roles['user'];
-                    
+
                     // CA role applies to all sections
                     if ($user_data['roles_bits'] & $CA_BIT) {
                         $section_roles[] = $types_roles['ca'];
                     }
-                    
+
                     // Treasurer role applies to all sections
                     if ($user_data['roles_bits'] & $TRESORIER) {
                         $section_roles[] = $types_roles['tresorier'];
                     }
-                    
+
                     // Instructor roles for specific sections
                     if ($user_data['roles_bits'] & $FI_AVION && $section_id == $avion_section) {
                         $section_roles[] = $types_roles['instructeur'];
                     }
-                    
+
                     // Remorqueur (tow pilot) for avion section
                     if ($user_data['roles_bits'] & $REMORQUEUR && $section_id == $avion_section) {
                         $section_roles[] = $types_roles['instructeur'];  // Use instructeur as tow pilot marker
                     }
-                    
+
+                    // Per-section roles (planchiste, auto_planchiste, etc.)
+                    if (isset($user_data['section_roles'][$section_id])) {
+                        foreach ($user_data['section_roles'][$section_id] as $role_name) {
+                            $section_roles[] = $types_roles[$role_name];
+                        }
+                    }
+
                     // Insert unique roles
                     $section_roles = array_unique($section_roles);
                     foreach ($section_roles as $types_role_id) {
@@ -2385,7 +2398,22 @@ SQL;
                     }
                 }
 
-                // 5. Add to new authorization system
+                // 5. Admin users: grant user + club-admin roles in all sections
+                if (!empty($user_data['is_admin'])) {
+                    $all_sections = $this->db->select('id')->get('sections');
+                    foreach ($all_sections->result() as $section) {
+                        foreach (array('user', 'club-admin') as $role_name) {
+                            $this->db->insert('user_roles_per_section', array(
+                                'user_id' => $user_id,
+                                'types_roles_id' => $types_roles[$role_name],
+                                'section_id' => $section->id,
+                                'granted_at' => date('Y-m-d H:i:s')
+                            ));
+                        }
+                    }
+                }
+
+                // 6. Add to new authorization system
                 $auth_insert = array(
                     'username' => $username,
                     'created_at' => date('Y-m-d H:i:s'),
