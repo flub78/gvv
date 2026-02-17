@@ -21,7 +21,7 @@ class Authorization_model extends CI_Model {
      */
     public function get_user_roles($user_id, $section_id = NULL, $include_global = TRUE)
     {
-        $this->db->select('urps.*, tr.nom as role_name, tr.description, tr.scope, tr.translation_key, s.couleur as section_color')
+        $this->db->select('urps.*, tr.nom as role_name, tr.description, tr.scope, tr.translation_key, s.couleur as section_color, s.nom as section_name')
             ->from('user_roles_per_section urps')
             ->join('types_roles tr', 'urps.types_roles_id = tr.id', 'inner')
             ->join('sections s', 'urps.section_id = s.id', 'left')

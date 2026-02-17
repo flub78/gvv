@@ -84,13 +84,24 @@ $this->load->view('bs_banner');
                                     <?php foreach ($user['roles'] as $role): ?>
                                     <?php
                                         $color = '#0d6efd'; // default blue
+                                        $tooltip_text = '';
                                         if ($role['scope'] === 'global') {
                                             $color = '#a5d8ff'; // lighter blue
-                                        } else if ($role['section_color']) {
-                                            $color = $role['section_color'];
+                                            $tooltip_text = $this->lang->line('authorization_scope_global');
+                                        } else if ($role['scope'] === 'section' && !empty($role['section_id'])) {
+                                            // Fetch section name for section roles
+                                            $tooltip_text = htmlspecialchars($role['section_name'] ?? 'Section');
+                                            if ($role['section_color']) {
+                                                $color = $role['section_color'];
+                                            }
                                         }
                                     ?>
-                                    <span class="badge me-1" style="background-color: <?= htmlspecialchars($color) ?>; color: black;" data-role-id="<?= $role['types_roles_id'] ?>">
+                                    <span class="badge me-1" 
+                                          style="background-color: <?= htmlspecialchars($color) ?>; color: black;" 
+                                          data-role-id="<?= $role['types_roles_id'] ?>"
+                                          data-bs-toggle="tooltip" 
+                                          data-bs-placement="top" 
+                                          title="<?= !empty($tooltip_text) ? htmlspecialchars($tooltip_text) : '' ?>">
                                             <?= htmlspecialchars($role['role_name']) ?>
                                             <?php if ($role['scope'] === 'global'): ?>
                                                 <i class="fas fa-globe" title="Global"></i>
@@ -396,6 +407,14 @@ $(document).ready(function() {
         });
         console.log("--- updateModalCheckboxes finished ---");
     }
+});
+
+// Initialize Bootstrap tooltips for role badges
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 </script>
 
