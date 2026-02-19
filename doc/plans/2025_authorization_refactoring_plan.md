@@ -1,8 +1,8 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.4
-**Date:** 2025-01-08 (Updated: 2026-02-12)
-**Status:** Phase 7 Complete, Per-User Migration Strategy Implemented, Qualification Migration Planned
+**Document Version:** 2.5
+**Date:** 2025-01-08 (Updated: 2026-02-18)
+**Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
 
@@ -23,7 +23,7 @@
 - **Mechanism**: New table `use_new_authorization` lists users on new system
 - **Phases**: M1-M5 (Per-user testing → Global migration → Cleanup)
 - **Timeline**: 3-4 weeks to production (includes 1-2 week pilot)
-- **Current Status**: Phase M1 complete, starting M2
+- **Current Status**: Phase M2 in progress — test users enrolled, Playwright tests covering 5 user profiles
 
 ### ⏳ **Path 2: Controller Code Migration (OPTIONAL - 10+ weeks)**
 - Code cleanliness: All 53 controllers declare permissions in code
@@ -59,6 +59,8 @@
 - Tables: `types_roles`, `role_permissions`, `data_access_rules`, `user_roles_per_section`, `authorization_audit_log`
 - 24 default data access rules created
 - Role translations (FR/EN/NL) added
+- Migration 048: table `use_new_authorization` pour migration per-user
+- Migration 071: remplacement trigger par DEFAULT CURRENT_TIMESTAMP
 
 **Phase 3: Authorization Library** ✅
 - `Gvv_Authorization` library (480 lines) - Core authorization logic
@@ -99,6 +101,51 @@
 - All tests passing (213 total)
 - **Commit**: 4bbfbab "Authorisations phase 7"
 
+### ⏳ Phase M2 In Progress - Controller Migration & Testing
+
+**Controllers migrés (20 controllers avec `require_roles()`)** ✅
+- `welcome` → `['user']` (constructor), `['tresorier']` (compta), `['ca']` (ca)
+- `vols_planeur` → `['user']`
+- `vols_avion` → `['user']`
+- `planeur` → `['user']`
+- `avion` → `['user']`
+- `alarmes` → `['user']`
+- `tickets` → `['user']`
+- `tarifs` → `['user']`
+- `membre` → `['user']`
+- `sections` → `['user']`
+- `procedures` → `['user']`
+- `terrains` → `['ca']`
+- `achats` → `['ca']`
+- `comptes` → `['tresorier']`
+- `configuration` → `['bureau']`
+- `document_types` → `['ca']`
+- `rapports` → `['ca']`
+- `compta` → `['tresorier']` (sauf `mon_compte` et `journal_compte`)
+- `calendar` → `['user']` (via `dx_auth->require_roles()`)
+- `reservations` → `['user']` (via `dx_auth->require_roles()`)
+- `presences` → `['user']` (via `dx_auth->require_roles()`)
+
+**Controllers avec code prêt mais désactivé (`use_new_auth = FALSE`)** :
+- `licences` → `['ca']` — code prêt, désactivé
+- `programmes` → utilise `Formation_access` à la place
+- `email_lists` → `['secretaire', 'ca']` — code prêt, désactivé
+
+**Test users "Gaulois" enrolled in `use_new_authorization`** ✅
+- `asterix` — user simple (Planeur + Général)
+- `obelix` — planchiste (Planeur) + auto_planchiste (ULM) + user (Général)
+- `abraracourcix` — user (4 sections) + CA + instructeur (FI avion) + remorqueur
+- `goudurix` — user (Avion + Général) + trésorier
+- `panoramix` — club-admin (toutes sections)
+
+**Playwright authorization test suite** ✅ (8 fichiers, 4 profils couverts)
+- `asterix-authorization.spec.js` + `asterix-recursive-authorizations.spec.js`
+- `obelix-authorization.spec.js` + `obelix-recursive-authorizations.spec.js`
+- `abraracourcix-authorization.spec.js` + `abraracourcix-recursive-authorizations.spec.js`
+- `goudurix-authorization.spec.js` + `goudurix-recursive-authorizations.spec.js`
+
+**Manquant** : tests Playwright pour `panoramix` (admin)
+
 ---
 
 ## Upcoming Phases (v2.0)
@@ -137,43 +184,28 @@
 
 ---
 
-### Phase 8: Controller Migration Pilot (v2.0) 🔵 NEW
+### Phase 8: Controller Migration Pilot (v2.0) ✅ SUBSTANTIALLY COMPLETE
 
 **Objectives**: Migrate 5-10 simple controllers to code-based permissions
 
+**Status**: 20 controllers already migrated (far exceeding the 7 planned). All pilot controllers done plus many more.
+
 **Pilot Controllers** (simple, low-risk):
-- `sections` (ca only)
-- `terrains` (ca only)
-- `alarmes` (ca only)
-- `presences` (ca only)
-- `licences` (ca only)
-- `tarifs` (ca only)
-- `calendar` (user)
+- ✅ `sections` → `['user']`
+- ✅ `terrains` → `['ca']`
+- ✅ `alarmes` → `['user']`
+- ✅ `presences` → `['user']` (via dx_auth)
+- ⚠️ `licences` → `['ca']` (code ready, `use_new_auth = FALSE`)
+- ✅ `tarifs` → `['user']`
+- ✅ `calendar` → `['user']` (via dx_auth)
 
 **Tasks**:
-- [ ] **8.1** For each pilot controller:
-  - Add `require_roles()` in constructor
-  - Document which permissions were migrated
-  - Test all controller methods
-  - Verify access denied for unauthorized users
-- [ ] **8.2** Create mapping document:
-  - Old: `role_permissions` entries → New: code declarations
-  - Verification checklist for each controller
-- [ ] **8.3** Integration testing:
-  - Test with different user roles
-  - Verify section-specific permissions
-  - Confirm denial messages
-- [ ] **8.4** Mark migrated controllers:
-  - Add comment `// Authorization: Code-based (v2.0)` in constructor
-  - Update controller documentation
+- [x] **8.1** Add `require_roles()` in constructor for pilot controllers
+- [ ] **8.2** Create mapping document (old → new) — non réalisé, documentation informelle
+- [x] **8.3** Integration testing via Playwright authorization tests (4 profils utilisateur)
+- [x] **8.4** Mark migrated controllers with `// Authorization: Code-based (v2.0)`
 
-**Estimated Effort**: 3-4 days
-
-**Deliverables**:
-- 7 migrated controllers (~50 lines changes total)
-- Migration mapping document (`doc/phase8_controller_migration_map.md`)
-- Integration test updates
-- Controller migration checklist
+**Note**: `licences` a le code prêt mais est désactivé (`use_new_auth = FALSE`). À investiguer.
 
 ---
 
@@ -506,35 +538,30 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 
 ---
 
-## Project Status Dashboard (v2.0)
+## Project Status Dashboard (v2.5)
 
 ### Development Phases
 
-| Phase | Status | Progress | Estimated Duration | Notes |
-|-------|--------|----------|-------------------|-------|
-| **0-6: Legacy System** | ✅ Complete | 100% | - | Database, UI, dual-mode ready |
-| **7: Code-Based API** | ✅ Complete | 100% | 1 day | Completed 2025-10-24 |
-| **8: Pilot Migration** | 🔵 Planned | 0% | 3-4 days | 7 simple controllers (Optional) |
-| **9: Complex Controllers** | 🔵 Planned | 0% | 5-7 days | 7 controllers with exceptions (Optional) |
-| **10: Full Migration** | 🔵 Planned | 0% | 15-20 days | 35 remaining controllers (Optional) |
-| **11: Cleanup** | 🔵 Planned | 0% | 5-7 days | Remove legacy code (Optional) |
-| **12: Production Deploy** | 🔵 Planned | 0% | 3-5 days + 1 week | Final deployment (Optional) |
-| **13: Qualification Migration** | 🔵 Planned | 0% | 10-15 days | Bitmap → user_roles_per_section |
-
-**Note**: Phases 8-12 are now **optional** with the feature flag approach. System can go to production after Phase 7 by enabling the flag. Phase 13 can be done independently after production deployment.
+| Phase | Status | Progress | Notes |
+|-------|--------|----------|-------|
+| **0-6: Legacy System** | ✅ Complete | 100% | Database, UI, dual-mode ready |
+| **7: Code-Based API** | ✅ Complete | 100% | Completed 2025-10-24 |
+| **8: Pilot Migration** | ✅ ~90% | 90% | 20 controllers migrés (7 prévus), 3 désactivés |
+| **9: Complex Controllers** | ⏳ Partial | ~40% | `compta`, `welcome` migrés; `membre`, `vols_planeur`, `vols_avion` partiels |
+| **10: Full Migration** | 🔵 Planned | 0% | ~30 controllers restants sans `require_roles()` |
+| **11: Cleanup** | 🔵 Planned | 0% | Remove legacy code (Optional) |
+| **12: Production Deploy** | 🔵 Planned | 0% | Final deployment (Optional) |
+| **13: Qualification Migration** | 🔵 Planned | 0% | Bitmap → user_roles_per_section |
 
 ### Migration Phases (Feature Flag Based)
 
 | Phase | Status | Duration | Flag Status | User Impact | Notes |
 |-------|--------|----------|-------------|-------------|-------|
 | **M1: Preparation** | ✅ Complete | - | FALSE | None | Infrastructure ready |
-| **M2: Role Setup** | ⏳ Current | 1-2 days | FALSE | None | Grant user roles via SQL |
-| **M3: Testing** | 🔵 Next | 3-5 days | TRUE (test env) | None | Validate with test users |
-| **M4: Pilot** | 🔵 Planned | 1 weekend | TRUE (production) | Minimal | Optional weekend test |
-| **M5: Production** | 🔵 Planned | 1 week | TRUE (permanent) | None | Full cutover with monitoring |
-| **M6: Cleanup** | 🔵 Future | 1-2 days | TRUE (hardcoded) | None | Remove flag (optional) |
-
-**Total Time to Production**: 2-3 weeks (phases M2-M5)
+| **M2: Role Setup & Dev Testing** | ⏳ Current | en cours | FALSE | Test users only | 5 Gaulois test users enrolled, Playwright tests OK |
+| **M3: Production Pilot** | 🔵 Next | 1-2 weeks | FALSE | 5-10 pilot users | Validate with real users |
+| **M4: Global Migration** | 🔵 Planned | 1 week | TRUE | All users | Flag flip |
+| **M5: Cleanup** | 🔵 Future | 1-2 days | TRUE (hardcoded) | None | Remove flag (optional) |
 
 ### Detailed Metrics
 
@@ -542,12 +569,12 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 |--------|--------|---------|--------|
 | **Legacy System (Phases 0-6)** | 100% | 100% | 🟢 Complete |
 | **Code-Based API (Phase 7)** | 100% | 100% | 🟢 Complete |
-| **Migration Path** | Feature Flag | Feature Flag | 🟢 PRD-Compliant |
-| **User Roles Setup** | All users | ~30% | 🟡 Phase M2 In Progress |
-| **Feature Flag Status** | TRUE (prod) | FALSE (all envs) | 🔴 Awaiting M3 testing |
-| **Tests Passing** | 100% | Unit: 100%, Integration: 100% | 🟢 Complete (213/213) |
-| **Documentation** | Complete | ~85% | 🟢 Migration section added |
-| **Production Ready** | TRUE | FALSE | 🟡 2-3 weeks (via flag) |
+| **Controllers migrés** | 53 | 20 (+3 prêts mais désactivés) | 🟡 38% migrés |
+| **Test users enrolled** | 5 Gaulois | 5 Gaulois | 🟢 Complete |
+| **Playwright auth tests** | 5 profils | 4 profils (manque panoramix) | 🟡 80% |
+| **Feature Flag Status** | TRUE (prod) | FALSE (all envs) | 🔴 Awaiting M3 |
+| **Production user roles** | All (~400) | Test users only | 🔴 Not started |
+| **Global flag `use_new_authorization`** | TRUE | FALSE | Per-user via table |
 
 ---
 
@@ -1016,201 +1043,93 @@ $config['use_new_authorization'] = FALSE;
 
 ---
 
-### Current Status: Phase M1 → M2 Transition
+### Current Status: Phase M2 In Progress (2026-02-18)
 
 **Completed**:
-- ✅ Database schema ready
-- ✅ Authorization library implemented
-- ✅ Code-based API ready
-- ✅ Test suite passing (213/213 tests)
-- ✅ Feature flag configured (currently FALSE)
+- ✅ Database schema ready (migrations 042, 043, 046, 048, 071)
+- ✅ Authorization library implemented with `require_roles()` API
+- ✅ 20 controllers migrés avec `require_roles()`
+- ✅ 5 test users "Gaulois" enrolled dans `use_new_authorization`
+- ✅ Playwright authorization tests: 4 profils × 2 tests = 8 fichiers, tous passent
+- ✅ Global flag = FALSE, per-user migration active pour les Gaulois
 
-**Next Steps**:
-1. **Immediate**: Grant 'user' roles to all users with compte 411 (SQL script ready)
-2. **This week**: Assign specialized roles (planchiste, ca, tresorier) via UI
-3. **Next week**: Enable flag on test environment, begin Phase M3 testing
+**Reste à faire — Priorité haute (avant Phase M3)**:
+1. **Tests Playwright pour panoramix** (admin) — seul profil non couvert
+2. **Activer les 3 controllers désactivés** : investiguer pourquoi `licences`, `email_lists`, `programmes` ont `use_new_auth = FALSE` et les corriger
+3. **Grant roles aux utilisateurs réels** : script SQL pour attribuer les rôles à tous les ~400 utilisateurs en production
+4. **Assigner les rôles spécialisés** (planchiste, ca, tresorier, bureau, club-admin) via UI ou SQL
 
-**Timeline**:
-- Phase M2 (Role Setup): 1-2 days
-- Phase M3 (Testing): 3-5 days  
-- Phase M4 (Pilot): 1 weekend (optional)
-- Phase M5 (Cutover): 1 week monitoring
-- **Total**: 2-3 weeks to production
+**Reste à faire — Priorité moyenne (Phase M3-M4)**:
+5. **Migrer les ~30 controllers restants** sans `require_roles()` (admin, backend, facturation, historique, openflyers, FFVV, mails, pompes, etc.)
+6. **Enrôler 5-10 utilisateurs pilotes** dans `use_new_authorization` en production
+7. **Monitoring intensif** pendant 1-2 semaines
+8. **Flip du flag global** `use_new_authorization = TRUE`
+
+**Reste à faire — Priorité basse (post-production)**:
+9. **Phase 11** : Cleanup du code legacy
+10. **Phase 13** : Migration des qualifications bitmap → `user_roles_per_section`
 
 ---
 
 ### Feature Flag Status Dashboard
 
-| Environment | Flag Status | User Roles Setup | Testing Status | Production Ready |
-|-------------|-------------|------------------|----------------|------------------|
-| **Development** | FALSE | ✅ Complete | ✅ Unit tests passing | N/A |
-| **Test/Staging** | FALSE → TRUE | ⏳ In progress | ⏳ Pending M3 | Not yet |
-| **Production** | FALSE | ⏳ In progress | ⏳ Pending M4 | Not yet |
+| Environment | Flag Status | Per-User Table | Testing Status | Production Ready |
+|-------------|-------------|----------------|----------------|------------------|
+| **Development** | FALSE | 5 Gaulois users enrolled | ✅ Playwright + Unit tests passing | N/A |
+| **Test/Staging** | FALSE | ⏳ Pending pilot users | ⏳ Pending M3 | Not yet |
+| **Production** | FALSE | ⏳ Pending all users | ⏳ Pending M4 | Not yet |
 
-**Next Milestone**: Enable flag on test environment after user roles setup
+**Next Milestone**: Compléter la couverture Playwright (panoramix), activer les 3 controllers désactivés, puis enrôler des pilotes
 
 ---
 
-## Next Immediate Actions (Updated v2.1 - Feature Flag Migration)
+## Reste à Faire (Updated v2.5 - 2026-02-18)
 
-### Current Priority: User Role Setup & Testing (Phase M2 → M3)
+### Priorité 1 : Compléter la couverture de test (Phase M2)
 
-**Completed**: 
-- ✅ Phases 0-7 complete (Infrastructure + API ready)
-- ✅ Feature flag configured (currently FALSE in all environments)
-- ✅ Migration strategy documented with 6 phases (M1-M6)
+1. **Tests Playwright pour panoramix (admin)**
+   - Créer `panoramix-authorization.spec.js` et `panoramix-recursive-authorizations.spec.js`
+   - Panoramix = club-admin dans toutes les sections → toutes les routes autorisées sauf celles protégées par des checks legacy spécifiques
 
-### Immediate Actions (This Week - Phase M2)
+2. **Investiguer et activer les 3 controllers désactivés**
+   - `licences.php` (`use_new_auth = FALSE`) — code `['ca']` prêt, pourquoi désactivé ?
+   - `email_lists.php` (`use_new_auth = FALSE`) — code `['secretaire', 'ca']` prêt
+   - `programmes.php` (`use_new_auth = FALSE`) — utilise `Formation_access` à la place
 
-1. **⏳ Grant User Roles via SQL Script**:
+### Priorité 2 : Préparer le déploiement pilote (Phase M2 → M3)
+
+3. **Grant roles à tous les utilisateurs de production** (~400 users)
    ```bash
-   # Backup first
-   mysqldump -h localhost -u gvv_user -p gvv2 user_roles_per_section > backup_roles.sql
-   
-   # Grant 'user' role to all users with compte 411
    mysql -h localhost -u gvv_user -p gvv2 < grant_user_roles_simple.sql
    ```
-   
-   **Expected Result**: ~106 users granted 'user' role across sections:
-   - Section 1 (Planeur): Already complete (289 users)
-   - Section 2 (ULM): ~61 users to be granted
-   - Section 3 (Avion): ~45 users to be granted
-   - Section 4 (Général): Already complete (278 users)
 
-2. **⏳ Assign Specialized Roles via UI**:
-   - Navigate to: Admin → Club Admin → Gestion des autorisations
-   - Assign roles manually:
-     - **planchiste**: Flight loggers who can edit/delete flights
-     - **ca**: Board members (Conseil d'Administration)
-     - **bureau**: Office members
-     - **tresorier**: Treasurers
-     - **club-admin**: Full administrators
-   
-   **Tool**: Use the Authorization UI (completed in Phase 4)
-   
-   **Estimated Time**: 2-3 hours
+4. **Assigner les rôles spécialisés** via UI ou SQL :
+   - planchiste, ca, bureau, tresorier, club-admin
 
-3. **⏳ Verify All Users Have Roles**:
-   ```sql
-   -- Check role distribution
-   SELECT s.nom, tr.nom, COUNT(*) as user_count
-   FROM user_roles_per_section urps
-   JOIN sections s ON urps.section_id = s.id
-   JOIN types_roles tr ON urps.types_roles_id = tr.id
-   WHERE urps.revoked_at IS NULL
-   GROUP BY s.nom, tr.nom
-   ORDER BY s.id, tr.id;
-   ```
+5. **Enrôler 5-10 utilisateurs pilotes** dans `use_new_authorization`
+   - Choisir des utilisateurs expérimentés avec différents profils de rôles
+   - Monitoring intensif pendant 1-2 semaines
 
-**Duration**: 1-2 days
+### Priorité 3 : Migrer les controllers restants (~30)
 
----
+6. **Controllers sans `require_roles()` à migrer** :
+   - Administration : `admin`, `backend`, `config`, `dbchecks`, `migration`
+   - Financier : `rapprochements`, `plan_comptable`, `facturation`
+   - Rapports : `reports`, `historique`
+   - Vol : `vols_decouverte`, `event`
+   - Technique : `openflyers`, `FFVV`, `mails`
+   - Autres : `pompes`, `tools`, `acceptance_admin`, `formation_*`, `archived_documents`, etc.
 
-### Next Actions (Next Week - Phase M3)
+### Priorité 4 : Global cutover (Phase M4)
 
-4. **🔵 Enable Feature Flag on Test Environment**:
-   - Edit `application/config/gvv_config.php` on test server:
-     ```php
-     $config['use_new_authorization'] = TRUE;  // Enable new system
-     ```
-   - Clear any caches
-   - Test with multiple user accounts
+7. **Flip du flag global** : `$config['use_new_authorization'] = TRUE`
+8. **Monitoring 48h intensif**, puis 1 semaine de surveillance
+9. **Rollback** si problème : flip flag → FALSE
 
-5. **🔵 Comprehensive Testing**:
-   - Test each role type:
-     - [ ] Basic user (role: user) - can view own data
-     - [ ] Flight logger (role: planchiste) - can edit flights
-     - [ ] Board member (role: ca) - can access admin pages
-     - [ ] Treasurer (role: tresorier) - can access accounting
-     - [ ] Administrator (role: club-admin) - full access
-   
-   - Test authorization scenarios:
-     - [ ] Access granted for authorized pages
-     - [ ] Access denied for unauthorized pages
-     - [ ] Audit log records all attempts
-     - [ ] Row-level security works (own vs all)
-   
-   - Performance testing:
-     - [ ] Authorization checks < 10ms
-     - [ ] No performance degradation
+### Priorité 5 : Post-production (Phases 11, 13)
 
-6. **🔵 Review Audit Logs**:
-   ```sql
-   -- Check recent authorization decisions
-   SELECT * FROM authorization_audit_log 
-   WHERE created_at > DATE_SUB(NOW(), INTERVAL 1 DAY)
-   ORDER BY created_at DESC
-   LIMIT 100;
-   ```
-
-**Duration**: 3-5 days
-
----
-
-### Optional Actions (Phase M4 - Production Pilot)
-
-7. **🔵 Weekend Production Pilot** (Optional but Recommended):
-   - Friday evening: Enable flag in production
-   - Monitor for 2-4 hours
-   - If successful, leave enabled through weekend
-   - If issues, revert flag to FALSE
-   - Monday: Evaluate results
-
-**Duration**: 1 weekend
-
----
-
-### Alternative Path: Skip Controller Migration (Phases 8-10)
-
-**Important Note**: With the feature flag approach, **controller migration (Phases 8-10) is now optional**. The system can go to production via the feature flag alone:
-
-- ✅ **With feature flag**: Production-ready in 2-3 weeks (M2-M5)
-- ⏳ **With controller migration**: Production-ready in ~10 weeks (Phases 8-12)
-
-**Recommendation**: 
-1. Go to production via feature flag first (Phases M2-M5)
-2. Optionally migrate controllers later (Phases 8-10) for cleaner code
-3. Keep feature flag indefinitely as a safety mechanism
-
----
-
-### Documentation Updates
-
-8. **🔵 Update Phase 8-12 Status**:
-   - Mark Phases 8-12 as "Optional - Post-Production Enhancement"
-   - Focus on feature flag migration path (M1-M6)
-   - Update PRD to reflect chosen approach
-
----
-
-### Timeline Summary
-
-| Phase | Action | Duration | Start |
-|-------|--------|----------|-------|
-| **M2** | Grant user roles, assign specialized roles | 1-2 days | This week |
-| **M3** | Test on staging with flag TRUE | 3-5 days | Next week |
-| **M4** | Optional production pilot | 1 weekend | Week 3 |
-| **M5** | Full production cutover | 1 week | Week 3-4 |
-| **Total** | **Ready for production** | **2-3 weeks** | - |
-
-**Current Status**: Phase M1 complete, starting M2 today
-     - `tarifs` (ca only)
-     - `calendar` (user)
-   - [ ] Create mapping document (old permissions → new code)
-   - [ ] Integration testing
-   - [ ] Verify no authorization errors in logs
-
-3. **🔵 Phase 9: Complex Controllers** (5-7 days):
-   - [ ] Migrate 7 complex controllers (membre, compta, vols_planeur)
-   - [ ] Document exception patterns
-   - [ ] Row-level security testing
-
-4. **Documentation Priorities**:
-   - ✅ PRD v2.0 (Complete)
-   - ✅ Implementation Plan v2.0 (This document - updated 2025-10-24)
-   - ✅ Developer guide for code-based permissions (Complete - Phase 7)
-   - 🔵 Migration mapping for all 53 controllers (Phases 8-10)
-   - 🔵 Administrator communication (Phase 12)
+10. **Cleanup legacy** (Phase 11) — supprimer le code ancien
+11. **Migration qualifications bitmap** (Phase 13) — `membres.mniveaux` → `user_roles_per_section`
 
 ---
 
@@ -1359,6 +1278,14 @@ $config['use_new_authorization'] = FALSE;
   - New roles to create: remorqueur, treuillard, chef_pilote, chef_de_piste
   - Impact analysis: qualif_selector, Formation_access, email lists, member form
   - Routes and permissions reference document created: `doc/authorization/routes_and_permissions.md`
+- **v2.5 (2026-02-18): State assessment and test coverage update**
+  - Inventaire réel : 20 controllers migrés (vs 0 dans le plan v2.4)
+  - 3 controllers avec code prêt mais `use_new_auth = FALSE` (licences, email_lists, programmes)
+  - 5 test users Gaulois enrolled dans `use_new_authorization` table
+  - Playwright authorization tests : 8 fichiers couvrant 4 profils (asterix, obelix, abraracourcix, goudurix)
+  - Tests abraracourcix et goudurix créés et validés (30 tests chacun, 100% pass)
+  - Identification du reste à faire : panoramix tests, 3 controllers désactivés, ~30 controllers à migrer, role assignment pour production users
+  - Restructuration des priorités : couverture test → pilote → migration → cutover → cleanup
 
 ---
 
