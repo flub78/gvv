@@ -1747,7 +1747,9 @@ abstract class Metadata {
             if (!empty($attrs)) {
                 $checkbox_attrs = array_merge($checkbox_attrs, $attrs);
             }
-            return form_checkbox($checkbox_attrs);
+            // Hidden input ensures the field is always present in POST (even when unchecked).
+            // This satisfies the "required" validation rule for NOT NULL columns.
+            return form_hidden($field, 0) . form_checkbox($checkbox_attrs);
         } elseif ($subtype == 'enumerate') {
             if (isset($this->field[$table][$field]['Enumerate'])) {
                 $values = $this->field[$table][$field]['Enumerate'];

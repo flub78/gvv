@@ -777,6 +777,16 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['ordre_affichage']['Name'] = 'Ordre d\'affichage';
                 $this->field['sections']['ordre_affichage']['Type'] = 'int';
 
+                $this->field['sections']['gestion_planeurs']['Name']    = $CI->lang->line('gvv_sections_field_gestion_planeurs');
+                $this->field['sections']['gestion_planeurs']['Type']    = 'int';
+                $this->field['sections']['gestion_planeurs']['Subtype'] = 'boolean';
+
+                $this->field['sections']['gestion_avions']['Name']    = $CI->lang->line('gvv_sections_field_gestion_avions');
+                $this->field['sections']['gestion_avions']['Type']    = 'int';
+                $this->field['sections']['gestion_avions']['Subtype'] = 'boolean';
+
+                $this->field['sections']['libelle_menu_avions']['Name'] = $CI->lang->line('gvv_sections_field_libelle_menu_avions');
+
                 /**
                  * Vue sections
                  */
@@ -789,6 +799,14 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_sections']['couleur']['Subtype'] = 'color';
                 $this->field['vue_sections']['ordre_affichage']['Name'] = 'Ordre d\'affichage';
                 $this->field['vue_sections']['ordre_affichage']['Type'] = 'int';
+
+                $this->field['vue_sections']['gestion_planeurs']['Name']    = $CI->lang->line('gvv_sections_field_gestion_planeurs');
+                $this->field['vue_sections']['gestion_planeurs']['Subtype'] = 'boolean';
+
+                $this->field['vue_sections']['gestion_avions']['Name']    = $CI->lang->line('gvv_sections_field_gestion_avions');
+                $this->field['vue_sections']['gestion_avions']['Subtype'] = 'boolean';
+
+                $this->field['vue_sections']['libelle_menu_avions']['Name'] = $CI->lang->line('gvv_sections_field_libelle_menu_avions');
 
                 /**
                  * Document types (archivage documentaire)

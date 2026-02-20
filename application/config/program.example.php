@@ -170,12 +170,6 @@ $config['listes_de_requetes'] = array(
 $config['copie_a'] = "president@free.fr; gestion@monclub.fr";
 
 
-/**
- * Le club gére des avions, des planeurs, des ulms
- */
-$config['gestion_avion'] = true;
-$config['gestion_planeur'] = true;
-$config['gestion_ulm'] = true;
 $config['gestion_tickets'] = true;
 $config['gestion_pompes'] = true;
 

@@ -191,7 +191,7 @@ $section_selector = $CI->sections_model->selector_with_all();
           </ul>
         </li>
 
-        <?php if (empty($section) || ($section && ($section['id'] == '1'))) : ?>
+        <?php if ($section && !empty($section['gestion_planeurs'])) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_glider") ?></a>
             <ul class="dropdown-menu">
@@ -228,8 +228,12 @@ $section_selector = $CI->sections_model->selector_with_all();
         <?php endif; ?>
 
 
+        <?php if ($section && !empty($section['gestion_avions'])) : ?>
+        <?php $menu_avions_label = !empty($section['libelle_menu_avions'])
+            ? htmlspecialchars($section['libelle_menu_avions'])
+            : translation("gvv_menu_airplane"); ?>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_airplane") ?></a>
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= $menu_avions_label ?></a>
           <ul class="dropdown-menu">
             <?php if ($this->config->item('gestion_reservations')) : ?>
             <li><a class="dropdown-item" href="<?= controller_url("reservations/timeline") ?>"><i class="fas fa-clock text-info"></i> <?= translation("gvv_menu_airplane_reservations") ?></a></li>
@@ -253,6 +257,7 @@ $section_selector = $CI->sections_model->selector_with_all();
             <?php endif; ?>
           </ul>
         </li>
+        <?php endif; ?>
 
         <?php if (has_role('ca')) : ?>
           <li class="nav-item dropdown">

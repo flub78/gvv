@@ -52,7 +52,10 @@ $this->lang->load('sections');
 					'description' => $description,
 					'acronyme' => $acronyme,
 					'couleur' => $couleur,
-					'ordre_affichage' => $ordre_affichage
+					'ordre_affichage' => $ordre_affichage,
+					'gestion_planeurs' => $gestion_planeurs,
+					'gestion_avions' => $gestion_avions,
+					'libelle_menu_avions' => $libelle_menu_avions
 				))); ?>
 
 				<?= validation_button($action); ?>

@@ -44,9 +44,9 @@ $list = array(
 	anchor(controller_url('rapports/financier'), $this->lang->line("welcome_financial_title"), array("class" => "jbutton")),
 	anchor(controller_url('rapports/comptes'), $this->lang->line("welcome_accounts_title"), array("class" => "jbutton"))
 );
-if ($this->config->item('gestion_avion'))
+if ($any_avions)
 	$list[] = anchor(controller_url('vols_avion/pdf'), $this->lang->line("welcome_airplane_flightlog"), array("class" => "jbutton"));
-if ($this->config->item('gestion_planeur'))
+if ($any_planeurs)
 	$list[] = anchor(controller_url('vols_planeur/pdf'), $this->lang->line("welcome_glider_flightlog"), array("class" => "jbutton"));
 
 echo year_selector($controller, $year, $year_selector);

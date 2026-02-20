@@ -217,6 +217,16 @@ class Welcome extends Gvv_Controller {
         $data['year'] = $year;
         $data['controller'] = 'welcome';
         $data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+
+        $section_id = $this->session->userdata('section');
+        $q = $this->db->query(
+            "SELECT gestion_planeurs, gestion_avions FROM sections WHERE id = ?",
+            array((int)$section_id)
+        );
+        $section = $q->row_array();
+        $data['any_planeurs'] = !empty($section['gestion_planeurs']);
+        $data['any_avions']   = !empty($section['gestion_avions']);
+
         load_last_view('welcome/ca', $data);
     }
 
