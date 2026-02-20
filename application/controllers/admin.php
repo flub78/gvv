@@ -2244,7 +2244,10 @@ SQL;
                 'ville' => 'Village gaulois',
                 'sections' => array($avion_section, $general_section),
                 'roles_bits' => $TRESORIER,
-                'is_admin' => 0
+                'is_admin' => 0,
+                'section_roles' => array(
+                    $avion_section => array('auto_planchiste'),
+                )
             ),
             array(
                 'username' => 'panoramix',

@@ -272,7 +272,9 @@ create_gaulois_user "abraracourcix" "Abraracourcix" "Le Gaulois" "abraracourcix@
 
 # --- Goudurix ---
 declare -a USER_SECTIONS=($AVION_SECTION $GENERAL_SECTION)
-declare -A SECTION_ROLES_MAP=()
+declare -A SECTION_ROLES_MAP=(
+    ["section_${AVION_SECTION}"]="$TR_AUTO_PLANCHISTE"
+)
 create_gaulois_user "goudurix" "Goudurix" "Le Gaulois" "goudurix@gmail.com" "3 rue du Menhir" $BIT_TRESORIER 0
 
 # --- Panoramix (admin - club-admin in all sections) ---
@@ -320,7 +322,7 @@ echo "Gaulois users (new authorization system):"
 echo "  - asterix        (sections: planeur, general)"
 echo "  - obelix         (planeur: planchiste, ULM: auto_planchiste, general: user)"
 echo "  - abraracourcix  (planeur, avion, ULM, general + CA + instructeur)"
-echo "  - goudurix       (avion, general + tresorier)"
+echo "  - goudurix       (avion: auto_planchiste + tresorier, general: user)"
 echo "  - panoramix      (admin - no sections)"
 
 echo ""

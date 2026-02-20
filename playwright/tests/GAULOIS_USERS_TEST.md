@@ -18,9 +18,9 @@ Ce test Playwright vérifie que les utilisateurs gaulois créés par la procédu
 | Utilisateur | Sections | Rôles | Comptes attendus |
 |---|---|---|---|
 | **asterix** | Planeur, Général | Utilisateur | 2 |
-| **obelix** | Planeur, ULM, Général | Remorqueur | 3 |
+| **obelix** | Planeur, ULM, Général | Planchiste (Planeur), Auto-planchiste (ULM), Remorqueur | 3 |
 | **abraracourcix** | Planeur, Avion, ULM, Général | CA + Instructeur Avion | 4 |
-| **goudurix** | Avion, Général | Trésorier | 2 |
+| **goudurix** | Avion, Général | Auto-planchiste (Avion), Trésorier | 2 |
 | **panoramix** | Aucune | Admin | 0 |
 
 Mot de passe pour tous : `password`
