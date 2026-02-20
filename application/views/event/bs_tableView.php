@@ -39,7 +39,12 @@ echo form_hidden('controller_url', controller_url($controller), '"id"="controlle
 $table = array();
 $row = 0;
 $table[$row][] = $this->lang->line("gvv_events_field_emlogin") . " ";
-$table[$row][] = dropdown_field('mlogin', $mlogin, $pilotes_selector, "id='selector' onchange=new_selection('page');");
+if (isset($selector_disabled) && $selector_disabled) {
+    $member_name = $this->membres_model->image($mlogin);
+    $table[$row][] = '<span class="form-control-plaintext fw-bold">' . htmlspecialchars($member_name) . '</span>';
+} else {
+    $table[$row][] = dropdown_field('mlogin', $mlogin, $pilotes_selector, "id='selector' onchange=new_selection('page');");
+}
 display_form_table($table);
 echo br();
 
@@ -64,13 +69,15 @@ $attrs = array(
 	'class' => "datatable table table-striped"
 );
 
-// Create button above the table
-echo '<div class="mb-3">'
-    . '<a href="' . site_url('event/create/' . $mlogin) . '" class="btn btn-sm btn-success">'
-    . '<i class="fas fa-plus" aria-hidden="true"></i> '
-    . $this->lang->line('gvv_button_create')
-    . '</a>'
-    . '</div>';
+// Create button: only for CA and above
+if ($has_modification_rights) {
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('event/create/' . $mlogin) . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
+}
 
 echo $this->gvvmetadata->table("events", $attrs, "");
 

@@ -79,6 +79,13 @@ Categorie Model Integration
  [x] Multiple categories and search
  [x] Transaction rollback
 
+Compta Export Authorization
+ [x] Comptes model user returns owner
+ [x] Ownership check grants access to own account
+ [x] Ownership check denies access to other account
+ [x] Export and pdf are in constructor exemption list
+ [x] Export and pdf contain ownership check
+
 Compta Saisie Cotisation
  [x] Validation rejects empty fields
  [x] Validation rejects invalid montant

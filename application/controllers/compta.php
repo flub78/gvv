@@ -56,10 +56,10 @@ class Compta extends Gvv_Controller {
         }
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // mon_compte and journal_compte are accessible to regular users (own data)
+        // mon_compte, journal_compte, export and pdf are accessible to regular users (own data only)
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
-            if (!in_array($method, ['mon_compte', 'journal_compte'])) {
+            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf'])) {
                 $this->require_roles(['tresorier']);
             }
         }
@@ -2413,6 +2413,16 @@ class Compta extends Gvv_Controller {
             $compte = $this->comptes_model->compte_pilote_id($user);
         }
 
+        // Regular users can only export their own account
+        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+            $owner = $this->comptes_model->user($compte);
+            $mlogin = $this->dx_auth->get_username();
+            if ($owner != $mlogin) {
+                $this->dx_auth->deny_access();
+                return;
+            }
+        }
+
         $height = 6;
         $compte_data = $this->comptes_model->get_by_id('id', $compte);
         
@@ -2664,6 +2674,15 @@ class Compta extends Gvv_Controller {
      *
      * @param unknown_type $compte
      */
+    /**
+     * Export accounting data
+     *
+     * Exports accounting records for a specific account and optional section.
+     *
+     * @param string $compte The account identifier (optional)
+     * @param int|null $section_id The section ID to filter export results (optional)
+     * @return void
+     */
     function export($compte = '', $section_id = null) {
         if ($compte == '') {
             $user = $this->dx_auth->get_username();
@@ -2671,6 +2690,16 @@ class Compta extends Gvv_Controller {
                 return;
             }
             $compte = $this->comptes_model->compte_pilote_id($user);
+        }
+
+        // Regular users can only export their own account
+        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+            $owner = $this->comptes_model->user($compte);
+            $mlogin = $this->dx_auth->get_username();
+            if ($owner != $mlogin) {
+                $this->dx_auth->deny_access();
+                return;
+            }
         }
 
         if ($_POST['button'] == 'Pdf') {

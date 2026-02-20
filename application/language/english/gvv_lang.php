@@ -17,6 +17,7 @@ $lang['gvv_menu_membres_list'] = "List";
 $lang['gvv_menu_membres_licences'] = "Licenses";
 $lang['gvv_menu_membres_fiches'] = "File";
 $lang['gvv_menu_membres_password'] = "Password";
+$lang['gvv_menu_ma_fiche'] = "My profile";
 $lang['gvv_menu_membres_email'] = "Email";
 $lang['gvv_menu_membres_email_addresses'] = "Email Addresses";
 $lang['gvv_menu_membres_calendar'] = "Calendar";

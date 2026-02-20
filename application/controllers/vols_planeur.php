@@ -646,10 +646,6 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format CSV
      */
     function csv() {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-        
         $this->select_page(0, "", 100000);
         $this->gvvmetadata->csv("vue_vols_planeur");
     }
@@ -668,10 +664,6 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format PDF
      */
     function pdf() {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-        
         gvv_debug("export des planches en pdf");
         $this->select_page(0, "", 100000, null, "asc");
 

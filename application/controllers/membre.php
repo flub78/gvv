@@ -348,9 +348,22 @@ class Membre extends Gvv_Controller {
             $id = urldecode(func_get_arg(0));
         }
 
+        // Non-CA users cannot edit member records
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            if ($action != VISUALISATION) {
+                // Redirect own record to read-only view; deny access to other records
+                if ($id == $this->dx_auth->get_username()) {
+                    redirect('membre/ma_fiche');
+                    return;
+                }
+                $this->dx_auth->deny_access();
+                return;
+            }
+        }
+
         $non_existing = false;
         try {
-            parent::edit($id, FALSE);
+            parent::edit($id, FALSE, $action);
         } catch (Exception $e) {
             // echo 'Exception reçue : ', $e->getMessage(), "\n";
             $non_existing = true;
@@ -380,10 +393,24 @@ class Membre extends Gvv_Controller {
         $this->data['member_sections'] = $member_sections;
         $this->data['has_sections'] = count($sections) > 0;
 
-
         $this->load_certificats($id);
 
+        if (!$load_view) {
+            return;
+        }
+
         // affiche le formulaire
+        return load_last_view($this->form_view, $this->data, $this->unit_test);
+    }
+
+    /**
+     * Affiche la fiche du membre connecté en lecture seule
+     */
+    function ma_fiche() {
+        $mlogin = $this->dx_auth->get_username();
+        $this->edit($mlogin, false, VISUALISATION);
+        $this->data['action'] = VISUALISATION;
+        $this->data['has_modification_rights'] = false;
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
@@ -582,6 +609,11 @@ class Membre extends Gvv_Controller {
      * - Suppression de l'ancienne photo si elle existe
      */
     public function formValidation($action, $return_on_success = false) {
+        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
         $mlogin = $this->input->post('mlogin');
 
         // Vérifier si un fichier a été uploadé

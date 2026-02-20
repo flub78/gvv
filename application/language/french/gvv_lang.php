@@ -24,6 +24,7 @@ $lang['gvv_menu_membres_list'] = "Liste";
 $lang['gvv_menu_membres_licences'] = "Cotisations";
 $lang['gvv_menu_membres_fiches'] = "Fiches";
 $lang['gvv_menu_membres_password'] = "Mot de passe";
+$lang['gvv_menu_ma_fiche'] = "Ma fiche";
 $lang['gvv_menu_membres_email'] = "Courriel";
 $lang['gvv_menu_membres_email_addresses'] = "Adresses email";
 $lang['gvv_menu_membres_calendar'] = "Présences planeur";

@@ -566,11 +566,12 @@ echo form_fieldset_close();
 // ========================================================================
 // ACTION BUTTONS
 // ========================================================================
-$bar = array(
-    array('label' => $this->lang->line("gvv_button_validate"), 'type' => "submit", 'id' => 'validate', 'name' => "button"),
-    array('label' => $this->lang->line("gvv_button_print"), 'url' => "$controller/adhesion/$mlogin", 'role' => 'ca'),
-    array('label' => $this->lang->line("membre_button_subscription"), 'url' => "$controller/adhesion/$mlogin/1", 'role' => 'ca'),
-);
+$bar = array();
+if ($action != VISUALISATION) {
+    $bar[] = array('label' => $this->lang->line("gvv_button_validate"), 'type' => "submit", 'id' => 'validate', 'name' => "button");
+}
+$bar[] = array('label' => $this->lang->line("gvv_button_print"), 'url' => "$controller/adhesion/$mlogin", 'role' => 'ca');
+$bar[] = array('label' => $this->lang->line("membre_button_subscription"), 'url' => "$controller/adhesion/$mlogin/1", 'role' => 'ca');
 echo '<div class="mt-4 mb-4">';
 echo button_bar4($bar);
 echo '</div>';

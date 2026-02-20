@@ -81,13 +81,24 @@ class Event extends Gvv_Controller {
         if ($mlogin == "") {
             $mlogin = $this->gvv_model->default_id();
         }
+
+        // Non-CA users can only view their own events
+        $is_ca = $this->dx_auth->is_role($this->modification_level, true, true);
+        if (!$is_ca) {
+            $current_user = $this->dx_auth->get_username();
+            if ($mlogin != $current_user) {
+                $this->dx_auth->deny_access();
+                return;
+            }
+        }
+
         $this->data ['mlogin'] = $mlogin;
+        $this->data ['selector_disabled'] = !$is_ca;
         $this->data ['pilotes_selector'] = $this->membres_model->selector(array (
                 'actif' => 1
         ));
         $this->data ['events_list'] = $this->gvv_model->evenement_de($mlogin);
         $this->data ['count'] = count($this->data ['events_list']);
-        // var_dump($this->data['events_list']);
         parent::page();
     }
 

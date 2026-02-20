@@ -12,6 +12,7 @@ $lang['gvv_menu_membres_list'] = "Lijst";
 $lang['gvv_menu_membres_licences'] = "Vergunningen";
 $lang['gvv_menu_membres_fiches'] = "Wijzigen";
 $lang['gvv_menu_membres_password'] = "Wachtwoord";
+$lang['gvv_menu_ma_fiche'] = "Mijn fiche";
 $lang['gvv_menu_membres_email'] = "E-mail";
 $lang['gvv_menu_membres_calendar'] = "Kalender";
 
