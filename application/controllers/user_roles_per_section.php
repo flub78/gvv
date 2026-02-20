@@ -54,12 +54,22 @@ class User_roles_per_section extends Gvv_Controller {
      */
     function set_section() {
         $section = $this->input->post('section');
+        $current_url = $this->input->post('current_url');
         $this->session->set_userdata('section', $section);
         gvv_debug("section set to $section");
 
-        // Always redirect to dashboard (welcome) to avoid errors when switching sections
-        // This prevents attempting to access resources that don't exist in the new section
+        // Determine where to redirect after section change
+        // Default: redirect to welcome page to avoid errors
         $redirect_url = site_url('welcome');
+        
+        // If a current URL is provided and it's safe to return to it, use it
+        // Safe conditions: URL is a GET page (not a POST form that could be resubmitted)
+        if ($current_url && $this->is_safe_redirect_url($current_url)) {
+            $redirect_url = $current_url;
+            gvv_debug("Redirecting to current page: $redirect_url");
+        } else {
+            gvv_debug("Redirecting to welcome page for safety");
+        }
         
         if ($this->input->is_ajax_request()) {
             // Return JSON response for AJAX
@@ -67,6 +77,47 @@ class User_roles_per_section extends Gvv_Controller {
         } else {
             redirect($redirect_url);
         }
+    }
+
+    /**
+     * Check if a URL is safe to redirect to after section change
+     * 
+     * @param string $url The URL to check
+     * @return bool True if safe to redirect
+     */
+    private function is_safe_redirect_url($url) {
+        // Parse the URL to extract the path
+        $parsed = parse_url($url);
+        if (!$parsed || !isset($parsed['path'])) {
+            return false;
+        }
+        
+        $path = $parsed['path'];
+        
+        // List of controllers/actions that are NOT safe (POST endpoints, forms)
+        // These are pages where reloading could cause double submission or errors
+        $unsafe_patterns = array(
+            '/create',
+            '/edit/',
+            '/modify',
+            '/delete',
+            '/save',
+            '/update',
+            '/submit',
+            '/insert',
+            '/add',
+        );
+        
+        // Check if URL matches unsafe patterns
+        foreach ($unsafe_patterns as $pattern) {
+            if (strpos($path, $pattern) !== false) {
+                return false;
+            }
+        }
+        
+        // Default: safe to redirect (most GET pages are safe)
+        // This allows pages like comptes/balance, tableau, page, view, etc.
+        return true;
     }
 
     /**

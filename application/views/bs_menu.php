@@ -449,8 +449,10 @@ $section_selector = $CI->sections_model->selector_with_all();
               // Store the current page URL before updating section
               const currentPage = window.location.href;
               console.log("Updating section to:", value);
+              console.log("Current page:", currentPage);
               $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
-                section: value
+                section: value,
+                current_url: currentPage
               }, function(response) {
                 console.log("Section changed:", response);
                 window.location.href = JSON.parse(response).redirect;
