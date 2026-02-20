@@ -126,6 +126,11 @@ if (!function_exists('has_role')) {
             return true;
         }
 
+        // Use new authorization for users enrolled in the new auth system
+        if (method_exists($CI, 'user_has_role')) {
+            return $CI->user_has_role($role);
+        }
+
         return $CI->dx_auth->is_role($role, true, true);
     }
 }

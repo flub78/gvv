@@ -165,7 +165,7 @@ $ext = $launch[4];
 
 $ajax = $this->config->item('ajax');
 if ($ajax) {
-    if ($this->dx_auth->is_role('planchiste')) {
+    if ($planchiste) {
         $classes = "datatable_style datatable_server table table-striped";
     } else {
         $classes = "datatable_style datatable_server_ro table table-striped";
@@ -184,19 +184,21 @@ $attrs = array(
     'datatable' => 'server_side'
 );
 
-// Create button above the table (only for planchiste role)
-if ($has_modification_rights) {
+// Create button above the table (planchiste and auto_planchiste can create flights)
+if ($has_modification_rights || $auto_planchiste) {
     echo '<div class="mb-3">'
         . '<a href="' . site_url('vols_planeur/create') . '" class="btn btn-sm btn-success">'
         . '<i class="fas fa-plus" aria-hidden="true"></i> '
         . $this->lang->line('gvv_button_create')
-        . '</a>'
-        . ' '
-        . '<a href="' . site_url('vols_planeur/gesasso') . '" class="btn btn-sm btn-primary">'
-        . '<i class="fas fa-sync" aria-hidden="true"></i> '
-        . 'Export GESASSO'
-        . '</a>'
-        . '</div>';
+        . '</a>';
+    if ($has_modification_rights) {
+        echo ' '
+            . '<a href="' . site_url('vols_planeur/gesasso') . '" class="btn btn-sm btn-primary">'
+            . '<i class="fas fa-sync" aria-hidden="true"></i> '
+            . 'Export GESASSO'
+            . '</a>';
+    }
+    echo '</div>';
 }
 
 if ($ajax) {

@@ -212,8 +212,11 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche le formulaire de création
      */
     function create() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        $is_planchiste = $this->user_has_role('planchiste');
+        $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        if (! $is_planchiste && ! $is_auto_planchiste) {
             $this->dx_auth->deny_access();
+            return;
         }
         parent::create(TRUE);
         $this->data ['vpid'] = 0;
@@ -226,8 +229,9 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche le formulaire de saisie automatisée
      */
     function plancheauto() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
+            return;
         }
         
         $this->data ['controller'] = $this->controller;
@@ -277,8 +281,9 @@ class Vols_planeur extends Gvv_Controller {
      * Selection de la date et du terrain
      */
     function plancheauto_select() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
+            return;
         }
         $this->data ['controller'] = $this->controller;
         $this->data ['choix'] = 1;
@@ -294,16 +299,24 @@ class Vols_planeur extends Gvv_Controller {
      *            à modifier
      */
     function edit($id= '', $load_view = true, $action = MODIFICATION) {
-        // Allow planchiste or the pilot of this flight
-        if (! $this->dx_auth->is_role('planchiste')) {
+        // planchiste: full access to all flights
+        // auto_planchiste: can modify their own flights only
+        // other users: can view their own flights only
+        $is_planchiste = $this->user_has_role('planchiste');
+        $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        if (! $is_planchiste) {
             $flight = $this->model->get_by_id('vpid', $id);
             $mlogin = $this->dx_auth->get_username();
-            if (empty($flight) || $flight['vppilid'] != $mlogin) {
+            $is_own_flight = (!empty($flight) && $flight['vppilid'] == $mlogin);
+            if (! $is_own_flight) {
                 $this->dx_auth->deny_access();
                 return;
             }
-            // Pilot can only view, not modify their own flight
-            $action = VISUALISATION;
+            if (! $is_auto_planchiste) {
+                // Regular user: view only their own flight
+                $action = VISUALISATION;
+            }
+            // auto_planchiste with own flight: keep MODIFICATION (frozen check applies below)
         }
         
         $this->load->model('ecritures_model');
@@ -349,8 +362,9 @@ class Vols_planeur extends Gvv_Controller {
      * Supprime un élèment
      */
     function delete($id) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
+            return;
         }
         
         $this->load->model('ecritures_model');
@@ -527,7 +541,7 @@ class Vols_planeur extends Gvv_Controller {
         }
         $this->data ['action'] = VISUALISATION;
         $this->data ['filter_active'] = $this->session->userdata('filter_active');
-        $this->data ['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
+        $this->data ['planchiste'] = $this->user_has_role('planchiste');
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
 
@@ -601,7 +615,8 @@ class Vols_planeur extends Gvv_Controller {
             $this->data ['inst'] = 0;
             $this->data ['cdb'] = 0;
         }
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->user_has_role($this->modification_level));
+        $this->data ['auto_planchiste'] = $this->user_has_role('auto_planchiste');
     }
 		
     /**
@@ -621,7 +636,7 @@ class Vols_planeur extends Gvv_Controller {
         $this->data ['kid'] = $this->kid;
         $this->data ['controller'] = $this->controller;
         
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->user_has_role($this->modification_level));
     }
 		
 
@@ -1088,7 +1103,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de statistiques
      */
     public function statistic($force_regeneration = false) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         
@@ -1175,7 +1190,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de cumuls annuel
      */
     public function cumuls() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         
@@ -1200,7 +1215,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page historique
      */
     public function histo() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         
@@ -1219,7 +1234,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page Age moyen du parc
      */
     public function age() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
 
@@ -1276,7 +1291,7 @@ class Vols_planeur extends Gvv_Controller {
      *            $premier
      */
     function pdf_machine($year) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         
@@ -1366,7 +1381,7 @@ class Vols_planeur extends Gvv_Controller {
      * Export au format PDF
      */
     function pdf_month($year) {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         
@@ -1565,7 +1580,7 @@ class Vols_planeur extends Gvv_Controller {
                 'edit',
                 'delete'
         );
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $actions = [];
         }
         

@@ -311,7 +311,8 @@ class Event extends Gvv_Controller {
         $this->data ['title_key'] = $title_key;
         $this->data ['type'] = "formation";
         $this->data ['type'] = $discipline;
-        $this->data ['formation'] = $this->gvv_model->formation($types);
+        $format = $this->user_has_role('ca') ? "html" : "text";
+        $this->data ['formation'] = $this->gvv_model->formation($types, $format);
         return load_last_view("event/formationView", $this->data, $this->unit_test);
     }
 
@@ -323,10 +324,11 @@ class Event extends Gvv_Controller {
         $this->push_return_url(current_url());
         $selection = $this->selection();
 
+        $format = $this->user_has_role('ca') ? "html" : "text";
         $this->data ['controller'] = $this->controller;
         $this->data ['formation'] = $this->gvv_model->formation(array (
                 4
-        ));
+        ), $format);
         $this->data ['title_key'] = "gvv_events_title_FAI";
         $this->data ['type'] = "fai";
         return load_last_view("event/formationView", $this->data, $this->unit_test);

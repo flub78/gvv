@@ -206,7 +206,7 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::create()
      */
     function create() {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        if (! $this->user_has_role('planchiste')) {
             $this->dx_auth->deny_access();
         }
         parent::create(TRUE);

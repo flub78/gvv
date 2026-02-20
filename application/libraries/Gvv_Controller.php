@@ -1029,6 +1029,32 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
+     * Check if the current user has a given role.
+     *
+     * Uses new authorization (user_roles_per_section) for users enrolled in new auth,
+     * falls back to legacy DX_Auth for other users.
+     *
+     * This method is public so it can be called from views_helper via $CI->user_has_role().
+     *
+     * @param string $role Role name to check
+     * @return bool TRUE if user has the role
+     */
+    public function user_has_role($role)
+    {
+        if ($this->use_new_auth) {
+            // Resolve section: explicit controller section_id first, then session section from model
+            $section_id = NULL;
+            if (isset($this->section_id)) {
+                $section_id = $this->section_id;
+            } elseif (isset($this->gvv_model) && method_exists($this->gvv_model, 'section_id')) {
+                $section_id = $this->gvv_model->section_id();
+            }
+            return $this->allow_roles([$role], $section_id);
+        }
+        return $this->dx_auth->is_role($role, true, true);
+    }
+
+    /**
      * Check if user can edit/access a specific data row (helper)
      *
      * Wrapper for Gvv_Authorization::can_edit_row(). Checks row-level

@@ -115,13 +115,15 @@ $attrs = array(
 	'class' => "datatable table table-striped"
 );
 
-// Create button above the table
-echo '<div class="mb-3">'
-    . '<a href="' . site_url('avion/create') . '" class="btn btn-sm btn-success">'
-    . '<i class="fas fa-plus" aria-hidden="true"></i> '
-    . $this->lang->line('gvv_button_create')
-    . '</a>'
-    . '</div>';
+// Create button above the table (only for CA and above)
+if ($has_modification_rights) {
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('avion/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
+}
 
 echo $this->gvvmetadata->table("vue_avions", $attrs, "");
 

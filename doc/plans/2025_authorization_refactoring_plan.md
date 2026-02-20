@@ -1,7 +1,7 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.5
-**Date:** 2025-01-08 (Updated: 2026-02-18)
+**Document Version:** 2.6
+**Date:** 2025-01-08 (Updated: 2026-02-20)
 **Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
@@ -134,8 +134,11 @@
 **Test users "Gaulois" enrolled in `use_new_authorization`** ✅
 - `asterix` — user simple (Planeur + Général)
 - `obelix` — planchiste (Planeur) + auto_planchiste (ULM) + user (Général)
+  - En tant que planchiste (Planeur) : peut créer des vols, modifier tous les vols, accéder à la planche automatique (`vols_planeur/plancheauto`, `vols_planeur/plancheauto_select`)
+  - En tant que auto_planchiste (ULM) : peut créer des vols ULM et modifier ses propres vols uniquement, pas d'accès à `plancheauto`
 - `abraracourcix` — user (4 sections) + CA + instructeur (FI avion) + remorqueur
-- `goudurix` — user (Avion + Général) + trésorier
+- `goudurix` — auto_planchiste (Avion) + trésorier (Général)
+  - En tant que auto_planchiste (Avion) : peut créer des vols avion et modifier ses propres vols uniquement, pas d'accès à `plancheauto`
 - `panoramix` — club-admin (toutes sections)
 
 **Playwright authorization test suite** ✅ (8 fichiers, 4 profils couverts)
@@ -234,8 +237,12 @@
   - `journal_compte($id)`: Check if own, else `require_roles(['bureau'])`
 - [ ] **9.3** Migrate `vols_planeur` controller:
   - Constructor: `require_roles(['planchiste'])`
-  - `page()`, `edit()`: `allow_roles(['auto_planchiste'])` + row-level check
+  - `page()`, `edit()`, `create()`: `allow_roles(['auto_planchiste'])` + row-level check (own flights only for auto_planchiste)
+  - `plancheauto()`, `plancheauto_select()`: `require_roles(['planchiste'])` (non accessible aux auto_planchiste)
   - `delete()`: Keep `require_roles(['planchiste'])` (no auto)
+  - **Comportements attendus** :
+    - planchiste (ex: obelix en section Planeur) : créer des vols, modifier tous les vols, accès à `plancheauto`/`plancheauto_select`
+    - auto_planchiste (ex: obelix en section ULM, goudurix en section Avion) : créer des vols, modifier ses propres vols uniquement, pas d'accès à `plancheauto`
 - [ ] **9.4** Migrate other complex controllers (factures, tickets, attachments)
 - [ ] **9.5** Document exception patterns:
   - Pattern 1: Own vs All (membre, compta, tickets)
@@ -1286,6 +1293,12 @@ $config['use_new_authorization'] = FALSE;
   - Tests abraracourcix et goudurix créés et validés (30 tests chacun, 100% pass)
   - Identification du reste à faire : panoramix tests, 3 controllers désactivés, ~30 controllers à migrer, role assignment pour production users
   - Restructuration des priorités : couverture test → pilote → migration → cutover → cleanup
+- **v2.6 (2026-02-20): Comportements attendus par rôle pour vols_planeur**
+  - Mise à jour de la description des utilisateurs Gaulois : obelix (planchiste Planeur + auto_planchiste ULM), goudurix (auto_planchiste Avion)
+  - Précision des comportements attendus dans la tâche 9.3 (vols_planeur) :
+    - planchiste : créer, modifier tous les vols, accès à `plancheauto`/`plancheauto_select`
+    - auto_planchiste : créer, modifier ses propres vols uniquement, pas d'accès à `plancheauto`
+  - Ajout de `create()` et `plancheauto()`/`plancheauto_select()` dans la spécification de migration
 
 ---
 
