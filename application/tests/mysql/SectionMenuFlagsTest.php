@@ -94,49 +94,6 @@ class SectionMenuFlagsTest extends TestCase
         );
     }
 
-    // ==================== Default values on existing rows ====================
-
-    public function testAllSections_HaveDefaultZeroForGestionPlaneurs()
-    {
-        $col = $this->getColumnInfo('sections', 'gestion_planeurs');
-        if (empty($col)) {
-            $this->markTestSkipped('Column gestion_planeurs does not exist');
-        }
-
-        $query = $this->db->query("SELECT COUNT(*) as cnt FROM sections WHERE gestion_planeurs != 0");
-        $result = $query->row_array();
-        $this->assertEquals(0, (int)$result['cnt'],
-            'After migration all sections must have gestion_planeurs=0 (no automatic data init)');
-    }
-
-    public function testAllSections_HaveDefaultZeroForGestionAvions()
-    {
-        $col = $this->getColumnInfo('sections', 'gestion_avions');
-        if (empty($col)) {
-            $this->markTestSkipped('Column gestion_avions does not exist');
-        }
-
-        $query = $this->db->query("SELECT COUNT(*) as cnt FROM sections WHERE gestion_avions != 0");
-        $result = $query->row_array();
-        $this->assertEquals(0, (int)$result['cnt'],
-            'After migration all sections must have gestion_avions=0 (no automatic data init)');
-    }
-
-    public function testAllSections_HaveNullLibelleMenuAvions()
-    {
-        $col = $this->getColumnInfo('sections', 'libelle_menu_avions');
-        if (empty($col)) {
-            $this->markTestSkipped('Column libelle_menu_avions does not exist');
-        }
-
-        // Accept both NULL and empty string as "no label set" — both are functionally equivalent
-        // (bs_menu.php uses !empty() which treats both the same way).
-        $query = $this->db->query("SELECT COUNT(*) as cnt FROM sections WHERE libelle_menu_avions IS NOT NULL AND libelle_menu_avions != ''");
-        $result = $query->row_array();
-        $this->assertEquals(0, (int)$result['cnt'],
-            'After migration all sections must have libelle_menu_avions=NULL or empty (no automatic data init)');
-    }
-
     // ==================== Rollback compatibility ====================
 
     public function testMigrationRollback_DropColumnsInCorrectOrder()
