@@ -329,11 +329,11 @@ class Authorization extends CI_Controller {
     /**
      * Manage roles - List all roles
      */
-    function roles($message = '') {
+    function roles() {
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_roles');
-        $data['message'] = $message ? urldecode($message) : '';
+        $data['message'] = $this->session->flashdata('message') ?: '';
 
         // Get all roles
         $data['roles'] = $this->authorization_model->get_all_roles();
@@ -427,119 +427,65 @@ class Authorization extends CI_Controller {
 
         echo json_encode(array('success' => $result, 'message' => $message));
     }
-
-    /**
-     * Create a new role
-     */
-    function create_role() {
-        if ($this->input->post()) {
-            $nom = $this->input->post('nom');
-            $description = $this->input->post('description');
-            $scope = $this->input->post('scope');
-            $translation_key = $this->input->post('translation_key');
-            
-            if (!$nom || !$description || !$scope) {
-                $data = array();
-                $data['controller'] = $this->controller;
-                $data['title'] = $this->lang->line('authorization_create_role');
-                $data['message'] = $this->lang->line('authorization_missing_required_fields');
-                $data['role'] = array(
-                    'nom' => $nom,
-                    'description' => $description,
-                    'scope' => $scope,
-                    'translation_key' => $translation_key,
-                );
-                load_last_view('authorization/role_form', $data);
-                return;
-            }
-            
-            $result = $this->authorization_model->create_role($nom, $description, $scope, $translation_key);
-            
-            if ($result) {
-                redirect('authorization/roles/' . $this->lang->line('authorization_role_created'));
-            } else {
-                $data = array();
-                $data['controller'] = $this->controller;
-                $data['title'] = $this->lang->line('authorization_create_role');
-                $data['message'] = $this->lang->line('authorization_error_creating_role');
-                $data['role'] = array(
-                    'nom' => $nom,
-                    'description' => $description,
-                    'scope' => $scope,
-                    'translation_key' => $translation_key,
-                );
-                load_last_view('authorization/role_form', $data);
-            }
-        } else {
-            $data = array();
-            $data['controller'] = $this->controller;
-            $data['title'] = $this->lang->line('authorization_create_role');
-            $data['role'] = array(
-                'nom' => '',
-                'description' => '',
-                'scope' => 'section',
-                'translation_key' => '',
-            );
-            $data['mode'] = 'create';
-            load_last_view('authorization/role_form', $data);
-        }
-    }
     
     /**
-     * Edit an existing role
+     * Edit an existing role.
+     * For system roles, only the description can be changed.
      */
     function edit_role($types_roles_id) {
         $role = $this->authorization_model->get_role($types_roles_id);
-        
+
         if (!$role) {
             show_404();
         }
-        
-        if ($role['is_system_role']) {
-            redirect('authorization/roles/' . $this->lang->line('authorization_cannot_edit_system_role'));
-        }
-        
+
         if ($this->input->post()) {
-            $nom = $this->input->post('nom');
             $description = $this->input->post('description');
-            $scope = $this->input->post('scope');
-            $translation_key = $this->input->post('translation_key');
-            
-            if (!$nom || !$description || !$scope) {
+
+            if (!$description) {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_edit_role');
                 $data['message'] = $this->lang->line('authorization_missing_required_fields');
-                $data['role'] = array(
-                    'id' => $types_roles_id,
-                    'nom' => $nom,
-                    'description' => $description,
-                    'scope' => $scope,
-                    'translation_key' => $translation_key,
-                );
+                $data['role'] = array_merge($role, array('description' => $description));
                 $data['mode'] = 'edit';
-                load_last_view('authorization/role_form', $data);
+                load_last_view('authorization/bs_role_form', $data);
                 return;
             }
-            
-            $result = $this->authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
-            
+
+            if ($role['is_system_role']) {
+                // System roles: only the description is editable
+                $result = $this->authorization_model->update_role_description($types_roles_id, $description);
+            } else {
+                $nom = $this->input->post('nom');
+                $scope = $this->input->post('scope');
+                $translation_key = $this->input->post('translation_key');
+
+                if (!$nom || !$scope) {
+                    $data = array();
+                    $data['controller'] = $this->controller;
+                    $data['title'] = $this->lang->line('authorization_edit_role');
+                    $data['message'] = $this->lang->line('authorization_missing_required_fields');
+                    $data['role'] = array_merge($role, array('nom' => $nom, 'description' => $description, 'scope' => $scope, 'translation_key' => $translation_key));
+                    $data['mode'] = 'edit';
+                    load_last_view('authorization/bs_role_form', $data);
+                    return;
+                }
+
+                $result = $this->authorization_model->update_role($types_roles_id, $nom, $description, $scope, $translation_key);
+            }
+
             if ($result) {
-                redirect('authorization/roles/' . $this->lang->line('authorization_role_updated'));
+                $this->session->set_flashdata('message', $this->lang->line('authorization_role_updated'));
+                redirect('authorization/roles');
             } else {
                 $data = array();
                 $data['controller'] = $this->controller;
                 $data['title'] = $this->lang->line('authorization_edit_role');
                 $data['message'] = $this->lang->line('authorization_error_updating_role');
-                $data['role'] = array(
-                    'id' => $types_roles_id,
-                    'nom' => $nom,
-                    'description' => $description,
-                    'scope' => $scope,
-                    'translation_key' => $translation_key,
-                );
+                $data['role'] = $role;
                 $data['mode'] = 'edit';
-                load_last_view('authorization/role_form', $data);
+                load_last_view('authorization/bs_role_form', $data);
             }
         } else {
             $data = array();
@@ -547,7 +493,7 @@ class Authorization extends CI_Controller {
             $data['title'] = $this->lang->line('authorization_edit_role');
             $data['role'] = $role;
             $data['mode'] = 'edit';
-            load_last_view('authorization/role_form', $data);
+            load_last_view('authorization/bs_role_form', $data);
         }
     }
     

@@ -45,70 +45,84 @@ $this->load->view('bs_banner');
         </div>
     <?php endif; ?>
 
+    <?php $is_system = !empty($role['is_system_role']); ?>
+
     <div class="card mt-4">
         <div class="card-body">
             <?= form_open('', array('class' => 'needs-validation', 'novalidate' => '')) ?>
-                
+
                 <div class="mb-3">
-                    <label for="nom" class="form-label">
-                        <?= $this->lang->line('authorization_role_name') ?> <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="nom" 
-                           name="nom" 
-                           value="<?= isset($role['nom']) ? htmlspecialchars($role['nom']) : '' ?>" 
-                           required
-                           maxlength="100">
-                    <div class="invalid-feedback">
-                        Please enter a role name.
-                    </div>
+                    <label class="form-label"><?= $this->lang->line('authorization_role_name') ?></label>
+                    <?php if ($is_system): ?>
+                        <p class="form-control-plaintext fw-bold"><?= htmlspecialchars($role['nom'] ?? '') ?></p>
+                    <?php else: ?>
+                        <input type="text"
+                               class="form-control"
+                               id="nom"
+                               name="nom"
+                               value="<?= htmlspecialchars($role['nom'] ?? '') ?>"
+                               required
+                               maxlength="100">
+                        <div class="invalid-feedback">
+                            Please enter a role name.
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mb-3">
                     <label for="description" class="form-label">
                         <?= $this->lang->line('authorization_role_description') ?> <span class="text-danger">*</span>
                     </label>
-                    <textarea class="form-control" 
-                              id="description" 
-                              name="description" 
-                              rows="3" 
-                              required><?= isset($role['description']) ? htmlspecialchars($role['description']) : '' ?></textarea>
+                    <textarea class="form-control"
+                              id="description"
+                              name="description"
+                              rows="3"
+                              required><?= htmlspecialchars($role['description'] ?? '') ?></textarea>
                     <div class="invalid-feedback">
                         Please enter a description.
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="scope" class="form-label">
-                        <?= $this->lang->line('authorization_role_scope') ?> <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select" id="scope" name="scope" required>
-                        <option value="section" <?= (isset($role['scope']) && $role['scope'] === 'section') ? 'selected' : '' ?>>
-                            <?= $this->lang->line('authorization_section') ?>
-                        </option>
-                        <option value="global" <?= (isset($role['scope']) && $role['scope'] === 'global') ? 'selected' : '' ?>>
-                            <?= $this->lang->line('authorization_global') ?>
-                        </option>
-                    </select>
-                    <div class="form-text">
-                        Section roles are assigned per section, global roles apply across all sections.
-                    </div>
+                    <label class="form-label"><?= $this->lang->line('authorization_role_scope') ?></label>
+                    <?php if ($is_system): ?>
+                        <p class="form-control-plaintext">
+                            <?php if (($role['scope'] ?? '') === 'global'): ?>
+                                <span class="badge bg-primary"><i class="fas fa-globe"></i> <?= $this->lang->line('authorization_global') ?></span>
+                            <?php else: ?>
+                                <span class="badge bg-info"><i class="fas fa-building"></i> <?= $this->lang->line('authorization_section') ?></span>
+                            <?php endif; ?>
+                        </p>
+                    <?php else: ?>
+                        <select class="form-select" id="scope" name="scope" required>
+                            <option value="section" <?= (($role['scope'] ?? '') === 'section') ? 'selected' : '' ?>>
+                                <?= $this->lang->line('authorization_section') ?>
+                            </option>
+                            <option value="global" <?= (($role['scope'] ?? '') === 'global') ? 'selected' : '' ?>>
+                                <?= $this->lang->line('authorization_global') ?>
+                            </option>
+                        </select>
+                        <div class="form-text">
+                            Section roles are assigned per section, global roles apply across all sections.
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mb-3">
-                    <label for="translation_key" class="form-label">
-                        <?= $this->lang->line('authorization_translation_key') ?>
-                    </label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="translation_key" 
-                           name="translation_key" 
-                           value="<?= isset($role['translation_key']) ? htmlspecialchars($role['translation_key']) : '' ?>"
-                           maxlength="100">
-                    <div class="form-text">
-                        Optional language file key for translatable role name (e.g., 'authorization_role_member')
-                    </div>
+                    <label class="form-label"><?= $this->lang->line('authorization_translation_key') ?></label>
+                    <?php if ($is_system): ?>
+                        <p class="form-control-plaintext text-muted"><?= htmlspecialchars($role['translation_key'] ?? '') ?></p>
+                    <?php else: ?>
+                        <input type="text"
+                               class="form-control"
+                               id="translation_key"
+                               name="translation_key"
+                               value="<?= htmlspecialchars($role['translation_key'] ?? '') ?>"
+                               maxlength="100">
+                        <div class="form-text">
+                            Optional language file key for translatable role name (e.g., 'authorization_role_member')
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mt-4">

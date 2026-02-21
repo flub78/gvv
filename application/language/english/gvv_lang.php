@@ -142,6 +142,9 @@ $lang['role_bureau_desc'] = "Can view all section data including personal financ
 $lang['role_tresorier_desc'] = "Can edit financial data for their section";
 $lang['role_super_tresorier_desc'] = "Can view and edit financial data for all sections";
 $lang['role_club_admin_desc'] = "Can access all data and change everything";
+$lang['role_mecano_desc'] = "Responsible for aircraft maintenance";
+$lang['role_instructor_desc'] = "Can supervise student pilots";
+$lang['role_rp_desc'] = "Responsible for the section training programme";
 
 # Authorization - General
 $lang['authorization_title'] = "Authorization Management";
@@ -437,6 +440,7 @@ $lang['authorization_revoke'] = "Revoke";
 $lang['authorization_grant_role_for'] = "Grant role to";
 $lang['authorization_revoke_role_for'] = "Revoke role from";
 $lang['authorization_available_roles'] = "Available roles";
+$lang['authorization_roles_defined_by_migration'] = "Roles are defined by migrations and cannot be modified.";
 $lang['authorization_continue'] = "Continue";
 $lang['authorization_current_roles'] = "Current roles";
 $lang['authorization_email'] = "Email";

@@ -136,6 +136,9 @@ $lang['role_bureau_desc'] = "Kan alle gegevens van zijn sectie bekijken, inclusi
 $lang['role_tresorier_desc'] = "Kan financiële gegevens van zijn sectie wijzigen";
 $lang['role_super_tresorier_desc'] = "Kan financiële gegevens van alle secties bekijken en wijzigen";
 $lang['role_club_admin_desc'] = "Heeft toegang tot alle gegevens en kan alles wijzigen";
+$lang['role_mecano_desc'] = "Verantwoordelijk voor vliegtuigonderhoud";
+$lang['role_instructor_desc'] = "Kan leerling-vliegeniers begeleiden";
+$lang['role_rp_desc'] = "Verantwoordelijk voor het opleidingsprogramma van de sectie";
 
 # Authorization - General
 $lang['authorization_title'] = "Autorisatiebeheer";
@@ -437,6 +440,7 @@ $lang['authorization_revoke'] = "Intrekken";
 $lang['authorization_grant_role_for'] = "Rol toekennen aan";
 $lang['authorization_revoke_role_for'] = "Rol intrekken van";
 $lang['authorization_available_roles'] = "Beschikbare rollen";
+$lang['authorization_roles_defined_by_migration'] = "Rollen worden gedefinieerd door migraties en kunnen niet worden gewijzigd.";
 $lang['authorization_continue'] = "Doorgaan";
 $lang['authorization_current_roles'] = "Huidige rollen";
 $lang['authorization_email'] = "E-mail";

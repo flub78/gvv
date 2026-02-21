@@ -310,29 +310,7 @@ class Authorization_model extends CI_Model {
         return $query->result_array();
     }
 
-    /**
-     * Create a new role
-     *
-     * @param string $nom Role name
-     * @param string $description Role description
-     * @param string $scope Role scope ('global' or 'section')
-     * @param string $translation_key Translation key (optional)
-     * @return int|bool Role ID on success, FALSE on failure
-     */
-    public function create_role($nom, $description, $scope, $translation_key = NULL)
-    {
-        $data = array(
-            'nom' => $nom,
-            'description' => $description,
-            'scope' => $scope,
-            'translation_key' => $translation_key,
-            'is_system_role' => 0
-        );
-        
-        $result = $this->db->insert('types_roles', $data);
-        return $result ? $this->db->insert_id() : FALSE;
-    }
-    
+
     /**
      * Update an existing role
      *
@@ -355,6 +333,20 @@ class Authorization_model extends CI_Model {
         $this->db->where('id', $types_roles_id);
         $this->db->where('is_system_role', 0);
         $result = $this->db->update('types_roles', $data);
+        return $result ? TRUE : FALSE;
+    }
+
+    /**
+     * Update the description of a role (works for system roles too).
+     *
+     * @param int $types_roles_id Role ID
+     * @param string $description New description
+     * @return bool TRUE on success, FALSE on failure
+     */
+    public function update_role_description($types_roles_id, $description)
+    {
+        $this->db->where('id', $types_roles_id);
+        $result = $this->db->update('types_roles', array('description' => $description));
         return $result ? TRUE : FALSE;
     }
     

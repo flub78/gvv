@@ -63,13 +63,20 @@ $this->load->view('bs_banner');
                 </thead>
                 <tbody>
                     <?php foreach ($roles as $role): ?>
+                    <?php
+                        $tk = $role['translation_key'] ?? '';
+                        $role_label = $tk ? $this->lang->line($tk) : $role['role_name'];
+                        $desc_key = $tk . '_desc';
+                        $desc = $tk ? $this->lang->line($desc_key) : FALSE;
+                        if ($desc === FALSE) $desc = $role['description'] ?? '';
+                    ?>
                     <tr>
                         <td>
                             <span class="badge bg-secondary">
-                                <?= htmlspecialchars($role['role_name']) ?>
+                                <?= htmlspecialchars($role_label !== FALSE ? $role_label : $role['role_name']) ?>
                             </span>
                         </td>
-                        <td><?= htmlspecialchars($role['description'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($desc) ?></td>
                         <td><?= htmlspecialchars($role['granted_at'] ?? '') ?></td>
                     </tr>
                     <?php endforeach; ?>
