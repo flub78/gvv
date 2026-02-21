@@ -531,4 +531,16 @@ class Gvv_Controller extends CI_Controller
             return $this->dx_auth->is_role($role_name);
         }
     }
+
+    /**
+     * Check if current user uses the new authorization system
+     *
+     * Public accessor for views and helper functions.
+     *
+     * @return bool TRUE if new authorization system is active for this user
+     */
+    public function uses_new_auth()
+    {
+        return $this->use_new_auth;
+    }
 }

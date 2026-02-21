@@ -415,6 +415,37 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Liste toutes les autorisations du membre connecté, par section
+     *
+     * Accessible uniquement aux utilisateurs du nouveau système d'autorisations.
+     */
+    function mes_autorisations() {
+        if (!$this->use_new_auth) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $this->load->model('authorization_model');
+        $user_id = $this->dx_auth->get_user_id();
+        $roles = $this->authorization_model->get_user_roles($user_id, NULL);
+
+        // Regrouper par section
+        $roles_by_section = array();
+        foreach ($roles as $role) {
+            $section_name = $role['section_name'] ? $role['section_name'] : $this->lang->line('authorization_global_role');
+            if (!isset($roles_by_section[$section_name])) {
+                $roles_by_section[$section_name] = array();
+            }
+            $roles_by_section[$section_name][] = $role;
+        }
+
+        $data['roles_by_section'] = $roles_by_section;
+        $data['title'] = $this->lang->line('authorization_my_authorizations_title');
+
+        load_last_view('membre/mes_autorisations', $data);
+    }
+
+    /**
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::form2database()

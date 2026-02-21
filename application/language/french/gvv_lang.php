@@ -328,6 +328,11 @@ $lang['authorization_error_deleting_role'] = "Erreur lors de la suppression du r
 $lang['authorization_error_creating_role'] = "Erreur lors de la création du rôle";
 $lang['authorization_error_updating_role'] = "Erreur lors de la mise à jour du rôle";
 $lang['authorization_missing_required_fields'] = "Champs obligatoires manquants";
+$lang['authorization_granted_at'] = "Attribué le";
+$lang['authorization_global_role'] = "Global (toutes sections)";
+$lang['authorization_my_authorizations_title'] = "Mes autorisations";
+$lang['authorization_my_authorizations_desc'] = "Par section";
+$lang['authorization_no_roles_assigned'] = "Aucune autorisation attribuée";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

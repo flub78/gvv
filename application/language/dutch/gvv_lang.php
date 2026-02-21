@@ -264,6 +264,11 @@ $lang['authorization_error_deleting_role'] = "Fout bij het verwijderen van de ro
 $lang['authorization_error_creating_role'] = "Fout bij het aanmaken van de rol";
 $lang['authorization_error_updating_role'] = "Fout bij het bijwerken van de rol";
 $lang['authorization_missing_required_fields'] = "Verplichte velden ontbreken";
+$lang['authorization_granted_at'] = "Toegekend op";
+$lang['authorization_global_role'] = "Globaal (alle secties)";
+$lang['authorization_my_authorizations_title'] = "Mijn autorisaties";
+$lang['authorization_my_authorizations_desc'] = "Per sectie";
+$lang['authorization_no_roles_assigned'] = "Geen autorisaties toegewezen";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

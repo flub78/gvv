@@ -1059,6 +1059,8 @@ $config['use_new_authorization'] = FALSE;
 - ✅ 5 test users "Gaulois" enrolled dans `use_new_authorization`
 - ✅ Playwright authorization tests: 4 profils × 2 tests = 8 fichiers, tous passent
 - ✅ Global flag = FALSE, per-user migration active pour les Gaulois
+- ✅ Dashboard "Mon espace personnel" : rôle legacy (`$gvv_role`) masqué pour les nouveaux utilisateurs, carte "Mes autorisations" ajoutée
+- ✅ Page `membre/mes_autorisations` : liste les rôles de l'utilisateur par section (tableau)
 
 **Reste à faire — Priorité haute (avant Phase M3)**:
 1. **Tests Playwright pour panoramix** (admin) — seul profil non couvert

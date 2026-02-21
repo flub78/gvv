@@ -88,6 +88,9 @@ class Welcome extends Gvv_Controller {
         $this->load->model('sections_model');
         $data['user_accounts'] = $this->comptes_model->get_pilote_comptes($data['username']);
 
+        // Pass new auth status to view
+        $data['use_new_auth'] = $this->use_new_auth;
+
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin

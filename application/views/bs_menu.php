@@ -433,9 +433,11 @@ $section_selector = $CI->sections_model->selector_with_all();
         <form class="d-flex ms-5 bg-dark border-0">
           <div class="text-white bg-dark me-1 text-center">
             <?= $gvv_display_name ?>
+            <?php if (!method_exists($CI, 'uses_new_auth') || !$CI->uses_new_auth()): ?>
             <div class="text-white me-1 text-center">
               <?= $gvv_role ?>
             </div>
+            <?php endif; ?>
 
             <?php if ($section_count > 1) : ?>
               <div>

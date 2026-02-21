@@ -226,6 +226,17 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if (!empty($use_new_auth)): ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-shield-alt text-danger"></i>
+                        <div class="card-title"><?= translation('authorization_my_authorizations_title') ?></div>
+                        <div class="card-text text-muted"><?= translation('authorization_my_authorizations_desc') ?></div>
+                        <a href="<?= controller_url('membre/mes_autorisations') ?>" class="btn btn-danger btn-sm"><?= translation('dashboard_consult') ?></a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         </div>

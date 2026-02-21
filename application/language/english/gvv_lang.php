@@ -270,6 +270,11 @@ $lang['authorization_error_deleting_role'] = "Error deleting role";
 $lang['authorization_error_creating_role'] = "Error creating role";
 $lang['authorization_error_updating_role'] = "Error updating role";
 $lang['authorization_missing_required_fields'] = "Missing required fields";
+$lang['authorization_granted_at'] = "Granted on";
+$lang['authorization_global_role'] = "Global (all sections)";
+$lang['authorization_my_authorizations_title'] = "My authorizations";
+$lang['authorization_my_authorizations_desc'] = "By section";
+$lang['authorization_no_roles_assigned'] = "No authorizations assigned";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
