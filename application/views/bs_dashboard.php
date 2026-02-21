@@ -871,15 +871,6 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-history text-info"></i>
-                        <div class="card-title">Historique</div>
-                        <div class="card-text text-muted">Événements</div>
-                        <a href="<?= controller_url('historique') ?>" class="btn btn-info btn-sm">Consulter</a>
-                    </div>
-                </div>
-
                 <!-- Vols découverte management -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
