@@ -29,7 +29,7 @@ Cela implique de:
 
 ## Reste à faire
 
-* [ ] tests migration
+* [ ] Migration des tests
   * [ ] phpunit
     * [x] checks if there are still some CIUnit tests to migrate
     * [x] migrate them
@@ -98,6 +98,8 @@ Cela implique de:
 
 * [] Gérer le contexte des filtres par page.
 * [] Afficher une marque sur les écritures rapprochés.
+
+--- ---------------------------------------------------------------------------------------------------
 
 ## Fait récemment
 

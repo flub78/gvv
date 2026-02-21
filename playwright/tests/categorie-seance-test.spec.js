@@ -233,8 +233,10 @@ test.describe('Session Category Feature Tests', () => {
       console.log('   ℹ️ Category statistics section not visible (may appear when data exists)');
     }
 
-    // Test passes if page loads without error
-    expect(pageContent).not.toContain('error');
+    // Test passes if page loads without PHP error (not 'error' which appears in JS code)
+    expect(pageContent).not.toContain('Fatal error');
+    expect(pageContent).not.toContain('Parse error');
+    expect(pageContent).not.toContain('404 Page not found');
   });
 
 });

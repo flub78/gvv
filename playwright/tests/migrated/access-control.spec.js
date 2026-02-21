@@ -32,8 +32,9 @@ const COMMON_ELEMENTS = ['GVV', 'Copyright (©)', 'Boissel', 'Peignot'];
 // Elements that indicate errors or problems
 const ERROR_INDICATORS = ['Error', 'Exception', 'Fatal error', 'Undefined', '404 Page not found'];
 
-// Login redirect indicators (what users see when denied access)
-const ACCESS_DENIED = ['Utilisateur', 'Mot de passe', 'Connexion'];
+// Access denied indicators (what logged-in users see when denied access)
+// The app redirects to auth/deny which shows "Accès non autorisé"
+const ACCESS_DENIED = ['non autorisé'];
 
 /**
  * Test helper to verify page access - improved to handle hidden dropdown elements
@@ -160,25 +161,25 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       await loginPage.open();
       await loginPage.login(user.username, user.password);
       
-      // Pages regular users CAN access (just home page)
+      // Pages regular users CAN access
       const allowedPages = [
-        { url: '', mustSee: [] }  // Just verify home page loads
+        { url: '', mustSee: [] },  // Just verify home page loads
+        { url: 'alarmes', mustSee: ['Conditions'] }  // Flight conditions accessible to all members
       ];
-      
+
       for (const pageTest of allowedPages) {
         await testPageAccess(
-          page, 
-          loginPage, 
-          pageTest.url, 
-          [...COMMON_ELEMENTS, ...pageTest.mustSee], 
+          page,
+          loginPage,
+          pageTest.url,
+          [...COMMON_ELEMENTS, ...pageTest.mustSee],
           ERROR_INDICATORS
         );
       }
-      
+
       // Pages regular users CANNOT access
       const deniedPages = [
-        'alarmes',
-        'tickets/solde', 
+        'tickets/solde',
         'rapports/ffvv',
         'rapports/dgac',
         'terrains/page',
