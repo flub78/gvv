@@ -62,7 +62,6 @@ $this->load->view('bs_banner');
                         <th><?= $this->lang->line('authorization_role_name') ?></th>
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
-                        <th><?= $this->lang->line('authorization_role_system') ?></th>
                         <th><?= $this->lang->line('authorization_data_rules') ?></th>
                     </tr>
                 </thead>
@@ -102,13 +101,6 @@ $this->load->view('bs_banner');
                                     <span class="badge bg-info">
                                         <i class="fas fa-building"></i> <?= $this->lang->line('authorization_section') ?>
                                     </span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if ($role['is_system_role']): ?>
-                                    <span class="badge bg-success"><?= $this->lang->line('authorization_yes') ?></span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary"><?= $this->lang->line('authorization_no') ?></span>
                                 <?php endif; ?>
                             </td>
                             <td>

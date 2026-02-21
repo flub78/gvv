@@ -126,6 +126,7 @@ $lang['role_super_tresorier'] = "Super-penningmeester";
 $lang['role_club_admin'] = "Club beheerder";
 $lang['role_mecano'] = "Monteur";
 $lang['role_instructor'] = "Instructeur";
+$lang['role_rp'] = "Verantwoordelijke opleiding";
 
 $lang['role_user_desc'] = "Kan inloggen en eigen gegevens bekijken";
 $lang['role_auto_planchiste_desc'] = "Kan eigen vluchten aanmaken, wijzigen en verwijderen";

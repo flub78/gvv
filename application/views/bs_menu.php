@@ -35,9 +35,16 @@ $this->lang->load('acceptance');
 $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
-$section_count = $CI->sections_model->safe_count_all();
-// Always compute section_selector fresh to avoid empty dropdown when session data is lost
-$section_selector = $CI->sections_model->selector_with_all();
+
+// Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
+if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth->is_logged_in()) {
+    $user_id = $CI->dx_auth->get_user_id();
+    $section_selector = $CI->sections_model->selector_for_user($user_id);
+    $section_count = count($section_selector);
+} else {
+    $section_selector = $CI->sections_model->selector_with_all();
+    $section_count = $CI->sections_model->safe_count_all();
+}
 ?>
 
 <body>

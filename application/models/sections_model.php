@@ -106,6 +106,87 @@ class Sections_model extends Common_Model {
         return $result;
     }
 
+    /**
+     * Retourne le sélecteur de sections filtré selon les droits de l'utilisateur
+     * (système de nouvelles autorisations uniquement).
+     *
+     * Règles :
+     * - admin ou club-admin (dans n'importe quelle section) → toutes les sections + "Toutes"
+     * - rôle global (section_id IS NULL) → toutes les sections + "Toutes"
+     * - rôle 'user' dans TOUTES les sections → toutes les sections + "Toutes"
+     * - sinon → uniquement les sections où l'utilisateur a au moins un rôle (sans "Toutes")
+     *
+     * @param int $user_id  ID utilisateur (table users)
+     * @return array  Hash [section_id => nom, (optionnel) max+1 => 'Toutes']
+     */
+    public function selector_for_user($user_id)
+    {
+        // 1. Toutes les sections réelles (id != 0)
+        $this->db->select('id')
+            ->from('sections')
+            ->where('id !=', 0)
+            ->order_by('ordre_affichage', 'asc')
+            ->order_by('nom', 'asc');
+        $all_rows = $this->db->get()->result_array();
+        $all_section_ids = array_column($all_rows, 'id');
+        $total = count($all_section_ids);
+
+        // 2. Rôles de l'utilisateur dans user_roles_per_section
+        $this->db->select('urps.section_id, tr.nom as role_nom')
+            ->from('user_roles_per_section urps')
+            ->join('types_roles tr', 'tr.id = urps.types_roles_id')
+            ->where('urps.user_id', $user_id)
+            ->where('urps.revoked_at IS NULL', null, false);
+        $roles = $this->db->get()->result_array();
+
+        $is_admin         = false;
+        $has_global_role  = false;
+        $user_section_ids = [];
+        $sections_with_user_role = [];
+
+        foreach ($roles as $r) {
+            if ($r['section_id'] === null || $r['section_id'] === '') {
+                // Rôle global (toutes sections)
+                $has_global_role = true;
+            } else {
+                $sid = (int)$r['section_id'];
+                $user_section_ids[$sid] = true;
+                if (in_array($r['role_nom'], ['admin', 'club-admin'])) {
+                    $is_admin = true;
+                }
+                if ($r['role_nom'] === 'user') {
+                    $sections_with_user_role[$sid] = true;
+                }
+            }
+        }
+
+        $has_user_in_all = ($total > 0 && count($sections_with_user_role) >= $total);
+
+        // 3. Admin, rôle global ou 'user' dans toutes les sections → tout afficher + "Toutes"
+        if ($is_admin || $has_global_role || $has_user_in_all) {
+            return $this->selector_with_all();
+        }
+
+        // 4. Sinon : uniquement les sections de l'utilisateur, sans "Toutes"
+        $ids = array_keys($user_section_ids);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $this->db->select('id')
+            ->from('sections')
+            ->where_in('id', $ids)
+            ->order_by('ordre_affichage', 'asc')
+            ->order_by('nom', 'asc');
+        $rows = $this->db->get()->result_array();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int)$row['id']] = $this->image($row['id']);
+        }
+        return $result;
+    }
+
 	/**
 	 * Returns the dropdown array for sections selector with null option but excluding cross-section 
 	 * Used by procedures and other entities that need a null option for global scope

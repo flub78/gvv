@@ -132,6 +132,7 @@ $lang['role_super_tresorier'] = "Super Treasurer";
 $lang['role_club_admin'] = "Club Administrator";
 $lang['role_mecano'] = "Mechanic";
 $lang['role_instructor'] = "Instructor";
+$lang['role_rp'] = "Training manager";
 
 $lang['role_user_desc'] = "Can login and view own data";
 $lang['role_auto_planchiste_desc'] = "Can create, modify and delete own flights";
