@@ -17,9 +17,9 @@ Attachment Storage Feature
  [x] New file is stored when attachment uploaded
  [x] File is deleted when attachment removed
  [x] File is replaced when attachment edited
- [ ] Big image is significantly compressed
- [ ] Jpeg compressed in place
- [ ] Small image not compressed
+ [x] Big image is significantly compressed
+ [x] Jpeg compressed in place
+ [x] Small image not compressed
  [x] Attachments deleted when accounting line deleted
 
 Attachments Controller
@@ -27,7 +27,7 @@ Attachments Controller
  [x] Upload jpeg image creates attachment
  [x] Upload docx file creates attachment
  [x] Upload csv file creates attachment
- [ ] Upload file exceeding size limit
+ [x] Upload file exceeding size limit
  [x] File stored in correct year directory
  [x] File stored in correct section directory
  [x] Directory structure is correct
@@ -38,7 +38,7 @@ Attachments Controller
  [x] Attachment helper generates link for pdf
  [x] Edit attachment replaces old file
  [x] Edit attachment handles missing old file
- [ ] Replace image with pdf
+ [x] Replace image with pdf
 
 Authorization Controller
  [x] User roles view data structure

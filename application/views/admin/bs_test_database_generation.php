@@ -172,7 +172,7 @@ $this->load->view('bs_banner');
                         </div>
 
                         <div class="mt-3">
-                            <a href="<?= controller_url('admin') ?>" class="btn btn-primary">
+                            <a href="<?= controller_url('admin/page') ?>" class="btn btn-primary">
                                 <i class="fas fa-arrow-left"></i> Retour au tableau de bord
                             </a>
                             <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-secondary">

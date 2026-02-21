@@ -831,6 +831,16 @@ class Admin extends CI_Controller {
         // Call backend/users anonymization
         log_message('info', 'Starting global anonymization process');
 
+        // Anonymize ecritures BEFORE membres (needs real names to detect them in descriptions)
+        log_message('info', 'Anonymizing ecritures data');
+        $ecritures_updated = $this->_anonymize_ecritures($with_number);
+        $results['ecritures'] = array(
+            'routine' => 'Accounting entries anonymization',
+            'updated' => $ecritures_updated,
+            'total' => $ecritures_updated
+        );
+        $total_updated += $ecritures_updated;
+
         // Anonymize membres (extracted from membre/anonymize_all)
         log_message('info', 'Anonymizing membres data');
         $membres_updated = $this->_anonymize_membres($with_number);
@@ -1154,6 +1164,144 @@ class Admin extends CI_Controller {
             $this->db->where('id', $id);
             $this->db->update('vols_decouverte', $random_data);
             $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * Helper method to anonymize ecritures (accounting entries)
+     * Removes member names, check numbers and bank references from descriptions
+     * Must be called BEFORE _anonymize_membres() to be able to detect real names
+     *
+     * @param bool $with_number unused, kept for signature consistency
+     * @return int Number of records updated
+     */
+    private function _anonymize_ecritures($with_number = false) {
+        // Collect real member names BEFORE they are anonymized
+        $membres = $this->db->select('mnom, mprenom')->from('membres')
+            ->where('mnom !=', '')->where('mprenom !=', '')->get()->result_array();
+
+        // Build (nom, prenom) pairs sorted longest-first to avoid partial substitutions
+        $name_pairs = array();
+        foreach ($membres as $m) {
+            $nom   = trim($m['mnom']);
+            $prenom = trim($m['mprenom']);
+            if (strlen($nom) >= 2 && strlen($prenom) >= 2) {
+                $name_pairs[] = array('nom' => $nom, 'prenom' => $prenom);
+            }
+        }
+        usort($name_pairs, function($a, $b) {
+            return (strlen($b['nom']) + strlen($b['prenom'])) - (strlen($a['nom']) + strlen($a['prenom']));
+        });
+
+        $ecritures = $this->db->select('id, description, num_cheque')->from('ecritures')->get()->result_array();
+
+        $count = 0;
+        foreach ($ecritures as $ecriture) {
+            $desc      = $ecriture['description'];
+            $num_cheque = $ecriture['num_cheque'];
+            $changed   = false;
+
+            // --- Anonymize description ---
+            if (!empty($desc)) {
+                $orig_desc = $desc;
+
+                // Replace known member names (Nom Prenom and Prenom Nom orders)
+                foreach ($name_pairs as $pair) {
+                    $nom    = preg_quote($pair['nom'], '/');
+                    $prenom = preg_quote($pair['prenom'], '/');
+                    $desc = preg_replace('/\b' . $nom    . '\s+' . $prenom . '\b/iu', 'Membre', $desc);
+                    $desc = preg_replace('/\b' . $prenom . '\s+' . $nom    . '\b/iu', 'Membre', $desc);
+                }
+
+                // Replace "pilote=Prenom Nom" pattern (any remaining unmatched name)
+                $desc = preg_replace('/pilote=\S+\s+\S+/iu', 'pilote=Membre', $desc);
+
+                // Replace "VIREMENT compte [name]" — erase everything after the keyword
+                // unless it is a generic account type (courant, livret, épargne, général)
+                $desc = preg_replace(
+                    '/\bVIREMENT\s+compte\s+(?!(?:courant|g[eé]n[eé]ral|[eé]pargne|livret)\b)(.+)/iu',
+                    'VIREMENT compte Membre',
+                    $desc
+                );
+
+                // Replace "POUR: [name]" in SEPA/VIR transfers, keeping REF: if present
+                $desc = preg_replace_callback(
+                    '/\bPOUR:\s*(.+?)(\s+REF:\s*\S+)?$/iu',
+                    function($m) {
+                        $ref_part = !empty($m[2]) ? $m[2] : '';
+                        return 'POUR: Membre' . $ref_part;
+                    },
+                    $desc
+                );
+
+                // Replace French license plates (new format: AB-123-CD)
+                $desc = preg_replace('/\b[A-Z]{2}-[0-9]{3}-[A-Z]{2}\b/', 'XX-000-XX', $desc);
+                // Replace French license plates (old format: 1234AB56 or 123AB56)
+                $desc = preg_replace('/\b[0-9]{3,4}[A-Z]{2}[0-9]{2}\b/', 'XXXXXX', $desc);
+
+                // Replace standalone numeric sequences of 5+ digits in descriptions
+                // e.g. contract numbers "859518504", invoice numbers "2111515"
+                // 4-digit years and short numbers are left untouched
+                $desc = preg_replace('/\b[0-9]{5,}\b/', 'XXXXX', $desc);
+
+                // Replace bank/transfer reference codes: 2-4 uppercase letters + 5+ digits
+                // e.g. SG0000810, CM7919821, LCL1297630, CQFD25E068
+                $desc = preg_replace_callback(
+                    '/\b([A-Z]{2,4}[0-9]{5,}[0-9A-Z]*)\b/',
+                    function($m) { return 'REF' . strtoupper(substr(md5(mt_rand()), 0, 7)); },
+                    $desc
+                );
+
+                // Replace "XX 9999999" style bank refs (2 uppercase letters, space, 5+ digits)
+                // e.g. "CA 9990296"
+                $desc = preg_replace_callback(
+                    '/\b([A-Z]{2}\s+[0-9]{5,})\b/',
+                    function($m) { return 'REF ' . mt_rand(1000000, 9999999); },
+                    $desc
+                );
+
+                // Strip trailing person names not caught by previous patterns.
+                // Covers: "Prénom NOM", "NOM Prénom", "Init(s) NOM",
+                // optionally preceded by a preposition (à, pour, de).
+                // Applied in a loop to remove up to two stacked trailing names.
+                for ($i = 0; $i < 2; $i++) {
+                    $desc = preg_replace(
+                        '/\s+(?:(?:à|pour|de)\s+)?'
+                        . '(?:'
+                        .   '[A-ZÀ-Ÿ][a-zà-ÿ\'\-]+\s+[A-ZÀ-Ÿ]{2,}'          // Prénom NOM  (majuscule obligatoire)
+                        . '|[A-ZÀ-Ÿ]{2,}\s+[A-ZÀ-Ÿ][a-zà-ÿ\'\-]+'           // NOM Prénom
+                        . '|[A-Z]{1,3}\s+[A-ZÀ-Ÿ]{3,}'                        // Init(s) NOM
+                        . ')\s*$/u',
+                        '',
+                        $desc
+                    );
+                }
+                // Strip any dangling trailing preposition left by name removal
+                $desc = rtrim(preg_replace('/\s+(?:à|pour|de)\s*$/iu', '', $desc));
+
+                if ($desc !== $orig_desc) {
+                    $changed = true;
+                }
+            }
+
+            // --- Anonymize num_cheque if it is a real check/transfer number (purely numeric) ---
+            if (!empty($num_cheque) && preg_match('/^[0-9]{4,}$/', trim($num_cheque))) {
+                $len = strlen(trim($num_cheque));
+                // Preserve leading zeros format by padding to same length
+                $num_cheque = str_pad(mt_rand(1000, 9999999), $len, '0', STR_PAD_LEFT);
+                $changed = true;
+            }
+
+            if ($changed) {
+                $this->db->where('id', $ecriture['id']);
+                $this->db->update('ecritures', array(
+                    'description' => $desc,
+                    'num_cheque'  => $num_cheque,
+                ));
+                $count++;
+            }
         }
 
         return $count;
@@ -1581,14 +1729,15 @@ class Admin extends CI_Controller {
             ob_start();
             $with_number = $this->input->post('with_number') == '1';
             
+            $ecritures_updated = $this->_anonymize_ecritures($with_number);
             $membres_updated = $this->_anonymize_membres($with_number);
             $users_updated = $this->_anonymize_users();
             $vd_updated = $this->_anonymize_vols_decouverte($with_number);
-            
+
             ob_end_clean();
-            
-            $total_anonymized = $membres_updated + $users_updated + $vd_updated;
-            $results[] = array('step' => 'Anonymisation', 'status' => 'OK', 'details' => "$total_anonymized enregistrements anonymisés");
+
+            $total_anonymized = $ecritures_updated + $membres_updated + $users_updated + $vd_updated;
+            $results[] = array('step' => 'Anonymisation', 'status' => 'OK', 'details' => "$total_anonymized enregistrements anonymisés (dont $ecritures_updated écritures)");
 
             // Step 3: Add legacy test users (testuser, testadmin, etc.)
             log_message('info', 'Step 3: Adding legacy test users');

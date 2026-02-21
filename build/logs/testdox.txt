@@ -221,10 +221,8 @@ Authorization_model
  [x] Get user roles accepts correct parameters
  [x] Add permission accepts correct parameters
  [x] Add data access rule accepts correct parameters
- [x] Create role method exists
  [x] Update role method exists
  [x] Delete role method exists
- [x] Create role accepts correct parameters
  [x] Update role accepts correct parameters
  [x] Delete role accepts correct parameters
 
