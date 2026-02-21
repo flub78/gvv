@@ -91,6 +91,9 @@ class Welcome extends Gvv_Controller {
         // Pass new auth status to view
         $data['use_new_auth'] = $this->use_new_auth;
 
+        // Active section data (gestion_planeurs, gestion_avions, libelle_menu_avions, …)
+        $data['section'] = $this->sections_model->section();
+
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin

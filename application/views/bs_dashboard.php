@@ -243,6 +243,13 @@ $this->lang->load('welcome');
     </div>
 
     <!-- Gestion des vols -->
+    <?php
+    // Si aucune section active (vue "Toutes sections"), afficher toutes les activités
+    $show_planeurs = empty($section) || !empty($section['gestion_planeurs']);
+    $show_avions   = empty($section) || !empty($section['gestion_avions']);
+    $label_avions  = (!empty($section['libelle_menu_avions'])) ? $section['libelle_menu_avions'] : 'Avion';
+    ?>
+    <?php if ($show_planeurs || $show_avions): ?>
     <div class="accordion-item section-card flights">
         <h2 class="accordion-header" id="headingFlights">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFlights" aria-expanded="false" aria-controls="collapseFlights">
@@ -253,7 +260,9 @@ $this->lang->load('welcome');
         <div id="collapseFlights" class="accordion-collapse collapse" aria-labelledby="headingFlights" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
-                <!-- Planeur section -->
+
+                <?php if ($show_planeurs): ?>
+                <!-- Sous-section Planeur -->
                 <div class="col-12">
                     <h6 class="text-muted mb-2"><i class="fas fa-plane"></i> Planeur</h6>
                 </div>
@@ -286,10 +295,12 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+                <?php endif; ?>
 
-                <!-- Avion section -->
-                <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-plane-departure"></i> Avion</h6>
+                <?php if ($show_avions): ?>
+                <!-- Sous-section activité motorisée (libellé défini par section) -->
+                <div class="col-12 <?= $show_planeurs ? 'mt-3' : '' ?>">
+                    <h6 class="text-muted mb-2"><i class="fas fa-plane-departure"></i> <?= htmlspecialchars($label_avions) ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -322,10 +333,13 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+                <?php endif; ?>
+
             </div>
         </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <?php if ($is_bureau): ?>
     <!-- Section Trésorier -->
