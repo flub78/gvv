@@ -1789,7 +1789,11 @@ class Vols_planeur extends Gvv_Controller {
      * Liste les heurs par pilotes et par machines
      */
     function par_pilote_machine($type = "html", $what = "total") {
-        if (! $this->dx_auth->is_role('planchiste')) {
+        // Legacy: is_role('planchiste') returns TRUE for ca/bureau/tresorier via hierarchy.
+        // New auth is non-hierarchical, so check all equivalent roles explicitly.
+        if (! $this->user_has_role('planchiste')
+            && ! $this->user_has_role('ca')
+            && ! $this->user_has_role('tresorier')) {
             $this->dx_auth->deny_access();
         }
         

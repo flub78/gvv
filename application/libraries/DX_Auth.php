@@ -418,6 +418,24 @@ class DX_Auth {
     public $skip_uri_check = FALSE;
 
     function check_uri_permissions($allow = TRUE) {
+        // Auto-detect new-auth users who arrive via controllers that don't extend Gvv_Controller
+        // (e.g. CI_Controller subclasses like FFVV, Adherents_report)
+        if (!$this->skip_uri_check && $this->is_logged_in()) {
+            $this->ci->config->load('gvv_config', TRUE);
+            $use_new = $this->ci->config->item('use_new_authorization', 'gvv_config');
+            if (!$use_new) {
+                try {
+                    $username = $this->get_username();
+                    $q = $this->ci->db->get_where('use_new_authorization', ['username' => $username]);
+                    if ($q && $q->num_rows() > 0) {
+                        $use_new = TRUE;
+                    }
+                } catch (Exception $e) {}
+            }
+            if ($use_new) {
+                $this->skip_uri_check = TRUE;
+            }
+        }
         // Skip legacy URI permission check for new authorization system users
         if ($this->skip_uri_check) {
             return;

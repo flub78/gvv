@@ -83,7 +83,7 @@ class Event extends Gvv_Controller {
         }
 
         // Non-CA users can only view their own events
-        $is_ca = $this->dx_auth->is_role($this->modification_level, true, true);
+        $is_ca = $this->user_has_role($this->modification_level);
         if (!$is_ca) {
             $current_user = $this->dx_auth->get_username();
             if ($mlogin != $current_user) {

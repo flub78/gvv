@@ -54,6 +54,13 @@ const SKIP_PATTERNS = [
     /\/api\//,
     /\/user_guide\//,         // CodeIgniter documentation
     /\/libraries\//,          // CI library docs
+    /^\/config(\/|$)/,        // Site configuration (admin only)
+    /^\/configuration(\/|$)/, // Global configuration (admin only)
+    /^\/authorization(\/|$)/, // Authorization management (admin only)
+    /\/download_txt\//,       // Plain-text email list download
+    /\/download_md\//,        // Markdown email list download
+    /^\/rapports\/financier/, // Financial report download
+    /^\/rapports\/comptes/,   // Accounts report download
     /javascript:/,
     /mailto:/,
     /\.pdf$/i,

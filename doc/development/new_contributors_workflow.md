@@ -40,6 +40,7 @@ Le processus d’installation d’un contributeur est **terminé** quand il est 
 - Se baser sur un besoin clair (bug identifié ou fonctionnalité demandée).
 - Créer une branche dédiée à partir de la branche principale.
 - Garder la branche courte et focalisée sur un seul objectif.
+- Passer les tests existants avant de modifier quoique ce soit afin de mesurer les regressions
 
 ### 2) Travailler en mode TDD (Test-Driven Development)
 Le développement est **test-driven** :
