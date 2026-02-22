@@ -34,6 +34,12 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
     <a href="<?= site_url('archived_documents/download/' . $document['id']) ?>" class="btn btn-sm btn-primary">
         <i class="fas fa-download"></i> <?= $this->lang->line('archived_documents_download') ?>
     </a>
+    <a href="<?= site_url('archived_documents/edit_doc/' . $document['id']) ?>" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-edit"></i> <?= $this->lang->line('archived_documents_edit') ?>
+    </a>
+    <a href="<?= site_url('archived_documents/new_version/' . $document['id']) ?>" class="btn btn-sm btn-outline-success">
+        <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version') ?>
+    </a>
     <?php if (!empty($can_delete)): ?>
     <a href="<?= site_url('archived_documents/delete/' . $document['id']) ?>"
        class="btn btn-sm btn-danger"

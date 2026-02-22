@@ -17,7 +17,6 @@ $lang['document_types_section'] = 'Sectie';
 $lang['document_types_scope'] = 'Bereik';
 $lang['document_types_required'] = 'Verplicht';
 $lang['document_types_has_expiration'] = 'Heeft Vervaldatum';
-$lang['document_types_allow_versioning'] = 'Versiebeheer';
 $lang['document_types_storage_by_year'] = 'Opslag per Jaar';
 $lang['document_types_alert_days_before'] = 'Waarschuwing (dagen voor)';
 $lang['document_types_active'] = 'Actief';

@@ -1,6 +1,6 @@
 # PRD — Archivage Documentaire
 
-Date : 4 février 2026
+Date : 4 février 2026 — mis à jour le 22 février 2026 (suppression unique_per_entity)
 
 ## Contexte
 L’association doit archiver des documents liés aux pilotes et, potentiellement, à d’autres usages (documents club, déclarations d’activité, renouvellements, etc.). Les documents peuvent avoir une date de validité, être remplacés par des versions plus récentes, nécessiter une validation administrative et faire l’objet d’alertes d’expiration.
@@ -25,10 +25,12 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 ## Portée
 ### Inclus
 - Documents liés à un pilote (ex. visite médicale) et documents non associés à un pilote (ex. documents club/sections).
-- Versionning (remplacement par versions plus récentes tout en conservant l'accès aux anciennes versions).
+- Plusieurs documents du même type peuvent coexister pour un même pilote ou une même entité (ex. deux assurances simultanées).
+- Edition in-place d'un document (libellé, description, fichier) sans création de nouvelle version.
+- Création explicite d'une nouvelle version via un bouton dédié, avec conservation de l'historique.
 - Indicateurs visuels d'expiration et notifications avant expiration.
 - Désactivation des alertes par document (par les administrateurs).
-- Gestion des types de documents avec règles associées (obligatoire, portée, expiration, etc.).
+- Gestion des types de documents avec règles associées (obligatoire, portée, expiration, unicité, etc.).
 
 ### Exclu
 - Modification automatique des statuts de membres ou des droits à partir des documents.
@@ -40,10 +42,11 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 - **Association/Club** : documents non liés à un pilote (documents club/sections).
 
 ## Parcours clés
-1. **Pilote ajoute un document** → document visible immédiatement dans sa liste de documents.
+1. **Pilote ajoute un document** → choisit le type, saisit un libellé si nécessaire → document visible immédiatement dans sa liste.
 2. **Document arrive à expiration** → marqueur d'expiration affiché → alertes email envoyées → visible dans la liste "expirés" des administrateurs.
 3. **Administrateur désactive une alerte** → clic sur l'alerte du document → plus d'alertes pour ce document.
-4. **Nouvelle version d'un document** → la nouvelle version devient la version active → les versions antérieures restent accessibles.
+4. **Edition d'un document** → l'utilisateur modifie le libellé, la description ou remplace le fichier en place → aucune nouvelle version créée → le document reste le même dans la chaîne.
+5. **Nouvelle version** → l'utilisateur clique "Nouvelle version" sur un document existant → un nouveau maillon est créé dans la chaîne → la nouvelle version devient active → les versions précédentes restent accessibles.
 
 ## Exigences fonctionnelles
 1. **Ajout de documents par les administrateurs**
@@ -58,33 +61,40 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 3. **Dates de validité**
    - La date de validité est optionnelle.
    - Le système doit déterminer l'état "expiré" en fonction de la date de validité.
-4. **Versionning**
-   - Le système doit permettre d'ajouter une nouvelle version d'un document sans supprimer l'ancienne.
-   - Les versions précédentes doivent rester consultables. Certains documents sont uniques et non versionés.
-5. **Suppression des documents**
+4. **Documents et types de documents**
+   - Un type de document définit des règles (portée, obligatoire, expiration, unicité) ; il ne constitue pas un emplacement unique par pilote.
+   - Plusieurs documents du même type peuvent coexister pour un même pilote ou une même entité (ex. licence planeur et licence ULM sont deux instances du type "licence").
+   - Chaque document dispose d'un libellé permettant de l'identifier parmi d'autres documents du même type.
+
+5. **Versionning**
+   - **Edition in-place** : l'utilisateur peut modifier le libellé, la description ou remplacer le fichier du document existant sans créer de nouvelle version.
+   - **Nouvelle version** : action explicite via un bouton dédié sur le document. Crée un nouveau maillon dans la chaîne (lien vers la version précédente), la nouvelle version devient active, les précédentes restent consultables.
+   - Si l'utilisateur ajoute un document d'un type pour lequel un document du même type existe déjà pour la même entité, un avertissement lui propose de créer une nouvelle version plutôt qu'un document indépendant.
+   - L'historique des versions est accessible depuis le document courant.
+6. **Suppression des documents**
    - Un pilote peut supprimer ses propres documents.
    - Un administrateur peut supprimer tout document.
-6. **Accès administrateur**
+7. **Accès administrateur**
    - Les administrateurs ont accès à tous les documents.
-   - Ils disposent d'un accès direct à la liste des documents "expirés".
-7. **Affichage des expirations**
+   - Ils disposent d’un accès direct à la liste des documents "expirés".
+8. **Affichage des expirations**
    - Les documents expirés doivent être affichés avec un marqueur visuel spécifique.
-   - Les documents proches de l'expiration doivent être mis en évidence.
-   - Tous les documents n'ont pas de date d'expiration. Pour ceux qui en ont, l'état doit être "actif", "expiration proche" ou "expiré".
-   - Pour les documents pilotes, un type peut être marqué "obligatoire". Si obligatoire et aucun document valide, le statut "manquant" est affiché pour le pilote.
-8. **Désactivation des alertes**
-   - Les administrateurs peuvent désactiver les alertes document par document en cliquant sur l'alerte.
-   - Un document avec alerte désactivée n'apparaît plus dans les notifications ni dans la liste des documents expirés. 
-9. **Notifications**
-   - Les utilisateurs peuvent s'abonner à des alertes par email avant l'expiration.
-   - Le délai d'alerte est paramétrable (valeur par défaut à définir).
-10. **Types de fichiers supportés**
-   - Le système doit accepter au minimum les mêmes types que l'archivage des factures : images et PDF.
-11. **Réutilisation des mécanismes existants**
+   - Les documents proches de l’expiration doivent être mis en évidence.
+   - Tous les documents n’ont pas de date d’expiration. Pour ceux qui en ont, l’état doit être "actif", "expiration proche" ou "expiré".
+   - Pour les documents pilotes, un type peut être marqué "obligatoire". Si obligatoire et aucun document valide ou actif, le statut "manquant" est affiché pour le pilote.
+9. **Désactivation des alertes**
+   - Les administrateurs peuvent désactiver les alertes document par document en cliquant sur l’alerte.
+   - Un document avec alerte désactivée n’apparaît plus dans les notifications ni dans la liste des documents expirés.
+10. **Notifications**
+   - Les utilisateurs peuvent s’abonner à des alertes par email avant l’expiration.
+   - Le délai d’alerte est paramétrable (valeur par défaut à définir).
+11. **Types de fichiers supportés**
+   - Le système doit accepter au minimum les mêmes types que l’archivage des factures : images et PDF.
+12. **Réutilisation des mécanismes existants**
    - Le système doit réutiliser les bibliothèques et mécanismes existants pour le stockage et la compression des fichiers.
-12. **Gestion des types de documents**
-   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, associé à un pilote ou au club, date d’expiration ou non, emplacement de stockage par défaut, stockage par année ou non, etc.).
-   - Ces types facilitent la création de documents et assurent l’uniformité.
+13. **Gestion des types de documents**
+   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, portée pilote/section/club, date d’expiration ou non, unique par entité ou non, délai d’alerte).
+   - Ces types définissent des règles applicables aux documents (obligatoire, portée, expiration, délai d'alerte), pas des emplacements uniques. Un pilote peut avoir plusieurs documents du même type simultanément.
 
 
 ## Exigences non fonctionnelles

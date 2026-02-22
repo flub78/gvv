@@ -53,7 +53,6 @@ $form_fields = array(
     'scope' => isset($scope) ? $scope : 'pilot',
     'required' => isset($required) ? $required : 0,
     'has_expiration' => isset($has_expiration) ? $has_expiration : 1,
-    'allow_versioning' => isset($allow_versioning) ? $allow_versioning : 1,
     'storage_by_year' => isset($storage_by_year) ? $storage_by_year : 0,
     'alert_days_before' => isset($alert_days_before) ? $alert_days_before : 30,
     'active' => isset($active) ? $active : 1,

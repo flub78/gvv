@@ -327,7 +327,13 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
-     * Returns missing required documents for a pilot
+     * Returns required document types for which the pilot has no valid document.
+     *
+     * A type is considered "missing" if the pilot has no current, non-expired,
+     * approved document of that type. Multiple instances of the same type
+     * (unique_per_entity=0) are all checked: at least one valid instance
+     * is sufficient to satisfy the requirement.
+     *
      * @param string $pilot_login Pilot login
      * @param int|null $section_id Section ID for section-specific required types
      * @return array Missing document types
@@ -336,23 +342,22 @@ class Archived_documents_model extends Common_Model {
         // Get required types
         $required_types = $this->document_types_model->get_required_pilot_types($section_id);
 
-        // Get pilot's current valid documents
+        // Get pilot's current documents (is_current_version=1, all instances)
         $pilot_docs = $this->get_pilot_documents($pilot_login, true);
 
-        // Index pilot docs by type_id
-        $pilot_type_ids = array();
+        // For each type, track whether at least one valid and approved instance exists
+        $covered_type_ids = array();
         foreach ($pilot_docs as $doc) {
-            // Only count as valid if not expired and approved
             $is_approved = !isset($doc['validation_status']) || $doc['validation_status'] === 'approved';
             if ($doc['expiration_status'] !== self::STATUS_EXPIRED && $is_approved) {
-                $pilot_type_ids[$doc['document_type_id']] = true;
+                $covered_type_ids[$doc['document_type_id']] = true;
             }
         }
 
-        // Find missing types
+        // A required type is missing if no valid instance covers it
         $missing = array();
         foreach ($required_types as $type) {
-            if (!isset($pilot_type_ids[$type['id']])) {
+            if (!isset($covered_type_ids[$type['id']])) {
                 $type['expiration_status'] = self::STATUS_MISSING;
                 $missing[] = $type;
             }
@@ -415,54 +420,38 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
-     * Creates a new document, handling versioning
+     * Creates a new document. If previous_version_id is set in $data,
+     * marks the previous document as no longer current.
      * @param array $data Document data
      * @return int|false New document ID or false on failure
      */
     public function create_document($data) {
-        $allow_versioning = true;
-        if (empty($data['document_type_id'])) {
-            $allow_versioning = false;
-        } else {
-            $doc_type = $this->document_types_model->get_by_id('id', $data['document_type_id']);
-            if (!$doc_type || empty($doc_type['allow_versioning'])) {
-                $allow_versioning = false;
-            }
+        // If creating a new version of an existing document, mark the old as non-current
+        if (!empty($data['previous_version_id'])) {
+            $this->db->where('id', $data['previous_version_id']);
+            $this->db->update($this->table, array('is_current_version' => 0));
         }
 
-        if ($allow_versioning) {
-            // Check for existing current version of same type for same pilot/section
-            $where = array(
-                'document_type_id' => $data['document_type_id'],
-                'is_current_version' => 1
-            );
-
-            if (!empty($data['pilot_login'])) {
-                $where['pilot_login'] = $data['pilot_login'];
-            } elseif (!empty($data['section_id'])) {
-                $where['section_id'] = $data['section_id'];
-            }
-
-            $existing = $this->get_first($where);
-
-            // If existing, mark it as not current and link
-            if ($existing) {
-                $this->db->where('id', $existing['id']);
-                $this->db->update($this->table, array('is_current_version' => 0));
-                $data['previous_version_id'] = $existing['id'];
-            }
-        }
-
-        // Set defaults
         $data['is_current_version'] = 1;
         $data['uploaded_at'] = date('Y-m-d H:i:s');
 
-        // Set validation_status if not already set
         if (!isset($data['validation_status'])) {
             $data['validation_status'] = 'pending';
         }
 
         return $this->create($data);
+    }
+
+    /**
+     * Updates meta fields of an existing document (label, description, dates, file).
+     * Does not create a new version.
+     * @param int   $id   Document ID
+     * @param array $data Fields to update
+     * @return bool
+     */
+    public function update_document($id, $data) {
+        $this->db->where('id', $id);
+        return $this->db->update($this->table, $data);
     }
 
     /**

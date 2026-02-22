@@ -84,5 +84,13 @@ $lang['archived_documents_pending_notice'] = 'Votre document est en attente de v
 $lang['archived_documents_filter_all'] = 'Tous';
 $lang['archived_documents_pilot_only_types'] = 'Les pilotes ne peuvent sélectionner que des types de documents pilotes.';
 
+$lang['archived_documents_edit'] = 'Modifier';
+$lang['archived_documents_edit_title'] = 'Modifier le document';
+$lang['archived_documents_new_version'] = 'Nouvelle version';
+$lang['archived_documents_new_version_title'] = 'Nouvelle version du document';
+$lang['archived_documents_new_version_of'] = 'Nouvelle version de';
+$lang['archived_documents_updated'] = 'Document mis à jour avec succès';
+$lang['archived_documents_same_type_warning'] = 'Un document de ce type existe déjà. En continuant, vous créerez un document indépendant. Pour mettre à jour le document existant, utilisez le bouton "Nouvelle version" sur ce dernier.';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/french/archived_documents_lang.php */

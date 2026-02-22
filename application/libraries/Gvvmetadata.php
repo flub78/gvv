@@ -829,8 +829,6 @@ class GVVMetadata extends Metadata {
                 $this->field['document_types']['required']['Subtype'] = 'checkbox';
                 $this->field['document_types']['has_expiration']['Name'] = 'Avec expiration';
                 $this->field['document_types']['has_expiration']['Subtype'] = 'checkbox';
-                $this->field['document_types']['allow_versioning']['Name'] = 'Versionning';
-                $this->field['document_types']['allow_versioning']['Subtype'] = 'checkbox';
                 $this->field['document_types']['storage_by_year']['Name'] = 'Stockage par annee';
                 $this->field['document_types']['storage_by_year']['Subtype'] = 'checkbox';
                 $this->field['document_types']['alert_days_before']['Name'] = 'Alerte (jours)';

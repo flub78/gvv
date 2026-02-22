@@ -215,6 +215,20 @@ class Archived_documents extends Gvv_Controller {
         $this->data['uploaded_by'] = $this->dx_auth->get_username();
         $this->data['force_pilot_types'] = true;
 
+        // UX warning: check if a document of the pre-selected type already exists for this pilot
+        $type_id = $this->input->get('type');
+        if (!empty($type_id)) {
+            $existing = $this->gvv_model->get_first(array(
+                'document_type_id' => $type_id,
+                'pilot_login'      => $this->dx_auth->get_username(),
+                'is_current_version' => 1,
+            ));
+            if ($existing) {
+                $this->data['same_type_warning'] = true;
+                $this->data['existing_doc_id'] = $existing['id'];
+            }
+        }
+
         $this->form_static_element(CREATION);
 
         return load_last_view($this->controller . '/formPilotView', $this->data, $this->unit_test);
@@ -360,19 +374,21 @@ class Archived_documents extends Gvv_Controller {
         $validation_status = ($is_admin && !$is_pilot_form) ? 'approved' : 'pending';
 
         // Prepare document data
+        $previous_version_id = $this->input->post('previous_version_id');
         $doc_data = array(
-            'document_type_id' => $document_type_id ?: null,
-            'pilot_login' => !empty($pilot_login) ? $pilot_login : null,
-            'section_id' => $section_id,
-            'file_path' => $file_path,
-            'original_filename' => $_FILES['userfile']['name'],
-            'description' => $this->input->post('description'),
-            'uploaded_by' => $this->dx_auth->get_username(),
-            'valid_from' => mysql_date($this->input->post('valid_from')) ?: null,
-            'valid_until' => mysql_date($this->input->post('valid_until')) ?: null,
-            'file_size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
-            'mime_type' => $mime,
-            'validation_status' => $validation_status
+            'document_type_id'   => $document_type_id ?: null,
+            'pilot_login'        => !empty($pilot_login) ? $pilot_login : null,
+            'section_id'         => $section_id,
+            'file_path'          => $file_path,
+            'original_filename'  => $_FILES['userfile']['name'],
+            'description'        => $this->input->post('description'),
+            'uploaded_by'        => $this->dx_auth->get_username(),
+            'valid_from'         => mysql_date($this->input->post('valid_from')) ?: null,
+            'valid_until'        => mysql_date($this->input->post('valid_until')) ?: null,
+            'file_size'          => $upload_data['file_size'] * 1024, // Convert KB to bytes
+            'mime_type'          => $mime,
+            'validation_status'  => $validation_status,
+            'previous_version_id' => !empty($previous_version_id) ? (int)$previous_version_id : null,
         );
 
         // If admin approves directly, record validation info
@@ -381,7 +397,7 @@ class Archived_documents extends Gvv_Controller {
             $doc_data['validated_at'] = date('Y-m-d H:i:s');
         }
 
-        // Create document (handles versioning automatically)
+        // Create document (marks previous version as non-current if previous_version_id is set)
         $doc_id = $this->gvv_model->create_document($doc_data);
 
         if ($doc_id) {
@@ -432,6 +448,147 @@ class Archived_documents extends Gvv_Controller {
             ($doc['pilot_login'] === $this->dx_auth->get_username() && (!isset($doc['validation_status']) || $doc['validation_status'] !== 'approved'));
 
         load_last_view($this->controller . '/view', $this->data);
+    }
+
+    /**
+     * In-place edit form: modify description, dates, optional new file.
+     * Does NOT create a new version.
+     * Named edit_doc to avoid conflict with Gvv_Controller::edit().
+     */
+    function edit_doc($id) {
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $this->data = array_merge($this->data, $doc);
+        $this->data['document'] = $doc;
+        $this->data['action']   = MODIFICATION;
+        $this->data['controller'] = $this->controller;
+        $this->data['is_admin'] = $this->_is_admin();
+
+        $this->push_return_url('archived_documents edit_doc');
+        load_last_view($this->controller . '/editView', $this->data);
+    }
+
+    /**
+     * Process in-place edit: updates meta fields and optionally replaces the file.
+     */
+    function edit_docValidation($id) {
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $button = $this->input->post('button');
+        if ($button == $this->lang->line('gvv_button_cancel')) {
+            $this->pop_return_url();
+            return;
+        }
+
+        $update_data = array(
+            'description' => $this->input->post('description') ?: null,
+            'valid_from'  => mysql_date($this->input->post('valid_from')) ?: null,
+            'valid_until' => mysql_date($this->input->post('valid_until')) ?: null,
+        );
+
+        // Optional file replacement
+        if (!empty($_FILES['userfile']['name'])) {
+            $document_type = !empty($doc['document_type_id'])
+                ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+                : null;
+            $dirname = $this->_get_storage_path($document_type, $doc['pilot_login'], $doc['section_id']);
+
+            if ($this->_ensure_directory($dirname)) {
+                $storage_file = time() . '_' . rand(1000, 9999) . '_' . $this->_sanitize_filename($_FILES['userfile']['name']);
+                $config = array(
+                    'upload_path'   => $dirname,
+                    'allowed_types' => 'gif|jpg|jpeg|png|pdf|doc|docx|xls|xlsx|odt|ods|odp|ppt|pptx|html|htm',
+                    'max_size'      => 10000,
+                    'file_name'     => $storage_file,
+                );
+                $this->load->library('upload', $config);
+
+                if ($this->upload->do_upload('userfile')) {
+                    $upload_data = $this->upload->data();
+                    $file_path = $dirname . $storage_file;
+                    $this->load->library('file_compressor');
+                    $result = $this->file_compressor->compress($file_path);
+                    if ($result['success']) {
+                        $file_path = $result['compressed_path'];
+                    }
+                    $mime = mime_content_type($file_path);
+                    if ($mime === 'application/pdf') {
+                        $this->load->library('pdf_thumbnail');
+                        $this->pdf_thumbnail->generate($file_path);
+                    }
+                    $update_data['file_path']         = $file_path;
+                    $update_data['original_filename'] = $_FILES['userfile']['name'];
+                    $update_data['file_size']         = $upload_data['file_size'] * 1024;
+                    $update_data['mime_type']         = $mime;
+                } else {
+                    $this->data['message']    = '<div class="alert alert-danger">' . $this->upload->display_errors() . '</div>';
+                    $this->data['document']   = $doc;
+                    $this->data['action']     = MODIFICATION;
+                    $this->data['controller'] = $this->controller;
+                    $this->data['is_admin']   = $this->_is_admin();
+                    load_last_view($this->controller . '/editView', $this->data);
+                    return;
+                }
+            }
+        }
+
+        $this->gvv_model->update_document($id, $update_data);
+        $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('archived_documents_updated') . '</div>');
+        redirect('archived_documents/view/' . $id);
+    }
+
+    /**
+     * New version form: upload a new file linked to an existing document.
+     * The existing document is marked as non-current when the new one is saved.
+     */
+    function new_version($id) {
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        $table = $this->gvv_model->table();
+        $this->data = $this->gvvmetadata->defaults_list($table);
+        $this->data['document_type_id']   = $doc['document_type_id'];
+        $this->data['pilot_login']        = $doc['pilot_login'] ?: $this->dx_auth->get_username();
+        $this->data['section_id']         = $doc['section_id'];
+        $this->data['description']        = $doc['description'];
+        $this->data['uploaded_by']        = $this->dx_auth->get_username();
+        $this->data['previous_version_id'] = $id;
+        $this->data['new_version_of']     = $doc;
+        $this->data['force_pilot_types']  = !$this->_is_admin();
+
+        $this->push_return_url('archived_documents new_version');
+        $this->form_static_element(CREATION);
+
+        $view = $this->_is_admin()
+            ? $this->controller . '/formView'
+            : $this->controller . '/formPilotView';
+        return load_last_view($view, $this->data, $this->unit_test);
     }
 
     /**

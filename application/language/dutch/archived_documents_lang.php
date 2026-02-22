@@ -84,5 +84,13 @@ $lang['archived_documents_pending_notice'] = 'Uw document wacht op validatie doo
 $lang['archived_documents_filter_all'] = 'Alle';
 $lang['archived_documents_pilot_only_types'] = 'Piloten kunnen alleen pilootdocumenttypes selecteren.';
 
+$lang['archived_documents_edit'] = 'Bewerken';
+$lang['archived_documents_edit_title'] = 'Document bewerken';
+$lang['archived_documents_new_version'] = 'Nieuwe versie';
+$lang['archived_documents_new_version_title'] = 'Nieuwe versie van document';
+$lang['archived_documents_new_version_of'] = 'Nieuwe versie van';
+$lang['archived_documents_updated'] = 'Document succesvol bijgewerkt';
+$lang['archived_documents_same_type_warning'] = 'Er bestaat al een document van dit type. Als u doorgaat, maakt u een onafhankelijk document. Gebruik de knop "Nieuwe versie" op het bestaande document om het bij te werken.';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

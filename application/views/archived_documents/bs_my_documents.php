@@ -107,6 +107,12 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
                     </a>
+                    <a href="<?= site_url('archived_documents/edit_doc/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_edit') ?>">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="<?= site_url('archived_documents/new_version/' . $doc['id']) ?>" class="btn btn-sm btn-outline-success" title="<?= $this->lang->line('archived_documents_new_version') ?>">
+                        <i class="fas fa-code-branch"></i>
+                    </a>
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>

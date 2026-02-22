@@ -14,12 +14,25 @@ $this->lang->load('archived_documents');
 <div id="body" class="body container-fluid">
 
 <h3>
-    <?php if ($action == CREATION): ?>
+    <?php if (!empty($previous_version_id)): ?>
+        <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version_title') ?>
+    <?php elseif ($action == CREATION): ?>
         <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
     <?php else: ?>
         <i class="fas fa-edit"></i> <?= $this->lang->line('archived_documents_view') ?>
     <?php endif; ?>
 </h3>
+
+<?php if (!empty($previous_version_id) && !empty($new_version_of)): ?>
+<div class="alert alert-info">
+    <i class="fas fa-code-branch"></i>
+    <?= $this->lang->line('archived_documents_new_version_of') ?> :
+    <strong><?= htmlspecialchars($new_version_of['original_filename']) ?></strong>
+    <?php if (!empty($new_version_of['valid_until'])): ?>
+        — <?= $this->lang->line('archived_documents_valid_until') ?> <?= date('d/m/Y', strtotime($new_version_of['valid_until'])) ?>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="mb-3">
     <a href="<?= site_url('document_types/page') ?>" class="btn btn-sm btn-outline-secondary">
@@ -119,6 +132,9 @@ $this->lang->load('archived_documents');
         </div>
 
         <?= form_hidden('uploaded_by', $uploaded_by) ?>
+        <?php if (!empty($previous_version_id)): ?>
+        <?= form_hidden('previous_version_id', $previous_version_id) ?>
+        <?php endif; ?>
 
     </div>
     <div class="card-footer">

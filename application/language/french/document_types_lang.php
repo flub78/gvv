@@ -17,7 +17,6 @@ $lang['document_types_section'] = 'Section';
 $lang['document_types_scope'] = 'Portée';
 $lang['document_types_required'] = 'Obligatoire';
 $lang['document_types_has_expiration'] = 'Avec expiration';
-$lang['document_types_allow_versioning'] = 'Versionning';
 $lang['document_types_storage_by_year'] = 'Stockage par année';
 $lang['document_types_alert_days_before'] = 'Alerte (jours avant)';
 $lang['document_types_active'] = 'Actif';

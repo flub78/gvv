@@ -3,13 +3,15 @@
 use PHPUnit\Framework\TestCase;
 
 /**
- * MySQL integration tests for archived_documents migration (067)
+ * MySQL integration tests for archived_documents migrations (067, 075)
  *
- * Tests that the migration properly creates the tables with all constraints,
- * foreign keys, indexes, and initial data.
+ * Tests that the migrations properly create the tables with all constraints,
+ * foreign keys, indexes, and initial data. Migration 075 removes allow_versioning
+ * and adds label (versioning is now always explicit via the "Nouvelle version" action).
  *
  * @package tests
  * @see application/migrations/067_archived_documents.php
+ * @see application/migrations/075_document_types_class_instance.php
  */
 class ArchivedDocumentsMigrationTest extends TestCase
 {
@@ -75,8 +77,7 @@ class ArchivedDocumentsMigrationTest extends TestCase
         $columns = $this->getTableColumns('document_types');
         $expected_columns = [
             'id', 'code', 'name', 'section_id', 'scope', 'required',
-            'has_expiration', 'allow_versioning',
-            'storage_by_year', 'alert_days_before', 'active', 'display_order'
+            'has_expiration', 'storage_by_year', 'alert_days_before', 'active', 'display_order'
         ];
 
         foreach ($expected_columns as $column) {
@@ -150,6 +151,19 @@ class ArchivedDocumentsMigrationTest extends TestCase
         $result = $query->row_array();
 
         $this->assertGreaterThanOrEqual(8, $result['count'], 'document_types should have at least 8 initial records');
+    }
+
+    public function testDocumentTypesTable_NoLegacyVersioningColumns()
+    {
+        if (!$this->tableExists('document_types')) {
+            $this->markTestSkipped('Table document_types does not exist');
+        }
+
+        $columns = $this->getTableColumns('document_types');
+        $this->assertNotContains('allow_versioning', $columns,
+            'allow_versioning column should not exist after migration 075');
+        $this->assertNotContains('unique_per_entity', $columns,
+            'unique_per_entity column should not exist (versioning is always explicit)');
     }
 
     public function testDocumentTypesTable_MedicalTypeExists()

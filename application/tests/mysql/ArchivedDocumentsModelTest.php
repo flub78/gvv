@@ -388,14 +388,15 @@ class ArchivedDocumentsModelTest extends TestCase
         $this->assertEquals(1, $v1['is_current_version']);
         $this->assertNull($v1['previous_version_id']);
 
-        // Create second version
+        // Create second version (versioning is now always explicit: pass previous_version_id)
         $v2_data = array(
-            'document_type_id' => $insurance['id'],
-            'pilot_login' => $pilot['mlogin'],
-            'file_path' => 'uploads/documents/test/insurance_v2.pdf',
-            'original_filename' => 'insurance_2026.pdf',
-            'uploaded_by' => $pilot['mlogin'],
-            'valid_until' => date('Y-m-d', strtotime('+2 years'))
+            'document_type_id'    => $insurance['id'],
+            'pilot_login'         => $pilot['mlogin'],
+            'file_path'           => 'uploads/documents/test/insurance_v2.pdf',
+            'original_filename'   => 'insurance_2026.pdf',
+            'uploaded_by'         => $pilot['mlogin'],
+            'valid_until'         => date('Y-m-d', strtotime('+2 years')),
+            'previous_version_id' => $v1_id,
         );
 
         $v2_id = $this->archived_documents_model->create_document($v2_data);

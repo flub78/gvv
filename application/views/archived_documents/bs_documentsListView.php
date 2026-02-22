@@ -30,6 +30,9 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
     <a href="<?= site_url('archived_documents/create') ?>" class="btn btn-sm btn-success">
         <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
     </a>
+    <a href="<?= site_url('document_types') ?>" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-tags"></i> <?= $this->lang->line('archived_documents_manage_types') ?>
+    </a>
 </div>
 
 <form method="get" class="mb-3">

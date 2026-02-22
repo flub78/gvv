@@ -14,12 +14,37 @@ $this->lang->load('archived_documents');
 <div id="body" class="body container-fluid">
 
 <h3>
-    <?php if ($action == CREATION): ?>
+    <?php if (!empty($previous_version_id)): ?>
+        <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version_title') ?>
+    <?php elseif ($action == CREATION): ?>
         <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add_pilot') ?>
     <?php else: ?>
         <i class="fas fa-edit"></i> <?= $this->lang->line('archived_documents_view') ?>
     <?php endif; ?>
 </h3>
+
+<?php if (!empty($previous_version_id) && !empty($new_version_of)): ?>
+<div class="alert alert-info">
+    <i class="fas fa-code-branch"></i>
+    <?= $this->lang->line('archived_documents_new_version_of') ?> :
+    <strong><?= htmlspecialchars($new_version_of['original_filename']) ?></strong>
+    <?php if (!empty($new_version_of['valid_until'])): ?>
+        — <?= $this->lang->line('archived_documents_valid_until') ?> <?= date('d/m/Y', strtotime($new_version_of['valid_until'])) ?>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<?php if (!empty($same_type_warning)): ?>
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <?= $this->lang->line('archived_documents_same_type_warning') ?>
+    <?php if (!empty($existing_doc_id)): ?>
+    <a href="<?= site_url('archived_documents/new_version/' . $existing_doc_id) ?>" class="btn btn-sm btn-outline-warning ms-2">
+        <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version') ?>
+    </a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <?php if (isset($message)): ?>
     <?= $message ?>
@@ -92,6 +117,9 @@ $this->lang->load('archived_documents');
         <?= form_hidden('pilot_login', $pilot_login) ?>
         <?= form_hidden('uploaded_by', $uploaded_by) ?>
         <?= form_hidden('source', 'pilot') ?>
+        <?php if (!empty($previous_version_id)): ?>
+        <?= form_hidden('previous_version_id', $previous_version_id) ?>
+        <?php endif; ?>
 
     </div>
     <div class="card-footer">

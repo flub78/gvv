@@ -1,6 +1,6 @@
 # Plan d’implémentation — Archivage Documentaire
 
-Date : 4 février 2026
+Date : 4 février 2026 — mis à jour le 22 février 2026 (suppression unique_per_entity)
 
 ## Références
 - PRD : [doc/prds/archivage_documentaire_prd.md](doc/prds/archivage_documentaire_prd.md)
@@ -13,7 +13,10 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - Réutilisation de la table et du stockage existants pour les attachements.
 - Types de documents initialement supportés : visite médicale, assurance, brevet (pilotes), documents club/sections.
 - Rôles : pilotes et administrateurs (CA).
-- Gestion des types de documents avec règles (obligatoire, portée, expiration, stockage).
+- Un type de document est une classe de règles, pas un emplacement unique par pilote. Plusieurs documents du même type peuvent coexister pour une même entité.
+- Le versionning est toujours une action explicite (bouton "Nouvelle version") ; plusieurs documents indépendants du même type peuvent coexister pour une même entité.
+- L'édition in-place permet de modifier un document existant (libellé, description, fichier) sans créer de version.
+- Chaque document dispose d'un libellé (`label`) pour l'identifier parmi d'autres documents du même type.
 - Pas de workflow de validation — les documents sont immédiatement actifs.
 - Désactivation des alertes par document (clic admin sur l'alerte).
 
@@ -26,6 +29,11 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Mettre à jour `application/config/migration.php` (version 67)
 - [x] Créer migration `067_archived_documents.php`
 - [x] Créer tests de migration `ArchivedDocumentsMigrationTest.php` (18 tests)
+- [x] Créer migration d'ajustement du schéma (modèle classe/instance) — `075_document_types_class_instance.php` :
+  - Supprime `document_types.allow_versioning` (versionning désormais toujours explicite)
+  - Ajoute `archived_documents.label VARCHAR(128) NULL` (libellé d'identification de l'instance)
+  - `application/config/migration.php` passé à la version 75
+- [x] Mettre à jour les tests de migration en conséquence
 
 ### Lot 2 — Modèles & métadonnées
 - [x] Implémenter/étendre le modèle pour :
@@ -37,6 +45,15 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Ajouter les métadonnées dans `application/libraries/Gvvmetadata.php`
 - [x] Modéliser les types de documents et leurs règles (`document_types_model.php`)
 - [x] Créer tests des modèles `ArchivedDocumentsModelTest.php` (20 tests)
+- [x] Adapter `create_document()` au modèle classe/instance :
+  - Auto-remplacement uniquement si `unique_per_entity = 1`
+  - Sinon, création d'une nouvelle instance indépendante
+- [x] Mettre à jour `Gvvmetadata.php`, fichiers de langue (FR/EN/NL), et `bs_formView.php` : `allow_versioning` → `unique_per_entity`
+- [x] Adapter `get_missing_documents()` : un type obligatoire est "manquant" si aucun document valide et non expiré existe, quelle que soit le nombre d'instances (logique déjà correcte, docblock mis à jour)
+- [x] Réviser `create_document()` : supprimer la logique d'auto-remplacement (plus de `unique_per_entity`), marquer l'ancienne version non-courante si `previous_version_id` est fourni
+- [x] Ajouter `update_document()` au modèle (mise à jour in-place)
+- [x] Supprimer `unique_per_entity` de `Gvvmetadata.php`, fichiers de langue (FR/EN/NL) et vues (`bs_formView.php` types de documents)
+- [x] Prendre en compte le champ `label` dans create/update/display (contrôleur `formValidation()`, `bs_formView.php`, `bs_formPilotView.php`, `bs_view.php`, `bs_my_documents.php`, libellés FR/EN/NL)
 
 ### Lot 3 — Contrôleurs & permissions
 - [x] Créer/étendre les contrôleurs pour :
@@ -47,6 +64,9 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
   - [x] désactivation d'alerte par document (`toggle_alarm()` AJAX)
 - [x] Vérifier l'accès par rôle (pilote/admin) (`_is_admin()`)
 - [x] Contrôleur `archived_documents.php` créé
+- [x] Action "Nouvelle version" : créer un nouveau maillon de version (`previous_version_id`) depuis un document existant (`new_version()`, `bs_formPilotView.php`, `bs_formView.php`)
+- [x] Action "Editer" : modification in-place du document (libellé, description, fichier) sans créer de version (`edit()`, `editValidation()`, `bs_editView.php`)
+- [x] Avertissement UX à l'ajout si un document du même type existe déjà pour la même entité (`create_pilot()`, `bs_formPilotView.php`)
 - [x] Fichier de langue `archived_documents_lang.php` (FR)
 - [x] Vues créées : `my_documents`, `expired`, `view`, `formView`, `tableView`
   - [x] Bouton "Ajouter un document" dans la vue liste admin (`bs_documentsListView.php`)
@@ -141,7 +161,7 @@ CREATE TABLE `document_types` (
   `scope` ENUM('pilot', 'section', 'club') NOT NULL DEFAULT 'pilot' COMMENT 'Portée du document',
   `required` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Document obligatoire',
   `has_expiration` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Document avec date expiration',
-  `allow_versioning` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Autorise le versionning',
+  -- `allow_versioning` supprimé en migration 075 (versionning toujours explicite)
   `storage_by_year` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Stockage organisé par année',
   `alert_days_before` INT(11) NULL DEFAULT 30 COMMENT 'Jours avant expiration pour alerte',
   `active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Type actif',
@@ -160,16 +180,16 @@ CREATE TABLE `document_types` (
 - La contrainte unique `uk_code_section` permet d'avoir le même code pour différentes sections
 
 **Données initiales** (PRD) :
-| code | name | section_id | scope | required | has_expiration |
-|------|------|------------|-------|----------|----------------|
-| medical | Visite médicale | NULL | pilot | 1 | 1 |
-| insurance | Assurance | NULL | pilot | 1 | 1 |
-| license | Brevet/Licence | NULL | pilot | 0 | 1 |
-| club_doc | Document club | NULL | club | 0 | 0 |
-| signature | Signature membre | NULL | pilot | 0 | 1 |
-| ci | Carte d'identité | NULL | pilot | 0 | 1 |
-| parental | Autorisation parentale | NULL | pilot | 0 | 0 |
-| bia | Brevet Initiation Aéronautique | NULL | pilot | 0 | 0 |
+| code | name | scope | required | has_expiration |
+|------|------|-------|----------|----------------|
+| medical | Visite médicale | pilot | 1 | 1 |
+| insurance | Assurance | pilot | 1 | 1 |
+| license | Brevet/Licence | pilot | 0 | 1 |
+| club_doc | Document club | club | 0 | 0 |
+| signature | Signature membre | pilot | 0 | 1 |
+| ci | Carte d'identité | pilot | 0 | 1 |
+| parental | Autorisation parentale | pilot | 0 | 0 |
+| bia | Brevet Initiation Aéronautique | pilot | 0 | 0 |
 
 #### Table `archived_documents`
 Stocke les documents avec leur état d'expiration et d'alerte.
@@ -182,6 +202,7 @@ CREATE TABLE `archived_documents` (
   `section_id` INT(11) NULL COMMENT 'Section associée',
   `file_path` VARCHAR(255) NOT NULL COMMENT 'Chemin du fichier',
   `original_filename` VARCHAR(255) NOT NULL COMMENT 'Nom fichier original',
+  `label` VARCHAR(128) NULL COMMENT 'Libellé identifiant l\'instance parmi d\'autres du même type',
   `description` VARCHAR(255) NULL COMMENT 'Description libre',
   `uploaded_by` VARCHAR(25) NOT NULL COMMENT 'Utilisateur ayant uploadé',
   `uploaded_at` DATETIME NOT NULL COMMENT 'Date upload',
@@ -221,6 +242,7 @@ WHERE ad.valid_until BETWEEN CURDATE()
   AND ad.alarm_disabled = 0
   AND ad.is_current_version = 1;
 ```
+Note : `is_current_version = 1` reste valide avec le modèle classe/instance — il filtre les documents non remplacés, qu'il y en ait un ou plusieurs du même type.
 
 ### 4. Stockage fichiers
 
