@@ -31,6 +31,19 @@ $this->load->view('bs_banner');
 
     <div id="toggle-status" class="mb-2" style="min-height:28px;"></div>
 
+    <div class="mb-2">
+        <div class="btn-group" role="group" aria-label="Filtre migration">
+            <input type="radio" class="btn-check" name="filter-migrated" id="filter-all"      value="all"      autocomplete="off" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="filter-all">Tous</label>
+
+            <input type="radio" class="btn-check" name="filter-migrated" id="filter-yes"      value="yes"      autocomplete="off">
+            <label class="btn btn-outline-success btn-sm"    for="filter-yes">Migrés</label>
+
+            <input type="radio" class="btn-check" name="filter-migrated" id="filter-no"       value="no"       autocomplete="off">
+            <label class="btn btn-outline-warning btn-sm"    for="filter-no">Non migrés</label>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-body p-2">
             <table id="new-auth-table" class="datatable table table-striped table-bordered table-sm">
@@ -46,7 +59,7 @@ $this->load->view('bs_banner');
                 </thead>
                 <tbody>
                     <?php foreach ($users as $user): ?>
-                    <tr>
+                    <tr data-migrated="<?= $user['is_migrated'] ? '1' : '0' ?>">
                         <td class="text-center">
                             <input type="checkbox"
                                    class="new-auth-toggle form-check-input"
@@ -54,7 +67,7 @@ $this->load->view('bs_banner');
                                    <?= $user['is_migrated'] ? 'checked' : '' ?>>
                         </td>
                         <td><?= htmlspecialchars($user['username']) ?></td>
-                        <td><?= ($user['mnom'] || $user['mprenom']) ? htmlspecialchars(trim($user['mprenom'] . ' ' . $user['mnom'])) : '<span class="text-muted">-</span>' ?></td>
+                        <td><?= $user['membre_nom'] ? htmlspecialchars($user['membre_nom']) : '<span class="text-muted">-</span>' ?></td>
                         <td><?= htmlspecialchars($user['email']) ?></td>
                         <td>
                             <?php if ($user['role_name']): ?>
@@ -82,6 +95,21 @@ $this->load->view('bs_banner');
 $(document).ready(function () {
     var ajaxUrl = '<?= site_url('authorization/ajax_toggle_new_auth') ?>';
 
+    // Custom DataTable filter on migrated status (DataTables 1.9.x API)
+    var filterValue = 'all';
+    $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
+        if (oSettings.nTable.id !== 'new-auth-table') return true;
+        if (filterValue === 'all') return true;
+        var tr = oSettings.aoData[iDataIndex].nTr;
+        var migrated = tr && $(tr).data('migrated') == '1';
+        return filterValue === 'yes' ? migrated : !migrated;
+    });
+
+    $('input[name="filter-migrated"]').on('change', function () {
+        filterValue = $(this).val();
+        $('#new-auth-table').dataTable().fnDraw();
+    });
+
     $(document).on('change', '.new-auth-toggle', function () {
         var checkbox = $(this);
         var username = checkbox.data('username');
@@ -105,9 +133,11 @@ $(document).ready(function () {
                         + icon + ' <strong>' + username + '</strong> ' + action + ' nouveau système.'
                         + '</div>'
                     );
-                    // Update the "Activé le" cell
+                    // Update the "Activé le" cell and migrated state
                     var createdAt = (enabled && response.created_at) ? response.created_at : '-';
-                    checkbox.closest('tr').find('.created-at').text(createdAt);
+                    var row = checkbox.closest('tr');
+                    row.find('.created-at').text(createdAt);
+                    row.data('migrated', enabled ? '1' : '0');
                 } else {
                     $('#toggle-status').html(
                         '<div class="alert alert-danger py-1 mb-1">'

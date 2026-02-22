@@ -833,16 +833,21 @@ class Authorization extends CI_Controller {
      */
     public function new_auth_users() {
         $this->load->helper('views');
+        $this->load->model('membres_model');
 
-        $this->db->select('u.id, u.username, u.email, r.name as role_name, una.created_at, (una.username IS NOT NULL) as is_migrated, m.mnom, m.mprenom');
+        $this->db->select('u.id, u.username, u.email, r.name as role_name, una.created_at, (una.username IS NOT NULL) as is_migrated');
         $this->db->from('users u');
         $this->db->join('roles r', 'r.id = u.role_id', 'left');
         $this->db->join('use_new_authorization una', 'una.username = u.username', 'left');
-        $this->db->join('membres m', 'm.username = u.username', 'left');
         $this->db->order_by('u.username', 'ASC');
-        $query = $this->db->get();
+        $users = $this->db->get()->result_array();
 
-        $data['users'] = $query->result_array();
+        foreach ($users as &$user) {
+            $nom = $this->membres_model->image($user['username']);
+            $user['membre_nom'] = (strpos($nom, 'pilote inconnu') === 0) ? '' : $nom;
+        }
+
+        $data['users'] = $users;
         $data['title'] = 'Migration - Nouveau système d\'autorisations';
 
         load_last_view('authorization/new_auth_users', $data);
