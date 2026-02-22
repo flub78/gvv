@@ -126,7 +126,9 @@ if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth-
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><i class="fas fa-chart-bar text-primary"></i> <?= translation("welcome_reports_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('procedures') ?>"><i class="fas fa-book text-primary"></i> Procédures</a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("event/page") ?>"><i class="fas fa-certificate text-warning"></i> <?= translation("welcome_certificates") ?></a></li>
+                    <?php if ($this->config->item('gestion_documentaire')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("document_types/page") ?>"><i class="fas fa-file-alt text-info"></i> <?= translation("document_types_title") ?></a></li>
+                    <?php endif; ?>
                   </ul>
                 </li>
 

@@ -783,15 +783,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-shield-alt text-danger"></i>
-                        <div class="card-title">Autorisations</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-road text-success"></i>
                         <div class="card-title">Terrains</div>
                         <div class="card-text text-muted">Gestion</div>
@@ -814,6 +805,38 @@ $this->lang->load('welcome');
                         <div class="card-title">Avions</div>
                         <div class="card-text text-muted">Flotte</div>
                         <a href="<?= controller_url('avion/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-certificate text-warning"></i>
+                        <div class="card-title">Formation</div>
+                        <div class="card-text text-muted">Certificats</div>
+                        <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <!-- Vols découverte management -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-gift text-success"></i>
+                        <div class="card-title">Vols découverte</div>
+                        <div class="card-text text-muted">Baptêmes</div>
+                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestion des membres subsection -->
+            <h5 class="mt-4 mb-3">Gestion des membres</h5>
+            <div class="row g-2">
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-shield-alt text-danger"></i>
+                        <div class="card-title">Autorisations</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
                     </div>
                 </div>
 
@@ -846,41 +869,18 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-certificate text-warning"></i>
-                        <div class="card-title">Formation</div>
-                        <div class="card-text text-muted">Certificats</div>
-                        <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-chart-bar text-primary"></i>
-                        <div class="card-title">Rapports</div>
-                        <div class="card-text text-muted">Club</div>
-                        <a href="<?= controller_url('welcome/ca') ?>" class="btn btn-primary btn-sm">Voir</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-users text-success"></i>
                         <div class="card-title">Adhérents</div>
                         <div class="card-text text-muted">Par âge</div>
                         <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm">Voir</a>
                     </div>
                 </div>
+            </div>
 
-                <!-- Vols découverte management -->
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-gift text-success"></i>
-                        <div class="card-title">Vols découverte</div>
-                        <div class="card-text text-muted">Baptêmes</div>
-                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
-                    </div>
-                </div>
-
+            <!-- Gestion documentaire subsection -->
+            <?php if ($this->config->item('gestion_documentaire')) : ?>
+            <h5 class="mt-4 mb-3">Gestion documentaire</h5>
+            <div class="row g-2">
                 <!-- Procedures management -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
@@ -902,7 +902,6 @@ $this->lang->load('welcome');
                 </div>
 
                 <!-- Archived documents management -->
-                <?php if ($this->config->item('gestion_documentaire')) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-archive text-primary"></i>
@@ -911,7 +910,10 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('archived_documents') ?>" class="btn btn-primary btn-sm">Accéder</a>
                     </div>
                 </div>
-                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="row g-2">
             </div>
         </div>
         </div>
