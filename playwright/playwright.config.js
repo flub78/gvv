@@ -47,41 +47,39 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /**
+     * Tests destructeurs / modificateurs d'état global (base de données, sections).
+     * Exécutés en premier, séquentiellement, avant tous les autres tests.
+     * Inclure ici tout test qui :
+     *   - exécute des migrations (downgrade/upgrade)
+     *   - modifie des enregistrements partagés (sections, configuration)
+     *   - effectue des backup/restore
+     */
+    {
+      name: 'sequential',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: [
+        '**/migration-test.spec.js',
+        '**/categorie-seance-test.spec.js',
+        '**/sections_menu_flags.spec.js',
+      ],
+      fullyParallel: false,
+    },
+
+    /**
+     * Tous les autres tests : exécutés en parallèle.
+     * Utiliser "npm test" ou "npm run test:all" pour exécuter sequential en premier.
+     * Pour le développement quotidien : npx playwright test --project=chromium
+     */
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    }
-    // ,
-
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+      testIgnore: [
+        '**/migration-test.spec.js',
+        '**/categorie-seance-test.spec.js',
+        '**/sections_menu_flags.spec.js',
+      ],
+    },
   ],
 
   /* Run your local dev server before starting the tests */

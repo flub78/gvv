@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test --project=chromium",
+    "test:all": "playwright test --project=sequential --workers=1 && playwright test --project=chromium",
+    "test:sequential": "playwright test --project=sequential --workers=1",
+    "test:chromium": "playwright test --project=chromium"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
