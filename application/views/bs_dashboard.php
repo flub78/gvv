@@ -1044,6 +1044,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-purple" style="border-left: 3px solid #6f42c1;">
+                        <i class="fas fa-user-cog" style="color:#6f42c1;"></i>
+                        <div class="card-title">Nouveau système auth</div>
+                        <div class="card-text text-muted">Migration par utilisateur</div>
+                        <a href="<?= controller_url('authorization/new_auth_users') ?>" class="btn btn-sm" style="background-color:#6f42c1;color:#fff;">Gérer</a>
+                    </div>
+                </div>
+
                 <!-- Outils de Développement -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> Outils de développement</h6>

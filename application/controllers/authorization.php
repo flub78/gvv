@@ -826,6 +826,75 @@ class Authorization extends CI_Controller {
     }
 
     /**
+     * Manage use_new_authorization table
+     *
+     * Lists all users with a checkbox indicating if they use the new auth system.
+     * Admins can toggle each user via AJAX checkboxes.
+     */
+    public function new_auth_users() {
+        $this->load->helper('views');
+
+        $this->db->select('u.id, u.username, u.email, r.name as role_name, una.created_at, (una.username IS NOT NULL) as is_migrated, m.mnom, m.mprenom');
+        $this->db->from('users u');
+        $this->db->join('roles r', 'r.id = u.role_id', 'left');
+        $this->db->join('use_new_authorization una', 'una.username = u.username', 'left');
+        $this->db->join('membres m', 'm.username = u.username', 'left');
+        $this->db->order_by('u.username', 'ASC');
+        $query = $this->db->get();
+
+        $data['users'] = $query->result_array();
+        $data['title'] = 'Migration - Nouveau système d\'autorisations';
+
+        load_last_view('authorization/new_auth_users', $data);
+    }
+
+    /**
+     * AJAX: Toggle a user in/out of use_new_authorization table
+     *
+     * POST params:
+     *   username (string) - the username to toggle
+     *   enabled  (int)    - 1 to add, 0 to remove
+     */
+    public function ajax_toggle_new_auth() {
+        header('Content-Type: application/json');
+
+        $username = $this->input->post('username');
+        $enabled  = (bool) $this->input->post('enabled');
+
+        if (!$username) {
+            echo json_encode(array('success' => false, 'message' => 'Username requis'));
+            return;
+        }
+
+        // Verify the user exists
+        $this->db->where('username', $username);
+        $user = $this->db->get('users')->row();
+        if (!$user) {
+            echo json_encode(array('success' => false, 'message' => 'Utilisateur introuvable'));
+            return;
+        }
+
+        if ($enabled) {
+            $this->db->where('username', $username);
+            $existing = $this->db->get('use_new_authorization')->row();
+            if (!$existing) {
+                $now = date('Y-m-d H:i:s');
+                $this->db->insert('use_new_authorization', array(
+                    'username'   => $username,
+                    'created_at' => $now,
+                ));
+                echo json_encode(array('success' => true, 'created_at' => $now));
+            } else {
+                echo json_encode(array('success' => true, 'created_at' => $existing->created_at));
+            }
+        } else {
+            $this->db->where('username', $username);
+            $this->db->delete('use_new_authorization');
+            echo json_encode(array('success' => true));
+        }
+    }
+
+    /**
      * AJAX: Complete a user migration
      *
      * Marks migration as completed after validation period.
