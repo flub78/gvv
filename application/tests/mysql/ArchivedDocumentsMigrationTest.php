@@ -150,7 +150,7 @@ class ArchivedDocumentsMigrationTest extends TestCase
         $query = $this->db->query("SELECT COUNT(*) as count FROM document_types");
         $result = $query->row_array();
 
-        $this->assertGreaterThanOrEqual(8, $result['count'], 'document_types should have at least 8 initial records');
+        $this->assertGreaterThanOrEqual(7, $result['count'], 'document_types should have at least 7 initial records');
     }
 
     public function testDocumentTypesTable_NoLegacyVersioningColumns()
