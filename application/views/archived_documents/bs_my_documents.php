@@ -21,9 +21,19 @@ $this->lang->load('archived_documents');
 
 <!-- Add document button -->
 <div class="mb-3">
+<?php
+$current_user = $this->dx_auth->get_username();
+if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $current_user):
+    // Admin viewing another pilot's documents: link to admin form pre-filled with this pilot
+?>
+    <a href="<?= site_url('archived_documents/create?pilot=' . urlencode($pilot_login)) ?>" class="btn btn-sm btn-success">
+        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
+    </a>
+<?php else: ?>
     <a href="<?= site_url('archived_documents/create_pilot') ?>" class="btn btn-sm btn-success">
         <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add_pilot') ?>
     </a>
+<?php endif; ?>
 </div>
 
 <!-- Missing required documents -->

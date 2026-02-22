@@ -194,7 +194,9 @@ class Archived_documents extends Gvv_Controller {
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
-        $this->data['pilot_login'] = '';
+        // Pre-fill pilot_login from ?pilot= query param (e.g. from pilot_documents view)
+        $pilot_from_get = $this->input->get('pilot');
+        $this->data['pilot_login'] = !empty($pilot_from_get) ? $pilot_from_get : '';
         $this->data['uploaded_by'] = $this->dx_auth->get_username();
 
         $this->form_static_element(CREATION);

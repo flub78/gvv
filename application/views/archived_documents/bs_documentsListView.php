@@ -26,6 +26,12 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
     <?= $this->session->flashdata('message') ?>
 <?php endif; ?>
 
+<div class="mb-3">
+    <a href="<?= site_url('archived_documents/create') ?>" class="btn btn-sm btn-success">
+        <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_add') ?>
+    </a>
+</div>
+
 <form method="get" class="mb-3">
     <div class="row g-2 align-items-end">
         <div class="col-sm-2">

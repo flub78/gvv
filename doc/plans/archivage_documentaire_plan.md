@@ -41,6 +41,7 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 ### Lot 3 — Contrôleurs & permissions
 - [x] Créer/étendre les contrôleurs pour :
   - [x] dépôt document par pilote (`create()`, `formValidation()`)
+  - [x] dépôt document par admin pour pilote/section/club (formulaire admin avec sélecteurs, pré-remplissage `?pilot=`)
   - [x] suppression document (`delete()` - pilote : ses documents, admin : tous)
   - [x] liste "expirés" pour administrateurs (`expired()`)
   - [x] désactivation d'alerte par document (`toggle_alarm()` AJAX)
@@ -48,6 +49,8 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Contrôleur `archived_documents.php` créé
 - [x] Fichier de langue `archived_documents_lang.php` (FR)
 - [x] Vues créées : `my_documents`, `expired`, `view`, `formView`, `tableView`
+  - [x] Bouton "Ajouter un document" dans la vue liste admin (`bs_documentsListView.php`)
+  - [x] Bouton admin contextualisé dans la vue pilote (`bs_my_documents.php`) : lien `create?pilot=<login>` quand admin consulte les docs d'un pilote tiers
 - [x] Structure de stockage `uploads/documents/` créée
 
 ### Lot 4 — Vues & UX

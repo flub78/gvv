@@ -46,36 +46,43 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 4. **Nouvelle version d'un document** → la nouvelle version devient la version active → les versions antérieures restent accessibles.
 
 ## Exigences fonctionnelles
-1. **Association des documents**
-   - Un document peut être associé à un pilote, à une section, ou au club (document “club”).
-2. **Dates de validité**
+1. **Ajout de documents par les administrateurs**
+   - Les administrateurs peuvent ajouter des documents pour :
+     - Un pilote spécifique (documents pilotes, ex. visite médicale, assurance, brevet).
+     - Une section spécifique (documents section, ex. procédures, règlements locaux).
+     - Le club entier (documents club, ex. statuts, documents légaux, procédures générales).
+   - Cette capacité s'ajoute à celle des pilotes qui peuvent ajouter leurs propres documents.
+
+2. **Association des documents**
+   - Un document peut être associé à un pilote, à une section, ou au club (document "club").
+3. **Dates de validité**
    - La date de validité est optionnelle.
-   - Le système doit déterminer l’état “expiré” en fonction de la date de validité.
-3. **Versionning**
-   - Le système doit permettre d’ajouter une nouvelle version d’un document sans supprimer l’ancienne.
+   - Le système doit déterminer l'état "expiré" en fonction de la date de validité.
+4. **Versionning**
+   - Le système doit permettre d'ajouter une nouvelle version d'un document sans supprimer l'ancienne.
    - Les versions précédentes doivent rester consultables. Certains documents sont uniques et non versionés.
-4. **Suppression des documents**
+5. **Suppression des documents**
    - Un pilote peut supprimer ses propres documents.
    - Un administrateur peut supprimer tout document.
-5. **Accès administrateur**
+6. **Accès administrateur**
    - Les administrateurs ont accès à tous les documents.
    - Ils disposent d'un accès direct à la liste des documents "expirés".
-6. **Affichage des expirations**
+7. **Affichage des expirations**
    - Les documents expirés doivent être affichés avec un marqueur visuel spécifique.
    - Les documents proches de l'expiration doivent être mis en évidence.
    - Tous les documents n'ont pas de date d'expiration. Pour ceux qui en ont, l'état doit être "actif", "expiration proche" ou "expiré".
    - Pour les documents pilotes, un type peut être marqué "obligatoire". Si obligatoire et aucun document valide, le statut "manquant" est affiché pour le pilote.
-7. **Désactivation des alertes**
+8. **Désactivation des alertes**
    - Les administrateurs peuvent désactiver les alertes document par document en cliquant sur l'alerte.
    - Un document avec alerte désactivée n'apparaît plus dans les notifications ni dans la liste des documents expirés. 
-8. **Notifications**
-   - Les utilisateurs peuvent s’abonner à des alertes par email avant l’expiration.
-   - Le délai d’alerte est paramétrable (valeur par défaut à définir).
-9. **Types de fichiers supportés**
-   - Le système doit accepter au minimum les mêmes types que l’archivage des factures : images et PDF.
-10. **Réutilisation des mécanismes existants**
+9. **Notifications**
+   - Les utilisateurs peuvent s'abonner à des alertes par email avant l'expiration.
+   - Le délai d'alerte est paramétrable (valeur par défaut à définir).
+10. **Types de fichiers supportés**
+   - Le système doit accepter au minimum les mêmes types que l'archivage des factures : images et PDF.
+11. **Réutilisation des mécanismes existants**
    - Le système doit réutiliser les bibliothèques et mécanismes existants pour le stockage et la compression des fichiers.
-11. **Gestion des types de documents**
+12. **Gestion des types de documents**
    - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, associé à un pilote ou au club, date d’expiration ou non, emplacement de stockage par défaut, stockage par année ou non, etc.).
    - Ces types facilitent la création de documents et assurent l’uniformité.
 
