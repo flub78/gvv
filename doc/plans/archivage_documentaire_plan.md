@@ -31,7 +31,6 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Créer tests de migration `ArchivedDocumentsMigrationTest.php` (18 tests)
 - [x] Créer migration d'ajustement du schéma (modèle classe/instance) — `075_document_types_class_instance.php` :
   - Supprime `document_types.allow_versioning` (versionning désormais toujours explicite)
-  - Ajoute `archived_documents.label VARCHAR(128) NULL` (libellé d'identification de l'instance)
   - `application/config/migration.php` passé à la version 75
 - [x] Mettre à jour les tests de migration en conséquence
 
@@ -90,10 +89,10 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Vérifier que tous les libellés UI utilisent `$this->lang->line()` — vues mises à jour
 
 ### Lot 7 — Tests & validation
-- [ ] Tests unitaires : modèles, helpers, expiration
-- [ ] Tests intégration : listes admin, workflow validation, versionning
-- [ ] Tests UI Playwright : dépôt, validation, affichage expiré
-- [ ] Smoke tests : phpunit + playwright
+- [x] Tests MySQL : 8 nouveaux tests dans `ArchivedDocumentsModelTest.php` (GetPilotDocuments, GetPilotDocumentStatus, GetMissingDocuments, UpdateDocument, DeleteDocument x4)
+- [x] Correction `delete_document()` : retourne un bool via `affected_rows()`
+- [x] Tests UI Playwright : `archived-documents-smoke.spec.js` (6 tests : accès admin, liste, expirés, formulaire création, accès pilote, contrôle d'accès)
+- [x] Smoke tests : phpunit (1005 tests, 1 échec pré-existant sans rapport) + playwright (6/6 verts)
 
 ## Critères de fin
 - Workflow complet : dépôt → versionning → expiration → désactivation alerte.
