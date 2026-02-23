@@ -271,6 +271,7 @@ class Archived_documents extends Gvv_Controller {
 
         // Determine which form view to use for error re-rendering
         $is_admin = $this->_is_admin();
+        $this->data['uploaded_by'] = $this->dx_auth->get_username();
         $error_view = $is_admin ? $this->controller . '/formView' : $this->controller . '/formPilotView';
         $is_pilot_form = ($this->input->post('source') === 'pilot');
 
@@ -373,6 +374,25 @@ class Archived_documents extends Gvv_Controller {
         // Determine validation status: admin/CA = approved, others = pending
         $validation_status = ($is_admin && !$is_pilot_form) ? 'approved' : 'pending';
 
+        // Validate dates before attempting insert
+        $raw_valid_from  = $this->input->post('valid_from');
+        $raw_valid_until = $this->input->post('valid_until');
+        $valid_from  = $raw_valid_from  ? mysql_date($raw_valid_from)  : null;
+        $valid_until = $raw_valid_until ? mysql_date($raw_valid_until) : null;
+
+        if ($raw_valid_from && $valid_from === FALSE) {
+            $this->data['message'] = '<div class="alert alert-danger">Date de début invalide : ' . htmlspecialchars($raw_valid_from) . '</div>';
+            $this->form_static_element($action);
+            load_last_view($error_view, $this->data);
+            return;
+        }
+        if ($raw_valid_until && $valid_until === FALSE) {
+            $this->data['message'] = '<div class="alert alert-danger">Date de fin invalide : ' . htmlspecialchars($raw_valid_until) . '</div>';
+            $this->form_static_element($action);
+            load_last_view($error_view, $this->data);
+            return;
+        }
+
         // Prepare document data
         $previous_version_id = $this->input->post('previous_version_id');
         $doc_data = array(
@@ -383,8 +403,8 @@ class Archived_documents extends Gvv_Controller {
             'original_filename'  => $_FILES['userfile']['name'],
             'description'        => $this->input->post('description'),
             'uploaded_by'        => $this->dx_auth->get_username(),
-            'valid_from'         => mysql_date($this->input->post('valid_from')) ?: null,
-            'valid_until'        => mysql_date($this->input->post('valid_until')) ?: null,
+            'valid_from'         => $valid_from ?: null,
+            'valid_until'        => $valid_until ?: null,
             'file_size'          => $upload_data['file_size'] * 1024, // Convert KB to bytes
             'mime_type'          => $mime,
             'validation_status'  => $validation_status,
@@ -409,9 +429,10 @@ class Archived_documents extends Gvv_Controller {
                 redirect($is_pilot_form ? 'archived_documents/my_documents' : ($is_admin ? 'archived_documents/page' : 'archived_documents/my_documents'));
             }
         } else {
-            $db_error = $this->db->error();
-            $detail = !empty($db_error['message']) ? htmlspecialchars($db_error['message']) : 'create_document a retourné false';
-            $this->data['message'] = '<div class="alert alert-danger">Erreur lors de l\'enregistrement du document : ' . $detail . '</div>';
+            $db_msg = $this->db->_error_message();
+            $db_num = $this->db->_error_number();
+            $detail = ($db_num || $db_msg) ? ' (' . $db_num . ') ' . htmlspecialchars($db_msg) : '';
+            $this->data['message'] = '<div class="alert alert-danger">Erreur lors de l\'enregistrement du document' . $detail . '</div>';
             $this->form_static_element($action);
             load_last_view($error_view, $this->data);
         }

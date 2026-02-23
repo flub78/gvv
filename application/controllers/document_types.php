@@ -55,10 +55,10 @@ class Document_types extends Gvv_Controller {
     /**
      * Page principale - liste des types de documents
      */
-    public function page() {
+    public function page($premier = 0, $message = '', $selection = array()) {
         $this->view_parameters['page'] = 'vue_document_types';
         $this->view_parameters['title'] = $this->lang->line('document_types_title');
-        parent::page();
+        parent::page($premier, $message, $selection);
     }
 
     /**
@@ -72,9 +72,9 @@ class Document_types extends Gvv_Controller {
     /**
      * Edit form
      */
-    public function edit($id = '') {
+    public function edit($id = '', $load_view = true, $action = MODIFICATION) {
         $this->view_parameters['page'] = 'document_types';
-        parent::edit($id);
+        parent::edit($id, $load_view, $action);
     }
 
     /**

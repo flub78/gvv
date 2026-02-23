@@ -137,13 +137,14 @@ if (! function_exists('mysql_date')) {
         // $date_regexp = '(19|20)[0-9]{2}[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])';
         $date_regexp = '%(0*[1-9]|[12][0-9]|3[01])[- \/\.](0*[1-9]|1[012])[- \/\.]((19|20)[0-9]{2})%';
         if (preg_match($date_regexp, $date, $matches)) {
-            // transformation en date MSQL
-            $day = $matches[1];
-            $month = $matches[2];
-            $year = $matches[3];
-            // vérification que la date existe
-            $date = $year . '-' . $month . '-' . $day;
-            return $date;
+            $day = intval($matches[1]);
+            $month = intval($matches[2]);
+            $year = intval($matches[3]);
+            // vérification que la date existe dans le calendrier
+            if (!checkdate($month, $day, $year)) {
+                return FALSE;
+            }
+            return $year . '-' . sprintf('%02d', $month) . '-' . sprintf('%02d', $day);
         }
         return FALSE;
     }
