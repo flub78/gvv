@@ -85,9 +85,61 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 9. **Désactivation des alertes**
    - Les administrateurs peuvent désactiver les alertes document par document en cliquant sur l’alerte.
    - Un document avec alerte désactivée n’apparaît plus dans les notifications ni dans la liste des documents expirés.
-10. **Notifications**
-   - Les utilisateurs peuvent s’abonner à des alertes par email avant l’expiration.
-   - Le délai d’alerte est paramétrable (valeur par défaut à définir).
+10. **Système de notifications et alertes**
+   
+   **10.1 Destinataires des notifications**
+   
+   Le système de notifications fonctionne sur trois niveaux :
+   
+   - **Notifications personnelles (pilote)** : Chaque pilote reçoit des alertes concernant ses propres documents (expiration proche, document manquant). Canal : email + bannière UI à la connexion.
+   
+   - **Notifications administratives (bureau/CA)** : Les membres du bureau et les administrateurs reçoivent des alertes groupées concernant tous les documents expirés ou manquants. Canal : email quotidien/hebdomadaire + bannière UI + liste dédiée.
+   
+   - **Notifications section (optionnel, phase 2)** : Si le système de rôles le permet, les responsables de section peuvent recevoir des alertes concernant les documents de leur section.
+   
+   **10.2 Mécanisme de souscription**
+   
+   Les notifications sont basées sur les rôles avec possibilité d'opt-out :
+   
+   - **Pilotes** : notifications automatiques pour leurs propres documents (peuvent désactiver dans leurs préférences)
+   - **Bureau/Admin** : notifications automatiques pour documents expirés/manquants (peuvent désactiver par type de notification)
+   - **Section** : opt-in pour recevoir les alertes de leur section
+   
+   **10.3 Canaux de notification**
+   
+   - **Email** (prioritaire, phase 1) : Infrastructure existante dans GVV, template dédié pour les alertes documentaires
+   - **Bannière UI** (phase 1) : Affichage des alertes à la connexion dans l'interface
+   - **SMS** (optionnel, phase 2) : Réservé aux alertes critiques (7 jours avant expiration), nécessite intégration fournisseur externe
+   
+   **10.4 Gestion des rappels et anti-spam**
+   
+   Pour éviter de spammer les utilisateurs, le système applique des règles de fréquence basées sur l'urgence :
+   
+   - **90 jours avant expiration** : 1 notification initiale
+   - **30 jours avant** : rappel si pas de notification depuis 15 jours
+   - **15 jours avant** : rappel si pas de notification depuis 7 jours
+   - **7 jours avant** : rappel tous les 2 jours
+   - **Après expiration** : rappel quotidien (jusqu'au dépôt d'un nouveau document valide)
+   
+   L'historique des notifications est conservé pour éviter les doublons et permettre la traçabilité.
+   
+   **10.5 Types de notifications**
+   
+   - **Document expire bientôt** : notification au pilote concerné selon le délai configuré dans le type de document
+   - **Document expiré** : notification au pilote + ajout à la liste admin
+   - **Document manquant** : pour les types obligatoires, notification si aucun document valide n'existe
+   - **Résumé administratif** : email groupé hebdomadaire (lundi) avec la liste complète des documents nécessitant attention
+   
+   Le délai d'alerte est paramétrable par type de document (champ `alert_days_before` de la table `document_types`, valeur par défaut : 30 jours).
+**10.6 Infrastructure technique**
+
+Le système de notifications s'appuie sur :
+
+- **Tâche CRON quotidienne** : détection des documents proches de l'expiration (excluant `alarm_disabled = 1`)
+- **Table `notification_history`** : traçabilité des notifications envoyées pour éviter les doublons
+- **Bibliothèque `Notification_manager`** : gestion centralisée de l'envoi et des règles de fréquence
+- **Templates email** : réutilisation de l'infrastructure existante (`application/libraries/Email.php`)
+
 11. **Types de fichiers supportés**
    - Le système doit accepter au minimum les mêmes types que l’archivage des factures : images et PDF.
 12. **Réutilisation des mécanismes existants**
@@ -99,9 +151,10 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
 ## Exigences non fonctionnelles
 - **Sécurité** : contrôle d'accès strict par rôle.
-- **Traçabilité** : conserver l'historique des versions.
+- **Traçabilité** : conserver l'historique des versions et des notifications envoyées.
 - **Lisibilité** : rendu clair des statuts d'expiration (actif, proche, expiré, alerte désactivée).
 - **Performance** : consultation rapide de la liste des documents expirés.
+- **Fiabilité des notifications** : anti-spam intégré, traçabilité complète, gestion gracieuse des erreurs d'envoi.
 
 ## Contraintes & dépendances
 - Le stockage doit être compatible avec les structures existantes sous uploads/documents/.
@@ -111,10 +164,15 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 ## Mesures de succès
 - 100% des documents pilotes importés via ce mécanisme.
 - Réduction des documents expirés non détectés.
-- Délai moyen de validation réduit (à mesurer).
+- Taux d'ouverture des notifications > 60%.
+- Zéro plainte de spam sur les notifications.
+- Délai moyen entre expiration et renouvellement < 7 jours.
 
 ## Questions ouvertes
-- Quel délai par défaut pour les alertes d’expiration ? 15 jours et une semaine avant.
-- Qui peut s’abonner aux alertes (pilotes uniquement, administrateurs, tous les membres) ? Dépend du type de document.
+- ~~Quel délai par défaut pour les alertes d'expiration ?~~ → **Résolu** : 30 jours (paramétrable par type de document via `alert_days_before`)
+- ~~Qui peut s'abonner aux alertes ?~~ → **Résolu** : Pilotes (auto), Bureau/Admin (auto), Section (opt-in)
 - Quelles catégories de documents doivent être disponibles dès la première version ? Visite médicale, assurance, brevet pour les pilotes.
 - Faut-il distinguer des niveaux de confidentialité par type de document ? À évaluer.
+- Faut-il supporter les SMS dès la phase 1, ou différer à la phase 2 ? → **Recommandation** : Phase 2, email suffit pour MVP
+- Quel fournisseur SMS si implémentation phase 2 ? (Twilio, OVH, autre ?)
+- Existe-t-il un rôle "chef de section" dans la table `membres` pour les notifications section ?
