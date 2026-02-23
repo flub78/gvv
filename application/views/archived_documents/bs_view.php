@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var id = this.dataset.id;
             var btn = this;
 
-            fetch('<?= site_url('archived_documents/toggle_alarm/') ?>' + id, {
+            fetch('<?= site_url('archived_documents/toggle_alarm') ?>/' + id, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'}
             })

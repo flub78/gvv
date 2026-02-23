@@ -115,8 +115,12 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                 </td>
                 <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                 <td>
-                    <?php if ($doc['valid_until']): ?>
-                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                    <?php if ($doc['valid_until']):
+                        $is_expired_date = strtotime($doc['valid_until']) < mktime(0,0,0);
+                    ?>
+                        <span <?= $is_expired_date ? 'class="text-danger fw-bold"' : '' ?>>
+                            <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                        </span>
                     <?php else: ?>
                         <span class="text-muted">-</span>
                     <?php endif; ?>
@@ -124,11 +128,19 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php
-                    $status = $doc['expiration_status'];
-                    $badge_class = Archived_documents_model::status_badge_class($status);
-                    $status_label = Archived_documents_model::status_label($status);
+                    $is_expired_date = $doc['valid_until'] && strtotime($doc['valid_until']) < mktime(0,0,0);
+                    if (!empty($doc['alarm_disabled']) && $is_expired_date):
                     ?>
-                    <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-bell-slash"></i> <?= $this->lang->line('archived_documents_alarm_disabled') ?>
+                        </span>
+                    <?php else:
+                        $status = $doc['expiration_status'];
+                        $badge_class = Archived_documents_model::status_badge_class($status);
+                        $status_label = Archived_documents_model::status_label($status);
+                    ?>
+                        <span class="badge <?= $badge_class ?>"><?= $status_label ?></span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">

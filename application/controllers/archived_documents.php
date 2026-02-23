@@ -729,8 +729,8 @@ class Archived_documents extends Gvv_Controller {
      * Toggle alarm for a document (bureau only, AJAX)
      */
     function toggle_alarm($id) {
-        // Check bureau access
-        if (!$this->dx_auth->is_role('bureau', true, true)) {
+        // Check bureau or admin access
+        if (!$this->dx_auth->is_role('bureau', true, true) && !$this->_is_admin()) {
             echo json_encode(array('success' => false, 'error' => 'Acces refuse'));
             return;
         }
