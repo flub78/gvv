@@ -135,10 +135,27 @@ class Archived_documents extends Gvv_Controller {
         $this->data['filters'] = $filters;
         $this->data['documents'] = $this->gvv_model->get_filtered_documents($filters);
 
-        $expired_docs = $this->gvv_model->get_expired_documents();
-        $pending_docs = $this->gvv_model->get_pending_documents();
-        $this->data['expired_count'] = count($expired_docs);
-        $this->data['pending_count'] = count($pending_docs);
+        // Counts apply to the current selection only (type/section/pilot/machine filters, not status filters)
+        $selection_filters = array(
+            'document_type_id' => $filters['document_type_id'],
+            'section_id'       => $filters['section_id'],
+            'pilot_login'      => $filters['pilot_login'],
+            'machine_immat'    => $filters['machine_immat'],
+        );
+        $docs_for_count = $this->gvv_model->get_filtered_documents($selection_filters);
+        $expired_count = 0;
+        $pending_count = 0;
+        foreach ($docs_for_count as $doc) {
+            if ($doc['expiration_status'] === Archived_documents_model::STATUS_EXPIRED
+                && empty($doc['alarm_disabled'])) {
+                $expired_count++;
+            }
+            if (!empty($doc['validation_status']) && $doc['validation_status'] === 'pending') {
+                $pending_count++;
+            }
+        }
+        $this->data['expired_count'] = $expired_count;
+        $this->data['pending_count'] = $pending_count;
 
         $type_selector = $this->document_types_model->type_selector();
         $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $type_selector;
