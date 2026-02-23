@@ -16,6 +16,7 @@ $filter_pending = !empty($filters['pending']);
 $filter_type = isset($filters['document_type_id']) ? $filters['document_type_id'] : '';
 $filter_section = isset($filters['section_id']) ? $filters['section_id'] : '';
 $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
+$filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] : '';
 ?>
 
 <div id="body" class="body container-fluid">
@@ -35,7 +36,23 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
     </a>
 </div>
 
-<form method="get" class="mb-3">
+<style>
+#doc-filter-form .select2-container { width: 100% !important; }
+#doc-filter-form .select2-selection--single {
+    height: 38px !important;
+    padding: 6px 12px !important;
+    border-color: #ced4da !important;
+    border-radius: 0.375rem !important;
+}
+#doc-filter-form .select2-selection__rendered {
+    line-height: 24px !important;
+    padding: 0 !important;
+}
+#doc-filter-form .select2-selection__arrow {
+    height: 36px !important;
+}
+</style>
+<form method="get" class="mb-3" id="doc-filter-form">
     <div class="row g-2 align-items-end">
         <div class="col-sm-2">
             <div class="form-check">
@@ -61,9 +78,17 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
             <label for="section_id" class="form-label"><?= $this->lang->line('archived_documents_section') ?></label>
             <?= form_dropdown('section_id', $section_selector, $filter_section, 'class="form-select" id="section_id"') ?>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-2">
             <label for="pilot_login" class="form-label"><?= $this->lang->line('archived_documents_pilot') ?></label>
             <?= form_dropdown('pilot_login', $pilot_selector, $filter_pilot, 'class="form-select big_select" id="pilot_login"') ?>
+        </div>
+        <div class="col-sm-2 ps-3">
+            <label for="machine_immat" class="form-label"><?= $this->lang->line('archived_documents_machine') ?></label>
+            <?php
+            $count_machines = count($machine_selector) - 1;
+            $select_class = ($count_machines > 10) ? 'form-select big_select' : 'form-select';
+            echo form_dropdown('machine_immat', $machine_selector, $filter_machine, 'class="' . $select_class . '" id="machine_immat"');
+            ?>
         </div>
         <div class="col-sm-1">
             <button type="submit" class="btn btn-primary w-100">
@@ -80,6 +105,7 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
                 <th><?= $this->lang->line('archived_documents_pilot') ?></th>
                 <th><?= $this->lang->line('archived_documents_section') ?></th>
+                <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
@@ -105,6 +131,13 @@ $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
                 <td>
                     <?php if (!empty($doc['section_name'])): ?>
                         <?= htmlspecialchars($doc['section_name']) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if (!empty($doc['machine_immat'])): ?>
+                        <?= htmlspecialchars($doc['machine_immat']) ?>
                     <?php else: ?>
                         <span class="text-muted">-</span>
                     <?php endif; ?>

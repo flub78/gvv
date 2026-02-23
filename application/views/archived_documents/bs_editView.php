@@ -27,6 +27,42 @@ $this->lang->load('archived_documents');
 <div class="card">
     <div class="card-body">
 
+        <!-- Pilote -->
+        <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label">
+                <?= $this->lang->line('archived_documents_pilot') ?>
+            </label>
+            <div class="col-sm-10">
+                <?php if (!empty($is_admin) && !empty($pilot_selector)): ?>
+                    <?= form_dropdown('pilot_login', $pilot_selector, isset($document['pilot_login']) ? $document['pilot_login'] : '', 'class="form-select big_select" id="pilot_login"') ?>
+                <?php else: ?>
+                    <p class="form-control-plaintext">
+                        <?php if (!empty($document['pilot_prenom']) || !empty($document['pilot_nom'])): ?>
+                            <?= htmlspecialchars(trim($document['pilot_prenom'] . ' ' . $document['pilot_nom'])) ?>
+                        <?php else: ?>
+                            <span class="text-muted">-</span>
+                        <?php endif; ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Section -->
+        <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label">
+                <?= $this->lang->line('archived_documents_section') ?>
+            </label>
+            <div class="col-sm-10">
+                <?php if (!empty($is_admin) && !empty($section_selector)): ?>
+                    <?= form_dropdown('section_id', $section_selector, isset($document['section_id']) ? $document['section_id'] : '', 'class="form-select" id="section_id"') ?>
+                <?php else: ?>
+                    <p class="form-control-plaintext">
+                        <?= !empty($document['section_name']) ? htmlspecialchars($document['section_name']) : '<span class="text-muted">-</span>' ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <!-- Description -->
         <div class="mb-3 row">
             <label for="description" class="col-sm-2 col-form-label">
@@ -62,6 +98,23 @@ $this->lang->load('archived_documents');
                 <?= form_input('valid_until', set_value('valid_until', $vu), 'class="form-control datepicker" id="valid_until" placeholder="jj/mm/aaaa"') ?>
             </div>
         </div>
+
+        <!-- Machine selector -->
+        <?php if (!empty($machine_selector)): ?>
+        <div class="mb-3 row">
+            <label for="machine_immat" class="col-sm-2 col-form-label">
+                <?= $this->lang->line('archived_documents_machine') ?>
+            </label>
+            <div class="col-sm-10">
+                <?php
+                $selected_machine = isset($document['machine_immat']) ? $document['machine_immat'] : '';
+                $count_machines = count($machine_selector) - 1;
+                $select_class = ($count_machines > 10) ? 'form-select big_select' : 'form-select';
+                echo form_dropdown('machine_immat', $machine_selector, $selected_machine, 'class="' . $select_class . '" id="machine_immat"');
+                ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Optional file replacement -->
         <div class="mb-3 row">

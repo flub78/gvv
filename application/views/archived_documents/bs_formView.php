@@ -55,15 +55,28 @@ $this->lang->load('archived_documents');
                 <?= $this->lang->line('archived_documents_type') ?>
             </label>
             <div class="col-sm-10">
-                <div class="d-flex align-items-center gap-2">
-                <?php
-                $selected_type = isset($_GET['type']) ? $_GET['type'] : (isset($document_type_id) ? $document_type_id : '');
-                echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id"');
-                ?>
-                <button type="button" class="btn btn-outline-secondary btn-sm" title="<?= $this->lang->line('archived_documents_type_help') ?>" aria-label="<?= $this->lang->line('archived_documents_type_help') ?>" data-bs-toggle="tooltip" data-bs-placement="top">
-                    <i class="fas fa-question"></i>
-                </button>
-                </div>
+                <?php if (!empty($previous_version_id)): ?>
+                    <p class="form-control-plaintext">
+                        <?php
+                        $type_id_val = isset($document_type_id) ? $document_type_id : '';
+                        $type_display = ($type_id_val && isset($type_selector[$type_id_val]))
+                            ? $type_selector[$type_id_val]
+                            : $this->lang->line('archived_documents_type_other');
+                        echo htmlspecialchars($type_display);
+                        ?>
+                    </p>
+                    <?= form_hidden('document_type_id', isset($document_type_id) ? $document_type_id : '') ?>
+                <?php else: ?>
+                    <div class="d-flex align-items-center gap-2">
+                    <?php
+                    $selected_type = isset($_GET['type']) ? $_GET['type'] : (isset($document_type_id) ? $document_type_id : '');
+                    echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id"');
+                    ?>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" title="<?= $this->lang->line('archived_documents_type_help') ?>" aria-label="<?= $this->lang->line('archived_documents_type_help') ?>" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="fas fa-question"></i>
+                    </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -73,10 +86,23 @@ $this->lang->load('archived_documents');
                 <?= $this->lang->line('archived_documents_pilot') ?>
             </label>
             <div class="col-sm-10">
-                <?php
-                $selected_pilot = isset($pilot_login) ? $pilot_login : '';
-                echo form_dropdown('pilot_login', $pilot_selector, $selected_pilot, 'id="pilot_login" class="form-select big_select"');
-                ?>
+                <?php if (!empty($previous_version_id)): ?>
+                    <p class="form-control-plaintext">
+                        <?php
+                        $pilot_login_val = isset($pilot_login) ? $pilot_login : '';
+                        $pilot_display = ($pilot_login_val && isset($pilot_selector[$pilot_login_val]))
+                            ? $pilot_selector[$pilot_login_val]
+                            : ($pilot_login_val ?: '-');
+                        echo htmlspecialchars($pilot_display);
+                        ?>
+                    </p>
+                    <?= form_hidden('pilot_login', isset($pilot_login) ? $pilot_login : '') ?>
+                <?php else: ?>
+                    <?php
+                    $selected_pilot = isset($pilot_login) ? $pilot_login : '';
+                    echo form_dropdown('pilot_login', $pilot_selector, $selected_pilot, 'id="pilot_login" class="form-select big_select"');
+                    ?>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -86,7 +112,42 @@ $this->lang->load('archived_documents');
                 <?= $this->lang->line('archived_documents_section') ?>
             </label>
             <div class="col-sm-10">
-                <?= form_dropdown('section_id', $section_selector, isset($section_id) ? $section_id : '', 'class="form-select" id="section_id"') ?>
+                <?php if (!empty($previous_version_id)): ?>
+                    <p class="form-control-plaintext">
+                        <?php
+                        $section_id_val = isset($section_id) ? $section_id : '';
+                        $section_display = ($section_id_val && isset($section_selector[$section_id_val]))
+                            ? $section_selector[$section_id_val]
+                            : '-';
+                        echo htmlspecialchars($section_display);
+                        ?>
+                    </p>
+                    <?= form_hidden('section_id', isset($section_id) ? $section_id : '') ?>
+                <?php else: ?>
+                    <?= form_dropdown('section_id', $section_selector, isset($section_id) ? $section_id : '', 'class="form-select" id="section_id"') ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Machine selector -->
+        <div class="mb-3 row">
+            <label for="machine_immat" class="col-sm-2 col-form-label">
+                <?= $this->lang->line('archived_documents_machine') ?>
+            </label>
+            <div class="col-sm-10">
+                <?php if (!empty($previous_version_id)): ?>
+                    <p class="form-control-plaintext">
+                        <?= !empty($machine_immat) ? htmlspecialchars($machine_immat) : '<span class="text-muted">-</span>' ?>
+                    </p>
+                    <?= form_hidden('machine_immat', isset($machine_immat) ? $machine_immat : '') ?>
+                <?php else: ?>
+                    <?php
+                    $selected_machine = isset($machine_immat) ? $machine_immat : '';
+                    $count_machines = count($machine_selector) - 1; // subtract empty entry
+                    $select_class = ($count_machines > 10) ? 'form-select big_select' : 'form-select';
+                    echo form_dropdown('machine_immat', $machine_selector, $selected_machine, 'class="' . $select_class . '" id="machine_immat"');
+                    ?>
+                <?php endif; ?>
             </div>
         </div>
 

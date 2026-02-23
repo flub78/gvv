@@ -91,6 +91,7 @@ $lang['archived_documents_new_version_title'] = 'New version of document';
 $lang['archived_documents_new_version_of'] = 'New version of';
 $lang['archived_documents_updated'] = 'Document updated successfully';
 $lang['archived_documents_same_type_warning'] = 'A document of this type already exists. Continuing will create an independent document. To update the existing one, use the "New version" button on it.';
+$lang['archived_documents_machine'] = 'Machine';
 
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

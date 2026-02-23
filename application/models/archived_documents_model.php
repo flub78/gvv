@@ -55,6 +55,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.valid_until, archived_documents.alarm_disabled,
             archived_documents.is_current_version,
             archived_documents.file_path, archived_documents.mime_type,
+            archived_documents.machine_immat,
             document_types.name as type_name, document_types.code as type_code,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
@@ -99,6 +100,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.is_current_version,
             archived_documents.file_path, archived_documents.mime_type,
             archived_documents.validation_status,
+            archived_documents.machine_immat,
             document_types.name as type_name, document_types.code as type_code,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
@@ -119,6 +121,10 @@ class Archived_documents_model extends Common_Model {
 
         if (!empty($filters['document_type_id'])) {
             $this->db->where('archived_documents.document_type_id', $filters['document_type_id']);
+        }
+
+        if (!empty($filters['machine_immat'])) {
+            $this->db->where('archived_documents.machine_immat', $filters['machine_immat']);
         }
 
         $expired = !empty($filters['expired']);

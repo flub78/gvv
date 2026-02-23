@@ -58,6 +58,8 @@ class Archived_documents extends Gvv_Controller {
         $this->load->model('document_types_model');
         $this->load->model('membres_model');
         $this->load->model('sections_model');
+        $this->load->model('planeurs_model');
+        $this->load->model('avions_model');
 
         $this->table_view = $this->controller . '/documentsListView';
     }
@@ -126,7 +128,8 @@ class Archived_documents extends Gvv_Controller {
             'pending' => $this->input->get('filter_pending') ? true : false,
             'document_type_id' => $this->input->get('document_type_id'),
             'section_id' => $this->input->get('section_id'),
-            'pilot_login' => $this->input->get('pilot_login')
+            'pilot_login' => $this->input->get('pilot_login'),
+            'machine_immat' => $this->input->get('machine_immat'),
         );
 
         $this->data['filters'] = $filters;
@@ -141,6 +144,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $type_selector;
         $this->data['section_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->sections_model->section_selector_with_null();
         $this->data['pilot_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->membres_model->selector_with_null(array('actif' => 1));
+        $this->data['machine_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->_get_machine_selector();
 
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
@@ -261,6 +265,9 @@ class Archived_documents extends Gvv_Controller {
             $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_type_other')) + $type_selector;
             $this->data['default_section_id'] = $this->session->userdata('section');
         }
+
+        $section_id = $this->session->userdata('section') ?: null;
+        $this->data['machine_selector'] = array('' => '') + $this->_get_machine_selector($section_id);
     }
 
     /**
@@ -282,7 +289,26 @@ class Archived_documents extends Gvv_Controller {
         $this->data['description']      = $this->input->post('description');
         $this->data['valid_from']       = $this->input->post('valid_from');
         $this->data['valid_until']      = $this->input->post('valid_until');
+        $this->data['machine_immat']    = $this->input->post('machine_immat');
         $this->data['previous_version_id'] = $this->input->post('previous_version_id');
+
+        // For new versions, lock pilot/section/machine/type to previous document (security)
+        $new_version_lock = null;
+        if (!empty($this->data['previous_version_id'])) {
+            $prev_doc = $this->gvv_model->get_by_id('id', (int)$this->data['previous_version_id']);
+            if ($prev_doc) {
+                $new_version_lock = array(
+                    'document_type_id' => $prev_doc['document_type_id'],
+                    'pilot_login'      => $prev_doc['pilot_login'],
+                    'section_id'       => $prev_doc['section_id'],
+                    'machine_immat'    => $prev_doc['machine_immat'] ?? null,
+                );
+                $this->data['document_type_id'] = $prev_doc['document_type_id'];
+                $this->data['pilot_login']      = $prev_doc['pilot_login'];
+                $this->data['section_id']       = $prev_doc['section_id'];
+                $this->data['machine_immat']    = $prev_doc['machine_immat'] ?? null;
+            }
+        }
 
         if ($button == $this->lang->line("gvv_button_show_list")) {
             redirect('archived_documents/my_documents');
@@ -293,7 +319,7 @@ class Archived_documents extends Gvv_Controller {
         }
 
         // Get document type to determine storage path
-        $document_type_id = $this->input->post('document_type_id');
+        $document_type_id = $new_version_lock ? $new_version_lock['document_type_id'] : $this->input->post('document_type_id');
         if ($document_type_id === '') {
             $document_type_id = null;
         }
@@ -316,7 +342,7 @@ class Archived_documents extends Gvv_Controller {
         }
 
         // Determine pilot login
-        $pilot_login = $this->input->post('pilot_login');
+        $pilot_login = $new_version_lock ? $new_version_lock['pilot_login'] : $this->input->post('pilot_login');
         if (!$is_admin && empty($pilot_login)) {
             // Non-admin: force current user
             $pilot_login = $this->dx_auth->get_username();
@@ -332,7 +358,7 @@ class Archived_documents extends Gvv_Controller {
         }
 
         // Determine section association
-        $section_id = $is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null);
+        $section_id = $new_version_lock ? $new_version_lock['section_id'] : ($is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null));
 
         // Validate dates before file upload so the user doesn't have to re-select the file
         $raw_valid_from  = $this->input->post('valid_from');
@@ -404,10 +430,12 @@ class Archived_documents extends Gvv_Controller {
 
         // Prepare document data
         $previous_version_id = $this->input->post('previous_version_id');
+        $machine_immat = $new_version_lock ? $new_version_lock['machine_immat'] : ($this->input->post('machine_immat') ?: null);
         $doc_data = array(
             'document_type_id'   => $document_type_id ?: null,
             'pilot_login'        => !empty($pilot_login) ? $pilot_login : null,
             'section_id'         => $section_id,
+            'machine_immat'      => $machine_immat,
             'file_path'          => $file_path,
             'original_filename'  => $_FILES['userfile']['name'],
             'description'        => $this->input->post('description'),
@@ -503,6 +531,14 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
 
+        if ($this->_is_admin()) {
+            $this->data['pilot_selector']   = $this->membres_model->selector_with_null(array('actif' => 1));
+            $this->data['section_selector'] = $this->sections_model->section_selector_with_null();
+        }
+
+        $section_id = $doc['section_id'] ?: ($this->session->userdata('section') ?: null);
+        $this->data['machine_selector'] = array('' => '') + $this->_get_machine_selector($section_id);
+
         $this->push_return_url('archived_documents edit_doc');
         load_last_view($this->controller . '/editView', $this->data);
     }
@@ -528,18 +564,31 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
+        $is_admin = $this->_is_admin();
+
         $update_data = array(
-            'description' => $this->input->post('description') ?: null,
-            'valid_from'  => mysql_date($this->input->post('valid_from')) ?: null,
-            'valid_until' => mysql_date($this->input->post('valid_until')) ?: null,
+            'description'  => $this->input->post('description') ?: null,
+            'valid_from'   => mysql_date($this->input->post('valid_from')) ?: null,
+            'valid_until'  => mysql_date($this->input->post('valid_until')) ?: null,
+            'machine_immat' => $this->input->post('machine_immat') ?: null,
         );
+
+        // Admin can reassign pilot and section
+        if ($is_admin) {
+            $update_data['pilot_login'] = $this->input->post('pilot_login') ?: null;
+            $update_data['section_id']  = $this->input->post('section_id')  ?: null;
+        }
+
+        // Effective pilot/section for file storage path (use new values if admin changed them)
+        $effective_pilot   = $is_admin ? ($this->input->post('pilot_login') ?: null) : $doc['pilot_login'];
+        $effective_section = $is_admin ? ($this->input->post('section_id')  ?: null) : $doc['section_id'];
 
         // Optional file replacement
         if (!empty($_FILES['userfile']['name'])) {
             $document_type = !empty($doc['document_type_id'])
                 ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
                 : null;
-            $dirname = $this->_get_storage_path($document_type, $doc['pilot_login'], $doc['section_id']);
+            $dirname = $this->_get_storage_path($document_type, $effective_pilot, $effective_section);
 
             if ($this->_ensure_directory($dirname)) {
                 $storage_file = time() . '_' . rand(1000, 9999) . '_' . $this->_sanitize_filename($_FILES['userfile']['name']);
@@ -573,7 +622,12 @@ class Archived_documents extends Gvv_Controller {
                     $this->data['document']   = $doc;
                     $this->data['action']     = MODIFICATION;
                     $this->data['controller'] = $this->controller;
-                    $this->data['is_admin']   = $this->_is_admin();
+                    $this->data['is_admin']   = $is_admin;
+                    if ($is_admin) {
+                        $this->data['pilot_selector']   = $this->membres_model->selector_with_null(array('actif' => 1));
+                        $this->data['section_selector'] = $this->sections_model->section_selector_with_null();
+                    }
+                    $this->data['machine_selector'] = array('' => '') + $this->_get_machine_selector($doc['section_id'] ?: null);
                     load_last_view($this->controller . '/editView', $this->data);
                     return;
                 }
@@ -606,6 +660,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['document_type_id']   = $doc['document_type_id'];
         $this->data['pilot_login']        = $doc['pilot_login'] ?: $this->dx_auth->get_username();
         $this->data['section_id']         = $doc['section_id'];
+        $this->data['machine_immat']      = $doc['machine_immat'] ?? null;
         $this->data['description']        = $doc['description'];
         $this->data['uploaded_by']        = $this->dx_auth->get_username();
         $this->data['previous_version_id'] = $id;
@@ -856,6 +911,39 @@ class Archived_documents extends Gvv_Controller {
             return $created;
         }
         return is_writable($dirname);
+    }
+
+    /**
+     * Build a combined machine selector (planeurs + avions actifs).
+     * If $section_id is provided, filters by section (club field).
+     * @param int|null $section_id
+     * @return array [immat => "Modele - Immat"]
+     */
+    private function _get_machine_selector($section_id = null) {
+        $gliders = $this->db->select('mpimmat as immat, mpmodele as modele')
+            ->from('machinesp')
+            ->where('actif', 1);
+        if ($section_id) {
+            $this->db->where('club', $section_id);
+        }
+        $gliders = $this->db->get()->result_array();
+
+        $planes = $this->db->select('macimmat as immat, macmodele as modele')
+            ->from('machinesa')
+            ->where('actif', 1);
+        if ($section_id) {
+            $this->db->where('club', $section_id);
+        }
+        $planes = $this->db->get()->result_array();
+
+        $all = array_merge($gliders, $planes);
+        usort($all, function($a, $b) { return strcmp($a['modele'], $b['modele']); });
+
+        $selector = array('' => '');
+        foreach ($all as $row) {
+            $selector[$row['immat']] = $row['modele'] . ' - ' . $row['immat'];
+        }
+        return $selector;
     }
 
     /**
