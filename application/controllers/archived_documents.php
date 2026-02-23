@@ -275,6 +275,15 @@ class Archived_documents extends Gvv_Controller {
         $error_view = $is_admin ? $this->controller . '/formView' : $this->controller . '/formPilotView';
         $is_pilot_form = ($this->input->post('source') === 'pilot');
 
+        // Pre-populate form data from POST so the form is repopulated on any error
+        $this->data['document_type_id'] = $this->input->post('document_type_id');
+        $this->data['pilot_login']      = $this->input->post('pilot_login');
+        $this->data['section_id']       = $this->input->post('section_id');
+        $this->data['description']      = $this->input->post('description');
+        $this->data['valid_from']       = $this->input->post('valid_from');
+        $this->data['valid_until']      = $this->input->post('valid_until');
+        $this->data['previous_version_id'] = $this->input->post('previous_version_id');
+
         if ($button == $this->lang->line("gvv_button_show_list")) {
             redirect('archived_documents/my_documents');
             return;
@@ -325,6 +334,25 @@ class Archived_documents extends Gvv_Controller {
         // Determine section association
         $section_id = $is_admin ? ($this->input->post('section_id') ?: null) : ($this->session->userdata('section') ?: null);
 
+        // Validate dates before file upload so the user doesn't have to re-select the file
+        $raw_valid_from  = $this->input->post('valid_from');
+        $raw_valid_until = $this->input->post('valid_until');
+        $valid_from  = $raw_valid_from  ? mysql_date($raw_valid_from)  : null;
+        $valid_until = $raw_valid_until ? mysql_date($raw_valid_until) : null;
+
+        if ($raw_valid_from && $valid_from === FALSE) {
+            $this->data['message'] = '<div class="alert alert-danger">Date de début invalide : ' . htmlspecialchars($raw_valid_from) . '</div>';
+            $this->form_static_element($action);
+            load_last_view($error_view, $this->data);
+            return;
+        }
+        if ($raw_valid_until && $valid_until === FALSE) {
+            $this->data['message'] = '<div class="alert alert-danger">Date de fin invalide : ' . htmlspecialchars($raw_valid_until) . '</div>';
+            $this->form_static_element($action);
+            load_last_view($error_view, $this->data);
+            return;
+        }
+
         // Build storage directory
         $dirname = $this->_get_storage_path($document_type, $pilot_login, $section_id);
 
@@ -373,25 +401,6 @@ class Archived_documents extends Gvv_Controller {
 
         // Determine validation status: admin/CA = approved, others = pending
         $validation_status = ($is_admin && !$is_pilot_form) ? 'approved' : 'pending';
-
-        // Validate dates before attempting insert
-        $raw_valid_from  = $this->input->post('valid_from');
-        $raw_valid_until = $this->input->post('valid_until');
-        $valid_from  = $raw_valid_from  ? mysql_date($raw_valid_from)  : null;
-        $valid_until = $raw_valid_until ? mysql_date($raw_valid_until) : null;
-
-        if ($raw_valid_from && $valid_from === FALSE) {
-            $this->data['message'] = '<div class="alert alert-danger">Date de début invalide : ' . htmlspecialchars($raw_valid_from) . '</div>';
-            $this->form_static_element($action);
-            load_last_view($error_view, $this->data);
-            return;
-        }
-        if ($raw_valid_until && $valid_until === FALSE) {
-            $this->data['message'] = '<div class="alert alert-danger">Date de fin invalide : ' . htmlspecialchars($raw_valid_until) . '</div>';
-            $this->form_static_element($action);
-            load_last_view($error_view, $this->data);
-            return;
-        }
 
         // Prepare document data
         $previous_version_id = $this->input->post('previous_version_id');

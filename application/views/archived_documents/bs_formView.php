@@ -44,7 +44,7 @@ $this->lang->load('archived_documents');
     <?= $message ?>
 <?php endif; ?>
 
-<?= form_open_multipart('archived_documents/formValidation/' . $action, array('class' => 'form-horizontal')) ?>
+<?= form_open_multipart('archived_documents/formValidation/' . $action, array('class' => 'form-horizontal', 'id' => 'document-upload-form')) ?>
 
 <div class="card">
     <div class="card-body">
@@ -150,3 +150,45 @@ $this->lang->load('archived_documents');
 <?= form_close() ?>
 
 </div>
+
+<script>
+(function () {
+    function isValidDate(str) {
+        if (!str) return true;
+        var m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (!m) return false;
+        var d = parseInt(m[1], 10), mo = parseInt(m[2], 10), y = parseInt(m[3], 10);
+        if (mo < 1 || mo > 12) return false;
+        var dim = new Date(y, mo, 0).getDate();
+        return d >= 1 && d <= dim;
+    }
+
+    document.getElementById('document-upload-form').addEventListener('submit', function (e) {
+        var fields = [
+            { id: 'valid_from',  label: <?= json_encode($this->lang->line('archived_documents_valid_from')) ?> },
+            { id: 'valid_until', label: <?= json_encode($this->lang->line('archived_documents_valid_until')) ?> }
+        ];
+        var errors = [];
+        fields.forEach(function (f) {
+            var el = document.getElementById(f.id);
+            if (el && !isValidDate(el.value.trim())) {
+                errors.push(f.label + ' : ' + el.value.trim());
+                el.classList.add('is-invalid');
+            } else if (el) {
+                el.classList.remove('is-invalid');
+            }
+        });
+        if (errors.length) {
+            e.preventDefault();
+            var msg = document.getElementById('date-error-msg');
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.id = 'date-error-msg';
+                document.querySelector('form').prepend(msg);
+            }
+            msg.className = 'alert alert-danger';
+            msg.textContent = 'Date invalide : ' + errors.join(', ');
+        }
+    });
+}());
+</script>
