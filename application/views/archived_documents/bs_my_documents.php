@@ -9,6 +9,10 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
 $this->lang->load('archived_documents');
+
+$is_bureau       = !empty($is_bureau);
+$is_strict_admin = !empty($is_strict_admin);
+$current_user    = isset($current_user) ? $current_user : (isset($pilot_login) ? $pilot_login : '');
 ?>
 
 <div id="body" class="body container-fluid">
@@ -70,14 +74,24 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
         </thead>
         <tbody>
             <?php foreach ($documents as $doc): ?>
+            <?php
+            $pilot_doc_private = !empty($doc['is_private']);
+            $pilot_can_see_file = !$pilot_doc_private || $is_bureau || $is_strict_admin
+                || (!empty($current_user) && $doc['pilot_login'] === $current_user);
+            ?>
             <tr>
                 <td>
                     <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
                     <?= htmlspecialchars($type_label) ?>
+                    <?php if ($pilot_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
                 </td>
                 <td>
+                    <?php if ($pilot_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?php else: ?>
+                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -113,9 +127,11 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <a href="<?= site_url('archived_documents/new_version/' . $doc['id']) ?>" class="btn btn-sm btn-outline-success" title="<?= $this->lang->line('archived_documents_new_version') ?>">
                         <i class="fas fa-code-branch"></i>
                     </a>
+                    <?php if ($pilot_can_see_file): ?>
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>
+                    <?php endif; ?>
                     <?php if (empty($doc['validation_status']) || $doc['validation_status'] !== 'approved'): ?>
                     <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
                        class="btn btn-sm btn-outline-danger"
@@ -160,14 +176,23 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
         </thead>
         <tbody>
             <?php foreach ($section_documents as $doc): ?>
+            <?php
+            $sec_doc_private = !empty($doc['is_private']);
+            $sec_can_see_file = !$sec_doc_private || $is_bureau || $is_strict_admin;
+            ?>
             <tr>
                 <td>
                     <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
                     <?= htmlspecialchars($type_label) ?>
+                    <?php if ($sec_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
                 </td>
                 <td>
+                    <?php if ($sec_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?php else: ?>
+                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -181,9 +206,11 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
                     </a>
+                    <?php if ($sec_can_see_file): ?>
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -212,14 +239,23 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
         </thead>
         <tbody>
             <?php foreach ($club_documents as $doc): ?>
+            <?php
+            $club_doc_private = !empty($doc['is_private']);
+            $club_can_see_file = !$club_doc_private || $is_bureau || $is_strict_admin;
+            ?>
             <tr>
                 <td>
                     <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
                     <?= htmlspecialchars($type_label) ?>
+                    <?php if ($club_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
                 </td>
                 <td>
+                    <?php if ($club_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?php else: ?>
+                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -233,9 +269,11 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
                     </a>
+                    <?php if ($club_can_see_file): ?>
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>

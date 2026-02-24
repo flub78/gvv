@@ -8,6 +8,8 @@ $lang['archived_documents_my_documents'] = 'Mijn Documenten';
 $lang['archived_documents_all_documents'] = 'Alle Documenten';
 $lang['archived_documents_expired'] = 'Verlopen Documenten';
 $lang['archived_documents_expiring_soon'] = 'Verloopt Binnenkort';
+$lang['archived_documents_private'] = 'Vertrouwelijk';
+$lang['archived_documents_no_file_access'] = 'Bestandstoegang beperkt';
 
 $lang['archived_documents_add'] = 'Document Toevoegen';
 $lang['archived_documents_add_pilot'] = 'Pilootdocument Toevoegen';

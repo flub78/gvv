@@ -56,6 +56,7 @@ $form_fields = array(
     'storage_by_year' => isset($storage_by_year) ? $storage_by_year : 0,
     'alert_days_before' => isset($alert_days_before) ? $alert_days_before : 30,
     'active' => isset($active) ? $active : 1,
+    'is_private' => isset($is_private) ? $is_private : 0,
     'display_order' => isset($display_order) ? $display_order : 0
 );
 

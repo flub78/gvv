@@ -11,6 +11,9 @@ $this->load->view('bs_banner');
 $this->lang->load('archived_documents');
 
 $filters = isset($filters) ? $filters : array();
+$is_bureau       = !empty($is_bureau);
+$is_strict_admin = !empty($is_strict_admin);
+$current_user    = isset($current_user) ? $current_user : '';
 $filter_expired       = !empty($filters['expired']);
 $filter_expiring_soon = !empty($filters['expiring_soon']);
 $filter_pending       = !empty($filters['pending']);
@@ -152,6 +155,9 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                 <td>
                     <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
                     <?= htmlspecialchars($type_label) ?>
+                    <?php if (!empty($doc['is_private'])): ?>
+                    <span class="badge bg-secondary ms-1" title="<?= $this->lang->line('archived_documents_private') ?>"><i class="fas fa-lock"></i></span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <?php if (!empty($doc['pilot_nom'])): ?>
@@ -175,8 +181,19 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     <?php endif; ?>
                 </td>
                 <td>
+                    <?php
+                    $doc_is_private = !empty($doc['is_private']);
+                    $can_see_file = !$doc_is_private || $is_bureau || $is_strict_admin
+                        || (!empty($current_user) && $doc['pilot_login'] === $current_user);
+                    ?>
+                    <?php if ($can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?php else: ?>
+                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    <?php endif; ?>
                 </td>
                 <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                 <td>
@@ -211,19 +228,25 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
                     </a>
+                    <?php if ($can_see_file): ?>
                     <a href="<?= site_url('archived_documents/download/' . $doc['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                         <i class="fas fa-download"></i>
                     </a>
+                    <?php endif; ?>
                     <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"
                        onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
                         <i class="fas fa-trash"></i>
                     </a>
-                    <?php if (!empty($is_admin) && !empty($doc['pilot_login']) && !empty($doc['validation_status']) && $doc['validation_status'] === 'pending'): ?>
-                          <a href="<?= site_url('archived_documents/approve/' . $doc['id']) ?>"
-                              class="btn btn-sm btn-success"
-                              title="<?= $this->lang->line('archived_documents_approve') ?>">
+                    <?php
+                    $can_validate_doc = !empty($is_admin) && !empty($doc['pilot_login'])
+                        && !empty($doc['validation_status']) && $doc['validation_status'] === 'pending'
+                        && (!$doc_is_private || $is_bureau || $is_strict_admin);
+                    if ($can_validate_doc): ?>
+                    <a href="<?= site_url('archived_documents/approve/' . $doc['id']) ?>"
+                        class="btn btn-sm btn-success"
+                        title="<?= $this->lang->line('archived_documents_approve') ?>">
                         <i class="fas fa-check"></i>
                     </a>
                     <?php endif; ?>

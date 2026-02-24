@@ -102,7 +102,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.validation_status,
             archived_documents.machine_immat,
             document_types.name as type_name, document_types.code as type_code,
-            document_types.alert_days_before,
+            document_types.alert_days_before, document_types.is_private,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
         $this->db->from($this->table);
@@ -171,7 +171,8 @@ class Archived_documents_model extends Common_Model {
     public function get_pilot_documents($pilot_login, $current_only = true) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code, document_types.required,
-            document_types.has_expiration, document_types.alert_days_before');
+            document_types.has_expiration, document_types.alert_days_before,
+            document_types.is_private');
         $this->db->from($this->table);
         $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.pilot_login', $pilot_login);
@@ -202,7 +203,7 @@ class Archived_documents_model extends Common_Model {
      */
     public function get_section_documents($section_id, $current_only = true) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
-            document_types.code as type_code');
+            document_types.code as type_code, document_types.is_private');
         $this->db->from($this->table);
             $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.section_id', $section_id);
@@ -231,7 +232,8 @@ class Archived_documents_model extends Common_Model {
      */
     public function get_all_section_documents($current_only = true) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
-            document_types.code as type_code, sections.nom as section_name');
+            document_types.code as type_code, document_types.is_private,
+            sections.nom as section_name');
         $this->db->from($this->table);
         $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
@@ -261,7 +263,7 @@ class Archived_documents_model extends Common_Model {
      */
     public function get_club_documents($current_only = true) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
-            document_types.code as type_code');
+            document_types.code as type_code, document_types.is_private');
         $this->db->from($this->table);
             $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
             $this->db->where('(document_types.scope = "club" OR archived_documents.document_type_id IS NULL)', null, false);

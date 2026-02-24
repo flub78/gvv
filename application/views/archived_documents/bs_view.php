@@ -15,6 +15,8 @@ $badge_class = Archived_documents_model::status_badge_class($status);
 $status_label = Archived_documents_model::status_label($status);
 $type_label = (!empty($type) && !empty($type['name'])) ? $type['name'] : $this->lang->line('archived_documents_type_other');
 $show_type = ($type_label !== $this->lang->line('archived_documents_type_other'));
+$can_access_file = isset($can_access_file) ? $can_access_file : true;
+$is_private = !empty($type['is_private']);
 ?>
 
 <div id="body" class="body container-fluid">
@@ -31,9 +33,15 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
     <a href="<?= site_url('archived_documents/pop_return_url') ?>" class="btn btn-sm btn-outline-secondary">
         <i class="fas fa-arrow-left"></i> <?= $this->lang->line('archived_documents_back') ?>
     </a>
+    <?php if ($can_access_file): ?>
     <a href="<?= site_url('archived_documents/download/' . $document['id']) ?>" class="btn btn-sm btn-primary">
         <i class="fas fa-download"></i> <?= $this->lang->line('archived_documents_download') ?>
     </a>
+    <?php else: ?>
+    <span class="btn btn-sm btn-secondary disabled" title="<?= $this->lang->line('archived_documents_no_file_access') ?>">
+        <i class="fas fa-lock"></i> <?= $this->lang->line('archived_documents_download') ?>
+    </span>
+    <?php endif; ?>
     <a href="<?= site_url('archived_documents/edit_doc/' . $document['id']) ?>" class="btn btn-sm btn-outline-primary">
         <i class="fas fa-edit"></i> <?= $this->lang->line('archived_documents_edit') ?>
     </a>
@@ -53,7 +61,11 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
         <?= $document['alarm_disabled'] ? $this->lang->line('archived_documents_enable_alarm') : $this->lang->line('archived_documents_disable_alarm') ?>
     </button>
     <?php endif; ?>
-    <?php if (isset($is_ca) && $is_ca && isset($document['validation_status']) && $document['validation_status'] === 'pending'): ?>
+    <?php
+    $can_validate = isset($is_ca) && $is_ca
+        && (!$is_private || (isset($is_bureau) && $is_bureau) || (isset($is_strict_admin) && $is_strict_admin));
+    if ($can_validate && isset($document['validation_status']) && $document['validation_status'] === 'pending'):
+    ?>
     <a href="<?= site_url('archived_documents/approve/' . $document['id']) ?>"
          class="btn btn-sm btn-success">
         <i class="fas fa-check"></i> <?= $this->lang->line('archived_documents_approve') ?>
@@ -161,6 +173,12 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
                         <td><span class="text-danger"><?= htmlspecialchars($document['rejection_reason']) ?></span></td>
                     </tr>
                     <?php endif; ?>
+                    <?php if ($is_private): ?>
+                    <tr>
+                        <th><?= $this->lang->line('archived_documents_private') ?></th>
+                        <td><span class="badge bg-secondary"><i class="fas fa-lock"></i> <?= $this->lang->line('archived_documents_private') ?></span></td>
+                    </tr>
+                    <?php endif; ?>
                 </table>
             </div>
         </div>
@@ -173,6 +191,7 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
                 <h5 class="mb-0"><?= $this->lang->line('archived_documents_preview') ?></h5>
             </div>
             <div class="card-body text-center">
+                <?php if ($can_access_file): ?>
                 <?php
                 $preview_url = site_url('archived_documents/preview/' . $document['id']);
                 ?>
@@ -183,6 +202,12 @@ $show_type = ($type_label !== $this->lang->line('archived_documents_type_other')
                 <a href="<?= $preview_url ?>" class="btn btn-outline-primary">
                     <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_preview') ?>
                 </a>
+                <?php else: ?>
+                <div class="text-muted py-4">
+                    <i class="fas fa-lock fa-3x mb-3 d-block"></i>
+                    <?= $this->lang->line('archived_documents_no_file_access') ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

@@ -835,6 +835,8 @@ class GVVMetadata extends Metadata {
                 $this->field['document_types']['alert_days_before']['Type'] = 'int';
                 $this->field['document_types']['active']['Name'] = 'Actif';
                 $this->field['document_types']['active']['Subtype'] = 'checkbox';
+                $this->field['document_types']['is_private']['Name'] = 'Confidentiel';
+                $this->field['document_types']['is_private']['Subtype'] = 'checkbox';
                 $this->field['document_types']['display_order']['Name'] = 'Ordre';
                 $this->field['document_types']['display_order']['Type'] = 'int';
 

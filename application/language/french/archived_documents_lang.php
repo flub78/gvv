@@ -8,6 +8,8 @@ $lang['archived_documents_my_documents'] = 'Mes documents';
 $lang['archived_documents_all_documents'] = 'Tous les documents';
 $lang['archived_documents_expired'] = 'Documents expirés';
 $lang['archived_documents_expiring_soon'] = 'Expirent bientôt';
+$lang['archived_documents_private'] = 'Confidentiel';
+$lang['archived_documents_no_file_access'] = 'Accès au fichier restreint';
 
 $lang['archived_documents_add'] = 'Ajouter un document';
 $lang['archived_documents_add_pilot'] = 'Ajouter un document pilote';

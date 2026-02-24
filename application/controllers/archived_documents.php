@@ -100,7 +100,9 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
         $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
+        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
         $this->data['pilot_login'] = $pilot_login;
+        $this->data['current_user'] = $pilot_login;
 
         $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
         $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
@@ -213,6 +215,9 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
         $this->data['has_modification_rights'] = true;
+        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
+        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
+        $this->data['current_user'] = $this->dx_auth->get_username();
 
         return load_last_view($this->controller . '/documentsListView', $this->data, $this->unit_test);
     }
@@ -241,7 +246,9 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
         $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
+        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
         $this->data['pilot_login'] = $pilot_login;
+        $this->data['current_user'] = $this->dx_auth->get_username();
 
         // Get pilot info
         $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
@@ -556,11 +563,14 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        $this->data['document'] = $doc;
-        $this->data['document']['expiration_status'] = $this->gvv_model->compute_expiration_status($doc);
-        $this->data['type'] = !empty($doc['document_type_id'])
+        $type = !empty($doc['document_type_id'])
             ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
             : null;
+        $is_private = !empty($type['is_private']);
+
+        $this->data['document'] = $doc;
+        $this->data['document']['expiration_status'] = $this->gvv_model->compute_expiration_status($doc);
+        $this->data['type'] = $type;
         $this->data['versions'] = $this->gvv_model->get_version_history($id);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
@@ -568,6 +578,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
         $this->data['can_delete'] = $this->data['is_admin'] ||
             ($doc['pilot_login'] === $this->dx_auth->get_username() && (!isset($doc['validation_status']) || $doc['validation_status'] !== 'approved'));
+        $this->data['can_access_file'] = $this->_can_access_private_file($is_private, $doc['pilot_login']);
 
         load_last_view($this->controller . '/view', $this->data);
     }
@@ -748,7 +759,7 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Approve a pending document (admin/CA only)
+     * Approve a pending document (admin/CA only; bureau/strict-admin for private docs)
      */
     function approve($id) {
         if (!$this->_is_admin()) {
@@ -759,6 +770,16 @@ class Archived_documents extends Gvv_Controller {
         $doc = $this->gvv_model->get_by_id('id', $id);
         if (!$doc || $doc['validation_status'] !== 'pending') {
             $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
+            redirect('archived_documents/page?filter=pending');
+            return;
+        }
+
+        // Private document: only bureau/strict-admin may validate
+        $type = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        if (!empty($type['is_private']) && !$this->_can_access_private_file(true, null)) {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning"><i class="fas fa-lock"></i> ' . $this->lang->line('archived_documents_no_file_access') . '</div>');
             redirect('archived_documents/page?filter=pending');
             return;
         }
@@ -775,7 +796,7 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
-     * Reject a pending document (admin/CA only)
+     * Reject a pending document (admin/CA only; bureau/strict-admin for private docs)
      */
     function reject($id) {
         if (!$this->_is_admin()) {
@@ -786,6 +807,16 @@ class Archived_documents extends Gvv_Controller {
         $doc = $this->gvv_model->get_by_id('id', $id);
         if (!$doc || $doc['validation_status'] !== 'pending') {
             $this->session->set_flashdata('message', '<div class="alert alert-warning">Document non trouvé ou déjà traité</div>');
+            redirect('archived_documents/page?filter=pending');
+            return;
+        }
+
+        // Private document: only bureau/strict-admin may validate
+        $type = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        if (!empty($type['is_private']) && !$this->_can_access_private_file(true, null)) {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning"><i class="fas fa-lock"></i> ' . $this->lang->line('archived_documents_no_file_access') . '</div>');
             redirect('archived_documents/page?filter=pending');
             return;
         }
@@ -881,9 +912,20 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check
+        // Security check: admin or owner
         if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
             redirect('archived_documents/my_documents');
+            return;
+        }
+
+        // Private document: bureau/strict-admin/owner only
+        $type = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        $is_private = !empty($type['is_private']);
+        if (!$this->_can_access_private_file($is_private, $doc['pilot_login'])) {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning"><i class="fas fa-lock"></i> ' . $this->lang->line('archived_documents_no_file_access') . '</div>');
+            redirect('archived_documents/view/' . $id);
             return;
         }
 
@@ -910,9 +952,20 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check
+        // Security check: admin or owner
         if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
             redirect('archived_documents/my_documents');
+            return;
+        }
+
+        // Private document: bureau/strict-admin/owner only
+        $type = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        $is_private = !empty($type['is_private']);
+        if (!$this->_can_access_private_file($is_private, $doc['pilot_login'])) {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning"><i class="fas fa-lock"></i> ' . $this->lang->line('archived_documents_no_file_access') . '</div>');
+            redirect('archived_documents/view/' . $id);
             return;
         }
 
@@ -939,6 +992,23 @@ class Archived_documents extends Gvv_Controller {
      */
     private function _is_admin() {
         return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
+    }
+
+    /**
+     * Check if current user can access file content of a (potentially private) document.
+     * Private documents are only accessible to bureau members, strict admins, and the document owner.
+     *
+     * @param bool   $is_private   Whether the document type is private
+     * @param string $pilot_login  Login of the document owner (null for non-pilot docs)
+     * @return bool
+     */
+    private function _can_access_private_file($is_private, $pilot_login) {
+        if (!$is_private) {
+            return true;
+        }
+        return $this->dx_auth->is_admin()
+            || $this->dx_auth->is_role('bureau', true, true)
+            || (!empty($pilot_login) && $pilot_login === $this->dx_auth->get_username());
     }
 
     /**
