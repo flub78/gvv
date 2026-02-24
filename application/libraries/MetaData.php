@@ -1954,6 +1954,8 @@ abstract class Metadata {
             ));
             $upload = '<button type="submit" class="btn btn-primary">Submit</button>';
             return $input; // . $upload;
+        } elseif ($subtype == 'key') {
+            return form_hidden($field, $value);
         } elseif ($subtype == 'color') {
             $attrs = array_merge($attrs, array(
                 'type' => 'color',

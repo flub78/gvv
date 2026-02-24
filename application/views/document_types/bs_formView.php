@@ -59,9 +59,9 @@ $form_fields = array(
     'display_order' => isset($display_order) ? $display_order : 0
 );
 
-// Add id field only for edit/view (not creation)
+// Add id as hidden field for edit/view (not creation)
 if ($action != CREATION) {
-    $form_fields = array_merge(array('id' => $id), $form_fields);
+    echo form_hidden('id', $id);
 }
 
 echo ($this->gvvmetadata->form('document_types', $form_fields));

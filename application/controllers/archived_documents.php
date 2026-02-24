@@ -84,8 +84,16 @@ class Archived_documents extends Gvv_Controller {
         $this->push_return_url("archived_documents my_documents");
 
         $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
-        $section_id = $this->session->userdata('section');
-        $this->data['section_documents'] = $section_id ? $this->gvv_model->get_section_documents($section_id) : array();
+        // $this->gvv_model->section() retourne la ligne BD de la section active,
+        // ou un tableau vide si "Toutes" est sélectionné (valeur de session hors plage).
+        $active_section = $this->gvv_model->section();
+        if (!empty($active_section)) {
+            // Section active : uniquement les documents de cette section
+            $this->data['section_documents'] = $this->gvv_model->get_section_documents($active_section['id']);
+        } else {
+            // "Toutes" ou pas de section active : documents de toutes les sections
+            $this->data['section_documents'] = $this->gvv_model->get_all_section_documents();
+        }
         $this->data['club_documents'] = $this->gvv_model->get_club_documents();
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login, $this->session->userdata('section'));
         $this->data['controller'] = $this->controller;
@@ -123,11 +131,23 @@ class Archived_documents extends Gvv_Controller {
 
         $this->push_return_url("archived_documents alternate");
 
+        // section_id absent de l'URL → première visite → filtre par la section de session.
+        // section_id présent mais vide → l'admin a choisi "Toutes" → pas de filtre section.
+        // section_id présent et non vide → filtre sur cette section.
+        if (isset($_GET['section_id'])) {
+            $section_id = $this->input->get('section_id');
+        } else {
+            // $this->gvv_model->section() retourne la ligne BD de la section active,
+            // ou un tableau vide si "Toutes" est sélectionné (valeur de session hors plage).
+            $active_section = $this->gvv_model->section();
+            $section_id = !empty($active_section) ? $active_section['id'] : null;
+        }
+
         $filters = array(
             'expired' => $this->input->get('filter_expired') ? true : false,
             'pending' => $this->input->get('filter_pending') ? true : false,
             'document_type_id' => $this->input->get('document_type_id'),
-            'section_id' => $this->input->get('section_id'),
+            'section_id' => $section_id,
             'pilot_login' => $this->input->get('pilot_login'),
             'machine_immat' => $this->input->get('machine_immat'),
         );

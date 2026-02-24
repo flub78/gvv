@@ -116,7 +116,10 @@ class Archived_documents_model extends Common_Model {
         }
 
         if (!empty($filters['section_id'])) {
-            $this->db->where('archived_documents.section_id', $filters['section_id']);
+            $section_id = (int)$filters['section_id'];
+            // Le filtre section ne s'applique qu'aux documents de section.
+            // Les documents pilotes (scope=pilot) et club (scope=club) sont toujours visibles.
+            $this->db->where("(document_types.scope = 'pilot' OR document_types.scope = 'club' OR archived_documents.section_id = {$section_id})", null, false);
         }
 
         if (!empty($filters['document_type_id'])) {
@@ -203,6 +206,36 @@ class Archived_documents_model extends Common_Model {
             $this->db->where('archived_documents.is_current_version', 1);
         }
 
+        $this->db->order_by('document_types.display_order', 'asc');
+
+        $query = $this->db->get();
+        $results = $this->get_to_array($query);
+
+        foreach ($results as &$row) {
+            $row['expiration_status'] = $this->compute_expiration_status($row);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Returns section documents for all sections (used when no active section is selected)
+     * @param bool $current_only Only return current versions
+     * @return array
+     */
+    public function get_all_section_documents($current_only = true) {
+        $this->db->select('archived_documents.*, document_types.name as type_name,
+            document_types.code as type_code, sections.nom as section_name');
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
+        $this->db->where('document_types.scope', 'section');
+
+        if ($current_only) {
+            $this->db->where('archived_documents.is_current_version', 1);
+        }
+
+        $this->db->order_by('sections.nom', 'asc');
         $this->db->order_by('document_types.display_order', 'asc');
 
         $query = $this->db->get();
