@@ -82,6 +82,7 @@ class Archived_documents extends Gvv_Controller {
         $pilot_login = $this->dx_auth->get_username();
 
         $this->push_return_url("archived_documents my_documents");
+        $this->session->set_userdata('archived_documents_list_url', current_url());
 
         $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
         // $this->gvv_model->section() retourne la ligne BD de la section active,
@@ -130,6 +131,7 @@ class Archived_documents extends Gvv_Controller {
         }
 
         $this->push_return_url("archived_documents alternate");
+        $this->session->set_userdata('archived_documents_list_url', current_url());
 
         $session_key = 'archived_documents_filters';
 
@@ -795,8 +797,11 @@ class Archived_documents extends Gvv_Controller {
     function delete($id) {
         $doc = $this->gvv_model->get_by_id('id', $id);
 
+        $list_url = $this->session->userdata('archived_documents_list_url')
+            ?: site_url('archived_documents/my_documents');
+
         if (!$doc) {
-            redirect('archived_documents/my_documents');
+            redirect($list_url);
             return;
         }
 
@@ -806,13 +811,13 @@ class Archived_documents extends Gvv_Controller {
         // Security check: pilot can delete own documents, admin can delete all
         if (!$is_admin && $doc['pilot_login'] !== $current_user) {
             $this->session->set_flashdata('message', '<div class="alert alert-danger">Vous ne pouvez pas supprimer ce document</div>');
-            $this->pop_return_url();
+            redirect($list_url);
             return;
         }
 
         if (!$is_admin && isset($doc['validation_status']) && $doc['validation_status'] === 'approved') {
             $this->session->set_flashdata('message', '<div class="alert alert-danger">Vous ne pouvez pas supprimer un document validé</div>');
-            $this->pop_return_url();
+            redirect($list_url);
             return;
         }
 
@@ -828,7 +833,7 @@ class Archived_documents extends Gvv_Controller {
         $this->gvv_model->delete_document($id, $current_user, $is_admin);
 
         $this->session->set_flashdata('message', '<div class="alert alert-success">Document supprime</div>');
-        $this->pop_return_url();
+        redirect($list_url);
     }
 
     /**

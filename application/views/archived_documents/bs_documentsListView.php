@@ -91,13 +91,38 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
             echo form_dropdown('machine_immat', $machine_selector, $filter_machine, 'class="' . $select_class . '" id="machine_immat"');
             ?>
         </div>
-        <div class="col-sm-1">
-            <button type="submit" class="btn btn-primary w-100">
+        <div class="col-sm-1 d-flex gap-1">
+            <button type="submit" class="btn btn-primary flex-grow-1" title="<?= $this->lang->line('archived_documents_filter_apply') ?>">
                 <i class="fas fa-filter"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="clear-filters" title="<?= $this->lang->line('archived_documents_filter_clear') ?>">
+                <i class="fas fa-times"></i>
             </button>
         </div>
     </div>
 </form>
+<script>
+document.getElementById('clear-filters').addEventListener('click', function() {
+    try {
+        document.getElementById('filter_expired').checked = false;
+        document.getElementById('filter_pending').checked = false;
+        ['document_type_id', 'section_id', 'pilot_login', 'machine_immat'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#document_type_id, #section_id, #pilot_login, #machine_immat').val('').trigger('change');
+        }
+        // DataTables 1.9.x API (fnFilter)
+        try {
+            if (typeof $ !== 'undefined' && $.fn.dataTable) {
+                $('.datatable').dataTable().fnFilter('');
+            }
+        } catch(e) {}
+    } catch(e) {}
+    document.getElementById('doc-filter-form').submit();
+});
+</script>
 
 <div class="table-responsive">
     <table class="datatable table table-striped">

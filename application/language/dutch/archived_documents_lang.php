@@ -82,6 +82,8 @@ $lang['archived_documents_validated_by'] = 'Gevalideerd door';
 $lang['archived_documents_validated_at'] = 'Gevalideerd op';
 $lang['archived_documents_pending_notice'] = 'Uw document wacht op validatie door een beheerder';
 $lang['archived_documents_filter_all'] = 'Alle';
+$lang['archived_documents_filter_apply'] = 'Filteren';
+$lang['archived_documents_filter_clear'] = 'Filters wissen';
 $lang['archived_documents_pilot_only_types'] = 'Piloten kunnen alleen pilootdocumenttypes selecteren.';
 
 $lang['archived_documents_edit'] = 'Bewerken';

@@ -82,6 +82,8 @@ $lang['archived_documents_validated_by'] = 'Validated By';
 $lang['archived_documents_validated_at'] = 'Validated On';
 $lang['archived_documents_pending_notice'] = 'Your document is pending validation by an administrator';
 $lang['archived_documents_filter_all'] = 'All';
+$lang['archived_documents_filter_apply'] = 'Filter';
+$lang['archived_documents_filter_clear'] = 'Clear filters';
 $lang['archived_documents_pilot_only_types'] = 'Pilots can only select pilot document types.';
 
 $lang['archived_documents_edit'] = 'Edit';
