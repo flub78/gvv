@@ -11,8 +11,9 @@ $this->load->view('bs_banner');
 $this->lang->load('archived_documents');
 
 $filters = isset($filters) ? $filters : array();
-$filter_expired = !empty($filters['expired']);
-$filter_pending = !empty($filters['pending']);
+$filter_expired       = !empty($filters['expired']);
+$filter_expiring_soon = !empty($filters['expiring_soon']);
+$filter_pending       = !empty($filters['pending']);
 $filter_type = isset($filters['document_type_id']) ? $filters['document_type_id'] : '';
 $filter_section = isset($filters['section_id']) ? $filters['section_id'] : '';
 $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
@@ -55,15 +56,19 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
 <form method="get" class="mb-3" id="doc-filter-form">
     <input type="hidden" name="filter_submitted" value="1">
     <div class="row g-2 align-items-end">
-        <div class="col-sm-2">
+        <div class="col-sm-3">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_expired" id="filter_expired" value="1" <?= $filter_expired ? 'checked' : '' ?>>
                 <label class="form-check-label <?= (isset($expired_count) && $expired_count > 0) ? 'text-danger fw-bold' : '' ?>" for="filter_expired">
                     <?= $this->lang->line('archived_documents_expired') ?> (<?= isset($expired_count) ? $expired_count : 0 ?>)
                 </label>
             </div>
-        </div>
-        <div class="col-sm-2">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="filter_expiring_soon" id="filter_expiring_soon" value="1" <?= $filter_expiring_soon ? 'checked' : '' ?>>
+                <label class="form-check-label <?= (isset($expiring_soon_count) && $expiring_soon_count > 0) ? 'text-warning fw-bold' : '' ?>" for="filter_expiring_soon">
+                    <?= $this->lang->line('archived_documents_expiring_soon') ?> (<?= isset($expiring_soon_count) ? $expiring_soon_count : 0 ?>)
+                </label>
+            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_pending" id="filter_pending" value="1" <?= $filter_pending ? 'checked' : '' ?>>
                 <label class="form-check-label <?= (isset($pending_count) && $pending_count > 0) ? 'text-warning fw-bold' : '' ?>" for="filter_pending">
@@ -105,6 +110,7 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
 document.getElementById('clear-filters').addEventListener('click', function() {
     try {
         document.getElementById('filter_expired').checked = false;
+        document.getElementById('filter_expiring_soon').checked = false;
         document.getElementById('filter_pending').checked = false;
         ['document_type_id', 'section_id', 'pilot_login', 'machine_immat'].forEach(function(id) {
             var el = document.getElementById(id);

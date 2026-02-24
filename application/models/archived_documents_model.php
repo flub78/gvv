@@ -102,6 +102,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.validation_status,
             archived_documents.machine_immat,
             document_types.name as type_name, document_types.code as type_code,
+            document_types.alert_days_before,
             membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
             sections.nom as section_name');
         $this->db->from($this->table);
@@ -130,17 +131,22 @@ class Archived_documents_model extends Common_Model {
             $this->db->where('archived_documents.machine_immat', $filters['machine_immat']);
         }
 
-        $expired = !empty($filters['expired']);
-        $pending = !empty($filters['pending']);
+        $expired       = !empty($filters['expired']);
+        $pending       = !empty($filters['pending']);
+        $expiring_soon = !empty($filters['expiring_soon']);
 
-        if ($expired && $pending) {
-            $this->db->where("(archived_documents.validation_status = 'pending' OR (archived_documents.validation_status = 'approved' AND archived_documents.valid_until IS NOT NULL AND archived_documents.valid_until < CURDATE()))", null, false);
-        } elseif ($pending) {
-            $this->db->where('archived_documents.validation_status', 'pending');
-        } elseif ($expired) {
-            $this->db->where('archived_documents.validation_status', 'approved');
-            $this->db->where('archived_documents.valid_until IS NOT NULL', null, false);
-            $this->db->where('archived_documents.valid_until <', date('Y-m-d'));
+        $conditions = array();
+        if ($expired) {
+            $conditions[] = "(archived_documents.validation_status = 'approved' AND archived_documents.valid_until IS NOT NULL AND archived_documents.valid_until < CURDATE())";
+        }
+        if ($pending) {
+            $conditions[] = "archived_documents.validation_status = 'pending'";
+        }
+        if ($expiring_soon) {
+            $conditions[] = "(archived_documents.validation_status = 'approved' AND archived_documents.valid_until IS NOT NULL AND archived_documents.valid_until >= CURDATE() AND archived_documents.valid_until <= DATE_ADD(CURDATE(), INTERVAL COALESCE(document_types.alert_days_before, 30) DAY))";
+        }
+        if (!empty($conditions)) {
+            $this->db->where('(' . implode(' OR ', $conditions) . ')', null, false);
         }
 
         $this->db->order_by('archived_documents.uploaded_at', 'desc');

@@ -141,8 +141,9 @@ class Archived_documents extends Gvv_Controller {
             $section_id = $this->input->get('section_id');
 
             $filters = array(
-                'expired' => $this->input->get('filter_expired') ? true : false,
-                'pending' => $this->input->get('filter_pending') ? true : false,
+                'expired'       => $this->input->get('filter_expired') ? true : false,
+                'expiring_soon' => $this->input->get('filter_expiring_soon') ? true : false,
+                'pending'       => $this->input->get('filter_pending') ? true : false,
                 'document_type_id' => $this->input->get('document_type_id'),
                 'section_id' => $section_id,
                 'pilot_login' => $this->input->get('pilot_login'),
@@ -154,12 +155,17 @@ class Archived_documents extends Gvv_Controller {
             $saved = $this->session->userdata($session_key);
             if ($saved !== false && is_array($saved)) {
                 $filters = $saved;
+                // Compatibilité ascendante : sessions sans expiring_soon
+                if (!isset($filters['expiring_soon'])) {
+                    $filters['expiring_soon'] = false;
+                }
             } else {
                 // Première visite : filtrer par la section active de la session.
                 $active_section = $this->gvv_model->section();
                 $filters = array(
-                    'expired' => false,
-                    'pending' => false,
+                    'expired'       => false,
+                    'expiring_soon' => false,
+                    'pending'       => false,
                     'document_type_id' => null,
                     'section_id' => !empty($active_section) ? $active_section['id'] : null,
                     'pilot_login' => null,
@@ -179,19 +185,24 @@ class Archived_documents extends Gvv_Controller {
             'machine_immat'    => $filters['machine_immat'],
         );
         $docs_for_count = $this->gvv_model->get_filtered_documents($selection_filters);
-        $expired_count = 0;
-        $pending_count = 0;
+        $expired_count       = 0;
+        $expiring_soon_count = 0;
+        $pending_count       = 0;
         foreach ($docs_for_count as $doc) {
             if ($doc['expiration_status'] === Archived_documents_model::STATUS_EXPIRED
                 && empty($doc['alarm_disabled'])) {
                 $expired_count++;
             }
+            if ($doc['expiration_status'] === Archived_documents_model::STATUS_EXPIRING_SOON) {
+                $expiring_soon_count++;
+            }
             if (!empty($doc['validation_status']) && $doc['validation_status'] === 'pending') {
                 $pending_count++;
             }
         }
-        $this->data['expired_count'] = $expired_count;
-        $this->data['pending_count'] = $pending_count;
+        $this->data['expired_count']       = $expired_count;
+        $this->data['expiring_soon_count'] = $expiring_soon_count;
+        $this->data['pending_count']       = $pending_count;
 
         $type_selector = $this->document_types_model->type_selector();
         $this->data['type_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $type_selector;
