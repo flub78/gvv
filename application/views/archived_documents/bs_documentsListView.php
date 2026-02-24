@@ -53,6 +53,7 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
 }
 </style>
 <form method="get" class="mb-3" id="doc-filter-form">
+    <input type="hidden" name="filter_submitted" value="1">
     <div class="row g-2 align-items-end">
         <div class="col-sm-2">
             <div class="form-check">
