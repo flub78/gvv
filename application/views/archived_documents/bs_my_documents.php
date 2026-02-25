@@ -61,7 +61,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
 <h5 class="mt-4"><i class="fas fa-user"></i> <?= $this->lang->line('archived_documents_pilot_documents_section') ?></h5>
 <?php if (!empty($documents)): ?>
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
@@ -168,7 +168,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
 <h5 class="mt-4"><i class="fas fa-layer-group"></i> <?= $this->lang->line('archived_documents_section_documents_section') ?></h5>
 <?php if (!empty($section_documents)): ?>
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
@@ -235,7 +235,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
 <h5 class="mt-4"><i class="fas fa-building"></i> <?= $this->lang->line('archived_documents_club_documents_section') ?></h5>
 <?php if (!empty($club_documents)): ?>
 <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>

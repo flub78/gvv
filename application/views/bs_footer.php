@@ -72,6 +72,23 @@
         // },
         // "oLanguage": olanguage,
 
+        $('.datatable_nopaging').dataTable({
+            "bFilter": true,
+            "bPaginate": false,
+            "iDisplayLength": -1,
+            "bStateSave": true,
+            "bSort": true,
+            "bInfo": true,
+            "bJQueryUI": true,
+            "bRetrieve": false,
+            "bAutoWidth": true,
+            "search": {
+                "caseInsensitive": true
+            },
+            "oLanguage": olanguage,
+            "fnDrawCallback": highlightSearchCallback
+        });
+
         $('.datatable_500').dataTable({
             "bFilter": true,
             "bPaginate": false,
