@@ -43,7 +43,7 @@ Cela implique de:
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
-  * [] donner les droits dans les controllers
+  * [-] donner les droits dans les controllers
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
@@ -56,7 +56,7 @@ Cela implique de:
 
 * [] Interdire les réservations sans cotisation et sans argent sur le compte.
 
-* [] Gestion des visites médicales
+* [x] Gestion des visites médicales (à travers la validité des documents)
   
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
