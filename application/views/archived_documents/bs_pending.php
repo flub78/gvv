@@ -36,8 +36,8 @@ $this->lang->load('archived_documents');
                 <th><?= $this->lang->line('archived_documents_pilot') ?></th>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_by') ?></th>
                 <th>Actions</th>
             </tr>
@@ -60,6 +60,7 @@ $this->lang->load('archived_documents');
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
                 </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
                         <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
@@ -67,7 +68,6 @@ $this->lang->load('archived_documents');
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td><?= htmlspecialchars($doc['uploaded_by']) ?></td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">

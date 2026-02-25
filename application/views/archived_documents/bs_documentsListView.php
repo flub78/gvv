@@ -74,7 +74,7 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="filter_pending" id="filter_pending" value="1" <?= $filter_pending ? 'checked' : '' ?>>
-                <label class="form-check-label <?= (isset($pending_count) && $pending_count > 0) ? 'text-warning fw-bold' : '' ?>" for="filter_pending">
+                <label class="form-check-label <?= (isset($pending_count) && $pending_count > 0) ? 'text-primary fw-bold' : '' ?>" for="filter_pending">
                     <?= $this->lang->line('archived_documents_pending_documents') ?> (<?= isset($pending_count) ? $pending_count : 0 ?>)
                 </label>
             </div>
@@ -143,8 +143,8 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_status') ?></th>
                 <th>Actions</th>
             </tr>
@@ -196,6 +196,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     <?php endif; ?>
                 </td>
                 <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']):
                         $is_expired_date = strtotime($doc['valid_until']) < mktime(0,0,0);
@@ -207,7 +208,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php
                     $is_expired_date = $doc['valid_until'] && strtotime($doc['valid_until']) < mktime(0,0,0);

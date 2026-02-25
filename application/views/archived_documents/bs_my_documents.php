@@ -68,9 +68,9 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
-                <th><?= $this->lang->line('archived_documents_status') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th><?= $this->lang->line('archived_documents_status') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -97,13 +97,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
-                <td>
-                    <?php if ($doc['valid_until']): ?>
-                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
-                    <?php else: ?>
-                        <span class="text-muted">-</span>
-                    <?php endif; ?>
-                </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php
                     $status = $doc['expiration_status'];
@@ -120,7 +114,13 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                         </span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
+                <td>
+                    <?php if ($doc['valid_until']): ?>
+                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
@@ -175,8 +175,8 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -202,6 +202,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
                         <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
@@ -209,7 +210,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
@@ -242,8 +242,8 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
+                <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -269,6 +269,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
+                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
                         <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
@@ -276,7 +277,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <a href="<?= site_url('archived_documents/view/' . $doc['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('archived_documents_view') ?>">
                         <i class="fas fa-eye"></i>
