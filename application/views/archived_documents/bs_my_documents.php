@@ -69,8 +69,8 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
-                <th><?= $this->lang->line('archived_documents_status') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
+                <th><?= $this->lang->line('archived_documents_status') ?></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -99,6 +99,13 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                 </td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
+                    <?php if ($doc['valid_until']): ?>
+                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
+                <td>
                     <?php
                     $status = $doc['expiration_status'];
                     $badge_class = Archived_documents_model::status_badge_class($status);
@@ -112,13 +119,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                         <span class="badge bg-secondary" title="<?= $this->lang->line('archived_documents_alarm_disabled') ?>">
                             <i class="fas fa-bell-slash"></i>
                         </span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if ($doc['valid_until']): ?>
-                        <?= date('d/m/Y', strtotime($doc['valid_until'])) ?>
-                    <?php else: ?>
-                        <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
                 <td>
