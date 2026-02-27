@@ -42,6 +42,47 @@ $attrs = array(
     'class' => "datatable table table-striped"
 );
 
+// Filter form
+$filter_scope      = isset($filter_scope)      ? $filter_scope      : '';
+$filter_section_id = isset($filter_section_id) ? $filter_section_id : '';
+?>
+<form method="get" class="mb-3">
+    <input type="hidden" name="filter_submitted" value="1">
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-3">
+            <label for="scope" class="form-label"><?= $this->lang->line('document_types_scope') ?></label>
+            <?= form_dropdown('scope', isset($scope_selector) ? $scope_selector : array(), $filter_scope, 'class="form-select" id="scope"') ?>
+        </div>
+        <div class="col-sm-3">
+            <label for="section_id" class="form-label"><?= $this->lang->line('document_types_section') ?></label>
+            <?= form_dropdown('section_id', isset($section_selector) ? $section_selector : array(), $filter_section_id, 'class="form-select" id="section_id"') ?>
+        </div>
+        <div class="col-sm-1 d-flex gap-1">
+            <button type="submit" class="btn btn-primary" title="<?= $this->lang->line('document_types_filter_apply') ?>">
+                <i class="fas fa-filter"></i>
+            </button>
+            <button type="button" id="clear-filters" class="btn btn-outline-secondary" title="<?= $this->lang->line('document_types_filter_clear') ?>">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</form>
+<script>
+document.getElementById('clear-filters').addEventListener('click', function() {
+    ['scope', 'section_id'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    try {
+        if (typeof $ !== 'undefined' && $.fn.dataTable) {
+            $('.datatable').dataTable().fnFilter('');
+        }
+    } catch(e) {}
+    document.querySelector('form input[name="filter_submitted"]').closest('form').submit();
+});
+</script>
+<?php
+
 // Create button above the table
 echo '<div class="mb-3">'
     . '<a href="' . site_url('document_types/create') . '" class="btn btn-sm btn-success">'

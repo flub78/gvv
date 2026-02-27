@@ -26,6 +26,10 @@ $lang['document_types_scope_pilot'] = 'Pilot';
 $lang['document_types_scope_section'] = 'Section';
 $lang['document_types_scope_club'] = 'Club';
 
+$lang['document_types_filter_all']   = 'All';
+$lang['document_types_filter_apply'] = 'Filter';
+$lang['document_types_filter_clear'] = 'Clear filters';
+
 $lang['document_types_confirm_delete'] = 'Are you sure you want to delete this document type?';
 $lang['document_types_no_types'] = 'No document types defined';
 

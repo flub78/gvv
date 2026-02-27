@@ -53,9 +53,43 @@ class Document_types extends Gvv_Controller {
     }
 
     /**
-     * Page principale - liste des types de documents
+     * Page principale - liste des types de documents, avec filtres portée et section
      */
     public function page($premier = 0, $message = '', $selection = array()) {
+        $session_key = 'document_types_filters';
+
+        if ($this->input->get('filter_submitted')) {
+            $filters = array(
+                'scope'      => $this->input->get('scope'),
+                'section_id' => $this->input->get('section_id'),
+            );
+            $this->session->set_userdata($session_key, $filters);
+        } else {
+            $saved = $this->session->userdata($session_key);
+            $filters = ($saved !== false && is_array($saved))
+                ? $saved
+                : array('scope' => '', 'section_id' => '');
+        }
+
+        if (!empty($filters['scope'])) {
+            $selection['document_types.scope'] = $filters['scope'];
+        }
+        if ($filters['section_id'] !== '' && $filters['section_id'] !== null) {
+            $selection['document_types.section_id'] = $filters['section_id'];
+        }
+
+        $this->load->model('sections_model');
+        $this->data['scope_selector'] = array(
+            ''        => $this->lang->line('document_types_filter_all'),
+            'pilot'   => $this->lang->line('document_types_scope_pilot'),
+            'section' => $this->lang->line('document_types_scope_section'),
+            'club'    => $this->lang->line('document_types_scope_club'),
+        );
+        $this->data['section_selector']  = array('' => $this->lang->line('document_types_filter_all'))
+            + $this->sections_model->section_selector_with_null();
+        $this->data['filter_scope']      = $filters['scope'];
+        $this->data['filter_section_id'] = $filters['section_id'];
+
         $this->view_parameters['page'] = 'vue_document_types';
         $this->view_parameters['title'] = $this->lang->line('document_types_title');
         parent::page($premier, $message, $selection);
