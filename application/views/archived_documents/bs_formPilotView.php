@@ -61,15 +61,10 @@ $this->lang->load('archived_documents');
                 <?= $this->lang->line('archived_documents_type') ?>
             </label>
             <div class="col-sm-10">
-                <div class="d-flex align-items-center gap-2">
                 <?php
                 $selected_type = isset($_GET['type']) ? $_GET['type'] : (isset($document_type_id) ? $document_type_id : '');
-                echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select" id="document_type_id"');
+                echo form_dropdown('document_type_id', $type_selector, $selected_type, 'class="form-select big_select" id="document_type_id"');
                 ?>
-                <button type="button" class="btn btn-outline-secondary btn-sm" title="<?= $this->lang->line('archived_documents_type_help') ?>" aria-label="<?= $this->lang->line('archived_documents_type_help') ?>" data-bs-toggle="tooltip" data-bs-placement="top">
-                    <i class="fas fa-question"></i>
-                </button>
-                </div>
             </div>
         </div>
 

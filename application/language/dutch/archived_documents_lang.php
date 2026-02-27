@@ -20,7 +20,6 @@ $lang['archived_documents_manage_types'] = 'Types Beheren';
 
 $lang['archived_documents_type'] = 'Type';
 $lang['archived_documents_type_other'] = 'Andere .. (niet gedefinieerd)';
-$lang['archived_documents_type_help'] = 'Documenten met gedefinieerde types kunnen worden vervangen door hetzelfde document in een latere versie. Bijvoorbeeld een verzekeringsattest kan worden vervangen door dat van het lopende jaar. Als u meerdere versies wilt beheren, maak een documenttype aan.';
 $lang['archived_documents_file'] = 'Bestand';
 $lang['archived_documents_description'] = 'Beschrijving';
 $lang['archived_documents_valid_from'] = 'Geldig Vanaf';

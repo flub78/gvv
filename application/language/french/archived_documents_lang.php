@@ -20,7 +20,6 @@ $lang['archived_documents_manage_types'] = 'Gérer les types';
 
 $lang['archived_documents_type'] = 'Type';
 $lang['archived_documents_type_other'] = 'Autre .. (non défini)';
-$lang['archived_documents_type_help'] = 'Les documents dont les types sont définis peuvent être remplacés par le même document dans une version ultérieure. Par exemple une attestation d\'assurance peut-être remplacée par celle de l\'année en cours. Si vous voulez gérer plusieurs versions créer un type de document';
 $lang['archived_documents_file'] = 'Fichier';
 $lang['archived_documents_description'] = 'Description';
 $lang['archived_documents_valid_from'] = 'Valide depuis';
