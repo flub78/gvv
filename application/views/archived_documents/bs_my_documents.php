@@ -64,10 +64,10 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
     <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
-                <th><?= $this->lang->line('archived_documents_type') ?></th>
-                <th><?= $this->lang->line('archived_documents_machine') ?></th>
-                <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
+                <th><?= $this->lang->line('archived_documents_type') ?></th>
+                <th><?= $this->lang->line('archived_documents_description') ?></th>
+                <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_status') ?></th>
@@ -83,13 +83,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
             ?>
             <tr>
                 <td>
-                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
-                    <?= htmlspecialchars($type_label) ?>
-                    <?php if ($pilot_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
-                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
-                <td>
                     <?php if ($pilot_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
@@ -97,6 +90,13 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                    <?php if ($pilot_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
+                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -171,10 +171,10 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
     <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
-                <th><?= $this->lang->line('archived_documents_type') ?></th>
-                <th><?= $this->lang->line('archived_documents_machine') ?></th>
-                <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
+                <th><?= $this->lang->line('archived_documents_type') ?></th>
+                <th><?= $this->lang->line('archived_documents_description') ?></th>
+                <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th>Actions</th>
@@ -188,13 +188,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
             ?>
             <tr>
                 <td>
-                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
-                    <?= htmlspecialchars($type_label) ?>
-                    <?php if ($sec_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
-                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
-                <td>
                     <?php if ($sec_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
@@ -202,6 +195,13 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                    <?php if ($sec_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
+                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>
@@ -238,10 +238,10 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
     <table class="datatable_nopaging table table-striped table-hover">
         <thead>
             <tr>
-                <th><?= $this->lang->line('archived_documents_type') ?></th>
-                <th><?= $this->lang->line('archived_documents_machine') ?></th>
-                <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
+                <th><?= $this->lang->line('archived_documents_type') ?></th>
+                <th><?= $this->lang->line('archived_documents_description') ?></th>
+                <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th>Actions</th>
@@ -255,13 +255,6 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
             ?>
             <tr>
                 <td>
-                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
-                    <?= htmlspecialchars($type_label) ?>
-                    <?php if ($club_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
-                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
-                <td>
                     <?php if ($club_can_see_file): ?>
                     <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
                     <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
@@ -269,6 +262,13 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
+                <td>
+                    <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
+                    <?= htmlspecialchars($type_label) ?>
+                    <?php if ($club_doc_private): ?><span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span><?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars(!empty($doc['description']) ? $doc['description'] : '') ?></td>
+                <td><?= htmlspecialchars(!empty($doc['machine_immat']) ? $doc['machine_immat'] : '') ?></td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']): ?>

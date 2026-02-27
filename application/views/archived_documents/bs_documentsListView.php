@@ -137,12 +137,12 @@ document.getElementById('clear-filters').addEventListener('click', function() {
     <table class="datatable table table-striped">
         <thead>
             <tr>
+                <th><?= $this->lang->line('archived_documents_file') ?></th>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
                 <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_section') ?></th>
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
                 <th><?= $this->lang->line('archived_documents_pilot') ?></th>
-                <th><?= $this->lang->line('archived_documents_file') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_status') ?></th>
@@ -152,6 +152,21 @@ document.getElementById('clear-filters').addEventListener('click', function() {
         <tbody>
             <?php foreach ($documents as $doc): ?>
             <tr>
+                <td>
+                    <?php
+                    $doc_is_private = !empty($doc['is_private']);
+                    $can_see_file = !$doc_is_private || $is_bureau || $is_strict_admin
+                        || (!empty($current_user) && $doc['pilot_login'] === $current_user);
+                    ?>
+                    <?php if ($can_see_file): ?>
+                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
+                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?php else: ?>
+                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <?php $type_label = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other'); ?>
                     <?= htmlspecialchars($type_label) ?>
@@ -179,21 +194,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                     <?php else: ?>
                         <span class="text-muted">-</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php
-                    $doc_is_private = !empty($doc['is_private']);
-                    $can_see_file = !$doc_is_private || $is_bureau || $is_strict_admin
-                        || (!empty($current_user) && $doc['pilot_login'] === $current_user);
-                    ?>
-                    <?php if ($can_see_file): ?>
-                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
-                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
-                    <?php else: ?>
-                    <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>">
-                        <i class="fas fa-lock"></i>
-                    </span>
                     <?php endif; ?>
                 </td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
