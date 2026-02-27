@@ -59,6 +59,7 @@ $lang['formation_import_error_lecon'] = 'Erreur lors de la création d\'une leç
 $lang['formation_import_error_sujet'] = 'Erreur lors de la création d\'un sujet.';
 $lang['formation_import_error_transaction'] = 'Erreur lors de la transaction en base de données.';
 $lang['formation_export_markdown'] = 'Exporter en Markdown';
+$lang['formation_export_pdf'] = 'Exporter en PDF';
 $lang['formation_structure_markdown'] = 'Structure du programme';
 
 // Leçons

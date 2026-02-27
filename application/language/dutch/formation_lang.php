@@ -55,6 +55,7 @@ $lang['formation_import_error_lecon'] = 'Fout bij het aanmaken van een les.';
 $lang['formation_import_error_sujet'] = 'Fout bij het aanmaken van een onderwerp.';
 $lang['formation_import_error_transaction'] = 'Database transactie fout.';
 $lang['formation_export_markdown'] = 'Exporteren als Markdown';
+$lang['formation_export_pdf'] = 'Exporteren als PDF';
 
 // Leçons
 $lang['formation_lecon'] = 'Les';

@@ -55,6 +55,7 @@ $lang['formation_import_error_lecon'] = 'Error creating a lesson.';
 $lang['formation_import_error_sujet'] = 'Error creating a topic.';
 $lang['formation_import_error_transaction'] = 'Database transaction error.';
 $lang['formation_export_markdown'] = 'Export as Markdown';
+$lang['formation_export_pdf'] = 'Export as PDF';
 
 // Leçons
 $lang['formation_lecon'] = 'Lesson';

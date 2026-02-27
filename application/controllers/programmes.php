@@ -31,6 +31,7 @@ if (!defined('BASEPATH'))
  */
 
 include_once(APPPATH . '/libraries/Gvv_Controller.php');
+include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
 
 class Programmes extends Gvv_Controller
 {
@@ -808,12 +809,12 @@ class Programmes extends Gvv_Controller
         } else {
             // Generate Markdown from database structure
             $lecons = $this->formation_lecon_model->get_by_programme($id);
-            
+
             // Prepare data for export
             $lecons_export = array();
             foreach ($lecons as $lecon) {
                 $sujets = $this->formation_sujet_model->get_by_lecon($lecon['id']);
-                
+
                 $sujets_export = array();
                 foreach ($sujets as $sujet) {
                     $sujets_export[] = array(
@@ -823,7 +824,7 @@ class Programmes extends Gvv_Controller
                         'objectifs' => $sujet['objectifs']
                     );
                 }
-                
+
                 $lecons_export[] = array(
                     'numero' => $lecon['numero'],
                     'titre' => $lecon['titre'],
@@ -836,6 +837,17 @@ class Programmes extends Gvv_Controller
             // Export to Markdown
             $markdown_content = $this->formation_markdown_parser->export($programme['titre'], $lecons_export);
         }
+
+        // Prepend header with association name and version date
+        $nom_club = $this->config->item('nom_club');
+        $date_version = !empty($programme['date_modification'])
+            ? date('d/m/Y', strtotime($programme['date_modification']))
+            : date('d/m/Y', strtotime($programme['date_creation']));
+        $header  = "---\n";
+        $header .= "Association: " . $nom_club . "\n";
+        $header .= "Version: " . $programme['version'] . " - " . $date_version . "\n";
+        $header .= "---\n\n";
+        $markdown_content = $header . $markdown_content;
 
         // Sanitize filename
         $filename = preg_replace('/[^a-z0-9_\-]/i', '_', $programme['titre']);
@@ -850,6 +862,103 @@ class Programmes extends Gvv_Controller
         header('Expires: 0');
 
         echo $markdown_content;
+        exit;
+    }
+
+    /**
+     * Export program to PDF file using TCPDF
+     *
+     * @param int $id Program ID
+     */
+    public function export_pdf($id)
+    {
+        log_message('debug', 'PROGRAMMES: export_pdf() method called for id=' . $id);
+
+        $this->lang->load('formation');
+
+        // Get program details
+        $programme = $this->formation_programme_model->get($id);
+        if (!$programme) {
+            show_404();
+        }
+
+        // Get lessons with their subjects
+        $lecons = $this->formation_lecon_model->get_by_programme($id);
+        foreach ($lecons as &$lecon) {
+            $lecon['sujets'] = $this->formation_sujet_model->get_by_lecon($lecon['id']);
+        }
+
+        // Build HTML content for TCPDF
+        $nom_club = $this->config->item('nom_club');
+        $date_version = !empty($programme['date_modification'])
+            ? date('d/m/Y', strtotime($programme['date_modification']))
+            : date('d/m/Y', strtotime($programme['date_creation']));
+
+        $html = '<p style="text-align:right;color:#555;font-size:9pt;">' . htmlspecialchars($nom_club) . '</p>';
+        $html .= '<h1>' . htmlspecialchars($programme['titre']) . '</h1>';
+        $html .= '<p><strong>' . $this->lang->line('formation_programme_version') . ':</strong> v' . htmlspecialchars($programme['version']) . ' &mdash; ' . $date_version . '</p>';
+
+        if (!empty($programme['description'])) {
+            $html .= '<p>' . nl2br(htmlspecialchars($programme['description'])) . '</p>';
+        }
+
+        if (!empty($programme['objectifs'])) {
+            $html .= '<h3>' . $this->lang->line('formation_programme_objectifs') . '</h3>';
+            $html .= '<p>' . nl2br(htmlspecialchars($programme['objectifs'])) . '</p>';
+        }
+
+        $html .= '<hr>';
+
+        foreach ($lecons as $lecon) {
+            $html .= '<h2>' . $this->lang->line('formation_lecon') . ' ' . htmlspecialchars($lecon['numero']) . ' : ' . htmlspecialchars($lecon['titre']) . '</h2>';
+
+            if (!empty($lecon['description'])) {
+                $html .= '<p>' . nl2br(htmlspecialchars($lecon['description'])) . '</p>';
+            }
+
+            if (!empty($lecon['objectifs'])) {
+                $html .= '<p><em><strong>' . $this->lang->line('formation_lecon_objectifs') . ':</strong> ' . nl2br(htmlspecialchars($lecon['objectifs'])) . '</em></p>';
+            }
+
+            if (!empty($lecon['sujets'])) {
+                $html .= '<table border="0" cellpadding="4" cellspacing="0" style="width:100%">';
+                foreach ($lecon['sujets'] as $sujet) {
+                    $html .= '<tr><td width="8%" valign="top"><strong>' . htmlspecialchars($sujet['numero']) . '</strong></td>';
+                    $html .= '<td valign="top"><strong>' . htmlspecialchars($sujet['titre']) . '</strong>';
+                    if (!empty($sujet['description'])) {
+                        $html .= '<br>' . nl2br(htmlspecialchars($sujet['description']));
+                    }
+                    if (!empty($sujet['objectifs'])) {
+                        $html .= '<br><em>' . $this->lang->line('formation_sujet_objectifs') . ': ' . nl2br(htmlspecialchars($sujet['objectifs'])) . '</em>';
+                    }
+                    $html .= '</td></tr>';
+                }
+                $html .= '</table>';
+            }
+        }
+
+        // Create TCPDF instance
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        $pdf->SetCreator($nom_club);
+        $pdf->SetAuthor($nom_club);
+        $pdf->SetTitle($programme['titre']);
+        $pdf->SetSubject($this->lang->line('formation_programmes_title'));
+
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        // Sanitize filename
+        $filename = preg_replace('/[^a-z0-9_\-]/i', '_', $programme['titre']);
+        $filename = $filename . '_v' . $programme['version'] . '.pdf';
+
+        $pdf->Output($filename, 'I');
         exit;
     }
 }
