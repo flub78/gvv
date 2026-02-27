@@ -81,7 +81,7 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
         </div>
         <div class="col-sm-2">
             <label for="document_type_id" class="form-label"><?= $this->lang->line('archived_documents_type') ?></label>
-            <?= form_dropdown('document_type_id', $type_selector, $filter_type, 'class="form-select" id="document_type_id"') ?>
+            <?= form_dropdown('document_type_id', $type_selector, $filter_type, 'class="form-select big_select" id="document_type_id"') ?>
         </div>
         <div class="col-sm-2">
             <label for="section_id" class="form-label"><?= $this->lang->line('archived_documents_section') ?></label>
