@@ -138,11 +138,11 @@ document.getElementById('clear-filters').addEventListener('click', function() {
         <thead>
             <tr>
                 <th><?= $this->lang->line('archived_documents_type') ?></th>
-                <th><?= $this->lang->line('archived_documents_pilot') ?></th>
+                <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_section') ?></th>
                 <th><?= $this->lang->line('archived_documents_machine') ?></th>
+                <th><?= $this->lang->line('archived_documents_pilot') ?></th>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
-                <th><?= $this->lang->line('archived_documents_description') ?></th>
                 <th><?= $this->lang->line('archived_documents_uploaded_at') ?></th>
                 <th><?= $this->lang->line('archived_documents_valid_until') ?></th>
                 <th><?= $this->lang->line('archived_documents_status') ?></th>
@@ -159,13 +159,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     <span class="badge bg-secondary ms-1" title="<?= $this->lang->line('archived_documents_private') ?>"><i class="fas fa-lock"></i></span>
                     <?php endif; ?>
                 </td>
-                <td>
-                    <?php if (!empty($doc['pilot_nom'])): ?>
-                        <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
-                    <?php else: ?>
-                        <span class="text-muted">-</span>
-                    <?php endif; ?>
-                </td>
+                <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                 <td>
                     <?php if (!empty($doc['section_name'])): ?>
                         <?= htmlspecialchars($doc['section_name']) ?>
@@ -176,6 +170,13 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                 <td>
                     <?php if (!empty($doc['machine_immat'])): ?>
                         <?= htmlspecialchars($doc['machine_immat']) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if (!empty($doc['pilot_nom'])): ?>
+                        <?= htmlspecialchars($doc['pilot_prenom'] . ' ' . $doc['pilot_nom']) ?>
                     <?php else: ?>
                         <span class="text-muted">-</span>
                     <?php endif; ?>
@@ -195,7 +196,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     </span>
                     <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars($doc['description'] ?? '') ?></td>
                 <td><?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?></td>
                 <td>
                     <?php if ($doc['valid_until']):

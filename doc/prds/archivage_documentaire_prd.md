@@ -85,6 +85,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 9. **Désactivation des alertes**
    - Les administrateurs peuvent désactiver les alertes document par document en cliquant sur l’alerte.
    - Un document avec alerte désactivée n’apparaît plus dans les notifications ni dans la liste des documents expirés.
+- 
 10. **Système de notifications et alertes**
    
    **10.1 Destinataires des notifications**

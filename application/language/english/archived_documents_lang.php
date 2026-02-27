@@ -19,7 +19,7 @@ $lang['archived_documents_download'] = 'Download';
 $lang['archived_documents_manage_types'] = 'Manage Types';
 
 $lang['archived_documents_type'] = 'Type';
-$lang['archived_documents_type_other'] = 'Other ..';
+$lang['archived_documents_type_other'] = 'Other .. (undefined)';
 $lang['archived_documents_type_help'] = 'Documents with defined types can be replaced by the same document in a later version. For example, an insurance certificate can be replaced by the current year\'s one. If you want to manage multiple versions, create a document type.';
 $lang['archived_documents_file'] = 'File';
 $lang['archived_documents_description'] = 'Description';

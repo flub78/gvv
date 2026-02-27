@@ -124,7 +124,11 @@ class Archived_documents_model extends Common_Model {
         }
 
         if (!empty($filters['document_type_id'])) {
-            $this->db->where('archived_documents.document_type_id', $filters['document_type_id']);
+            if ($filters['document_type_id'] === 'none') {
+                $this->db->where('archived_documents.document_type_id IS NULL', null, false);
+            } else {
+                $this->db->where('archived_documents.document_type_id', $filters['document_type_id']);
+            }
         }
 
         if (!empty($filters['machine_immat'])) {
