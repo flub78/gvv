@@ -335,6 +335,22 @@ $this->lang->load('welcome');
                 <?php endif; ?>
                 <?php endif; ?>
 
+                <!-- Sous-section Vols de découverte -->
+                <?php if (has_role('ca')) : ?>
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-gift"></i> Vols de découverte</h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-gift text-success"></i>
+                        <div class="card-title">Vols découverte</div>
+                        <div class="card-text text-muted">Baptêmes</div>
+                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
             </div>
         </div>
         </div>
@@ -814,16 +830,6 @@ $this->lang->load('welcome');
                         <div class="card-title">Formation</div>
                         <div class="card-text text-muted">Certificats</div>
                         <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <!-- Vols découverte management -->
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-gift text-success"></i>
-                        <div class="card-title">Vols découverte</div>
-                        <div class="card-text text-muted">Baptêmes</div>
-                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
                     </div>
                 </div>
             </div>

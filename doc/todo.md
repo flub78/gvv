@@ -26,7 +26,6 @@ Cela implique de:
 * Vérifier le support de la facturation ULM et avion
 * Mettre en place une stratégie de migration
 
-
 ## Reste à faire
 
 * [ ] Migration des tests
@@ -53,6 +52,10 @@ Cela implique de:
 * [x] supprimer la configuration des emails dans la base de données.
 
 * [] Ajout des types vol de découverte et vol propriétaire dans les réservations.
+* [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
+* [] Ajout de séance de formation théoriques sans vol.
+* [] Ajout d'un calendrier des échéances
+* [] Ajout de vues semaines et mois aux réservations
 
 * [] Interdire les réservations sans cotisation et sans argent sur le compte.
 
@@ -86,6 +89,8 @@ Cela implique de:
 * [x] Corriger les tests qui ne passent pas
 * [x] Redéployer un serveur CI/CD fonctionnel
 * [] Définir une charte graphique et l'appliquer partout
+  * [] Unifier le style des filtres
+  * [] Unifier les erreurs de validation
 * [] Améliorer les vues saisies des vols (avion, planeur)
 * [x] basculer à tfpdf pour les exports PDF
 * [x] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
