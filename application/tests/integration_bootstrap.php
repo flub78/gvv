@@ -135,7 +135,17 @@ class RealDatabase {
         return true;
     }
     
-    public function query($sql) {
+    public function query($sql, $binds = false) {
+        // Replace ? placeholders with escaped values (mirrors CodeIgniter behaviour)
+        if ($binds !== false && is_array($binds)) {
+            foreach ($binds as $bind) {
+                $escaped = is_null($bind) ? 'NULL'
+                    : (is_bool($bind) ? ($bind ? '1' : '0')
+                    : (is_numeric($bind) ? $bind
+                    : "'" . $this->connection->real_escape_string($bind) . "'"));
+                $sql = preg_replace('/\?/', $escaped, $sql, 1);
+            }
+        }
         $result = $this->connection->query($sql);
         if ($result === false) {
             throw new Exception("Query failed: " . $this->connection->error . " SQL: " . $sql);
@@ -179,6 +189,7 @@ class RealDatabase {
     private $select_fields = '*';
     private $limit_clause = '';
     private $order_by_clause = '';
+    private $group_by_clause = '';
     private $join_clauses = [];
     private $from_table = '';
     private $from_alias = '';
@@ -335,6 +346,15 @@ class RealDatabase {
         return $this;
     }
 
+    public function group_by($field) {
+        if ($this->group_by_clause === '') {
+            $this->group_by_clause = " GROUP BY " . $field;
+        } else {
+            $this->group_by_clause .= ", " . $field;
+        }
+        return $this;
+    }
+
     public function limit($limit, $offset = 0) {
         $this->limit_clause = " LIMIT " . intval($offset) . ", " . intval($limit);
         return $this;
@@ -370,6 +390,7 @@ class RealDatabase {
             $sql .= " WHERE " . implode(' ', $this->where_conditions);
         }
 
+        $sql .= $this->group_by_clause;
         $sql .= $this->order_by_clause;
         $sql .= $this->limit_clause;
 
@@ -380,6 +401,7 @@ class RealDatabase {
         $this->select_fields = '*';
         $this->limit_clause = '';
         $this->order_by_clause = '';
+        $this->group_by_clause = '';
         $this->join_clauses = [];
         $this->from_table = '';
         $this->from_alias = '';
@@ -428,7 +450,11 @@ class RealDatabase {
         // Use data array if provided, otherwise use accumulated set() clauses
         if ($data !== null) {
             foreach ($data as $key => $value) {
-                $set_clauses[] = $key . " = '" . $this->escape_str($value) . "'";
+                if ($value === null || $value === '') {
+                    $set_clauses[] = $key . " = NULL";
+                } else {
+                    $set_clauses[] = $key . " = '" . $this->escape_str($value) . "'";
+                }
             }
         } else {
             $set_clauses = $this->set_clauses;

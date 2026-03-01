@@ -108,6 +108,15 @@ $this->load->view('bs_banner');
                 </div>
 
                 <div class="col-md-2">
+                    <label for="filter_nature" class="form-label form-label-sm"><?= $this->lang->line("formation_seance_nature") ?></label>
+                    <select class="form-select form-select-sm" id="filter_nature" name="nature">
+                        <option value="" <?= empty($filters['nature']) ? 'selected' : '' ?>><?= $this->lang->line("formation_seance_nature_toutes") ?></option>
+                        <option value="vol" <?= (isset($filters['nature']) && $filters['nature'] == 'vol') ? 'selected' : '' ?>><?= $this->lang->line("formation_seance_nature_vol") ?></option>
+                        <option value="theorique" <?= (isset($filters['nature']) && $filters['nature'] == 'theorique') ? 'selected' : '' ?>><?= $this->lang->line("formation_seance_nature_theorique") ?></option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
                     <label for="filter_categorie" class="form-label form-label-sm"><?= $this->lang->line("formation_seance_categorie") ?></label>
                     <select class="form-select form-select-sm" id="filter_categorie" name="categorie_seance">
                         <option value=""><?= $this->lang->line("formation_seance_categorie_toutes") ?></option>
@@ -161,6 +170,7 @@ $this->load->view('bs_banner');
                         <thead>
                             <tr>
                                 <th><?= $this->lang->line("formation_seance_date") ?></th>
+                                <th><?= $this->lang->line("formation_seance_nature") ?></th>
                                 <th><?= $this->lang->line("formation_seance_pilote") ?></th>
                                 <th><?= $this->lang->line("formation_seance_type") ?></th>
                                 <th><?= $this->lang->line("formation_seance_categorie") ?></th>
@@ -176,7 +186,31 @@ $this->load->view('bs_banner');
                             <?php foreach ($seances as $seance): ?>
                                 <tr>
                                     <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
-                                    <td><?= htmlspecialchars(($seance['pilote_prenom'] ?? '') . ' ' . ($seance['pilote_nom'] ?? '')) ?></td>
+                                    <td>
+                                        <?php if (($seance['nature_seance'] ?? '') === 'theorique'): ?>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-chalkboard" aria-hidden="true"></i>
+                                                <?= $this->lang->line("formation_seance_nature_theorique") ?>
+                                            </span>
+                                        <?php elseif (($seance['nature_seance'] ?? '') === 'vol'): ?>
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-plane" aria-hidden="true"></i>
+                                                <?= $this->lang->line("formation_seance_nature_vol") ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (($seance['nature_seance'] ?? '') === 'theorique'): ?>
+                                            <span class="text-muted">
+                                                <i class="fas fa-users" aria-hidden="true"></i>
+                                                <?= (int)($seance['nb_participants'] ?? 0) ?> élève(s)
+                                            </span>
+                                        <?php else: ?>
+                                            <?= htmlspecialchars(trim(($seance['pilote_prenom'] ?? '') . ' ' . ($seance['pilote_nom'] ?? ''))) ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if ($seance['type_seance'] === 'Libre'): ?>
                                             <span class="badge bg-secondary"><?= $this->lang->line("formation_seance_type_libre") ?></span>
@@ -193,15 +227,20 @@ $this->load->view('bs_banner');
                                     </td>
                                     <td><?= htmlspecialchars($seance['programme_titre'] ?? '') ?></td>
                                     <td><?= htmlspecialchars($seance['machine_modele'] ?? '') ?></td>
-                                    <td><?= substr($seance['duree'], 0, 5) ?></td>
-                                    <td><?= $seance['nb_atterrissages'] ?></td>
-                                    <td><?= htmlspecialchars(($seance['instructeur_prenom'] ?? '') . ' ' . ($seance['instructeur_nom'] ?? '')) ?></td>
+                                    <td><?= !empty($seance['duree']) ? substr($seance['duree'], 0, 5) : '—' ?></td>
+                                    <td><?= $seance['nb_atterrissages'] ?? '—' ?></td>
+                                    <td><?= htmlspecialchars(trim(($seance['instructeur_prenom'] ?? '') . ' ' . ($seance['instructeur_nom'] ?? ''))) ?></td>
                                     <td>
-                                        <a href="<?= controller_url($controller) ?>/detail/<?= $seance['id'] ?>"
+                                        <?php
+                                        $detail_ctrl = (($seance['nature_seance'] ?? '') === 'theorique')
+                                            ? 'formation_seances_theoriques'
+                                            : $controller;
+                                        ?>
+                                        <a href="<?= controller_url($detail_ctrl) ?>/detail/<?= $seance['id'] ?>"
                                            class="btn btn-sm btn-info" title="Détail">
                                             <i class="fas fa-eye" aria-hidden="true"></i>
                                         </a>
-                                        <a href="<?= controller_url($controller) ?>/edit/<?= $seance['id'] ?>"
+                                        <a href="<?= controller_url($detail_ctrl) ?>/edit/<?= $seance['id'] ?>"
                                            class="btn btn-sm btn-warning" title="Modifier">
                                             <i class="fas fa-edit" aria-hidden="true"></i>
                                         </a>

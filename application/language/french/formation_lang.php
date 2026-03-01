@@ -156,6 +156,7 @@ $lang['formation_seance_pilote'] = 'Pilote';
 $lang['formation_seance_instructeur'] = 'Instructeur';
 $lang['formation_seance_machine'] = 'Aéronef';
 $lang['formation_seance_duree'] = 'Durée du vol';
+$lang['formation_seance_duree_cours'] = 'Durée';
 $lang['formation_seance_duree_help'] = 'Format HH:MM';
 $lang['formation_seance_nb_atterrissages'] = 'Nombre d\'atterrissages';
 $lang['formation_seance_commentaire'] = 'Commentaires';
@@ -316,6 +317,79 @@ $lang['formation_autorisation_solo_delete_confirm_btn'] = 'Confirmer la suppress
 $lang['formation_inscription_not_found'] = 'Formation introuvable.';
 $lang['formation_acces_instructeur_requis'] = 'Accès réservé aux instructeurs.';
 $lang['formation_acces_refuse'] = 'Accès refusé.';
+
+// Types de séances
+$lang['formation_types_seances_title']            = 'Types de séances de formation';
+$lang['formation_type_seance_nom']                = 'Nom';
+$lang['formation_type_seance_nature']             = 'Nature';
+$lang['formation_type_seance_description']        = 'Description';
+$lang['formation_type_seance_periodicite']        = 'Périodicité max. (jours)';
+$lang['formation_type_seance_periodicite_help']   = 'Délai maximal en jours entre deux séances de ce type pour un même élève. Laisser vide si aucune contrainte.';
+$lang['formation_type_seance_actif']              = 'Actif';
+$lang['formation_nature_vol']                     = 'Vol';
+$lang['formation_nature_theorique']               = 'Cours sol';
+$lang['formation_types_seances_create']           = 'Nouveau type de séance';
+$lang['formation_types_seances_edit']             = 'Modifier le type';
+$lang['formation_types_seances_delete']           = 'Supprimer';
+$lang['formation_types_seances_deactivate']       = 'Désactiver';
+$lang['formation_type_seance_created']            = 'Type de séance créé avec succès.';
+$lang['formation_type_seance_updated']            = 'Type de séance mis à jour avec succès.';
+$lang['formation_type_seance_deleted']            = 'Type de séance supprimé.';
+$lang['formation_type_seance_deactivated']        = 'Type de séance désactivé.';
+$lang['formation_type_seance_in_use']             = 'Ce type est utilisé par des séances existantes et ne peut pas être supprimé. Vous pouvez le désactiver.';
+$lang['formation_type_seance_no_periodicite']     = 'Sans contrainte';
+$lang['formation_type_seance_periodicite_jours']  = '%d j';
+
+// Séances théoriques
+$lang['formation_seances_theoriques_title']           = 'Séances théoriques';
+$lang['formation_seance_theorique_create']            = 'Nouvelle séance théorique';
+$lang['formation_seance_theorique_edit']              = 'Modifier la séance';
+$lang['formation_seance_theorique_detail']            = 'Détail de la séance';
+$lang['formation_seances_theoriques_empty']           = 'Aucune séance théorique enregistrée.';
+$lang['formation_seance_lieu']                        = 'Lieu';
+$lang['formation_seance_lieu_placeholder']            = 'Ex. : Salle de réunion, Hangar A…';
+$lang['formation_seance_participants']                = 'Participants';
+$lang['formation_seance_participants_requis']         = 'Veuillez ajouter au moins un participant.';
+$lang['formation_seance_participants_recherche']      = 'Rechercher un membre…';
+$lang['formation_seance_participants_aucun']          = 'Aucun participant.';
+$lang['formation_seance_type_invalide']               = 'Le type de séance sélectionné n\'est pas de nature théorique.';
+$lang['formation_seance_commentaires']                = 'Commentaires';
+$lang['formation_seance_theorique_create_success']    = 'Séance théorique créée avec succès.';
+$lang['formation_seance_theorique_create_error']      = 'Erreur lors de la création de la séance.';
+$lang['formation_seance_theorique_update_success']    = 'Séance théorique mise à jour avec succès.';
+$lang['formation_seance_theorique_update_error']      = 'Erreur lors de la mise à jour de la séance.';
+$lang['formation_seance_theorique_delete_success']    = 'Séance théorique supprimée.';
+$lang['formation_seance_nature']                      = 'Nature';
+$lang['formation_seance_nature_vol']                  = 'Vol';
+$lang['formation_seance_nature_theorique']            = 'Cours sol';
+$lang['formation_seance_nature_toutes']               = 'Toutes';
+$lang['formation_seance_nb_participants']             = 'Participants';
+
+// Rapports annuels consolidés (Phase 3)
+$lang['formation_rapports_annuel_title']           = 'Rapport annuel consolidé';
+$lang['formation_rapports_annuel_par_instructeur'] = 'Par instructeur';
+$lang['formation_rapports_annuel_par_programme']   = 'Par programme';
+$lang['formation_rapports_annuel_nb_seances_vol']  = 'Séances vol';
+$lang['formation_rapports_annuel_nb_seances_sol']  = 'Séances sol';
+$lang['formation_rapports_annuel_heures_vol']      = 'Heures vol';
+$lang['formation_rapports_annuel_heures_sol']      = 'Heures sol';
+$lang['formation_rapports_annuel_nb_eleves_vol']   = 'Élèves vol';
+$lang['formation_rapports_annuel_nb_eleves_sol']   = 'Élèves sol';
+$lang['formation_rapports_annuel_total']           = 'Total';
+$lang['formation_rapports_annuel_export_csv']      = 'Exporter CSV';
+$lang['formation_rapports_annuel_aucun']           = 'Aucune donnée pour cette année.';
+
+// Rapport de conformité
+$lang['formation_rapports_conformite_title']           = 'Rapport de conformité';
+$lang['formation_rapports_conformite_pilote']          = 'Pilote';
+$lang['formation_rapports_conformite_derniere_seance'] = 'Dernière séance';
+$lang['formation_rapports_conformite_jours_ecoules']   = 'Jours écoulés';
+$lang['formation_rapports_conformite_periodicite']     = 'Périodicité max.';
+$lang['formation_rapports_conformite_jamais']          = 'Jamais';
+$lang['formation_rapports_conformite_aucun']           = 'Tous les pilotes sont conformes.';
+$lang['formation_rapports_conformite_aucun_type']      = 'Aucun type de séance avec contrainte de périodicité.';
+$lang['formation_rapports_conformite_export_csv']      = 'Exporter CSV';
+$lang['formation_rapports_conformite_non_conformes']   = 'pilote(s) non conforme(s)';
 
 /* End of file formation_lang.php */
 /* Location: ./application/language/french/formation_lang.php */

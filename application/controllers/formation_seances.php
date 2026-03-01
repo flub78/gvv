@@ -74,7 +74,8 @@ class Formation_seances extends CI_Controller {
             'type' => $this->input->get('type'),
             'categorie_seance' => $this->input->get('categorie_seance'),
             'date_debut' => $this->input->get('date_debut'),
-            'date_fin' => $this->input->get('date_fin')
+            'date_fin' => $this->input->get('date_fin'),
+            'nature' => $this->input->get('nature'),
         );
 
         // Remove empty filters

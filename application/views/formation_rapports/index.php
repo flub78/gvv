@@ -27,6 +27,16 @@ $this->load->view('bs_banner');
         </h3>
         <div class="d-flex align-items-center gap-3">
             <?= year_selector('formation_rapports', $year, $year_selector) ?>
+            <a href="<?= controller_url($controller) ?>/annuel"
+               class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-chart-line" aria-hidden="true"></i>
+                <?= $this->lang->line('formation_rapports_annuel_title') ?>
+            </a>
+            <a href="<?= controller_url($controller) ?>/conformite"
+               class="btn btn-outline-warning btn-sm">
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                <?= $this->lang->line('formation_rapports_conformite_title') ?>
+            </a>
         </div>
     </div>
 

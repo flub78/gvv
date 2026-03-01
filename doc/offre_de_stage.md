@@ -5,6 +5,13 @@
 **Cadre :** Contribution Open Source, organisation Agile Scrum, avec **intégration continue**.
 
 ---
+## Pourquoi cette offre
+
+1. GVV est une plateforme d'apprentissage idéale. Elle a tout d'une grande, des utilisateurs, du déploiement continue, de la dette technique (pas trop), une base de code saine et des besoins d'évolution importants.
+
+2. J'y passe 15 à 20 heures par semaine. Si j'en consacre une dizaine aux cérémonies scrum, aux revues et aux réunions de conception avec une petite équipe scrum est-ce que la vélocité globale augmente?
+
+3. J'aime bien transmettre, instructeur de vol depuis 46 ans, formateur de formateur, animateur d'un atelier d'initiation au numérique dans mon village.
 
 ## Historique
 

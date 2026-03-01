@@ -1565,6 +1565,31 @@ class GVVMetadata extends Metadata {
                 $this->field['formation_seances']['prochaines_lecons']['Type'] = 'varchar';
 
                 /**
+                 * Types de séances de formation
+                 */
+                $this->field['formation_types_seance']['id']['Type'] = 'int';
+                $this->field['formation_types_seance']['id']['Subtype'] = 'key';
+                $this->field['formation_types_seance']['nom']['Name'] = 'Nom';
+                $this->field['formation_types_seance']['nom']['Type'] = 'varchar';
+                $this->field['formation_types_seance']['nom']['Mandatory'] = TRUE;
+                $this->field['formation_types_seance']['nature']['Name'] = 'Nature';
+                $this->field['formation_types_seance']['nature']['Type'] = 'enum';
+                $this->field['formation_types_seance']['nature']['Subtype'] = 'enumerate';
+                $this->field['formation_types_seance']['nature']['Enumerate'] = array(
+                    'vol'       => 'Vol',
+                    'theorique' => 'Cours sol',
+                );
+                $this->field['formation_types_seance']['nature']['Mandatory'] = TRUE;
+                $this->field['formation_types_seance']['description']['Name'] = 'Description';
+                $this->field['formation_types_seance']['description']['Type'] = 'text';
+                $this->field['formation_types_seance']['periodicite_max_jours']['Name'] = 'Périodicité max. (jours)';
+                $this->field['formation_types_seance']['periodicite_max_jours']['Type'] = 'int';
+                $this->field['formation_types_seance']['periodicite_max_jours']['Mandatory'] = FALSE;
+                $this->field['formation_types_seance']['actif']['Name'] = 'Actif';
+                $this->field['formation_types_seance']['actif']['Type'] = 'int';
+                $this->field['formation_types_seance']['actif']['Subtype'] = 'checkbox';
+
+                /**
                  * Suivi de formation - Evaluations
                  */
                 $this->field['formation_evaluations']['id']['Name'] = 'ID';

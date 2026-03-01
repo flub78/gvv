@@ -24,7 +24,7 @@ if (! defined('BASEPATH')) exit('No direct script access allowed');
 
 $config['migration_enabled'] = true;
 
-$config['migration_version'] = 77;
+$config['migration_version'] = 79;
 
 /* End of file migration.php */
 /* Location: .application/config/migration.php */

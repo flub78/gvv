@@ -96,6 +96,7 @@ $lang['formation_seance'] = 'Sessie';
 $lang['formation_seances'] = 'Sessies';
 $lang['formation_seance_date'] = 'Datum';
 $lang['formation_seance_duree'] = 'Duur (minuten)';
+$lang['formation_seance_duree_cours'] = 'Duur';
 $lang['formation_seance_pilote'] = 'Piloot';
 $lang['formation_seance_instructeur'] = 'Instructeur';
 $lang['formation_seance_inscription'] = 'Inschrijving';
@@ -196,6 +197,79 @@ $lang['formation_autorisation_solo_delete_confirm_btn'] = 'Bevestig Verwijdering
 $lang['formation_inscription_not_found'] = 'Opleiding niet gevonden.';
 $lang['formation_acces_instructeur_requis'] = 'Toegang beperkt tot instructeurs.';
 $lang['formation_acces_refuse'] = 'Toegang geweigerd.';
+
+// Sessietypen
+$lang['formation_types_seances_title']            = 'Typen opleidingssessies';
+$lang['formation_type_seance_nom']                = 'Naam';
+$lang['formation_type_seance_nature']             = 'Type';
+$lang['formation_type_seance_description']        = 'Beschrijving';
+$lang['formation_type_seance_periodicite']        = 'Max. periodiciteit (dagen)';
+$lang['formation_type_seance_periodicite_help']   = 'Maximaal aantal dagen tussen twee sessies van dit type voor dezelfde leerling. Leeg laten = geen beperking.';
+$lang['formation_type_seance_actif']              = 'Actief';
+$lang['formation_nature_vol']                     = 'Vlucht';
+$lang['formation_nature_theorique']               = 'Grondcursus';
+$lang['formation_types_seances_create']           = 'Nieuw sessietype';
+$lang['formation_types_seances_edit']             = 'Type bewerken';
+$lang['formation_types_seances_delete']           = 'Verwijderen';
+$lang['formation_types_seances_deactivate']       = 'Deactiveren';
+$lang['formation_type_seance_created']            = 'Sessietype succesvol aangemaakt.';
+$lang['formation_type_seance_updated']            = 'Sessietype succesvol bijgewerkt.';
+$lang['formation_type_seance_deleted']            = 'Sessietype verwijderd.';
+$lang['formation_type_seance_deactivated']        = 'Sessietype gedeactiveerd.';
+$lang['formation_type_seance_in_use']             = 'Dit type wordt gebruikt door bestaande sessies en kan niet worden verwijderd. U kunt het deactiveren.';
+$lang['formation_type_seance_no_periodicite']     = 'Geen beperking';
+$lang['formation_type_seance_periodicite_jours']  = '%d d';
+
+// Theoretische sessies
+$lang['formation_seances_theoriques_title']           = 'Theoretische sessies';
+$lang['formation_seance_theorique_create']            = 'Nieuwe theoretische sessie';
+$lang['formation_seance_theorique_edit']              = 'Sessie bewerken';
+$lang['formation_seance_theorique_detail']            = 'Sessiedetail';
+$lang['formation_seances_theoriques_empty']           = 'Geen theoretische sessies geregistreerd.';
+$lang['formation_seance_lieu']                        = 'Locatie';
+$lang['formation_seance_lieu_placeholder']            = 'Bijv.: Vergaderzaal, Hangar A…';
+$lang['formation_seance_participants']                = 'Deelnemers';
+$lang['formation_seance_participants_requis']         = 'Voeg minimaal één deelnemer toe.';
+$lang['formation_seance_participants_recherche']      = 'Zoek een lid…';
+$lang['formation_seance_participants_aucun']          = 'Geen deelnemers.';
+$lang['formation_seance_type_invalide']               = 'Het geselecteerde sessietype is niet theoretisch.';
+$lang['formation_seance_commentaires']                = 'Opmerkingen';
+$lang['formation_seance_theorique_create_success']    = 'Theoretische sessie succesvol aangemaakt.';
+$lang['formation_seance_theorique_create_error']      = 'Fout bij het aanmaken van de sessie.';
+$lang['formation_seance_theorique_update_success']    = 'Theoretische sessie succesvol bijgewerkt.';
+$lang['formation_seance_theorique_update_error']      = 'Fout bij het bijwerken van de sessie.';
+$lang['formation_seance_theorique_delete_success']    = 'Theoretische sessie verwijderd.';
+$lang['formation_seance_nature']                      = 'Aard';
+$lang['formation_seance_nature_vol']                  = 'Vlucht';
+$lang['formation_seance_nature_theorique']            = 'Grondles';
+$lang['formation_seance_nature_toutes']               = 'Alle';
+$lang['formation_seance_nb_participants']             = 'Deelnemers';
+
+// Jaarlijkse geconsolideerde rapporten (Fase 3)
+$lang['formation_rapports_annuel_title']           = 'Jaarlijks geconsolideerd rapport';
+$lang['formation_rapports_annuel_par_instructeur'] = 'Per instructeur';
+$lang['formation_rapports_annuel_par_programme']   = 'Per programma';
+$lang['formation_rapports_annuel_nb_seances_vol']  = 'Vluchtsessies';
+$lang['formation_rapports_annuel_nb_seances_sol']  = 'Grondsessies';
+$lang['formation_rapports_annuel_heures_vol']      = 'Vlieguren';
+$lang['formation_rapports_annuel_heures_sol']      = 'Gronduren';
+$lang['formation_rapports_annuel_nb_eleves_vol']   = 'Vluchtstudenten';
+$lang['formation_rapports_annuel_nb_eleves_sol']   = 'Grondstudenten';
+$lang['formation_rapports_annuel_total']           = 'Totaal';
+$lang['formation_rapports_annuel_export_csv']      = 'CSV exporteren';
+$lang['formation_rapports_annuel_aucun']           = 'Geen gegevens voor dit jaar.';
+
+// Conformiteitsrapport
+$lang['formation_rapports_conformite_title']           = 'Conformiteitsrapport';
+$lang['formation_rapports_conformite_pilote']          = 'Piloot';
+$lang['formation_rapports_conformite_derniere_seance'] = 'Laatste sessie';
+$lang['formation_rapports_conformite_jours_ecoules']   = 'Verstreken dagen';
+$lang['formation_rapports_conformite_periodicite']     = 'Max. periodiciteit';
+$lang['formation_rapports_conformite_jamais']          = 'Nooit';
+$lang['formation_rapports_conformite_aucun']           = 'Alle piloten voldoen.';
+$lang['formation_rapports_conformite_aucun_type']      = 'Geen sessietype met een periodiciteitsbeperkingbeperking.';
+$lang['formation_rapports_conformite_export_csv']      = 'CSV exporteren';
+$lang['formation_rapports_conformite_non_conformes']   = 'niet-conforme piloot/piloten';
 
 /* End of file formation_lang.php */
 /* Location: ./application/language/dutch/formation_lang.php */

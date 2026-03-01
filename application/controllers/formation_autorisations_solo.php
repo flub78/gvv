@@ -109,14 +109,21 @@ class Formation_autorisations_solo extends CI_Controller {
     public function create() {
         log_message('debug', 'FORMATION_AUTORISATIONS_SOLO: create() method called');
 
+        // Pre-fill inscription_id from query string if provided (e.g. from inscription detail page)
+        $autorisation = array(
+            'date_autorisation' => date('Y-m-d'),
+            'instructeur_id' => $this->dx_auth->get_username()
+        );
+        $inscription_id = $this->input->get('inscription_id');
+        if ($inscription_id) {
+            $autorisation['inscription_id'] = (int) $inscription_id;
+        }
+
         // Prepare data for view
         $data = array(
             'controller' => 'formation_autorisations_solo',
             'action' => 'store',
-            'autorisation' => array(
-                'date_autorisation' => date('Y-m-d'),
-                'instructeur_id' => $this->dx_auth->get_username()
-            ),
+            'autorisation' => $autorisation,
             'inscriptions' => $this->formation_autorisation_solo_model->get_inscription_selector(),
             'inscriptions_data' => $this->formation_autorisation_solo_model->get_inscriptions_with_type(),
             'instructeurs' => $this->membres_model->get_selector_instructeurs(),

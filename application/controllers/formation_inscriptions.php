@@ -348,8 +348,26 @@ class Formation_inscriptions extends CI_Controller {
             show_404();
         }
         
-        // Get seances
-        $seances = $this->formation_seance_model->get_by_inscription($id);
+        // Get flight sessions for this inscription
+        $seances_vol = $this->formation_seance_model->get_by_inscription($id);
+
+        // Get theoretical sessions for the same pilot + programme
+        $seances_theoriques = $this->formation_seance_model->get_theoriques_by_pilote_programme(
+            $inscription['pilote_id'],
+            $inscription['programme_id']
+        );
+
+        // Tag each session with its kind and merge
+        foreach ($seances_vol as &$s) {
+            $s['_kind'] = 'vol';
+        }
+        foreach ($seances_theoriques as &$s) {
+            $s['_kind'] = 'theorique';
+        }
+        $seances = array_merge($seances_vol, $seances_theoriques);
+        usort($seances, function($a, $b) {
+            return strcmp($b['date_seance'], $a['date_seance']);
+        });
         
         // Use Formation_progression library for rich progression data
         $this->load->library('Formation_progression');
@@ -359,9 +377,19 @@ class Formation_inscriptions extends CI_Controller {
         $current_user = $this->dx_auth->get_username();
         $is_student_view = ($current_user === $inscription['pilote_id']);
 
+        // Check if current user is an instructor
+        $this->load->library('formation_access');
+        $is_instructeur = $this->formation_access->is_instructeur();
+
         // Get solo authorizations for this inscription
         $this->load->model('formation_autorisation_solo_model');
         $autorisations_solo = $this->formation_autorisation_solo_model->get_by_inscription($id);
+
+        // Merge theoretical session count into stats
+        $stats = $progression_data ? $progression_data['stats'] : array();
+        if (!empty($stats)) {
+            $stats['nb_seances'] = count($seances);
+        }
 
         // Prepare data for view
         $data = array(
@@ -369,7 +397,7 @@ class Formation_inscriptions extends CI_Controller {
             'inscription' => $inscription,
             'seances' => $seances,
             'lecons' => $progression_data ? $progression_data['lecons'] : array(),
-            'stats' => $progression_data ? $progression_data['stats'] : array(),
+            'stats' => $stats,
             'progression' => $progression_data ? array(
                 'total_sujets' => $progression_data['stats']['nb_sujets_total'],
                 'sujets_acquis' => $progression_data['stats']['nb_sujets_acquis'],
@@ -377,6 +405,7 @@ class Formation_inscriptions extends CI_Controller {
             ) : array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0),
             'formation_progression' => $this->formation_progression,
             'is_student_view' => $is_student_view,
+            'is_instructeur' => $is_instructeur,
             'autorisations_solo' => $autorisations_solo
         );
 

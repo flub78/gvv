@@ -96,6 +96,7 @@ $lang['formation_seance'] = 'Session';
 $lang['formation_seances'] = 'Sessions';
 $lang['formation_seance_date'] = 'Date';
 $lang['formation_seance_duree'] = 'Duration (minutes)';
+$lang['formation_seance_duree_cours'] = 'Duration';
 $lang['formation_seance_pilote'] = 'Pilot';
 $lang['formation_seance_instructeur'] = 'Instructor';
 $lang['formation_seance_inscription'] = 'Enrollment';
@@ -196,6 +197,79 @@ $lang['formation_autorisation_solo_delete_confirm_btn'] = 'Confirm Deletion';
 $lang['formation_inscription_not_found'] = 'Training not found.';
 $lang['formation_acces_instructeur_requis'] = 'Access restricted to instructors.';
 $lang['formation_acces_refuse'] = 'Access denied.';
+
+// Session types
+$lang['formation_types_seances_title']            = 'Training session types';
+$lang['formation_type_seance_nom']                = 'Name';
+$lang['formation_type_seance_nature']             = 'Type';
+$lang['formation_type_seance_description']        = 'Description';
+$lang['formation_type_seance_periodicite']        = 'Max. periodicity (days)';
+$lang['formation_type_seance_periodicite_help']   = 'Maximum number of days between two sessions of this type for the same student. Leave empty for no constraint.';
+$lang['formation_type_seance_actif']              = 'Active';
+$lang['formation_nature_vol']                     = 'In-flight';
+$lang['formation_nature_theorique']               = 'Ground';
+$lang['formation_types_seances_create']           = 'New session type';
+$lang['formation_types_seances_edit']             = 'Edit type';
+$lang['formation_types_seances_delete']           = 'Delete';
+$lang['formation_types_seances_deactivate']       = 'Deactivate';
+$lang['formation_type_seance_created']            = 'Session type created successfully.';
+$lang['formation_type_seance_updated']            = 'Session type updated successfully.';
+$lang['formation_type_seance_deleted']            = 'Session type deleted.';
+$lang['formation_type_seance_deactivated']        = 'Session type deactivated.';
+$lang['formation_type_seance_in_use']             = 'This type is used by existing sessions and cannot be deleted. You can deactivate it instead.';
+$lang['formation_type_seance_no_periodicite']     = 'No constraint';
+$lang['formation_type_seance_periodicite_jours']  = '%d d';
+
+// Theoretical sessions
+$lang['formation_seances_theoriques_title']           = 'Theoretical sessions';
+$lang['formation_seance_theorique_create']            = 'New theoretical session';
+$lang['formation_seance_theorique_edit']              = 'Edit session';
+$lang['formation_seance_theorique_detail']            = 'Session detail';
+$lang['formation_seances_theoriques_empty']           = 'No theoretical sessions recorded.';
+$lang['formation_seance_lieu']                        = 'Location';
+$lang['formation_seance_lieu_placeholder']            = 'E.g.: Meeting room, Hangar A…';
+$lang['formation_seance_participants']                = 'Participants';
+$lang['formation_seance_participants_requis']         = 'Please add at least one participant.';
+$lang['formation_seance_participants_recherche']      = 'Search for a member…';
+$lang['formation_seance_participants_aucun']          = 'No participants.';
+$lang['formation_seance_type_invalide']               = 'The selected session type is not theoretical.';
+$lang['formation_seance_commentaires']                = 'Comments';
+$lang['formation_seance_theorique_create_success']    = 'Theoretical session created successfully.';
+$lang['formation_seance_theorique_create_error']      = 'Error creating session.';
+$lang['formation_seance_theorique_update_success']    = 'Theoretical session updated successfully.';
+$lang['formation_seance_theorique_update_error']      = 'Error updating session.';
+$lang['formation_seance_theorique_delete_success']    = 'Theoretical session deleted.';
+$lang['formation_seance_nature']                      = 'Nature';
+$lang['formation_seance_nature_vol']                  = 'Flight';
+$lang['formation_seance_nature_theorique']            = 'Ground class';
+$lang['formation_seance_nature_toutes']               = 'All';
+$lang['formation_seance_nb_participants']             = 'Participants';
+
+// Annual consolidated reports (Phase 3)
+$lang['formation_rapports_annuel_title']           = 'Annual Consolidated Report';
+$lang['formation_rapports_annuel_par_instructeur'] = 'By instructor';
+$lang['formation_rapports_annuel_par_programme']   = 'By programme';
+$lang['formation_rapports_annuel_nb_seances_vol']  = 'Flight sessions';
+$lang['formation_rapports_annuel_nb_seances_sol']  = 'Ground sessions';
+$lang['formation_rapports_annuel_heures_vol']      = 'Flight hours';
+$lang['formation_rapports_annuel_heures_sol']      = 'Ground hours';
+$lang['formation_rapports_annuel_nb_eleves_vol']   = 'Flight students';
+$lang['formation_rapports_annuel_nb_eleves_sol']   = 'Ground students';
+$lang['formation_rapports_annuel_total']           = 'Total';
+$lang['formation_rapports_annuel_export_csv']      = 'Export CSV';
+$lang['formation_rapports_annuel_aucun']           = 'No data for this year.';
+
+// Compliance report
+$lang['formation_rapports_conformite_title']           = 'Compliance Report';
+$lang['formation_rapports_conformite_pilote']          = 'Pilot';
+$lang['formation_rapports_conformite_derniere_seance'] = 'Last session';
+$lang['formation_rapports_conformite_jours_ecoules']   = 'Days elapsed';
+$lang['formation_rapports_conformite_periodicite']     = 'Max. periodicity';
+$lang['formation_rapports_conformite_jamais']          = 'Never';
+$lang['formation_rapports_conformite_aucun']           = 'All pilots are compliant.';
+$lang['formation_rapports_conformite_aucun_type']      = 'No session type with a periodicity constraint.';
+$lang['formation_rapports_conformite_export_csv']      = 'Export CSV';
+$lang['formation_rapports_conformite_non_conformes']   = 'non-compliant pilot(s)';
 
 /* End of file formation_lang.php */
 /* Location: ./application/language/english/formation_lang.php */

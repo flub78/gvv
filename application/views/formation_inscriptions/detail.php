@@ -430,10 +430,11 @@ function get_statut_badge($statut) {
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Type</th>
                                 <th>Instructeur</th>
-                                <th>Avion</th>
+                                <th>Avion / Intitulé</th>
                                 <th>Durée</th>
-                                <th>Sujets</th>
+                                <th>Att.</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -441,17 +442,45 @@ function get_statut_badge($statut) {
                             <?php foreach ($seances as $seance): ?>
                                 <tr>
                                     <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
-                                    <td><?= htmlspecialchars($seance['instructeur_nom'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($seance['machine_modele'] ?? '-') ?></td>
-                                    <td><?= isset($seance['duree']) ? substr($seance['duree'], 0, 5) : '-' ?></td>
                                     <td>
-                                        <span class="badge bg-info"><?= $seance['nb_atterrissages'] ?? 0 ?> att.</span>
+                                        <?php if ($seance['_kind'] === 'theorique'): ?>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-chalkboard" aria-hidden="true"></i> Cours sol
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-plane" aria-hidden="true"></i> Vol
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(trim(($seance['instructeur_prenom'] ?? '') . ' ' . ($seance['instructeur_nom'] ?? '')) ?: '-') ?></td>
+                                    <td>
+                                        <?php if ($seance['_kind'] === 'theorique'): ?>
+                                            <?= htmlspecialchars($seance['type_nom'] ?? '-') ?>
+                                        <?php else: ?>
+                                            <?= htmlspecialchars($seance['machine_modele'] ?? '-') ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= !empty($seance['duree']) ? substr($seance['duree'], 0, 5) : '-' ?></td>
+                                    <td>
+                                        <?php if ($seance['_kind'] === 'vol'): ?>
+                                            <?= $seance['nb_atterrissages'] ?? 0 ?>
+                                        <?php else: ?>
+                                            —
+                                        <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="<?= controller_url('formation_seances') ?>/detail/<?= $seance['id'] ?>"
-                                           class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye" aria-hidden="true"></i>
-                                        </a>
+                                        <?php if ($seance['_kind'] === 'theorique'): ?>
+                                            <a href="<?= controller_url('formation_seances_theoriques') ?>/detail/<?= $seance['id'] ?>"
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="<?= controller_url('formation_seances') ?>/detail/<?= $seance['id'] ?>"
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -464,11 +493,17 @@ function get_statut_badge($statut) {
 
     <!-- Autorisations de vol solo -->
     <div class="card mb-3">
-        <div class="card-header bg-warning text-dark">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="fas fa-clipboard-check" aria-hidden="true"></i>
                 <?= $this->lang->line("formation_autorisations_solo") ?> (<?= count($autorisations_solo) ?>)
             </h5>
+            <?php if (!empty($is_instructeur)): ?>
+                <a href="<?= controller_url('formation_autorisations_solo') ?>/create?inscription_id=<?= $inscription['id'] ?>"
+                   class="btn btn-sm btn-dark">
+                    <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_autorisations_solo_create") ?>
+                </a>
+            <?php endif; ?>
         </div>
         <div class="card-body">
             <?php if (empty($autorisations_solo)): ?>
