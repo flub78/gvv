@@ -38,6 +38,7 @@ $this->lang->load('welcome');
 .section-card.flights { border-left-color: #198754; }
 .section-card.admin { border-left-color: #dc3545; }
 .section-card.treasurer { border-left-color: #ffc107; }
+.section-card.maintenance { border-left-color: #6c757d; }
 
 .sub-card {
     border: 1px solid #e0e0e0;
@@ -349,6 +350,15 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
                     </div>
                 </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-clipboard-list text-secondary"></i>
+                        <div class="card-title text-muted">Briefing passager</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
                 <?php endif; ?>
 
             </div>
@@ -514,6 +524,15 @@ $this->lang->load('welcome');
                 </div>
                 <?php endif; ?>
                 <?php endif; ?>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-credit-card text-secondary"></i>
+                        <div class="card-title text-muted">Paiements en ligne</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
 
                 <?php if (has_role('tresorier')) : ?>
 
@@ -696,6 +715,15 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('plan_comptable/page') ?>" class="btn btn-info btn-sm">Gérer</a>
                     </div>
                 </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-file-invoice text-secondary"></i>
+                        <div class="card-title text-muted">Configuration de la facturation</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
                 <?php endif; ?>
 
             </div>
@@ -716,13 +744,10 @@ $this->lang->load('welcome');
         <div id="collapseFormation" class="accordion-collapse collapse" aria-labelledby="headingFormation" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-book text-primary"></i>
-                        <div class="card-title">Programmes</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('programmes') ?>" class="btn btn-primary btn-sm">Gérer</a>
-                    </div>
+
+                <!-- Sous-section Instructeur -->
+                <div class="col-12">
+                    <h6 class="text-muted mb-2"><i class="fas fa-chalkboard-teacher"></i> Instructeur</h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -761,12 +786,81 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <!-- Sous-section Responsable Pédagogique -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-user-tie"></i> Responsable Pédagogique</h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-book text-primary"></i>
+                        <div class="card-title">Programmes</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('programmes') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                    </div>
+                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-chart-bar text-info"></i>
                         <div class="card-title">Rapports</div>
                         <div class="card-text text-muted">Synthèse</div>
                         <a href="<?= controller_url('formation_rapports') ?>" class="btn btn-info btn-sm">Voir</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-certificate text-secondary"></i>
+                        <div class="card-title text-muted">Attestations de formation</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($is_ca || $is_admin): ?>
+    <!-- Section Maintenance et suivi de navigabilité -->
+    <div class="accordion-item section-card maintenance">
+        <h2 class="accordion-header" id="headingMaintenance">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaintenance" aria-expanded="false" aria-controls="collapseMaintenance">
+                <i class="fas fa-wrench text-secondary me-2"></i>
+                Maintenance et suivi de navigabilité
+            </button>
+        </h2>
+        <div id="collapseMaintenance" class="accordion-collapse collapse" aria-labelledby="headingMaintenance" data-bs-parent="#dashboardAccordion">
+        <div class="accordion-body">
+            <div class="row g-2">
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-clipboard-list text-secondary"></i>
+                        <div class="card-title text-muted">Programmes d'entretien</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-tools text-secondary"></i>
+                        <div class="card-title text-muted">Opérations de maintenance</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-shield-alt text-secondary"></i>
+                        <div class="card-title text-muted">Suivi de navigabilité</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
                     </div>
                 </div>
 
@@ -896,26 +990,6 @@ $this->lang->load('welcome');
             <?php if ($this->config->item('gestion_documentaire')) : ?>
             <h5 class="mt-4 mb-3">Gestion documentaire</h5>
             <div class="row g-2">
-                <!-- Procedures management -->
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-book text-secondary"></i>
-                        <div class="card-title">Procédures</div>
-                        <div class="card-text text-muted">Documentation</div>
-                        <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <!-- Document types management -->
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-file-alt text-danger"></i>
-                        <div class="card-title">Types de documents</div>
-                        <div class="card-text text-muted">Réglementaires</div>
-                        <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm">Gérer</a>
-                    </div>
-                </div>
-
                 <!-- Archived documents management -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
@@ -923,6 +997,15 @@ $this->lang->load('welcome');
                         <div class="card-title">Archivage Réglementaire</div>
                         <div class="card-text text-muted">Documents</div>
                         <a href="<?= controller_url('archived_documents') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-stamp text-secondary"></i>
+                        <div class="card-title text-muted">Approbation de documents</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
                     </div>
                 </div>
             </div>
@@ -947,6 +1030,12 @@ $this->lang->load('welcome');
         <div id="collapseAdminSys" class="accordion-collapse collapse" aria-labelledby="headingAdminSys" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
+
+                <!-- Sous-section Base de données -->
+                <div class="col-12">
+                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> Base de données</h6>
+                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-save text-primary"></i>
@@ -972,6 +1061,11 @@ $this->lang->load('welcome');
                         <div class="card-text text-muted">Base de données</div>
                         <a href="<?= controller_url('migration') ?>" class="btn btn-info btn-sm">Accéder</a>
                     </div>
+                </div>
+
+                <!-- Sous-section Configuration -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-sliders-h"></i> Configuration</h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1027,6 +1121,31 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
                     </div>
                 </div>
+
+                <!-- Gestion documentaire subsection -->
+                <?php if ($this->config->item('gestion_documentaire')) : ?>
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-folder-open"></i> Gestion documentaire</h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-book text-secondary"></i>
+                        <div class="card-title">Procédures</div>
+                        <div class="card-text text-muted">Documentation</div>
+                        <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-file-alt text-danger"></i>
+                        <div class="card-title">Types de documents</div>
+                        <div class="card-text text-muted">Réglementaires</div>
+                        <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                    </div>
+                </div>
+                <?php endif; ?>
                     </div>
                 </div>
             </div>

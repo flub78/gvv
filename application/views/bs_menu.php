@@ -52,7 +52,7 @@ if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth-
   <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 fixed-top" style="position: sticky;">
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="<?= controller_url("welcome") ?>">GVV</a>
+      <a class="navbar-brand" href="<?= controller_url("welcome") ?>">Accueil GVV</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
         <span class="" role="button"><i class="fa fa-bars" aria-hidden="true" style="color:#e6e6ff"></i></span>
       </button>
