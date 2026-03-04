@@ -16,12 +16,23 @@
  * Abraracourcix is enrolled in use_new_authorization, so require_roles() is active.
  *
  * Compared to obelix:
- *   - Has CA access: achats, terrains, rapports/ffvv, welcome/ca, licences, programmes
+ *   - Has CA access in section avion (3) only: achats, terrains, rapports/ffvv, welcome/ca, licences, programmes
  *   - Has instructor access: programmes (via CA bit)
  *   - Does NOT have planchiste role: stats pages remain denied (legacy dx_auth check)
  *   - Does NOT have tresorier role: accounting pages remain denied
  *   - Does NOT have bureau role: configuration remains denied
  *   - Does NOT have admin role: admin pages remain denied
+ *
+ * Expected (not yet implemented - tests FAIL):
+ *   - As instructeur avion (BIT_FI_AVION) in section avion:
+ *     → Formation/Instruction section visible on dashboard
+ *     → formation_* routes accessible
+ *   - As CA member: "Administration du club" section visible on dashboard
+ *     ONLY in section avion (3) where they are CA
+ *
+ * Root cause: welcome/index uses $this->dx_auth->is_role('ca') (legacy) for $is_ca,
+ * not the new authorization system. For abraracourcix (role_id=1='user' in users table),
+ * $is_ca = false → Formation and Administration du club sections are hidden.
  *
  * Usage:
  *   npx playwright test tests/abraracourcix-authorization.spec.js --reporter=line
@@ -135,39 +146,134 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
     });
 
     // ============================================================
-    // ALLOWED ROUTES - CA role (via BIT_CA mniveaux flag)
+    // ALLOWED ROUTES - CA role (section avion = 3, seule section où abraracourcix est CA)
     // ============================================================
-    test.describe('Allowed routes (role: CA)', () => {
+    test.describe('Allowed routes (role: CA, section avion)', () => {
 
         test('achats/page - purchases', async ({ page }) => {
-            await loginAndGoto(page, 'achats/page');
+            await loginAndGoto(page, 'achats/page', '3');
             await expectAccessGranted(page, 'achats/page');
         });
 
         test('terrains/page - airfields', async ({ page }) => {
-            await loginAndGoto(page, 'terrains/page');
+            await loginAndGoto(page, 'terrains/page', '3');
             await expectAccessGranted(page, 'terrains/page');
         });
 
         test('rapports/ffvv - FFVV reports', async ({ page }) => {
-            await loginAndGoto(page, 'rapports/ffvv');
+            await loginAndGoto(page, 'rapports/ffvv', '3');
             await expectAccessGranted(page, 'rapports/ffvv');
         });
 
         test('welcome/ca - CA dashboard', async ({ page }) => {
-            await loginAndGoto(page, 'welcome/ca');
+            await loginAndGoto(page, 'welcome/ca', '3');
             await page.waitForTimeout(1000);
             await expectAccessGranted(page, 'welcome/ca');
         });
 
         test('licences/page - licences management', async ({ page }) => {
-            await loginAndGoto(page, 'licences/page');
+            await loginAndGoto(page, 'licences/page', '3');
             await expectAccessGranted(page, 'licences/page');
         });
 
         test('programmes - training programs (CA can manage)', async ({ page }) => {
-            await loginAndGoto(page, 'programmes');
+            await loginAndGoto(page, 'programmes', '3');
             await expectAccessGranted(page, 'programmes');
+        });
+    });
+
+    // ============================================================
+    // INSTRUCTION SECTION - instructeur avion (BIT_FI_AVION) en section avion (3)
+    //
+    // Abraracourcix a le rôle 'instructeur' en section avion (section_id=3)
+    // via user_roles_per_section (nouveau système d'auth).
+    // La section Formation/Instruction doit être visible sur le dashboard
+    // et les routes associées doivent être accessibles.
+    //
+    // FAILING: le dashboard utilise $this->dx_auth->is_role('ca') (legacy)
+    // au lieu du nouveau système, donc $is_ca est false et la section
+    // Formation n'est pas affichée même pour les instructeurs avion.
+    // ============================================================
+    test.describe('Instruction section (role: instructeur en section avion)', () => {
+
+        test('dashboard section avion - section Formation visible pour instructeur avion', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '3'); // section 3 = avion
+            const content = await page.content();
+            expect(
+                content,
+                'La section Formation (instructeur) doit être visible sur le dashboard en section avion'
+            ).toContain('Autorisations Solo');
+        });
+
+        test('formation_inscriptions - gestion des inscriptions (instructeur avion)', async ({ page }) => {
+            await loginAndGoto(page, 'formation_inscriptions', '3');
+            await expectAccessGranted(page, 'formation_inscriptions');
+        });
+
+        test('formation_seances - séances de formation (instructeur avion)', async ({ page }) => {
+            await loginAndGoto(page, 'formation_seances', '3');
+            await expectAccessGranted(page, 'formation_seances');
+        });
+
+        test('formation_autorisations_solo - autorisations solo (instructeur avion)', async ({ page }) => {
+            await loginAndGoto(page, 'formation_autorisations_solo', '3');
+            await expectAccessGranted(page, 'formation_autorisations_solo');
+        });
+
+        test('formation_seances_theoriques - séances théoriques (instructeur avion)', async ({ page }) => {
+            await loginAndGoto(page, 'formation_seances_theoriques', '3');
+            await expectAccessGranted(page, 'formation_seances_theoriques');
+        });
+
+        test('formation_rapports - rapports de formation (instructeur avion)', async ({ page }) => {
+            await loginAndGoto(page, 'formation_rapports', '3');
+            await expectAccessGranted(page, 'formation_rapports');
+        });
+    });
+
+    // ============================================================
+    // ADMINISTRATION DU CLUB - visible uniquement en section avion (section 3)
+    //
+    // Abraracourcix a le rôle 'ca' UNIQUEMENT dans la section avion (section_id=3).
+    // La section "Administration du club" doit apparaître sur le dashboard
+    // seulement quand la section active est la section avion.
+    // ============================================================
+    test.describe('Dashboard - section Administration du club (CA uniquement section avion)', () => {
+
+        test('section avion (3) - Administration du club visible', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '3');
+            const content = await page.content();
+            expect(
+                content,
+                'Section Administration du club doit être visible en section avion (CA)'
+            ).toContain('Administration du club');
+        });
+
+        test('section planeur (1) - Administration du club non visible (pas CA)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '1');
+            const content = await page.content();
+            expect(
+                content,
+                'Section Administration du club ne doit PAS être visible en section planeur (pas CA)'
+            ).not.toContain('Administration du club');
+        });
+
+        test('section ULM (2) - Administration du club non visible (pas CA)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '2');
+            const content = await page.content();
+            expect(
+                content,
+                'Section Administration du club ne doit PAS être visible en section ULM (pas CA)'
+            ).not.toContain('Administration du club');
+        });
+
+        test('section générale (4) - Administration du club non visible (pas CA)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '4');
+            const content = await page.content();
+            expect(
+                content,
+                'Section Administration du club ne doit PAS être visible en section générale (pas CA)'
+            ).not.toContain('Administration du club');
         });
     });
 

@@ -2381,6 +2381,7 @@ SQL;
                 'ville' => 'Village gaulois',
                 'sections' => array($planeur_section, $avion_section, $ulm_section, $general_section),
                 'roles_bits' => $REMORQUEUR + $FI_AVION + $CA_BIT,
+                'ca_sections' => array($avion_section), // CA uniquement en section avion
                 'is_admin' => 0
             ),
             array(
@@ -2510,9 +2511,12 @@ SQL;
                     // Always add 'user' role
                     $section_roles[] = $types_roles['user'];
 
-                    // CA role applies to all sections
+                    // CA role: applies to all sections unless ca_sections restricts it
                     if ($user_data['roles_bits'] & $CA_BIT) {
-                        $section_roles[] = $types_roles['ca'];
+                        $ca_sections = isset($user_data['ca_sections']) ? $user_data['ca_sections'] : null;
+                        if ($ca_sections === null || in_array($section_id, $ca_sections)) {
+                            $section_roles[] = $types_roles['ca'];
+                        }
                     }
 
                     // Treasurer role applies to all sections

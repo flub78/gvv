@@ -96,11 +96,20 @@ class Welcome extends Gvv_Controller {
 
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
-        $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
-        $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
-
         $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
+
+        if ($this->use_new_auth) {
+            $section_id = (int)$this->session->userdata('section');
+            $this->load->library('Gvv_Authorization');
+            $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
+            $data['is_bureau'] = $this->dx_auth->is_role('bureau');
+            $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
+        } else {
+            $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
+            $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
+            $data['is_instructeur'] = false;
+        }
 
         // Check if user is authorized for development/test features
         $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
