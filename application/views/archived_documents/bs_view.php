@@ -30,7 +30,7 @@ $is_private = !empty($type['is_private']);
 <?php endif; ?>
 
 <div class="mb-3">
-    <a href="<?= site_url('archived_documents/pop_return_url') ?>" class="btn btn-sm btn-outline-secondary">
+    <a href="<?= $back_url ?>" class="btn btn-sm btn-outline-secondary">
         <i class="fas fa-arrow-left"></i> <?= $this->lang->line('archived_documents_back') ?>
     </a>
     <?php if ($can_access_file): ?>

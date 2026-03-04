@@ -388,7 +388,7 @@ class Archived_documents extends Gvv_Controller {
             redirect('archived_documents/my_documents');
             return;
         } else if ($button == $this->lang->line("gvv_button_cancel")) {
-            $this->pop_return_url();
+            redirect($is_pilot_form ? 'archived_documents/my_documents' : ($is_admin ? 'archived_documents/page' : 'archived_documents/my_documents'));
             return;
         }
 
@@ -582,6 +582,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['can_delete'] = $this->data['is_admin'] ||
             ($doc['pilot_login'] === $this->dx_auth->get_username() && (!isset($doc['validation_status']) || $doc['validation_status'] !== 'approved'));
         $this->data['can_access_file'] = $this->_can_access_private_file($is_private, $doc['pilot_login']);
+        $this->data['back_url'] = site_url($this->_is_admin() ? 'archived_documents/page' : 'archived_documents/my_documents');
 
         load_last_view($this->controller . '/view', $this->data);
     }
@@ -638,7 +639,7 @@ class Archived_documents extends Gvv_Controller {
 
         $button = $this->input->post('button');
         if ($button == $this->lang->line('gvv_button_cancel')) {
-            $this->pop_return_url();
+            redirect('archived_documents/view/' . $id);
             return;
         }
 
