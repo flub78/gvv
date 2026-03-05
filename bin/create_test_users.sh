@@ -3,6 +3,13 @@
 # Script to create test users for GVV system
 # Users will have password "password" and appropriate roles
 #
+# ⚠️  SYNC WARNING: This script must remain synchronized with
+#     application/controllers/admin.php -> _create_test_gaulois_users()
+#     Both must produce IDENTICAL user_roles_per_section entries for each
+#     Gaulois test user. Any change to user roles must be applied to BOTH.
+#     Run: phpunit application/tests/integration/TestUsersCoherenceTest.php
+#     to verify synchronization.
+#
 # Two categories of test users:
 # 1. Legacy users (testuser, testadmin, etc.) - use DX_Auth legacy authorization
 #    - Have a legacy role_id in users table
@@ -71,16 +78,16 @@ echo "Using default section ID: $SECTION_ID"
 # =========================================
 delete_user() {
     local username=$1
-    local user_id=$(mysql_query "SELECT id FROM users WHERE username='$username'")
+    local count=$(mysql_query "SELECT COUNT(*) FROM users WHERE username='$username'")
 
-    if [ -n "$user_id" ]; then
+    if [ -n "$count" ] && [ "$count" -gt 0 ]; then
         mysql_exec -e "
             DELETE FROM use_new_authorization WHERE username='$username';
-            DELETE FROM user_roles_per_section WHERE user_id=$user_id;
+            DELETE urps FROM user_roles_per_section urps JOIN users u ON urps.user_id=u.id WHERE u.username='$username';
             DELETE FROM comptes WHERE pilote='$username' AND codec=411;
             DELETE FROM membres WHERE username='$username';
-            DELETE FROM user_profile WHERE user_id=$user_id;
-            DELETE FROM users WHERE id=$user_id;
+            DELETE up FROM user_profile up JOIN users u ON up.user_id=u.id WHERE u.username='$username';
+            DELETE FROM users WHERE username='$username';
         "
         echo "  Deleted existing user: $username"
     fi
@@ -99,12 +106,21 @@ create_legacy_user() {
     echo -n "  $username... "
     delete_user "$username"
 
-    # 1. Create user with legacy role_id
-    mysql_exec -e "
-        INSERT INTO users (role_id, username, password, email, banned, last_ip, last_login, created)
-        VALUES ($role_id, '$username', '$password_hash', '$email', 0, '127.0.0.1', NOW(), NOW());
-    "
-    local user_id=$(mysql_query "SELECT id FROM users WHERE username='$username'")
+    # 1. Create or update user with legacy role_id
+    local existing_id=$(mysql_query "SELECT id FROM users WHERE username='$username' LIMIT 1")
+    if [ -n "$existing_id" ]; then
+        # User could not be deleted (FK constraint) — update in place
+        mysql_exec -e "
+            UPDATE users SET role_id=$role_id, password='$password_hash', email='$email', banned=0
+            WHERE id=$existing_id;
+        "
+    else
+        mysql_exec -e "
+            INSERT INTO users (role_id, username, password, email, banned, last_ip, last_login, created)
+            VALUES ($role_id, '$username', '$password_hash', '$email', 0, '127.0.0.1', NOW(), NOW());
+        "
+    fi
+    local user_id=$(mysql_query "SELECT id FROM users WHERE username='$username' LIMIT 1")
 
     # 2. Create membre entry (not for admin)
     if [ "$role_id" -ne 2 ]; then
@@ -165,7 +181,11 @@ create_gaulois_user() {
     local adresse=$5
     local roles_bits=$6
     local is_admin=$7
-    # sections and section_roles passed via global arrays
+    # sections and section_roles passed via global arrays:
+    #   USER_SECTIONS      - array of section IDs the user belongs to
+    #   SECTION_ROLES_MAP  - associative array: section_N => "role_id ..."
+    #   CA_SECTIONS        - optional array of section IDs where CA role applies;
+    #                        if empty, CA applies to all sections (mirrors admin.php ca_sections)
 
     echo -n "  $username... "
     delete_user "$username"
@@ -198,9 +218,11 @@ create_gaulois_user() {
         # Always add 'user' role
         local roles="$TR_USER"
 
-        # CA role applies to all sections
+        # CA role: applies to sections listed in CA_SECTIONS, or all sections if CA_SECTIONS is empty
         if [ $((roles_bits & BIT_CA)) -ne 0 ]; then
-            roles="$roles $TR_CA"
+            if [ ${#CA_SECTIONS[@]} -eq 0 ] || [[ " ${CA_SECTIONS[*]} " =~ " ${section_id} " ]]; then
+                roles="$roles $TR_CA"
+            fi
         fi
 
         # Treasurer role applies to all sections
@@ -253,28 +275,39 @@ echo "Creating Gaulois test users (new auth)"
 echo "========================================="
 
 # --- Asterix ---
+# Sections: Planeur, Général — roles: user only
 declare -a USER_SECTIONS=($PLANEUR_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=()
+declare -a CA_SECTIONS=()
 create_gaulois_user "asterix" "Asterix" "Le Gaulois" "asterix@gmail.com" "12 rue de Babaorum" 0 0
 
 # --- Obelix ---
+# Sections: Planeur, ULM, Général — roles: planchiste (Planeur), auto_planchiste (ULM), user (Général)
+# Note: BIT_REMORQUEUR is set in mniveaux but does not add a types_role (no Avion section)
 declare -a USER_SECTIONS=($PLANEUR_SECTION $ULM_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=(
     ["section_${PLANEUR_SECTION}"]="$TR_PLANCHISTE"
     ["section_${ULM_SECTION}"]="$TR_AUTO_PLANCHISTE"
 )
+declare -a CA_SECTIONS=()
 create_gaulois_user "obelix" "Obelix" "Le Gaulois" "obelix@gmail.com" "27 rue du Menhir" $BIT_REMORQUEUR 0
 
 # --- Abraracourcix ---
+# Sections: Planeur, Avion, ULM, Général
+# Roles: user (all) + CA (Avion only) + instructeur (Avion only, from BIT_FI_AVION + BIT_REMORQUEUR)
+# CA_SECTIONS restricts CA role to Avion section only — mirrors admin.php 'ca_sections' parameter
 declare -a USER_SECTIONS=($PLANEUR_SECTION $AVION_SECTION $ULM_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=()
+declare -a CA_SECTIONS=($AVION_SECTION)
 create_gaulois_user "abraracourcix" "Abraracourcix" "Le Gaulois" "abraracourcix@gmail.com" "3 rue du Menhir" $((BIT_REMORQUEUR + BIT_FI_AVION + BIT_CA)) 0
 
 # --- Goudurix ---
+# Sections: Avion, Général — roles: user + trésorier (all) + auto_planchiste (Avion)
 declare -a USER_SECTIONS=($AVION_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=(
     ["section_${AVION_SECTION}"]="$TR_AUTO_PLANCHISTE"
 )
+declare -a CA_SECTIONS=()
 create_gaulois_user "goudurix" "Goudurix" "Le Gaulois" "goudurix@gmail.com" "3 rue du Menhir" $BIT_TRESORIER 0
 
 # --- Panoramix (admin - club-admin in all sections) ---

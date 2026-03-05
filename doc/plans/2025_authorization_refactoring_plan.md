@@ -1,7 +1,7 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.6
-**Date:** 2025-01-08 (Updated: 2026-02-20)
+**Document Version:** 2.7
+**Date:** 2025-01-08 (Updated: 2026-03-04)
 **Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
@@ -33,17 +33,18 @@
 - **Timeline**: ~10 weeks additional work
 - **Status**: Can be done AFTER production deployment via Path 1
 
-### 🔄 **Path 3: Qualification Bitmap Migration (POST-PRODUCTION - 2-3 weeks)**
+### 🔴 **Path 3: Qualification Bitmap Migration (MANDATORY — before Phase M3)**
 - Migrate operational qualifications from `membres.mniveaux` bitmap to `user_roles_per_section`
-- Single source of truth for roles AND qualifications
+- `user_roles_per_section` becomes the **exclusive** source of truth for all authorization decisions and form selectors — no code may read `mniveaux` to make an access control or selection decision
 - Section-aware qualifications (instructor in section 1, not in section 2)
 - Audit trail (granted_at / revoked_at)
 - **Phases**: 13 (Qualification migration)
-- **Timeline**: ~2-3 weeks additional work
-- **Status**: Can be done AFTER Path 1 production deployment
+- **Timeline**: ~2-3 weeks — must complete before M3 (production pilot)
+- **Status**: Blocking M3 — required before production pilot
 - **Precedent**: `inst_selector()` already migrated to use `user_roles_per_section`
+- **Script sync**: `bin/create_test_users.sh` and `_create_test_gaulois_users()` must produce identical `user_roles_per_section` entries — divergence is a defect
 
-**Recommendation**: Use **Path 1** to go to production quickly, then pursue **Path 3** for qualification consolidation (high value), and optionally **Path 2** for code improvements.
+**Recommendation**: Use **Path 1** to go to production quickly, **Path 3** (qualification consolidation) is mandatory before M3, and optionally **Path 2** for code improvements.
 
 **Legacy System Status:** The current implementation (Phases 0-6) remains functional and will be maintained during the transition. The `role_permissions` table will be deprecated but preserved for rollback capability.
 
@@ -136,7 +137,8 @@
 - `obelix` — planchiste (Planeur) + auto_planchiste (ULM) + user (Général)
   - En tant que planchiste (Planeur) : peut créer des vols, modifier tous les vols, accéder à la planche automatique (`vols_planeur/plancheauto`, `vols_planeur/plancheauto_select`)
   - En tant que auto_planchiste (ULM) : peut créer des vols ULM et modifier ses propres vols uniquement, pas d'accès à `plancheauto`
-- `abraracourcix` — user (4 sections) + CA + instructeur (FI avion) + remorqueur
+- `abraracourcix` — user (4 sections) + CA (section Avion uniquement, selon admin.php) + instructeur (FI avion, section Avion)
+  - ⚠️ **Divergence à corriger** : `bin/create_test_users.sh` assigne le rôle CA à toutes les sections, `admin.php` le restreint à la section Avion via `ca_sections`. La définition de référence doit être arrêtée et les deux scripts alignés (Phase 13.0)
 - `goudurix` — auto_planchiste (Avion) + trésorier (Général)
   - En tant que auto_planchiste (Avion) : peut créer des vols avion et modifier ses propres vols uniquement, pas d'accès à `plancheauto`
 - `panoramix` — club-admin (toutes sections)
@@ -399,9 +401,11 @@
 
 ---
 
-### Phase 13: Qualification Bitmap Migration (v2.4) 🔵 NEW
+### Phase 13: Qualification Bitmap Migration (v2.7) 🔴 MANDATORY — Blocking M3
 
-**Objectives**: Consolidate operational qualifications from `membres.mniveaux` bitmap into the `user_roles_per_section` table, providing a single source of truth for both access control and member qualifications.
+**Objectives**: Faire de `user_roles_per_section` l'unique source de vérité pour toutes les décisions d'autorisation et tous les sélecteurs de formulaires. Après cette phase, aucun code ne doit lire `membres.mniveaux` pour prendre une décision d'accès ou de sélection.
+
+**Critère de sortie** : tous les contrôles d'accès et sélecteurs qui lisaient `mniveaux` sont migrés. Le champ `mniveaux` ne contient plus que des bits purement informatifs.
 
 #### Context: Legacy Bitmap System
 
@@ -488,6 +492,13 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 
 #### Tasks
 
+- [ ] **13.0** Synchronisation et cohérence des scripts de création des utilisateurs de test :
+  - Décider de la définition de référence pour **abraracourcix** : rôle CA en section Avion uniquement (`admin.php`) ou dans toutes les sections (`bin/create_test_users.sh`) — les deux doivent être alignés
+  - Aligner `bin/create_test_users.sh` sur la définition choisie
+  - Ajouter dans le commentaire d'en-tête des deux fichiers : _"Cette implémentation doit rester synchronisée avec son équivalent. Toute modification doit être répercutée dans les deux sources."_
+  - Créer un test PHPUnit qui compare les `user_roles_per_section` produits par les deux procédures pour chaque utilisateur de test et échoue en cas de divergence
+  - Après migration Phase 13 : supprimer les bits de contrôle d'accès de `mniveaux` dans les deux scripts, ne conserver que les bits informatifs
+
 - [ ] **13.1** Créer les nouveaux rôles dans `types_roles` :
   - Migration SQL : INSERT `remorqueur` (13), `treuillard` (14), `chef_pilote` (15), `chef_de_piste` (16)
   - Ajouter traductions FR/EN/NL dans `gvv_lang.php`
@@ -536,6 +547,7 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 **Estimated Effort**: 10-15 days (2-3 weeks)
 
 **Deliverables**:
+- Scripts de test synchronisés (`bin/create_test_users.sh` ↔ `_create_test_gaulois_users()`) avec test de cohérence
 - Migration SQL (nouveaux rôles + conversion bitmap → user_roles_per_section)
 - Sélecteurs migrés (remorqueur_selector, treuillard_selector)
 - Formation_access réécrit sans bitmap
@@ -558,7 +570,7 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 | **10: Full Migration** | 🔵 Planned | 0% | ~30 controllers restants sans `require_roles()` |
 | **11: Cleanup** | 🔵 Planned | 0% | Remove legacy code (Optional) |
 | **12: Production Deploy** | 🔵 Planned | 0% | Final deployment (Optional) |
-| **13: Qualification Migration** | 🔵 Planned | 0% | Bitmap → user_roles_per_section |
+| **13: Qualification Migration** | 🔴 Blocking M3 | 0% | Bitmap → user_roles_per_section — obligatoire avant M3 |
 
 ### Migration Phases (Feature Flag Based)
 
@@ -566,7 +578,8 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 |-------|--------|----------|-------------|-------------|-------|
 | **M1: Preparation** | ✅ Complete | - | FALSE | None | Infrastructure ready |
 | **M2: Role Setup & Dev Testing** | ⏳ Current | en cours | FALSE | Test users only | 5 Gaulois test users enrolled, Playwright tests OK |
-| **M3: Production Pilot** | 🔵 Next | 1-2 weeks | FALSE | 5-10 pilot users | Validate with real users |
+| **Phase 13: Bitmap Migration** | 🔴 Blocking M3 | avant M3 | FALSE | Dev only | Migrate mniveaux → user_roles_per_section, fix script divergence |
+| **M3: Production Pilot** | 🔵 Next | 1-2 weeks | FALSE | 5-10 pilot users | Validate with real users — requires Phase 13 complete |
 | **M4: Global Migration** | 🔵 Planned | 1 week | TRUE | All users | Flag flip |
 | **M5: Cleanup** | 🔵 Future | 1-2 days | TRUE (hardcoded) | None | Remove flag (optional) |
 
@@ -595,6 +608,7 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 | **Performance degradation** | Very Low | Medium | No DB lookups for permissions = faster | 🟢 Low Risk |
 | **Code-permission divergence** | Low | Medium | Code review, documentation, developer training | 🟡 Planned |
 | **Legacy code interaction** | Medium | Medium | Careful testing, preserve `data_access_rules` | 🟡 Active |
+| **Divergence scripts de test** | High | Medium | Scripts `bin/create_test_users.sh` et `admin.php` produisent des rôles différents pour `abraracourcix` — corriger en Phase 13.0, ajouter test de cohérence automatique | 🔴 Known defect |
 
 **Current Risk Level**: 🟡 Medium - Significant architecture change in progress, thorough planning reduces risk
 

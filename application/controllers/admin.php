@@ -2303,6 +2303,14 @@ SQL;
     /**
      * Create Gaulois test users with full profiles
      * Called after anonymization to add test data with clear names and contact info
+     *
+     * ⚠️  SYNC WARNING: This method must remain synchronized with
+     *     bin/create_test_users.sh (Gaulois section).
+     *     Both must produce IDENTICAL user_roles_per_section entries for each user.
+     *     Any change to user roles must be applied to BOTH.
+     *     Run: phpunit application/tests/integration/TestUsersCoherenceTest.php
+     *     to verify synchronization.
+     *
      * @return array Result array with 'created' count
      */
     private function _create_test_gaulois_users() {

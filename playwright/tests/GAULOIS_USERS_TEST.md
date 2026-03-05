@@ -2,7 +2,7 @@
 
 ## Description
 
-Ce test Playwright vérifie que les utilisateurs gaulois créés par la procédure `/admin/generate_test_database` peuvent :
+Ce test Playwright vérifie que les utilisateurs gaulois créés par `bin/create_test_users.sh` peuvent :
 
 1. ✅ Se connecter avec succès
 2. ✅ Accéder à leurs comptes via `/compta/mon_compte/{section_id}`
@@ -11,24 +11,53 @@ Ce test Playwright vérifie que les utilisateurs gaulois créés par la procédu
 
 **Note importante** : Les utilisateurs ordinaires n'ont PAS accès à `/comptes/balance` (réservé aux administrateurs). Ils doivent utiliser `/compta/mon_compte/{section_id}` pour consulter leurs comptes.
 
-**Utilisateur admin** : **panoramix** est un administrateur sans sections assignées et a accès à `/comptes/balance`.
+**Utilisateur admin** : **panoramix** est un club-admin avec les rôles User + Club-Admin dans **toutes** les sections et a accès à `/comptes/balance`. Il n'a pas de comptes 411 créés.
 
-## Utilisateurs testés
+## Utilisateurs Gaulois (nouveau système d'autorisation)
 
-| Utilisateur | Sections | Rôles | Comptes attendus |
+Ces utilisateurs sont dans `use_new_authorization` et utilisent le nouveau système de rôles.
+
+| Utilisateur | Sections | Rôles (types_roles par section) | Bits mniveaux | Comptes 411 |
+|---|---|---|---|---|
+| **asterix** | Planeur, Général | User (toutes sections) | 0 | 2 |
+| **obelix** | Planeur, ULM, Général | User (toutes) + Planchiste (Planeur) + Auto-planchiste (ULM) | REMORQUEUR* | 3 |
+| **abraracourcix** | Planeur, Avion, ULM, Général | User (toutes) + CA (Avion seulement) + Instructeur (Avion seulement) | CA, REMORQUEUR, FI_AVION | 4 |
+| **goudurix** | Avion, Général | User + Trésorier (toutes) + Auto-planchiste (Avion) | TRESORIER | 2 |
+| **panoramix** | Toutes | User + Club-Admin (toutes sections) | 0 | 0 |
+
+*Le bit REMORQUEUR d'Obelix est positionné dans `mniveaux` mais ne génère pas de `types_roles` car il n'est pas dans la section Avion (le bit REMORQUEUR n'ajoute TR_INSTRUCTEUR qu'en section Avion).
+
+Mot de passe pour tous : `password`
+
+### Logique d'assignation des rôles
+
+Les bits `mniveaux` se traduisent en `types_roles` selon les règles suivantes :
+- **BIT_CA (64)** → TR_CA dans **toutes** les sections
+- **BIT_TRESORIER (8)** → TR_TRESORIER dans **toutes** les sections
+- **BIT_FI_AVION (131072)** → TR_INSTRUCTEUR dans la section **Avion uniquement**
+- **BIT_REMORQUEUR (8192)** → TR_INSTRUCTEUR dans la section **Avion uniquement**
+- Les rôles spécifiques par section (Planchiste, Auto-planchiste) sont configurés dans `SECTION_ROLES_MAP`
+- TR_USER (1) est toujours ajouté dans chaque section
+
+## Utilisateurs Legacy (système DX_Auth)
+
+Ces utilisateurs n'ont **pas** d'entrée dans `use_new_authorization`. Ils ont un `role_id` legacy et un seul rôle dans la section par défaut (section 1).
+
+| Utilisateur | role_id | types_roles | Compte 411 |
 |---|---|---|---|
-| **asterix** | Planeur, Général | Utilisateur | 2 |
-| **obelix** | Planeur, ULM, Général | Planchiste (Planeur), Auto-planchiste (ULM), Remorqueur | 3 |
-| **abraracourcix** | Planeur, Avion, ULM, Général | CA + Instructeur Avion | 4 |
-| **goudurix** | Avion, Général | Auto-planchiste (Avion), Trésorier | 2 |
-| **panoramix** | Aucune | Admin | 0 |
+| **testuser** | 1 (membre) | User | Oui (section 1) |
+| **testadmin** | 2 (admin) | Club-Admin | Non |
+| **testplanchiste** | 7 (planchiste) | Planchiste | Oui (section 1) |
+| **testca** | 8 (ca) | CA | Oui (section 1) |
+| **testbureau** | 3 (bureau) | Bureau | Oui (section 1) |
+| **testtresorier** | 9 (tresorier) | Trésorier | Oui (section 1) |
 
 Mot de passe pour tous : `password`
 
 ## Prérequis
 
-1. Base de données de test générée via `/admin/generate_test_database`
-2. Les 5 utilisateurs gaulois doivent exister dans la base
+1. Script `bin/create_test_users.sh` exécuté avec succès
+2. Les 11 utilisateurs (5 gaulois + 6 legacy) doivent exister dans la base
 3. Playwright configuré et opérationnel
 
 ## Exécution
@@ -91,7 +120,7 @@ npx playwright show-report
 
 Tous les tests doivent passer (✓ en vert) si :
 
-- Les 4 utilisateurs existent dans la base de données
+- Les 4 utilisateurs gaulois non-admin existent dans la base de données
 - Chaque utilisateur a ses comptes 411 créés pour ses sections
 - Les rôles sont correctement assignés
 - Les pages balance et journal_compte sont accessibles
@@ -110,17 +139,22 @@ Tous les tests doivent passer (✓ en vert) si :
    mysql -u gvv_user -p gvv2 -e "SELECT pilote, COUNT(*) as compte_count FROM comptes WHERE pilote IN ('asterix', 'obelix', 'abraracourcix', 'goudurix') AND codec=411 GROUP BY pilote;"
    ```
 
-3. **Vérifier que panoramix est admin** :
+3. **Vérifier que panoramix est club-admin dans toutes les sections** :
    ```bash
-   mysql -u gvv_user -p gvv2 -e "SELECT username, admin FROM use_new_authorization WHERE username IN ('asterix', 'obelix', 'abraracourcix', 'goudurix', 'panoramix');"
+   mysql -u gvv_user -p gvv2 -e "SELECT u.username, urps.types_roles_id, urps.section_id FROM users u JOIN user_roles_per_section urps ON u.id=urps.user_id WHERE u.username='panoramix';"
    ```
 
-3. **Regénérer la base de test** :
-   - Accéder à `http://gvv.net/admin/generate_test_database` (en tant que fpeignot)
-   - Cocher "Keep anonymized" pour tester ensuite
-   - Lancer la génération
+4. **Vérifier les rôles d'un utilisateur gaulois** :
+   ```bash
+   mysql -u gvv_user -p gvv2 -e "SELECT u.username, urps.types_roles_id, urps.section_id FROM users u JOIN user_roles_per_section urps ON u.id=urps.user_id WHERE u.username='obelix';"
+   ```
 
-4. **Vérifier les logs Playwright** :
+5. **Recréer les utilisateurs de test** :
+   ```bash
+   bash bin/create_test_users.sh
+   ```
+
+6. **Vérifier les logs Playwright** :
    ```bash
    npx playwright test tests/gaulois-users-accounts.spec.js --debug
    ```
@@ -138,6 +172,7 @@ npx playwright test tests/gaulois-users-accounts.spec.js --reporter=junit --repo
 ## Fichiers associés
 
 - Test : `playwright/tests/gaulois-users-accounts.spec.js`
+- Script de création : `bin/create_test_users.sh`
 - Helper : `playwright/tests/helpers/LoginPage.js`
 - Contrôleur : `application/controllers/admin.php` (méthode `_create_test_gaulois_users()`)
 - Documentation : Ce fichier

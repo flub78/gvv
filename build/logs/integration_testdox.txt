@@ -305,6 +305,26 @@ Smart Adjustor Correlation Integration
  [x] Correlation for frais bancaire against all images
  [x] Correlation for virement emis against all images
 
+Users Coherence
+ [x] User exists with data set "asterix"
+ [x] User exists with data set "obelix"
+ [x] User exists with data set "abraracourcix"
+ [x] User exists with data set "goudurix"
+ [x] User exists with data set "panoramix"
+ [x] User in new authorization with data set "asterix"
+ [x] User in new authorization with data set "obelix"
+ [x] User in new authorization with data set "abraracourcix"
+ [x] User in new authorization with data set "goudurix"
+ [x] User in new authorization with data set "panoramix"
+ [x] User has expected roles with data set "asterix"
+ [x] User has expected roles with data set "obelix"
+ [x] User has expected roles with data set "abraracourcix"
+ [x] User has expected roles with data set "goudurix"
+ [ ] User has expected roles with data set "panoramix"
+ [x] Panoramix is club admin in all sections
+ [x] Panoramix has no comptes
+ [x] Abraracourcix ca role is avion only
+
 Vols Decouverte Date Validite
  [x] Date validite column exists
  [x] Validity calculation with null date validite

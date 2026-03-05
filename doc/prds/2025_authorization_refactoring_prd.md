@@ -1,7 +1,7 @@
 # PRD : Refonte du Système d'Autorisation
 
-**Version du Document :** 2.0
-**Date :** 2025-01-24
+**Version du Document :** 2.1
+**Date :** 2025-01-24 (Mis à jour : 2026-03-04)
 **Statut :** En révision
 
 ---
@@ -36,7 +36,13 @@ Le nouveau système supportera à la fois des rôles globaux et spécifiques aux
 
 5.  **UX Médiocre :** Il n'y a pas d'interface intuitive pour que les administrateurs puissent voir ou gérer les permissions utilisateur d'un coup d'œil.
 
-6.  **Maintenance Fastidieuse des Permissions (Nouveau problème identifié v2.0)** :
+6.  **Double source de vérité pour les qualifications et responsabilités (Nouveau problème identifié v2.1)** :
+    -   Le champ `membres.mniveaux` encode en bitfield ~20 qualifications et responsabilités (instructeur, remorqueur, CA, trésorier, etc.).
+    -   Certaines de ces qualifications sont déjà représentées dans `types_roles` / `user_roles_per_section` (ex. `instructeur` migré via `inst_selector()`), mais les contrôles d'accès dans le code continuent d'utiliser les bits (`Formation_access.php`, `program.php`, sélecteurs de formulaires de vol).
+    -   Ce double système crée des incohérences potentielles et rend impossible la gestion des qualifications par section (un instructeur planeur ne devrait pas automatiquement être instructeur avion).
+    -   **Conséquence** : toute décision d'autorisation ou de sélection basée sur `mniveaux` doit être migrée vers `user_roles_per_section`.
+
+7.  **Maintenance Fastidieuse des Permissions (Nouveau problème identifié v2.0)** :
     -   L'implémentation actuelle (v1.0) utilise ~300 entrées de permissions en base de données (29 contrôleurs × multiples actions).
     -   Chaque permission nécessite une entrée manuelle : (rôle, contrôleur, action, section, type).
     -   Maintenance complexe lors de l'ajout de nouvelles fonctionnalités ou contrôleurs.
@@ -99,6 +105,12 @@ Le nouveau système supportera à la fois des rôles globaux et spécifiques aux
 7.  **EF7 : Framework de Tests**
     -   Des tests unitaires complets doivent être développés pour la nouvelle logique d'autorisation.
     -   Les tests doivent couvrir l'accès autorisé, le refus d'accès non autorisé, et les règles de données au niveau des lignes pour chaque rôle.
+
+8.  **EF8 : `user_roles_per_section` comme unique source de vérité (Nouveau v2.1)**
+    -   Le champ `membres.mniveaux` ne doit plus être utilisé pour aucune décision d'autorisation ni pour aucun sélecteur de formulaire.
+    -   Tout contrôle d'accès (contrôleurs, bibliothèques) et tout sélecteur de formulaire (instructeurs, remorqueurs, treuillards) doit interroger exclusivement `user_roles_per_section`.
+    -   Le champ `mniveaux` devient purement informatif : il ne contient plus que les qualifications sans impact sur le contrôle d'accès (PILOTE_PLANEUR, PILOTE_AVION, VI_PLANEUR, VI_AVION, PLIEUR, fonctions de bureau).
+    -   **Cohérence des scripts de test** : le script `bin/create_test_users.sh` et la méthode `_create_test_gaulois_users()` du contrôleur `admin.php` doivent produire des entrées `user_roles_per_section` identiques pour chaque utilisateur de test. Toute divergence entre les deux constitue un défaut.
 
 ### 3.2. Exigences Non Fonctionnelles
 
@@ -311,8 +323,17 @@ L'ordre de priorité pour déterminer quel système d'autorisation utiliser :
    - Validation intensive avec utilisateurs de test uniquement
    - Documentation des patterns d'implémentation
    - Flag global = FALSE (autres utilisateurs non affectés)
+   - **Cohérence scripts** : aligner `bin/create_test_users.sh` et `_create_test_gaulois_users()` pour produire des `user_roles_per_section` identiques
 
-3. **Phase 3 - Tests Production (Utilisateurs Pilotes)** :
+3. **Phase 2bis - Migration Bitmap (OBLIGATOIRE avant Phase 3)** :
+   - Création des nouveaux rôles dans `types_roles` (remorqueur, treuillard, chef_pilote, chef_de_piste)
+   - Migration SQL des données `membres.mniveaux` → `user_roles_per_section` pour tous les membres actifs
+   - Remplacement des contrôles d'accès basés sur les bits dans `Formation_access.php`, `program.php`, sélecteurs de formulaires de vol
+   - Mise à jour de la fiche membre pour retirer les checkboxes des qualifications migrées
+   - Tests de non-régression sur les formulaires de vols et les listes email
+   - **Critère de sortie** : aucun contrôle d'accès ni sélecteur ne lit `mniveaux` pour prendre une décision
+
+4. **Phase 3 - Tests Production (Utilisateurs Pilotes)** :
    - Ajout de 5-10 utilisateurs pilotes dans `use_new_authorization` (environnement prod)
    - Migration des contrôleurs avec exceptions (ex: `membre`, `compta`, `vols_planeur`)
    - Vérification de la sécurité au niveau des lignes
@@ -320,14 +341,14 @@ L'ordre de priorité pour déterminer quel système d'autorisation utiliser :
    - Flag global = FALSE (majorité des utilisateurs non affectés)
    - Monitoring intensif des logs d'audit pour détecter les problèmes
 
-4. **Phase 4 - Migration Globale** :
+5. **Phase 4 - Migration Globale** :
    - Activation du flag global : `$config['use_new_authorization'] = TRUE`
    - **Tous** les utilisateurs utilisent maintenant le nouveau système
    - La table `use_new_authorization` est désormais ignorée (le flag global prend le dessus)
    - Migration des contrôleurs restants
    - Monitoring continu
 
-5. **Phase 5 - Finalisation** :
+6. **Phase 5 - Finalisation** :
    - Suppression de la table `use_new_authorization` (devenue inutile)
    - Suppression de la table `role_permissions` (optionnel, peut être conservée pour audit)
    - Nettoyage du code legacy (après validation complète)
@@ -387,8 +408,11 @@ $config['use_new_authorization'] = FALSE;  // Retour à l'ancien système pour t
 
 2. **Base de Données** :
    - **Création** : Table `use_new_authorization` (id, username)
+   - **Nouveaux rôles** : `remorqueur` (13), `treuillard` (14), `chef_pilote` (15), `chef_de_piste` (16) dans `types_roles`
+   - **Migration** : Script SQL bitmap → `user_roles_per_section` pour tous les membres actifs
    - **Conservation** : Tables `types_roles`, `user_roles_per_section`, `data_access_rules`, `authorization_audit_log`
    - **Suppression future** : `role_permissions` (après migration complète), `use_new_authorization` (après Phase 4)
+   - **Bits `mniveaux` restants** : uniquement PILOTE_PLANEUR, PILOTE_AVION, VI_PLANEUR, VI_AVION, PLIEUR, fonctions de bureau
 
 3. **Documentation** :
    - Guide développeur pour l'implémentation des autorisations dans le code
