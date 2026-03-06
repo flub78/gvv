@@ -2340,7 +2340,8 @@ SQL;
             'ca' => 6,
             'tresorier' => 8,
             'club-admin' => 10,
-            'instructeur' => 11
+            'instructeur' => 11,
+            'mecano' => 12
         );
         
         // Query for actual role IDs
@@ -2375,7 +2376,7 @@ SQL;
                 'roles_bits' => $REMORQUEUR,
                 'is_admin' => 0,
                 'section_roles' => array(
-                    $planeur_section => array('planchiste'),
+                    $planeur_section => array('planchiste', 'mecano'),
                     $ulm_section => array('auto_planchiste'),
                 )
             ),

@@ -222,6 +222,23 @@ test.describe('Obelix Authorization - New Auth System', () => {
     });
 
     // ============================================================
+    // ============================================================
+    // MAINTENANCE - obelix est mecano en section planeur
+    // La section Maintenance doit être visible sur le dashboard
+    // ============================================================
+    test.describe('Dashboard - section Maintenance visible (mecano section planeur)', () => {
+
+        test('section planeur (1) - Maintenance visible pour mecano', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '1'); // section 1 = planeur
+            const content = await page.content();
+            expect(
+                content,
+                'Section Maintenance doit être visible sur le dashboard en section planeur pour un mecano'
+            ).toContain('collapseMaintenance');
+        });
+    });
+
+    // ============================================================
     // DENIED ROUTES - admin (requires club-admin)
     // ============================================================
     test.describe('Denied routes - admin', () => {

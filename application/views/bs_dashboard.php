@@ -824,7 +824,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($is_ca || $is_admin): ?>
+    <?php if ($is_mecano || $is_admin): ?>
     <!-- Section Maintenance et suivi de navigabilité -->
     <div class="accordion-item section-card maintenance">
         <h2 class="accordion-header" id="headingMaintenance">

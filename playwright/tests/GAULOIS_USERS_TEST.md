@@ -20,7 +20,7 @@ Ces utilisateurs sont dans `use_new_authorization` et utilisent le nouveau syst�
 | Utilisateur | Sections | Rôles (types_roles par section) | Bits mniveaux | Comptes 411 |
 |---|---|---|---|---|
 | **asterix** | Planeur, Général | User (toutes sections) | 0 | 2 |
-| **obelix** | Planeur, ULM, Général | User (toutes) + Planchiste (Planeur) + Auto-planchiste (ULM) | REMORQUEUR* | 3 |
+| **obelix** | Planeur, ULM, Général | User (toutes) + Planchiste + Mecano (Planeur) + Auto-planchiste (ULM) | REMORQUEUR* | 3 |
 | **abraracourcix** | Planeur, Avion, ULM, Général | User (toutes) + CA (Avion seulement) + Instructeur (Avion seulement) | CA, REMORQUEUR, FI_AVION | 4 |
 | **goudurix** | Avion, Général | User + Trésorier (toutes) + Auto-planchiste (Avion) | TRESORIER | 2 |
 | **panoramix** | Toutes | User + Club-Admin (toutes sections) | 0 | 0 |

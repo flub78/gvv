@@ -201,8 +201,8 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
             const content = await page.content();
             expect(
                 content,
-                'La section Formation (instructeur) doit être visible sur le dashboard en section avion'
-            ).toContain('Autorisations Solo');
+                'La section Formation doit être visible sur le dashboard en section avion pour un instructeur'
+            ).toContain('collapseFormation');
         });
 
         test('formation_inscriptions - gestion des inscriptions (instructeur avion)', async ({ page }) => {
@@ -274,6 +274,22 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
                 content,
                 'Section Administration du club ne doit PAS être visible en section générale (pas CA)'
             ).not.toContain('Administration du club');
+        });
+    });
+
+    // ============================================================
+    // MAINTENANCE - abraracourcix n'est pas mecano, la section
+    // Maintenance ne doit pas être visible sur le dashboard
+    // ============================================================
+    test.describe('Dashboard - section Maintenance non visible (pas mecano)', () => {
+
+        test('section avion (3) - Maintenance non visible (pas mecano)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '3');
+            const content = await page.content();
+            expect(
+                content,
+                'Section Maintenance ne doit PAS être visible : abraracourcix n\'est pas mecano'
+            ).not.toContain('collapseMaintenance');
         });
     });
 

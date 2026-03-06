@@ -47,6 +47,7 @@ TR_BUREAU=7
 TR_TRESORIER=8
 TR_CLUB_ADMIN=10
 TR_INSTRUCTEUR=11
+TR_MECANO=12
 
 # Role bits from program.php (for mniveaux field)
 BIT_TRESORIER=8          # 2**3
@@ -282,11 +283,11 @@ declare -a CA_SECTIONS=()
 create_gaulois_user "asterix" "Asterix" "Le Gaulois" "asterix@gmail.com" "12 rue de Babaorum" 0 0
 
 # --- Obelix ---
-# Sections: Planeur, ULM, Général — roles: planchiste (Planeur), auto_planchiste (ULM), user (Général)
+# Sections: Planeur, ULM, Général — roles: planchiste + mecano (Planeur), auto_planchiste (ULM), user (Général)
 # Note: BIT_REMORQUEUR is set in mniveaux but does not add a types_role (no Avion section)
 declare -a USER_SECTIONS=($PLANEUR_SECTION $ULM_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=(
-    ["section_${PLANEUR_SECTION}"]="$TR_PLANCHISTE"
+    ["section_${PLANEUR_SECTION}"]="$TR_PLANCHISTE $TR_MECANO"
     ["section_${ULM_SECTION}"]="$TR_AUTO_PLANCHISTE"
 )
 declare -a CA_SECTIONS=()
@@ -353,7 +354,7 @@ echo "  - testtresorier  (role: tresorier)"
 echo ""
 echo "Gaulois users (new authorization system):"
 echo "  - asterix        (sections: planeur, general)"
-echo "  - obelix         (planeur: planchiste, ULM: auto_planchiste, general: user)"
+echo "  - obelix         (planeur: planchiste + mecano, ULM: auto_planchiste, general: user)"
 echo "  - abraracourcix  (planeur, avion, ULM, general + CA + instructeur)"
 echo "  - goudurix       (avion: auto_planchiste + tresorier, general: user)"
 echo "  - panoramix      (admin - no sections)"
