@@ -150,6 +150,12 @@ test.describe('Goudurix Authorization - New Auth System', () => {
             await page.waitForTimeout(1000);
             await expectAccessGranted(page, 'welcome/compta');
         });
+
+        test('dashboard shows Tresorerie section', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            const content = await page.content();
+            expect(content, 'Expected "Trésorerie" section to be visible on dashboard for tresorier').toContain('Trésorerie');
+        });
     });
 
     // ============================================================

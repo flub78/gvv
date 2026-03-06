@@ -105,6 +105,7 @@ class Welcome extends Gvv_Controller {
             $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
             $data['is_bureau'] = $this->dx_auth->is_role('bureau');
             $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
+            $data['is_treasurer'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', $section_id);
         } else {
             $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
             $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member

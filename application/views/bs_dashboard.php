@@ -367,7 +367,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($is_bureau): ?>
+    <?php if ($is_bureau || $is_treasurer): ?>
     <!-- Section Trésorier -->
     <div class="accordion-item section-card treasurer">
         <h2 class="accordion-header" id="headingTreasurer">
