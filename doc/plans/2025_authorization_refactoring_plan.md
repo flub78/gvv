@@ -50,6 +50,20 @@
 
 ---
 
+## Design Principles
+
+### Utilisateurs membres et utilisateurs non-membres
+
+Le nouveau système supporte deux types d'utilisateurs de manière indépendante :
+
+**Membres avec accès** : La création d'un membre (`membre.php::post_create()`) crée automatiquement un compte utilisateur (`users`) avec le même login que `mlogin`. Les rôles sont ensuite assignés via `user_roles_per_section`.
+
+**Utilisateurs non-membres** : Un compte `users` peut exister sans fiche `membres`. Ces utilisateurs (ex. comptable externe, administrateur système) se voient attribuer des rôles directement via `user_roles_per_section`. La table ne référence que `users.id`, sans contrainte vers `membres`.
+
+Les deux coexistent sans restriction : `user_roles_per_section` n'impose pas d'être membre pour obtenir des droits.
+
+---
+
 ## Current Status Summary
 
 ### ✅ Completed Phases (0-7) - Infrastructure Ready
