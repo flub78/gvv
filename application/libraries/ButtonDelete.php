@@ -44,7 +44,8 @@ class ButtonDelete extends Button
 		if (!isset($attrs['confirmMsg'])) {
 		    $attrs['confirmMsg'] = "Etes vous sur de vouloir supprimer ";
 		}
-		$attrs['image'] = theme() . "/images/delete.png";
+		$attrs['bs_icon'] = 'fas fa-trash';
+		$attrs['bs_class'] = 'danger';
 		parent::__construct($attrs);
 	}
 }

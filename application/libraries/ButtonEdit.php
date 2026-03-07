@@ -40,8 +40,8 @@ class ButtonEdit extends Button
 		// Defaults
 		$attrs['label'] = 'Changer';
 		$attrs['action'] = 'edit';
-//		$attrs['image'] = theme() . "/images/update.png";
-		$attrs['image'] = theme() . "/images/pencil.png";
+		$attrs['bs_icon'] = 'fas fa-edit';
+		$attrs['bs_class'] = 'primary';
 		parent::__construct($attrs);
 	}
 }

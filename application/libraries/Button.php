@@ -43,6 +43,8 @@ class Button extends Widget {
         $this->attr['action'] = "";
         $this->attr['param'] = "";
         $this->attr['image'] = "";
+        $this->attr['bs_icon'] = "";
+        $this->attr['bs_class'] = "primary";
         $this->attr['confirm'] = FALSE;
         $this->attr['confirmMsg'] = "";
 
@@ -61,6 +63,8 @@ class Button extends Widget {
         $label = $this->attr['label'];
         $confirm = $this->attr['confirm'];
         $image = $this->attr['image'];
+        $bs_icon = $this->attr['bs_icon'];
+        $bs_class = $this->attr['bs_class'];
         $txt = $this->attr['confirmMsg'];
 
         $res = "";
@@ -70,7 +74,10 @@ class Button extends Widget {
         } else {
             $attrs = "";
         }
-        if ($image != '') {
+        if ($bs_icon != '') {
+            $txt = '<i class="' . $bs_icon . '" aria-hidden="true"></i>';
+            $attrs .= ' class="btn btn-sm btn-' . $bs_class . '" title="' . htmlspecialchars($label) . '"';
+        } elseif ($image != '') {
             $image_properties = array (
                 'src' => $image,
                 'class' => 'icon',

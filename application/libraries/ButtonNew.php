@@ -40,9 +40,10 @@ class ButtonNew extends Button
 		// Defaults
 		$CI = & get_instance();
 		
-		$attrs['label'] = $CI->lang->line("gvv_button_new"); 
+		$attrs['label'] = $CI->lang->line("gvv_button_new");
 		$attrs['action'] = 'create';
-		$attrs['image'] = theme() . "/images/add.png";
+		$attrs['bs_icon'] = 'fas fa-plus';
+		$attrs['bs_class'] = 'success';
 		parent::__construct($attrs);
 	}
 }
