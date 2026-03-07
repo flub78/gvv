@@ -53,9 +53,9 @@ class Programmes extends Gvv_Controller
         $this->load->library('formation_access');
         $this->formation_access->check_access_or_403();
 
-        // Authorization: use Formation_access to allow admins and CA members
-        if (!$this->formation_access->can_manage_programmes()) {
-            show_error('Accès refusé : vous n\'avez pas les droits pour gérer les programmes de formation.', 403, 'Accès refusé');
+        // Authorization: check view access (instructeurs and above can view)
+        if (!$this->_can_view()) {
+            show_error('Accès refusé : vous n\'avez pas les droits pour accéder aux programmes de formation.', 403, 'Accès refusé');
         }
 
         $this->load->model('formation_programme_model');
@@ -77,6 +77,7 @@ class Programmes extends Gvv_Controller
 
         $data['title'] = $this->lang->line('formation_programmes_title');
         $data['controller'] = $this->controller;
+        $data['can_manage'] = $this->_can_manage();
 
         // Get programs visible to current section
         $data['programmes'] = $this->formation_programme_model->get_visibles();
@@ -98,6 +99,12 @@ class Programmes extends Gvv_Controller
     {
         log_message('debug', 'PROGRAMMES: create() method called');
 
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes');
+            return;
+        }
+
         $data['title'] = $this->lang->line('formation_programmes_create');
         $data['controller'] = $this->controller;
         $data['action'] = 'create';
@@ -112,6 +119,12 @@ class Programmes extends Gvv_Controller
     {
         log_message('debug', 'PROGRAMMES: store() method called');
         log_message('debug', 'PROGRAMMES: POST data: ' . print_r($_POST, TRUE));
+
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes');
+            return;
+        }
 
         // Check if importing from Markdown
         if ($this->input->post('import_markdown') && isset($_FILES['markdown_file']) && $_FILES['markdown_file']['size'] > 0) {
@@ -241,6 +254,7 @@ class Programmes extends Gvv_Controller
 
         $data['title'] = $this->lang->line('formation_programmes_view');
         $data['controller'] = $this->controller;
+        $data['can_manage'] = $this->_can_manage();
 
         // Get program details
         $data['programme'] = $this->formation_programme_model->get($id);
@@ -267,6 +281,12 @@ class Programmes extends Gvv_Controller
     public function edit($id = '', $load_view = TRUE, $action = MODIFICATION)
     {
         log_message('debug', 'PROGRAMMES: edit() method called for id=' . $id);
+
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes/view/' . $id);
+            return;
+        }
 
         $data['title'] = $this->lang->line('formation_programmes_edit');
         $data['controller'] = $this->controller;
@@ -299,6 +319,12 @@ class Programmes extends Gvv_Controller
     {
         log_message('debug', 'PROGRAMMES: update() method called for id=' . $id);
         log_message('debug', 'PROGRAMMES: POST data: ' . print_r($_POST, TRUE));
+
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes/view/' . $id);
+            return;
+        }
 
         // Check if program exists
         $programme = $this->formation_programme_model->get($id);
@@ -352,6 +378,12 @@ class Programmes extends Gvv_Controller
     public function delete($id)
     {
         log_message('debug', 'PROGRAMMES: delete() method called for id=' . $id);
+
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes');
+            return;
+        }
 
         // Check if program exists
         $programme = $this->formation_programme_model->get($id);
@@ -645,6 +677,12 @@ class Programmes extends Gvv_Controller
     public function update_structure($id)
     {
         log_message('debug', 'PROGRAMMES: update_structure() called for id=' . $id);
+
+        if (!$this->_can_manage()) {
+            $this->session->set_flashdata('error', $this->lang->line('formation_acces_refuse'));
+            redirect('programmes/view/' . $id);
+            return;
+        }
 
         // Get existing program
         $programme = $this->formation_programme_model->get($id);
@@ -960,6 +998,54 @@ class Programmes extends Gvv_Controller
 
         $pdf->Output($filename, 'I');
         exit;
+    }
+
+    /**
+     * Check if current user can view programmes.
+     *
+     * New auth: club-admin, rp, ca, instructeur
+     * Legacy: admin or CA (no change from existing behavior)
+     *
+     * @return bool
+     */
+    private function _can_view()
+    {
+        if ($this->use_new_auth) {
+            if (!isset($this->gvv_authorization)) {
+                $this->load->library('Gvv_Authorization');
+            }
+            $section_id = $this->session->userdata('section');
+            return $this->gvv_authorization->has_any_role(
+                $this->user_id,
+                ['club-admin', 'rp', 'ca', 'instructeur'],
+                $section_id
+            );
+        }
+        return $this->formation_access->can_manage_programmes();
+    }
+
+    /**
+     * Check if current user can create/edit/delete programmes.
+     *
+     * New auth: club-admin or rp
+     * Legacy: admin or CA (no change from existing behavior)
+     *
+     * @return bool
+     */
+    private function _can_manage()
+    {
+        if ($this->use_new_auth) {
+            if (!isset($this->gvv_authorization)) {
+                $this->load->library('Gvv_Authorization');
+            }
+            $section_id = $this->session->userdata('section');
+            return $this->gvv_authorization->has_any_role(
+                $this->user_id,
+                ['club-admin', 'rp'],
+                $section_id
+            );
+        }
+        return $this->formation_access->can_manage_programmes();
     }
 }
 

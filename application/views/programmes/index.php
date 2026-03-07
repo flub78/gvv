@@ -53,11 +53,13 @@ $this->lang->load('formation');
     ?>
 
     <!-- Action buttons -->
+    <?php if ($can_manage): ?>
     <div class="mb-3">
         <a href="<?= controller_url($controller) ?>/create" class="btn btn-primary">
             <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_programmes_create") ?>
         </a>
     </div>
+    <?php endif; ?>
 
     <!-- Programs table -->
     <?php if (empty($programmes)): ?>
@@ -84,21 +86,24 @@ $this->lang->load('formation');
                         <tr class="<?= $programme['statut'] === 'actif' ? '' : 'table-secondary' ?>">
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="<?= controller_url($controller) ?>/view/<?= $programme['id'] ?>" 
+                                    <a href="<?= controller_url($controller) ?>/view/<?= $programme['id'] ?>"
                                        class="btn btn-primary"
                                        title="<?= $this->lang->line("formation_programmes_view") ?>">
                                         <i class="fas fa-eye text-white" aria-hidden="true"></i>
                                     </a>
+                                    <?php if ($can_manage): ?>
                                     <a href="<?= controller_url($controller) ?>/edit/<?= $programme['id'] ?>"
-                                       class="btn btn-secondary" 
+                                       class="btn btn-secondary"
                                        title="<?= $this->lang->line("formation_programmes_edit") ?>">
                                         <i class="fas fa-edit text-white" aria-hidden="true"></i>
                                     </a>
+                                    <?php endif; ?>
                                     <a href="<?= controller_url($controller) ?>/export/<?= $programme['id'] ?>"
-                                       class="btn btn-info" 
+                                       class="btn btn-info"
                                        title="<?= $this->lang->line("formation_programmes_export") ?>">
                                         <i class="fas fa-download text-white" aria-hidden="true"></i>
                                     </a>
+                                    <?php if ($can_manage): ?>
                                     <?php if ($programme['nb_inscriptions'] > 0): ?>
                                         <span class="btn btn-secondary disabled"
                                               title="<?= $this->lang->line("formation_programme_delete_error_used") ?>">
@@ -115,6 +120,7 @@ $this->lang->load('formation');
                                            onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">
                                             <i class="fas fa-trash text-white" aria-hidden="true"></i>
                                         </a>
+                                    <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </td>

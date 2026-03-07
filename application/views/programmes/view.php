@@ -39,9 +39,11 @@ $this->lang->load('formation');
             <a href="<?= controller_url($controller) ?>/export_pdf/<?= $programme['id'] ?>" class="btn btn-danger">
                 <i class="fas fa-file-pdf" aria-hidden="true"></i> <?= $this->lang->line("formation_export_pdf") ?>
             </a>
+            <?php if ($can_manage): ?>
             <a href="<?= controller_url($controller) ?>/edit/<?= $programme['id'] ?>" class="btn btn-secondary">
                 <i class="fas fa-edit" aria-hidden="true"></i> <?= $this->lang->line("formation_programmes_edit") ?>
             </a>
+            <?php endif; ?>
             <a href="<?= controller_url($controller) ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line("formation_programmes_back") ?>
             </a>

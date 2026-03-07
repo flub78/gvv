@@ -942,15 +942,6 @@ $this->lang->load('welcome');
             <div class="row g-2">
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-shield-alt text-danger"></i>
-                        <div class="card-title">Autorisations</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
                         <i class="fas fa-users text-primary"></i>
                         <div class="card-title">Membres</div>
                         <div class="card-text text-muted">Gestion</div>
@@ -982,6 +973,28 @@ $this->lang->load('welcome');
                         <div class="card-title">Adhérents</div>
                         <div class="card-text text-muted">Par âge</div>
                         <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm">Voir</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organisation subsection -->
+            <h5 class="mt-4 mb-3">Organisation</h5>
+            <div class="row g-2">
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-layer-group text-success"></i>
+                        <div class="card-title">Sections</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-list-alt text-primary"></i>
+                        <div class="card-title">Types de séances</div>
+                        <div class="card-text text-muted">Formation</div>
+                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
                     </div>
                 </div>
             </div>
@@ -1097,15 +1110,6 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
-                        <i class="fas fa-layer-group text-success"></i>
-                        <div class="card-title">Sections</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-danger">
                         <i class="fas fa-user-cog text-warning"></i>
                         <div class="card-title">Rôles sections</div>
                         <div class="card-text text-muted">Par utilisateur</div>
@@ -1115,10 +1119,10 @@ $this->lang->load('welcome');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
-                        <i class="fas fa-list-alt text-primary"></i>
-                        <div class="card-title">Types de séances</div>
-                        <div class="card-text text-muted">Formation</div>
-                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <i class="fas fa-shield-alt text-danger"></i>
+                        <div class="card-title">Autorisations</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
                     </div>
                 </div>
 
