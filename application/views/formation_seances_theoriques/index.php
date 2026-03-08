@@ -44,7 +44,7 @@ $this->load->view('bs_banner');
         <div class="card-body">
             <?= form_open(controller_url($controller), array('method' => 'get', 'class' => 'row g-2 align-items-end')) ?>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="filter_instructeur" class="form-label form-label-sm">
                         <?= $this->lang->line('formation_seance_instructeur') ?>
                     </label>
@@ -61,7 +61,24 @@ $this->load->view('bs_banner');
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label for="filter_participant" class="form-label form-label-sm">
+                        <?= $this->lang->line('formation_seance_participants') ?>
+                    </label>
+                    <select class="form-select form-select-sm" id="filter_participant" name="participant_id">
+                        <option value="">Tous</option>
+                        <?php foreach ($membres as $id => $nom): ?>
+                            <?php if ($id): ?>
+                                <option value="<?= htmlspecialchars($id) ?>"
+                                    <?= (!empty($filters['participant_id']) && $filters['participant_id'] == $id) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($nom) ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
                     <label for="filter_programme" class="form-label form-label-sm">
                         <?= $this->lang->line('formation_seance_programme') ?>
                     </label>

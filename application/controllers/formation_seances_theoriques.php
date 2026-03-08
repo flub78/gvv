@@ -50,6 +50,7 @@ class Formation_seances_theoriques extends CI_Controller {
     public function index() {
         $filters = array(
             'instructeur_id' => $this->input->get('instructeur_id'),
+            'participant_id' => $this->input->get('participant_id'),
             'programme_id'   => $this->input->get('programme_id'),
             'date_debut'     => $this->input->get('date_debut'),
             'date_fin'       => $this->input->get('date_fin'),
@@ -65,13 +66,19 @@ class Formation_seances_theoriques extends CI_Controller {
 
         $seances = $this->formation_seance_model->select_page($filters, 200);
 
-        // Attach participant count (already in nb_participants from select_page)
+        // Detect "Toutes" mode (same pattern as welcome.php and _prepare_form_data)
+        $current_section_id = $this->membres_model->section_id();
+        $q = $current_section_id
+            ? $this->db->where('id', (int)$current_section_id)->get('sections')
+            : null;
+        $is_all_sections = !$q || $q->num_rows() === 0;
 
         $data = array(
             'controller'   => 'formation_seances_theoriques',
             'seances'      => $seances,
             'filters'      => $filters,
-            'instructeurs' => $this->membres_model->get_selector_instructeurs(),
+            'instructeurs' => $is_all_sections ? $this->_get_all_instructeurs() : $this->membres_model->get_selector_instructeurs(),
+            'membres'      => $is_all_sections ? $this->_get_all_members() : $this->membres_model->get_selector(),
             'programmes'   => $this->formation_programme_model->get_selector(),
         );
 
@@ -304,32 +311,12 @@ class Formation_seances_theoriques extends CI_Controller {
     // -----------------------------------------------------------------------
 
     /**
-     * Get all instructors from all sections (club-wide).
-     * Used when "Toutes" section is active.
+     * Get all members club-wide as potential instructors.
+     * Used when "Toutes" section is active: any active member can be selected as instructor.
      * Returns an array suitable for form select: [login => 'nom prenom']
      */
     private function _get_all_instructeurs() {
-        $result = array();
-        
-        // Raw SQL query to get instructors without section filtering
-        $sql = "
-            SELECT DISTINCT u.username, m.mnom, m.mprenom
-            FROM user_roles_per_section urps
-            INNER JOIN users u ON u.id = urps.user_id
-            INNER JOIN membres m ON m.mlogin = u.username
-            WHERE urps.types_roles_id = 11
-            AND m.actif = 1
-            AND urps.revoked_at IS NULL
-            ORDER BY m.mnom, m.mprenom
-        ";
-        
-        $query = $this->db->query($sql);
-        $rows = $query->result_array();
-        
-        foreach ($rows as $row) {
-            $result[$row['username']] = $row['mnom'] . ' ' . $row['mprenom'];
-        }
-        return $result;
+        return $this->_get_all_members();
     }
 
     /**
