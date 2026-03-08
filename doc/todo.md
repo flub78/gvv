@@ -8,8 +8,6 @@
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
-* [~] Les membres du CA ne peuvent pas modifier les droits. C'est du à un mixte entre les anciens et les nouveaux mécanismes de gestion des droits. Pas d'action, ce sera résolu après basculement.
-
 
 ## Priorités
 
@@ -42,7 +40,7 @@ Cela implique de:
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
-  * [-] donner les droits dans les controllers
+  * [-] donner les droits dans les controllers WIP
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
@@ -51,9 +49,9 @@ Cela implique de:
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 * [x] supprimer la configuration des emails dans la base de données.
 
-* [] Ajout des types vol de découverte et vol propriétaire dans les réservations.
+* [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
 * [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
-* [] Ajout de séance de formation théoriques sans vol.
+* [x] Ajout de séance de formation théoriques sans vol.
 * [] Ajout d'un calendrier des échéances
 * [] Ajout de vues semaines et mois aux réservations
 

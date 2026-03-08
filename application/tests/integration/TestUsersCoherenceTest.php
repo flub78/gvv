@@ -37,6 +37,7 @@ class TestUsersCoherenceTest extends TestCase
     const ROLE_TRESORIER       = 8;
     const ROLE_CLUB_ADMIN      = 10;
     const ROLE_INSTRUCTEUR     = 11;
+    const ROLE_MECANO          = 12;
 
     /**
      * Canonical expected roles for each Gaulois test user.
@@ -53,6 +54,7 @@ class TestUsersCoherenceTest extends TestCase
             'obelix' => [
                 [self::PLANEUR_SECTION,  self::ROLE_USER],
                 [self::PLANEUR_SECTION,  self::ROLE_PLANCHISTE],
+                [self::PLANEUR_SECTION,  self::ROLE_MECANO],
                 [self::ULM_SECTION,      self::ROLE_USER],
                 [self::ULM_SECTION,      self::ROLE_AUTO_PLANCHISTE],
                 [self::GENERAL_SECTION,  self::ROLE_USER],

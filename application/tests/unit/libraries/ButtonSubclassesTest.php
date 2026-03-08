@@ -33,7 +33,7 @@ class ButtonSubclassesTest extends TestCase
         $this->assertInstanceOf(Button::class, $button, "ButtonEdit should extend Button");
         $this->assertEquals('Changer', $button->get('label'), "ButtonEdit default label");
         $this->assertEquals('edit', $button->get('action'), "ButtonEdit default action");
-        $this->assertStringContainsString('pencil.png', $button->get('image'), "ButtonEdit should use pencil icon");
+        $this->assertStringContainsString('fa-edit', $button->get('bs_icon'), "ButtonEdit should use fa-edit Bootstrap icon");
     }
 
     /**
@@ -67,7 +67,7 @@ class ButtonSubclassesTest extends TestCase
         $this->assertEquals('delete', $button->get('action'), "ButtonDelete default action");
         $this->assertTrue($button->get('confirm'), "ButtonDelete should require confirmation");
         $this->assertEquals('Etes vous sur de vouloir supprimer ', $button->get('confirmMsg'));
-        $this->assertStringContainsString('delete.png', $button->get('image'), "ButtonDelete should use delete icon");
+        $this->assertStringContainsString('fa-trash', $button->get('bs_icon'), "ButtonDelete should use fa-trash Bootstrap icon");
     }
 
     /**
@@ -190,20 +190,22 @@ class ButtonSubclassesTest extends TestCase
     }
 
     /**
-     * Test all buttons have appropriate image icons
+     * Test all buttons have appropriate icons
      */
     public function testAllButtonsHaveImages()
     {
         $edit = new ButtonEdit();
         $delete = new ButtonDelete();
         $view = new ButtonView();
-        
-        $this->assertNotEmpty($edit->get('image'));
-        $this->assertNotEmpty($delete->get('image'));
+
+        // ButtonEdit and ButtonDelete use Bootstrap icons
+        $this->assertNotEmpty($edit->get('bs_icon'));
+        $this->assertNotEmpty($delete->get('bs_icon'));
+        $this->assertStringContainsString('fa-', $edit->get('bs_icon'));
+        $this->assertStringContainsString('fa-', $delete->get('bs_icon'));
+
+        // ButtonView still uses image
         $this->assertNotEmpty($view->get('image'));
-        
-        $this->assertStringContainsString('.png', $edit->get('image'));
-        $this->assertStringContainsString('.png', $delete->get('image'));
         $this->assertStringContainsString('.png', $view->get('image'));
     }
 

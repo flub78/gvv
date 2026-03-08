@@ -57,16 +57,16 @@ class ButtonNewTest extends TestCase
     }
 
     /**
-     * Test ButtonNew has default image
+     * Test ButtonNew has default Bootstrap icon
      */
     public function testButtonNewDefaultImage()
     {
         $button = new ButtonNew();
 
-        $image = $button->get('image');
-        $this->assertIsString($image, "Image should be a string");
-        $this->assertStringContainsString('add.png', $image,
-            "ButtonNew should use add.png icon");
+        $bs_icon = $button->get('bs_icon');
+        $this->assertIsString($bs_icon, "Bootstrap icon should be a string");
+        $this->assertStringContainsString('fa-plus', $bs_icon,
+            "ButtonNew should use fa-plus Bootstrap icon");
     }
 
     /**
@@ -152,7 +152,7 @@ class ButtonNewTest extends TestCase
 
         $this->assertEquals('create', $button->get('action'));
         $this->assertIsString($button->get('label'));
-        $this->assertStringContainsString('add.png', $button->get('image'));
+        $this->assertStringContainsString('fa-plus', $button->get('bs_icon'));
     }
 
     /**
@@ -187,16 +187,17 @@ class ButtonNewTest extends TestCase
     }
 
     /**
-     * Test ButtonNew image path uses theme()
+     * Test ButtonNew uses Bootstrap icon class
      */
     public function testButtonNewImageUsesTheme()
     {
         $button = new ButtonNew();
 
-        $image = $button->get('image');
-        // The image path should use theme() function which returns theme path
-        $this->assertIsString($image);
-        $this->assertStringContainsString('/images/add.png', $image,
-            "Image path should contain /images/add.png");
+        $bs_icon = $button->get('bs_icon');
+        $this->assertIsString($bs_icon);
+        $this->assertStringContainsString('fas fa-plus', $bs_icon,
+            "ButtonNew should use fas fa-plus Bootstrap icon");
+        $this->assertEquals('success', $button->get('bs_class'),
+            "ButtonNew should use success Bootstrap class");
     }
 }
