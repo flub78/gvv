@@ -342,7 +342,7 @@ $lang['formation_type_seance_periodicite_jours']  = '%d j';
 
 // Séances théoriques
 $lang['formation_seances_theoriques_title']           = 'Séances théoriques';
-$lang['formation_seance_theorique_create']            = 'Nouvelle séance théorique';
+$lang['formation_seance_theorique_create']            = 'Nouvelle séance de cours théorique';
 $lang['formation_seance_theorique_edit']              = 'Modifier la séance';
 $lang['formation_seance_theorique_detail']            = 'Détail de la séance';
 $lang['formation_seances_theoriques_empty']           = 'Aucune séance théorique enregistrée.';

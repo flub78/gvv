@@ -252,6 +252,9 @@ class Formation_seances_theoriques extends CI_Controller {
      * Recherche de membres pour le sélecteur multi-participants.
      * GET ?q=<terme>
      * Retourne JSON [{id, label}, ...]
+     * 
+     * Quand la section "Toutes" (id=0) est active, retourne les membres de toutes les sections.
+     * Sinon, retourne seulement les membres de la section active.
      */
     public function ajax_search_membres() {
         $q = trim($this->input->get('q'));
@@ -261,19 +264,25 @@ class Formation_seances_theoriques extends CI_Controller {
             $section_id = $this->membres_model->section_id();
             $like = $this->db->escape_like_str($q);
 
-            $rows = $this->db
+            $this->db
                 ->select('membres.mlogin, membres.mnom, membres.mprenom')
                 ->from('membres')
                 ->join('comptes', 'comptes.pilote = membres.mlogin', 'inner')
                 ->where('comptes.codec', '411')
-                ->where('comptes.club', $section_id)
                 ->where('comptes.actif', 1)
                 ->where('comptes.masked', 0)
                 ->where('membres.actif', 1)
                 ->group_start()
                     ->like('membres.mnom',    $q, 'both')
                     ->or_like('membres.mprenom', $q, 'both')
-                ->group_end()
+                ->group_end();
+            
+            // Only filter by section if not cross-section (id != 0)
+            if ($section_id != 0) {
+                $this->db->where('comptes.club', $section_id);
+            }
+            
+            $rows = $this->db
                 ->order_by('membres.mnom, membres.mprenom')
                 ->limit(20)
                 ->get()->result_array();
@@ -294,7 +303,87 @@ class Formation_seances_theoriques extends CI_Controller {
     // Helpers privés
     // -----------------------------------------------------------------------
 
+    /**
+     * Get all instructors from all sections (club-wide).
+     * Used when "Toutes" section is active.
+     * Returns an array suitable for form select: [login => 'nom prenom']
+     */
+    private function _get_all_instructeurs() {
+        $result = array();
+        
+        // Raw SQL query to get instructors without section filtering
+        $sql = "
+            SELECT DISTINCT u.username, m.mnom, m.mprenom
+            FROM user_roles_per_section urps
+            INNER JOIN users u ON u.id = urps.user_id
+            INNER JOIN membres m ON m.mlogin = u.username
+            WHERE urps.types_roles_id = 11
+            AND m.actif = 1
+            AND urps.revoked_at IS NULL
+            ORDER BY m.mnom, m.mprenom
+        ";
+        
+        $query = $this->db->query($sql);
+        $rows = $query->result_array();
+        
+        foreach ($rows as $row) {
+            $result[$row['username']] = $row['mnom'] . ' ' . $row['mprenom'];
+        }
+        return $result;
+    }
+
+    /**
+     * Get all members from all sections (club-wide).
+     * Used when "Toutes" section is active.
+     * Returns an array suitable for form select: [login => 'nom prenom']
+     */
+    private function _get_all_members() {
+        $result = array();
+        
+        // Raw SQL query to get members without section filtering
+        $sql = "
+            SELECT DISTINCT m.mlogin, m.mnom, m.mprenom
+            FROM membres m
+            INNER JOIN comptes c ON c.pilote = m.mlogin
+            WHERE c.codec = '411'
+            AND c.actif = 1
+            AND c.masked = 0
+            AND m.actif = 1
+            ORDER BY m.mnom, m.mprenom
+        ";
+        
+        $query = $this->db->query($sql);
+        $rows = $query->result_array();
+        
+        foreach ($rows as $row) {
+            $result[$row['mlogin']] = $row['mnom'] . ' ' . $row['mprenom'];
+        }
+        return $result;
+    }
+
+    /**
+     * Prepare form data for creation/edit forms.
+     * Handles cross-section member selection when "Toutes" section is active.
+     */
     private function _prepare_form_data($seance, $action, $error = '') {
+        // "Toutes" mode: session section_id does not correspond to a real section row.
+        // Detect this by checking against the sections table (same pattern as welcome.php).
+        $current_section_id = $this->membres_model->section_id();
+        $q = $current_section_id
+            ? $this->db->where('id', (int)$current_section_id)->get('sections')
+            : null;
+        $is_all_sections = !$q || $q->num_rows() === 0;
+
+        if ($is_all_sections) {
+            // Cross-section: get all members for instructors and participants (no section filter)
+            $instructeurs = $this->_get_all_instructeurs();
+            $membres = $this->_get_all_members();
+        } else {
+            // Single section: use normal filtered selectors, passing section_id explicitly
+            $instructeurs = $this->membres_model->get_selector_instructeurs($current_section_id);
+            $membres = $this->membres_model->get_selector($current_section_id);
+        }
+        
         return array(
             'controller'       => 'formation_seances_theoriques',
             'action'           => $action,
@@ -302,8 +391,8 @@ class Formation_seances_theoriques extends CI_Controller {
             'error'            => $error,
             'types_seance'     => $this->formation_type_seance_model->get_selector('theorique'),
             'programmes'       => $this->formation_programme_model->get_selector(),
-            'instructeurs'     => $this->membres_model->get_selector_instructeurs(),
-            'membres'          => $this->membres_model->get_selector(),
+            'instructeurs'     => $instructeurs,
+            'membres'          => $membres,
             'participants_data' => array(),
         );
     }
