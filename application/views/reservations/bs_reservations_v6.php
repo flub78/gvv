@@ -413,8 +413,22 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         
         var buttonTexts = buttonTextMap['<?= $fullcalendar_locale ?>'] || buttonTextMap['en'];
         
+        // Get optional view from URL (?view=...), fallback to localStorage
+        var urlParams = new URLSearchParams(window.location.search);
+        var requestedView = urlParams.get('view');
+        var allowedViews = ['dayGridMonth', 'timeGridWeek', 'listWeek'];
+
         // Get saved view from localStorage, default to dayGridMonth
         var savedView = localStorage.getItem('reservationsCalendarView') || 'dayGridMonth';
+
+        // Day view is replaced by dedicated timeline page
+        if (savedView === 'timeGridDay') {
+            savedView = 'timeGridWeek';
+        }
+
+        if (requestedView && allowedViews.indexOf(requestedView) !== -1) {
+            savedView = requestedView;
+        }
         
         // Get timeline increment from config (default 15 minutes)
         var timelineIncrement = <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>;
@@ -423,10 +437,18 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: '<?= $fullcalendar_locale ?>',
             initialView: savedView,
+            customButtons: {
+                timelineView: {
+                    text: buttonTexts.day,
+                    click: function() {
+                        window.location.href = '<?= site_url('reservations/timeline') ?>';
+                    }
+                }
+            },
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                right: 'dayGridMonth,timeGridWeek,timelineView,listWeek'
             },
             buttonText: {
                 today: buttonTexts.today,

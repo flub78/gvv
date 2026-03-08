@@ -337,6 +337,15 @@ $this->load->view('bs_banner');
                 <div class="current-date-display" id="currentDateDisplay">
                     <?php echo $current_date_formatted; ?>
                 </div>
+                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
+                    <?php echo $this->lang->line('month') ?: 'Mois'; ?>
+                </a>
+                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=timeGridWeek" title="Vue semaine">
+                    <?php echo $this->lang->line('week') ?: 'Semaine'; ?>
+                </a>
+                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=listWeek" title="Vue liste">
+                    <?php echo $this->lang->line('list') ?: 'Liste'; ?>
+                </a>
                 <button class="btn btn-outline-secondary btn-sm" id="btnToday" title="Go to today">
                     <i class="fas fa-calendar-day"></i> <?php echo $this->lang->line('today') ?: "Aujourd'hui"; ?>
                 </button>
