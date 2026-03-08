@@ -90,7 +90,27 @@ class Formation_seances_theoriques extends CI_Controller {
     // -----------------------------------------------------------------------
 
     public function create() {
-        $data = $this->_prepare_form_data(array(), 'create');
+        // Pre-fill from GET parameters (e.g. when called from formation_inscriptions/detail)
+        $seance = array(
+            'date_seance'  => $this->input->get('date_seance') ?: date('Y-m-d'),
+            'programme_id' => $this->input->get('programme_id') ?: '',
+        );
+
+        $participants_data = array();
+        $participant_id = $this->input->get('participant_id');
+        if ($participant_id) {
+            $membre = $this->membres_model->get_by_id('mlogin', $participant_id);
+            if ($membre) {
+                $participants_data[] = array(
+                    'pilote_id' => $participant_id,
+                    'mnom'      => $membre['mnom'],
+                    'mprenom'   => $membre['mprenom'],
+                );
+            }
+        }
+
+        $data = $this->_prepare_form_data($seance, 'create');
+        $data['participants_data'] = $participants_data;
         $this->load->view('formation_seances_theoriques/form', $data);
     }
 

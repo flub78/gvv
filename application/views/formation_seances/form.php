@@ -188,8 +188,8 @@ if (!empty($existing_evaluations)) {
                     </div>
 
                     <!-- Common fields -->
-                    <div class="row mb-3">
-                        <div class="col-md-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 col-sm-4 col-md-2">
                             <label for="date_seance" class="form-label">
                                 <?= $this->lang->line("formation_seance_date") ?>
                                 <span class="text-danger">*</span>
@@ -197,12 +197,12 @@ if (!empty($existing_evaluations)) {
                             <input type="date" class="form-control" id="date_seance" name="date_seance"
                                    value="<?= set_value('date_seance', $seance['date_seance'] ?? date('Y-m-d')) ?>" required>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-12 col-sm-8 col-md-4">
                             <label for="instructeur_id" class="form-label">
                                 <?= $this->lang->line("formation_seance_instructeur") ?>
                                 <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select big_select" id="instructeur_id" name="instructeur_id" required>
+                            <select class="form-select big_select_large" id="instructeur_id" name="instructeur_id" required>
                                 <option value="">-- Instructeur --</option>
                                 <?php foreach ($instructeurs as $id => $nom): ?>
                                     <?php if ($id): ?>
@@ -214,7 +214,7 @@ if (!empty($existing_evaluations)) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2">
                             <label for="machine_id" class="form-label">
                                 <?= $this->lang->line("formation_seance_machine") ?>
                                 <span class="text-danger">*</span>
@@ -231,7 +231,7 @@ if (!empty($existing_evaluations)) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2">
                             <label for="duree" class="form-label">
                                 <?= $this->lang->line("formation_seance_duree") ?>
                                 <span class="text-danger">*</span>
@@ -242,7 +242,7 @@ if (!empty($existing_evaluations)) {
                                    required pattern="[0-9]{1,2}:[0-9]{2}">
                             <div class="form-text"><?= $this->lang->line("formation_seance_duree_help") ?></div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2">
                             <label for="nb_atterrissages" class="form-label">
                                 <?= $this->lang->line("formation_seance_nb_atterrissages") ?>
                                 <span class="text-danger">*</span>

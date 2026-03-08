@@ -161,6 +161,10 @@ function get_statut_badge($statut) {
                                class="btn btn-success">
                                 <i class="fas fa-plus" aria-hidden="true"></i> Nouvelle séance
                             </a>
+                            <a href="<?= controller_url('formation_seances_theoriques') ?>/create?programme_id=<?= $inscription['programme_id'] ?>&participant_id=<?= urlencode($inscription['pilote_id']) ?>&date_seance=<?= date('Y-m-d') ?>"
+                               class="btn btn-info">
+                                <i class="fas fa-chalkboard" aria-hidden="true"></i> Nouvelle séance théorique
+                            </a>
                             <a href="<?= controller_url($controller) ?>/suspendre/<?= $inscription['id'] ?>"
                                class="btn btn-warning">
                                 <i class="fas fa-pause" aria-hidden="true"></i> Suspendre
@@ -443,9 +447,17 @@ function get_statut_badge($statut) {
                                 <tr>
                                     <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
                                     <td>
+                                        <?php
+                                        $cats = array_map('trim', explode(',', $seance['categorie_seance'] ?? ''));
+                                        $is_solo = in_array('Solo supervisé', $cats);
+                                        ?>
                                         <?php if ($seance['_kind'] === 'theorique'): ?>
                                             <span class="badge bg-success">
                                                 <i class="fas fa-chalkboard" aria-hidden="true"></i> Cours sol
+                                            </span>
+                                        <?php elseif ($is_solo): ?>
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-user-check" aria-hidden="true"></i> Solo supervisé
                                             </span>
                                         <?php else: ?>
                                             <span class="badge bg-primary">
