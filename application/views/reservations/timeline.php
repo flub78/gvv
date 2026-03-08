@@ -51,11 +51,22 @@ $this->load->view('bs_banner');
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
         
         .timeline-controls button {
             padding: 8px 16px;
             font-size: 14px;
+        }
+
+        .timeline-controls .btn {
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            white-space: nowrap;
         }
         
         .current-date-display {
@@ -66,6 +77,25 @@ $this->load->view('bs_banner');
             border-radius: 4px;
             font-weight: 600;
             color: #333;
+        }
+
+        @media (max-width: 1200px) {
+            .timeline-header {
+                align-items: stretch;
+            }
+
+            .timeline-title {
+                width: 100%;
+            }
+
+            .timeline-controls {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .current-date-display {
+                min-width: 150px;
+            }
         }
         
         .timeline-body {
@@ -316,7 +346,34 @@ $this->load->view('bs_banner');
             }
             
             .timeline-controls {
-                justify-content: center;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+                width: 100%;
+            }
+
+            .timeline-controls .btn {
+                width: 100%;
+                margin: 0;
+            }
+
+            #datePicker {
+                grid-column: 1 / -1;
+                width: 100% !important;
+                display: block !important;
+                margin: 0 !important;
+            }
+
+            .current-date-display {
+                grid-column: 1 / -1;
+                width: 100%;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timeline-controls {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -337,13 +394,13 @@ $this->load->view('bs_banner');
                 <div class="current-date-display" id="currentDateDisplay">
                     <?php echo $current_date_formatted; ?>
                 </div>
-                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
+                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
                     <?php echo $this->lang->line('month') ?: 'Mois'; ?>
                 </a>
-                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=timeGridWeek" title="Vue semaine">
+                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=timeGridWeek" title="Vue semaine">
                     <?php echo $this->lang->line('week') ?: 'Semaine'; ?>
                 </a>
-                <a class="btn btn-outline-primary btn-sm" href="<?php echo site_url('reservations'); ?>?view=listWeek" title="Vue liste">
+                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=listWeek" title="Vue liste">
                     <?php echo $this->lang->line('list') ?: 'Liste'; ?>
                 </a>
                 <button class="btn btn-outline-secondary btn-sm" id="btnToday" title="Go to today">

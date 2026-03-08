@@ -76,6 +76,37 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         font-size: 14px;
     }
+
+    /* Harmonize FullCalendar toolbar buttons with timeline controls */
+    #calendar .fc .fc-button-primary {
+        background-color: #ffffff;
+        border-color: #6c757d;
+        color: #6c757d;
+        box-shadow: none;
+    }
+
+    #calendar .fc .fc-button-primary:hover,
+    #calendar .fc .fc-button-primary:focus {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #ffffff;
+        box-shadow: none;
+    }
+
+    #calendar .fc .fc-button-primary:disabled {
+        background-color: #ffffff;
+        border-color: #6c757d;
+        color: #6c757d;
+        opacity: 0.65;
+    }
+
+    #calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+    #calendar .fc .fc-button-primary:not(:disabled):active {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #ffffff;
+        box-shadow: none;
+    }
 </style>
 
 <script>
