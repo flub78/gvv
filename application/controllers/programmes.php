@@ -38,7 +38,7 @@ class Programmes extends Gvv_Controller
     protected $controller = 'programmes';
     protected $model = 'formation_programme_model';
     protected $modification_level = 'admin'; // Legacy authorization
-    protected $use_new_auth = FALSE; // Use legacy authorization system
+    protected $use_new_auth = TRUE; // Use new authorization system
     protected $rules = array();
     protected $filter_variables = array();
 
@@ -1001,25 +1001,65 @@ class Programmes extends Gvv_Controller
     }
 
     /**
+     * Check if the session section corresponds to a real section in DB.
+     * Returns false when "Toutes" is selected (section_id not found in sections table).
+     *
+     * @param mixed $section_id
+     * @return bool
+     */
+    private function _is_real_section($section_id)
+    {
+        if ($section_id === NULL || $section_id === '') {
+            return FALSE;
+        }
+        $query = $this->db->where('id', (int) $section_id)->get('sections');
+        return $query->num_rows() > 0;
+    }
+
+    /**
+     * Check if the current user has been migrated to the new authorization system.
+     * A user is considered migrated if they have at least one entry in user_roles_per_section.
+     * Result is cached in Gvv_Authorization.
+     *
+     * @return bool
+     */
+    private function _is_new_auth_user()
+    {
+        if (!isset($this->gvv_authorization)) {
+            $this->load->library('Gvv_Authorization');
+        }
+        $roles = $this->gvv_authorization->get_user_roles($this->user_id, NULL);
+        return !empty($roles);
+    }
+
+    /**
      * Check if current user can view programmes.
      *
-     * New auth: club-admin, rp, ca, instructeur
-     * Legacy: admin or CA (no change from existing behavior)
+     * New auth:
+     *   - CA ou club-admin dans n'importe quelle section : accès en lecture à toutes les sections
+     *   - instructeur ou rp dans la section courante : accès en lecture à cette section
+     *   - "Toutes" : ca ou club-admin dans n'importe quelle section
+     * Legacy: admin ou CA (bit flag mniveaux) — comportement inchangé
      *
      * @return bool
      */
     private function _can_view()
     {
-        if ($this->use_new_auth) {
-            if (!isset($this->gvv_authorization)) {
-                $this->load->library('Gvv_Authorization');
+        if ($this->use_new_auth && $this->_is_new_auth_user()) {
+            // CA ou club-admin dans n'importe quelle section = lecture cross-sections
+            if ($this->gvv_authorization->has_any_role($this->user_id, ['club-admin', 'ca'], NULL)) {
+                return TRUE;
             }
+            // Instructeur ou rp : accès limité à leur section courante
             $section_id = $this->session->userdata('section');
-            return $this->gvv_authorization->has_any_role(
-                $this->user_id,
-                ['club-admin', 'rp', 'ca', 'instructeur'],
-                $section_id
-            );
+            if ($this->_is_real_section($section_id)) {
+                return $this->gvv_authorization->has_any_role(
+                    $this->user_id,
+                    ['instructeur', 'rp'],
+                    $section_id
+                );
+            }
+            return FALSE;
         }
         return $this->formation_access->can_manage_programmes();
     }
@@ -1027,22 +1067,29 @@ class Programmes extends Gvv_Controller
     /**
      * Check if current user can create/edit/delete programmes.
      *
-     * New auth: club-admin or rp
-     * Legacy: admin or CA (no change from existing behavior)
+     * New auth:
+     *   - Section spécifique : club-admin ou rp dans cette section
+     *   - "Toutes"           : club-admin uniquement (section ambiguë pour la création)
+     * Legacy: admin ou CA (bit flag mniveaux) — comportement inchangé
      *
      * @return bool
      */
     private function _can_manage()
     {
-        if ($this->use_new_auth) {
-            if (!isset($this->gvv_authorization)) {
-                $this->load->library('Gvv_Authorization');
-            }
+        if ($this->use_new_auth && $this->_is_new_auth_user()) {
             $section_id = $this->session->userdata('section');
+            if ($this->_is_real_section($section_id)) {
+                return $this->gvv_authorization->has_any_role(
+                    $this->user_id,
+                    ['club-admin', 'rp'],
+                    $section_id
+                );
+            }
+            // "Toutes" : seul club-admin peut gérer (section indéterminée)
             return $this->gvv_authorization->has_any_role(
                 $this->user_id,
-                ['club-admin', 'rp'],
-                $section_id
+                ['club-admin'],
+                NULL
             );
         }
         return $this->formation_access->can_manage_programmes();

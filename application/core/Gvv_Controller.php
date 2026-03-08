@@ -173,6 +173,16 @@ class Gvv_Controller extends CI_Controller
         // Get current section
         $section_id = $this->session->userdata('section');
 
+        // "Toutes" : section_id does not correspond to a real section.
+        // The user role check is meaningless in this case — skip it.
+        if ($section_id) {
+            $q = $this->db->where('id', (int) $section_id)->get('sections');
+            if ($q->num_rows() === 0) {
+                log_message('debug', "GVV_Controller: section_id={$section_id} is not a real section (Toutes mode), skipping login permission check");
+                return;
+            }
+        }
+
         log_message('debug', "GVV_Controller: _check_login_permission called for user_id={$this->user_id}, section_id={$section_id}");
 
         // If no section is set, auto-select first section where user has 'user' role

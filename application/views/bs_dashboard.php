@@ -732,7 +732,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($this->config->item('gestion_formations') && ($is_ca || $is_admin || $is_instructeur)): ?>
+    <?php if ($this->config->item('gestion_formations') && (isset($can_view_formation) ? $can_view_formation : ($is_ca || $is_admin || $is_instructeur))): ?>
     <!-- Section Formation -->
     <div class="accordion-item section-card formation">
         <h2 class="accordion-header" id="headingFormation">
