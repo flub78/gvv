@@ -27,7 +27,7 @@ $this->load->view('bs_banner');
 ?>
 
 <div class="container-fluid p-4">
-    <h2>Aircraft Reservations - FullCalendar v6</h2>
+    <h2><?php echo $this->lang->line('reservations_timeline_desc') ?: 'Disponibilité des aéronefs par jour'; ?></h2>
     <div id='calendar' style="height: 100%"></div>
 </div>
 
@@ -78,34 +78,44 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     }
 
     /* Harmonize FullCalendar toolbar buttons with timeline controls */
-    #calendar .fc .fc-button-primary {
-        background-color: #ffffff;
-        border-color: #6c757d;
-        color: #6c757d;
-        box-shadow: none;
+    #calendar.fc {
+        --fc-button-text-color: #6c757d;
+        --fc-button-bg-color: #ffffff;
+        --fc-button-border-color: #6c757d;
+        --fc-button-hover-bg-color: #6c757d;
+        --fc-button-hover-border-color: #6c757d;
+        --fc-button-active-bg-color: #6c757d;
+        --fc-button-active-border-color: #6c757d;
     }
 
-    #calendar .fc .fc-button-primary:hover,
-    #calendar .fc .fc-button-primary:focus {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: #ffffff;
-        box-shadow: none;
+    #calendar.fc .fc-button-primary {
+        background-color: #ffffff !important;
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+        box-shadow: none !important;
     }
 
-    #calendar .fc .fc-button-primary:disabled {
-        background-color: #ffffff;
-        border-color: #6c757d;
-        color: #6c757d;
+    #calendar.fc .fc-button-primary:hover,
+    #calendar.fc .fc-button-primary:focus {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    #calendar.fc .fc-button-primary:disabled {
+        background-color: #ffffff !important;
+        border-color: #6c757d !important;
+        color: #6c757d !important;
         opacity: 0.65;
     }
 
-    #calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
-    #calendar .fc .fc-button-primary:not(:disabled):active {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: #ffffff;
-        box-shadow: none;
+    #calendar.fc .fc-button-primary:not(:disabled).fc-button-active,
+    #calendar.fc .fc-button-primary:not(:disabled):active {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
     }
 </style>
 

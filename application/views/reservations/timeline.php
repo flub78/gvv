@@ -417,7 +417,7 @@ $this->load->view('bs_banner');
             <!-- Resources Column (Aircraft) -->
             <div class="timeline-resources">
                 <div class="timeline-resources-header">
-                    <?php echo $this->lang->line('aircraft') ?: 'Aircraft'; ?>
+                    <?php echo !empty($aircraft_label) ? htmlspecialchars($aircraft_label) : ($this->lang->line('aircraft') ?: 'Aircraft'); ?>
                 </div>
                 <div id="resourcesList">
                     <!-- Populated by JavaScript -->

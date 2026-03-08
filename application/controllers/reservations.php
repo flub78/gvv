@@ -57,7 +57,13 @@ class Reservations extends CI_Controller {
         $this->load->config('program');
         $this->load->model('reservations_model');
         $this->load->model('membres_model');
+        $this->load->model('sections_model');
         $this->lang->load('reservations');
+
+        $section = $this->sections_model->section();
+        $aircraft_label = !empty($section['libelle_menu_avions'])
+            ? $section['libelle_menu_avions']
+            : $this->lang->line('reservations_form_aircraft');
 
         // Get aircraft list
         $aircraft_list = $this->reservations_model->get_aircraft_list();
@@ -71,7 +77,7 @@ class Reservations extends CI_Controller {
         // Get all translations
         $translations = array(
             'timeline_desc' => $this->lang->line('reservations_timeline_desc'),
-            'form_aircraft' => $this->lang->line('reservations_form_aircraft'),
+            'form_aircraft' => $aircraft_label,
             'form_pilot' => $this->lang->line('reservations_form_pilot'),
             'form_instructor' => $this->lang->line('reservations_form_instructor'),
             'form_instructor_optional' => $this->lang->line('reservations_form_instructor_optional'),
@@ -107,6 +113,7 @@ class Reservations extends CI_Controller {
             'aircraft_list' => $aircraft_list,
             'pilots_list' => $pilots_list,
             'instructors_list' => $instructors_list,
+            'aircraft_label' => $aircraft_label,
             'translations' => $translations
         );
         load_last_view('reservations/reservations_v6', $data);
@@ -148,8 +155,14 @@ class Reservations extends CI_Controller {
         $this->load->model('reservations_model');
         $this->load->model('avions_model');
         $this->load->model('membres_model');
+        $this->load->model('sections_model');
         $this->load->config('program');
         $this->lang->load('reservations');
+
+        $section = $this->sections_model->section();
+        $aircraft_label = !empty($section['libelle_menu_avions'])
+            ? $section['libelle_menu_avions']
+            : ($this->lang->line('aircraft') ?: 'Aircraft');
         
         // Get date from request, default to today
         $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
@@ -221,6 +234,7 @@ class Reservations extends CI_Controller {
             'aircraft_options' => $aircraft_options,
             'pilots_options' => $pilots_options,
             'instructors_options' => $instructors_options,
+            'aircraft_label' => $aircraft_label,
             'translations' => $translations
         );
         
