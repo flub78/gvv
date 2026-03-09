@@ -151,7 +151,14 @@ $this->lang->load('compta');
     );
 
     if ($ajax) {
-        echo $this->gvvmetadata->empty_table("vue_journal", $attrs);
+        $table_html = $this->gvvmetadata->empty_table("vue_journal", $attrs);
+        // Inject paperclip column header before closing thead
+        $table_html = str_replace(
+            '</tr></thead>',
+            '<th><i class="fas fa-paperclip text-secondary" title="Justificatifs"></i></th></tr></thead>',
+            $table_html
+        );
+        echo $table_html;
     } else {
         echo $this->gvvmetadata->table("vue_journal", $attrs, "");
     }
@@ -159,6 +166,7 @@ $this->lang->load('compta');
     echo button_bar2("$controller/export_journal", array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 
     echo '</div>';
+    $this->load->view('compta/bs_attachments_modal');
     ?>
     <?php
     if ($has_modification_rights && $section) {

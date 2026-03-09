@@ -1500,6 +1500,8 @@ class Compta extends Gvv_Controller {
         gvv_debug("ajax search = $search");
 
         $result = $this->ecritures_model->select_journal('', $per_page, $first, $selection);
+        // Save raw data before normalisation to access numeric ids and descriptions
+        $raw_result = $result;
         // gvv_debug("ajax result 1 =" . var_export($result, true));
 
         $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
@@ -1589,7 +1591,7 @@ class Compta extends Gvv_Controller {
         /* Indexed column(used for fast and accurate table cardinality) */
         $sIndexColumn = "id";
 
-        foreach ($result as $select_row) {
+        foreach ($result as $idx => $select_row) {
             $row = array();
 
             foreach ($actions as $action) {
@@ -1611,6 +1613,30 @@ class Compta extends Gvv_Controller {
                 } else {
                     $row[] = "";
                 }
+            }
+
+            // Paperclip icon for attachments
+            $raw_row = isset($raw_result[$idx]) ? $raw_result[$idx] : array();
+            $ecriture_id = isset($raw_row['id']) ? (int)$raw_row['id'] : 0;
+            if ($ecriture_id) {
+                $this->db->where('referenced_table', 'ecritures');
+                $this->db->where('referenced_id', $ecriture_id);
+                $attachment_count = $this->db->count_all_results('attachments');
+                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
+                $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
+                $date_op = isset($raw_row['date_op']) ? $raw_row['date_op'] : '';
+                $montant = isset($raw_row['montant']) ? $raw_row['montant'] : '';
+                $desc = htmlspecialchars(isset($raw_row['description']) ? $raw_row['description'] : '');
+                $row[] = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" '
+                    . 'data-ecriture-id="' . $ecriture_id . '" '
+                    . 'data-attachment-count="' . $attachment_count . '" '
+                    . 'data-date="' . $date_op . '" '
+                    . 'data-description="' . $desc . '" '
+                    . 'data-montant="' . htmlspecialchars($montant) . '" '
+                    . 'title="' . $title . '" '
+                    . 'style="cursor: pointer; font-size: 1.1em;"></i>';
+            } else {
+                $row[] = '';
             }
 
             $output['aaData'][] = $row;
