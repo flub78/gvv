@@ -630,8 +630,10 @@ if (! function_exists('attachment')) {
         } elseif ($ext === 'pdf') {
             $thumb_path = get_pdf_thumbnail_path($abs);
             if ($thumb_path && file_exists($thumb_path)) {
-                $base = rtrim(base_url(), '/') . '/';
-                $thumb_url = $base . ltrim($thumb_path, './');
+                // Derive URL from the relative $filename (always starts with ./) to avoid
+                // absolute path issues with ltrim
+                $thumb_rel = dirname($filename) . '/thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
+                $thumb_url = rtrim(base_url(), '/') . '/' . ltrim($thumb_rel, './');
                 $inner_html = '<img class="doc-thumbnail" src="' . $thumb_url . '" title="' . htmlspecialchars($filename) . '"/>';
             } else {
                 $unique_id = 'pdf-thumb-' . md5($filename);

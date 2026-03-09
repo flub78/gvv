@@ -137,3 +137,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<?php $this->load->view('archived_documents/bs_pdf_thumbnails_js'); ?>

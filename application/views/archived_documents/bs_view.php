@@ -322,3 +322,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
+<?php $this->load->view('archived_documents/bs_pdf_thumbnails_js'); ?>

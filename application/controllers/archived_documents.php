@@ -1110,6 +1110,42 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
+     * Generate PDF thumbnail on demand (AJAX endpoint)
+     */
+    function generate_thumbnail() {
+        if (!$this->dx_auth->is_logged_in()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        $file_path = $this->input->post('file_path');
+        if (!$file_path) {
+            echo json_encode(['success' => false, 'error' => 'No file path provided']);
+            return;
+        }
+
+        // Resolve to absolute path
+        $abs = (strpos($file_path, './') === 0) ? FCPATH . substr($file_path, 2) : $file_path;
+        $real = realpath($abs);
+        $uploads_real = realpath(FCPATH . 'uploads');
+        if ($real === false || $uploads_real === false || strpos($real, $uploads_real) !== 0) {
+            echo json_encode(['success' => false, 'error' => 'Invalid file path']);
+            return;
+        }
+
+        $this->load->library('pdf_thumbnail');
+        $result = $this->pdf_thumbnail->generate($real);
+
+        if ($result['success']) {
+            $thumb_rel = dirname($file_path) . '/thumb_' . pathinfo($file_path, PATHINFO_FILENAME) . '.jpg';
+            $thumb_url = rtrim(base_url(), '/') . '/' . ltrim($thumb_rel, './');
+            echo json_encode(['success' => true, 'thumbnail_url' => $thumb_url]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $result['error']]);
+        }
+    }
+
+    /**
      * Convertit un chemin absolu en chemin relatif (depuis la racine web)
      */
     private function _to_relative_path($abs_path) {
