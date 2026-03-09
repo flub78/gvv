@@ -493,7 +493,7 @@ class Archived_documents extends Gvv_Controller {
 
         // Upload success
         $upload_data = $this->upload->data();
-        $file_path = $dirname . $storage_file;
+        $file_path = $upload_data['full_path'];
 
         // Compress if possible
         $this->load->library('file_compressor');
@@ -521,7 +521,7 @@ class Archived_documents extends Gvv_Controller {
             'pilot_login'        => !empty($pilot_login) ? $pilot_login : null,
             'section_id'         => $section_id,
             'machine_immat'      => $machine_immat,
-            'file_path'          => $file_path,
+            'file_path'          => $this->_to_relative_path($file_path),
             'original_filename'  => $_FILES['userfile']['name'],
             'description'        => $this->input->post('description'),
             'uploaded_by'        => $this->dx_auth->get_username(),
@@ -692,7 +692,7 @@ class Archived_documents extends Gvv_Controller {
 
                 if ($this->upload->do_upload('userfile')) {
                     $upload_data = $this->upload->data();
-                    $file_path = $dirname . $storage_file;
+                    $file_path = $upload_data['full_path'];
                     $this->load->library('file_compressor');
                     $result = $this->file_compressor->compress($file_path);
                     if ($result['success']) {
@@ -703,7 +703,7 @@ class Archived_documents extends Gvv_Controller {
                         $this->load->library('pdf_thumbnail');
                         $this->pdf_thumbnail->generate($file_path);
                     }
-                    $update_data['file_path']         = $file_path;
+                    $update_data['file_path']         = $this->_to_relative_path($file_path);
                     $update_data['original_filename'] = $_FILES['userfile']['name'];
                     $update_data['file_size']         = $upload_data['file_size'] * 1024;
                     $update_data['mime_type']         = $mime;
@@ -1107,6 +1107,17 @@ class Archived_documents extends Gvv_Controller {
         // Remove multiple underscores
         $filename = preg_replace('/_+/', '_', $filename);
         return $filename;
+    }
+
+    /**
+     * Convertit un chemin absolu en chemin relatif (depuis la racine web)
+     */
+    private function _to_relative_path($abs_path) {
+        $doc_root = realpath('./');
+        if ($doc_root && strpos($abs_path, $doc_root) === 0) {
+            return '.' . substr($abs_path, strlen($doc_root));
+        }
+        return $abs_path;
     }
 }
 

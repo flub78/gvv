@@ -195,8 +195,8 @@ class Attachments extends Gvv_Controller {
             load_last_view($this->form_view, $this->data);
         } else {
             // upload success
-            $upload_data = array('upload_data' => $this->upload->data());
-            $file_path = $dirname . $storage_file;
+            $upload_data = $this->upload->data();
+            $file_path = $upload_data['full_path'];
 
             // Attempt compression (Phase 2 - Images only)
             $this->load->library('file_compressor');
@@ -205,13 +205,13 @@ class Attachments extends Gvv_Controller {
             if ($compression_result['success']) {
                 // Compression succeeded
                 $compressed_path = $compression_result['compressed_path'];
-                $_POST['file'] = $compressed_path;
+                $_POST['file'] = $this->_to_relative_path($compressed_path);
 
                 // Original file is already replaced by compressed version (in-place compression)
                 log_message('info', "File compressed successfully: " . basename($compressed_path));
             } else {
                 // Compression skipped or failed - use original file
-                $_POST['file'] = $file_path;
+                $_POST['file'] = $this->_to_relative_path($file_path);
                 log_message('info', "Compression skipped: " . $compression_result['error']);
             }
 
@@ -335,6 +335,17 @@ class Attachments extends Gvv_Controller {
      * /usr/bin/php7.4 index.php attachments message frederic   KO
      * http://gvv.net/index.php/attachments/message/frederic    OK
      */
+    /**
+     * Convertit un chemin absolu en chemin relatif (depuis la racine web)
+     */
+    private function _to_relative_path($abs_path) {
+        $doc_root = realpath('./');
+        if ($doc_root && strpos($abs_path, $doc_root) === 0) {
+            return '.' . substr($abs_path, strlen($doc_root));
+        }
+        return $abs_path;
+    }
+
     public function message($to = 'World') {
         if ($this->input->is_cli_request()) {
             $msg = "CLI request";

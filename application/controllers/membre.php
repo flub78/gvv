@@ -677,7 +677,7 @@ class Membre extends Gvv_Controller {
             } else {
                 // Upload réussi
                 $upload_data = $this->upload->data();
-                $file_path = $dirname . $storage_file;
+                $file_path = $upload_data['full_path'];
 
                 // Supprimer l'ancienne photo si elle existe
                 $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);

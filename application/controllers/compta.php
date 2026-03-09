@@ -598,9 +598,9 @@ class Compta extends Gvv_Controller {
 
             $file_info = [
                 'temp_id' => uniqid(),
-                'temp_path' => $temp_dir . $storage_file,
+                'temp_path' => $upload_data['full_path'],
                 'original_name' => $_FILES['file']['name'],
-                'storage_name' => $storage_file,
+                'storage_name' => $upload_data['file_name'],
                 'size' => $upload_data['file_size'] * 1024, // Convert KB to bytes
                 'club' => $club_id,
                 'section_name' => $section_name,
@@ -1337,7 +1337,7 @@ class Compta extends Gvv_Controller {
                 if ($this->upload->do_upload('userfile')) {
                     // Upload réussi
                     $upload_data = $this->upload->data();
-                    $file_path = $upload_dir . $storage_file;
+                    $file_path = $this->_to_relative_path($upload_data['full_path']);
 
                     // Enregistrer dans la base de données (même structure que attachments)
                     $attachment_data = [
@@ -2988,7 +2988,8 @@ class Compta extends Gvv_Controller {
                 return;
             }
 
-            $file_path = $dirname . $storage_file;
+            $upload_data = $this->upload->data();
+            $file_path = $this->_to_relative_path($upload_data['full_path']);
 
             // Attempt compression
             $this->load->library('file_compressor');
@@ -3029,7 +3030,7 @@ class Compta extends Gvv_Controller {
             }
 
             // Return success with attachment data
-            $file_url = base_url() . ltrim($file_path, './');
+            $file_url = $this->_attachment_url($file_path);
             echo json_encode([
                 'success' => true,
                 'attachment_id' => $attachment_id,
@@ -3119,7 +3120,7 @@ class Compta extends Gvv_Controller {
                     $html .= '<td class="attachment-cell">';
                     $html .= '<div class="view-mode">';
                     if (file_exists($file_path)) {
-                        $file_url = base_url() . ltrim($file_path, './');
+                        $file_url = $this->_attachment_url($file_path);
                         $html .= '<a href="' . $file_url . '" target="_self">' . htmlspecialchars($file_name) . '</a>';
                     } else {
                         $html .= htmlspecialchars($file_name) . ' <span class="text-danger">(manquant)</span>';
@@ -3266,7 +3267,8 @@ class Compta extends Gvv_Controller {
                     unlink($attachment['file']);
                 }
 
-                $update_data['file'] = $dirname . $storage_file;
+                $upload_data = $this->upload->data();
+                $update_data['file'] = $this->_to_relative_path($upload_data['full_path']);
             }
 
             // Update database
@@ -3276,7 +3278,7 @@ class Compta extends Gvv_Controller {
             // Get updated file info
             $file_name = !empty($update_data['file']) ? basename($update_data['file']) : basename($attachment['file']);
             $file_path = !empty($update_data['file']) ? $update_data['file'] : $attachment['file'];
-            $file_url = base_url() . ltrim($file_path, './');
+            $file_url = $this->_attachment_url($file_path);
 
             echo json_encode([
                 'success' => true,
@@ -3332,6 +3334,32 @@ class Compta extends Gvv_Controller {
             log_message('error', 'Error deleting attachment: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Convertit un chemin absolu en chemin relatif (depuis la racine web)
+     */
+    private function _to_relative_path($abs_path) {
+        $doc_root = realpath('./');
+        if ($doc_root && strpos($abs_path, $doc_root) === 0) {
+            return '.' . substr($abs_path, strlen($doc_root));
+        }
+        return $abs_path;
+    }
+
+    /**
+     * Convertit un chemin de fichier (absolu ou relatif) en URL web.
+     * Gère les anciens enregistrements stockés avec un chemin absolu.
+     */
+    private function _attachment_url($file_path) {
+        $rel_path = $file_path;
+        if (isset($rel_path[0]) && $rel_path[0] === '/') {
+            $doc_root = realpath('./');
+            if ($doc_root && strpos($rel_path, $doc_root) === 0) {
+                $rel_path = '.' . substr($rel_path, strlen($doc_root));
+            }
+        }
+        return base_url() . ltrim($rel_path, './');
     }
 
 }
