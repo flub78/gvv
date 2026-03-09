@@ -610,53 +610,49 @@ if (! function_exists('attachment')) {
     function attachment($id, $filename, $url = "") {
         if (!$filename) return "";
 
-        $mime_type = mime_content_type($filename);
+        // Les chemins en base commencent par './' (relatif à la racine du projet).
+        // Le CWD du serveur web n'est pas la racine du projet, donc on résout en absolu
+        // avec FCPATH (chemin vers index.php défini par CodeIgniter).
+        $abs = (strpos($filename, './') === 0) ? FCPATH . substr($filename, 2) : $filename;
 
-        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!file_exists($abs) || !is_readable($abs)) {
+            $tooltip = htmlspecialchars($filename);
+            return "<a href=\"$url\"><i class=\"fas fa-exclamation-triangle fa-2x text-warning\" title=\"Fichier introuvable : $tooltip\"></i></a>";
+        }
+
+        $image_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif', 'tiff', 'tif'];
 
         $inner_html = "";
-        if (str_starts_with($mime_type, 'image') || ($extension == 'avif')) {
-            $img = '<img class="doc-thumbnail"';
-            $img .= ' src="' . $url . '"';
-            $img .= '/>';
-            $inner_html = $img;
-        } else {
-            if (str_ends_with($mime_type, 'pdf')) {
-                // Check if PDF thumbnail exists
-                $thumb_path = get_pdf_thumbnail_path($filename);
-                if ($thumb_path && file_exists($thumb_path)) {
-                    // Display thumbnail like an image
-                    $base = rtrim(base_url(), '/') . '/';
-                    $thumb_url = $base . ltrim($thumb_path, './');
-                    $img = '<img class="doc-thumbnail"';
-                    $img .= ' src="' . $thumb_url . '"';
-                    $img .= ' title="' . htmlspecialchars($filename) . '"';
-                    $img .= '/>';
-                    $inner_html = $img;
-                } else {
-                    // Display icon with async thumbnail generation trigger
-                    $unique_id = 'pdf-thumb-' . md5($filename);
-                    $inner_html = '<span id="' . $unique_id . '" class="pdf-needs-thumbnail" data-pdf-path="' . htmlspecialchars($filename) . '">';
-                    $inner_html .= "<i class=\"fas fa-file-pdf fa-2x text-danger\" title=\"$filename\"></i>";
-                    $inner_html .= '</span>';
-                }
-            } else if (str_ends_with($mime_type, 'txt') || str_ends_with($mime_type, 'text/plain')) {
-                $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
-            } else if (str_ends_with($mime_type, 'md') || str_ends_with($mime_type, 'markdown')) {
-                $inner_html = "<i class=\"fas fa-file-alt fa-2x\" title=\"$filename\"></i>";
-            } else if (str_contains($mime_type, 'html')) {
-                $inner_html = "<i class=\"fas fa-file-code fa-2x text-info\" title=\"$filename\"></i>";
-            } else if (str_ends_with($mime_type, 'csv')) {
-                $inner_html = "<i class=\"fas fa-file-csv fa-2x\" title=\"$filename\"></i>";
-            } else if (str_ends_with($mime_type, 'xlsx') || str_ends_with($mime_type, 'xls') || str_contains($mime_type, 'spreadsheet')) {
-                $inner_html = "<i class=\"fas fa-file-excel fa-2x text-success\" title=\"$filename\"></i>";
-            } else if (str_ends_with($mime_type, 'doc') || str_ends_with($mime_type, 'docx') || str_contains($mime_type, 'word')) {
-                $inner_html = "<i class=\"fas fa-file-word fa-2x text-primary\" title=\"$filename\"></i>";
-            } else if (str_ends_with($mime_type, 'ppt') || str_ends_with($mime_type, 'pptx') || str_contains($mime_type, 'powerpoint') || str_contains($mime_type, 'presentation')) {
-                $inner_html = "<i class=\"fas fa-file-powerpoint fa-2x text-warning\" title=\"$filename\"></i>";
+        if (in_array($ext, $image_exts)) {
+            $inner_html = '<img class="doc-thumbnail" src="' . $url . '"/>';
+        } elseif ($ext === 'pdf') {
+            $thumb_path = get_pdf_thumbnail_path($abs);
+            if ($thumb_path && file_exists($thumb_path)) {
+                $base = rtrim(base_url(), '/') . '/';
+                $thumb_url = $base . ltrim($thumb_path, './');
+                $inner_html = '<img class="doc-thumbnail" src="' . $thumb_url . '" title="' . htmlspecialchars($filename) . '"/>';
             } else {
-                $inner_html = "<i class=\"fas fa-file fa-2x\" title=\"$filename\"></i>";
+                $unique_id = 'pdf-thumb-' . md5($filename);
+                $inner_html = '<span id="' . $unique_id . '" class="pdf-needs-thumbnail" data-pdf-path="' . htmlspecialchars($filename) . '">';
+                $inner_html .= '<i class="fas fa-file-pdf fa-2x text-danger" title="' . htmlspecialchars($filename) . '"></i>';
+                $inner_html .= '</span>';
             }
+        } elseif (in_array($ext, ['txt', 'md', 'markdown'])) {
+            $inner_html = '<i class="fas fa-file-alt fa-2x" title="' . htmlspecialchars($filename) . '"></i>';
+        } elseif (in_array($ext, ['html', 'htm'])) {
+            $inner_html = '<i class="fas fa-file-code fa-2x text-info" title="' . htmlspecialchars($filename) . '"></i>';
+        } elseif ($ext === 'csv') {
+            $inner_html = '<i class="fas fa-file-csv fa-2x" title="' . htmlspecialchars($filename) . '"></i>';
+        } elseif (in_array($ext, ['xls', 'xlsx'])) {
+            $inner_html = '<i class="fas fa-file-excel fa-2x text-success" title="' . htmlspecialchars($filename) . '"></i>';
+        } elseif (in_array($ext, ['doc', 'docx'])) {
+            $inner_html = '<i class="fas fa-file-word fa-2x text-primary" title="' . htmlspecialchars($filename) . '"></i>';
+        } elseif (in_array($ext, ['ppt', 'pptx'])) {
+            $inner_html = '<i class="fas fa-file-powerpoint fa-2x text-warning" title="' . htmlspecialchars($filename) . '"></i>';
+        } else {
+            $inner_html = '<i class="fas fa-file fa-2x" title="' . htmlspecialchars($filename) . '"></i>';
         }
         return "<a href=\"$url\" target=\"_self\">$inner_html</a>";
     }

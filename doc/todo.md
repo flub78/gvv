@@ -7,6 +7,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
+* [] archived_documents. Quand le fichier n'existe pas, on affiche un message d'erreur dans la première colonne qui est remplacé par un icone de warning. Après plusieurs tentative, claude code a fait un patch pour remplacer le contenu et contraindre la largeur de la colonne. Il faudrait identifier la cause racine et ne pas envoyer la chaine pour la remplacer aprés.
 
 
 ## Priorités

@@ -21,6 +21,7 @@ $filter_type = isset($filters['document_type_id']) ? $filters['document_type_id'
 $filter_section = isset($filters['section_id']) ? $filters['section_id'] : '';
 $filter_pilot = isset($filters['pilot_login']) ? $filters['pilot_login'] : '';
 $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] : '';
+$filter_scope = isset($filters['scope']) ? $filters['scope'] : '';
 ?>
 
 <div id="body" class="body container-fluid">
@@ -54,6 +55,14 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
 }
 #doc-filter-form .select2-selection__arrow {
     height: 36px !important;
+}
+/* Colonne fichier : toujours compacte - max-width prend le dessus sur le width inline que
+   DataTables impose, overflow:hidden empêche tout texte de déborder. */
+#archived-docs-table th:first-child,
+#archived-docs-table td:first-child {
+    max-width: 80px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
 }
 </style>
 <form method="get" class="mb-3" id="doc-filter-form">
@@ -99,6 +108,10 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
             echo form_dropdown('machine_immat', $machine_selector, $filter_machine, 'class="' . $select_class . '" id="machine_immat"');
             ?>
         </div>
+        <div class="col-sm-1">
+            <label for="scope" class="form-label"><?= $this->lang->line('archived_documents_scope') ?></label>
+            <?= form_dropdown('scope', $scope_selector, $filter_scope, 'class="form-select" id="scope"') ?>
+        </div>
         <div class="col-sm-1 d-flex gap-1">
             <button type="submit" class="btn btn-primary flex-grow-1" title="<?= $this->lang->line('archived_documents_filter_apply') ?>">
                 <i class="fas fa-filter"></i>
@@ -110,17 +123,30 @@ $filter_machine = isset($filters['machine_immat']) ? $filters['machine_immat'] :
     </div>
 </form>
 <script>
+// Purge le state DataTables sauvegardé pour cette table afin que les largeurs de colonnes
+// ne soient pas restaurées depuis une ancienne session où du texte d'erreur les avait élargies.
+(function() {
+    try {
+        var prefix = 'DataTables_';
+        Object.keys(localStorage).forEach(function(key) {
+            if (key.indexOf(prefix) === 0 && key.indexOf('archived_documents') !== -1) {
+                localStorage.removeItem(key);
+            }
+        });
+    } catch(e) {}
+})();
+
 document.getElementById('clear-filters').addEventListener('click', function() {
     try {
         document.getElementById('filter_expired').checked = false;
         document.getElementById('filter_expiring_soon').checked = false;
         document.getElementById('filter_pending').checked = false;
-        ['document_type_id', 'section_id', 'pilot_login', 'machine_immat'].forEach(function(id) {
+        ['document_type_id', 'section_id', 'pilot_login', 'machine_immat', 'scope'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
         });
         if (typeof $ !== 'undefined' && $.fn.select2) {
-            $('#document_type_id, #section_id, #pilot_login, #machine_immat').val('').trigger('change');
+            $('#document_type_id, #section_id, #pilot_login, #machine_immat, #scope').val('').trigger('change');
         }
         // DataTables 1.9.x API (fnFilter)
         try {
@@ -134,7 +160,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
 </script>
 
 <div class="table-responsive">
-    <table class="datatable table table-striped">
+    <table class="datatable table table-striped" id="archived-docs-table">
         <thead>
             <tr>
                 <th><?= $this->lang->line('archived_documents_file') ?></th>
@@ -159,8 +185,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         || (!empty($current_user) && $doc['pilot_login'] === $current_user);
                     ?>
                     <?php if ($can_see_file): ?>
-                    <?php $preview_url = site_url('archived_documents/preview/' . $doc['id']); ?>
-                    <?= attachment($doc['id'], $doc['file_path'], $preview_url) ?>
+                    <?= $doc['attachment_html'] ?>
                     <?php else: ?>
                     <span class="text-muted" title="<?= $this->lang->line('archived_documents_no_file_access') ?>">
                         <i class="fas fa-lock"></i>

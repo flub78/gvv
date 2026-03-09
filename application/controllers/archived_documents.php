@@ -123,9 +123,6 @@ class Archived_documents extends Gvv_Controller {
         return $this->alternate();
     }
 
-    /**
-     * Alternate admin view with datatable and filters
-     */
     function alternate() {
         if (!$this->_is_admin()) {
             redirect('archived_documents/my_documents');
@@ -138,10 +135,7 @@ class Archived_documents extends Gvv_Controller {
         $session_key = 'archived_documents_filters';
 
         if ($this->input->get('filter_submitted')) {
-            // Soumission du formulaire : lire les filtres depuis GET et les sauvegarder en session.
-            // section_id présent mais vide → l'admin a choisi "Toutes" → pas de filtre section.
             $section_id = $this->input->get('section_id');
-
             $filters = array(
                 'expired'       => $this->input->get('filter_expired') ? true : false,
                 'expiring_soon' => $this->input->get('filter_expiring_soon') ? true : false,
@@ -150,19 +144,20 @@ class Archived_documents extends Gvv_Controller {
                 'section_id' => $section_id,
                 'pilot_login' => $this->input->get('pilot_login'),
                 'machine_immat' => $this->input->get('machine_immat'),
+                'scope' => $this->input->get('scope'),
             );
             $this->session->set_userdata($session_key, $filters);
         } else {
-            // Navigation directe : restaurer les filtres depuis la session ou initialiser par défaut.
             $saved = $this->session->userdata($session_key);
             if ($saved !== false && is_array($saved)) {
                 $filters = $saved;
-                // Compatibilité ascendante : sessions sans expiring_soon
                 if (!isset($filters['expiring_soon'])) {
                     $filters['expiring_soon'] = false;
                 }
+                if (!isset($filters['scope'])) {
+                    $filters['scope'] = null;
+                }
             } else {
-                // Première visite : filtrer par la section active de la session.
                 $active_section = $this->gvv_model->section();
                 $filters = array(
                     'expired'       => false,
@@ -172,12 +167,26 @@ class Archived_documents extends Gvv_Controller {
                     'section_id' => !empty($active_section) ? $active_section['id'] : null,
                     'pilot_login' => null,
                     'machine_immat' => null,
+                    'scope' => null,
                 );
             }
         }
 
         $this->data['filters'] = $filters;
-        $this->data['documents'] = $this->gvv_model->get_filtered_documents($filters);
+        $documents = $this->gvv_model->get_filtered_documents($filters);
+
+        // Pré-calculer le HTML de la colonne fichier pour chaque document.
+        // ob_start/ob_end_clean capture et jette tout warning PHP émis par mime_content_type()
+        // afin qu'aucun texte parasite ne pollue la cellule lors du rendu.
+        foreach ($documents as &$doc) {
+            $preview_url = site_url('archived_documents/preview/' . $doc['id']);
+            ob_start();
+            $doc['attachment_html'] = attachment($doc['id'], $doc['file_path'], $preview_url);
+            ob_end_clean();
+        }
+        unset($doc);
+
+        $this->data['documents'] = $documents;
 
         // Counts apply to the current selection only (type/section/pilot/machine filters, not status filters)
         $selection_filters = array(
@@ -185,6 +194,7 @@ class Archived_documents extends Gvv_Controller {
             'section_id'       => $filters['section_id'],
             'pilot_login'      => $filters['pilot_login'],
             'machine_immat'    => $filters['machine_immat'],
+            'scope'            => $filters['scope'],
         );
         $docs_for_count = $this->gvv_model->get_filtered_documents($selection_filters);
         $expired_count       = 0;
@@ -214,6 +224,7 @@ class Archived_documents extends Gvv_Controller {
         $this->data['section_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->sections_model->section_selector_with_null();
         $this->data['pilot_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->membres_model->selector_with_null(array('actif' => 1));
         $this->data['machine_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->_get_machine_selector();
+        $this->data['scope_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->document_types_model->scope_selector();
 
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;

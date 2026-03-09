@@ -87,11 +87,6 @@ class Archived_documents_model extends Common_Model {
         return $select;
     }
 
-    /**
-     * Returns filtered documents for alternate view
-     * @param array $filters
-     * @return array
-     */
     public function get_filtered_documents($filters = array()) {
         $this->db->select('archived_documents.id, archived_documents.pilot_login,
             archived_documents.original_filename, archived_documents.description,
@@ -133,6 +128,10 @@ class Archived_documents_model extends Common_Model {
 
         if (!empty($filters['machine_immat'])) {
             $this->db->where('archived_documents.machine_immat', $filters['machine_immat']);
+        }
+
+        if (!empty($filters['scope'])) {
+            $this->db->where('document_types.scope', $filters['scope']);
         }
 
         $expired       = !empty($filters['expired']);
