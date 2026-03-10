@@ -71,7 +71,11 @@ $this->load->view('bs_banner');
 
                         <?php if (!empty($seance['programme_titre'])): ?>
                         <dt class="col-sm-5"><?= $this->lang->line('formation_seance_programme') ?></dt>
-                        <dd class="col-sm-7"><?= htmlspecialchars($seance['programme_titre']) ?></dd>
+                        <dd class="col-sm-7">
+                            <a href="<?= base_url('programmes/view/' . $seance['programme_id']) ?>">
+                                <?= htmlspecialchars($seance['programme_titre']) ?>
+                            </a>
+                        </dd>
                         <?php endif; ?>
 
                         <?php if (!empty($seance['lieu'])): ?>
