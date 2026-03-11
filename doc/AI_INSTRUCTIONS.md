@@ -377,12 +377,3 @@ This includes:
 
 Follow the general guidelines and project conventions outlined in this document.
 
----
-
-# Project Task Management
-
-**For project task management using Backlog.md CLI:**
-
-If you need to create, update, or manage project tasks, please read the comprehensive instructions in `doc/BACKLOG_INSTRUCTIONS.md`.
-
-This keeps the AI instructions concise and loads backlog-specific guidance only when needed.

@@ -165,7 +165,6 @@ Cette checklist doit être utilisée pour toute Pull Request avant le merge sur 
 - [ ] Branche de feature supprimée après merge
 - [ ] Issue/ticket fermé ou mis à jour
 - [ ] Documentation de release mise à jour si nécessaire
-- [ ] Backlog actualisé
 
 ---
 

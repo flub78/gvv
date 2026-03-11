@@ -104,7 +104,7 @@ A garder pour utilisation future
 
 | Fichier | Action | Justification |
 |---------|--------|---------------|
-| `doc/todo.md` | Supprimer | Fichier vide (juste un titre), le backlog le remplace |
+| `doc/todo.md` | Supprimer | Fichier vide (juste un titre) |
 | `doc/GLIDER_FLIGHT_TEST_REFACTORING.md` | Supprimer | Résumé de refactoring ponctuel |
 | `doc/test-database-encrypted.md` | Vérifier doublon avec `TEST_DATABASE_ENCRYPTED_IMPLEMENTATION.md` racine | Consolider |
 
