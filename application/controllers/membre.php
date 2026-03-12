@@ -313,8 +313,8 @@ class Membre extends Gvv_Controller {
                     $selection .= " and ";
                 }
                 if ($filter_validation == 1) {
-                    // En attente de validation - validation_date is null
-                    $selection .= "(validation_date IS NULL )";
+                    // En attente de validation par le CA - inscription_date renseignée et validation_date vide ou dans le futur
+                    $selection .= "(inscription_date IS NOT NULL AND inscription_date != '' AND (validation_date IS NULL OR validation_date > CURDATE()))";
                 } else if ($filter_validation == 2) {
                     // Validés - validation_date is not null
                     $selection .= "(validation_date IS NOT NULL )";
