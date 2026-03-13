@@ -1,3 +1,14 @@
+Archived Documents Email
+ [x] Get filtered documents includes pilot email
+ [x] Subject uses description when present
+ [x] Subject falls back to type name when description empty
+ [x] Subject includes pilot name
+ [x] Subject includes machine immat
+ [x] Subject omits pilot when empty
+ [x] Non admin is blocked by is admin check
+ [x] Email template does not embed visualization urls in body
+ [x] Direct endpoints keep authorization guards
+
 Archived Documents Visibility
  [x] Get section documents retourne seulement la section demandee
  [x] Get section documents section 2 retourne seulement section 2

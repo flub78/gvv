@@ -176,32 +176,57 @@ Si un besoin métier de partage externe réapparaît, réintroduire un mécanism
 
 | Fichier | Méthode | Correction |
 |---|---|---|
-| `procedures.php` | `download()` | Ajouter vérification `is_logged_in()` + `is_role('user')` |
-| `acceptance_admin.php` | `download()` | Ajouter `_is_admin()` comme toutes les autres méthodes |
-| `procedures.php` | `edit()` | Ajouter `if (!$this->dx_auth->is_role('ca') && !$this->dx_auth->is_admin()) show_404()` |
-| `procedures.php` | `view()` | Vérifier le statut `published` pour les non-admins |
+| `procedures.php` | `download()` | ✅ Implémenté : vérification `is_logged_in()` + `is_role('user')` |
+| `acceptance_admin.php` | `download()` | ✅ Implémenté : ajout de `_is_admin()` comme les autres méthodes |
+| `procedures.php` | `edit()` | ✅ Implémenté : garde `ca/admin` avant affichage du formulaire |
+| `procedures.php` | `view()` | ✅ Implémenté : accès non privilégié limité au statut `published` |
 
 ### P1 — Correction systémique
 
 Auditer tous les contrôleurs héritant de `Gvv_Controller` qui ne surchargent pas `edit()` / `delete()` et qui utilisent uniquement `modification_level` comme protection. Ajouter une vérification dans les méthodes de base du contrôleur parent.
 
+✅ **Implémenté** dans `application/libraries/Gvv_Controller.php` :
+
+- ajout d'un helper central `ensure_modification_rights()`
+- appel au début de `edit()`
+- appel au début de `delete()`
+- exemption explicite pour `VISUALISATION` (lecture seule)
+
 ### P2 — Durcissement complémentaire
 
 Ajouter des tests de non-régression pour vérifier qu'aucune fonctionnalité n'envoie d'URL de visualisation de documents aux utilisateurs, et que tout accès direct reste soumis aux contrôles d'autorisation.
+
+✅ **Implémenté** dans `application/tests/integration/ArchivedDocumentsEmailTest.php` :
+
+- test de non-régression : absence d'URL `archived_documents/view|preview|download` dans le template de corps d'email
+- test de non-régression : présence des gardes d'autorisation sur les endpoints directs (`view`, `download`, `preview`)
 
 ---
 
 ## 6. Résumé exécutif
 
-| Gravité | Nombre | Exemples |
-|---|---|---|
-| 🔴 Critique | 1 | `procedures/download` — accès non authentifié |
-| 🔴 Haute | 2 | `acceptance_admin/download`, `procedures/edit` |
-| 🟡 Moyenne | 3+ | `procedures/view`, héritage `Gvv_Controller` |
-| ✅ Protégé | 8+ | `archived_documents/*`, `vols_planeur/*` |
+| État | Détail |
+|---|---|
+| ✅ P0 corrigé | `procedures/download`, `acceptance_admin/download`, `procedures/edit`, `procedures/view` |
+| ✅ P1 corrigé | contrôle systémique ajouté dans `Gvv_Controller::edit()` et `Gvv_Controller::delete()` |
+| ✅ P2 corrigé | tests de non-régression ajoutés pour URL email et contrôles d'accès directs |
 
 Les URLs pointées dans le rapport initial (`archived_documents/preview/56`, `archived_documents/view/16`) sont en réalité **correctement protégées** — elles redirigent vers `my_documents` si l'utilisateur n'est pas propriétaire ou admin. La vulnérabilité réelle se situe principalement dans les contrôleurs `procedures` et `acceptance_admin`.
 
 La suppression de l'envoi des URL de visualisation est une amélioration défensive utile, mais elle ne doit pas être considérée comme une correction IDOR en soi : l'autorisation doit toujours être validée côté serveur pour chaque endpoint.
 
-La priorité immédiate est de corriger les 4 méthodes identifiées en **P0**, qui représentent des risques d'exposition de données personnelles (médicales, de formation) sans authentification ni contrôle d'accès.
+La priorité immédiate (P0) a été traitée, puis consolidée par une correction systémique (P1) et des tests de non-régression (P2).
+
+---
+
+## 7. Validation des modifications
+
+### Validation technique effectuée
+
+- lint PHP des contrôleurs modifiés (`procedures.php`, `acceptance_admin.php`) : OK
+- lint PHP du contrôleur parent (`Gvv_Controller.php`) : OK
+- exécution de `phpunit` sur `application/tests/integration/ArchivedDocumentsEmailTest.php` avec `phpunit_integration.xml` : **OK (9 tests, 20 assertions)**
+
+### Risque résiduel
+
+Le risque IDOR identifié dans cette analyse est désormais réduit sur les points P0/P1/P2 traités. Un audit complémentaire reste recommandé lors de l'évolution d'autres contrôleurs hérités si de nouvelles actions d'édition/suppression sont ajoutées hors du flux parent.
