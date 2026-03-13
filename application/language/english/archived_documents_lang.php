@@ -97,5 +97,15 @@ $lang['archived_documents_same_type_warning'] = 'A document of this type already
 $lang['archived_documents_machine'] = 'Machine';
 $lang['archived_documents_scope'] = 'Scope';
 
+$lang['archived_documents_send_email'] = 'Send email';
+$lang['archived_documents_email_recipient'] = 'Recipient';
+$lang['archived_documents_email_subject'] = 'Subject';
+$lang['archived_documents_email_body'] = 'Message';
+$lang['archived_documents_email_send'] = 'Send';
+$lang['archived_documents_email_open_client'] = 'Open mail client';
+$lang['archived_documents_email_sent'] = 'Email sent successfully';
+$lang['archived_documents_email_error'] = 'Error sending email';
+$lang['archived_documents_email_access_denied'] = 'Access denied';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

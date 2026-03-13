@@ -233,6 +233,16 @@ class Archived_documents extends Gvv_Controller {
         $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
         $this->data['current_user'] = $this->dx_auth->get_username();
 
+        // Member email list for recipient autocomplete in the email modal
+        $member_rows = $this->db->select('mprenom, mnom, memail')
+            ->from('membres')
+            ->where('actif', 1)
+            ->where('memail !=', '')
+            ->where('memail IS NOT NULL', null, false)
+            ->order_by('mnom, mprenom')
+            ->get()->result_array();
+        $this->data['member_emails'] = $member_rows;
+
         return load_last_view($this->controller . '/documentsListView', $this->data, $this->unit_test);
     }
 
@@ -1000,6 +1010,68 @@ class Archived_documents extends Gvv_Controller {
         header('Content-Length: ' . filesize($doc['file_path']));
         readfile($doc['file_path']);
         exit;
+    }
+
+    /**
+     * Send email about a document (admin/CA only)
+     *
+     * POST parameters: recipient, subject, body
+     */
+    function send_email($id) {
+        if (!$this->_is_admin()) {
+            $data['msg'] = $this->lang->line('archived_documents_email_access_denied');
+            load_last_view('error', $data);
+            return;
+        }
+
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc) {
+            $data['msg'] = 'Document introuvable';
+            load_last_view('error', $data);
+            return;
+        }
+
+        $recipient = $this->input->post('recipient');
+        $subject   = $this->input->post('subject');
+        $body      = $this->input->post('body');
+
+        if (empty($recipient) || empty($subject) || empty($body)) {
+            $data['msg'] = 'Destinataire, objet et message sont obligatoires.';
+            load_last_view('error', $data);
+            return;
+        }
+
+        $this->load->library('email');
+        $from = $this->config->item('email_club');
+
+        $this->email->clear(true);
+        $this->email->set_mailtype('html');
+        $this->email->set_newline("\r\n");
+        $this->email->set_crlf("\r\n");
+        $this->email->from($from, $this->config->item('nom_club'));
+        $this->email->to($recipient);
+        $this->email->subject($subject);
+        $this->email->message(nl2br(htmlspecialchars($body)));
+
+        if (!empty($doc['file_path']) && file_exists($doc['file_path'])) {
+            $filename = !empty($doc['original_filename']) ? $doc['original_filename'] : basename($doc['file_path']);
+            $this->email->attach($doc['file_path'], 'attachment', $filename);
+        }
+
+        if ($this->email->send()) {
+            $msg = '<div class="alert alert-success alert-dismissible fade show">'
+                 . '<i class="fas fa-check"></i> '
+                 . $this->lang->line('archived_documents_email_sent')
+                 . ' &lt;' . htmlspecialchars($recipient) . '&gt;'
+                 . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>'
+                 . '</div>';
+            $this->session->set_flashdata('message', $msg);
+            $list_url = $this->session->userdata('archived_documents_list_url') ?: site_url('archived_documents/page');
+            redirect($list_url);
+        } else {
+            $data['msg'] = $this->lang->line('archived_documents_email_error') . ': ' . $this->email->print_debugger();
+            load_last_view('error', $data);
+        }
     }
 
     /**

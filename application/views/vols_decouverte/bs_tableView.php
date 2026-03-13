@@ -34,6 +34,11 @@ echo '<div id="body" class="body container-fluid">';
 echo heading("gvv_vols_decouverte_title", 3);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+// Display flash message if exists
+if ($this->session->flashdata('message')) {
+    echo $this->session->flashdata('message');
+}
+
 // Display filter error if exists
 if (isset($filter_error)) {
     echo '<div class="alert alert-danger">' . $filter_error . '</div>';

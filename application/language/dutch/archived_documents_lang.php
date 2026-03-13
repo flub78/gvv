@@ -97,5 +97,15 @@ $lang['archived_documents_same_type_warning'] = 'Er bestaat al een document van 
 $lang['archived_documents_machine'] = 'Machine';
 $lang['archived_documents_scope'] = 'Bereik';
 
+$lang['archived_documents_send_email'] = 'E-mail verzenden';
+$lang['archived_documents_email_recipient'] = 'Ontvanger';
+$lang['archived_documents_email_subject'] = 'Onderwerp';
+$lang['archived_documents_email_body'] = 'Bericht';
+$lang['archived_documents_email_send'] = 'Verzenden';
+$lang['archived_documents_email_open_client'] = 'E-mailclient openen';
+$lang['archived_documents_email_sent'] = 'E-mail succesvol verzonden';
+$lang['archived_documents_email_error'] = 'Fout bij verzenden van e-mail';
+$lang['archived_documents_email_access_denied'] = 'Toegang geweigerd';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

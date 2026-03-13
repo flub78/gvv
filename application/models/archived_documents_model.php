@@ -98,7 +98,7 @@ class Archived_documents_model extends Common_Model {
             archived_documents.machine_immat,
             document_types.name as type_name, document_types.code as type_code,
             document_types.alert_days_before, document_types.is_private,
-            membres.mnom as pilot_nom, membres.mprenom as pilot_prenom,
+            membres.mnom as pilot_nom, membres.mprenom as pilot_prenom, membres.memail as pilot_email,
             sections.nom as section_name');
         $this->db->from($this->table);
         $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');

@@ -275,6 +275,30 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         <i class="fas fa-check"></i>
                     </a>
                     <?php endif; ?>
+                    <?php if (!empty($is_admin) || !empty($is_bureau) || !empty($is_strict_admin)):
+                        // Build subject: description + pilot + machine, fallback to type name
+                        $email_subject_parts = array();
+                        $desc = trim($doc['description'] ?? '');
+                        $type_label_for_subject = !empty($doc['type_name']) ? $doc['type_name'] : $this->lang->line('archived_documents_type_other');
+                        $email_subject_parts[] = !empty($desc) ? $desc : $type_label_for_subject;
+                        if (!empty($doc['pilot_nom'])) {
+                            $email_subject_parts[] = trim(($doc['pilot_prenom'] ?? '') . ' ' . $doc['pilot_nom']);
+                        }
+                        if (!empty($doc['machine_immat'])) {
+                            $email_subject_parts[] = $doc['machine_immat'];
+                        }
+                        $email_subject = implode(' - ', $email_subject_parts);
+                        $email_recipient = $doc['pilot_email'] ?? '';
+                    ?>
+                    <button type="button"
+                        class="btn btn-sm btn-outline-info doc-email-btn"
+                        title="<?= $this->lang->line('archived_documents_send_email') ?>"
+                        data-doc-id="<?= (int)$doc['id'] ?>"
+                        data-recipient="<?= htmlspecialchars($email_recipient) ?>"
+                        data-subject="<?= htmlspecialchars($email_subject) ?>">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -283,3 +307,99 @@ document.getElementById('clear-filters').addEventListener('click', function() {
 </div>
 
 </div>
+
+<!-- Modal: envoi d'email sur un document -->
+<div class="modal fade" id="docEmailModal" tabindex="-1" aria-labelledby="docEmailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="docEmailModalLabel"><i class="fas fa-envelope"></i> <?= $this->lang->line('archived_documents_send_email') ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <form id="docEmailForm" method="post" action="">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="docEmailRecipient" class="form-label"><?= $this->lang->line('archived_documents_email_recipient') ?></label>
+            <input type="email" class="form-control" id="docEmailRecipient" name="recipient"
+                   list="memberEmailDatalist" autocomplete="off" required>
+            <datalist id="memberEmailDatalist">
+              <?php if (!empty($member_emails)): ?>
+              <?php foreach ($member_emails as $m): ?>
+              <option value="<?= htmlspecialchars($m['memail']) ?>"
+                      label="<?= htmlspecialchars(trim($m['mprenom'] . ' ' . $m['mnom'])) ?>">
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </datalist>
+          </div>
+          <div class="mb-3">
+            <label for="docEmailSubject" class="form-label"><?= $this->lang->line('archived_documents_email_subject') ?></label>
+            <input type="text" class="form-control" id="docEmailSubject" name="subject" required>
+          </div>
+          <div class="mb-3">
+            <label for="docEmailBody" class="form-label"><?= $this->lang->line('archived_documents_email_body') ?></label>
+            <textarea class="form-control" id="docEmailBody" name="body" rows="8" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="d-flex gap-2 justify-content-end w-100">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            <button type="button" class="btn btn-outline-secondary" id="docEmailMailtoBtn">
+              <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_email_open_client') ?>
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> <?= $this->lang->line('archived_documents_email_send') ?>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+    var nomClub = <?= json_encode($this->config->item('nom_club')) ?>;
+    var emailClub = <?= json_encode($this->config->item('email_club')) ?>;
+    var sendEmailBaseUrl  = <?= json_encode(site_url('archived_documents/send_email')) ?> + '/';
+    var downloadBaseUrl   = <?= json_encode(site_url('archived_documents/download')) ?> + '/';
+    var currentDocId = null;
+
+    function buildEmailBody(subject) {
+        return "Bonjour,\n\nVoici le document " + subject + "\n\nCordialement,\n" + nomClub + "\n" + emailClub;
+    }
+
+    document.querySelectorAll('.doc-email-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var docId     = this.getAttribute('data-doc-id');
+            var recipient = this.getAttribute('data-recipient');
+            var subject   = this.getAttribute('data-subject');
+
+            currentDocId = docId;
+            document.getElementById('docEmailRecipient').value = recipient;
+            document.getElementById('docEmailSubject').value   = subject;
+            document.getElementById('docEmailBody').value      = buildEmailBody(subject);
+            document.getElementById('docEmailForm').action     = sendEmailBaseUrl + docId;
+
+            var modal = new bootstrap.Modal(document.getElementById('docEmailModal'));
+            modal.show();
+        });
+    });
+
+    document.getElementById('docEmailMailtoBtn').addEventListener('click', function() {
+        var recipient = document.getElementById('docEmailRecipient').value;
+        var subject   = document.getElementById('docEmailSubject').value;
+        var body      = document.getElementById('docEmailBody').value;
+
+        // Ajouter le lien de téléchargement dans le corps du mail
+        var bodyWithLink = body;
+        if (currentDocId) {
+            bodyWithLink += "\n\nTélécharger le document : " + downloadBaseUrl + currentDocId;
+        }
+
+        var mailto = 'mailto:' + encodeURIComponent(recipient)
+            + '?subject=' + encodeURIComponent(subject)
+            + '&body=' + encodeURIComponent(bodyWithLink);
+        window.open(mailto, '_blank');
+    });
+})();
+</script>

@@ -133,4 +133,111 @@ test.describe('Archived Documents Smoke Tests', () => {
     console.log('Non-admin correctly denied access to admin list');
   });
 
+  // ---------------------------------------------------------------------------
+  // Email feature tests
+  // ---------------------------------------------------------------------------
+
+  test('admin sees email icon on admin documents list', async ({ page }) => {
+    await login(page, ADMIN_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+
+    await checkNoPhpErrors(page);
+
+    // Email buttons should be present (admin has access)
+    const emailButtons = page.locator('.doc-email-btn');
+    const count = await emailButtons.count();
+    // Page may have 0 documents in test DB; just verify no PHP errors and no syntax issues
+    // The icon is rendered conditionally on is_admin being true
+    console.log(`Found ${count} email button(s) on admin list`);
+
+    // Verify the modal markup is present in the DOM
+    const modal = page.locator('#docEmailModal');
+    await expect(modal).toBeAttached();
+
+    console.log('Admin sees email modal markup on admin documents list');
+  });
+
+  test('non-admin does not see email icon on admin list (no access to page)', async ({ page }) => {
+    await login(page, PILOT_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+
+    await checkNoPhpErrors(page);
+
+    // Non-admin is redirected away from the admin list, so there are no email icons
+    const emailButtons = page.locator('.doc-email-btn');
+    const count = await emailButtons.count();
+    expect(count).toBe(0);
+
+    console.log('Non-admin has no email buttons (redirected from admin list)');
+  });
+
+  test('non-admin cannot POST to send_email endpoint', async ({ page }) => {
+    await login(page, PILOT_USER);
+
+    // Attempt to POST directly to send_email for document id 1
+    const response = await page.request.post('/index.php/archived_documents/send_email/1', {
+      form: {
+        recipient: 'test@example.com',
+        subject: 'Test',
+        body: 'Test body',
+      }
+    });
+
+    const body = await response.text();
+
+    // Should be an error page (access denied) or redirect - NOT a success message
+    expect(body).not.toContain('Email envoyé avec succès');
+    expect(body).not.toContain('Email sent successfully');
+
+    console.log('Non-admin correctly denied access to send_email endpoint');
+  });
+
+  test('admin can open email modal and it is pre-filled', async ({ page }) => {
+    await login(page, ADMIN_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+
+    await checkNoPhpErrors(page);
+
+    // Check if there are any email buttons
+    const emailButtons = page.locator('.doc-email-btn');
+    const count = await emailButtons.count();
+
+    if (count === 0) {
+      console.log('No documents in DB for email modal test - skipping modal interaction');
+      return;
+    }
+
+    // Click the first email button
+    await emailButtons.first().click();
+
+    // Wait for modal to appear
+    const modal = page.locator('#docEmailModal');
+    await expect(modal).toBeVisible({ timeout: 3000 });
+
+    // Verify fields are present
+    await expect(page.locator('#docEmailRecipient')).toBeVisible();
+    await expect(page.locator('#docEmailSubject')).toBeVisible();
+    await expect(page.locator('#docEmailBody')).toBeVisible();
+
+    // Subject must not be empty (pre-filled from document data)
+    const subject = await page.locator('#docEmailSubject').inputValue();
+    expect(subject.length).toBeGreaterThan(0);
+
+    // Body must contain greeting and signature
+    const body = await page.locator('#docEmailBody').inputValue();
+    expect(body).toContain('Bonjour');
+    expect(body).toContain('Cordialement');
+
+    // "Open mail client" button must be present
+    await expect(page.locator('#docEmailMailtoBtn')).toBeVisible();
+
+    console.log('Email modal opens correctly with pre-filled fields');
+  });
+
 });

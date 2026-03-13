@@ -403,17 +403,17 @@ class Vols_decouverte extends Gvv_Controller {
 
         // Send email
         if ($this->email->send()) {
-            // Success message
-            $data['title'] = "Succès";
-            $data['text'] = "Email envoyé avec succès à " . $vd['beneficiaire_email'];
             unlink($temp_file); // Clean up after sending
-
-            load_last_view('message', $data);
+            $msg = '<div class="alert alert-success alert-dismissible fade show">'
+                 . '<i class="fas fa-check"></i> '
+                 . 'Email envoyé avec succès à ' . htmlspecialchars($vd['beneficiaire_email'])
+                 . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>'
+                 . '</div>';
+            $this->session->set_flashdata('message', $msg);
+            redirect(site_url('vols_decouverte/page'));
         } else {
             // Error message
             $data['msg'] = "Erreur lors de l'envoi de l'email: " . $this->email->print_debugger();
-            // unlink($temp_file); // Clean up after sending
-
             load_last_view('error', $data);
         }
     }
