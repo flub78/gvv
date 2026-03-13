@@ -6,6 +6,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Provides dual-mode authorization support for progressive migration
  * from DX_Auth to Gvv_Authorization system.
+ * 
+ * **This file is only used by controllers with no CRUD operations (e.g. Welcome, Auth) to ensure they can function during migration.**
  *
  * Authorization system selection based on configuration:
  * - If use_new_authorization = FALSE: All users use legacy DX_Auth

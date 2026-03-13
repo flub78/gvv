@@ -56,10 +56,10 @@ class Compta extends Gvv_Controller {
         }
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // mon_compte, journal_compte, export and pdf are accessible to regular users (own data only)
+        // mon_compte, journal_compte, export, pdf, new_year, datatable_journal_compte and filterValidation are accessible to regular users (own data only)
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
-            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf'])) {
+            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation'])) {
                 $this->require_roles(['tresorier']);
             }
         }
