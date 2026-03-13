@@ -1051,12 +1051,10 @@ class Archived_documents extends Gvv_Controller {
         $this->email->from($from, $this->config->item('nom_club'));
         $this->email->to($recipient);
         $this->email->subject($subject);
-        $this->email->message(nl2br(htmlspecialchars($body)));
 
-        if (!empty($doc['file_path']) && file_exists($doc['file_path'])) {
-            $filename = !empty($doc['original_filename']) ? $doc['original_filename'] : basename($doc['file_path']);
-            $this->email->attach($doc['file_path'], 'attachment', $filename);
-        }
+        $download_url = site_url('archived_documents/download/' . $id);
+        $full_body = $body . "\n\nTélécharger le document : " . $download_url;
+        $this->email->message(nl2br(htmlspecialchars($full_body)));
 
         if ($this->email->send()) {
             $msg = '<div class="alert alert-success alert-dismissible fade show">'

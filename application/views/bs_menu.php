@@ -35,6 +35,7 @@ $this->lang->load('acceptance');
 $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
+$active_section_missing = FALSE;
 
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
 if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth->is_logged_in()) {
@@ -44,6 +45,10 @@ if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth-
 } else {
     $section_selector = $CI->sections_model->selector_with_all();
     $section_count = $CI->sections_model->safe_count_all();
+}
+
+if (is_logged_in() && $section_count > 1 && empty($section)) {
+  $active_section_missing = TRUE;
 }
 ?>
 
@@ -449,6 +454,11 @@ if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth-
             <?php endif; ?>
 
             <?php if ($section_count > 1) : ?>
+              <?php if ($active_section_missing) : ?>
+              <div class="alert alert-warning py-1 px-2 mt-2 mb-2 small" role="alert">
+                <?= $this->lang->line("gvv_active_section_missing_warning") ?>
+              </div>
+              <?php endif; ?>
               <div>
                 <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="updateSection(this.value)"') ?>
               </div>

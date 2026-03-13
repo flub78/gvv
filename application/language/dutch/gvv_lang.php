@@ -385,6 +385,7 @@ $lang['check_uniq'] = "Het element bestaat al.";
 $lang['delete'] = 'Verwijderen';
 
 $lang['section_selected'] = 'Er moet een sectie worden geselecteerd om deze actie uit te voeren';
+$lang['gvv_active_section_missing_warning'] = 'De actieve sectie is verloren gegaan. Selecteer opnieuw een sectie.';
 
 # Missing translation keys
 $lang['gvv_menu_vols_decouverte'] = "Ontdekkingsvluchten";

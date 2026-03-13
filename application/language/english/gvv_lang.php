@@ -390,6 +390,7 @@ $lang['check_uniq'] = "The element already exist.";
 $lang['delete'] = 'Delete';
 
 $lang['section_selected'] = 'A section must be selected to perform this action';
+$lang['gvv_active_section_missing_warning'] = 'The active section was lost. Please select a section again.';
 
 # Missing translation keys
 $lang['gvv_menu_vols_decouverte'] = "Discovery flights";
