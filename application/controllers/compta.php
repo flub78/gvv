@@ -2067,14 +2067,13 @@ class Compta extends Gvv_Controller {
                 // Add basic data validation and fallbacks
                 $row[] = date_db2ht($ecriture['date_op']); 
                 
-                // Make "Autre compte" a clickable link to the other account's journal
+                // Make "Autre compte" a clickable link to the other account's journal (for users with modification rights only)
                 $autre_compte_nom = isset($ecriture['autre_nom_compte']) ? $ecriture['autre_nom_compte'] : '';
                 $autre_compte_id = isset($ecriture['autre_compte']) ? $ecriture['autre_compte'] : '';
-                if (!empty($autre_compte_id) && !empty($autre_compte_nom)) {
-                    $autre_compte_link = '<a href="' . site_url("compta/journal_compte/$autre_compte_id") . '">' . htmlspecialchars($autre_compte_nom) . '</a>';
-                    $row[] = $autre_compte_link;
+                if ($has_modification_rights && !empty($autre_compte_id) && !empty($autre_compte_nom)) {
+                    $row[] = '<a href="' . site_url("compta/journal_compte/$autre_compte_id") . '">' . htmlspecialchars($autre_compte_nom) . '</a>';
                 } else {
-                    $row[] = $autre_compte_nom;
+                    $row[] = htmlspecialchars($autre_compte_nom);
                 }
                 
                 // Add description with paperclip icon
@@ -2114,7 +2113,8 @@ class Compta extends Gvv_Controller {
                 
                 // Gel column as checkbox with AJAX functionality
                 $gel_checked = ($ecriture['gel'] == '1') ? 'checked="checked"' : '';
-                $gel_checkbox = '<input type="checkbox" class="gel-checkbox" data-ecriture-id="' . $ecriture['id'] . '" ' . $gel_checked . ' />';
+                $gel_disabled = $has_modification_rights ? '' : ' disabled="disabled"';
+                $gel_checkbox = '<input type="checkbox" class="gel-checkbox" data-ecriture-id="' . $ecriture['id'] . '" ' . $gel_checked . $gel_disabled . ' />';
                 $row[] = $gel_checkbox;
                 
                 $aaData[] = $row;
