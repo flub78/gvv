@@ -122,6 +122,12 @@ class Procedures extends Gvv_Controller {
             show_404();
             return;
         }
+
+        $is_privileged_user = $this->dx_auth->is_role('ca') || $this->dx_auth->is_role('admin') || $this->dx_auth->is_admin();
+        if (!$is_privileged_user && $procedure['status'] !== 'published') {
+            show_404();
+            return;
+        }
         
         $data = array();
         $data['procedure'] = $procedure;
@@ -158,6 +164,11 @@ class Procedures extends Gvv_Controller {
      * Affiche le formulaire de modification
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
+        if (!$this->dx_auth->is_role('ca') && !$this->dx_auth->is_admin()) {
+            show_404();
+            return;
+        }
+
         $record = $this->procedures_model->get_by_id('id', $id);
         if (!$record) {
             show_404();
@@ -421,6 +432,11 @@ class Procedures extends Gvv_Controller {
      * Télécharger un fichier
      */
     function download($id, $filename) {
+        if (!$this->dx_auth->is_logged_in() || !$this->dx_auth->is_role('user')) {
+            show_404();
+            return;
+        }
+
         $procedure = $this->procedures_model->get_by_id('id', $id);
         if (!$procedure) {
             show_404();

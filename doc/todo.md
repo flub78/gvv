@@ -25,6 +25,45 @@ Cela implique de:
 * Vérifier le support de la facturation ULM et avion
 * Mettre en place une stratégie de migration
 
+#### Tests manuels authorisations
+
+#### Utilisateur de base
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+  
+#### Planchiste
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+  
+#### Membre du CA
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+  
+#### Instructeur (réduire les test à formation)
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+
+#### RP (réduire les tests à RP et instructeur)
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+  
+#### Trésorier (réduire les tests à trésorerie)
+* [ ] tous les liens et menus visibles sont accessibles sans erreur
+* [ ] pas de lien vers des fonctionnalités interdites
+* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
+* [ ] Les fonctionnalités autorisées sont accessibles
+  
+
 ## Reste à faire
 
 * [ ] Migration des tests

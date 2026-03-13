@@ -231,6 +231,33 @@ class Gvv_Controller extends CI_Controller {
     }
 
     /**
+     * Ensure current user has modification rights for this controller.
+     *
+     * Uses controller-level modification_level when defined. Visualisation mode
+     * is exempt because it is read-only.
+     *
+     * @param string $action CREATION | MODIFICATION | VISUALISATION
+     * @return bool
+     */
+    protected function ensure_modification_rights($action = MODIFICATION)
+    {
+        if ($action == VISUALISATION) {
+            return TRUE;
+        }
+
+        if (!isset($this->modification_level) || $this->modification_level === '') {
+            return TRUE;
+        }
+
+        if ($this->dx_auth->is_admin() || $this->user_has_role($this->modification_level)) {
+            return TRUE;
+        }
+
+        show_404();
+        return FALSE;
+    }
+
+    /**
      * Retrieve raw POST value for a field (bypasses global XSS filtering)
      *
      * @param string $field
@@ -279,6 +306,10 @@ class Gvv_Controller extends CI_Controller {
      * Supprime un élèment
      */
     function delete($id) {
+        if (!$this->ensure_modification_rights(MODIFICATION)) {
+            return;
+        }
+
         // détruit en base
         $this->pre_delete($id);
         $this->gvv_model->delete(array(
@@ -301,6 +332,10 @@ class Gvv_Controller extends CI_Controller {
      *            | MODIFICATION | VISUALISATION
      */
     function edit($id = "", $load_view = TRUE, $action = MODIFICATION) {
+        if (!$this->ensure_modification_rights($action)) {
+            return;
+        }
+
         // charge les données
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 

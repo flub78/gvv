@@ -16,7 +16,9 @@ https://gvv.planeur-abbeville.fr/index.php/archived_documents/view/16
 
 En incrémentant ou en devinant l'ID, un attaquant peut potentiellement accéder à des documents personnels (licences, certificats médicaux, attestations), des enregistrements de vols ou d'autres données sensibles d'autres membres.
 
-Il faut également considérer un besoin légitime : pouvoir **partager un document** à une personne externe au club (assureur, fédération) sans lui donner un accès complet à l'application.
+### Mise à jour (mars 2026)
+
+L'envoi d'URL de visualisation de documents aux utilisateurs a été supprimé. Cela réduit la surface d'exposition (moins de liens sensibles qui circulent), mais **ne supprime pas** le risque IDOR si des endpoints restent accessibles par URL directe et sans contrôle d'accès robuste.
 
 ---
 
@@ -142,46 +144,29 @@ Pour référence, les endpoints qui implémentent correctement la vérification 
 
 ---
 
-## 4. Solution recommandée : URL signées par jeton
+## 4. Position de sécurité après suppression de l'envoi d'URL
 
 ### Principe
 
-Pour les endpoints qui doivent être **partageables en dehors du cercle des membres** (archived_documents uniquement pour l'instant), remplacer ou compléter l'ID numérique par un **jeton opaque à usage contrôlé** (capability URL).
+Depuis la suppression de l'envoi des URL de visualisation, la priorité n'est plus la diffusion contrôlée de liens, mais le **renforcement systématique de l'autorisation côté serveur**.
 
-Pour les endpoints strictement **internes** (procédures, acceptations), la correction prioritaire est d'ajouter les vérifications d'autorisation manquantes — les URL signées ne sont pas nécessaires.
+Pour les endpoints strictement **internes** (procédures, acceptations, documents membres), la correction prioritaire reste d'ajouter les vérifications d'autorisation manquantes.
 
-### Architecture proposée pour le partage de documents
+### Impacts concrets de cette suppression
 
-#### Option A — Colonne `share_token` dans la table des documents (recommandée)
+- Réduction du risque de fuite par transfert d'URL (email, messagerie, copier-coller)
+- Diminution du besoin fonctionnel de mécanisme de liens partageables
+- Maintien d'un risque technique si un utilisateur peut appeler une URL interne qu'il ne devrait pas atteindre
 
-```sql
-ALTER TABLE archived_documents 
-    ADD COLUMN share_token VARCHAR(64) NULL UNIQUE,
-    ADD COLUMN share_token_expires_at DATETIME NULL,
-    ADD COLUMN share_token_created_by VARCHAR(80) NULL;
-```
+### Option future (si partage externe réintroduit)
 
-- Généré à la demande par un admin/bureau (jamais automatiquement)
-- Valeur : `hash('sha256', random_bytes(32))` — 64 caractères hexadécimaux
-- Durée de validité configurable (30 jours par défaut)
-- URL résultante : `/archived_documents/shared/{share_token}`
-
-```
-https://gvv.planeur-abbeville.fr/index.php/archived_documents/shared/
-    a3f7c2d891e4b506...
-```
-
-Cette URL peut être envoyée par email à un tiers (assureur, fédération) sans qu'il ait besoin d'un compte GVV.
-
-#### Option B — Obfuscation d'ID par hash (partielle)
-
-Remplacer `preview/56` par `preview/a3f7c2d8` en calculant `HMAC(id, secret_key)`. Cette approche masque l'ID mais ne résout pas le contrôle d'accès ni ne permet le partage externe — **non recommandée** comme solution principale.
+Si un besoin métier de partage externe réapparaît, réintroduire un mécanisme de lien signé à portée limitée (jeton opaque, expiration, révocation, journalisation), sans jamais exposer d'ID séquentiel.
 
 ### Ce que la solution NE fait PAS
 
 - Elle ne change pas les URLs des endpoints internes (qui doivent rester protégés par authentification)
 - Elle ne remplace pas les vérifications d'autorisation manquantes
-- Un jeton de partage ne donne accès qu'au fichier spécifique, pas à l'ensemble du compte
+- La suppression de l'envoi d'URL ne remplace pas le contrôle d'accès côté serveur
 
 ---
 
@@ -200,9 +185,9 @@ Remplacer `preview/56` par `preview/a3f7c2d8` en calculant `HMAC(id, secret_key)
 
 Auditer tous les contrôleurs héritant de `Gvv_Controller` qui ne surchargent pas `edit()` / `delete()` et qui utilisent uniquement `modification_level` comme protection. Ajouter une vérification dans les méthodes de base du contrôleur parent.
 
-### P2 — Partage de documents (nouvelle fonctionnalité)
+### P2 — Durcissement complémentaire
 
-Implémenter le mécanisme de jeton de partage pour `archived_documents` (Option A ci-dessus) afin de permettre le partage avec des tiers sans compte.
+Ajouter des tests de non-régression pour vérifier qu'aucune fonctionnalité n'envoie d'URL de visualisation de documents aux utilisateurs, et que tout accès direct reste soumis aux contrôles d'autorisation.
 
 ---
 
@@ -216,5 +201,7 @@ Implémenter le mécanisme de jeton de partage pour `archived_documents` (Option
 | ✅ Protégé | 8+ | `archived_documents/*`, `vols_planeur/*` |
 
 Les URLs pointées dans le rapport initial (`archived_documents/preview/56`, `archived_documents/view/16`) sont en réalité **correctement protégées** — elles redirigent vers `my_documents` si l'utilisateur n'est pas propriétaire ou admin. La vulnérabilité réelle se situe principalement dans les contrôleurs `procedures` et `acceptance_admin`.
+
+La suppression de l'envoi des URL de visualisation est une amélioration défensive utile, mais elle ne doit pas être considérée comme une correction IDOR en soi : l'autorisation doit toujours être validée côté serveur pour chaque endpoint.
 
 La priorité immédiate est de corriger les 4 méthodes identifiées en **P0**, qui représentent des risques d'exposition de données personnelles (médicales, de formation) sans authentification ni contrôle d'accès.

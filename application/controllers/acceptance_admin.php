@@ -419,6 +419,11 @@ class Acceptance_admin extends Gvv_Controller {
      * Download the PDF file of an item
      */
     function download($id) {
+        if (!$this->_is_admin()) {
+            show_404();
+            return;
+        }
+
         $item = $this->gvv_model->get_by_id('id', $id);
         if (!$item || empty($item['pdf_path'])) {
             show_404();
