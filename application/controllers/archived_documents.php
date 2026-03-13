@@ -1058,6 +1058,11 @@ class Archived_documents extends Gvv_Controller {
         $full_body = $body . "\n\nVoir le document : " . $preview_url;
         $this->email->message(nl2br(htmlspecialchars($full_body)));
 
+        if (file_exists($doc['file_path'])) {
+            $mime = mime_content_type($doc['file_path']);
+            $this->email->attach($doc['file_path'], 'attachment', $doc['original_filename'], $mime);
+        }
+
         if ($this->email->send()) {
             $msg = '<div class="alert alert-success alert-dismissible fade show">'
                  . '<i class="fas fa-check"></i> '
