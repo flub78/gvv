@@ -343,9 +343,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
         <div class="modal-footer">
           <div class="d-flex gap-2 justify-content-end w-100">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-            <button type="button" class="btn btn-outline-secondary" id="docEmailMailtoBtn">
-              <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_email_open_client') ?>
-            </button>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-paper-plane"></i> <?= $this->lang->line('archived_documents_email_send') ?>
             </button>
@@ -360,8 +357,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
 (function() {
     var senderSignature = <?= json_encode(isset($sender_signature) ? $sender_signature : $this->config->item('nom_club')) ?>;
     var sendEmailBaseUrl  = <?= json_encode(site_url('archived_documents/send_email')) ?> + '/';
-    var previewBaseUrl    = <?= json_encode(site_url('archived_documents/preview')) ?> + '/';
-    var currentDocId = null;
 
     function buildEmailBody(subject) {
         return "Bonjour,\n\nVoici le document " + subject + "\n\nCordialement,\n" + senderSignature;
@@ -373,7 +368,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
             var recipient = this.getAttribute('data-recipient');
             var subject   = this.getAttribute('data-subject');
 
-            currentDocId = docId;
             document.getElementById('docEmailRecipient').value = recipient;
             document.getElementById('docEmailSubject').value   = subject;
             document.getElementById('docEmailBody').value      = buildEmailBody(subject);
@@ -382,23 +376,6 @@ document.getElementById('clear-filters').addEventListener('click', function() {
             var modal = new bootstrap.Modal(document.getElementById('docEmailModal'));
             modal.show();
         });
-    });
-
-    document.getElementById('docEmailMailtoBtn').addEventListener('click', function() {
-        var recipient = document.getElementById('docEmailRecipient').value;
-        var subject   = document.getElementById('docEmailSubject').value;
-        var body      = document.getElementById('docEmailBody').value;
-
-        // Ajouter le lien de téléchargement dans le corps du mail
-        var bodyWithLink = body;
-        if (currentDocId) {
-            bodyWithLink += "\n\nVoir le document : " + previewBaseUrl + currentDocId;
-        }
-
-        var mailto = 'mailto:' + encodeURIComponent(recipient)
-            + '?subject=' + encodeURIComponent(subject)
-            + '&body=' + encodeURIComponent(bodyWithLink);
-        window.open(mailto, '_blank');
     });
 })();
 </script>

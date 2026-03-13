@@ -1054,9 +1054,7 @@ class Archived_documents extends Gvv_Controller {
         $this->email->to($recipient);
         $this->email->subject($subject);
 
-        $preview_url = site_url('archived_documents/preview/' . $id);
-        $full_body = $body . "\n\nVoir le document : " . $preview_url;
-        $this->email->message(nl2br(htmlspecialchars($full_body)));
+        $this->email->message(nl2br(htmlspecialchars($body)));
 
         if (file_exists($doc['file_path'])) {
             $mime = mime_content_type($doc['file_path']);
