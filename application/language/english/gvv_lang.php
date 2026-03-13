@@ -89,6 +89,7 @@ $lang['gvv_menu_entries_wire_transfer'] = "Wire transfer";
 $lang['gvv_menu_entries_wire_deposit'] = "Cash deposit";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Cash withdrawal";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Repayment of loan capital";
+$lang['gvv_menu_entries_depreciation'] = "Depreciation entry";
 $lang['gvv_menu_entries_section_collection'] = "Collection for a section";
 $lang['gvv_menu_entries_section_reversal'] = "Section reversal";
 $lang['welcome_section_operations_title'] = "Section Operations";

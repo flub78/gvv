@@ -18,6 +18,7 @@ $lang['gvv_compta_title_avoir_use'] = "Expense paid with supplier credit";
 $lang['gvv_compta_title_depot'] = "Cash deposit";
 $lang['gvv_compta_title_retrait'] = "Cash withdrawal";
 $lang['gvv_compta_title_remb_capital'] = "Loan capital repayment";
+$lang['gvv_compta_title_amortissement'] = "Depreciation entry";
 $lang['gvv_compta_title_encaissement_section'] = "Collection for a section";
 $lang['gvv_compta_title_reversement_section'] = "Section reversal";
 $lang['gvv_compta_title_saisie_cotisation'] = "Membership Fee Entry";

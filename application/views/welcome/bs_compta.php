@@ -62,6 +62,7 @@ echo ul($list, $attributes);
 
 echo heading("welcome_special_entries_title", 4);
 $list = array(
+    anchor(controller_url('compta/amortissement'), $this->lang->line("gvv_menu_entries_depreciation"), array("class" => "jbutton")),
     anchor(controller_url('compta/create'), $this->lang->line("welcome_global_entries_title"), array("class" => "jbutton")),
 );
 echo ul($list, $attributes);

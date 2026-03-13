@@ -83,6 +83,7 @@ $lang['gvv_menu_entries_wire_transfer'] = "Overschrijving";
 $lang['gvv_menu_entries_wire_deposit'] = "Contante storting";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Vloeistofonttrekking";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Terugbetaling leenkapitaal";
+$lang['gvv_menu_entries_depreciation'] = "Afschrijvingsboeking";
 $lang['gvv_menu_entries_section_collection'] = "Inning voor een sectie";
 $lang['gvv_menu_entries_section_reversal'] = "Sectie omkering";
 $lang['welcome_section_operations_title'] = "Sectie operaties";

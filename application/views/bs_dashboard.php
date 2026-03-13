@@ -662,6 +662,16 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <!-- Depreciation -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-tools text-secondary"></i>
+                        <div class="card-title">Amortissement</div>
+                        <div class="card-text text-muted">68x / 281x</div>
+                        <a href="<?= controller_url('compta/amortissement') ?>" class="btn btn-secondary btn-sm">Saisir</a>
+                    </div>
+                </div>
+
                 <!-- Section Operations -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">

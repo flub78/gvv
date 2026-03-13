@@ -926,6 +926,15 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Ecriture d'amortissement (68x → 281x)
+     */
+    function amortissement() {
+        $this->ecriture("gvv_compta_title_amortissement",
+        ["codec" => "68"],
+        ["codec" => "281"]);
+    }
+
+    /**
      * Remboursement capital d'un emprunt
      */
     function remb_capital() {
