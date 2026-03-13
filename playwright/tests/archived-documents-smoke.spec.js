@@ -240,4 +240,40 @@ test.describe('Archived Documents Smoke Tests', () => {
     console.log('Email modal opens correctly with pre-filled fields');
   });
 
+  test('admin can send document email and gets success flash message', async ({ page }) => {
+    await login(page, ADMIN_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+
+    const emailButtons = page.locator('.doc-email-btn');
+    const count = await emailButtons.count();
+    if (count === 0) {
+      console.log('No documents in DB - skipping send test');
+      return;
+    }
+
+    // Open modal for first document
+    await emailButtons.first().click();
+    const modal = page.locator('#docEmailModal');
+    await expect(modal).toBeVisible({ timeout: 3000 });
+
+    // Override recipient to a public test address (visible at mailinator.com/v4/public/inboxes.jsp?to=test-gvv)
+    await page.locator('#docEmailRecipient').fill('test-gvv@mailinator.com');
+
+    // Submit the form
+    const form = modal.locator('form');
+    await form.evaluate(f => f.submit());
+
+    // Should redirect back to list with success alert
+    await page.waitForLoadState('networkidle');
+    expect(page.url()).toContain('archived_documents');
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 5000 });
+
+    const alertText = await page.locator('.alert-success').textContent();
+    expect(alertText).toContain('test-gvv@mailinator.com');
+
+    console.log('Document email sent successfully, flash message shown');
+  });
+
 });

@@ -358,14 +358,13 @@ document.getElementById('clear-filters').addEventListener('click', function() {
 
 <script>
 (function() {
-    var nomClub = <?= json_encode($this->config->item('nom_club')) ?>;
-    var emailClub = <?= json_encode($this->config->item('email_club')) ?>;
+    var senderSignature = <?= json_encode(isset($sender_signature) ? $sender_signature : $this->config->item('nom_club')) ?>;
     var sendEmailBaseUrl  = <?= json_encode(site_url('archived_documents/send_email')) ?> + '/';
-    var downloadBaseUrl   = <?= json_encode(site_url('archived_documents/download')) ?> + '/';
+    var previewBaseUrl    = <?= json_encode(site_url('archived_documents/preview')) ?> + '/';
     var currentDocId = null;
 
     function buildEmailBody(subject) {
-        return "Bonjour,\n\nVoici le document " + subject + "\n\nCordialement,\n" + nomClub + "\n" + emailClub;
+        return "Bonjour,\n\nVoici le document " + subject + "\n\nCordialement,\n" + senderSignature;
     }
 
     document.querySelectorAll('.doc-email-btn').forEach(function(btn) {
@@ -393,7 +392,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
         // Ajouter le lien de téléchargement dans le corps du mail
         var bodyWithLink = body;
         if (currentDocId) {
-            bodyWithLink += "\n\nTélécharger le document : " + downloadBaseUrl + currentDocId;
+            bodyWithLink += "\n\nVoir le document : " + previewBaseUrl + currentDocId;
         }
 
         var mailto = 'mailto:' + encodeURIComponent(recipient)

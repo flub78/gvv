@@ -60,6 +60,7 @@ class Archived_documents extends Gvv_Controller {
         $this->load->model('sections_model');
         $this->load->model('planeurs_model');
         $this->load->model('avions_model');
+        $this->load->model('configuration_model');
 
         $this->table_view = $this->controller . '/documentsListView';
     }
@@ -242,6 +243,7 @@ class Archived_documents extends Gvv_Controller {
             ->order_by('mnom, mprenom')
             ->get()->result_array();
         $this->data['member_emails'] = $member_rows;
+        $this->data['sender_signature'] = $this->configuration_model->get_param('vd.email.sender_signature');
 
         return load_last_view($this->controller . '/documentsListView', $this->data, $this->unit_test);
     }
@@ -1052,8 +1054,8 @@ class Archived_documents extends Gvv_Controller {
         $this->email->to($recipient);
         $this->email->subject($subject);
 
-        $download_url = site_url('archived_documents/download/' . $id);
-        $full_body = $body . "\n\nTélécharger le document : " . $download_url;
+        $preview_url = site_url('archived_documents/preview/' . $id);
+        $full_body = $body . "\n\nVoir le document : " . $preview_url;
         $this->email->message(nl2br(htmlspecialchars($full_body)));
 
         if ($this->email->send()) {
