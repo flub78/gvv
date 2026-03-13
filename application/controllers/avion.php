@@ -50,9 +50,14 @@ class Avion extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view accessible to all users, create/edit/delete requires ca (via modification_level)
+        // page/view accessible to all users, create/edit/delete requires ca
         if ($this->use_new_auth) {
-            $this->require_roles(['user']);
+            $method = $this->router->fetch_method();
+            if (in_array($method, ['create', 'delete', 'formValidation'])) {
+                $this->require_roles(['ca']);
+            } else {
+                $this->require_roles(['user']);
+            }
         }
 
         $this->load->model('tarifs_model');

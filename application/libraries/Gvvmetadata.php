@@ -402,6 +402,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_tickets']['pilote']['Subtype'] = 'key';
                 $this->field['vue_tickets']['pilote']['Action'] = 'membre/edit';
                 $this->field['vue_tickets']['pilote']['Image'] = 'pilote_image';
+                $this->field['vue_tickets']['pilote']['RequiredRole'] = 'ca';
                 $this->field['vue_tickets']['vol']['Subtype'] = 'key';
                 $this->field['vue_tickets']['vol']['Action'] = 'vols_planeur/edit';
                 $this->field['vue_tickets']['vol']['Image'] = 'vol_image';
@@ -508,6 +509,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_vols_avion']['vapilid']['Subtype'] = 'key';
                 $this->field['vue_vols_avion']['vapilid']['Action'] = 'membre/edit';
                 $this->field['vue_vols_avion']['vapilid']['Image'] = 'pilote';
+                $this->field['vue_vols_avion']['vapilid']['RequiredRole'] = 'ca';
                 $this->field['vue_vols_avion']['vamacid']['Subtype'] = 'key';
                 $this->field['vue_vols_avion']['vamacid']['Action'] = 'avion/edit';
 
@@ -555,6 +557,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_vols_planeur']['vppilid']['Subtype'] = 'key';
                 $this->field['vue_vols_planeur']['vppilid']['Action'] = 'membre/edit';
                 $this->field['vue_vols_planeur']['vppilid']['Image'] = 'pilote';
+                $this->field['vue_vols_planeur']['vppilid']['RequiredRole'] = 'ca';
                 $this->field['vue_vols_planeur']['vpmacid']['Subtype'] = 'key';
                 $this->field['vue_vols_planeur']['vpmacid']['Action'] = 'planeur/edit';
 
@@ -661,6 +664,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_pompes']['ppilid']['Subtype'] = 'key';
                 $this->field['vue_pompes']['ppilid']['Action'] = 'membre/edit';
                 $this->field['vue_pompes']['ppilid']['Image'] = 'utilisateur';
+                $this->field['vue_pompes']['ppilid']['RequiredRole'] = 'ca';
                 $this->field['vue_pompes']['pmacid']['Name'] = 'Appareil';
                 $this->field['vue_pompes']['ptype']['Name'] = 'Type Mvt';
                 $this->field['vue_pompes']['ptype']['Subtype'] = 'enumerate';

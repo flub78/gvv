@@ -63,9 +63,14 @@ class Alarmes extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // index accessible to all users (view own conditions), modifications require ca (via modification_level)
+        // index accessible to all users, create/edit/delete requires ca
         if ($this->use_new_auth) {
-            $this->require_roles(['user']);
+            $method = $this->router->fetch_method();
+            if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
+                $this->require_roles(['ca']);
+            } else {
+                $this->require_roles(['user']);
+            }
         }
 
         $this->load->model('membres_model');

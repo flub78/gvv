@@ -106,8 +106,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['partage'] = $this->config->item('partage');
 
         $this->data['default_user'] = $this->membres_model->default_id();
-        if (! $this->dx_auth->is_role('planchiste', true, true) && ($this->config->item('auto_planchiste'))) {
-            // Si l'utilisateur n'est pas planchiste mais que le système est 'auto_planchiste'
+        if (! $this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
             $this->data['auto_planchiste'] = true;
             $this->data['payeur_non_pilote'] = false;
             $this->data['partage'] = false;
@@ -187,6 +186,11 @@ class Vols_avion extends Gvv_Controller {
             }
         }
         
+        // Server-side enforcement: auto_planchiste can only create flights for themselves
+        if (!$this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
+            $processed_data['vapilid'] = $this->dx_auth->get_username();
+        }
+
         $duree = $processed_data['vaduree'];
         $pattern = "\d+h\d+";
         // var_dump($processed_data);
@@ -206,8 +210,9 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::create()
      */
     function create() {
-        if (! $this->user_has_role('planchiste')) {
+        if (! $this->user_has_role('planchiste') && ! $this->user_has_role('auto_planchiste')) {
             $this->dx_auth->deny_access();
+            return;
         }
         parent::create(TRUE);
         $this->data['vaid'] = 0;
@@ -235,16 +240,22 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = '', $load_view = true, $action = MODIFICATION) {
-        // Allow planchiste or the pilot of this flight
-        if (! $this->dx_auth->is_role('planchiste')) {
+        // planchiste: full access; auto_planchiste: edit own flights; others: view own flights only
+        $is_planchiste = $this->user_has_role('planchiste');
+        $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        if (! $is_planchiste) {
             $flight = $this->model->get_by_id('vaid', $id);
             $mlogin = $this->dx_auth->get_username();
-            if (empty($flight) || $flight['vapilid'] != $mlogin) {
+            $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
+            if (! $is_own_flight) {
                 $this->dx_auth->deny_access();
                 return;
             }
-            // Pilot can only view, not modify their own flight
-            $action = VISUALISATION;
+            if (! $is_auto_planchiste) {
+                // Regular user: view only
+                $action = VISUALISATION;
+            }
+            // auto_planchiste with own flight: keep MODIFICATION
         }
 
         $this->load->model('ecritures_model');
@@ -280,8 +291,18 @@ class Vols_avion extends Gvv_Controller {
      * Supprime un élèment
      */
     function delete($id) {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+        if (! $this->user_has_role('planchiste')) {
+            if ($this->user_has_role('auto_planchiste')) {
+                $flight = $this->gvv_model->get_by_id($this->kid, $id);
+                $mlogin = $this->dx_auth->get_username();
+                if (empty($flight) || $flight['vapilid'] != $mlogin) {
+                    $this->dx_auth->deny_access();
+                    return;
+                }
+            } else {
+                $this->dx_auth->deny_access();
+                return;
+            }
         }
 
         $this->load->model('ecritures_model');
@@ -479,8 +500,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
 
         $this->data['default_user'] = $this->membres_model->default_id();
-        if (! $this->dx_auth->is_role('planchiste', true, true) && ($this->config->item('auto_planchiste'))) {
-            // Si l'utilisateur n'est pas planchiste mais que le système est 'auto_planchiste'
+        if (! $this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
             $this->data['auto_planchiste'] = true;
             $this->data['payeur_non_pilote'] = false;
             $this->data['partage'] = false;

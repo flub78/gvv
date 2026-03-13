@@ -158,6 +158,17 @@ class Vols_planeur extends Gvv_Controller {
             }
         }
 
+        // For auto_planchiste (not planchiste), restrict pilot selector to themselves only
+        $is_planchiste = $this->user_has_role('planchiste');
+        $is_auto_planchiste = !$is_planchiste && $this->user_has_role('auto_planchiste');
+        if ($is_auto_planchiste) {
+            $mlogin = $this->dx_auth->get_username();
+            $pilote_selector = array($mlogin => $this->membres_model->image($mlogin));
+            $this->data['auto_planchiste'] = true;
+        } else {
+            $this->data['auto_planchiste'] = false;
+        }
+
         // Avec les méta-données
         $this->gvvmetadata->set_selector('machine_selector', $this->planeurs_model->selector(array (
                 'actif' => 1
@@ -363,8 +374,17 @@ class Vols_planeur extends Gvv_Controller {
      */
     function delete($id) {
         if (! $this->user_has_role('planchiste')) {
-            $this->dx_auth->deny_access();
-            return;
+            if ($this->user_has_role('auto_planchiste')) {
+                $flight = $this->gvv_model->get_by_id($this->kid, $id);
+                $mlogin = $this->dx_auth->get_username();
+                if (empty($flight) || $flight['vppilid'] != $mlogin) {
+                    $this->dx_auth->deny_access();
+                    return;
+                }
+            } else {
+                $this->dx_auth->deny_access();
+                return;
+            }
         }
         
         $this->load->model('ecritures_model');
@@ -1766,6 +1786,12 @@ class Vols_planeur extends Gvv_Controller {
         if ($processed_data ['vpautonome'] == 1) {
             $processed_data ['pilote_remorqueur'] = $this->input->post('vptreuillard');
         }
+
+        // Server-side enforcement: auto_planchiste can only create flights for themselves
+        if (!$this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
+            $processed_data['vppilid'] = $this->dx_auth->get_username();
+        }
+
         return $processed_data;
     }
 

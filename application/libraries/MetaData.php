@@ -1232,6 +1232,14 @@ abstract class Metadata {
             }
             if ($mode == 'csv' || $mode == 'pdf')
                 return $label;
+            // If a RequiredRole is set, only render the link when the user has that role
+            if (isset($this->field[$table][$field]['RequiredRole'])) {
+                $CI =& get_instance();
+                $required_role = $this->field[$table][$field]['RequiredRole'];
+                if (!$CI->dx_auth->is_role($required_role, true, true)) {
+                    return $label;
+                }
+            }
             $url = controller_url($action . "/$value");
             return anchor($url, $label);
         } elseif ('email' == $subtype) {

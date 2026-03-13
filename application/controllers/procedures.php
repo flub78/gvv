@@ -46,9 +46,14 @@ class Procedures extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // page accessible to all users, view/edit/delete requires ca (via modification_level)
+        // page accessible to all users, create/edit/delete requires ca
         if ($this->use_new_auth) {
-            $this->require_roles(['user']);
+            $method = $this->router->fetch_method();
+            if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
+                $this->require_roles(['ca']);
+            } else {
+                $this->require_roles(['user']);
+            }
         }
 
         $this->lang->load('procedures');

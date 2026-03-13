@@ -60,6 +60,8 @@ echo form_open_multipart(controller_url($controller) . "/formValidation/" . $act
 // hidden controller url for javascript access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
+if (!$has_modification_rights) echo '<fieldset disabled>';
+
 // ========================================================================
 // PERSONAL INFORMATION SECTION
 // ========================================================================
@@ -575,6 +577,8 @@ $bar[] = array('label' => $this->lang->line("membre_button_subscription"), 'url'
 echo '<div class="mt-4 mb-4">';
 echo button_bar4($bar);
 echo '</div>';
+
+if (!$has_modification_rights) echo '</fieldset>';
 
 echo form_close();
 

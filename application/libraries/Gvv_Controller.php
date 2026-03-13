@@ -227,6 +227,7 @@ class Gvv_Controller extends CI_Controller {
         if ($action == "visualisation") {
             $this->data['readonly'] = "readonly";
         }
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
     }
 
     /**

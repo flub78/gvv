@@ -47,6 +47,7 @@ if (isset($kid) && isset($$kid)) {
 }
 
 // echo validation_errors();
+if (!$has_modification_rights) echo '<fieldset disabled>';
 echo ($this->gvvmetadata->form('machinesa', array(
     'macconstruc' => $macconstruc,
     'macmodele' => $macmodele,
@@ -63,8 +64,9 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'fabrication' => $fabrication,
     'comment' => $comment
 )));
+if (!$has_modification_rights) echo '</fieldset>';
 
-echo validation_button($action);
+if ($has_modification_rights) echo validation_button($action);
 echo form_close();
 
 echo '</div>';
