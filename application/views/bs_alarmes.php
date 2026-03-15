@@ -50,7 +50,7 @@ if (isset($text)) {
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
-if (true || $this->dx_auth->is_role('ca', true, true)) {
+if ($this->dx_auth->is_role('ca', true, true)) {
 echo 'Pilote: ' 
 		. dropdown_field('mlogin', $mlogin, $pilote_selector, "id='selector' onchange='new_alarm();'")
 		.br(2);

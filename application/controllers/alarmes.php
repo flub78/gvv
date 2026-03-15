@@ -229,9 +229,13 @@ class Alarmes extends Gvv_Controller {
      * checks experienc conditions for a user
      */
     function index($mlogin = "") {
-    	
-    	if (!$mlogin)
-    		$mlogin = $this->dx_auth->get_username();
+    	$current_login = $this->dx_auth->get_username();
+
+    	if (!$this->dx_auth->is_role('ca', true, true)) {
+    		$mlogin = $current_login;
+    	} elseif (!$mlogin) {
+    		$mlogin = $current_login;
+    	}
     	
     	$data['mlogin'] = $mlogin;
     	$data['pilote_selector'] = $this->membres_model->selector(array('actif' => 1));
