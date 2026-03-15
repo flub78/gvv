@@ -41,6 +41,14 @@ function get_statut_badge($statut) {
 }
 
 ?>
+<style>
+.collapse-indicator {
+    transition: transform 0.2s ease;
+}
+[aria-expanded="false"] .collapse-indicator {
+    transform: rotate(-90deg);
+}
+</style>
 <div id="body" class="body container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>
@@ -76,13 +84,16 @@ function get_statut_badge($statut) {
 
     <!-- Informations générales -->
     <div class="card mb-3">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
+        <div class="card-header bg-primary text-white d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseInfo" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-info-circle" aria-hidden="true"></i>
                 <?= $this->lang->line("gvv_str_informations") ?>
             </h5>
             <?= get_statut_badge($inscription['statut']) ?>
+            <i class="fas fa-chevron-down collapse-indicator ms-2" aria-hidden="true"></i>
         </div>
+        <div id="collapseInfo" class="collapse show">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -187,17 +198,21 @@ function get_statut_badge($statut) {
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+        </div><!-- #collapseInfo -->
     </div>
 
     <!-- Statistiques -->
     <?php if (!empty($stats)): ?>
     <div class="card mb-3">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0">
+        <div class="card-header bg-info text-white d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseStats" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-chart-bar" aria-hidden="true"></i>
                 <?= $this->lang->line("formation_progression_statistiques") ?>
             </h5>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
+        <div id="collapseStats" class="collapse show">
         <div class="card-body">
             <div class="row text-center">
                 <div class="col-md-3">
@@ -226,17 +241,21 @@ function get_statut_badge($statut) {
                 </div>
             </div>
         </div>
+        </div><!-- #collapseStats -->
     </div>
     <?php endif; ?>
 
     <!-- Progression -->
     <div class="card mb-3">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
+        <div class="card-header bg-success text-white d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseProgression" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-tasks" aria-hidden="true"></i>
                 <?= $this->lang->line("formation_progression_titre") ?>
             </h5>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
+        <div id="collapseProgression" class="collapse show">
         <div class="card-body">
             <p class="mb-2">
                 <strong><?= $progression['pourcentage'] ?>%</strong>
@@ -287,16 +306,20 @@ function get_statut_badge($statut) {
             </div>
             <?php endif; ?>
         </div>
+        </div><!-- #collapseProgression -->
     </div>
 
     <!-- Détail par leçon -->
     <div class="card mb-3">
-        <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0">
+        <div class="card-header bg-secondary text-white d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseLecons" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-book" aria-hidden="true"></i>
                 <?= $this->lang->line("formation_progression_detail_lecons") ?>
             </h5>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
+        <div id="collapseLecons" class="collapse show">
         <div class="card-body">
             <?php if (empty($lecons)): ?>
                 <p class="text-muted mb-0">
@@ -415,16 +438,20 @@ function get_statut_badge($statut) {
                 </div>
             <?php endif; ?>
         </div>
+        </div><!-- #collapseLecons -->
     </div>
 
     <!-- Historique des séances -->
     <div class="card mb-3">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
+        <div class="card-header bg-success text-white d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseSeances" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-history" aria-hidden="true"></i>
                 Historique des séances (<?= count($seances) ?>)
             </h5>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
+        <div id="collapseSeances" class="collapse show">
         <div class="card-body">
             <?php if (empty($seances)): ?>
                 <p class="text-muted">Aucune séance enregistrée</p>
@@ -501,22 +528,26 @@ function get_statut_badge($statut) {
                 </div>
             <?php endif; ?>
         </div>
+        </div><!-- #collapseSeances -->
     </div>
 
     <!-- Autorisations de vol solo -->
     <div class="card mb-3">
-        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+        <div class="card-header bg-warning text-dark d-flex align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#collapseAutorisations" style="cursor: pointer;" aria-expanded="true">
+            <h5 class="mb-0 flex-grow-1">
+                <i class="fas fa-clipboard-check me-1" aria-hidden="true"></i>
                 <?= $this->lang->line("formation_autorisations_solo") ?> (<?= count($autorisations_solo) ?>)
             </h5>
             <?php if (!empty($is_instructeur)): ?>
                 <a href="<?= controller_url('formation_autorisations_solo') ?>/create?inscription_id=<?= $inscription['id'] ?>"
-                   class="btn btn-sm btn-dark">
+                   class="btn btn-sm btn-dark me-2" onclick="event.stopPropagation()">
                     <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_autorisations_solo_create") ?>
                 </a>
             <?php endif; ?>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
+        <div id="collapseAutorisations" class="collapse show">
         <div class="card-body">
             <?php if (empty($autorisations_solo)): ?>
                 <p class="text-muted mb-0">
@@ -553,6 +584,7 @@ function get_statut_badge($statut) {
                 </div>
             <?php endif; ?>
         </div>
+        </div><!-- #collapseAutorisations -->
     </div>
 </div>
 
