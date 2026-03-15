@@ -229,16 +229,6 @@ if (is_logged_in() && $section_count > 1 && empty($section)) {
                 </ul>
               </li>
               <?php endif; ?>
-              <li><a class="dropdown-item" href="#"><i class="fas fa-graduation-cap text-primary"></i> <?= translation("gvv_menu_formation") ?> &raquo;</a>
-                <ul class="submenu dropdown-menu">
-                  <li><a class="dropdown-item" href="<?= controller_url("event/stats") ?>"><i class="fas fa-chart-bar text-info"></i> <?= translation("gvv_menu_formation_annuel") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url("event/formation") ?>"><i class="fas fa-graduation-cap text-success"></i> <?= translation("gvv_menu_formation_club") ?></a></li>
-                  <li><a class="dropdown-item" href="<?= controller_url("event/fai") ?>"><i class="fas fa-globe text-primary"></i> <?= translation("gvv_menu_formation_fai") ?></a></li>
-                  <?php if (has_role('ca')) : ?>
-                    <li><a class="dropdown-item" href="<?= controller_url("vols_planeur/par_pilote_machine") ?>"><i class="fas fa-user-tie text-warning"></i> <?= translation("gvv_menu_formation_pilote") ?></a></li>
-                  <?php endif; ?>
-                </ul>
-              </li>
             </ul>
           </li>
         <?php endif; ?>

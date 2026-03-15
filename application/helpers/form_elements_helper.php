@@ -653,7 +653,7 @@ if (! function_exists('button_bar4')) {
         $CI = &get_instance();
         $res = '<div class="ui-widget ui-buttonbar">';
         $res .= '<div class="ui-widget-header ui-corner-top">';
-        $res .= "<table><tr>\n";
+        $res .= '<div class="d-flex flex-wrap gap-2 py-1">' . "\n";
         foreach ($list as $button) {
             $url = isset($button['url']) ? $button['url'] : "";
             $label = isset($button['label']) ? $button['label'] : $url;
@@ -669,7 +669,6 @@ if (! function_exists('button_bar4')) {
                     continue;
                 }
             }
-            $res .= "\t<td>";
             if ($type == 'submit') {
                 $res .= form_input(array(
                     'type' => 'submit',
@@ -681,9 +680,9 @@ if (! function_exists('button_bar4')) {
             } else {
                 $res .= anchor($url, $label, $attrs);
             }
-            $res .= "</td>\n";
+            $res .= "\n";
         }
-        $res .= "</tr></table>";
+        $res .= "</div>";
         $res .= "</div>";
         $res .= "</div>";
         return $res;
