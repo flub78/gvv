@@ -167,8 +167,8 @@ class Sections_model extends Common_Model {
             return $this->selector_with_all();
         }
 
-        // 4. Sinon : uniquement les sections de l'utilisateur, sans "Toutes"
-        $ids = array_keys($user_section_ids);
+        // 4. Sinon : uniquement les sections où l'utilisateur a le rôle 'user', sans "Toutes"
+        $ids = array_keys($sections_with_user_role);
         if (empty($ids)) {
             return [];
         }

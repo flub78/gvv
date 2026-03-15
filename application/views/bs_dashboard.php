@@ -987,28 +987,6 @@ $this->lang->load('welcome');
                 </div>
             </div>
 
-            <!-- Organisation subsection -->
-            <h5 class="mt-4 mb-3">Organisation</h5>
-            <div class="row g-2">
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-layer-group text-success"></i>
-                        <div class="card-title">Sections</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm">Gérer</a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-list-alt text-primary"></i>
-                        <div class="card-title">Types de séances</div>
-                        <div class="card-text text-muted">Formation</div>
-                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
-                    </div>
-                </div>
-            </div>
-
             <!-- Gestion documentaire subsection -->
             <?php if ($this->config->item('gestion_documentaire')) : ?>
             <h5 class="mt-4 mb-3">Gestion documentaire</h5>
@@ -1133,6 +1111,29 @@ $this->lang->load('welcome');
                         <div class="card-title">Autorisations</div>
                         <div class="card-text text-muted">Gestion</div>
                         <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
+                    </div>
+                </div>
+
+                <!-- Sous-section Organisation -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-sitemap"></i> Organisation</h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-layer-group text-success"></i>
+                        <div class="card-title">Sections</div>
+                        <div class="card-text text-muted">Gestion</div>
+                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm">Gérer</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-list-alt text-primary"></i>
+                        <div class="card-title">Types de séances</div>
+                        <div class="card-text text-muted">Formation</div>
+                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
                     </div>
                 </div>
 

@@ -40,12 +40,21 @@ echo validation_errors();
 if ($action != CREATION) {
     $cpt = ($compte) ? $compte : $compte_pilote;
 
+    $show_planeurs = !isset($section_gestion_planeurs) || $section_gestion_planeurs;
+    $show_avions   = !isset($section_gestion_avions)   || $section_gestion_avions;
+
     $bar = array(
         array('label' => $this->lang->line("membre_link_billing"), 'url' => controller_url("compta/journal_compte/$cpt")),
-        array('label' => $this->lang->line("membre_link_certificats"), 'url' => controller_url("event/page/$mlogin")),
-        array('label' => $this->lang->line("membre_link_avion"), 'url' => controller_url("vols_avion/vols_du_pilote/$mlogin")),
-        array('label' => $this->lang->line("membre_link_glider"), 'url' => controller_url("vols_planeur/vols_du_pilote/$mlogin")),
     );
+    if ($show_planeurs) {
+        $bar[] = array('label' => $this->lang->line("membre_link_certificats"), 'url' => controller_url("event/page/$mlogin"));
+    }
+    if ($show_avions) {
+        $bar[] = array('label' => $this->lang->line("membre_link_avion"), 'url' => controller_url("vols_avion/vols_du_pilote/$mlogin"));
+    }
+    if ($show_planeurs) {
+        $bar[] = array('label' => $this->lang->line("membre_link_glider"), 'url' => controller_url("vols_planeur/vols_du_pilote/$mlogin"));
+    }
     if ($this->config->item('gestion_tickets')) {
         $bar[] = array('label' => $this->lang->line("membre_link_tickets"), 'url' => controller_url("tickets/page/0/$compte_ticket"));
     }

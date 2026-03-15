@@ -417,6 +417,11 @@ class Membre extends Gvv_Controller {
         $this->edit($mlogin, false, VISUALISATION);
         $this->data['action'] = VISUALISATION;
         $this->data['has_modification_rights'] = false;
+
+        $active_section = $this->sections_model->section();
+        $this->data['section_gestion_planeurs'] = empty($active_section) || !empty($active_section['gestion_planeurs']);
+        $this->data['section_gestion_avions']   = empty($active_section) || !empty($active_section['gestion_avions']);
+
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
