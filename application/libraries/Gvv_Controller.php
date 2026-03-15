@@ -199,6 +199,7 @@ class Gvv_Controller extends CI_Controller {
                 $this->use_new_auth = TRUE;
                 $this->migration_status = 'per_user_pilot';
                 log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (per-user)");
+                $this->session->set_userdata('use_new_auth', TRUE);
                 return;
             }
         }
@@ -209,6 +210,8 @@ class Gvv_Controller extends CI_Controller {
             $this->migration_status = 'global_enabled';
             log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (global)");
         }
+
+        $this->session->set_userdata('use_new_auth', $this->use_new_auth);
     }
 
     /**
@@ -1147,6 +1150,18 @@ class Gvv_Controller extends CI_Controller {
             return $this->allow_roles([$role], $section_id);
         }
         return $this->dx_auth->is_role($role, true, true);
+    }
+
+    /**
+     * Public accessor for views: returns TRUE if the new authorization system
+     * is active for the current user. Used by bs_menu.php to filter the
+     * section selector.
+     *
+     * @return bool
+     */
+    public function uses_new_auth()
+    {
+        return $this->use_new_auth;
     }
 
     /**

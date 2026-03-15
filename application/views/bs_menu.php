@@ -38,7 +38,9 @@ $section = $CI->sections_model->section();
 $active_section_missing = FALSE;
 
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
-if (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth() && $CI->dx_auth->is_logged_in()) {
+$_uses_new_auth = $CI->session->userdata('use_new_auth')
+    || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
+if ($_uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $user_id = $CI->dx_auth->get_user_id();
     $section_selector = $CI->sections_model->selector_for_user($user_id);
     $section_count = count($section_selector);

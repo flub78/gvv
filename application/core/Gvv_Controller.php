@@ -131,6 +131,8 @@ class Gvv_Controller extends CI_Controller
                 $this->migration_status = 'per_user_pilot';
                 log_message('debug', "GVV_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (per-user migration)");
 
+                $this->session->set_userdata('use_new_auth', TRUE);
+
                 // Check if user has 'user' role for current section (non-hierarchical: login requires 'user' role)
                 $this->_check_login_permission();
                 return;
@@ -156,6 +158,8 @@ class Gvv_Controller extends CI_Controller
             $this->migration_status = 'legacy';
             log_message('debug', "GVV_Controller: User '$username' (ID: {$this->user_id}) using LEGACY authorization");
         }
+
+        $this->session->set_userdata('use_new_auth', $this->use_new_auth);
     }
 
     /**
