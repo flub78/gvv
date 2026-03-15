@@ -69,12 +69,14 @@ if ($this->session->flashdata('error')) {
                 <div class="accordion-body">
                     <form action="<?= controller_url($controller) . "/filterValidation/" . $action ?>" method="post" accept-charset="utf-8" name="saisie">
 
-                        <!-- Actifs-->
+                        <!-- Actifs (CA only) -->
+                        <?php if ($this->dx_auth->is_role('ca', true, true)): ?>
                         <div class="d-md-flex flex-row mb-2">
                             <div class="me-3 mb-2">
                                 <?= $this->lang->line("membre_filter_active") . ": " . enumerate_radio_fields($this->lang->line("membres_filter_active_select"), 'filter_membre_actif', $filter_membre_actif) ?>
                             </div>
                         </div>
+                        <?php endif; ?>
 
                         <!-- Age -->
                         <div class="d-md-flex flex-row  mb-2">

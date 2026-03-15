@@ -277,16 +277,23 @@ class Membre extends Gvv_Controller {
      */
     function selection() {
         $this->data['filter_active'] = $this->session->userdata('filter_active');
+        $is_ca = $this->dx_auth->is_role('ca', true, true);
 
         $selection = "";
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
 
+        // Non-CA members always see only active members
+        if (!$is_ca) {
+            $selection .= "(actif = 1)";
+        }
+
         if ($this->session->userdata('filter_active')) {
 
             $filter_membre_actif = $this->session->userdata('filter_membre_actif');
-            if ($filter_membre_actif) {
+            if ($is_ca && $filter_membre_actif) {
                 $filter_membre_actif--;
+                if ($selection) $selection .= " and ";
                 $selection .= "(actif = \"$filter_membre_actif\" )";
             }
 
