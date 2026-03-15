@@ -669,3 +669,8 @@ $lang['gvv_adherents_report_60_and_over'] = '60 ans et plus';
 $lang['gvv_adherents_report_total'] = 'Total';
 $lang['gvv_adherents_report_club_total'] = 'Total Club';
 $lang['gvv_adherents_report_note'] = 'Note : Le total club peut être inférieur à la somme des sections car certains membres pratiquent plusieurs activités.';
+
+$lang['gvv_drop_file_here'] = 'Glisser-déposer un fichier ici';
+$lang['gvv_or'] = 'ou';
+$lang['gvv_choose_file'] = 'Choisir un fichier';
+$lang['gvv_no_file_selected'] = 'Aucun fichier sélectionné';

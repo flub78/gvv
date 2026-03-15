@@ -79,30 +79,43 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
 
 <div class="row">
     <!-- Photo Upload Section (Left Column) -->
-    <?php if ($action != CREATION): ?>
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h6 class="card-title mb-3"><?php echo $this->lang->line("gvv_membres_field_photo"); ?></h6>
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title mb-3"><?php echo $this->lang->line("gvv_membres_field_photo"); ?></h6>
 
+                <?php if ($action != CREATION): ?>
                     <!-- Le bouton de suppression seulement si une photo existe -->
                     <?php if (isset($photo) && $photo != ''): ?>
                         <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'">
                             <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
                         </button>
                     <?php endif; ?>
-                    
+
                     <!-- L'input_field gère l'affichage de l'image ET le champ de téléchargement -->
-                    <div class="mt-2">
+                    <div class="mt-2" id="photo-upload-container">
                         <?php echo $this->gvvmetadata->input_field("membres", 'photo', $photo); ?>
                     </div>
+                <?php endif; ?>
+
+                <div id="photo-drop-zone" class="drop-zone mt-2">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-1"><?= $this->lang->line('gvv_drop_file_here') ?></p>
+                    <p class="text-muted small"><?= $this->lang->line('gvv_or') ?></p>
+                    <label for="fileInput" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-folder-open"></i> <?= $this->lang->line('gvv_choose_file') ?>
+                    </label>
+                    <?php if ($action == CREATION): ?>
+                        <input type="file" id="fileInput" name="userfile" class="d-none" accept=".jpg,.jpeg,.png,.gif">
+                    <?php endif; ?>
+                    <p class="mt-2 small text-muted" id="photo-drop-filename"><?= $this->lang->line('gvv_no_file_selected') ?></p>
                 </div>
             </div>
         </div>
-    <?php endif; ?>
+    </div>
 
     <!-- Personal Information Form (Right Column) -->
-    <div class="<?php echo ($action != CREATION) ? 'col-md-9' : 'col-md-12'; ?>">
+    <div class="col-md-9">
         <div class="row g-3">
 
             <!-- Login / Member Selection -->
@@ -593,3 +606,98 @@ echo form_close();
 
 echo '</div>';
 ?>
+
+<style>
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    background: #fafafa;
+}
+.drop-zone.drag-over {
+    border-color: #0d6efd;
+    background-color: #e8f0fe;
+}
+.drop-zone.has-file {
+    border-color: #198754;
+    background-color: #f0fff4;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var fileInput = document.getElementById('fileInput');
+    if (!fileInput) return;
+
+    var container = document.getElementById('photo-upload-container');
+    if (container) {
+        // Mode modification : masquer les contrôles rendus par les métadonnées
+        container.querySelectorAll('label[for="fileInput"], input[name="display_userfile"]').forEach(function (el) {
+            el.style.display = 'none';
+        });
+        fileInput.style.display = 'none';
+    }
+
+    var zone = document.getElementById('photo-drop-zone');
+    var filenameLabel = document.getElementById('photo-drop-filename');
+
+    function updatePreview(file) {
+        filenameLabel.textContent = file.name;
+        zone.classList.add('has-file');
+
+        // Mise à jour de la prévisualisation si une image est déjà affichée (modification)
+        var img = container ? container.querySelector('img') : null;
+        if (img) {
+            var reader = new FileReader();
+            reader.onload = function (e) { img.src = e.target.result; };
+            reader.readAsDataURL(file);
+        } else {
+            // Mode création : afficher une prévisualisation dans la drop zone
+            var preview = zone.querySelector('img.photo-preview');
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.className = 'photo-preview img-thumbnail mb-2';
+                preview.style.cssText = 'max-width:100%; max-height:150px; width:auto; height:auto;';
+                zone.insertBefore(preview, zone.firstChild);
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) { preview.src = e.target.result; };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    zone.addEventListener('click', function (e) {
+        if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+            fileInput.click();
+        }
+    });
+
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files.length > 0) {
+            updatePreview(this.files[0]);
+        }
+    });
+
+    zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', function () {
+        zone.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        var dt = e.dataTransfer;
+        if (dt.files.length > 0) {
+            fileInput.files = dt.files;
+            updatePreview(dt.files[0]);
+        }
+    });
+});
+</script>

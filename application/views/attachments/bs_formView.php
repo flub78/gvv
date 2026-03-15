@@ -65,3 +65,106 @@ $this->lang->load('attachments');
 		</div>
 	</div>
 </div>
+
+<style>
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    background: #fafafa;
+}
+.drop-zone.drag-over {
+    border-color: #0d6efd;
+    background-color: #e8f0fe;
+}
+.drop-zone.has-file {
+    border-color: #198754;
+    background-color: #f0fff4;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input[type="file"]').forEach(function (input) {
+        var inputId = input.id || input.name;
+
+        // Create drop zone wrapper
+        var zone = document.createElement('div');
+        zone.className = 'drop-zone';
+
+        var icon = document.createElement('i');
+        icon.className = 'fas fa-cloud-upload-alt fa-2x text-muted mb-2';
+
+        var text = document.createElement('p');
+        text.className = 'mb-1';
+        text.textContent = <?= json_encode($this->lang->line('gvv_drop_file_here')) ?>;
+
+        var orText = document.createElement('p');
+        orText.className = 'text-muted small';
+        orText.textContent = <?= json_encode($this->lang->line('gvv_or')) ?>;
+
+        var btnLabel = document.createElement('label');
+        btnLabel.className = 'btn btn-outline-secondary btn-sm';
+        if (input.id) btnLabel.setAttribute('for', input.id);
+        btnLabel.innerHTML = '<i class="fas fa-folder-open"></i> ' + <?= json_encode($this->lang->line('gvv_choose_file')) ?>;
+
+        var filenameLabel = document.createElement('p');
+        filenameLabel.className = 'mt-2 small text-muted';
+        filenameLabel.textContent = <?= json_encode($this->lang->line('gvv_no_file_selected')) ?>;
+
+        input.classList.add('d-none');
+
+        zone.appendChild(icon);
+        zone.appendChild(document.createElement('br'));
+        zone.appendChild(text);
+        zone.appendChild(orText);
+        zone.appendChild(btnLabel);
+        zone.appendChild(input.cloneNode(true));
+        zone.appendChild(filenameLabel);
+
+        // Replace original input with zone
+        input.parentNode.replaceChild(zone, input);
+
+        var newInput = zone.querySelector('input[type="file"]');
+
+        function updateFilename(files) {
+            if (files && files.length > 0) {
+                filenameLabel.textContent = files[0].name;
+                zone.classList.add('has-file');
+            }
+        }
+
+        zone.addEventListener('click', function (e) {
+            if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+                newInput.click();
+            }
+        });
+
+        newInput.addEventListener('change', function () {
+            updateFilename(this.files);
+        });
+
+        zone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', function () {
+            zone.classList.remove('drag-over');
+        });
+
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            var dt = e.dataTransfer;
+            if (dt.files.length > 0) {
+                newInput.files = dt.files;
+                updateFilename(dt.files);
+            }
+        });
+    });
+});
+</script>

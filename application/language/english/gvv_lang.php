@@ -657,3 +657,8 @@ $lang['gvv_adherents_report_60_and_over'] = '60 and over';
 $lang['gvv_adherents_report_total'] = 'Total';
 $lang['gvv_adherents_report_club_total'] = 'Club Total';
 $lang['gvv_adherents_report_note'] = 'Note: The club total may be less than the sum of sections because some members practice multiple activities.';
+
+$lang['gvv_drop_file_here'] = 'Drag and drop a file here';
+$lang['gvv_or'] = 'or';
+$lang['gvv_choose_file'] = 'Choose a file';
+$lang['gvv_no_file_selected'] = 'No file selected';

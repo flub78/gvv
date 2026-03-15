@@ -148,11 +148,20 @@ $this->lang->load('archived_documents');
 
         <!-- File upload -->
         <div class="mb-3 row">
-            <label for="userfile" class="col-sm-2 col-form-label">
+            <label class="col-sm-2 col-form-label">
                 <?= $this->lang->line('archived_documents_file') ?> <span class="text-danger">*</span>
             </label>
             <div class="col-sm-10">
-                <input type="file" name="userfile" id="userfile" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.odt,.ods,.odp,.ppt,.pptx,.html,.htm">
+                <div class="drop-zone" id="drop-zone-userfile">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-1"><?= $this->lang->line('gvv_drop_file_here') ?></p>
+                    <p class="text-muted small"><?= $this->lang->line('gvv_or') ?></p>
+                    <label for="userfile" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-folder-open"></i> <?= $this->lang->line('gvv_choose_file') ?>
+                    </label>
+                    <input type="file" name="userfile" id="userfile" class="d-none" required accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.odt,.ods,.odp,.ppt,.pptx,.html,.htm">
+                    <p class="mt-2 small text-muted drop-zone-filename" id="filename-userfile"><?= $this->lang->line('gvv_no_file_selected') ?></p>
+                </div>
                 <small class="text-muted"><?= $this->lang->line('archived_documents_file_formats') ?></small>
             </div>
         </div>
@@ -206,6 +215,73 @@ $this->lang->load('archived_documents');
 <?= form_close() ?>
 
 </div>
+
+<style>
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    background: #fafafa;
+}
+.drop-zone.drag-over {
+    border-color: #0d6efd;
+    background-color: #e8f0fe;
+}
+.drop-zone.has-file {
+    border-color: #198754;
+    background-color: #f0fff4;
+}
+</style>
+
+<script>
+function initDropZone(inputId) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    var zone = input.closest('.drop-zone');
+    var label = document.getElementById('filename-' + inputId);
+
+    function updateFilename(files) {
+        if (files && files.length > 0) {
+            label.textContent = files[0].name;
+            zone.classList.add('has-file');
+        }
+    }
+
+    zone.addEventListener('click', function (e) {
+        if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+            input.click();
+        }
+    });
+
+    input.addEventListener('change', function () {
+        updateFilename(this.files);
+    });
+
+    zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', function () {
+        zone.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        var dt = e.dataTransfer;
+        if (dt.files.length > 0) {
+            input.files = dt.files;
+            updateFilename(dt.files);
+        }
+    });
+}
+
+initDropZone('userfile');
+</script>
 
 <script>
 (function () {

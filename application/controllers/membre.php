@@ -692,49 +692,47 @@ class Membre extends Gvv_Controller {
                 $this->form_static_element($action);
                 load_last_view($this->form_view, $this->data);
                 return;
-            } else {
-                // Upload réussi
-                $upload_data = $this->upload->data();
-                $file_path = $upload_data['full_path'];
+            }
 
-                // Supprimer l'ancienne photo si elle existe
+            // Upload réussi
+            $upload_data = $this->upload->data();
+            $file_path = $upload_data['full_path'];
+
+            // Compression automatique
+            $this->load->library('file_compressor');
+            $compression_result = $this->file_compressor->compress($file_path, array(
+                'max_width' => 1600,
+                'max_height' => 1200,
+                'quality' => 85
+            ));
+
+            if ($compression_result['success']) {
+                log_message('info', "Member photo compressed: " . basename($file_path) .
+                           " - Ratio: " . round($compression_result['stats']['compression_ratio'] * 100) . "%");
+            } else {
+                log_message('info', "Member photo compression skipped: " . $compression_result['error']);
+            }
+
+            if ($action != CREATION) {
+                // Modification : supprimer l'ancienne photo et mettre à jour la BD directement
                 $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
                 if ($membre && !empty($membre['photo'])) {
                     $old_photo_path = './uploads/photos/' . $membre['photo'];
                     if (file_exists($old_photo_path)) {
                         unlink($old_photo_path);
                     }
-                    // Vérifier aussi dans l'ancien emplacement (uploads/ racine)
                     $old_photo_path_legacy = './uploads/' . $membre['photo'];
                     if (file_exists($old_photo_path_legacy)) {
                         unlink($old_photo_path_legacy);
                     }
                 }
-
-                // Compression automatique (Phase 2)
-                $this->load->library('file_compressor');
-                $compression_result = $this->file_compressor->compress($file_path, array(
-                    'max_width' => 1600,
-                    'max_height' => 1200,
-                    'quality' => 85
-                ));
-
-                if ($compression_result['success']) {
-                    log_message('info', "Member photo compressed: " . basename($file_path) .
-                               " - Ratio: " . round($compression_result['stats']['compression_ratio'] * 100) . "%");
-                } else {
-                    log_message('info', "Member photo compression skipped: " . $compression_result['error']);
-                }
-
-                // Mettre à jour la base de données avec le nom de fichier
-                $data = array(
-                    'photo' => $storage_file
-                );
-                $this->gvv_model->update(array(
-                    'mlogin' => $mlogin
-                ), $data);
-
+                $this->gvv_model->update(array('mlogin' => $mlogin), array('photo' => $storage_file));
                 redirect("membre/edit/$mlogin");
+                return;
+            } else {
+                // Création : injecter le nom de fichier dans POST pour que parent::formValidation
+                // crée le membre avec la photo incluse d'emblée
+                $_POST['photo'] = $storage_file;
             }
         }
 
