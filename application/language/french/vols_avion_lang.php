@@ -48,7 +48,7 @@ $lang['gvv_vols_avion_fieldset_flight_logs'] = "Choix de la planche";
 $lang['gvv_vols_avion_fieldset_conso'] = "Consommation";
 $lang['gvv_vols_avion_tooltip_conso'] = "Cliquez pour afficher/masquer les consommations.";
 
-$lang['gvv_vols_avion_tip_unit'] = "Les durées sont affichées en 1/100 d'heures, même quand les horamètres sont en minutes.";
+$lang['gvv_vols_avion_tip_unit'] = "Les durées sont calculées selon le format d'horamètre de la machine: décimal, heures/minutes ou 1/10 d'heure.";
 $lang['gvv_vols_avion_tip_billing'] = "Les paramètres de facturation sont définis dans la configuration des tarifs.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Par machine";

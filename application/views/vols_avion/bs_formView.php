@@ -41,7 +41,7 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 
 echo form_hidden('vaid', $vaid);
 echo form_hidden('saisie_par', $saisie_par, '');
-echo form_hidden('horametres_en_min', $horametres_en_min, '');
+echo form_hidden('horametres_mode', $horametres_mode, '');
 echo form_hidden('machines', $machines, '');
 
 // Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
@@ -226,3 +226,7 @@ echo $this->lang->line("gvv_vols_avion_tip_billing");
 echo '</div>';
 ?>
 <script type="text/javascript" src="<?php echo js_url('form_vols_avion'); ?>"></script>
+<script>
+var horametres_modes_data = <?= json_encode($horametres_mode ? $horametres_mode : (object)array()) ?>;
+var initial_horametre_mode = <?= isset($initial_horametre_mode) ? (int)$initial_horametre_mode : 0 ?>;
+</script>

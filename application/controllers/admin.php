@@ -2268,7 +2268,7 @@ INSERT INTO `machinesp` (`mpconstruc`, `mpmodele`, `mpimmat`, `mpnumc`, `mpnbhdv
 ('DG', 'DG800', 'F-CGAC', 'AC', 0.00, '1', 0, 0, 0, 1, 'gratuit', 'gratuit', 'gratuit', 180, 1, '', 0, 0, 0, '');
 
 -- Avions remorqueurs de test
-INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
+INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_mode`, `fabrication`) VALUES
 ('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Aeropol', 'Dynamic', 'F-JUFA', 0.00, 2, 1, 0, 1, 1, '', 'hdv-ULM', 'hdv-ULM', 0, 0);
 

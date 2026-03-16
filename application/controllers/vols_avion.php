@@ -35,6 +35,10 @@ include('./application/libraries/Gvv_Controller.php');
  *
  */
 class Vols_avion extends Gvv_Controller {
+    const HORAMETRE_CENTIEME = 0;
+    const HORAMETRE_MINUTES = 1;
+    const HORAMETRE_DIXIEME = 2;
+
     protected $controller = 'vols_avion';
     protected $model = 'vols_avion_model';
     protected $kid = 'vaid';
@@ -149,7 +153,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['machines'] = $this->avions_model->machine_list(array(
             'actif' => 1
         ));
-        $this->data['horametres_en_min'] = $this->avions_model->machine_list(array(
+        $this->data['horametres_mode'] = $this->avions_model->machine_list(array(
             'actif' => 1
         ), false);
 
@@ -166,6 +170,36 @@ class Vols_avion extends Gvv_Controller {
         $centiemes = $minutes / 60;
         $result = $hours + $centiemes;
         return $result;
+    }
+
+    private function get_horametre_mode($machine) {
+        if (!$machine) {
+            return self::HORAMETRE_CENTIEME;
+        }
+
+        $avion = $this->avions_model->get_by_id('macimmat', $machine);
+        if (!$avion) {
+            return self::HORAMETRE_CENTIEME;
+        }
+
+        if (isset($avion['horametre_mode'])) {
+            return intval($avion['horametre_mode']);
+        }
+
+        if (isset($avion['horametre_en_minutes'])) {
+            return intval($avion['horametre_en_minutes']);
+        }
+
+        return self::HORAMETRE_CENTIEME;
+    }
+
+    private function horametre_to_decimal_hours($value, $mode) {
+        $horametre = floatval($value);
+        if ($mode == self::HORAMETRE_MINUTES) {
+            return $this->to_hundredth($horametre);
+        }
+
+        return $horametre;
     }
 
     /**
@@ -191,12 +225,16 @@ class Vols_avion extends Gvv_Controller {
             $processed_data['vapilid'] = $this->dx_auth->get_username();
         }
 
-        $duree = $processed_data['vaduree'];
-        $pattern = "\d+h\d+";
-        // var_dump($processed_data);
-        if (preg_match('/' . $pattern . '/', $duree, $matches)) {
-            $debut = $this->to_hundredth($processed_data["vacdeb"]);
-            $fin = $this->to_hundredth($processed_data["vacfin"]);
+        if (
+            isset($processed_data['vamacid']) &&
+            isset($processed_data['vacdeb']) &&
+            isset($processed_data['vacfin']) &&
+            is_numeric($processed_data['vacdeb']) &&
+            is_numeric($processed_data['vacfin'])
+        ) {
+            $mode = $this->get_horametre_mode($processed_data['vamacid']);
+            $debut = $this->horametre_to_decimal_hours($processed_data['vacdeb'], $mode);
+            $fin = $this->horametre_to_decimal_hours($processed_data['vacfin'], $mode);
             $duree = intval(($fin - $debut) * 1000) / 1000;
             $processed_data['vaduree'] = $duree;
         }
@@ -270,6 +308,11 @@ class Vols_avion extends Gvv_Controller {
                 $this->data['payeur'] = $account['id'];
             }
         }
+
+        // Détermine le mode horamètre initial pour la machine sélectionnée
+        $horametres_mode = isset($this->data['horametres_mode']) ? $this->data['horametres_mode'] : array();
+        $vamacid = isset($this->data['vamacid']) ? $this->data['vamacid'] : '';
+        $this->data['initial_horametre_mode'] = isset($horametres_mode[$vamacid]) ? (int)$horametres_mode[$vamacid] : 0;
 
         // Recharge les evénements de formation
         $events = $this->event_model->flight_events(array(
@@ -995,8 +1038,17 @@ class Vols_avion extends Gvv_Controller {
         $avion = $this->avions_model->get_by_id('macimmat', $machine);
         $id = $avion['macimmat'];
         $places = $avion['macplaces'];
-        if ($avion['horametre_en_minutes']) {
+        if (isset($avion['horametre_mode'])) {
+            $horametre_mode = intval($avion['horametre_mode']);
+        } elseif (isset($avion['horametre_en_minutes'])) {
+            $horametre_mode = intval($avion['horametre_en_minutes']);
+        } else {
+            $horametre_mode = self::HORAMETRE_CENTIEME;
+        }
+        if ($horametre_mode == self::HORAMETRE_MINUTES) {
             $unit = 'min';
+        } elseif ($horametre_mode == self::HORAMETRE_DIXIEME) {
+            $unit = 'tenth';
         } else {
             $unit = 'cent';
         }

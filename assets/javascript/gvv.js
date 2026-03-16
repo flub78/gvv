@@ -94,6 +94,26 @@ function to_hours_mins(hc) {
 	return result;
 }
 
+function horametre_mode() {
+	var selected_machine = $('#vamacid').val();
+	// Utilise les données inline injectées par PHP (plus fiable que les sélecteurs CSS)
+	if (typeof horametres_modes_data !== 'undefined' &&
+	    horametres_modes_data.hasOwnProperty(selected_machine)) {
+		var mode = parseInt(horametres_modes_data[selected_machine], 10);
+		return isNaN(mode) ? 0 : mode;
+	}
+	// Fallback: lecture depuis les champs cachés (formulaire vols planeur, etc.)
+	var mode = 0;
+	$('[name="machines[]"]').each(function () {
+		var id = $(this).val();
+		if (id == selected_machine) {
+			var value = '[name="horametres_mode[' + id + ']"]';
+			mode = parseInt($(value).val(), 10);
+		}
+	});
+	return isNaN(mode) ? 0 : mode;
+}
+
 /*
  * Calcul de la durée en 1/100 eme horamètre <FORM name="saisie" <INPUT
  * name="deb" type="text" size="5" maxlength="8" value="" onChange="calcul()">
@@ -118,18 +138,7 @@ function calcul() {
 			return;
 		}
 		
-		// Recherche si une machine a son horamètre en minutes
-		// var str = "";
-		var selected_machine = $('#vamacid').val();
-		var hem;
-		$('[name="machines[]"] ').each(function () {
-		    var id = $(this).val();
-		    if (id == selected_machine) {
-		    	var value = '[name="' + 'horametres_en_min[' + id + ']' + '"]';
-		    	hem = $(value).val();
-		    	// str += "" + id + " => " + value + " = " + hem + "\n";
-		    }
-		});
+		var hem = horametre_mode();
 
 		// calcul du resultat en 1/100
 		var deb, fin;

@@ -1761,8 +1761,23 @@ abstract class Metadata {
         } elseif ($subtype == 'enumerate') {
             if (isset($this->field[$table][$field]['Enumerate'])) {
                 $values = $this->field[$table][$field]['Enumerate'];
-                if (count($values) > $radio_limit) {
-                    $js = "id=\"$field\" class=\"big_select\"";
+                $force_dropdown = FALSE;
+                if (!empty($attrs['class']) && strpos($attrs['class'], 'big_select') !== FALSE) {
+                    $force_dropdown = TRUE;
+                }
+                if (!empty($def_attrs['class']) && strpos($def_attrs['class'], 'big_select') !== FALSE) {
+                    $force_dropdown = TRUE;
+                }
+
+                if ($force_dropdown || count($values) > $radio_limit) {
+                    $js = "id=\"$field\"";
+                    if (!empty($attrs['class'])) {
+                        $js .= " class=\"" . $attrs['class'] . "\"";
+                    } elseif (!empty($def_attrs['class'])) {
+                        $js .= " class=\"" . $def_attrs['class'] . "\"";
+                    } else {
+                        $js .= " class=\"big_select\"";
+                    }
                     return form_dropdown($field, $values, $value, $js);
                 } else {
                     return enumerate_radio_fields($values, $field, $value, $mode, $attrs);

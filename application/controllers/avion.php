@@ -150,6 +150,28 @@ class Avion extends Gvv_Controller {
     }
 
     /**
+     * Compatibilite transitoire du champ format horametre.
+     * Tant que la migration de colonne n'est pas appliquee, le champ poste
+     * s'appelle 'horametre_mode' alors que la colonne peut encore etre
+     * 'horametre_en_minutes'.
+     */
+    function form2database($action = '') {
+        $processed_data = parent::form2database($action);
+
+        $posted_mode = $this->input->post('horametre_mode');
+        if ($posted_mode !== NULL) {
+            if ($this->db->field_exists('horametre_mode', 'machinesa')) {
+                $processed_data['horametre_mode'] = $posted_mode;
+            }
+            if ($this->db->field_exists('horametre_en_minutes', 'machinesa')) {
+                $processed_data['horametre_en_minutes'] = $posted_mode;
+            }
+        }
+
+        return $processed_data;
+    }
+
+    /**
      * Export de la liste des avions en CSV ou PDF
      */
     public function export($mode = 'csv') {

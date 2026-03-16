@@ -281,7 +281,7 @@ class Facturation {
      *            'comment' => 'DY 454/2012',
      *            'maprix' => 'Heure de vol Dynamic',
      *            'maprixdc' => 'Heure de vol Dynamic',
-     *            'horametre_en_minutes' => '0',
+    *            'horametre_mode' => '0',
      *            )
      *
      */
@@ -338,10 +338,22 @@ class Facturation {
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol
-        // de l'avion. On génère une nouvelle ligne de facturation
+        // de l'avion. Pour un "Vol propriétaire" (catégorie 4), on applique
+        // le tarif propriétaire défini sur la machine. Si absent, on utilise
+        // la référence générique hdv_proprio.
+        $produit_hdv = $machine_info['maprix'];
+        if ((int) $vol['vacategorie'] === 4) {
+            if (!empty($machine_info['maprixproprio'])) {
+                $produit_hdv = $machine_info['maprixproprio'];
+            } else {
+                $produit_hdv = 'hdv_proprio';
+            }
+        }
+
+        // On génère une nouvelle ligne de facturation
         $this->nouvel_achat_partage(array(
             'date' => $date,
-            'produit' => $machine_info['maprix'],
+            'produit' => $produit_hdv,
             'quantite' => ($free) ? 0 : $duree,
             'description' => $desc,
             'pilote' => $pilote,

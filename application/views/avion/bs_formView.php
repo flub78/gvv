@@ -48,6 +48,10 @@ if (isset($kid) && isset($$kid)) {
 
 // echo validation_errors();
 if (!$has_modification_rights) echo '<fieldset disabled>';
+$current_horametre_mode = isset($horametre_mode) ? $horametre_mode : (isset($horametre_en_minutes) ? $horametre_en_minutes : $this->input->post('horametre_mode'));
+if ($current_horametre_mode === NULL || $current_horametre_mode === '') {
+    $current_horametre_mode = 0;
+}
 echo ($this->gvvmetadata->form('machinesa', array(
     'macconstruc' => $macconstruc,
     'macmodele' => $macmodele,
@@ -59,7 +63,7 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'maprix' => $maprix,
     'maprixdc' => $maprixdc,
     'maprixproprio' => $maprixproprio,
-    'horametre_en_minutes' => $horametre_en_minutes,
+    'horametre_mode' => $current_horametre_mode,
     'actif' => $actif,
     'fabrication' => $fabrication,
     'comment' => $comment

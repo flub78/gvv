@@ -17,6 +17,38 @@ class Avions_model extends Common_Model {
     public $table = 'machinesa';
     protected $primary_key = 'macimmat';
 
+    private function get_horametre_field() {
+        if ($this->db->field_exists('horametre_mode', $this->table)) {
+            return 'horametre_mode';
+        }
+
+        return 'horametre_en_minutes';
+    }
+
+    private function normalize_horametre_mode_key($row) {
+        if (isset($row['horametre_mode'])) {
+            return $row;
+        }
+
+        if (isset($row['horametre_en_minutes'])) {
+            $row['horametre_mode'] = $row['horametre_en_minutes'];
+        }
+
+        return $row;
+    }
+
+    private function normalize_horametre_mode_data($data) {
+        if (!is_array($data) || !array_key_exists('horametre_mode', $data)) {
+            return $data;
+        }
+
+        $value = $data['horametre_mode'];
+        unset($data['horametre_mode']);
+        $data[$this->get_horametre_field()] = $value;
+
+        return $data;
+    }
+
     /**
      * Constructor
      */
@@ -61,8 +93,8 @@ class Avions_model extends Common_Model {
      * retourne la liste des immatriculations 
      */
     public function machine_list($where = array(), $list_only = true) {
-
-        $columns = 'macimmat, horametre_en_minutes, club';
+        $horametre_field = $this->get_horametre_field();
+        $columns = "macimmat, $horametre_field, club";
 
         $this->db
             ->select($columns)
@@ -80,10 +112,11 @@ class Avions_model extends Common_Model {
         $result = array();
         foreach ($select as $key => $row) {
             $machine = $row['macimmat'];
+            $row = $this->normalize_horametre_mode_key($row);
             if ($list_only) {
                 $result[] = $machine;
             } else {
-                $result[$machine] = $row['horametre_en_minutes'];
+                $result[$machine] = $row['horametre_mode'];
             }
         }
 
@@ -99,6 +132,7 @@ class Avions_model extends Common_Model {
      *            des valeurs
      */
     public function create($data) {
+        $data = $this->normalize_horametre_mode_data($data);
         if (isset($data['fabrication']) && !$data['fabrication']) {
             unset($data['fabrication']);
         }
@@ -115,6 +149,7 @@ class Avions_model extends Common_Model {
      * @return bool Le résultat de la requête
      */
     public function update($keyid, $data, $keyvalue = '') {
+        $data = $this->normalize_horametre_mode_data($data);
         if ($keyvalue == '')
             $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
@@ -142,6 +177,11 @@ class Avions_model extends Common_Model {
      */
     public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
         return parent::selector($where, $order, TRUE);
+    }
+
+    public function get_by_id($keyid, $keyvalue = '') {
+        $row = parent::get_by_id($keyid, $keyvalue);
+        return $this->normalize_horametre_mode_key($row);
     }
 
     /**

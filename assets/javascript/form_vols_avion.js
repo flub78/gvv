@@ -67,24 +67,16 @@ function update_machine() {
 	  // Le problème maintenant est de savoir s'il s'agit d'un biplace,
 	  // la dernière valeur d'horamètre ainsi que l'unité de l'horamètre
 	  // alert('url=' + url);
+	  // Mise à jour immédiate du format horamètre à partir des données préchargées
+	  update_hora_format(machine);
+
 	  $.ajax({
 	       url : url,
 	       type : 'POST',
 	       data : 'machine=' + machine,
 	       success : function(code_html, statut){
-		       // alert("success: " + code_html);
 		       var avion = JSON.parse(code_html);
-	
-		       /*	
-	           alert(code_html + " --> " 
-			           + "id:" + avion.machine
-			           + "places:" + avion.places
-			           + "unit:" + avion.unit
-			           + "hora:" + avion.hora
-			           );
-	  	     
-		       */
-	           
+
 	           if (avion.places > 1) {
 		           $('.DC').show();
 		           $('.VI').show();
@@ -92,20 +84,10 @@ function update_machine() {
 		           $('.DC').hide();
 		           $('.VI').hide();
 		       }
-	           
-	           if ($("#fin").val() == '') { 
+
+	           if ($("#fin").val() == '') {
 	        	   $("#debut").val(avion.hora);
 	           }
-	           
-	           var format_hora;
-	           if (avion.unit == "cent") {
-	        	   format_hora = horametre + " " + avion.machine + " " + h_100;
-	           } else {
-	        	   format_hora = horametre + " " + avion.machine + " " + hm;	        	   
-	           }
-	           var txt = $("#hora_format").text();
-	           // alert(format_hora + " avion.unit = " + avion.unit + " -> " + txt);
-	           $("#hora_format").text(format_hora);
 	       },
 
 	       error : function(resultat, statut, erreur){
@@ -116,6 +98,43 @@ function update_machine() {
 	           // alert("complete");
 	       }
 	  });	
+}
+
+function mode_to_unit(mode) {
+	if (mode === 1) {
+		return "min";
+	}
+	if (mode === 2) {
+		return "tenth";
+	}
+	return "cent";
+}
+
+function hora_unit_label(unit) {
+	if (unit == "tenth") {
+		return "1/10h";
+	}
+	if (unit == "min") {
+		return hm;
+	}
+	return h_100;
+}
+
+function update_hora_format(machine) {
+	var selected_machine = machine || $("#vamacid").val();
+	if (!selected_machine) {
+		$("#hora_format").text('');
+		return;
+	}
+	var mode = 0;
+	if (typeof horametres_modes_data !== 'undefined' &&
+	    horametres_modes_data.hasOwnProperty(selected_machine)) {
+		mode = parseInt(horametres_modes_data[selected_machine], 10);
+		if (isNaN(mode)) mode = 0;
+	}
+	var unit = mode_to_unit(mode);
+	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
+	$("#hora_format").text(label);
 }
 
 //Le code JQuery n'est actif et testable qu'avec un accès internet

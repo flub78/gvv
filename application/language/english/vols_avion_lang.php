@@ -48,7 +48,7 @@ $lang['gvv_vols_avion_fieldset_flight_logs'] = "Log selection";
 $lang['gvv_vols_avion_fieldset_conso'] = "Fuel consumption";
 $lang['gvv_vols_avion_tooltip_conso'] = "Click to hide/display the fuel consumption.";
 
-$lang['gvv_vols_avion_tip_unit'] = "Times are displayed in 1/100 of hours, even when hour meters are in minutes.";
+$lang['gvv_vols_avion_tip_unit'] = "Flight times are computed from the aircraft hour meter format: decimal, hours/minutes, or tenths of an hour.";
 $lang['gvv_vols_avion_tip_billing'] = "Billing parameters are defined in the rates configuration.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per machine";

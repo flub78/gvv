@@ -298,7 +298,20 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['macrem']['Subtype'] = 'boolean';
                 $this->field['machinesa']['maprive']['Subtype'] = 'boolean';
                 $this->field['machinesa']['actif']['Subtype'] = 'boolean';
-                $this->field['machinesa']['horametre_en_minutes']['Subtype'] = 'boolean';
+                                $CI->lang->load('avion');
+                                $horametre_units = $CI->lang->line('gvv_horametre_units');
+                                if (!is_array($horametre_units) || !count($horametre_units)) {
+                                        $horametre_units = array(
+                                                0 => 'Decimal (1/100 h)',
+                                                1 => 'Hours/minutes',
+                                                2 => 'Tenths of hour (1/10 h)'
+                                        );
+                                }
+                $this->field['machinesa']['horametre_mode']['Subtype'] = 'enumerate';
+                                $this->field['machinesa']['horametre_mode']['Enumerate'] = $horametre_units;
+                                $this->field['machinesa']['horametre_mode']['Attrs'] = array(
+                                        'class' => 'big_select'
+                                );
 
                 $this->field['machinesa']['maprix']['Subtype'] = 'selector';
                 $this->field['machinesa']['maprix']['Selector'] = 'produit_selector';

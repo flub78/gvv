@@ -48,7 +48,7 @@ $lang['gvv_vols_avion_fieldset_flight_logs'] = "Keuze plank";
 $lang['gvv_vols_avion_fieldset_conso'] = "Verbruik";
 $lang['gvv_vols_avion_tooltip_conso'] = "Klik hier om het verbruik te verbergen/tonen.";
 
-$lang['gvv_vols_avion_tip_unit'] = "De duur wordt weergegeven in 1/100 uur, zelfs al is de tacho in uren en minuten.";
+$lang['gvv_vols_avion_tip_unit'] = "De vluchtduur wordt berekend volgens het tachoformaat van het toestel: decimaal, uren/minuten of 1/10 uur.";
 $lang['gvv_vols_avion_tip_billing'] = "Factureringsparameters worden gedefinieerd in de tariefconfiguratie.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";

@@ -816,7 +816,7 @@ CREATE TABLE `machinesa` (
   `maprix` varchar(32) NOT NULL COMMENT 'prix de l''heure',
   `maprixdc` varchar(32) DEFAULT NULL COMMENT 'Prix double commande',
   `maprixproprio` varchar(32) DEFAULT NULL COMMENT 'Prix de l''heure propriétaire',
-  `horametre_en_minutes` int(11) DEFAULT 0 COMMENT 'Horamètre en heures et minutes',
+  `horametre_mode` int(11) DEFAULT 0 COMMENT 'Format horamètre (0=1/100h, 1=heures/minutes, 2=1/10h)',
   `fabrication` int(11) DEFAULT NULL COMMENT 'Année de mise en service',
   PRIMARY KEY (`macimmat`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
@@ -1670,7 +1670,7 @@ INSERT INTO `machinesp` (`mpconstruc`, `mpmodele`, `mpimmat`, `mpnumc`, `mpnbhdv
 ('DG', 'DG800', 'F-CGAC', 'AC', 0.00, '1', 0, 0, 0, 1, 'gratuit', 'gratuit', 'gratuit', 180, 1, '', 0, 0, 0, '');
 
 -- Avions remorqueurs de test
-INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
+INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_mode`, `fabrication`) VALUES
 ('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Aeropol', 'Dynamic', 'F-JUFA', 0.00, 2, 1, 0, 1, 1, '', 'hdv-ULM', 'hdv-ULM', 0, 0);
 

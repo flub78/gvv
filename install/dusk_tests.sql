@@ -389,7 +389,7 @@ CREATE TABLE `machinesa` (
   `comment` varchar(250) DEFAULT NULL COMMENT 'Description',
   `maprix` varchar(32) NOT NULL COMMENT 'prix de l''heure',
   `maprixdc` varchar(32) DEFAULT NULL COMMENT 'Prix double commande',
-  `horametre_en_minutes` int(11) DEFAULT 0 COMMENT 'Horamètre en heures et minutes',
+  `horametre_mode` int(11) DEFAULT 0 COMMENT 'Format horamètre (0=1/100h, 1=heures/minutes, 2=1/10h)',
   `fabrication` int(11) DEFAULT NULL COMMENT 'Année de mise en service'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -397,7 +397,7 @@ CREATE TABLE `machinesa` (
 -- Déchargement des données de la table `machinesa`
 --
 
-INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_en_minutes`, `fabrication`) VALUES
+INSERT INTO `machinesa` (`macconstruc`, `macmodele`, `macimmat`, `macnbhdv`, `macplaces`, `macrem`, `maprive`, `club`, `actif`, `comment`, `maprix`, `maprixdc`, `horametre_mode`, `fabrication`) VALUES
 ('Robin', 'DR400', 'F-GUFB', 0.00, 4, 1, 0, 1, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Robin', 'DR400', 'F-GSRP', 0.00, 4, 0, 0, 3, 1, '', 'gratuit', 'gratuit', 0, 0),
 ('Flight Design', 'CTL', 'F-JTRV', 0.00, 2, 0, 0, 2, 1, '', 'gratuit', 'gratuit', 0, 0),
