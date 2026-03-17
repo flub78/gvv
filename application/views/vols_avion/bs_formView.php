@@ -116,6 +116,7 @@ if (isset($kid) && isset($$kid)) {
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vaduree") ?></div>
         <div><?= $this->gvvmetadata->input_field("volsa", "vaduree", $vaduree) ?></div>
+        <div class="small text-muted mt-1" id="duree_display"></div>
         <div class="text-danger small mt-1" id="time_error"></div>
         <div class="small text-muted mt-1" id="hora_format"></div>
     </div>

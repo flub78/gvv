@@ -39,9 +39,7 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     var dotPos = fullValue.indexOf('.');
     var intPart = dotPos >= 0 ? parseInt(fullValue.substring(0, dotPos)) : parseInt(fullValue);
     var decStr  = dotPos >= 0 ? fullValue.substring(dotPos + 1) : '0';
-    var decPart = parseInt(decStr);
     if (isNaN(intPart)) intPart = 0;
-    if (isNaN(decPart)) decPart = 0;
 
     var maxDec, decWidth;
     if (mode == 1) {       // minutes
@@ -51,28 +49,24 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     } else {               // centième (défaut)
         maxDec = 99; decWidth = 2;
     }
+
+    // Normalise decStr en justification gauche sur decWidth chiffres :
+    // "50" avec decWidth=1 → "5" (5 dixièmes)
+    // "5"  avec decWidth=2 → "50" (50 centièmes = 0.5h)
+    // "05" avec decWidth=2 → "05" (5 centièmes)
+    var decPart = parseInt((decStr + '00').substring(0, decWidth));
+    if (isNaN(decPart)) decPart = 0;
     if (decPart > maxDec) decPart = 0;
 
     var intInputId = hiddenId + '_int';
     var decInputId = hiddenId + '_dec';
 
-    var decHtml;
-    if (maxDec <= 9) {
-        decHtml = '<select id="' + decInputId + '" class="form-select" style="width:65px">';
-        for (var i = 0; i <= maxDec; i++) {
-            decHtml += '<option value="' + i + '"' + (i === decPart ? ' selected' : '') + '>' + i + '</option>';
-        }
-        decHtml += '</select>';
-    } else {
-        var listId = hiddenId + '_dec_list';
-        decHtml  = '<input type="number" id="' + decInputId + '" class="form-control"';
-        decHtml += ' style="width:70px" min="0" max="' + maxDec + '" value="' + decPart + '" list="' + listId + '">';
-        decHtml += '<datalist id="' + listId + '">';
-        for (var j = 0; j <= maxDec; j++) {
-            decHtml += '<option value="' + String(j).padStart(decWidth, '0') + '">';
-        }
-        decHtml += '</datalist>';
+    var decHtml = '<select id="' + decInputId + '" class="form-select" style="width:' + (maxDec >= 10 ? '75' : '65') + 'px">';
+    for (var i = 0; i <= maxDec; i++) {
+        var optLabel = String(i).padStart(decWidth, '0');
+        decHtml += '<option value="' + i + '"' + (i === decPart ? ' selected' : '') + '>' + optLabel + '</option>';
     }
+    decHtml += '</select>';
 
     container.innerHTML =
         '<div class="d-flex align-items-center gap-1">' +
@@ -115,6 +109,23 @@ function buildHoraWidgets(mode) {
     currentHoraMode = mode;
     buildHoraWidget('debut_widget', 'debut', mode);
     buildHoraWidget('fin_widget',   'fin',   mode);
+    var duree = parseFloat($('[name="vaduree"]').val());
+    if (!isNaN(duree) && duree > 0) {
+        $("#duree_display").text(formatDuree(duree, mode));
+    }
+}
+
+/**
+ * Formate une durée en heures décimales selon le mode horamètre
+ * @param {number} decimal_hours - durée en heures décimales
+ * @param {number} mode          - 0=centième, 1=minutes, 2=dixième
+ */
+function formatDuree(decimal_hours, mode) {
+    if (isNaN(decimal_hours) || decimal_hours <= 0) return '';
+    var h = Math.floor(decimal_hours);
+    var min = Math.round((decimal_hours - h) * 60);
+    if (min >= 60) { h++; min -= 60; }
+    return h + 'h' + String(min).padStart(2, '0');
 }
 
 /**
@@ -143,9 +154,11 @@ function updateDuree() {
     var duree  = Math.round((finH - debutH) * 1000) / 1000;
     if (duree > 0) {
         $('[name="vaduree"]').val(duree);
+        $("#duree_display").text(formatDuree(duree, currentHoraMode));
         $("#time_error").text('');
     } else if (fin > 0 && debut > 0) {
         $('[name="vaduree"]').val('');
+        $("#duree_display").text('');
         $("#time_error").text('Durée nulle ou négative');
     }
 }
@@ -214,7 +227,7 @@ function update_machine() {
 		           $('.VI').hide();
 		       }
 
-	           if (parseFloat($("#fin").val()) == 0) {
+	           if (!parseFloat($("#fin").val())) {
 	        	   $("#debut").val(avion.hora);
 	        	   $("#fin").val(avion.hora);
 	        	   buildHoraWidget('debut_widget', 'debut', currentHoraMode);
