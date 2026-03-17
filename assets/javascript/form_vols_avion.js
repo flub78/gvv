@@ -21,7 +21,12 @@
  * 
  */
 
+// Dépendances sur les fichiers de langue (*_lang.js) :
+//   horametre  - libellé "Horamètre" localisé
+//   hm         - libellé "heures.minutes" localisé
+//   h_100      - libellé "heures.centième" localisé
 var currentHoraMode = 0;
+var currentMachineXhr = null;
 
 /**
  * Construit le widget de saisie d'horamètre
@@ -30,18 +35,16 @@ var currentHoraMode = 0;
  * @param {number} mode        - 0=centième, 1=minutes, 2=dixième
  */
 function buildHoraWidget(containerId, hiddenId, mode) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
-    var hiddenInput = document.getElementById(hiddenId);
-    if (!hiddenInput) return;
+    var $container = $('#' + containerId);
+    if (!$container.length) return;
+    var $hidden = $('#' + hiddenId);
+    if (!$hidden.length) return;
 
-    var fullValue = hiddenInput.value || '0';
+    var fullValue = $hidden.val() || '0';
     var dotPos = fullValue.indexOf('.');
     var intPart = dotPos >= 0 ? parseInt(fullValue.substring(0, dotPos)) : parseInt(fullValue);
     var decStr  = dotPos >= 0 ? fullValue.substring(dotPos + 1) : '0';
-    var decPart = parseInt(decStr);
     if (isNaN(intPart)) intPart = 0;
-    if (isNaN(decPart)) decPart = 0;
 
     var maxDec, decWidth;
     if (mode == 1) {       // minutes
@@ -51,60 +54,54 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     } else {               // centième (défaut)
         maxDec = 99; decWidth = 2;
     }
-    if (decPart > maxDec) decPart = 0;
+
+    // Normalise decStr en justification gauche sur decWidth chiffres :
+    // "50" avec decWidth=1 → "5" (5 dixièmes)
+    // "5"  avec decWidth=2 → "50" (50 centièmes = 0.5h)
+    // "05" avec decWidth=2 → "05" (5 centièmes)
+    var decPart = parseInt((decStr + '00').substring(0, decWidth));
+    if (isNaN(decPart)) decPart = 0;
+    if (decPart > maxDec) {
+        console.warn('buildHoraWidget: decPart=' + decPart + ' > maxDec=' + maxDec + ' pour ' + hiddenId + '="' + fullValue + '" (mode=' + mode + ') → réinitialisé à 0');
+        decPart = 0;
+    }
 
     var intInputId = hiddenId + '_int';
     var decInputId = hiddenId + '_dec';
 
-    var decHtml;
-    if (maxDec <= 9) {
-        decHtml = '<select id="' + decInputId + '" class="form-select" style="width:65px">';
-        for (var i = 0; i <= maxDec; i++) {
-            decHtml += '<option value="' + i + '"' + (i === decPart ? ' selected' : '') + '>' + i + '</option>';
-        }
-        decHtml += '</select>';
-    } else {
-        var listId = hiddenId + '_dec_list';
-        decHtml  = '<input type="number" id="' + decInputId + '" class="form-control"';
-        decHtml += ' style="width:70px" min="0" max="' + maxDec + '" value="' + decPart + '" list="' + listId + '">';
-        decHtml += '<datalist id="' + listId + '">';
-        for (var j = 0; j <= maxDec; j++) {
-            decHtml += '<option value="' + String(j).padStart(decWidth, '0') + '">';
-        }
-        decHtml += '</datalist>';
+    var decHtml = '<select id="' + decInputId + '" class="form-select" style="width:' + (maxDec >= 10 ? '75' : '65') + 'px">';
+    for (var i = 0; i <= maxDec; i++) {
+        var optLabel = String(i).padStart(decWidth, '0');
+        decHtml += '<option value="' + i + '"' + (i === decPart ? ' selected' : '') + '>' + optLabel + '</option>';
     }
+    decHtml += '</select>';
 
-    container.innerHTML =
+    $container.html(
         '<div class="d-flex align-items-center gap-1">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_minus">−</button>' +
         '<input type="number" id="' + intInputId + '" class="form-control" style="width:80px" min="0" value="' + intPart + '">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_plus">+</button>' +
         decHtml +
-        '</div>';
+        '</div>');
 
     function updateHidden() {
-        var intVal = parseInt(document.getElementById(intInputId).value);
-        var decVal = parseInt(document.getElementById(decInputId).value);
+        var intVal = parseInt($('#' + intInputId).val());
+        var decVal = parseInt($('#' + decInputId).val());
         if (isNaN(intVal) || intVal < 0) intVal = 0;
         if (isNaN(decVal) || decVal < 0) decVal = 0;
         if (decVal > maxDec) decVal = maxDec;
-        hiddenInput.value = intVal + '.' + String(decVal).padStart(decWidth, '0');
-        $(hiddenInput).trigger('change');
+        $hidden.val(intVal + '.' + String(decVal).padStart(decWidth, '0')).trigger('change');
     }
 
-    document.getElementById(intInputId).addEventListener('change', updateHidden);
-    document.getElementById(intInputId).addEventListener('input',  updateHidden);
-    document.getElementById(decInputId).addEventListener('change', updateHidden);
-    document.getElementById(decInputId).addEventListener('input',  updateHidden);
+    $('#' + intInputId).on('change input', updateHidden);
+    $('#' + decInputId).on('change', updateHidden);
 
-    document.getElementById(hiddenId + '_minus').addEventListener('click', function() {
-        var el = document.getElementById(intInputId);
-        var v = parseInt(el.value) || 0;
-        if (v > 0) { el.value = v - 1; updateHidden(); }
+    $('#' + hiddenId + '_minus').on('click', function() {
+        var v = parseInt($('#' + intInputId).val()) || 0;
+        if (v > 0) { $('#' + intInputId).val(v - 1); updateHidden(); }
     });
-    document.getElementById(hiddenId + '_plus').addEventListener('click', function() {
-        var el = document.getElementById(intInputId);
-        el.value = (parseInt(el.value) || 0) + 1;
+    $('#' + hiddenId + '_plus').on('click', function() {
+        $('#' + intInputId).val((parseInt($('#' + intInputId).val()) || 0) + 1);
         updateHidden();
     });
 
@@ -115,6 +112,25 @@ function buildHoraWidgets(mode) {
     currentHoraMode = mode;
     buildHoraWidget('debut_widget', 'debut', mode);
     buildHoraWidget('fin_widget',   'fin',   mode);
+    var duree = parseFloat($('[name="vaduree"]').val());
+    if (!isNaN(duree) && duree > 0) {
+        $("#duree_display").text(formatDuree(duree));
+    } else {
+        $("#duree_display").text('');
+    }
+    $("#time_error").text('');
+}
+
+/**
+ * Formate une durée en heures décimales en heures:minutes
+ * @param {number} decimal_hours - durée en heures décimales
+ */
+function formatDuree(decimal_hours) {
+    if (isNaN(decimal_hours) || decimal_hours <= 0) return '';
+    var h = Math.floor(decimal_hours);
+    var min = Math.round((decimal_hours - h) * 60);
+    if (min >= 60) { h++; min -= 60; }
+    return h + 'h' + String(min).padStart(2, '0');
 }
 
 /**
@@ -143,9 +159,11 @@ function updateDuree() {
     var duree  = Math.round((finH - debutH) * 1000) / 1000;
     if (duree > 0) {
         $('[name="vaduree"]').val(duree);
+        $("#duree_display").text(formatDuree(duree));
         $("#time_error").text('');
     } else if (fin > 0 && debut > 0) {
         $('[name="vaduree"]').val('');
+        $("#duree_display").text('');
         $("#time_error").text('Durée nulle ou négative');
     }
 }
@@ -179,9 +197,7 @@ function show_payeur () {
  * MAJ des caractéristiques dépendantes de la machine
  */
 function update_machine() {
-	  // C'est assez facile d'obtenir l'immatriculation de la machine selectionné
 	  var machine = $("#vamacid").val();
-	  // alert ("machine=" + machine);
 
 	  // Calcul l'URL en relatif par rapport à la page courante
 	  var path = window.location.pathname;
@@ -190,16 +206,16 @@ function update_machine() {
 	  while (last != 'create' && last != 'edit' && (splitted.length > 0)) {
 		  last = splitted.pop();
 	  }
-	  splitted.push('ajax_machine_info');  
-	  var url = splitted.join('/');  
-	  	  
-	  // Le problème maintenant est de savoir s'il s'agit d'un biplace,
-	  // la dernière valeur d'horamètre ainsi que l'unité de l'horamètre
-	  // alert('url=' + url);
-	  // Mise à jour immédiate du format horamètre à partir des données préchargées
+	  splitted.push('ajax_machine_info');
+	  var url = splitted.join('/');
+
 	  update_hora_format(machine);
 
-	  $.ajax({
+	  if (currentMachineXhr) {
+	      currentMachineXhr.abort();
+	      currentMachineXhr = null;
+	  }
+	  currentMachineXhr = $.ajax({
 	       url : url,
 	       type : 'POST',
 	       data : 'machine=' + machine,
@@ -214,20 +230,16 @@ function update_machine() {
 		           $('.VI').hide();
 		       }
 
-	           if (parseFloat($("#fin").val()) == 0) {
-	        	   $("#debut").val(avion.hora);
-	        	   $("#fin").val(avion.hora);
-	        	   buildHoraWidget('debut_widget', 'debut', currentHoraMode);
-	        	   buildHoraWidget('fin_widget',   'fin',   currentHoraMode);
-	           }
 	       },
 
 	       error : function(resultat, statut, erreur){
-	           alert("error");
+	           if (statut !== 'abort') {
+	               $("#time_error").text("Erreur lors du chargement des informations machine");
+	           }
 	       },
 
 	       complete : function(resultat, statut){
-	           // alert("complete");
+	           currentMachineXhr = null;
 	       }
 	  });	
 }
@@ -268,6 +280,16 @@ function update_hora_format(machine) {
 	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
 	$("#hora_format").text(label);
 	buildHoraWidgets(mode);
+
+	if (typeof is_new_vol !== 'undefined' && is_new_vol) {
+		var lastHora = (typeof horametres_last_data !== 'undefined' &&
+		                horametres_last_data.hasOwnProperty(selected_machine))
+		               ? horametres_last_data[selected_machine] : 0;
+		$("#debut").val(lastHora);
+		$("#fin").val(lastHora);
+		buildHoraWidget('debut_widget', 'debut', mode);
+		buildHoraWidget('fin_widget',   'fin',   mode);
+	}
 }
 
 //Le code JQuery n'est actif et testable qu'avec un accès internet
@@ -281,8 +303,6 @@ $(document).ready(function(){
 	$("#vavi").change(show_payeur);
 	show_payeur();
 	
-	buildHoraWidgets(typeof initial_horametre_mode !== 'undefined' ? initial_horametre_mode : 0);
-
 	$("#debut, #fin").on('change', updateDuree);
 
 	$("#vamacid").change(update_machine);
