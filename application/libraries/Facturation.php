@@ -335,6 +335,14 @@ class Facturation {
             // est-ce un remorquage ?
             $desc .= " " . $this->CI->lang->line("facturation_rem");
             $free = TRUE;
+        } elseif ((int) $vol['vacategorie'] === 6) {
+            // Vol BIA
+            $desc .= " BIA";
+            $free = TRUE;
+        } elseif ((int) $vol['vacategorie'] === 5) {
+            // Vol porte ouverte
+            $desc .= " PO";
+            $free = TRUE;
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol

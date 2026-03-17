@@ -130,6 +130,14 @@ class Facturation_aces extends Facturation
 			// est-ce un remorquage ?
 			$desc .= " remorquage";
 			$free = TRUE;
+		} else if ((int) $vol['vacategorie'] === 6) {
+			// Vol BIA
+			$desc .= " BIA";
+			$free = TRUE;
+		} else if ((int) $vol['vacategorie'] === 5) {
+			// Vol porte ouverte
+			$desc .= " PO";
+			$free = TRUE;
 		}
 
 		// on ne facture pas les privés
