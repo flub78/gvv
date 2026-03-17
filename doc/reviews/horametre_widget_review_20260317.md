@@ -105,7 +105,7 @@ _(aucun)_
 - [x] 🟠 **#1** Race condition AJAX – annuler la requête précédente avant d'en lancer une nouvelle
 - [x] 🟠 **#2** Variables globales implicites (`hm`, `h_100`, `horametre`) – documentées en tête de fichier (définies dans `*_lang.js`)
 - [x] 🟠 **#3** URL AJAX construite par parsing du path – dernier horamètre préchargé côté PHP, plus de dépendance AJAX pour l'horamètre
-- [ ] 🟠 **#4** `decPart > maxDec` silencieux – ajouter `console.warn` en debug
+- [x] 🟠 **#4** `decPart > maxDec` silencieux – `console.warn` ajouté avec contexte complet
 - [ ] 🟡 **#5** Supprimer le paramètre `mode` inutilisé de `formatDuree`
 - [ ] 🟡 **#6** Remplacer `alert("error")` par un affichage inline
 - [ ] 🟡 **#7** Effacer `#duree_display` et `#time_error` dans `buildHoraWidgets`

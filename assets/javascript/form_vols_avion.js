@@ -61,7 +61,10 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     // "05" avec decWidth=2 → "05" (5 centièmes)
     var decPart = parseInt((decStr + '00').substring(0, decWidth));
     if (isNaN(decPart)) decPart = 0;
-    if (decPart > maxDec) decPart = 0;
+    if (decPart > maxDec) {
+        console.warn('buildHoraWidget: decPart=' + decPart + ' > maxDec=' + maxDec + ' pour ' + hiddenId + '="' + fullValue + '" (mode=' + mode + ') → réinitialisé à 0');
+        decPart = 0;
+    }
 
     var intInputId = hiddenId + '_int';
     var decInputId = hiddenId + '_dec';
