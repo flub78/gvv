@@ -60,8 +60,8 @@ The branch adds two new free-of-charge flight categories (BIA = 6, porte ouverte
 - [ ] **P2-7** Remove hidden payer/percentage block from the DOM or gate it properly server-side; document the reason.
 - [x] **P2-8** Split Playwright monolithic test into per-scenario test cases using `test.each`.
 - [ ] **P3-9/10** Add `facturation_bia` / `facturation_po` keys to all three language files; use `lang->line()` in both billing libraries.
-- [ ] **P3-11** Replace polling loop with `expect.poll()`.
-- [ ] **P3-12** Replace `waitForLoadState('networkidle')` with explicit element waits.
+- [x] **P3-11** Replace polling loop with `expect.poll()`.
+- [x] **P3-12** Replace `waitForLoadState('networkidle')` with explicit element waits.
 - [ ] **P3-13** Add `afterAll` teardown to delete test flights from the database.
 - [ ] **P3-14** Deduplicate `ULM_SECTION_ID` / `TEST_ADMIN.section`.
 - [ ] **P3-15** Add a ticket/issue reference to the hidden-block comment.

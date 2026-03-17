@@ -218,7 +218,7 @@ async function setCheckbox(page, selector, checked) {
 
 async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   await page.goto('/index.php/vols_avion/create');
-  await page.waitForLoadState('networkidle');
+  await page.locator('input[name="vadate"]').waitFor();
 
   const flightDateFr = flightDate.split('-').reverse().join('/');
   await page.fill('input[name="vadate"]', flightDateFr);
@@ -253,7 +253,7 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   await page.fill('textarea[name="vaobs"], input[name="vaobs"]', observation);
 
   await page.click('button[type="submit"], input[type="submit"]');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const bodyText = await page.textContent('body');
   expect(bodyText).not.toContain('Fatal error');
@@ -261,16 +261,10 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   expect(bodyText).not.toContain('An uncaught Exception was encountered');
 
   // Persistency check: the flight must exist in table volsa.
-  let createdFlightId = null;
-  for (let i = 0; i < 10; i += 1) {
-    createdFlightId = findFlightIdByObservation(observation, ULM_SECTION_ID);
-    if (createdFlightId) {
-      break;
-    }
-    await page.waitForTimeout(300);
-  }
-
-  expect(createdFlightId, `Flight not found in volsa for observation=${observation}`).not.toBeNull();
+  await expect.poll(
+    () => findFlightIdByObservation(observation, ULM_SECTION_ID),
+    { message: `Flight not found in volsa for observation=${observation}`, timeout: 3000 }
+  ).not.toBeNull();
 }
 
 // Computed once at module load (synchronous DB calls via execSync).
