@@ -297,6 +297,29 @@ test.describe('ULM billing scenarios on all machines', () => {
     expect(sectionValue).toBe(TEST_ADMIN.section);
   });
 
+  // Delete all test flights through the application endpoint so that the full
+  // accounting cascade (ecritures + comptes balances) is properly reversed.
+  test.afterAll(async ({ browser }) => {
+    const flightIds = mysqlRows(
+      `SELECT vaid FROM volsa WHERE vaobs LIKE 'PW_ULM_BILLING_${escapeSqlString(UNIQUE_TAG)}_%' AND club = ${ULM_SECTION_ID}`
+    ).map((r) => Number.parseInt(r[0], 10));
+
+    if (flightIds.length === 0) return;
+
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.login(TEST_ADMIN.username, TEST_ADMIN.password, TEST_ADMIN.section);
+
+    for (const id of flightIds) {
+      await page.goto(`/index.php/vols_avion/delete/${id}`);
+      await page.waitForLoadState('domcontentloaded');
+    }
+
+    await context.close();
+  });
+
   for (const { machine, scenario } of COMBINATIONS) {
     test(`machine=${machine.immat} scenario=${scenario.key}`, async ({ page }) => {
       const before = getAccountBalance(PILOT_ACCOUNT_ID);

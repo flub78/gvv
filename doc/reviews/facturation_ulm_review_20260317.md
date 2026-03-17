@@ -54,11 +54,11 @@ The branch adds two new free-of-charge flight categories (BIA = 6, porte ouverte
 
 - [x] **P1-1** Fix SQL injection in `mysqlRows()` — added `escapeSqlString()` helper; applied to all string interpolations (`pilotLogin`, `reference`, `date`, `observation`).
 - [x] **P1-2** Move MySQL password out of command-line args (use `MYSQL_PWD` env var). (rejected only test passwords are exposed)
-- [ ] **P2-3/4** Add `PO` and `BIA` constants to `application/config/constants.php`; replace magic numbers in both billing libraries.
-- [ ] **P2-3/4** Add `PO` and `BIA` constants to `application/config/constants.php`; replace magic numbers in both billing libraries.
-- [ ] **P2-5/6** Standardise category comparison style across the if-chain in both libraries.
+- [x] **P2-3/4** Add `PO` and `BIA` constants to `application/config/constants.php`; replace magic numbers in both billing libraries.
+- [x] **P2-3/4** Add `PO` and `BIA` constants to `application/config/constants.php`; replace magic numbers in both billing libraries.
+- [x] **P2-5/6** Standardise category comparison style across the if-chain in both libraries.
 - [ ] **P2-7** Remove hidden payer/percentage block from the DOM or gate it properly server-side; document the reason.
-- [ ] **P2-8** Split Playwright monolithic test into per-scenario test cases using `test.each`.
+- [x] **P2-8** Split Playwright monolithic test into per-scenario test cases using `test.each`.
 - [ ] **P3-9/10** Add `facturation_bia` / `facturation_po` keys to all three language files; use `lang->line()` in both billing libraries.
 - [ ] **P3-11** Replace polling loop with `expect.poll()`.
 - [ ] **P3-12** Replace `waitForLoadState('networkidle')` with explicit element waits.
