@@ -241,7 +241,9 @@ function update_machine() {
 	       },
 
 	       error : function(resultat, statut, erreur){
-	           alert("error");
+	           if (statut !== 'abort') {
+	               $("#time_error").text("Erreur lors du chargement des informations machine");
+	           }
 	       },
 
 	       complete : function(resultat, statut){
