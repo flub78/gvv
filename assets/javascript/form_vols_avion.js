@@ -21,6 +21,135 @@
  * 
  */
 
+var currentHoraMode = 0;
+
+/**
+ * Construit le widget de saisie d'horamètre
+ * @param {string} containerId - ID du div conteneur
+ * @param {string} hiddenId    - ID de l'input hidden (ex: "debut", "fin")
+ * @param {number} mode        - 0=centième, 1=minutes, 2=dixième
+ */
+function buildHoraWidget(containerId, hiddenId, mode) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var hiddenInput = document.getElementById(hiddenId);
+    if (!hiddenInput) return;
+
+    var fullValue = hiddenInput.value || '0';
+    var dotPos = fullValue.indexOf('.');
+    var intPart = dotPos >= 0 ? parseInt(fullValue.substring(0, dotPos)) : parseInt(fullValue);
+    var decStr  = dotPos >= 0 ? fullValue.substring(dotPos + 1) : '0';
+    var decPart = parseInt(decStr);
+    if (isNaN(intPart)) intPart = 0;
+    if (isNaN(decPart)) decPart = 0;
+
+    var maxDec, decWidth;
+    if (mode == 1) {       // minutes
+        maxDec = 59; decWidth = 2;
+    } else if (mode == 2) { // dixième
+        maxDec = 9;  decWidth = 1;
+    } else {               // centième (défaut)
+        maxDec = 99; decWidth = 2;
+    }
+    if (decPart > maxDec) decPart = 0;
+
+    var intInputId = hiddenId + '_int';
+    var decInputId = hiddenId + '_dec';
+
+    var decHtml;
+    if (maxDec <= 9) {
+        decHtml = '<select id="' + decInputId + '" class="form-select" style="width:65px">';
+        for (var i = 0; i <= maxDec; i++) {
+            decHtml += '<option value="' + i + '"' + (i === decPart ? ' selected' : '') + '>' + i + '</option>';
+        }
+        decHtml += '</select>';
+    } else {
+        var listId = hiddenId + '_dec_list';
+        decHtml  = '<input type="number" id="' + decInputId + '" class="form-control"';
+        decHtml += ' style="width:70px" min="0" max="' + maxDec + '" value="' + decPart + '" list="' + listId + '">';
+        decHtml += '<datalist id="' + listId + '">';
+        for (var j = 0; j <= maxDec; j++) {
+            decHtml += '<option value="' + String(j).padStart(decWidth, '0') + '">';
+        }
+        decHtml += '</datalist>';
+    }
+
+    container.innerHTML =
+        '<div class="d-flex align-items-center gap-1">' +
+        '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_minus">−</button>' +
+        '<input type="number" id="' + intInputId + '" class="form-control" style="width:80px" min="0" value="' + intPart + '">' +
+        '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_plus">+</button>' +
+        decHtml +
+        '</div>';
+
+    function updateHidden() {
+        var intVal = parseInt(document.getElementById(intInputId).value);
+        var decVal = parseInt(document.getElementById(decInputId).value);
+        if (isNaN(intVal) || intVal < 0) intVal = 0;
+        if (isNaN(decVal) || decVal < 0) decVal = 0;
+        if (decVal > maxDec) decVal = maxDec;
+        hiddenInput.value = intVal + '.' + String(decVal).padStart(decWidth, '0');
+        $(hiddenInput).trigger('change');
+    }
+
+    document.getElementById(intInputId).addEventListener('change', updateHidden);
+    document.getElementById(intInputId).addEventListener('input',  updateHidden);
+    document.getElementById(decInputId).addEventListener('change', updateHidden);
+    document.getElementById(decInputId).addEventListener('input',  updateHidden);
+
+    document.getElementById(hiddenId + '_minus').addEventListener('click', function() {
+        var el = document.getElementById(intInputId);
+        var v = parseInt(el.value) || 0;
+        if (v > 0) { el.value = v - 1; updateHidden(); }
+    });
+    document.getElementById(hiddenId + '_plus').addEventListener('click', function() {
+        var el = document.getElementById(intInputId);
+        el.value = (parseInt(el.value) || 0) + 1;
+        updateHidden();
+    });
+
+    updateHidden();
+}
+
+function buildHoraWidgets(mode) {
+    currentHoraMode = mode;
+    buildHoraWidget('debut_widget', 'debut', mode);
+    buildHoraWidget('fin_widget',   'fin',   mode);
+}
+
+/**
+ * Convertit une valeur horamètre en heures décimales selon le mode
+ */
+function horaToDecimal(value, mode) {
+    var v = parseFloat(value);
+    if (isNaN(v)) return 0;
+    if (mode == 1) { // minutes : partie décimale = minutes (00-59)
+        var h   = Math.floor(v);
+        var min = Math.round((v - h) * 100);
+        return h + min / 60;
+    }
+    return v; // centième et dixième : valeur directement en heures décimales
+}
+
+/**
+ * Met à jour le champ durée à partir des horamètres début et fin
+ */
+function updateDuree() {
+    var debut = parseFloat($("#debut").val());
+    var fin   = parseFloat($("#fin").val());
+    if (isNaN(debut) || isNaN(fin)) return;
+    var debutH = horaToDecimal(debut, currentHoraMode);
+    var finH   = horaToDecimal(fin,   currentHoraMode);
+    var duree  = Math.round((finH - debutH) * 1000) / 1000;
+    if (duree > 0) {
+        $('[name="vaduree"]').val(duree);
+        $("#time_error").text('');
+    } else if (fin > 0 && debut > 0) {
+        $('[name="vaduree"]').val('');
+        $("#time_error").text('Durée nulle ou négative');
+    }
+}
+
 /**
  * Affiche ou pas l'instructeur en fonction du champ DC
  */
@@ -85,8 +214,11 @@ function update_machine() {
 		           $('.VI').hide();
 		       }
 
-	           if ($("#fin").val() == '') {
+	           if (parseFloat($("#fin").val()) == 0) {
 	        	   $("#debut").val(avion.hora);
+	        	   $("#fin").val(avion.hora);
+	        	   buildHoraWidget('debut_widget', 'debut', currentHoraMode);
+	        	   buildHoraWidget('fin_widget',   'fin',   currentHoraMode);
 	           }
 	       },
 
@@ -135,6 +267,7 @@ function update_hora_format(machine) {
 	var unit = mode_to_unit(mode);
 	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
 	$("#hora_format").text(label);
+	buildHoraWidgets(mode);
 }
 
 //Le code JQuery n'est actif et testable qu'avec un accès internet
@@ -148,8 +281,12 @@ $(document).ready(function(){
 	$("#vavi").change(show_payeur);
 	show_payeur();
 	
+	buildHoraWidgets(typeof initial_horametre_mode !== 'undefined' ? initial_horametre_mode : 0);
+
+	$("#debut, #fin").on('change', updateDuree);
+
 	$("#vamacid").change(update_machine);
-	update_machine();	
+	update_machine();
 
 });
 

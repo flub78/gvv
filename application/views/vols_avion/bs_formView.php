@@ -19,7 +19,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Formulaire de saisie d'un vol avion
- * 
+ *
  * @package vues
  */
 $this->load->view('bs_header');
@@ -44,171 +44,181 @@ echo form_hidden('saisie_par', $saisie_par, '');
 echo form_hidden('horametres_mode', $horametres_mode, '');
 echo form_hidden('machines', $machines, '');
 
-// Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
 if (isset($kid) && isset($$kid)) {
     echo form_hidden('original_' . $kid, $$kid);
 }
 
 ?>
-<div class="d-md-flex flex-row mb-2">
-    <!-- Date, immat-->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vadate") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vadate", $vadate) ?>
+
+<!-- Ligne 1 : Date, Immat, Pilote, DC, Instructeur -->
+<div class="d-md-flex flex-row align-items-start gap-3 mb-3">
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vadate") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vadate", $vadate) ?></div>
     </div>
 
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vamacid") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vamacid", $vamacid) ?>
-    </div>
-</div>
-
-<div class="d-md-flex flex-row mb-2">
-    <!-- Pilote, inst et passager -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vapilid") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vapilid", $vapilid) ?>
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vamacid") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vamacid", $vamacid) ?></div>
     </div>
 
-    <div class="me-3 mb-2 DC" id="DC">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vadc") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vadc", $vadc) ?>
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vapilid") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vapilid", $vapilid) ?></div>
     </div>
 
-    <div class="me-3 mb-2" id="instruction">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vainst") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vainst", $vainst) ?>
-    </div>
-</div>
-
-<div class="d-md-flex flex-row mb-2">
-    <!-- Heure de début et de fin -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vahdeb") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vahdeb", $vahdeb) ?>
-    </div>
-
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vahfin") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vahfin", $vahfin) ?>
-    </div>
-
-</div>
-<div class="d-md-flex flex-row mb-2">
-    <!-- Horametre de début et de fin -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vacdeb") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vacdeb", $vacdeb, 'rw', array('id' => "debut"))  ?>
-    </div>
-
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vacfin") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vacfin", $vacfin, 'rw', array('id' => "fin")) ?>
-    </div>
-
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vaduree") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vaduree", $vaduree) ?>
-        <div class="me-3 mb-2 text-danger" id="time_error">
+    <div class="mb-2 DC" id="DC">
+        <div class="d-flex flex-column">
+            <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vadc") ?></div>
+            <div><?= $this->gvvmetadata->input_field("volsa", "vadc", $vadc) ?></div>
         </div>
-        <span id="hora_format"></span>
     </div>
 
+    <div class="mb-2" id="instruction">
+        <div class="d-flex flex-column">
+            <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vainst") ?></div>
+            <div><?= $this->gvvmetadata->input_field("volsa", "vainst", $vainst) ?></div>
+        </div>
+    </div>
 
 </div>
 
-<div class="d-md-flex flex-row mb-2">
-    <!-- Catégorie -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vacategorie") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vacategorie", $vacategorie) ?>
+<!-- Ligne 2 : Heure début, Heure fin, Horamètre début, Horamètre fin, Durée -->
+<div class="d-md-flex flex-row align-items-start gap-3 mb-3">
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahdeb") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vahdeb", $vahdeb) ?></div>
     </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vanumvi") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vanumvi", $vanumvi) ?>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahfin") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vahfin", $vahfin) ?></div>
     </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vacdeb") ?></div>
+        <div class="border rounded px-2 pb-2">
+            <div id="debut_widget"></div>
+            <input type="hidden" name="vacdeb" id="debut" value="<?= isset($vacdeb) ? htmlspecialchars($vacdeb) : '' ?>">
+        </div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vacfin") ?></div>
+        <div class="border rounded px-2 pb-2">
+            <div id="fin_widget"></div>
+            <input type="hidden" name="vacfin" id="fin" value="<?= isset($vacfin) ? htmlspecialchars($vacfin) : '' ?>">
+        </div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vaduree") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vaduree", $vaduree) ?></div>
+        <div class="text-danger small mt-1" id="time_error"></div>
+        <div class="small text-muted mt-1" id="hora_format"></div>
+    </div>
+
+</div>
+
+<!-- Ligne 3 : Type de vol, N° VI, Passagers, Atterrissages, Local, Nuit -->
+<div class="d-md-flex flex-row align-items-start gap-3 mb-3">
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vacategorie") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vacategorie", $vacategorie) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vanumvi") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vanumvi", $vanumvi) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vanbpax") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vanbpax", $vanbpax) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vaatt") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vaatt", $vaatt) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "local") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "local", $local) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "nuit") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "nuit", $nuit) ?></div>
+    </div>
+
+</div>
+
+<!-- Ligne 4 : Aérodromes, Avitaillement, Essence -->
+<div class="d-md-flex flex-row align-items-start gap-3 mb-3">
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "valieudeco") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "valieudeco", $valieudeco) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "valieuatt") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "valieuatt", $valieuatt) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "reappro") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "reappro", $reappro) ?></div>
+    </div>
+
+    <div class="d-flex flex-column mb-2">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "essence") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "essence", $essence) ?></div>
+    </div>
+
 </div>
 
 <?php if ($payeur_non_pilote) : ?>
-    <div class="d-md-flex flex-row mb-2 payeur">
-        <!-- Payeur -->
-        <div class="me-3 mb-2">
-            <?= $this->lang->line("gvv_vols_avion_label_payer") . ": " ?>
-            <?= $this->gvvmetadata->input_field("volsa", 'payeur', $payeur) ?>
+    <!-- hidden: remove wrapping div to re-enable payeur/pourcentage -->
+    <div style="display:none">
+    <div class="d-md-flex flex-row align-items-start gap-3 mb-3 payeur">
+        <div class="d-flex flex-column mb-2">
+            <div class="small mb-1"><?= $this->lang->line("gvv_vols_avion_label_payer") ?></div>
+            <div><?= $this->gvvmetadata->input_field("volsa", 'payeur', $payeur) ?></div>
         </div>
-
         <?php if ($partage) : ?>
-            <div class="me-3 mb-2 payeur">
-                <?= $this->lang->line("gvv_vols_avion_label_percent") . ": " ?>
-                <?= $this->gvvmetadata->input_field("volsa", 'pourcentage', $pourcentage) ?>
+        <div class="mb-2 payeur">
+            <div class="d-flex flex-column">
+                <div class="small mb-1"><?= $this->lang->line("gvv_vols_avion_label_percent") ?></div>
+                <div><?= $this->gvvmetadata->input_field("volsa", 'pourcentage', $pourcentage) ?></div>
             </div>
+        </div>
         <?php endif; ?>
-
     </div>
+    </div><!-- end hidden -->
 <?php endif; ?>
 
-<div class="d-md-flex flex-row mb-2">
-    <!-- Passagers, atterrissages, eloignement, nuit -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vanbpax") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vanbpax", $vanbpax) ?>
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vaatt") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vaatt", $vaatt) ?>
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "local") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "local", $local) ?>
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "nuit") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "nuit", $nuit) ?>
-    </div>
-
-</div>
-
-<div class="d-md-flex flex-row mb-2">
-    <!-- Lieux et distance -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "valieudeco") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsa", "valieudeco", $valieudeco) ?>
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "valieuatt") ?>
-        <?= $this->gvvmetadata->input_field("volsa", "valieuatt", $valieuatt) ?>
-    </div>
-</div>
-
-<div class="d-md-flex flex-row mb-2">
-    <!-- Essence -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "reappro") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsa", "reappro", $reappro) ?>
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "essence") ?>
-        <?= $this->gvvmetadata->input_field("volsa", "essence", $essence) ?>
-    </div>
-</div>
-
-<div class="d-md-flex flex-row mb-2">
-    <!-- Observations -->
-    <div class="me-3 mb-2">
-        <?= $this->gvvmetadata->field_long_name("volsa", "vaobs") . ":" ?>
-        <?= $this->gvvmetadata->input_field("volsa", "vaobs", $vaobs) ?>
+<!-- Observations -->
+<div class="mb-3">
+    <div class="d-flex flex-column" style="max-width:500px">
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vaobs") ?></div>
+        <div><?= $this->gvvmetadata->input_field("volsa", "vaobs", $vaobs) ?></div>
     </div>
 </div>
 
 <!-- Formation -->
 <div class="mb-3">
     <h5 class="mb-2"><?= $this->lang->line("gvv_vols_avion_fieldset_formation") ?></h5>
-    <div class="d-md-flex flex-row flex-wrap mb-2">
+    <div class="d-flex flex-wrap gap-2">
         <?php foreach ($certificats as $certificat) {
             $id = $certificat['id'];
             $value = isset($certificat_values[$id]) ? $certificat_values[$id] : null;
             $checkbox_id = 'certificat_' . $id;
-            echo '<div class="form-check form-check-inline me-2 mb-2" style="border: 1px solid #adb5bd; border-radius: 4px; padding: 6px 10px 6px 30px;">';
+            echo '<div class="form-check form-check-inline" style="border: 1px solid #adb5bd; border-radius: 4px; padding: 6px 10px 6px 30px;">';
             echo '<input class="form-check-input" type="checkbox" name="certificat_values[]" id="' . $checkbox_id . '" value="' . $id . '" ' . (array_key_exists($id, $certificat_values) ? 'checked' : '') . '>';
             echo '<label class="form-check-label" for="' . $checkbox_id . '">' . $certificat['label'] . '</label>';
             echo '</div>';
@@ -225,6 +235,62 @@ echo br();
 echo $this->lang->line("gvv_vols_avion_tip_billing");
 echo '</div>';
 ?>
+<style>
+/* Normalise la hauteur de tous les champs non-Bootstrap de ce formulaire */
+form[name="saisie"] input[type="text"]:not(.form-control),
+form[name="saisie"] input[type="number"]:not(.form-control),
+form[name="saisie"] input[type="date"]:not(.form-control),
+form[name="saisie"] input[type="time"]:not(.form-control),
+form[name="saisie"] select:not(.form-select) {
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-sizing: border-box;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+form[name="saisie"] input[type="text"]:not(.form-control):focus,
+form[name="saisie"] input[type="number"]:not(.form-control):focus,
+form[name="saisie"] input[type="date"]:not(.form-control):focus,
+form[name="saisie"] input[type="time"]:not(.form-control):focus,
+form[name="saisie"] select:not(.form-select):focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+form[name="saisie"] textarea {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+/* Harmonise la hauteur des widgets select2 avec les champs Bootstrap */
+form[name="saisie"] .select2-container .select2-selection--single {
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+}
+form[name="saisie"] .select2-container .select2-selection--single .select2-selection__rendered {
+    line-height: 1.5;
+    padding: 0;
+    color: #212529;
+}
+form[name="saisie"] .select2-container .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    top: 0;
+}
+</style>
 <script type="text/javascript" src="<?php echo js_url('form_vols_avion'); ?>"></script>
 <script>
 var horametres_modes_data = <?= json_encode($horametres_mode ? $horametres_mode : (object)array()) ?>;
