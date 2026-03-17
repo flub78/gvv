@@ -21,6 +21,10 @@
  * 
  */
 
+// Dépendances sur les fichiers de langue (*_lang.js) :
+//   horametre  - libellé "Horamètre" localisé
+//   hm         - libellé "heures.minutes" localisé
+//   h_100      - libellé "heures.centième" localisé
 var currentHoraMode = 0;
 var currentMachineXhr = null;
 
