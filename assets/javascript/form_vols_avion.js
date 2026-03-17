@@ -97,7 +97,6 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     document.getElementById(intInputId).addEventListener('change', updateHidden);
     document.getElementById(intInputId).addEventListener('input',  updateHidden);
     document.getElementById(decInputId).addEventListener('change', updateHidden);
-    document.getElementById(decInputId).addEventListener('input',  updateHidden);
 
     document.getElementById(hiddenId + '_minus').addEventListener('click', function() {
         var el = document.getElementById(intInputId);
@@ -120,7 +119,10 @@ function buildHoraWidgets(mode) {
     var duree = parseFloat($('[name="vaduree"]').val());
     if (!isNaN(duree) && duree > 0) {
         $("#duree_display").text(formatDuree(duree));
+    } else {
+        $("#duree_display").text('');
     }
+    $("#time_error").text('');
 }
 
 /**
@@ -311,8 +313,6 @@ $(document).ready(function(){
 	$("#vavi").change(show_payeur);
 	show_payeur();
 	
-	buildHoraWidgets(typeof initial_horametre_mode !== 'undefined' ? initial_horametre_mode : 0);
-
 	$("#debut, #fin").on('change', updateDuree);
 
 	$("#vamacid").change(update_machine);

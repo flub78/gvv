@@ -108,8 +108,8 @@ _(aucun)_
 - [x] 🟠 **#4** `decPart > maxDec` silencieux – `console.warn` ajouté avec contexte complet
 - [x] 🟡 **#5** Supprimer le paramètre `mode` inutilisé de `formatDuree`
 - [x] 🟡 **#6** Remplacer `alert("error")` par un affichage inline dans `#time_error`
-- [ ] 🟡 **#7** Effacer `#duree_display` et `#time_error` dans `buildHoraWidgets`
-- [ ] 🟡 **#8** Supprimer le listener `input` redondant sur le `<select>` décimal
-- [ ] 🟡 **#9** Supprimer le premier `buildHoraWidgets` redondant au chargement
+- [x] 🟡 **#7** Effacer `#duree_display` et `#time_error` dans `buildHoraWidgets`
+- [x] 🟡 **#8** Supprimer le listener `input` redondant sur le `<select>` décimal
+- [x] 🟡 **#9** Supprimer le premier `buildHoraWidgets` redondant au chargement
 - [ ] 🟡 **#10** Uniformiser jQuery vs Vanilla JS
 - [ ] 🟡 **#11** Supprimer les commentaires de debug (`alert` commentés)
