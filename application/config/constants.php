@@ -78,6 +78,10 @@ define('VI', 1);
 define('VE', 2);
 define('CONCOURS', 3);
 
+# Catégories de vols avion supplémentaires
+define('PO', 5);   // Vol porte ouverte
+define('BIA', 6);  // Vol BIA
+
 define('PROPRIO_PRIVE', 1);
 
 

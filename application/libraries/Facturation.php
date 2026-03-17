@@ -335,11 +335,11 @@ class Facturation {
             // est-ce un remorquage ?
             $desc .= " " . $this->CI->lang->line("facturation_rem");
             $free = TRUE;
-        } elseif ((int) $vol['vacategorie'] === 6) {
+        } elseif ($vol['vacategorie'] == BIA) {
             // Vol BIA
             $desc .= " BIA";
             $free = TRUE;
-        } elseif ((int) $vol['vacategorie'] === 5) {
+        } elseif ($vol['vacategorie'] == PO) {
             // Vol porte ouverte
             $desc .= " PO";
             $free = TRUE;

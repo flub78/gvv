@@ -67,6 +67,16 @@ function parsePhpDatabaseConfig() {
 
 const DB = parsePhpDatabaseConfig();
 
+function escapeSqlString(value) {
+  return String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\0/g, '\\0')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\x1a/g, '\\Z');
+}
+
 function mysqlRows(sql) {
   const escapedSql = sql.replace(/"/g, '\\"');
   const command = `mysql -N -B -h${DB.host} -u${DB.user} -p${DB.password} ${DB.database} -e "${escapedSql}"`;
@@ -88,7 +98,7 @@ function round2(value) {
 
 function getPilot411AccountId(pilotLogin, sectionId) {
   const rows = mysqlRows(
-    `SELECT id FROM comptes WHERE pilote = '${pilotLogin}' AND codec = '411' AND club = ${sectionId} LIMIT 1`
+    `SELECT id FROM comptes WHERE pilote = '${escapeSqlString(pilotLogin)}' AND codec = '411' AND club = ${sectionId} LIMIT 1`
   );
   if (rows.length === 0) {
     throw new Error(`No 411 account found for pilot=${pilotLogin} in section=${sectionId}`);
@@ -129,9 +139,9 @@ function getTariffPrice(reference, date, sectionId) {
   const rows = mysqlRows(
     `SELECT prix
      FROM tarifs
-     WHERE reference = '${reference}'
+     WHERE reference = '${escapeSqlString(reference)}'
        AND club = ${sectionId}
-       AND date <= '${date}'
+       AND date <= '${escapeSqlString(date)}'
      ORDER BY date DESC
      LIMIT 1`
   );
@@ -180,7 +190,7 @@ function expectedDeltaForScenario(machine, scenario, date) {
 
 function findFlightIdByObservation(observation, sectionId) {
   const rows = mysqlRows(
-    `SELECT vaid FROM volsa WHERE vaobs = '${observation}' AND club = ${sectionId} ORDER BY vaid DESC LIMIT 1`
+    `SELECT vaid FROM volsa WHERE vaobs = '${escapeSqlString(observation)}' AND club = ${sectionId} ORDER BY vaid DESC LIMIT 1`
   );
   if (rows.length === 0) {
     return null;
@@ -263,52 +273,55 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   expect(createdFlightId, `Flight not found in volsa for observation=${observation}`).not.toBeNull();
 }
 
+// Computed once at module load (synchronous DB calls via execSync).
+const TODAY = new Date().toISOString().slice(0, 10);
+const UNIQUE_TAG = String(Date.now());
+const MACHINES = getUlmMachines(ULM_SECTION_ID);
+const PILOT_ACCOUNT_ID = getPilot411AccountId(PILOT_LOGIN, ULM_SECTION_ID);
+
+// One entry per (machine × scenario) combination, used as test.each input.
+const COMBINATIONS = MACHINES.flatMap((machine) =>
+  SCENARIOS.map((scenario) => ({ machine, scenario }))
+);
+
 test.describe('ULM billing scenarios on all machines', () => {
-  test('should validate pilot 411 balance deltas for all requested scenarios', async ({ page }) => {
+  // Serial mode is required: tests share the pilot 411 account balance.
+  // Parallel execution would corrupt before/after delta measurements.
+  test.describe.configure({ mode: 'serial' });
+
+  test.beforeEach(async ({ page }) => {
     const loginPage = new LoginPage(page);
-    const today = new Date().toISOString().slice(0, 10);
-    const uniqueTag = `${Date.now()}`;
-
-    const machines = getUlmMachines(ULM_SECTION_ID);
-    expect(machines.length, 'No active ULM machine found in section 2').toBeGreaterThan(0);
-
-    const pilotAccountId = getPilot411AccountId(PILOT_LOGIN, ULM_SECTION_ID);
-    const mismatches = [];
-
     await loginPage.open();
     await loginPage.login(TEST_ADMIN.username, TEST_ADMIN.password, TEST_ADMIN.section);
-
     const sectionValue = await page.locator('select[name="section"]').inputValue();
     expect(sectionValue).toBe(TEST_ADMIN.section);
-
-    for (const machine of machines) {
-      for (const scenario of SCENARIOS) {
-        const before = getAccountBalance(pilotAccountId);
-
-        const expectedInfo = expectedDeltaForScenario(machine, scenario, today);
-
-        await createUlmFlight(page, machine, scenario, today, uniqueTag);
-
-        const after = getAccountBalance(pilotAccountId);
-        const delta = round2(after - before);
-
-        if (delta !== expectedInfo.expected) {
-          mismatches.push([
-            `machine=${machine.immat}`,
-            `scenario=${scenario.key}`,
-            `before=${before}`,
-            `after=${after}`,
-            `delta=${delta}`,
-            `expected=${expectedInfo.expected}`,
-            `baseRef=${expectedInfo.baseRef}`,
-            `basePrice=${expectedInfo.basePrice}`,
-            `dcRef=${expectedInfo.dcRef}`,
-            `dcPrice=${expectedInfo.dcPrice}`
-          ].join(' | '));
-        }
-      }
-    }
-
-    expect(mismatches, mismatches.join('\n')).toEqual([]);
   });
+
+  for (const { machine, scenario } of COMBINATIONS) {
+    test(`machine=${machine.immat} scenario=${scenario.key}`, async ({ page }) => {
+      const before = getAccountBalance(PILOT_ACCOUNT_ID);
+      const expectedInfo = expectedDeltaForScenario(machine, scenario, TODAY);
+
+      await createUlmFlight(page, machine, scenario, TODAY, UNIQUE_TAG);
+
+      const after = getAccountBalance(PILOT_ACCOUNT_ID);
+      const delta = round2(after - before);
+
+      expect(
+        delta,
+        [
+          `machine=${machine.immat}`,
+          `scenario=${scenario.key}`,
+          `before=${before}`,
+          `after=${after}`,
+          `delta=${delta}`,
+          `expected=${expectedInfo.expected}`,
+          `baseRef=${expectedInfo.baseRef}`,
+          `basePrice=${expectedInfo.basePrice}`,
+          `dcRef=${expectedInfo.dcRef}`,
+          `dcPrice=${expectedInfo.dcPrice}`
+        ].join(' | ')
+      ).toBe(expectedInfo.expected);
+    });
+  }
 });
