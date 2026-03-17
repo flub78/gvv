@@ -22,6 +22,7 @@
  */
 
 var currentHoraMode = 0;
+var currentMachineXhr = null;
 
 /**
  * Construit le widget de saisie d'horamètre
@@ -212,7 +213,11 @@ function update_machine() {
 	  // Mise à jour immédiate du format horamètre à partir des données préchargées
 	  update_hora_format(machine);
 
-	  $.ajax({
+	  if (currentMachineXhr) {
+	      currentMachineXhr.abort();
+	      currentMachineXhr = null;
+	  }
+	  currentMachineXhr = $.ajax({
 	       url : url,
 	       type : 'POST',
 	       data : 'machine=' + machine,
@@ -240,7 +245,7 @@ function update_machine() {
 	       },
 
 	       complete : function(resultat, statut){
-	           // alert("complete");
+	           currentMachineXhr = null;
 	       }
 	  });	
 }

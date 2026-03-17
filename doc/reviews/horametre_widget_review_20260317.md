@@ -102,7 +102,7 @@ _(aucun)_
 
 ## TODO (ordre décroissant de criticité)
 
-- [ ] 🟠 **#1** Race condition AJAX – annuler la requête précédente avant d'en lancer une nouvelle
+- [x] 🟠 **#1** Race condition AJAX – annuler la requête précédente avant d'en lancer une nouvelle
 - [ ] 🟠 **#2** Variables globales implicites (`hm`, `h_100`, `horametre`) – documenter ou passer en paramètre
 - [ ] 🟠 **#3** URL AJAX construite par parsing du path – injecter depuis PHP
 - [ ] 🟠 **#4** `decPart > maxDec` silencieux – ajouter `console.warn` en debug
