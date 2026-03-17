@@ -35,12 +35,12 @@ var currentMachineXhr = null;
  * @param {number} mode        - 0=centième, 1=minutes, 2=dixième
  */
 function buildHoraWidget(containerId, hiddenId, mode) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
-    var hiddenInput = document.getElementById(hiddenId);
-    if (!hiddenInput) return;
+    var $container = $('#' + containerId);
+    if (!$container.length) return;
+    var $hidden = $('#' + hiddenId);
+    if (!$hidden.length) return;
 
-    var fullValue = hiddenInput.value || '0';
+    var fullValue = $hidden.val() || '0';
     var dotPos = fullValue.indexOf('.');
     var intPart = dotPos >= 0 ? parseInt(fullValue.substring(0, dotPos)) : parseInt(fullValue);
     var decStr  = dotPos >= 0 ? fullValue.substring(dotPos + 1) : '0';
@@ -76,36 +76,32 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     }
     decHtml += '</select>';
 
-    container.innerHTML =
+    $container.html(
         '<div class="d-flex align-items-center gap-1">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_minus">−</button>' +
         '<input type="number" id="' + intInputId + '" class="form-control" style="width:80px" min="0" value="' + intPart + '">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_plus">+</button>' +
         decHtml +
-        '</div>';
+        '</div>');
 
     function updateHidden() {
-        var intVal = parseInt(document.getElementById(intInputId).value);
-        var decVal = parseInt(document.getElementById(decInputId).value);
+        var intVal = parseInt($('#' + intInputId).val());
+        var decVal = parseInt($('#' + decInputId).val());
         if (isNaN(intVal) || intVal < 0) intVal = 0;
         if (isNaN(decVal) || decVal < 0) decVal = 0;
         if (decVal > maxDec) decVal = maxDec;
-        hiddenInput.value = intVal + '.' + String(decVal).padStart(decWidth, '0');
-        $(hiddenInput).trigger('change');
+        $hidden.val(intVal + '.' + String(decVal).padStart(decWidth, '0')).trigger('change');
     }
 
-    document.getElementById(intInputId).addEventListener('change', updateHidden);
-    document.getElementById(intInputId).addEventListener('input',  updateHidden);
-    document.getElementById(decInputId).addEventListener('change', updateHidden);
+    $('#' + intInputId).on('change input', updateHidden);
+    $('#' + decInputId).on('change', updateHidden);
 
-    document.getElementById(hiddenId + '_minus').addEventListener('click', function() {
-        var el = document.getElementById(intInputId);
-        var v = parseInt(el.value) || 0;
-        if (v > 0) { el.value = v - 1; updateHidden(); }
+    $('#' + hiddenId + '_minus').on('click', function() {
+        var v = parseInt($('#' + intInputId).val()) || 0;
+        if (v > 0) { $('#' + intInputId).val(v - 1); updateHidden(); }
     });
-    document.getElementById(hiddenId + '_plus').addEventListener('click', function() {
-        var el = document.getElementById(intInputId);
-        el.value = (parseInt(el.value) || 0) + 1;
+    $('#' + hiddenId + '_plus').on('click', function() {
+        $('#' + intInputId).val((parseInt($('#' + intInputId).val()) || 0) + 1);
         updateHidden();
     });
 
@@ -201,9 +197,7 @@ function show_payeur () {
  * MAJ des caractéristiques dépendantes de la machine
  */
 function update_machine() {
-	  // C'est assez facile d'obtenir l'immatriculation de la machine selectionné
 	  var machine = $("#vamacid").val();
-	  // alert ("machine=" + machine);
 
 	  // Calcul l'URL en relatif par rapport à la page courante
 	  var path = window.location.pathname;
@@ -212,13 +206,9 @@ function update_machine() {
 	  while (last != 'create' && last != 'edit' && (splitted.length > 0)) {
 		  last = splitted.pop();
 	  }
-	  splitted.push('ajax_machine_info');  
-	  var url = splitted.join('/');  
-	  	  
-	  // Le problème maintenant est de savoir s'il s'agit d'un biplace,
-	  // la dernière valeur d'horamètre ainsi que l'unité de l'horamètre
-	  // alert('url=' + url);
-	  // Mise à jour immédiate du format horamètre à partir des données préchargées
+	  splitted.push('ajax_machine_info');
+	  var url = splitted.join('/');
+
 	  update_hora_format(machine);
 
 	  if (currentMachineXhr) {

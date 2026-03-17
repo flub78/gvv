@@ -111,5 +111,5 @@ _(aucun)_
 - [x] 🟡 **#7** Effacer `#duree_display` et `#time_error` dans `buildHoraWidgets`
 - [x] 🟡 **#8** Supprimer le listener `input` redondant sur le `<select>` décimal
 - [x] 🟡 **#9** Supprimer le premier `buildHoraWidgets` redondant au chargement
-- [ ] 🟡 **#10** Uniformiser jQuery vs Vanilla JS
-- [ ] 🟡 **#11** Supprimer les commentaires de debug (`alert` commentés)
+- [x] 🟡 **#10** Uniformiser jQuery vs Vanilla JS – `buildHoraWidget` migré entièrement vers jQuery
+- [x] 🟡 **#11** Supprimer les commentaires de debug (`alert` commentés)
