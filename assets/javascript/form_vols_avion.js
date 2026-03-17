@@ -119,16 +119,15 @@ function buildHoraWidgets(mode) {
     buildHoraWidget('fin_widget',   'fin',   mode);
     var duree = parseFloat($('[name="vaduree"]').val());
     if (!isNaN(duree) && duree > 0) {
-        $("#duree_display").text(formatDuree(duree, mode));
+        $("#duree_display").text(formatDuree(duree));
     }
 }
 
 /**
- * Formate une durée en heures décimales selon le mode horamètre
+ * Formate une durée en heures décimales en heures:minutes
  * @param {number} decimal_hours - durée en heures décimales
- * @param {number} mode          - 0=centième, 1=minutes, 2=dixième
  */
-function formatDuree(decimal_hours, mode) {
+function formatDuree(decimal_hours) {
     if (isNaN(decimal_hours) || decimal_hours <= 0) return '';
     var h = Math.floor(decimal_hours);
     var min = Math.round((decimal_hours - h) * 60);
@@ -162,7 +161,7 @@ function updateDuree() {
     var duree  = Math.round((finH - debutH) * 1000) / 1000;
     if (duree > 0) {
         $('[name="vaduree"]').val(duree);
-        $("#duree_display").text(formatDuree(duree, currentHoraMode));
+        $("#duree_display").text(formatDuree(duree));
         $("#time_error").text('');
     } else if (fin > 0 && debut > 0) {
         $('[name="vaduree"]').val('');
