@@ -62,6 +62,6 @@ The branch adds two new free-of-charge flight categories (BIA = 6, porte ouverte
 - [ ] **P3-9/10** Add `facturation_bia` / `facturation_po` keys to all three language files; use `lang->line()` in both billing libraries.
 - [x] **P3-11** Replace polling loop with `expect.poll()`.
 - [x] **P3-12** Replace `waitForLoadState('networkidle')` with explicit element waits.
-- [ ] **P3-13** Add `afterAll` teardown to delete test flights from the database.
+- [x] **P3-13** Add `afterAll` teardown to delete test flights from the database.
 - [ ] **P3-14** Deduplicate `ULM_SECTION_ID` / `TEST_ADMIN.section`.
 - [ ] **P3-15** Add a ticket/issue reference to the hidden-block comment.
