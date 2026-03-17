@@ -156,6 +156,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['horametres_mode'] = $this->avions_model->machine_list(array(
             'actif' => 1
         ), false);
+        $this->data['horametres_last'] = $this->gvv_model->latest_horametre_per_machine();
 
         // ici la $this->data['vaduree'] contient la valuer en 1/100 eme
         // var_dump($this->data); exit;

@@ -115,6 +115,28 @@ class Vols_avion_model extends Common_Model {
     }
 
     /**
+     * Retourne le dernier horamètre enregistré par machine
+     * @return array [vamacid => vacfin]
+     */
+    public function latest_horametre_per_machine() {
+        $this->db
+            ->select('vamacid, MAX(vacfin) as last_hora')
+            ->from('volsa')
+            ->group_by('vamacid');
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+        $rows = $this->db->get()->result_array();
+
+        gvv_debug("sql: " . $this->db->last_query());
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['vamacid']] = $row['last_hora'];
+        }
+        return $result;
+    }
+
+    /**
      * Retourne le dernier vol de l'année
      *
      * @return objet La liste

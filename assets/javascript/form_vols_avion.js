@@ -232,12 +232,6 @@ function update_machine() {
 		           $('.VI').hide();
 		       }
 
-	           if (!parseFloat($("#fin").val())) {
-	        	   $("#debut").val(avion.hora);
-	        	   $("#fin").val(avion.hora);
-	        	   buildHoraWidget('debut_widget', 'debut', currentHoraMode);
-	        	   buildHoraWidget('fin_widget',   'fin',   currentHoraMode);
-	           }
 	       },
 
 	       error : function(resultat, statut, erreur){
@@ -286,6 +280,16 @@ function update_hora_format(machine) {
 	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
 	$("#hora_format").text(label);
 	buildHoraWidgets(mode);
+
+	if (typeof is_new_vol !== 'undefined' && is_new_vol) {
+		var lastHora = (typeof horametres_last_data !== 'undefined' &&
+		                horametres_last_data.hasOwnProperty(selected_machine))
+		               ? horametres_last_data[selected_machine] : 0;
+		$("#debut").val(lastHora);
+		$("#fin").val(lastHora);
+		buildHoraWidget('debut_widget', 'debut', mode);
+		buildHoraWidget('fin_widget',   'fin',   mode);
+	}
 }
 
 //Le code JQuery n'est actif et testable qu'avec un accès internet
