@@ -105,13 +105,13 @@ class Facturation_aces extends Facturation
 		
 		$free = FALSE;
 
-		if ($vol['vacategorie'] == 1) {
+		if ($vol['vacategorie'] == VI) {
 			$desc .= " VI"; // est-ce un vol d'initiation ?
 			$free = TRUE;
 			if ($vol['vanbpax']=='3') { $tarifvi = "VI Avion 3 personnes"; }		// tarif vi 3 personnes
 			else if ($vol['vanbpax']=='2') { $tarifvi = "VI Avion 2 personnes"; }			// tarif vi 2 personnes
 			else { $tarifvi = "VI Avion 1 personne"; }												// tarif vi 1 personne
-			
+
 			$this->nouvel_achat(array(
             'date' => $date,
             'produit' => $tarifvi,
@@ -120,15 +120,23 @@ class Facturation_aces extends Facturation
             'pilote' => '_via',
             'machine' => $machine,
             'vol_avion' => $vol_id
-            ));			
-			
-		} else if ($vol['vacategorie'] == 2) {
+            ));
+
+		} else if ($vol['vacategorie'] == VE) {
 			// est-ce un vol d'essai ?
 			$desc .= " vol d'essai";
 			$free = TRUE;
-		} else if ($vol['vacategorie'] == 3) {
+		} else if ($vol['vacategorie'] == REM) {
 			// est-ce un remorquage ?
 			$desc .= " remorquage";
+			$free = TRUE;
+		} else if ($vol['vacategorie'] == BIA) {
+			// Vol BIA
+			$desc .= " BIA";
+			$free = TRUE;
+		} else if ($vol['vacategorie'] == PO) {
+			// Vol porte ouverte
+			$desc .= " PO";
 			$free = TRUE;
 		}
 
