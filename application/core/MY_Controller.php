@@ -47,9 +47,7 @@ class MY_Controller extends CI_Controller
 
         // Note: dx_auth is autoloaded in application/config/autoload.php
 
-        // Load new authorization system (always loaded for dual-mode comparison)
         $this->load->library('Gvv_Authorization');
-        $this->load->model('authorization_model');
 
         // Initialize user authentication
         $this->_init_auth();
@@ -108,7 +106,7 @@ class MY_Controller extends CI_Controller
             $row_count = $query ? $query->num_rows() : 0;
             log_message('debug', "MY_Controller: Per-user table query returned {$row_count} rows");
 
-            if ($query && $query->num_rows() > 0) {
+            if ($row_count > 0) {
                 $this->use_new_auth = TRUE;
                 $this->migration_status = 'per_user_pilot';
                 log_message('debug', "MY_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (per-user migration)");
@@ -245,174 +243,6 @@ class MY_Controller extends CI_Controller
         }
 
         return $this->gvv_authorization->require_roles($roles, $section_id, $replace);
-    }
-
-    /**
-     * Check if user can access a controller/action
-     *
-     * @param string $controller Controller name (defaults to current)
-     * @param string $action     Action name (defaults to current)
-     * @return bool TRUE if access granted, FALSE otherwise
-     */
-    protected function _check_access($controller = NULL, $action = NULL)
-    {
-        if (!$this->user_id) {
-            return FALSE;
-        }
-
-        if ($controller === NULL) {
-            $controller = $this->router->class;
-        }
-        if ($action === NULL) {
-            $action = $this->router->method;
-        }
-
-        $section_id = $this->session->userdata('section');
-
-        if ($this->use_new_auth) {
-            $has_access = $this->gvv_authorization->can_access(
-                $this->user_id,
-                $controller,
-                $action,
-                $section_id
-            );
-
-            if ($this->_is_dual_mode_logging_enabled()) {
-                $legacy_access = $this->_check_legacy_access($controller, $action);
-                $this->_log_authorization_comparison(
-                    $controller,
-                    $action,
-                    $section_id,
-                    $has_access,
-                    $legacy_access
-                );
-            }
-
-            return $has_access;
-        } else {
-            return $this->_check_legacy_access($controller, $action);
-        }
-    }
-
-    /**
-     * Check access using legacy DX_Auth permissions
-     *
-     * @param string $controller Controller name
-     * @param string $action     Action name
-     * @return bool TRUE if access granted
-     */
-    private function _check_legacy_access($controller, $action)
-    {
-        $role_requirements = array(
-            'vols_planeur/create'       => 'planchiste',
-            'vols_planeur/edit'         => 'planchiste',
-            'vols_planeur/delete'       => 'planchiste',
-            'vols_planeur/plancheauto'  => 'planchiste',
-            'vols_avion/create'         => 'planchiste',
-            'vols_avion/edit'           => 'planchiste',
-            'vols_avion/delete'         => 'planchiste',
-            'welcome/compta'            => 'tresorier',
-            'welcome/ca'                => 'ca',
-            'membre/export'             => 'ca',
-            'sections/export'           => 'ca',
-            'planeur/create'            => 'ca',
-            'planeur/export'            => 'ca',
-            'avion/create'              => 'ca',
-            'avion/export'              => 'ca',
-            'procedures/delete'         => 'admin',
-            'vols_decouverte/export'    => 'ca',
-        );
-
-        $key = strtolower($controller . '/' . $action);
-
-        if (isset($role_requirements[$key])) {
-            return $this->dx_auth->is_role($role_requirements[$key]);
-        }
-
-        return TRUE;
-    }
-
-    /**
-     * Check if dual-mode comparison logging is enabled
-     *
-     * @return bool
-     */
-    private function _is_dual_mode_logging_enabled()
-    {
-        return $this->migration_status === 'in_progress' ||
-               $this->migration_status === 'completed';
-    }
-
-    /**
-     * Log authorization comparison for validation
-     *
-     * @param string $controller
-     * @param string $action
-     * @param int    $section_id
-     * @param bool   $new_result
-     * @param bool   $legacy_result
-     */
-    private function _log_authorization_comparison($controller, $action, $section_id, $new_result, $legacy_result)
-    {
-        $new_details = $this->_get_new_system_details($controller, $action, $section_id);
-        $legacy_details = $this->_get_legacy_system_details($controller, $action);
-
-        if ($new_result !== $legacy_result) {
-            log_message('warning',
-                "MY_Controller: Authorization mismatch for user {$this->user_id}: " .
-                "controller={$controller}, action={$action}, " .
-                "section={$section_id}, new={$new_result}, legacy={$legacy_result}"
-            );
-        }
-
-        $this->db->insert('authorization_comparison_log', array(
-            'user_id'                 => $this->user_id,
-            'controller'              => $controller,
-            'action'                  => $action,
-            'section_id'              => $section_id,
-            'new_system_result'       => $new_result ? 1 : 0,
-            'legacy_system_result'    => $legacy_result ? 1 : 0,
-            'new_system_details'      => json_encode($new_details),
-            'legacy_system_details'   => json_encode($legacy_details),
-            'created_at'              => date('Y-m-d H:i:s')
-        ));
-    }
-
-    /**
-     * @param string $controller
-     * @param string $action
-     * @param int    $section_id
-     * @return array
-     */
-    private function _get_new_system_details($controller, $action, $section_id)
-    {
-        $roles = $this->authorization_model->get_user_roles($this->user_id, $section_id);
-        $permission_id = $this->authorization_model->get_permission_id($controller, $action);
-
-        return array(
-            'roles'         => $roles,
-            'controller'    => $controller,
-            'action'        => $action,
-            'section_id'    => $section_id,
-            'permission_id' => $permission_id,
-            'system'        => 'Gvv_Authorization'
-        );
-    }
-
-    /**
-     * @param string $controller
-     * @param string $action
-     * @return array
-     */
-    private function _get_legacy_system_details($controller, $action)
-    {
-        return array(
-            'current_role'  => $this->dx_auth->get_role_name(),
-            'is_admin'      => $this->dx_auth->is_admin(),
-            'controller'    => $controller,
-            'action'        => $action,
-            'system'        => 'DX_Auth'
-        );
     }
 
     /**

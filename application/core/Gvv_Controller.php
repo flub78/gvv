@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+if (!class_exists('MY_Controller')) {
+    require_once(APPPATH . 'core/MY_Controller.php');
+}
+
 /**
  * GVV Controller (non-CRUD)
  *

@@ -30,8 +30,6 @@ class Calendar extends MY_Controller {
         if (! getenv('TEST') && ! $this->dx_auth->is_logged_in()) {
             redirect("auth/login");
         }
-
-        $this->load->library('unit_test');
     }
 
     /*
