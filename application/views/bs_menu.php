@@ -49,7 +49,8 @@ if ($_uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $section_count = $CI->sections_model->safe_count_all();
 }
 
-if (is_logged_in() && $section_count > 1 && empty($section)) {
+$raw_section = $CI->session->userdata('section');
+if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
   $active_section_missing = TRUE;
 }
 ?>
