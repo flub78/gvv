@@ -261,8 +261,8 @@ $this->load->view('bs_banner');
         }
 
         .reservation-event.maintenance {
-            background-color: #007BFF;
-            border-color: #0056b3;
+            background-color: #FD7E14;
+            border-color: #d96b00;
             color: white;
         }
 
@@ -308,7 +308,7 @@ $this->load->view('bs_banner');
         }
 
         .status-badge.maintenance {
-            background-color: #007BFF;
+            background-color: #FD7E14;
             color: white;
         }
 

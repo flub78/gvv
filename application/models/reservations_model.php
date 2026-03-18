@@ -334,7 +334,7 @@ class Reservations_model extends Common_Model {
     private function get_status_color($status) {
         $colors = array(
             'reservation' => '#28A745',   // Green
-            'maintenance' => '#007BFF',   // Blue
+            'maintenance' => '#FD7E14',   // Orange
             'unavailable' => '#DC3545'    // Red
         );
 
