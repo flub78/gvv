@@ -99,7 +99,7 @@ class Vols_avion extends Gvv_Controller {
         parent::form_static_element($action);
         $pilote_selector = $this->membres_model->section_pilots(0, true);
         $this->data['saisie_par'] = $this->dx_auth->get_username();
-        if (CREATION == $action) {
+        if (CREATION == $action && !$this->input->post('vacdeb')) {
             $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
         }
 
