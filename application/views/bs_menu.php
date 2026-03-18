@@ -38,9 +38,9 @@ $section = $CI->sections_model->section();
 $active_section_missing = FALSE;
 
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
-$_uses_new_auth = $CI->session->userdata('use_new_auth')
+$uses_new_auth = $CI->session->userdata('use_new_auth')
     || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
-if ($_uses_new_auth && $CI->dx_auth->is_logged_in()) {
+if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $user_id = $CI->dx_auth->get_user_id();
     $section_selector = $CI->sections_model->selector_for_user($user_id);
     $section_count = count($section_selector);
@@ -49,14 +49,15 @@ if ($_uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $section_count = $CI->sections_model->safe_count_all();
 }
 
-if (is_logged_in() && $section_count > 1 && empty($section)) {
+$raw_section = $CI->session->userdata('section');
+if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
   $active_section_missing = TRUE;
 }
 ?>
 
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 fixed-top" style="position: sticky;">
+  <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 sticky-top">
     <div class="container-fluid">
 
       <a class="navbar-brand" href="<?= controller_url("welcome") ?>">Accueil GVV</a>
@@ -413,7 +414,6 @@ if (is_logged_in() && $section_count > 1 && empty($section)) {
         <!-- Nom, role et sous-menu utilisateur -->
         <?php
         $title = $this->config->item('nom_club');
-        $CI = &get_instance();
 
         // echo form_open(controller_url("auth/logout")) . "\n";
         $gvv_user = $CI->dx_auth->get_username();
@@ -428,11 +428,6 @@ if (is_logged_in() && $section_count > 1 && empty($section)) {
             $gvv_display_name = $gvv_user;
         }
 
-        if (strlen($gvv_user) > 1) {
-          // if someone is logged in
-          echo form_hidden('gvv_user', $gvv_user);
-          echo form_hidden('gvv_role', $gvv_role);
-        }
         ?>
 
         </div>
@@ -460,15 +455,11 @@ if (is_logged_in() && $section_count > 1 && empty($section)) {
           </div>
           <script>
             function updateSection(value) {
-              // Store the current page URL before updating section
               const currentPage = window.location.href;
-              console.log("Updating section to:", value);
-              console.log("Current page:", currentPage);
               $.post('<?= site_url('user_roles_per_section/set_section') ?>', {
                 section: value,
                 current_url: currentPage
               }, function(response) {
-                console.log("Section changed:", response);
                 window.location.href = JSON.parse(response).redirect;
               });
             }
