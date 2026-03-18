@@ -297,5 +297,5 @@ form[name="saisie"] .select2-container .select2-selection--single .select2-selec
 var horametres_modes_data = <?= json_encode($horametres_mode ? $horametres_mode : (object)array()) ?>;
 var horametres_last_data  = <?= json_encode(!empty($horametres_last) ? $horametres_last : (object)array()) ?>;
 var initial_horametre_mode = <?= isset($initial_horametre_mode) ? (int)$initial_horametre_mode : 0 ?>;
-var is_new_vol = <?= (isset($vaid) && $vaid == 0 && $this->input->post('vacdeb') === false) ? 'true' : 'false' ?>;
+var is_new_vol = <?= !empty($is_new_vol) ? 'true' : 'false' ?>;
 </script>
