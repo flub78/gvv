@@ -23,6 +23,10 @@
  * Contrôleur générique
  */
 
+if (!class_exists('MY_Controller')) {
+    require_once(APPPATH . 'core/MY_Controller.php');
+}
+
 /**
  * Le controleur GVV parent de la plupart des controleurs fournit les services
  * suivant:
@@ -31,7 +35,7 @@
  * - une vue page et une vue forumlaire
  * - un modèle de référence
  */
-class Gvv_Controller extends CI_Controller {
+class Gvv_Controller extends MY_Controller {
     protected $controller;
     protected $model;
     protected $kid;
@@ -40,11 +44,6 @@ class Gvv_Controller extends CI_Controller {
     public $table_view;
     protected $form_view;
     protected $unit_test = FALSE;
-
-    // Authorization system flag (set by _init_auth)
-    protected $use_new_auth = FALSE;
-    protected $user_id;
-    protected $migration_status = 'legacy';
 
     // régles de validation
     protected $fields = array();
@@ -66,12 +65,6 @@ class Gvv_Controller extends CI_Controller {
         $this->session->set_userdata('requested_url', $current_url);
 
         gvv_debug("URL: " . $current_url);
-
-        $this->load->library('DX_Auth');
-
-        // Initialize authorization system BEFORE login check
-        // so we can skip legacy URI permissions for new-auth users
-        $this->_init_auth();
 
         if (getenv('TEST') != '1') {
             // For new-auth users, skip legacy URI permission check inside check_login()
@@ -165,53 +158,6 @@ class Gvv_Controller extends CI_Controller {
             ->get();
 
         return $query && $query->num_rows() === 1;
-    }
-
-    /**
-     * Initialize authentication and determine which authorization system to use.
-     *
-     * Checks if the current user is in the use_new_authorization table (per-user migration)
-     * or if the global flag is enabled. Sets $this->use_new_auth accordingly.
-     */
-    private function _init_auth()
-    {
-        if (!isset($this->dx_auth) || !$this->dx_auth->is_logged_in()) {
-            return;
-        }
-
-        $this->user_id = $this->dx_auth->get_user_id();
-        $username = $this->dx_auth->get_username();
-
-        $this->config->load('gvv_config', TRUE);
-        $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
-
-        // Priority 1: Check per-user migration table
-        if (!$use_new_authorization) {
-            try {
-                $this->db->where('username', $username);
-                $query = $this->db->get('use_new_authorization');
-            } catch (Exception $e) {
-                log_message('error', "GVV_Controller(lib): Database error querying use_new_authorization: " . $e->getMessage());
-                $query = FALSE;
-            }
-
-            if ($query && $query->num_rows() > 0) {
-                $this->use_new_auth = TRUE;
-                $this->migration_status = 'per_user_pilot';
-                log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (per-user)");
-                $this->session->set_userdata('use_new_auth', TRUE);
-                return;
-            }
-        }
-
-        // Priority 2: Global flag
-        if ($use_new_authorization) {
-            $this->use_new_auth = TRUE;
-            $this->migration_status = 'global_enabled';
-            log_message('debug', "GVV_Controller(lib): User '$username' using NEW authorization (global)");
-        }
-
-        $this->session->set_userdata('use_new_auth', $this->use_new_auth);
     }
 
     /**
