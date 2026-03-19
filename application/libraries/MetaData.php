@@ -1236,7 +1236,10 @@ abstract class Metadata {
             if (isset($this->field[$table][$field]['RequiredRole'])) {
                 $CI =& get_instance();
                 $required_role = $this->field[$table][$field]['RequiredRole'];
-                if (!$CI->dx_auth->is_role($required_role, true, true)) {
+                $has_role = method_exists($CI, 'user_has_role')
+                    ? $CI->user_has_role($required_role)
+                    : $CI->dx_auth->is_role($required_role, true, true);
+                if (!$has_role) {
                     return $label;
                 }
             }

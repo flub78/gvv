@@ -238,6 +238,7 @@ if (! function_exists('decimal_to_time')) {
      * @return un chaine au format HH:MM
      */
     function decimal_to_time($time) {
+        if (!is_numeric($time)) return '00:00';
         $hours = floor($time);
         $minutes = ($time - floor($time)) * 100 + 0.0001;
         return sprintf("%02d:%02d", $hours, $minutes);

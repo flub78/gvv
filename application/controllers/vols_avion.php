@@ -284,8 +284,9 @@ class Vols_avion extends Gvv_Controller {
         // planchiste: full access; auto_planchiste: edit own flights; others: view own flights only
         $is_planchiste = $this->user_has_role('planchiste');
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        $bypass_modification_level = FALSE;
         if (! $is_planchiste) {
-            $flight = $this->model->get_by_id('vaid', $id);
+            $flight = $this->gvv_model->get_by_id('vaid', $id);
             $mlogin = $this->dx_auth->get_username();
             $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
             if (! $is_own_flight) {
@@ -295,14 +296,23 @@ class Vols_avion extends Gvv_Controller {
             if (! $is_auto_planchiste) {
                 // Regular user: view only
                 $action = VISUALISATION;
+            } else {
+                // auto_planchiste editing own flight: ownership already verified, bypass level check
+                $bypass_modification_level = TRUE;
             }
-            // auto_planchiste with own flight: keep MODIFICATION
         }
 
         $this->load->model('ecritures_model');
         $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) ? VISUALISATION : MODIFICATION;
         $action = MODIFICATION;
-        parent::edit($id, FALSE, $action);
+        if ($bypass_modification_level) {
+            $saved_level = $this->modification_level;
+            $this->modification_level = '';
+            parent::edit($id, FALSE, $action);
+            $this->modification_level = $saved_level;
+        } else {
+            parent::edit($id, FALSE, $action);
+        }
         
         // Convert member ID to account ID for payeur field (for form display)
         if (!empty($this->data['payeur'])) {
