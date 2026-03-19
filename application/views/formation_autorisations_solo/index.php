@@ -65,7 +65,7 @@ $this->lang->load('gvv');
             <form method="get" action="<?= controller_url($controller) ?>" class="row g-3">
                 <div class="col-md-4">
                     <label for="eleve_id" class="form-label"><?= $this->lang->line("formation_autorisation_solo_eleve") ?></label>
-                    <select class="form-select" id="eleve_id" name="eleve_id">
+                    <select class="form-select big_select_large" id="eleve_id" name="eleve_id">
                         <option value="">-- Tous --</option>
                         <?php foreach ($pilotes as $id => $nom): ?>
                             <option value="<?= $id ?>" <?= isset($filters['eleve_id']) && $filters['eleve_id'] == $id ? 'selected' : '' ?>>
@@ -77,7 +77,7 @@ $this->lang->load('gvv');
 
                 <div class="col-md-4">
                     <label for="instructeur_id" class="form-label"><?= $this->lang->line("formation_autorisation_solo_instructeur") ?></label>
-                    <select class="form-select" id="instructeur_id" name="instructeur_id">
+                    <select class="form-select big_select_large" id="instructeur_id" name="instructeur_id">
                         <option value="">-- Tous --</option>
                         <?php foreach ($instructeurs as $id => $nom): ?>
                             <option value="<?= $id ?>" <?= isset($filters['instructeur_id']) && $filters['instructeur_id'] == $id ? 'selected' : '' ?>>
