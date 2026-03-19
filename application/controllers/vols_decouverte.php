@@ -553,8 +553,8 @@ EOD;
         $pdf->writeHTML($header_html, true, false, false, false, '');
 
         // Options section - Airplane and Glider and Ultralight
-        $checked = '<img src="checked.png" width="10" height="10" alt="Checked checkbox" >';
-        $unchecked = '<img src="unchecked.png" width="10" height="10" alt="Unchecked checkbox" >';
+        $checked = '<img src="' . image_dir() . 'checked.png" width="10" height="10" alt="Checked checkbox" >';
+        $unchecked = '<img src="' . image_dir() . 'unchecked.png" width="10" height="10" alt="Unchecked checkbox" >';
 
         $abbeville = isset($data['abbeville']) ? $checked : $unchecked;
         $baie = isset($data['baie']) ? $checked : $unchecked;
