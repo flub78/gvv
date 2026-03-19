@@ -1035,7 +1035,7 @@ class Programmes extends Gvv_Controller
     /**
      * Check if current user can view programmes.
      *
-     * New auth:
+     * New auth (user has roles in user_roles_per_section, regardless of global flag):
      *   - CA ou club-admin dans n'importe quelle section : accès en lecture à toutes les sections
      *   - instructeur ou rp dans la section courante : accès en lecture à cette section
      *   - "Toutes" : ca ou club-admin dans n'importe quelle section
@@ -1045,7 +1045,7 @@ class Programmes extends Gvv_Controller
      */
     private function _can_view()
     {
-        if ($this->use_new_auth && $this->_is_new_auth_user()) {
+        if ($this->_is_new_auth_user()) {
             // CA ou club-admin dans n'importe quelle section = lecture cross-sections
             if ($this->gvv_authorization->has_any_role($this->user_id, ['club-admin', 'ca'], NULL)) {
                 return TRUE;
@@ -1067,7 +1067,7 @@ class Programmes extends Gvv_Controller
     /**
      * Check if current user can create/edit/delete programmes.
      *
-     * New auth:
+     * New auth (user has roles in user_roles_per_section, regardless of global flag):
      *   - Section spécifique : club-admin ou rp dans cette section
      *   - "Toutes"           : club-admin uniquement (section ambiguë pour la création)
      * Legacy: admin ou CA (bit flag mniveaux) — comportement inchangé
@@ -1076,7 +1076,7 @@ class Programmes extends Gvv_Controller
      */
     private function _can_manage()
     {
-        if ($this->use_new_auth && $this->_is_new_auth_user()) {
+        if ($this->_is_new_auth_user()) {
             $section_id = $this->session->userdata('section');
             if ($this->_is_real_section($section_id)) {
                 return $this->gvv_authorization->has_any_role(
