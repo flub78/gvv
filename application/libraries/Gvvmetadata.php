@@ -525,6 +525,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_vols_avion']['vapilid']['RequiredRole'] = 'ca';
                 $this->field['vue_vols_avion']['vamacid']['Subtype'] = 'key';
                 $this->field['vue_vols_avion']['vamacid']['Action'] = 'avion/edit';
+                $this->field['vue_vols_avion']['vamacid']['RequiredRole'] = 'planchiste';
 
                 $this->field['vue_vols_avion']['vacategorie']['Subtype'] = 'boolean';
                 // Remplacement vpcategorie par catégories_vol_planeur
@@ -573,6 +574,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_vols_planeur']['vppilid']['RequiredRole'] = 'ca';
                 $this->field['vue_vols_planeur']['vpmacid']['Subtype'] = 'key';
                 $this->field['vue_vols_planeur']['vpmacid']['Action'] = 'planeur/edit';
+                $this->field['vue_vols_planeur']['vpmacid']['RequiredRole'] = 'planchiste';
 
                 if ($this->CI->config->item('remorque_100eme')) {
                         $this->field['volsp']['vpaltrem']['Default'] = 10;

@@ -406,7 +406,6 @@ class Gvv_Authorization
         if (!is_array($roles)) {
             $roles = array($roles);
         }
-
         // Get current user ID
         if (!isset($this->CI->dx_auth)) {
             log_message('error', 'GVV_Auth: DX_Auth not loaded, cannot check roles');

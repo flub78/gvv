@@ -23,7 +23,7 @@
  */
 
 $this->load->view('bs_header');
-$this->load->view('bs_menu');
+$this->load->view('bs_menu', array('is_planchiste' => $is_planchiste, 'is_auto_planchiste' => $is_auto_planchiste));
 $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
@@ -277,7 +277,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
-                <?php if (has_role('planchiste')) : ?>
+                <?php if ($is_planchiste) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>
@@ -313,7 +313,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
-                <?php if (has_role('planchiste')) : ?>
+                <?php if ($is_planchiste || $is_auto_planchiste) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plus text-success"></i>

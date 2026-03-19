@@ -246,8 +246,12 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
             <li><a class="dropdown-item" href="<?= controller_url("reservations/timeline") ?>"><i class="fas fa-clock text-info"></i> <?= translation("gvv_menu_airplane_reservations") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("vols_avion/page") ?>"><i class="fas fa-list text-primary"></i> <?= translation("gvv_menu_airplane_list") ?></a></li>
-            <?php if (has_role('planchiste')) : ?>
+            <?php $menu_is_planchiste = isset($is_planchiste) ? $is_planchiste : has_role('planchiste'); ?>
+            <?php $menu_can_input = $menu_is_planchiste || (isset($is_auto_planchiste) ? $is_auto_planchiste : has_role('auto_planchiste')); ?>
+            <?php if ($menu_can_input) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("vols_avion/create") ?>"><i class="fas fa-plus text-success"></i> <?= translation("gvv_menu_airplane_input") ?></a></li>
+            <?php endif; ?>
+            <?php if ($menu_is_planchiste) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("avion/page") ?>"><i class="fas fa-plane-departure text-success"></i> <?= translation("gvv_menu_airplane_machines") ?></a></li>
             <?php endif; ?>
 
