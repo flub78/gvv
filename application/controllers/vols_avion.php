@@ -303,9 +303,13 @@ class Vols_avion extends Gvv_Controller {
         }
 
         $this->load->model('ecritures_model');
-        $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) ? VISUALISATION : MODIFICATION;
+        // $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) ? VISUALISATION : MODIFICATION;
         $action = MODIFICATION;
         if ($bypass_modification_level) {
+            // Temporarily clear modification_level so ensure_modification_rights() in parent::edit()
+            // skips the planchiste check — ownership was already verified above.
+            // Note: parent::edit() must return normally (not via redirect/show_404) for the restore
+            // to execute; the ownership guard above ensures we only reach this path on valid flights.
             $saved_level = $this->modification_level;
             $this->modification_level = '';
             parent::edit($id, FALSE, $action);

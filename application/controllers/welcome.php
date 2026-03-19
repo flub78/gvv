@@ -125,6 +125,7 @@ class Welcome extends Gvv_Controller {
             $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
             $data['is_instructeur'] = false;
             $data['is_mecano'] = false;
+            $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
             $data['is_auto_planchiste'] = false;
             $data['can_view_formation'] = $data['is_ca'] || $data['is_admin'];
         }
