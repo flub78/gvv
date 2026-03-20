@@ -337,7 +337,7 @@ $this->lang->load('welcome');
                 <?php endif; ?>
 
                 <!-- Sous-section Vols de découverte -->
-                <?php if (has_role('ca')) : ?>
+                <?php if ($this->config->item('gestion_vd') && (has_role('ca') || has_role('gestion_vd') || has_role('pilote_vd'))) : ?>
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-gift"></i> Vols de découverte</h6>
                 </div>

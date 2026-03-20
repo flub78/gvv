@@ -133,21 +133,25 @@ $attrs = array(
 );
 
 // Create button above the table
-echo '<div class="mb-3">'
-    . '<a href="' . site_url('vols_decouverte/create') . '" class="btn btn-sm btn-success">'
-    . '<i class="fas fa-plus" aria-hidden="true"></i> '
-    . $this->lang->line('gvv_button_create')
-    . '</a>'
-    . '</div>';
+if ($has_modification_rights) {
+    echo '<div class="mb-3">'
+        . '<a href="' . site_url('vols_decouverte/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>'
+        . '</div>';
+}
 
 echo $this->gvvmetadata->table("vue_vols_decouverte", $attrs, "");
 
 
-$bar = array(
-    array('label' => "Excel", 'url' => "$controller/export/csv", 'role' => 'ca'),
-    array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
-);
-echo button_bar4($bar);
+if ($has_modification_rights) {
+    $bar = array(
+        array('label' => "Excel", 'url' => "$controller/export/csv"),
+        array('label' => "Pdf", 'url' => "$controller/export/pdf"),
+    );
+    echo button_bar4($bar);
+}
 
 echo '</div>';
 

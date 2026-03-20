@@ -34,7 +34,7 @@ class Vols_decouverte extends Gvv_Controller {
     // Tout le travail est fait par le parent
     protected $controller = 'vols_decouverte';
     protected $model = 'vols_decouverte_model';
-    protected $modification_level = 'ca';
+    protected $modification_level = 'gestion_vd';
     protected $rules = array('club' => "callback_section_selected");
 
 
@@ -48,6 +48,16 @@ class Vols_decouverte extends Gvv_Controller {
         $this->load->model('tarifs_model');
         $this->load->model('configuration_model');
         $this->load->library('session');
+    }
+
+    /**
+     * pilote_vd implies gestion_vd: a VD pilot has all management permissions.
+     */
+    public function user_has_role($role) {
+        if ($role === 'gestion_vd') {
+            return parent::user_has_role('gestion_vd') || parent::user_has_role('pilote_vd');
+        }
+        return parent::user_has_role($role);
     }
 
     /**
@@ -227,7 +237,11 @@ class Vols_decouverte extends Gvv_Controller {
         $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
         $this->gvvmetadata->set_selector('product_selector', $product_selector);
 
-        $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
+        $pilote_selector = $this->membres_model->vd_pilots();
+        if (count($pilote_selector) <= 1) {
+            // Aucun pilote_vd défini dans la section : repli sur tous les membres actifs
+            $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
+        }
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
 
         $this->gvvmetadata->set_selector('machine_selector', $this->gvv_model->machine_selector());
@@ -263,7 +277,7 @@ class Vols_decouverte extends Gvv_Controller {
             $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
         }
 
-        // var_dump($this->data);
+        $this->data['has_modification_rights'] = $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
@@ -678,7 +692,7 @@ EOD;
      * Export de la liste des vols de découverte en CSV ou PDF
      */
     public function export($mode = 'csv') {
-        if (!$this->dx_auth->is_role('ca')) {
+        if (!$this->user_has_role('gestion_vd')) {
             $this->dx_auth->deny_access();
             return;
         }
