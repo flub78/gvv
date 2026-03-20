@@ -112,7 +112,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                 </ul>
               </li>
 
-              <?php if (has_role('ca')) : ?>
+              <?php if (has_role('ca') && $section && !empty($section['gestion_planeurs'])) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cloud text-primary"></i> <?= translation("HEVA") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("FFVV/association") ?>"><i class="fas fa-users text-primary"></i> <?= translation("Association") ?></a></li>
@@ -123,7 +123,9 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <li><a class="dropdown-item" href="<?= controller_url("FFVV/facturation") ?>"><i class="fas fa-file-invoice text-danger"></i> <?= translation("Facturation") ?></a></li>
                   </ul>
                 </li>
+              <?php endif; ?>
 
+                <?php if (has_role('ca')) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cogs text-primary"></i> <?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
