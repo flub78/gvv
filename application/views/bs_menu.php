@@ -150,7 +150,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
 
                 <li><a class="dropdown-item" href="#"><i class="fas fa-calculator text-success"></i> <?= translation("gvv_menu_admin_accounting") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= controller_url("admin/backup") ?>"><i class="fas fa-database text-primary"></i> <?= translation("welcome_database_backup_title") ?></a></li>
+
                     <li><a class="dropdown-item" href="<?= controller_url("comptes/cloture") ?>"><i class="fas fa-calendar-check text-danger"></i> <?= translation("welcome_database_endofyear_title") ?></a></li>
 
                     <li><a class="dropdown-item" href="<?= controller_url("plan_comptable/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("welcome_chart_of_account_title") ?></a></li>
