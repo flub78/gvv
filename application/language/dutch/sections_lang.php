@@ -18,6 +18,7 @@ $lang['gvv_sections_field_ordre_affichage'] = "Weergavevolgorde";
 $lang['gvv_sections_field_gestion_planeurs'] = "Zweefvliegtuigbeheer";
 $lang['gvv_sections_field_gestion_avions'] = "Vliegtuig/ULM beheer";
 $lang['gvv_sections_field_libelle_menu_avions'] = "Menulabel vliegtuig";
+$lang['gvv_sections_field_show_presences'] = "Aanwezigheidskalender";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Naam";
 $lang['gvv_vue_sections_short_field_description'] = "Beschrijving";
