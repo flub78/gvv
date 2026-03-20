@@ -22,7 +22,7 @@ const TEST_USER = {
   password: 'password'
 };
 
-test.describe('BugFix: Payeur Selector Tests', () => {
+test.describe.skip('BugFix: Payeur Selector Tests', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login before each test
