@@ -40,6 +40,7 @@ $active_section_missing = FALSE;
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
 $uses_new_auth = $CI->session->userdata('use_new_auth')
     || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
+$selector_functional = $uses_new_auth || $CI->dx_auth->is_admin();
 if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $user_id = $CI->dx_auth->get_user_id();
     $section_selector = $CI->sections_model->selector_for_user($user_id);
@@ -462,8 +463,13 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
               </div>
               <?php endif; ?>
               <div>
-                <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="updateSection(this.value)"') ?>
+                <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="' . ($selector_functional ? 'updateSection(this.value)' : 'warnSectionNotFunctional(this)') . '"') ?>
               </div>
+              <?php if (!$selector_functional) : ?>
+              <div id="section-selector-warning" class="alert alert-warning py-1 px-2 mt-2 mb-2 small" role="alert" style="display:none;">
+                <?= $this->lang->line("gvv_section_selector_not_functional") ?>
+              </div>
+              <?php endif; ?>
             <?php endif; ?>
 
           </div>
@@ -476,6 +482,10 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
               }, function(response) {
                 window.location.href = JSON.parse(response).redirect;
               });
+            }
+            function warnSectionNotFunctional(select) {
+              select.value = '<?= $this->session->userdata('section') ?>';
+              document.getElementById('section-selector-warning').style.display = 'block';
             }
           </script>
 

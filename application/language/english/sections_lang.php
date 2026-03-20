@@ -30,3 +30,5 @@ $lang['gvv_vue_sections_short_field_libelle_menu_avions'] = "Aircraft menu";
 $lang['all_sections'] = "All";
 
 $lang['gvv_users_roles_per_sections_title'] = "Users roles";
+
+$lang['gvv_section_selector_not_functional'] = "The section selector is not yet functional, please log out and log back in to the desired section.";
