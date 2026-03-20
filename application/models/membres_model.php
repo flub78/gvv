@@ -593,8 +593,13 @@ class Membres_model extends Common_Model {
      * Retourne un sélecteur des pilotes vols de découverte d'une section.
      * Un pilote VD est un membre ayant le rôle 'pilote_vd' pour cette section.
      *
+     * Note: cette méthode interroge uniquement user_roles_per_section (nouveau
+     * système d'autorisation). Les utilisateurs non migrés vers le nouveau système
+     * n'apparaîtront pas, même s'ils ont un rôle équivalent dans l'ancien système.
+     * Dans ce cas, le contrôleur replie sur tous les membres actifs.
+     *
      * @param int $section_id L'ID de la section (0 = section active)
-     * @return array Sélecteur au format [mlogin => image]
+     * @return array Sélecteur au format [mlogin => image], toujours initialisé avec une entrée vide [''=>'']
      */
     public function vd_pilots($section_id = 0) {
         if ($section_id == 0) {

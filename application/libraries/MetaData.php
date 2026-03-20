@@ -1361,7 +1361,7 @@ abstract class Metadata {
             return $btn;
         } elseif ($action == 'print_vd') {
             $obfuscated = transformInteger($elt_id);
-            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" target="_blank">'
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">'
                  . '<i class="fas fa-file-pdf" aria-hidden="true"></i>'
                  . '</a>';
             if ($attrs) {

@@ -238,8 +238,9 @@ class Vols_decouverte extends Gvv_Controller {
         $this->gvvmetadata->set_selector('product_selector', $product_selector);
 
         $pilote_selector = $this->membres_model->vd_pilots();
+        // vd_pilots() always includes an empty entry [''=>''], so count=1 means no pilots found
         if (count($pilote_selector) <= 1) {
-            // Aucun pilote_vd défini dans la section : repli sur tous les membres actifs
+            // No pilote_vd defined in this section: fall back to all active members
             $pilote_selector = $this->membres_model->selector_with_null(['actif' => 1]);
         }
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
@@ -277,7 +278,7 @@ class Vols_decouverte extends Gvv_Controller {
             $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
         }
 
-        $this->data['has_modification_rights'] = $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level);
+        $this->data['has_modification_rights'] = !isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }

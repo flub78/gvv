@@ -78,7 +78,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <li><a class="dropdown-item" href="#"><i class="fas fa-plane-departure text-info"></i> <?= translation("gvv_menu_vols_decouverte") ?>&raquo;</a>
                       <ul class="submenu dropdown-menu">
 
-                        <?php if (has_role('ca') || has_role('gestion_vd') || has_role('pilote_vd')) : ?>
+                        <?php if (has_vd_role()) : ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
                         <?php endif; ?>
@@ -191,7 +191,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
           </li>
         <?php endif; ?>
 
-        <?php if ($this->config->item('gestion_vd') && !has_role('ca') && (has_role('gestion_vd') || has_role('pilote_vd'))) : ?>
+        <?php if ($this->config->item('gestion_vd') && !has_role('ca') && has_vd_role()) : ?>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-plane-departure text-info"></i> <?= translation("gvv_menu_vols_decouverte") ?></a>
           <ul class="dropdown-menu">

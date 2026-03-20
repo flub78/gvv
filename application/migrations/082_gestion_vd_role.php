@@ -25,6 +25,12 @@ class Migration_Gestion_vd_role extends CI_Migration
 
     public function down()
     {
+        // Remove role assignments before deleting the roles (FK constraint)
+        $this->db->query(
+            "DELETE urps FROM user_roles_per_section urps
+             INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
+             WHERE tr.nom IN ('gestion_vd', 'pilote_vd')"
+        );
         $this->db->query("DELETE FROM types_roles WHERE nom IN ('gestion_vd', 'pilote_vd')");
 
         log_message('info', 'Migration 082: gestion_vd and pilote_vd roles removed');
