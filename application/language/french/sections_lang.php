@@ -31,3 +31,5 @@ $lang['gvv_vue_sections_short_field_libelle_menu_avions'] = "Menu avions";
 $lang['all_sections'] = "Toutes";
 
 $lang['gvv_users_roles_per_sections_title'] = "Rôles des utilisateurs";
+
+$lang['gvv_section_selector_not_functional'] = "Le sélecteur de section n'est pas encore fonctionnel, déconnectez-vous et reconnectez-vous dans la section désirée.";
