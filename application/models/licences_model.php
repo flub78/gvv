@@ -35,7 +35,7 @@ class Licences_model extends Common_Model {
      * @param int|null $section_id ID de la section (null = toutes les sections)
      * @return array Array avec 'data' (lignes de la table) et 'total' (ligne de total)
      */
-    public function per_year($type, $year_min = null, $year_max = null, $member_status = 'active', $section_id = null) {
+    public function per_year($type, $year_min = null, $year_max = null, $member_status = 'active', $section_id = null, $format = "html") {
 
         // Liste de pilotes selon le statut demandé
         $this->db->distinct();
@@ -112,7 +112,9 @@ class Licences_model extends Common_Model {
             $col = 0;
             $mlogin = $pilote['mlogin'];
             $pilote_line[$mlogin] = $line;
-            $results[$line][$col++] = anchor(controller_url("event/page/$mlogin"), $pilote['mnom'] . ' ' . $pilote['mprenom']);
+            $results[$line][$col++] = ($format == "html")
+                ? anchor(controller_url("event/page/$mlogin"), $pilote['mnom'] . ' ' . $pilote['mprenom'])
+                : $pilote['mnom'] . ' ' . $pilote['mprenom'];
             for ($year = $min; $year <= $max; $year++) {
                 // Checkbox non cochée par défaut
                 $checkbox = '<input type="checkbox" class="licence-checkbox" data-pilote="' . $mlogin . '" data-year="' . $year . '" data-type="' . $type . '">';

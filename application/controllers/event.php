@@ -78,13 +78,16 @@ class Event extends Gvv_Controller {
         }
         $this->push_return_url("Events");
 
-        if ($mlogin == "") {
-            $mlogin = $this->gvv_model->default_id();
-        }
-
         // Non-CA users can only view their own events
         $is_ca = $this->user_has_role($this->modification_level);
-        if (!$is_ca) {
+
+        if ($mlogin == "") {
+            if ($is_ca) {
+                $mlogin = $this->gvv_model->default_id();
+            } else {
+                $mlogin = $this->dx_auth->get_username();
+            }
+        } elseif (!$is_ca) {
             $current_user = $this->dx_auth->get_username();
             if ($mlogin != $current_user) {
                 $this->dx_auth->deny_access();
@@ -270,7 +273,8 @@ class Event extends Gvv_Controller {
         $this->data ['year'] = $year;
         $this->data ['year_selector'] = $this->gvv_model->getYearSelector("edate");
         $this->data ['controller'] = $this->controller;
-        $this->data ['events_stats'] = $this->gvv_model->getStats($year);
+        $format = $this->user_has_role('ca') ? "html" : "text";
+        $this->data ['events_stats'] = $this->gvv_model->getStats($year, $format);
         return load_last_view("event/statsView", $this->data, $this->unit_test);
     }
 
@@ -352,7 +356,8 @@ class Event extends Gvv_Controller {
             }
         }
         $data ['type'] = $type;
-        $data ['table'] = $this->gvv_model->licences_per_year($type);
+        $format = $this->user_has_role('ca') ? "html" : "text";
+        $data ['table'] = $this->gvv_model->licences_per_year($type, $format);
 
         // var_dump($data['event_type_selector']); exit;
         load_last_view('event/licences', $data);

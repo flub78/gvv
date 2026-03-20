@@ -98,7 +98,7 @@ class Event_model extends Common_Model {
      * Certificats annuels
      * @param unknown_type $year
      */
-    public function getStats($year) {
+    public function getStats($year, $format = "html") {
         $select = 'events_types.name as event_type, etype, count(*) as stat';
 
         $db_res = $this->db->select($select)
@@ -123,7 +123,9 @@ class Event_model extends Common_Model {
                 $count++;
                 $login = $evt['emlogin'];
                 $name = $evt["mprenom"] . " " . $evt["mnom"];
-                $result[$key][$count] = anchor(controller_url("event/page/$login"), $name);
+                $result[$key][$count] = ($format == "html")
+                    ? anchor(controller_url("event/page/$login"), $name)
+                    : $name;
                 if ($count > $max)
                     $max = $count;
             }
@@ -202,7 +204,9 @@ class Event_model extends Common_Model {
             $col = 0;
             $mlogin = $pilote['mlogin'];
             if ($format == "html") {
-            	$results[$line][$col++] = anchor(controller_url("event/page/$mlogin"), $pilote['mnom'] . ' ' . $pilote['mprenom']);
+            	$results[$line][$col++] = ($format == "html")
+    		? anchor(controller_url("event/page/$mlogin"), $pilote['mnom'] . ' ' . $pilote['mprenom'])
+    		: $pilote['mnom'] . ' ' . $pilote['mprenom'];
             } else {
             	$results[$line][$col++] = $pilote['mnom'] . ' ' . $pilote['mprenom'];
             }
@@ -362,7 +366,7 @@ class Event_model extends Common_Model {
     /**
      * Extrait les informations de formation
      */
-    public function licences_per_year($type) {
+    public function licences_per_year($type, $format = "html") {
     
     	// Liste de tous les pilotes qui ont eux des licences
     	// Il faut fusionner les pilotes qui ont eu des licences (actifs ou non) et les pilotes actifs

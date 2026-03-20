@@ -239,7 +239,8 @@ class Welcome extends Gvv_Controller {
      */
     public function ca() {
         if ($this->use_new_auth) {
-            $this->require_roles(['ca']);
+            // Use cross-section check (NULL) so any CA across all sections can access
+            $this->gvv_authorization->require_roles(['ca'], NULL);
         } elseif (! $this->dx_auth->is_role('ca')) {
             $this->dx_auth->deny_access();
         }
