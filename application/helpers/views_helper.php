@@ -134,3 +134,16 @@ if (!function_exists('has_role')) {
         return $CI->dx_auth->is_role($role, true, true);
     }
 }
+
+if (!function_exists('has_vd_role')) {
+    /**
+     * Returns true if the current user has any role granting access to the
+     * discovery flight (VD) module: 'ca', 'gestion_vd', or 'pilote_vd'.
+     *
+     * Centralises the role implication so that menu, dashboard and any future
+     * view all use a single point of truth instead of duplicating the check.
+     */
+    function has_vd_role() {
+        return has_role('ca') || has_role('gestion_vd') || has_role('pilote_vd');
+    }
+}

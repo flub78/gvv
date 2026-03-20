@@ -590,6 +590,49 @@ class Membres_model extends Common_Model {
     }
 
     /**
+     * Retourne un sélecteur des pilotes vols de découverte d'une section.
+     * Un pilote VD est un membre ayant le rôle 'pilote_vd' pour cette section.
+     *
+     * Note: cette méthode interroge uniquement user_roles_per_section (nouveau
+     * système d'autorisation). Les utilisateurs non migrés vers le nouveau système
+     * n'apparaîtront pas, même s'ils ont un rôle équivalent dans l'ancien système.
+     * Dans ce cas, le contrôleur replie sur tous les membres actifs.
+     *
+     * @param int $section_id L'ID de la section (0 = section active)
+     * @return array Sélecteur au format [mlogin => image], toujours initialisé avec une entrée vide [''=>'']
+     */
+    public function vd_pilots($section_id = 0) {
+        if ($section_id == 0) {
+            $section_id = $this->section_id();
+        }
+
+        $this->db->distinct();
+        $this->db->select('membres.mlogin');
+        $this->db->from('membres');
+        $this->db->join('users', 'users.username = membres.mlogin', 'inner');
+        $this->db->join('user_roles_per_section urps', 'urps.user_id = users.id', 'inner');
+        $this->db->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner');
+        $this->db->where('tr.nom', 'pilote_vd');
+        $this->db->where('urps.section_id', $section_id);
+        $this->db->where('urps.revoked_at IS NULL');
+        $this->db->where('membres.actif', 1);
+        $this->db->order_by('membres.mnom', 'ASC');
+        $this->db->order_by('membres.mprenom', 'ASC');
+
+        $query = $this->db->get();
+
+        $selector = array('' => '');
+        if ($query && $query->num_rows() > 0) {
+            foreach ($query->result_array() as $row) {
+                $mlogin = $row['mlogin'];
+                $selector[$mlogin] = $this->image($mlogin);
+            }
+        }
+
+        return $selector;
+    }
+
+    /**
      * Get a selector array for all active members
      *
      * @param int $section_id Section ID (0 = current section)

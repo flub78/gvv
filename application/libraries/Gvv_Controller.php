@@ -176,7 +176,7 @@ class Gvv_Controller extends MY_Controller {
         if ($action == "visualisation") {
             $this->data['readonly'] = "readonly";
         }
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level));
     }
 
     /**
@@ -814,7 +814,7 @@ class Gvv_Controller extends MY_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level));
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }

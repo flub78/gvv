@@ -100,7 +100,7 @@ $done_url = site_url() . "/vols_decouverte/done/" . $obfuscated_id;
 
 </div>
 
-<?php if (!$cancelled && !$expired && !$date_vol): ?>
+<?php if (!$cancelled && !$expired && !$date_vol && $has_modification_rights): ?>
 <div class="container mt-4">
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
