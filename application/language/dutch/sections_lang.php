@@ -28,6 +28,7 @@ $lang['gvv_vue_sections_short_field_ordre_affichage'] = "Volgorde";
 $lang['gvv_vue_sections_short_field_gestion_planeurs'] = "Zweefvliegtuigen";
 $lang['gvv_vue_sections_short_field_gestion_avions'] = "Vliegtuigen/ULM";
 $lang['gvv_vue_sections_short_field_libelle_menu_avions'] = "Menu vliegtuig";
+$lang['gvv_vue_sections_short_field_show_presences'] = "Aanwezigheid";
 
 $lang['all_sections'] = "Alle";
 
