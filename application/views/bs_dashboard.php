@@ -114,6 +114,13 @@ $this->lang->load('welcome');
 
     <div class="accordion" id="dashboardAccordion">
 
+    <?php
+    // Calculé ici pour être disponible dans toutes les sections du dashboard
+    $show_planeurs  = empty($section) || !empty($section['gestion_planeurs']);
+    $show_avions    = empty($section) || !empty($section['gestion_avions']);
+    $show_presences = empty($section) || !isset($section['show_presences']) || !empty($section['show_presences']);
+    ?>
+
     <!-- Section Utilisateur (tous les utilisateurs) -->
     <div class="accordion-item section-card user">
         <h2 class="accordion-header" id="headingUser">
@@ -125,7 +132,7 @@ $this->lang->load('welcome');
         <div id="collapseUser" class="accordion-collapse collapse show" aria-labelledby="headingUser" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
-                <?php if ($show_calendar): ?>
+                <?php if ($show_calendar && $show_presences): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-calendar-alt text-primary"></i>
@@ -170,6 +177,7 @@ $this->lang->load('welcome');
                 </div>
                 <?php endif; ?>
 
+                <?php if ($show_avions): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane-departure text-info"></i>
@@ -178,7 +186,9 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('vols_avion/vols_du_pilote/' . $username) ?>" class="btn btn-info btn-sm">Voir</a>
                     </div>
                 </div>
+                <?php endif; ?>
 
+                <?php if ($show_planeurs): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane text-success"></i>
@@ -187,6 +197,7 @@ $this->lang->load('welcome');
                         <a href="<?= controller_url('vols_planeur/vols_du_pilote/' . $username) ?>" class="btn btn-success btn-sm">Voir</a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
@@ -246,8 +257,7 @@ $this->lang->load('welcome');
     <!-- Gestion des vols -->
     <?php
     // Si aucune section active (vue "Toutes sections"), afficher toutes les activités
-    $show_planeurs = empty($section) || !empty($section['gestion_planeurs']);
-    $show_avions   = empty($section) || !empty($section['gestion_avions']);
+    // $show_planeurs et $show_avions sont déjà calculés plus haut (utilisés aussi dans la section utilisateur)
     $label_avions  = (!empty($section['libelle_menu_avions'])) ? $section['libelle_menu_avions'] : 'Avion';
     ?>
     <?php if ($show_planeurs || $show_avions): ?>

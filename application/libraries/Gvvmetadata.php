@@ -806,6 +806,10 @@ class GVVMetadata extends Metadata {
 
                 $this->field['sections']['libelle_menu_avions']['Name'] = $CI->lang->line('gvv_sections_field_libelle_menu_avions');
 
+                $this->field['sections']['show_presences']['Name']    = $CI->lang->line('gvv_sections_field_show_presences');
+                $this->field['sections']['show_presences']['Type']    = 'int';
+                $this->field['sections']['show_presences']['Subtype'] = 'boolean';
+
                 /**
                  * Vue sections
                  */
@@ -826,6 +830,9 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_sections']['gestion_avions']['Subtype'] = 'boolean';
 
                 $this->field['vue_sections']['libelle_menu_avions']['Name'] = $CI->lang->line('gvv_sections_field_libelle_menu_avions');
+
+                $this->field['vue_sections']['show_presences']['Name']    = $CI->lang->line('gvv_sections_field_show_presences');
+                $this->field['vue_sections']['show_presences']['Subtype'] = 'boolean';
 
                 /**
                  * Document types (archivage documentaire)

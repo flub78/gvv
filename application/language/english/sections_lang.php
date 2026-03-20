@@ -17,6 +17,7 @@ $lang['gvv_sections_field_ordre_affichage'] = "Display order";
 $lang['gvv_sections_field_gestion_planeurs'] = "Glider management";
 $lang['gvv_sections_field_gestion_avions'] = "Aircraft/ULM management";
 $lang['gvv_sections_field_libelle_menu_avions'] = "Aircraft/ULM menu label";
+$lang['gvv_sections_field_show_presences'] = "Attendance calendar";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Name";
 $lang['gvv_vue_sections_short_field_description'] = "Description";
@@ -26,6 +27,7 @@ $lang['gvv_vue_sections_short_field_ordre_affichage'] = "Order";
 $lang['gvv_vue_sections_short_field_gestion_planeurs'] = "Gliders";
 $lang['gvv_vue_sections_short_field_gestion_avions'] = "Aircraft/ULM";
 $lang['gvv_vue_sections_short_field_libelle_menu_avions'] = "Aircraft menu";
+$lang['gvv_vue_sections_short_field_show_presences'] = "Attendance";
 
 $lang['all_sections'] = "All";
 

@@ -18,6 +18,7 @@ $lang['gvv_sections_field_ordre_affichage'] = "Ordre d'affichage";
 $lang['gvv_sections_field_gestion_planeurs'] = "Gestion planeurs";
 $lang['gvv_sections_field_gestion_avions'] = "Gestion avions/ULM";
 $lang['gvv_sections_field_libelle_menu_avions'] = "Libellé menu avions/ULM";
+$lang['gvv_sections_field_show_presences'] = "Calendrier présences";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Nom";
 $lang['gvv_vue_sections_short_field_description'] = "Description";
@@ -27,6 +28,7 @@ $lang['gvv_vue_sections_short_field_ordre_affichage'] = "Ordre";
 $lang['gvv_vue_sections_short_field_gestion_planeurs'] = "Planeurs";
 $lang['gvv_vue_sections_short_field_gestion_avions'] = "Avions/ULM";
 $lang['gvv_vue_sections_short_field_libelle_menu_avions'] = "Menu avions";
+$lang['gvv_vue_sections_short_field_show_presences'] = "Présences";
 
 $lang['all_sections'] = "Toutes";
 

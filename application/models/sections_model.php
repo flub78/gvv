@@ -21,7 +21,7 @@ class Sections_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, nom, description, acronyme, couleur, ordre_affichage');
+        $select = $this->select_columns('id, nom, description, acronyme, couleur, ordre_affichage, gestion_planeurs, gestion_avions, show_presences');
         $this->db->order_by('ordre_affichage', 'asc');
         $this->db->order_by('nom', 'asc');
         $this->gvvmetadata->store_table("vue_sections", $select);
