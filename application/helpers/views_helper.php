@@ -132,6 +132,9 @@ if (!function_exists('has_role')) {
         }
 
         // Fallback for new-auth users on controllers without user_has_role
+        // (e.g. controllers extending CI_Controller directly).
+        // Uses section_id = NULL: returns all roles for the user regardless of section,
+        // which is consistent with the legacy dx_auth behaviour and safe for menu visibility.
         if ($CI->session->userdata('use_new_auth')) {
             $CI->load->library('Gvv_Authorization');
             $user_id = $CI->dx_auth->get_user_id();

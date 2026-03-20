@@ -4,8 +4,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Migration 084: Add backup_db role
  *
- * - backup_db: global-scoped role granting access to backup, restore, and
- *   database migration pages without requiring full admin privileges.
+ * - backup_db: global-scoped role granting access to the database backup page
+ *   (backup_form, backup, backup_media) without requiring full admin privileges.
+ *   Restore and migration operations remain restricted to admins.
  */
 class Migration_Backup_db_role extends CI_Migration
 {

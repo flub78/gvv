@@ -153,6 +153,7 @@ $lang['role_instructor'] = "Instructeur";
 $lang['role_rp'] = "Responsable pédagogique";
 $lang['role_gestion_vd'] = "Gestionnaire vols de découverte";
 $lang['role_pilote_vd'] = "Pilote vols de découverte";
+$lang['role_backup_db'] = "Sauvegarde base de données";
 
 $lang['role_user_desc'] = "Peut se connecter et consulter ses propres données";
 $lang['role_auto_planchiste_desc'] = "Peut créer, modifier et supprimer ses propres vols";

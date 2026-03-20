@@ -97,7 +97,7 @@ class Welcome extends Gvv_Controller {
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
-        $data['is_backup_db'] = $this->dx_auth->is_role('backup_db');
+        $data['is_backup_db'] = $this->dx_auth->is_role('backup_db'); // always false for legacy users — intentional (backup_db is a new-auth-only role)
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
 
         if ($this->use_new_auth) {
