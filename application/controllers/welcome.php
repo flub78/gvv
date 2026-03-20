@@ -97,6 +97,7 @@ class Welcome extends Gvv_Controller {
         // Check user roles (following bs_menu.php role checks)
         $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
         $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
+        $data['is_backup_db'] = $this->dx_auth->is_role('backup_db');
         $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
 
         if ($this->use_new_auth) {
@@ -113,6 +114,7 @@ class Welcome extends Gvv_Controller {
             $data['is_mecano'] = $this->gvv_authorization->has_role($this->user_id, 'mecano', $section_id);
             $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
             $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
+            $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
             // Formation visibility: CA anywhere grants cross-section read access to formations.
             // In a specific section, instructeur and rp also qualify.
             $data['can_view_formation'] = $this->gvv_authorization->has_any_role(

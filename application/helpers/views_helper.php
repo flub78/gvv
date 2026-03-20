@@ -131,6 +131,13 @@ if (!function_exists('has_role')) {
             return $CI->user_has_role($role);
         }
 
+        // Fallback for new-auth users on controllers without user_has_role
+        if ($CI->session->userdata('use_new_auth')) {
+            $CI->load->library('Gvv_Authorization');
+            $user_id = $CI->dx_auth->get_user_id();
+            return $CI->gvv_authorization->has_role($user_id, $role, NULL);
+        }
+
         return $CI->dx_auth->is_role($role, true, true);
     }
 }

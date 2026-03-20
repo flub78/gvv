@@ -1029,7 +1029,7 @@ $this->lang->load('welcome');
     </div>
     <?php endif; ?>
 
-    <?php if ($is_admin): ?>
+    <?php if ($is_admin || $is_backup_db): ?>
     <!-- Section Administration Système -->
     <div class="accordion-item section-card admin">
         <h2 class="accordion-header" id="headingAdminSys">
@@ -1056,6 +1056,7 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <?php if ($is_admin): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-undo text-warning"></i>
@@ -1171,11 +1172,12 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+                <?php endif; // $is_admin — end of admin-only subsections ?>
                     </div>
                 </div>
             </div>
         </div>
-    <?php endif; ?>
+    <?php endif; // $is_admin || $is_backup_db ?>
 
     <?php if (isset($is_dev_authorized) && $is_dev_authorized): ?>
     <!-- Section Développement / Test (fpeignot only) -->
