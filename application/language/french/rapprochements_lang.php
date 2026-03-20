@@ -26,4 +26,6 @@ $lang['gvv_rapprochements_col_operation'] = "Opération bancaire";
 $lang['gvv_rapprochements_no_results'] = "Aucun rapprochement trouvé pour cette période.";
 $lang['gvv_filter_start_date'] = "Du";
 $lang['gvv_filter_end_date'] = "Au";
+$lang['gvv_rapprochements_drop_file'] = "Glissez-déposez votre relevé bancaire ici";
+$lang['gvv_rapprochements_or_click'] = "ou cliquez pour sélectionner un fichier";
 

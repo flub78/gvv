@@ -26,4 +26,6 @@ $lang['gvv_rapprochements_col_operation'] = "Bankoperatie";
 $lang['gvv_rapprochements_no_results'] = "Geen afstemming gevonden voor deze periode.";
 $lang['gvv_filter_start_date'] = "Van";
 $lang['gvv_filter_end_date'] = "Tot";
+$lang['gvv_rapprochements_drop_file'] = "Sleep uw bankafschrift hiernaartoe";
+$lang['gvv_rapprochements_or_click'] = "of klik om een bestand te selecteren";
 

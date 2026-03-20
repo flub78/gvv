@@ -26,4 +26,6 @@ $lang['gvv_rapprochements_col_operation'] = "Bank operation";
 $lang['gvv_rapprochements_no_results'] = "No reconciliation found for this period.";
 $lang['gvv_filter_start_date'] = "From";
 $lang['gvv_filter_end_date'] = "To";
+$lang['gvv_rapprochements_drop_file'] = "Drag and drop your bank statement here";
+$lang['gvv_rapprochements_or_click'] = "or click to select a file";
 

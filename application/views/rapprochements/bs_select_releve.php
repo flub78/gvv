@@ -39,17 +39,61 @@ echo p($this->lang->line("gvv_rapprochements_explain"));
 <?php
 
 echo p($this->lang->line("gvv_of_select"));
-echo form_open_multipart('rapprochements/import_releve');
+?>
+<form action="<?= site_url('rapprochements/import_releve') ?>" method="post" enctype="multipart/form-data" id="upload-form">
+  <div id="drop-zone" class="border border-2 border-primary rounded p-5 text-center mb-3"
+       style="cursor:pointer; transition: background .2s;">
+    <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-2"></i>
+    <p class="mb-1 fw-bold"><?= $this->lang->line('gvv_rapprochements_drop_file') ?></p>
+    <p class="text-muted small mb-2"><?= $this->lang->line('gvv_rapprochements_or_click') ?></p>
+    <input type="file" name="userfile" id="userfile" class="d-none" accept=".csv,.txt,.ofx,.qif">
+    <span id="file-name" class="text-muted small"></span>
+  </div>
+  <button type="submit" name="button" value="<?= $this->lang->line('gvv_button_validate') ?>" class="btn btn-primary" id="upload-btn" disabled>
+    <i class="fas fa-upload me-1"></i><?= $this->lang->line('gvv_button_validate') ?>
+  </button>
+</form>
 
-echo '<input type="file" name="userfile" size="50" /><br><br>';
+<script>
+(function () {
+  var zone    = document.getElementById('drop-zone');
+  var input   = document.getElementById('userfile');
+  var nameEl  = document.getElementById('file-name');
+  var btn     = document.getElementById('upload-btn');
 
-echo form_input(array(
-	'type' => 'submit',
-	'name' => 'button',
-	'value' => $this->lang->line("gvv_button_validate"),
-	'class' => 'btn btn-primary'
-));
-echo form_close();
+  function setFile(file) {
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    nameEl.textContent = file.name;
+    btn.disabled = false;
+    zone.style.background = '#e8f4fd';
+  }
+
+  zone.addEventListener('click', function () { input.click(); });
+
+  input.addEventListener('change', function () {
+    if (input.files.length) setFile(input.files[0]);
+  });
+
+  zone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    zone.style.background = '#cce5ff';
+  });
+
+  zone.addEventListener('dragleave', function () {
+    zone.style.background = '';
+  });
+
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    zone.style.background = '#e8f4fd';
+    var file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+}());
+</script>
+<?php
 
 // ── Rapprochements existants ─────────────────────────────────────────────────
 echo '<hr>';
