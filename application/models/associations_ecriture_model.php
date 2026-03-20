@@ -250,9 +250,69 @@ class Associations_ecriture_model extends Common_Model {
             gvv_error("Invalid id_ecriture_gvv in delete_rapprochements");
             return false;
         }
-        
+
         $this->db->where('id_ecriture_gvv', $id_ecriture_gvv);
         return $this->db->delete($this->table);
+    }
+
+    /**
+     * Count rapprochements with optional date filter on the linked ecriture
+     *
+     * @param string $startDate Start date (Y-m-d) or empty
+     * @param string $endDate   End date (Y-m-d) or empty
+     * @return int Total number of matching rows
+     */
+    public function count_rapprochements($startDate = '', $endDate = '', $section_id = null) {
+        $this->db
+            ->from("associations_ecriture as a")
+            ->join("ecritures as e", "a.id_ecriture_gvv = e.id", "inner")
+            ->join("sections as s", "e.club = s.id", "left");
+
+        if ($section_id) {
+            $this->db->where('s.id', $section_id);
+        }
+        if ($startDate) {
+            $this->db->where('e.date_op >=', $startDate);
+        }
+        if ($endDate) {
+            $this->db->where('e.date_op <=', $endDate);
+        }
+
+        return $this->db->count_all_results();
+    }
+
+    /**
+     * Select rapprochements with optional date filter and pagination
+     *
+     * @param string $startDate  Start date (Y-m-d) or empty
+     * @param string $endDate    End date (Y-m-d) or empty
+     * @param int    $nb         Max rows to return
+     * @param int    $debut      Offset
+     * @param int    $section_id Section filter or null for all
+     * @return array
+     */
+    public function select_rapprochements($startDate = '', $endDate = '', $nb = 25, $debut = 0, $section_id = null) {
+        $this->db
+            ->select('a.id, a.string_releve, a.id_ecriture_gvv, e.date_op, e.montant, e.description, s.nom as nom_section')
+            ->from("associations_ecriture as a")
+            ->join("ecritures as e", "a.id_ecriture_gvv = e.id", "inner")
+            ->join("sections as s", "e.club = s.id", "left");
+
+        if ($section_id) {
+            $this->db->where('s.id', $section_id);
+        }
+        if ($startDate) {
+            $this->db->where('e.date_op >=', $startDate);
+        }
+        if ($endDate) {
+            $this->db->where('e.date_op <=', $endDate);
+        }
+
+        $this->db->order_by('e.date_op DESC, a.id DESC');
+        $this->db->limit($nb, $debut);
+
+        $db_res = $this->db->get();
+        return $this->get_to_array($db_res);
     }
 }
 

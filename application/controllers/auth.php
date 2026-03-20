@@ -141,6 +141,7 @@ class Auth extends CI_Controller {
             $val->set_rules('username', 'lang:auth_username', 'trim|required|xss_clean');
             $val->set_rules('password', 'lang:auth_password', 'trim|required|xss_clean');
             $val->set_rules('remember', 'lang:auth_remember_me', 'integer');
+            $val->set_rules('section', 'lang:gvv_sections_element', 'trim|integer');
 
             // Set captcha rules if login attempts exceed max attempts in config
             if ($this->dx_auth->is_max_login_attempts_exceeded()) {

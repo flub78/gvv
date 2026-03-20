@@ -14,3 +14,16 @@ $lang['gvv_rapprochements_explain'] = "Importer un fichier CSV de relevé de com
 $lang['gvv_rapproche'] = "Rapprocher";
 $lang['gvv_delete_rapproche'] = "Supprimer les rapprochements";
 
+$lang['gvv_rapprochements_list_title'] = "Rapprochements existants";
+$lang['gvv_rapprochements_select_all'] = "Tout sélectionner";
+$lang['gvv_rapprochements_deselect_all'] = "Tout désélectionner";
+$lang['gvv_rapprochements_delete_selected'] = "Supprimer la sélection";
+$lang['gvv_rapprochements_confirm_delete'] = "Supprimer les rapprochements sélectionnés ?";
+$lang['gvv_rapprochements_col_date'] = "Date";
+$lang['gvv_rapprochements_col_description'] = "Description";
+$lang['gvv_rapprochements_col_montant'] = "Montant";
+$lang['gvv_rapprochements_col_operation'] = "Opération bancaire";
+$lang['gvv_rapprochements_no_results'] = "Aucun rapprochement trouvé pour cette période.";
+$lang['gvv_filter_start_date'] = "Du";
+$lang['gvv_filter_end_date'] = "Au";
+

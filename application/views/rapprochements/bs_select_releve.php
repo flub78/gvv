@@ -49,4 +49,70 @@ echo form_input(array(
 	'value' => $this->lang->line("gvv_button_validate"),
 	'class' => 'btn btn-primary'
 ));
-echo form_close('</div>');
+echo form_close();
+
+// ── Rapprochements existants ─────────────────────────────────────────────────
+echo '<hr>';
+echo '<h4>' . $this->lang->line('gvv_rapprochements_list_title') . '</h4>';
+?>
+
+<form method="post" action="<?= site_url('rapprochements/filter') ?>" class="row g-2 align-items-end mb-3">
+  <input type="hidden" name="button" value="Filtrer">
+  <input type="hidden" name="return_url" value="rapprochements/select_releve">
+  <div class="col-auto">
+    <label class="form-label"><?= $this->lang->line('gvv_filter_start_date') ?></label>
+    <input type="date" name="startDate" class="form-control" value="<?= htmlspecialchars($startDate) ?>">
+  </div>
+  <div class="col-auto">
+    <label class="form-label"><?= $this->lang->line('gvv_filter_end_date') ?></label>
+    <input type="date" name="endDate" class="form-control" value="<?= htmlspecialchars($endDate) ?>">
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-secondary"><?= $this->lang->line('gvv_str_select') ?></button>
+  </div>
+</form>
+
+<?php if (!empty($rapprochements)) : ?>
+<form method="post" action="<?= site_url('rapprochements/delete_selected_rapprochements') ?>">
+  <div class="mb-2 d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="rapprSelectAll(true)"><?= $this->lang->line('gvv_rapprochements_select_all') ?></button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="rapprSelectAll(false)"><?= $this->lang->line('gvv_rapprochements_deselect_all') ?></button>
+    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('<?= $this->lang->line('gvv_rapprochements_confirm_delete') ?>')"><?= $this->lang->line('gvv_rapprochements_delete_selected') ?></button>
+  </div>
+  <table id="rappr-table" class="datatable table table-striped table-sm table-hover">
+    <thead>
+      <tr>
+        <th></th>
+        <th><?= $this->lang->line('gvv_rapprochements_col_date') ?></th>
+        <th><?= $this->lang->line('gvv_rapprochements_col_description') ?></th>
+        <th><?= $this->lang->line('gvv_rapprochements_col_montant') ?></th>
+        <th><?= $this->lang->line('gvv_sections_element') ?></th>
+        <th><?= $this->lang->line('gvv_rapprochements_col_operation') ?></th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($rapprochements as $row) : ?>
+      <tr>
+        <td><input type="checkbox" name="rapprochement_ids[]" value="<?= $row['id'] ?>" class="rappr-cb"></td>
+        <td data-order="<?= $row['date_op'] ?>"><?= date_db2ht($row['date_op']) ?></td>
+        <td><?= htmlspecialchars($row['description']) ?></td>
+        <td data-order="<?= $row['montant'] ?>"><?= number_format($row['montant'], 2, ',', ' ') ?></td>
+        <td><?= htmlspecialchars($row['nom_section']) ?></td>
+        <td title="<?= htmlspecialchars($row['string_releve']) ?>"><?= htmlspecialchars(mb_strimwidth($row['string_releve'], 0, 60, '…')) ?></td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</form>
+<?php else : ?>
+<p class="text-muted"><?= $this->lang->line('gvv_rapprochements_no_results') ?></p>
+<?php endif; ?>
+
+<script>
+function rapprSelectAll(checked) {
+  // Couvre toutes les lignes DataTables (y compris les pages masquées)
+  document.querySelectorAll('.rappr-cb').forEach(cb => cb.checked = checked);
+}
+</script>
+<?php
+echo '</div>';

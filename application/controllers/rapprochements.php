@@ -83,7 +83,28 @@ class Rapprochements extends CI_Controller {
         $data['filter_type'] = $filter_type;
         $data['type_selector'] = $type_selector;
 
+        // Rapprochements existants
+        $section = $this->sections_model->section();
+        $section_id = $section ? $section['id'] : null;
+        $data['rapprochements'] = $this->associations_ecriture_model->select_rapprochements($startDate, $endDate, 9999, 0, $section_id);
+
         load_last_view('rapprochements/select_releve', $data);
+    }
+
+    /**
+     * Delete rapprochements selected from the select_releve page
+     */
+    public function delete_selected_rapprochements() {
+        $ids = $this->input->post('rapprochement_ids');
+        if (!empty($ids) && is_array($ids)) {
+            foreach ($ids as $id) {
+                $id = (int)$id;
+                if ($id > 0) {
+                    $this->associations_ecriture_model->delete(['id' => $id]);
+                }
+            }
+        }
+        redirect('rapprochements/select_releve');
     }
 
     /**
