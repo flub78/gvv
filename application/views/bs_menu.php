@@ -70,7 +70,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
         <div class="collapse navbar-collapse" id="mynavbar">
           <ul class="navbar-nav me-auto">
 
-            <?php if (has_role('ca')) : ?>
+            <?php if (has_role('ca') || has_role('backup_db')) : ?>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_admin") ?></a>
                 <ul class="dropdown-menu">
@@ -87,6 +87,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     </li>
                   <?php endif; ?>
 
+              <?php if (has_role('ca') || has_role('bureau') || has_role('admin')) : ?>
                   <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line text-info"></i> <?= translation("gvv_menu_reports") ?> &raquo;</a>
                 <ul class="submenu dropdown-menu">
 
@@ -108,11 +109,11 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/dgac") ?>"><i class="fas fa-building text-danger"></i> <?= translation("gvv_menu_reports_admin_report") ?></a></li>
                   <?php endif; ?>
 
-
                 </ul>
               </li>
+              <?php endif; ?>
 
-              <?php if (has_role('ca')) : ?>
+              <?php if (has_role('ca') && $section && !empty($section['gestion_planeurs'])) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cloud text-primary"></i> <?= translation("HEVA") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("FFVV/association") ?>"><i class="fas fa-users text-primary"></i> <?= translation("Association") ?></a></li>
@@ -123,7 +124,9 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <li><a class="dropdown-item" href="<?= controller_url("FFVV/facturation") ?>"><i class="fas fa-file-invoice text-danger"></i> <?= translation("Facturation") ?></a></li>
                   </ul>
                 </li>
+              <?php endif; ?>
 
+              <?php if (has_role('ca')) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cogs text-primary"></i> <?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
@@ -170,19 +173,20 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
 
               <?php endif; ?>
 
-              <?php if (has_role('admin')) : ?>
+              <?php if (has_role('admin') || has_role('backup_db')) : ?>
 
                 <li><a class="dropdown-item" href="#"><i class="fas fa-server text-danger"></i> <?= translation("gvv_menu_admin_system") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("admin/backup_form") ?>"><i class="fas fa-save text-primary"></i> Sauvegarde des données</a></li>
+                    <?php if (has_role('admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("admin/restore") ?>"><i class="fas fa-undo text-warning"></i> <?= translation("gvv_admin_menu_restore") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("migration") ?>"><i class="fas fa-exchange-alt text-info"></i> <?= translation("gvv_admin_menu_migrate") ?></a></li>
-
                     <li><a class="dropdown-item" href="<?= controller_url("backend/users") ?>"><i class="fas fa-users text-primary"></i> <?= translation("gvv_admin_menu_users") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("backend/roles") ?>"><i class="fas fa-user-tag text-info"></i> <?= translation("gvv_admin_menu_roles") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><i class="fas fa-lock text-danger"></i> <?= translation("gvv_admin_menu_permissions") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('sections') ?>"><i class="fas fa-layer-group text-success"></i> <?= translation("gvv_sections_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('user_roles_per_section') ?>"><i class="fas fa-user-cog text-warning"></i> <?= translation("gvv_users_roles_per_sections_title") ?></a></li>
+                    <?php endif; ?>
                   </ul>
                 </li>
 

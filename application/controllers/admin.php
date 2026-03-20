@@ -39,14 +39,30 @@ class Admin extends CI_Controller {
         // Check if user is logged in or not
         $this->dx_auth->check_login();
 
-        // Authorization: require admin role
+        // Authorization: require admin role, except backup methods also allow backup_db role
         if (!$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
-            return;
+            $backup_methods = ['backup_form', 'backup', 'backup_media'];
+            $method = $this->router->fetch_method();
+            if (!in_array($method, $backup_methods) || !$this->_has_backup_db_role()) {
+                $this->dx_auth->deny_access();
+                return;
+            }
         }
 
         $this->load->library('Database');
         $this->load->helper('file');
+    }
+
+    /**
+     * Check if the current user has the backup_db role (new auth system only).
+     */
+    private function _has_backup_db_role() {
+        if ($this->session->userdata('use_new_auth')) {
+            $this->load->library('Gvv_Authorization');
+            $user_id = $this->dx_auth->get_user_id();
+            return $this->gvv_authorization->has_role($user_id, 'backup_db', NULL);
+        }
+        return FALSE;
     }
 
     /**
