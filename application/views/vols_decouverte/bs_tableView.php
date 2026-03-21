@@ -28,6 +28,7 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
 $this->lang->load('vols_decouverte');
+$this->lang->load('briefing_passager');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -126,7 +127,7 @@ echo '</div>';
 
 $attrs = array(
     'controller' => $controller,
-    'actions' => array('edit', 'delete', 'print_vd', 'email_vd', 'action'),
+    'actions' => array('edit', 'delete', 'print_vd', 'email_vd', 'action', 'briefing_vd'),
     'fields' => array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol',  'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation', 'prix'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
     'class' => "datatable table table-striped"

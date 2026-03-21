@@ -723,6 +723,76 @@ class Archived_documents_model extends Common_Model {
         }
         return $fallbacks[$status];
     }
+
+    // -------------------------------------------------------------------------
+    // Briefing passager methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the current briefing document for a discovery flight, or NULL.
+     * @param int $vld_id Discovery flight ID
+     * @return array|null
+     */
+    public function get_briefing_by_vld($vld_id)
+    {
+        $this->db->select('archived_documents.*, document_types.code as type_code');
+        $this->db->from('archived_documents');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->where('archived_documents.vld_id', (int)$vld_id);
+        $this->db->where('archived_documents.is_current_version', 1);
+        $this->db->order_by('archived_documents.uploaded_at', 'desc');
+        $this->db->limit(1);
+        $query = $this->db->get();
+        $row = $query->row_array();
+        return $row ?: null;
+    }
+
+    /**
+     * Returns briefing documents uploaded within the last N days.
+     * Joins with vols_decouverte to provide flight context.
+     * @param int $days Number of days to look back (default 90)
+     * @return array
+     */
+    public function get_briefings_recent($days = 90)
+    {
+        $this->db->select(
+            'archived_documents.id, archived_documents.vld_id, archived_documents.uploaded_at,
+             archived_documents.description, archived_documents.file_path, archived_documents.original_filename,
+             archived_documents.validation_status,
+             document_types.code as type_code,
+             vols_decouverte.date_vol, vols_decouverte.aerodrome,
+             vols_decouverte.airplane_immat, vols_decouverte.beneficiaire,
+             vols_decouverte.pilote, vols_decouverte.club as section_id'
+        );
+        $this->db->from('archived_documents');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->join('vols_decouverte', 'archived_documents.vld_id = vols_decouverte.id', 'inner');
+        $this->db->where('document_types.code', 'briefing_passager');
+        $this->db->where('archived_documents.is_current_version', 1);
+        $this->db->where("archived_documents.uploaded_at >= DATE_SUB(NOW(), INTERVAL " . (int)$days . " DAY)", null, false);
+        $this->db->order_by('archived_documents.uploaded_at', 'desc');
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Returns the active consignes_securite document for a section, or NULL.
+     * @param int $section_id Section ID
+     * @return array|null
+     */
+    public function get_consignes_by_section($section_id)
+    {
+        $this->db->select('archived_documents.*');
+        $this->db->from('archived_documents');
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'inner');
+        $this->db->where('document_types.code', 'consignes_securite');
+        $this->db->where('archived_documents.section_id', (int)$section_id);
+        $this->db->where('archived_documents.is_current_version', 1);
+        $this->db->order_by('archived_documents.uploaded_at', 'desc');
+        $this->db->limit(1);
+        $query = $this->db->get();
+        $row = $query->row_array();
+        return $row ?: null;
+    }
 }
 
 /* End of file archived_documents_model.php */

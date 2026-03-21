@@ -587,6 +587,9 @@ abstract class Metadata {
 
                     $url = "$base_controller/$action";  // Use base_controller (relative path) not $controller (full URL)
                     $elt_image = isset($row['image']) ? $row['image'] : $row[$this->table_key($table)];
+                    if ($action === 'briefing_vd' && array_key_exists('has_briefing', $row)) {
+                        $elt_image = $row['has_briefing'];
+                    }
                     $confirm = ($action == 'delete');
                     
                     // Check if line is frozen for delete action
@@ -1357,6 +1360,15 @@ abstract class Metadata {
             $obfuscated = transformInteger($elt_id);
             $btn = '<a href="' . site_url(trim($url, '/') . '/' . $obfuscated) . '" class="btn btn-sm btn-info" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" ' . $attrs . '>'
                  . '<i class="fas fa-info-circle" aria-hidden="true"></i>'
+                 . '</a>';
+            return $btn;
+        } elseif ($action == 'briefing_vd') {
+            // Link to briefing_passager/upload/{vld_id} — uses vld_id directly (not obfuscated)
+            // $elt_image holds has_briefing (1 = briefing exists → green, 0 → outline)
+            $label_briefing = $this->CI->lang->line('briefing_passager_title') ?: 'Briefing';
+            $btn_class = $elt_image ? 'btn-success' : 'btn-outline-secondary';
+            $btn = '<a href="' . site_url('briefing_passager/upload/' . (int)$elt_id) . '" class="btn btn-sm ' . $btn_class . '" title="' . htmlspecialchars($label_briefing, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-clipboard-check" aria-hidden="true"></i>'
                  . '</a>';
             return $btn;
         } elseif ($action == 'print_vd') {

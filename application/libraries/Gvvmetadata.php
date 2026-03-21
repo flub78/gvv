@@ -1129,6 +1129,8 @@ class GVVMetadata extends Metadata {
                 $this->field['vols_decouverte']['airplane_immat']['Subtype'] = 'selector';
                 $this->field['vols_decouverte']['airplane_immat']['Selector'] = 'machine_selector';
 
+                $this->field['vols_decouverte']['aerodrome']['Type'] = 'string';
+
                 $this->field['vols_decouverte']['prix']['Subtype'] = 'currency';
 
                 /**
