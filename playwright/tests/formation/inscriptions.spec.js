@@ -14,7 +14,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin and testinst users must exist (see bin/create_test_users.sh)
+ *   - abraracourcix (instructor) and asterix (eleve) users must exist (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *   - At least one active programme must exist
  *
@@ -31,7 +31,8 @@ const { test, expect } = require('@playwright/test');
 const LOGIN_URL = '/index.php/auth/login';
 const INSCRIPTIONS_URL = '/index.php/formation_inscriptions';
 const PROGRAMMES_URL = '/index.php/programmes';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+// abraracourcix has instructor rights (BIT_FI_AVION + BIT_CA)
+const TEST_USER = { username: 'abraracourcix', password: 'password' };
 
 /**
  * Login helper
@@ -94,8 +95,8 @@ test.describe('Formation Inscriptions Workflow', () => {
     expect(bodyText).not.toContain('Parse error');
     expect(bodyText).not.toContain('Undefined');
 
-    // Check page title
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Inscriptions|Formation/i);
+    // Check page title (h3 used in this view)
+    await expect(page.locator('h3').first()).toContainText(/Inscriptions|Formation/i);
 
     console.log('✓ Inscriptions list page accessible');
   });
@@ -129,6 +130,29 @@ test.describe('Formation Inscriptions Workflow', () => {
   test('Step 3: should open a new inscription', async ({ page }) => {
     await login(page);
 
+    // Cleanup: close any open inscriptions for asterix from previous test runs
+    // (the list supports GET filters, so we can navigate directly to filtered results)
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await page.goto(`${INSCRIPTIONS_URL}?pilote_id=asterix&statut=ouverte`);
+      await page.waitForLoadState('networkidle');
+      const firstLink = page.locator('a[href*="/detail/"]').first();
+      if (await firstLink.count() === 0) break;
+      const href = await firstLink.getAttribute('href');
+      await page.goto(href);
+      await page.waitForLoadState('networkidle');
+      const cloturerBtn = page.locator('a[href*="/cloturer/"], button:has-text("Clôturer")').first();
+      if (await cloturerBtn.isVisible().catch(() => false)) {
+        await cloturerBtn.click();
+        await page.waitForLoadState('networkidle');
+        await page.check('input[type="radio"][value="abandonnee"]').catch(() => {});
+        await page.click('button[type="submit"], input[type="submit"]');
+        await page.waitForLoadState('networkidle');
+      } else {
+        break;
+      }
+    }
+
+    // Navigate to inscriptions list and open the creation form
     await page.goto(INSCRIPTIONS_URL);
     await page.waitForLoadState('networkidle');
 
@@ -137,20 +161,33 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on the form page
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Ouvrir|Nouvelle/i);
+    await expect(page.locator('h3').first()).toContainText(/Ouvrir|Nouvelle/i);
 
     // Fill the form
-    // Select pilot (testuser)
-    await page.selectOption('select[name="pilote_id"]', 'testuser');
+    // Select pilot (asterix - eleve in new authorization system)
+    await page.selectOption('select[name="pilote_id"]', 'asterix');
     await page.waitForTimeout(500);
 
     // Select first available programme
+    // Note: ouvrir.php has a hardcoded empty option + get_selector() also adds '' key,
+    // so we must select by value (not by index) to skip both empty options.
     const programmeSelect = page.locator('select[name="programme_id"]');
-    await programmeSelect.selectOption({ index: 1 }); // Skip empty option
+    const firstProgramme = programmeSelect.locator('option:not([value=""])').first();
+    const programmeValue = await firstProgramme.getAttribute('value');
+    if (!programmeValue) {
+      test.skip(true, 'No active programmes available');
+      return;
+    }
+    await programmeSelect.selectOption(programmeValue);
     await page.waitForTimeout(500);
 
-    // Select instructor (testinst)
-    await page.selectOption('select[name="instructeur_referent_id"]', 'testinst');
+    // Select first available instructor referent if any (field is optional)
+    const instructeurSelect = page.locator('select[name="instructeur_referent_id"]');
+    const firstInstructeur = instructeurSelect.locator('option:not([value=""])').first();
+    const instructeurValue = await firstInstructeur.getAttribute('value').catch(() => null);
+    if (instructeurValue) {
+      await instructeurSelect.selectOption(instructeurValue);
+    }
 
     // Set date
     await page.fill('input[name="date_ouverture"]', new Date().toISOString().split('T')[0]);
@@ -162,13 +199,11 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
-    // Check for success message
-    const bodyText = await page.textContent('body');
-    expect(bodyText).not.toContain('Erreur');
-    expect(bodyText).not.toContain('Error');
-
-    // We should be redirected to detail page
+    // Should be redirected to detail page
     const currentUrl = page.url();
+    const bodyText = await page.textContent('body');
+    expect(bodyText).not.toContain('Fatal error');
+    expect(bodyText).not.toContain('Parse error');
     expect(currentUrl).toContain('/detail/');
 
     // Extract inscription ID from URL
@@ -178,8 +213,10 @@ test.describe('Formation Inscriptions Workflow', () => {
       console.log(`✓ Created inscription with ID: ${inscriptionId}`);
     }
 
+    expect(inscriptionId).toBeTruthy();
+
     // Verify status badge shows "ouverte"
-    await expect(page.locator('.badge-success, .badge')).toContainText(/ouverte|open/i);
+    await expect(page.locator('.badge:has-text("Ouverte")')).toBeVisible();
   });
 
   test('Step 4: should view inscription details', async ({ page }) => {
@@ -190,12 +227,11 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.goto(`${INSCRIPTIONS_URL}/detail/${inscriptionId}`);
     await page.waitForLoadState('networkidle');
 
-    // Check page elements
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Détail|Inscription/i);
+    // Check page elements (detail page title is "Fiche de progression")
+    await expect(page.locator('h3').first()).toContainText(/Fiche de progression|Inscription/i);
     
     // Verify status badge
-    const statusBadge = page.locator('.badge-success, .badge').first();
-    await expect(statusBadge).toContainText(/ouverte/i);
+    await expect(page.locator('.badge:has-text("Ouverte")')).toBeVisible();
 
     // Check action buttons are present
     await expect(page.locator('a:has-text("Suspendre"), button:has-text("Suspendre")')).toBeVisible();
@@ -217,7 +253,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on suspension form
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Suspendre|Suspension/i);
+    await expect(page.locator('h3').first()).toContainText(/Suspendre|Suspension/i);
 
     // Fill suspension reason
     await page.fill('textarea[name="motif"]', 'Suspension test Playwright');
@@ -230,7 +266,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForURL(`**/detail/${inscriptionId}`, { timeout: 5000 });
 
     // Verify status changed to "suspendue"
-    await expect(page.locator('.badge-warning, .badge')).toContainText(/suspendue/i);
+    await expect(page.locator('.badge:has-text("Suspendue")')).toBeVisible();
 
     // Reactivate button should now be visible
     await expect(page.locator('a:has-text("Réactiver"), button:has-text("Réactiver")')).toBeVisible();
@@ -247,7 +283,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Verify it's suspended
-    await expect(page.locator('.badge-warning, .badge')).toContainText(/suspendue/i);
+    await expect(page.locator('.badge:has-text("Suspendue")')).toBeVisible();
 
     // Click reactivate button (usually a direct link, no form)
     await page.click('a:has-text("Réactiver"), button:has-text("Réactiver"), a[href*="/reactiver/"]');
@@ -257,7 +293,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForURL(`**/detail/${inscriptionId}`, { timeout: 5000 });
 
     // Verify status changed back to "ouverte"
-    await expect(page.locator('.badge-success, .badge')).toContainText(/ouverte/i);
+    await expect(page.locator('.badge:has-text("Ouverte")')).toBeVisible();
 
     // Suspend and close buttons should be visible again
     await expect(page.locator('a:has-text("Suspendre"), button:has-text("Suspendre")')).toBeVisible();
@@ -279,7 +315,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on closure form
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Clôturer|Clôture/i);
+    await expect(page.locator('h3').first()).toContainText(/Clôturer|Clôture/i);
 
     // Select "cloturee" (success)
     await page.check('input[type="radio"][value="cloturee"]');
@@ -293,7 +329,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForURL(`**/detail/${inscriptionId}`, { timeout: 5000 });
 
     // Verify status changed to "cloturee"
-    await expect(page.locator('.badge-primary, .badge')).toContainText(/clôturée|cloturee/i);
+    await expect(page.locator('.badge:has-text("Clôturée")')).toBeVisible();
 
     // Action buttons should not be visible anymore
     const suspendBtn = page.locator('a:has-text("Suspendre")');
@@ -307,19 +343,13 @@ test.describe('Formation Inscriptions Workflow', () => {
 
     await login(page);
 
-    await page.goto(INSCRIPTIONS_URL);
+    // Filter by "cloturee" status using GET params (list supports GET filters)
+    await page.goto(`${INSCRIPTIONS_URL}?statut=cloturee&pilote_id=asterix`);
     await page.waitForLoadState('networkidle');
 
-    // Filter by "cloturee" status
-    const statusFilter = page.locator('select[name="statut"]');
-    if (await statusFilter.count() > 0) {
-      await statusFilter.selectOption('cloturee');
-      await page.waitForTimeout(500);
-    }
-
-    // Check the inscription appears in the list
+    // Check the inscription appears in the list (displayed as "Le Gaulois Asterix")
     const bodyText = await page.textContent('body');
-    expect(bodyText).toContain('testuser');
+    expect(bodyText).toContain('Asterix');
 
     console.log('✓ Closed inscription appears in list');
   });

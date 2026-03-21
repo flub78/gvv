@@ -15,7 +15,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin user must exist (see bin/create_test_users.sh)
+ *   - panoramix user must exist with club-admin role (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *
  * Usage:
@@ -29,7 +29,8 @@ const path = require('path');
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
 const PROGRAMMES_URL = '/index.php/programmes';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+// panoramix has club-admin role in all sections → can manage programmes
+const TEST_USER = { username: 'panoramix', password: 'password' };
 
 // Unique test data to avoid collisions
 const TEST_PROGRAMME_TITLE = 'Test Playwright ' + Date.now();
@@ -230,8 +231,8 @@ test.describe('Formation Programmes CRUD', () => {
     expect(await subjectBadges.count()).toBeGreaterThan(0);
 
     // Verify action buttons
-    await expect(page.locator('a:has-text("Exporter")')).toBeVisible();
-    await expect(page.locator('a:has-text("Modifier")')).toBeVisible();
+    await expect(page.locator('a:has-text("Exporter en Markdown")')).toBeVisible();
+    await expect(page.locator('a:has-text("Modifier le programme")')).toBeVisible();
 
     // Verify a lesson title is visible in the accordion
     await expect(page.locator('.accordion-button:has-text("Découverte du planeur")')).toBeVisible();

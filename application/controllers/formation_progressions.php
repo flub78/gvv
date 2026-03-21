@@ -89,6 +89,68 @@ class Formation_progressions extends CI_Controller
     }
 
     /**
+     * Affiche la fiche de progression d'une formation
+     *
+     * @param int $inscription_id ID de la formation
+     */
+    public function fiche($inscription_id)
+    {
+        log_message('debug', 'FORMATION_PROGRESSIONS: fiche(' . $inscription_id . ') called');
+
+        $inscription = $this->formation_inscription_model->get_with_details($inscription_id);
+        if (!$inscription) {
+            show_404();
+            return;
+        }
+
+        $this->load->model('formation_seance_model');
+        $seances_vol = $this->formation_seance_model->get_by_inscription($inscription_id);
+        $seances_theoriques = $this->formation_seance_model->get_theoriques_by_pilote_programme(
+            $inscription['pilote_id'],
+            $inscription['programme_id']
+        );
+
+        foreach ($seances_vol as &$s) { $s['_kind'] = 'vol'; }
+        foreach ($seances_theoriques as &$s) { $s['_kind'] = 'theorique'; }
+        $seances = array_merge($seances_vol, $seances_theoriques);
+        usort($seances, function($a, $b) {
+            return strcmp($b['date_seance'], $a['date_seance']);
+        });
+
+        $progression_data = $this->formation_progression->calculer($inscription_id);
+        $current_user = $this->dx_auth->get_username();
+        $is_student_view = ($current_user === $inscription['pilote_id']);
+        $is_instructeur = $this->formation_access->is_instructeur();
+
+        $this->load->model('formation_autorisation_solo_model');
+        $autorisations_solo = $this->formation_autorisation_solo_model->get_by_inscription($inscription_id);
+
+        $stats = $progression_data ? $progression_data['stats'] : array();
+        if (!empty($stats)) {
+            $stats['nb_seances'] = count($seances);
+        }
+
+        $data = array(
+            'controller' => 'formation_progressions',
+            'inscription' => $inscription,
+            'seances' => $seances,
+            'lecons' => $progression_data ? $progression_data['lecons'] : array(),
+            'stats' => $stats,
+            'progression' => $progression_data ? array(
+                'total_sujets' => $progression_data['stats']['nb_sujets_total'],
+                'sujets_acquis' => $progression_data['stats']['nb_sujets_acquis'],
+                'pourcentage' => $progression_data['stats']['pourcentage_acquis']
+            ) : array('total_sujets' => 0, 'sujets_acquis' => 0, 'pourcentage' => 0),
+            'formation_progression' => $this->formation_progression,
+            'is_student_view' => $is_student_view,
+            'is_instructeur' => $is_instructeur,
+            'autorisations_solo' => $autorisations_solo
+        );
+
+        $this->load->view('formation_inscriptions/detail', $data);
+    }
+
+    /**
      * Exporte la fiche de progression en PDF
      *
      * @param int $inscription_id ID de la formation

@@ -97,7 +97,8 @@ class Licences extends Gvv_Controller {
         $data['sections'] = $sections;
 
         // Récupérer les données et le total séparément
-        $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max, $member_status, $section_id);
+        $format = $this->user_has_role('ca') ? "html" : "text";
+        $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max, $member_status, $section_id, $format);
         $data['table'] = $result['data'];
         $data['total'] = $result['total'];
 

@@ -11,7 +11,8 @@
  *   6. Compliance report is accessible
  *
  * Prerequisites:
- *   - testadmin user must exist
+ *   - testadmin user must exist (for formation_types_seances which requires is_admin())
+ *   - abraracourcix user must exist with instructor rights (for seances, seances_theoriques, rapports)
  *   - Migration 078 and 079 must be applied
  *   - Feature flag gestion_formations must be enabled
  *
@@ -21,12 +22,15 @@
 const { test, expect } = require('@playwright/test');
 
 const LOGIN_URL = '/index.php/auth/login';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+// testadmin: legacy admin (is_admin()=true) for formation_types_seances
+const ADMIN_USER = { username: 'testadmin', password: 'password' };
+// abraracourcix: instructor in new auth system (BIT_FI_AVION) for other formation controllers
+const INSTRUCTOR_USER = { username: 'abraracourcix', password: 'password' };
 
-async function login(page) {
+async function login(page, user) {
     await page.goto(LOGIN_URL);
-    await page.fill('input[name="username"]', TEST_USER.username);
-    await page.fill('input[name="password"]', TEST_USER.password);
+    await page.fill('input[name="username"]', user.username);
+    await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 }
@@ -34,7 +38,7 @@ async function login(page) {
 test.describe('Formation – Types de séances', () => {
 
     test('La liste des types de séances est accessible', async ({ page }) => {
-        await login(page);
+        await login(page, ADMIN_USER); // formation_types_seances requires is_admin()
         await page.goto('/index.php/formation_types_seances');
         await expect(page).not.toHaveURL(/login/);
         // The page title contains the expected heading or content
@@ -47,7 +51,7 @@ test.describe('Formation – Types de séances', () => {
 test.describe('Formation – Séances théoriques', () => {
 
     test('La liste des séances théoriques est accessible', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_seances_theoriques');
         await expect(page).not.toHaveURL(/login/);
         const body = await page.textContent('body');
@@ -55,21 +59,21 @@ test.describe('Formation – Séances théoriques', () => {
     });
 
     test('Le formulaire de création charge le widget de participants', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_seances_theoriques/create');
         await expect(page).not.toHaveURL(/login/);
 
-        // The participant search input must be present
-        const searchInput = page.locator('#participant-search');
+        // The participant select dropdown must be present
+        const searchInput = page.locator('#participant-select');
         await expect(searchInput).toBeVisible();
 
-        // The participant badges container must be present
-        const badges = page.locator('#participants-badges');
+        // The participants list container must be present
+        const badges = page.locator('#participants-list');
         await expect(badges).toBeVisible();
     });
 
     test('La liste des séances (historique) contient le filtre Nature', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_seances');
         await expect(page).not.toHaveURL(/login/);
 
@@ -83,7 +87,7 @@ test.describe('Formation – Séances théoriques', () => {
     });
 
     test('La recherche AJAX de membres retourne du JSON', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
 
         const response = await page.request.get(
             '/index.php/formation_seances_theoriques/ajax_search_membres?q=a'
@@ -102,7 +106,7 @@ test.describe('Formation – Séances théoriques', () => {
 test.describe('Formation – Rapports annuels (Phase 3)', () => {
 
     test('Le rapport annuel consolidé est accessible', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_rapports/annuel');
         await expect(page).not.toHaveURL(/login/);
 
@@ -112,7 +116,7 @@ test.describe('Formation – Rapports annuels (Phase 3)', () => {
     });
 
     test('Le rapport annuel affiche les deux onglets', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_rapports/annuel');
         await expect(page).not.toHaveURL(/login/);
 
@@ -122,7 +126,7 @@ test.describe('Formation – Rapports annuels (Phase 3)', () => {
     });
 
     test("L'export CSV du rapport annuel est accessible", async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
 
         const year = new Date().getFullYear();
         const response = await page.request.get(
@@ -135,7 +139,7 @@ test.describe('Formation – Rapports annuels (Phase 3)', () => {
     });
 
     test('Le rapport de conformité est accessible', async ({ page }) => {
-        await login(page);
+        await login(page, INSTRUCTOR_USER);
         await page.goto('/index.php/formation_rapports/conformite');
         await expect(page).not.toHaveURL(/login/);
 

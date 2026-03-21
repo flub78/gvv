@@ -457,7 +457,10 @@ class Compta extends Gvv_Controller {
      */
     function ecriture(string $title_key, $emploi_selection, $resource_selection, $message = "") {
         // Check authorization - only users with modification_level role can create entries
-        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+        $authorized = $this->use_new_auth
+            ? $this->user_has_role($this->modification_level)
+            : $this->dx_auth->is_role($this->modification_level, true, true);
+        if (!$authorized) {
             $this->dx_auth->deny_access();
             return;
         }

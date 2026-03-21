@@ -7,7 +7,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [] archived_documents. Quand le fichier n'existe pas, on affiche un message d'erreur dans la première colonne qui est remplacé par un icone de warning. Après plusieurs tentative, claude code a fait un patch pour remplacer le contenu et contraindre la largeur de la colonne. Il faudrait identifier la cause racine et ne pas envoyer la chaine pour la remplacer aprés.
+* [x] archived_documents. Quand le fichier n'existe pas, on affiche un message d'erreur dans la première colonne qui est remplacé par un icone de warning. Après plusieurs tentative, claude code a fait un patch pour remplacer le contenu et contraindre la largeur de la colonne. Il faudrait identifier la cause racine et ne pas envoyer la chaine pour la remplacer aprés.
 
 
 ## Priorités
@@ -28,40 +28,40 @@ Cela implique de:
 #### Tests manuels authorisations
 
 #### Utilisateur de base
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
   
 #### Planchiste
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
   
 #### Membre du CA
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
   
 #### Instructeur (réduire les test à formation)
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
 
 #### RP (réduire les tests à RP et instructeur)
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
   
 #### Trésorier (réduire les tests à trésorerie)
-* [ ] tous les liens et menus visibles sont accessibles sans erreur
-* [ ] pas de lien vers des fonctionnalités interdites
+* [x] tous les liens et menus visibles sont accessibles sans erreur
+* [x] pas de lien vers des fonctionnalités interdites
 * [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [ ] Les fonctionnalités autorisées sont accessibles
+* [x] Les fonctionnalités autorisées sont accessibles
   
 
 ## Reste à faire
@@ -80,7 +80,7 @@ Cela implique de:
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
-  * [-] donner les droits dans les controllers WIP
+  * [x] donner les droits dans les controllers WIP
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
@@ -93,7 +93,7 @@ Cela implique de:
 * [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
 * [x] Ajout de séance de formation théoriques sans vol.
 * [] Ajout d'un calendrier des échéances
-* [] Ajout de vues semaines et mois aux réservations
+* [x] Ajout de vues semaines et mois aux réservations
 
 * [] Interdire les réservations sans cotisation et sans argent sur le compte.
 
@@ -112,8 +112,6 @@ Cela implique de:
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
-
-                    
 
 
 ## Dette technique

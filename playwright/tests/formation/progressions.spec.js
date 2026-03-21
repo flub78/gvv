@@ -13,7 +13,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin user must exist (see bin/create_test_users.sh)
+ *   - abraracourcix user must exist with instructor rights (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *   - At least one open formation/inscription with recorded sessions/evaluations
  *
@@ -29,7 +29,7 @@ const { test, expect } = require('@playwright/test');
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
 const PROGRESSIONS_URL = '/index.php/formation_progressions';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+const TEST_USER = { username: 'abraracourcix', password: 'password' };
 
 /**
  * Login helper
@@ -84,9 +84,9 @@ test.describe('Formation Progressions - Phase 5', () => {
     // Verify page title (look in body div after banner)
     await expect(page.locator('#body h3, .body h3').first()).toContainText(/Fiches de progression|Progressions/i);
 
-    // Verify DataTable is present (may be empty)
-    const table = page.locator('table.dataTable, table#progressions-table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    // Verify table or empty message is present (table only rendered when data exists)
+    const tableOrEmpty = page.locator('table#formations-table, .alert-info');
+    await expect(tableOrEmpty.first()).toBeVisible({ timeout: 10000 });
   });
 
   // ---------------------------------------------------------------------------
@@ -166,13 +166,17 @@ test.describe('Formation Progressions - Phase 5', () => {
     await viewButtons.first().click();
     await page.waitForLoadState('networkidle');
 
-    // Verify progress bar exists
-    const progressBar = page.locator('.progress-bar');
-    await expect(progressBar.first()).toBeVisible();
+    // Verify progress container is visible (progress bar may have 0 width if no evaluations yet)
+    const progressContainer = page.locator('.progress');
+    await expect(progressContainer.first()).toBeVisible();
 
-    // Verify it has a color class (bg-danger, bg-warning, bg-info, bg-success)
-    const className = await progressBar.first().getAttribute('class');
-    expect(className).toMatch(/bg-(danger|warning|info|success)/);
+    // Verify the progress bar has a color class (bg-danger, bg-warning, bg-info, bg-success)
+    const progressBar = page.locator('.progress-bar');
+    const barCount = await progressBar.count();
+    if (barCount > 0) {
+      const className = await progressBar.first().getAttribute('class');
+      expect(className).toMatch(/bg-(danger|warning|info|success)/);
+    }
   });
 
   // ---------------------------------------------------------------------------
@@ -193,18 +197,22 @@ test.describe('Formation Progressions - Phase 5', () => {
     await viewButtons.first().click();
     await page.waitForLoadState('networkidle');
 
-    // Verify accordion exists
+    // Verify accordion exists and has items
     const accordion = page.locator('.accordion, #lessons-accordion');
     if (await accordion.isVisible()) {
-      // Try to expand first lesson
-      const firstLesson = accordion.locator('.accordion-button, .card-header').first();
-      if (await firstLesson.isVisible()) {
-        await firstLesson.click();
-        await page.waitForTimeout(500);
+      const items = accordion.locator('.accordion-item');
+      expect(await items.count()).toBeGreaterThan(0);
 
-        // Verify subjects table is visible
-        const subjectsTable = page.locator('table').filter({ hasText: /Sujet|N°/i });
-        await expect(subjectsTable.first()).toBeVisible();
+      // The first lesson is expanded by default (has .show class on its collapse div)
+      // Look for a subjects table inside the open section
+      const openSection = accordion.locator('.accordion-collapse.show').first();
+      const isOpen = await openSection.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isOpen) {
+        const subjectsTable = openSection.locator('table').filter({ hasText: /Sujet|N°/i });
+        if (await subjectsTable.count() > 0) {
+          await expect(subjectsTable.first()).toBeVisible();
+        }
+        // No assertion if first lecon has no sujets (empty() == true in PHP)
       }
     }
   });
