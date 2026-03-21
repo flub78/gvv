@@ -3,5 +3,10 @@
         "/usr/bin/php7.4": true,
         "mysql": true,
         "npx playwright": true
-    }
+    },
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#1a3a5c",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#122840"
+  }
 }
