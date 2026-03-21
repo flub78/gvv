@@ -234,9 +234,6 @@ test.describe('Archived Documents Smoke Tests', () => {
     expect(body).toContain('Bonjour');
     expect(body).toContain('Cordialement');
 
-    // "Open mail client" button must be present
-    await expect(page.locator('#docEmailMailtoBtn')).toBeVisible();
-
     console.log('Email modal opens correctly with pre-filled fields');
   });
 

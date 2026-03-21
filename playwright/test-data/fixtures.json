@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "extracted_at": "2026-02-21 12:18:49",
+        "extracted_at": "2026-03-21 06:28:30",
         "database": "gvv2",
         "version": "1.0"
     },
@@ -10,100 +10,100 @@
             "full_name": "Abraracourcix Le Gaulois",
             "first_name": "Le Gaulois",
             "last_name": "Abraracourcix",
-            "account_id": 1436,
+            "account_id": 1442,
             "account_label": "(411) Abraracourcix Le Gaulois"
         },
         {
-            "login": "ppagis",
-            "full_name": "Adam Laurent",
-            "first_name": "Laurent",
-            "last_name": "Adam",
-            "account_id": 1332,
-            "account_label": "(411) Adam Laurent"
+            "login": "jreuille",
+            "full_name": "Alonso Yves",
+            "first_name": "Yves",
+            "last_name": "Alonso",
+            "account_id": 1112,
+            "account_label": "(411) Alonso Yves"
         },
         {
-            "login": "asterix",
-            "full_name": "Asterix Le Gaulois",
-            "first_name": "Le Gaulois",
-            "last_name": "Asterix",
-            "account_id": 1431,
-            "account_label": "(411) Asterix Le Gaulois"
+            "login": "sbellaredj",
+            "full_name": "Andre Bruno",
+            "first_name": "Bruno",
+            "last_name": "Andre",
+            "account_id": 1127,
+            "account_label": "(411) Andre Bruno"
         },
         {
-            "login": "gpruvost",
-            "full_name": "Barbier Quentin",
-            "first_name": "Quentin",
-            "last_name": "Barbier",
-            "account_id": 53,
-            "account_label": "(411) Barbier Quentin"
+            "login": "xdiaz",
+            "full_name": "Antoine Arthur",
+            "first_name": "Arthur",
+            "last_name": "Antoine",
+            "account_id": 1147,
+            "account_label": "(411) Antoine Arthur"
         }
     ],
     "instructors": {
         "glider": [
             {
                 "login": "fduvollet",
-                "full_name": "Bertrand Julien",
-                "first_name": "Julien",
-                "last_name": "Bertrand",
-                "qualification": "",
+                "full_name": "Mounier Michel",
+                "first_name": "Michel",
+                "last_name": "Mounier",
+                "qualification": null,
                 "account_id": 42,
-                "account_label": "(411) Bertrand Julien"
-            },
-            {
-                "login": "fpeignot",
-                "full_name": "Durand Cedric",
-                "first_name": "Cedric",
-                "last_name": "Durand",
-                "qualification": "",
-                "account_id": 37,
-                "account_label": "(411) Durand Cedric"
+                "account_label": "(411) Mounier Michel"
             },
             {
                 "login": "gpruvost",
-                "full_name": "Barbier Quentin",
-                "first_name": "Quentin",
-                "last_name": "Barbier",
-                "qualification": "",
+                "full_name": "Prevost Felix",
+                "first_name": "Felix",
+                "last_name": "Prevost",
+                "qualification": null,
                 "account_id": 53,
-                "account_label": "(411) Barbier Quentin"
+                "account_label": "(411) Prevost Felix"
             },
             {
                 "login": "jftrancart",
-                "full_name": "Germain Serge",
-                "first_name": "Serge",
-                "last_name": "Germain",
+                "full_name": "Santos Antoine",
+                "first_name": "Antoine",
+                "last_name": "Santos",
                 "qualification": "",
                 "account_id": 151,
-                "account_label": "(411) Germain Serge"
+                "account_label": "(411) Santos Antoine"
             },
             {
                 "login": "jpl",
-                "full_name": "Bouchet Marc",
-                "first_name": "Marc",
-                "last_name": "Bouchet",
+                "full_name": "Delorme Philippe",
+                "first_name": "Philippe",
+                "last_name": "Delorme",
                 "qualification": "",
                 "account_id": 38,
-                "account_label": "(411) Bouchet Marc"
+                "account_label": "(411) Delorme Philippe"
             },
             {
                 "login": "MRT",
-                "full_name": "Brun Claude",
-                "first_name": "Claude",
-                "last_name": "Brun",
+                "full_name": "Gay Marie",
+                "first_name": "Marie",
+                "last_name": "Gay",
                 "qualification": "",
                 "account_id": 301,
-                "account_label": "(411) Brun Claude"
+                "account_label": "(411) Gay Marie"
+            },
+            {
+                "login": "scaline",
+                "full_name": "Roche Olivier",
+                "first_name": "Olivier",
+                "last_name": "Roche",
+                "qualification": null,
+                "account_id": 92,
+                "account_label": "(411) Roche Olivier"
             }
         ],
         "airplane": [
             {
                 "login": "9999",
-                "full_name": "Leveque Felix",
-                "first_name": "Felix",
-                "last_name": "Leveque",
+                "full_name": "Laurent Xavier",
+                "first_name": "Xavier",
+                "last_name": "Laurent",
                 "qualification": "",
                 "account_id": 1374,
-                "account_label": "(411) Leveque Felix"
+                "account_label": "(411) Laurent Xavier"
             },
             {
                 "login": "abraracourcix",
@@ -111,71 +111,62 @@
                 "first_name": "Le Gaulois",
                 "last_name": "Abraracourcix",
                 "qualification": null,
-                "account_id": 1436,
+                "account_id": 1442,
                 "account_label": "(411) (411) Abraracourcix Le Gaulois"
             },
             {
                 "login": "dcoquel",
-                "full_name": "Leroux Dominique",
-                "first_name": "Dominique",
-                "last_name": "Leroux",
+                "full_name": "Wagner Loic",
+                "first_name": "Loic",
+                "last_name": "Wagner",
                 "qualification": "",
                 "account_id": 320,
-                "account_label": "(411) Leroux Dominique"
+                "account_label": "(411) Wagner Loic"
             },
             {
                 "login": "fduvollet",
-                "full_name": "Bertrand Julien",
-                "first_name": "Julien",
-                "last_name": "Bertrand",
-                "qualification": "",
+                "full_name": "Mounier Michel",
+                "first_name": "Michel",
+                "last_name": "Mounier",
+                "qualification": null,
                 "account_id": 42,
-                "account_label": "(411) Bertrand Julien"
-            },
-            {
-                "login": "fpeignot",
-                "full_name": "Durand Cedric",
-                "first_name": "Cedric",
-                "last_name": "Durand",
-                "qualification": "",
-                "account_id": 37,
-                "account_label": "(411) Durand Cedric"
+                "account_label": "(411) Mounier Michel"
             },
             {
                 "login": "ftissot",
-                "full_name": "Benard Emmanuel",
-                "first_name": "Emmanuel",
-                "last_name": "Benard",
+                "full_name": "Gay Kevin",
+                "first_name": "Kevin",
+                "last_name": "Gay",
                 "qualification": "",
                 "account_id": 1196,
-                "account_label": "(411) Benard Emmanuel"
+                "account_label": "(411) Gay Kevin"
             },
             {
                 "login": "gpruvost",
-                "full_name": "Barbier Quentin",
-                "first_name": "Quentin",
-                "last_name": "Barbier",
-                "qualification": "",
+                "full_name": "Prevost Felix",
+                "first_name": "Felix",
+                "last_name": "Prevost",
+                "qualification": null,
                 "account_id": 53,
-                "account_label": "(411) Barbier Quentin"
+                "account_label": "(411) Prevost Felix"
             },
             {
                 "login": "jpl",
-                "full_name": "Bouchet Marc",
-                "first_name": "Marc",
-                "last_name": "Bouchet",
+                "full_name": "Delorme Philippe",
+                "first_name": "Philippe",
+                "last_name": "Delorme",
                 "qualification": "",
                 "account_id": 38,
-                "account_label": "(411) Bouchet Marc"
+                "account_label": "(411) Delorme Philippe"
             },
             {
                 "login": "pdeloye",
-                "full_name": "Fabre Franck",
-                "first_name": "Franck",
-                "last_name": "Fabre",
+                "full_name": "Lelievre Sebastien",
+                "first_name": "Sebastien",
+                "last_name": "Lelievre",
                 "qualification": "",
                 "account_id": 1143,
-                "account_label": "(411) Fabre Franck"
+                "account_label": "(411) Lelievre Sebastien"
             }
         ]
     },
@@ -219,81 +210,88 @@
     ],
     "accounts": [
         {
-            "id": 1438,
+            "id": 1444,
             "name": "(411) Abraracourcix Le Gaulois",
             "pilot_login": "abraracourcix",
             "code": "411",
             "label": "(411) (411) Abraracourcix Le Gaulois"
         },
         {
-            "id": 1432,
+            "id": 1437,
             "name": "(411) Asterix Le Gaulois",
             "pilot_login": "asterix",
             "code": "411",
             "label": "(411) (411) Asterix Le Gaulois"
         },
         {
-            "id": 1441,
+            "id": 1446,
             "name": "(411) Goudurix Le Gaulois",
             "pilot_login": "goudurix",
             "code": "411",
             "label": "(411) (411) Goudurix Le Gaulois"
         },
         {
-            "id": 1434,
+            "id": 1440,
             "name": "(411) Obelix Le Gaulois",
             "pilot_login": "obelix",
             "code": "411",
             "label": "(411) (411) Obelix Le Gaulois"
         },
         {
-            "id": 1429,
+            "id": 1435,
             "name": "(411) Testbureau",
             "pilot_login": "testbureau",
             "code": "411",
             "label": "(411) (411) Testbureau"
         },
         {
-            "id": 1428,
+            "id": 1434,
             "name": "(411) Testca",
             "pilot_login": "testca",
             "code": "411",
             "label": "(411) (411) Testca"
         },
         {
-            "id": 1427,
+            "id": 1433,
             "name": "(411) Testplanchiste",
             "pilot_login": "testplanchiste",
             "code": "411",
             "label": "(411) (411) Testplanchiste"
         },
         {
-            "id": 1430,
+            "id": 1436,
             "name": "(411) Testtresorier",
             "pilot_login": "testtresorier",
             "code": "411",
             "label": "(411) (411) Testtresorier"
         },
         {
-            "id": 1426,
+            "id": 1432,
             "name": "(411) Testuser",
             "pilot_login": "testuser",
             "code": "411",
             "label": "(411) (411) Testuser"
         },
         {
-            "id": 1332,
-            "name": "Adam Laurent",
-            "pilot_login": "ppagis",
+            "id": 952,
+            "name": "Adam Gerard",
+            "pilot_login": "aricaud",
             "code": "411",
-            "label": "(411) Adam Laurent"
+            "label": "(411) Adam Gerard"
         },
         {
-            "id": 924,
-            "name": "Adam Vincent",
-            "pilot_login": "hvan_der_wielen",
+            "id": 172,
+            "name": "Alonso Rene",
+            "pilot_login": "gdufrene",
             "code": "411",
-            "label": "(411) Adam Vincent"
+            "label": "(411) Alonso Rene"
+        },
+        {
+            "id": 1113,
+            "name": "Alonso Yves",
+            "pilot_login": "jreuille",
+            "code": "411",
+            "label": "(411) Alonso Yves"
         }
     ],
     "balance_search_tests": [
@@ -301,6 +299,12 @@
             "description": "Search for Adam using ADA",
             "search_term": "ADA",
             "expected_name": "Adam",
+            "expected_account_code": "411"
+        },
+        {
+            "description": "Search for Alonso using ALO",
+            "search_term": "ALO",
+            "expected_name": "Alonso",
             "expected_account_code": "411"
         }
     ]
