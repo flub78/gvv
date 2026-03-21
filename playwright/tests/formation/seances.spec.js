@@ -14,7 +14,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin user must exist (see bin/create_test_users.sh)
+ *   - abraracourcix user must exist with instructor rights (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *   - At least one active programme with lessons/subjects must exist
  *   - At least one active glider (planeur) must exist
@@ -31,7 +31,8 @@ const { test, expect } = require('@playwright/test');
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
 const SEANCES_URL = '/index.php/formation_seances';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+// abraracourcix has instructor rights (BIT_FI_AVION set in mniveaux)
+const TEST_USER = { username: 'abraracourcix', password: 'password' };
 
 /**
  * Login helper
@@ -89,7 +90,7 @@ test.describe('Formation Seances Workflow', () => {
     await expect(page.locator('#filter_type')).toBeVisible();
 
     // Verify table exists
-    await expect(page.locator('#seances-table, .text-muted')).toBeVisible();
+    await expect(page.locator('#seances-table, .text-muted').first()).toBeVisible();
 
     console.log('Seances list page accessible');
   });
@@ -104,10 +105,7 @@ test.describe('Formation Seances Workflow', () => {
     const bodyText = await page.textContent('body');
     expect(bodyText).not.toContain('Fatal error');
 
-    // Select libre mode
-    await page.click('label[for="mode_libre"]');
-    await page.waitForTimeout(300);
-
+    // The create form defaults to libre mode (no inscription_id provided)
     // Verify libre fields are visible
     await expect(page.locator('#libre-fields')).toBeVisible();
 

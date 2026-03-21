@@ -13,7 +13,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin user must exist (see bin/create_test_users.sh)
+ *   - abraracourcix user must exist with instructor rights (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *   - At least one open formation/inscription with recorded sessions/evaluations
  *
@@ -29,7 +29,7 @@ const { test, expect } = require('@playwright/test');
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
 const PROGRESSIONS_URL = '/index.php/formation_progressions';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+const TEST_USER = { username: 'abraracourcix', password: 'password' };
 
 /**
  * Login helper
@@ -84,9 +84,9 @@ test.describe('Formation Progressions - Phase 5', () => {
     // Verify page title (look in body div after banner)
     await expect(page.locator('#body h3, .body h3').first()).toContainText(/Fiches de progression|Progressions/i);
 
-    // Verify DataTable is present (may be empty)
-    const table = page.locator('table.dataTable, table#progressions-table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    // Verify table or empty message is present (table only rendered when data exists)
+    const tableOrEmpty = page.locator('table#formations-table, .alert-info');
+    await expect(tableOrEmpty.first()).toBeVisible({ timeout: 10000 });
   });
 
   // ---------------------------------------------------------------------------

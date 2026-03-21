@@ -14,7 +14,7 @@
  *
  * Prerequisites:
  *   - Feature flag gestion_formations must be enabled
- *   - testadmin and testinst users must exist (see bin/create_test_users.sh)
+ *   - abraracourcix (instructor) and asterix (eleve) users must exist (see bin/create_test_users.sh)
  *   - Migration 063 must be applied
  *   - At least one active programme must exist
  *
@@ -31,7 +31,8 @@ const { test, expect } = require('@playwright/test');
 const LOGIN_URL = '/index.php/auth/login';
 const INSCRIPTIONS_URL = '/index.php/formation_inscriptions';
 const PROGRAMMES_URL = '/index.php/programmes';
-const TEST_USER = { username: 'testadmin', password: 'password' };
+// abraracourcix has instructor rights (BIT_FI_AVION + BIT_CA)
+const TEST_USER = { username: 'abraracourcix', password: 'password' };
 
 /**
  * Login helper
@@ -94,8 +95,8 @@ test.describe('Formation Inscriptions Workflow', () => {
     expect(bodyText).not.toContain('Parse error');
     expect(bodyText).not.toContain('Undefined');
 
-    // Check page title
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Inscriptions|Formation/i);
+    // Check page title (h3 used in this view)
+    await expect(page.locator('h3').first()).toContainText(/Inscriptions|Formation/i);
 
     console.log('✓ Inscriptions list page accessible');
   });
@@ -137,11 +138,11 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on the form page
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Ouvrir|Nouvelle/i);
+    await expect(page.locator('h3').first()).toContainText(/Ouvrir|Nouvelle/i);
 
     // Fill the form
-    // Select pilot (testuser)
-    await page.selectOption('select[name="pilote_id"]', 'testuser');
+    // Select pilot (asterix - eleve in new authorization system)
+    await page.selectOption('select[name="pilote_id"]', 'asterix');
     await page.waitForTimeout(500);
 
     // Select first available programme
@@ -149,8 +150,12 @@ test.describe('Formation Inscriptions Workflow', () => {
     await programmeSelect.selectOption({ index: 1 }); // Skip empty option
     await page.waitForTimeout(500);
 
-    // Select instructor (testinst)
-    await page.selectOption('select[name="instructeur_referent_id"]', 'testinst');
+    // Select first available instructor referent if any (field is optional)
+    const instructeurSelect = page.locator('select[name="instructeur_referent_id"]');
+    const instructeurOptions = await instructeurSelect.locator('option').count();
+    if (instructeurOptions > 1) {
+      await instructeurSelect.selectOption({ index: 1 });
+    }
 
     // Set date
     await page.fill('input[name="date_ouverture"]', new Date().toISOString().split('T')[0]);
@@ -191,7 +196,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check page elements
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Détail|Inscription/i);
+    await expect(page.locator('h3').first()).toContainText(/Détail|Inscription/i);
     
     // Verify status badge
     const statusBadge = page.locator('.badge-success, .badge').first();
@@ -217,7 +222,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on suspension form
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Suspendre|Suspension/i);
+    await expect(page.locator('h3').first()).toContainText(/Suspendre|Suspension/i);
 
     // Fill suspension reason
     await page.fill('textarea[name="motif"]', 'Suspension test Playwright');
@@ -279,7 +284,7 @@ test.describe('Formation Inscriptions Workflow', () => {
     await page.waitForLoadState('networkidle');
 
     // Check we're on closure form
-    await expect(page.locator('h1, h2, .page-title')).toContainText(/Clôturer|Clôture/i);
+    await expect(page.locator('h3').first()).toContainText(/Clôturer|Clôture/i);
 
     // Select "cloturee" (success)
     await page.check('input[type="radio"][value="cloturee"]');
@@ -319,7 +324,7 @@ test.describe('Formation Inscriptions Workflow', () => {
 
     // Check the inscription appears in the list
     const bodyText = await page.textContent('body');
-    expect(bodyText).toContain('testuser');
+    expect(bodyText).toContain('asterix');
 
     console.log('✓ Closed inscription appears in list');
   });
