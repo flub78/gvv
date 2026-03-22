@@ -362,11 +362,11 @@ $this->lang->load('welcome');
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center" style="opacity: 0.5;">
-                        <i class="fas fa-clipboard-list text-secondary"></i>
-                        <div class="card-title text-muted">Briefing passager</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    <div class="sub-card text-center">
+                        <i class="fas fa-clipboard-check text-success"></i>
+                        <div class="card-title">Briefing passager</div>
+                        <div class="card-text text-muted">Déclarations</div>
+                        <a href="<?= controller_url('briefing_passager/admin_list') ?>" class="btn btn-success btn-sm">Gérer</a>
                     </div>
                 </div>
                 <?php endif; ?>

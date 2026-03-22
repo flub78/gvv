@@ -26,6 +26,7 @@ $lang['gvv_vols_decouverte_field_date_vol'] = "Date du vol";
 $lang['gvv_vols_decouverte_field_time_vol'] = "Heure du vol";
 $lang['gvv_vols_decouverte_field_pilote'] = "Pilote";
 $lang['gvv_vols_decouverte_field_airplane_immat'] = "Appareil";
+$lang['gvv_vols_decouverte_field_aerodrome'] = "Aérodrome";
 $lang['gvv_vols_decouverte_field_cancelled'] = "Annulé";
 
 $lang['gvv_vols_decouverte_short_field_id'] = "Numéro";
@@ -45,6 +46,7 @@ $lang['gvv_vols_decouverte_short_field_date_vol'] = "Date du vol";
 $lang['gvv_vols_decouverte_short_field_time_vol'] = "Heure du vol";
 $lang['gvv_vols_decouverte_short_field_pilote'] = "Pilote";
 $lang['gvv_vols_decouverte_short_field_airplane_immat'] = "Appareil";
+$lang['gvv_vols_decouverte_short_field_aerodrome'] = "Aérodrome";
 $lang['gvv_vols_decouverte_short_field_cancelled'] = "Annulé";
 $lang['gvv_vols_decouverte_short_field_paiement'] = "Paiement";
 $lang['gvv_vols_decouverte_short_field_participation'] = "Participation";

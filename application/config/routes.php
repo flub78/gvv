@@ -43,6 +43,11 @@ $route['hello/(:any)'] = 'tools/index/$1';  // works
 
 $route['attachments/message'] = 'attachments/message/$1';
 
+// Briefing passager — public signature page (no auth)
+// More specific route must come first (CI2 matches in order)
+$route['briefing_sign/submit/(:any)'] = 'briefing_sign/submit/$1';
+$route['briefing_sign/(:any)']        = 'briefing_sign/index/$1';
+
 $route['default_controller'] = "welcome";
 $route['404_override'] = '';
 

@@ -98,6 +98,17 @@ Balance Accordion Search
  [x] Accordion state restoration
  [x] Search edge cases
 
+Briefing Signature
+ [x] Token IsGenerated As64CharHex
+ [x] Token InsertedInDb CanBeRetrieved
+ [x] Token Uniqueness EnforcedByDB
+ [x] ValidateToken ValidToken Passes
+ [x] ValidateToken UnknownToken ReturnsNull
+ [x] ValidateToken ExpiredToken ShouldBeDetected
+ [x] ValidateToken UsedToken ShouldBeDetected
+ [x] MarkTokenUsed SetsUsedAt
+ [x] MarkTokenUsed PreventReuse
+
 Categorie Model Integration
  [x] Basic crud operations
  [x] Image method

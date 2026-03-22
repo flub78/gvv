@@ -24,7 +24,9 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, urgence, cancelled, paiement, participation, prix, saisie_par, created_at, updated_at';
+        $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, aerodrome, urgence, cancelled, paiement, participation, prix, saisie_par, created_at, updated_at,'
+            . ' (SELECT COUNT(*) FROM archived_documents ad JOIN document_types dt ON ad.document_type_id = dt.id'
+            . '  WHERE ad.vld_id = vols_decouverte.id AND dt.code = \'briefing_passager\' AND ad.is_current_version = 1) AS has_briefing';
 
         // Prepare filter data for the view
         $year = $this->session->userdata('vd_year') ?: date('Y');
