@@ -47,6 +47,8 @@ class Vols_decouverte extends Gvv_Controller {
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
         $this->load->model('configuration_model');
+        $this->load->model('terrains_model');
+        $this->load->model('vols_planeur_model');
         $this->load->library('session');
     }
 
@@ -246,6 +248,29 @@ class Vols_decouverte extends Gvv_Controller {
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
 
         $this->gvvmetadata->set_selector('machine_selector', $this->gvv_model->machine_selector());
+
+        $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
+
+        // Pre-fill aerodrome on creation
+        if ($action == CREATION) {
+            $section = $this->gvv_model->section();
+            if ($section && $section['nom'] == 'Planeur') {
+                // Planeur: use terrain of the last registered planeur flight
+                $latestf = $this->vols_planeur_model->latest_flight();
+                if (!empty($latestf) && !empty($latestf[0]['vplieudeco'])) {
+                    $this->data['aerodrome'] = $latestf[0]['vplieudeco'];
+                }
+            } else {
+                // Avion / ULM: use defaut.aerodrome config parameter
+                $defaut_aerodrome = $this->configuration_model->get_param('defaut.aerodrome');
+                if ($defaut_aerodrome) {
+                    $terrain = $this->terrains_model->get_by_id('oaci', $defaut_aerodrome);
+                    if (!empty($terrain)) {
+                        $this->data['aerodrome'] = $defaut_aerodrome;
+                    }
+                }
+            }
+        }
     }
 
 

@@ -27,6 +27,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->load->model('terrains_model');
         $this->load->model('membres_model');
         $this->load->model('sections_model');
+        $this->load->model('configuration_model');
         $this->lang->load('briefing_passager');
         $this->lang->load('vols_decouverte');
         $this->load->library('upload');
@@ -89,6 +90,17 @@ class Briefing_passager extends Gvv_Controller {
 
         $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
         $current_user   = $this->session->userdata('DX_username');
+
+        // Pre-fill aerodrome default when not yet set on the VLD
+        if (empty($vld['aerodrome'])) {
+            $defaut_aerodrome = $this->configuration_model->get_param('defaut.aerodrome');
+            if ($defaut_aerodrome) {
+                $terrain = $this->terrains_model->get_by_id('oaci', $defaut_aerodrome);
+                if (!empty($terrain)) {
+                    $vld['aerodrome'] = $defaut_aerodrome;
+                }
+            }
+        }
 
         $this->data['title']           = $this->lang->line('briefing_passager_upload');
         $this->data['vld']             = $vld;

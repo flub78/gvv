@@ -96,6 +96,7 @@ if ($modification_type == 'edit') {
 				'date_vol' => $date_vol,
 				'pilote' => $pilote,
 				'airplane_immat' => $airplane_immat,
+				'aerodrome' => isset($aerodrome) ? $aerodrome : '',
 			)));
 			?>
 		</div>
