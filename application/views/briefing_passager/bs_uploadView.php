@@ -70,12 +70,18 @@ $this->lang->load('vols_decouverte');
 </div>
 
 <?php if ($briefing): ?>
-<div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle"></i>
-    <?= $this->lang->line('briefing_passager_already_exists') ?>
-    <a href="<?= site_url('briefing_passager/view/' . $briefing['id']) ?>" class="alert-link ms-2">
-        <?= $this->lang->line('briefing_passager_view') ?>
-    </a>
+<div class="alert alert-warning d-flex align-items-center gap-3 mb-3">
+    <div>
+        <?php echo attachment($briefing['id'], $briefing['file_path'], site_url('archived_documents/preview/' . $briefing['id'])); ?>
+    </div>
+    <div>
+        <i class="fas fa-exclamation-triangle"></i>
+        <?= $this->lang->line('briefing_passager_already_exists') ?>
+        <div class="text-muted small mt-1">
+            <?= htmlspecialchars($briefing['original_filename'] ?? '') ?>
+            <?= $briefing['uploaded_at'] ? '— ' . date('d/m/Y H:i', strtotime($briefing['uploaded_at'])) : '' ?>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
 
