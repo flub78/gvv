@@ -519,7 +519,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['vld']     = $vld;
         $this->data['vld_id']  = $vld_id;
         $this->data['token']   = $token;
-        $this->data['sign_url'] = site_url('briefing_sign/' . $token);
+        $this->data['sign_url'] = $this->_build_public_sign_url($token);
         $this->data['message'] = '';
 
         load_last_view('briefing_passager/linkView', $this->data);
@@ -586,6 +586,93 @@ class Briefing_passager extends Gvv_Controller {
             return substr($abs_path, strlen($base));
         }
         return $abs_path;
+    }
+
+    /**
+     * Build the public signature URL used by QR code.
+     * When qrcode_raw_ip is enabled, force server IP instead of configured hostname.
+     */
+    private function _build_public_sign_url($token) {
+        $url = site_url('briefing_sign/' . $token);
+        if (!$this->config->item('qrcode_raw_ip')) {
+            return $url;
+        }
+
+        $server_addr = $this->_resolve_qrcode_ip();
+        if ($server_addr === '') {
+            return $url;
+        }
+
+        $parts = parse_url($url);
+        if (!is_array($parts) || empty($parts['host'])) {
+            return $url;
+        }
+
+        $scheme = isset($parts['scheme']) ? $parts['scheme'] : 'http';
+        $path   = isset($parts['path']) ? $parts['path'] : '';
+        $query  = isset($parts['query']) ? '?' . $parts['query'] : '';
+        $port   = isset($parts['port']) ? ':' . $parts['port'] : '';
+
+        return $scheme . '://' . $server_addr . $port . $path . $query;
+    }
+
+    /**
+     * Resolve the best local network IP for QR code links.
+     */
+    private function _resolve_qrcode_ip() {
+        $forced = trim((string)$this->config->item('qrcode_forced_ip'));
+        if ($this->_is_usable_qrcode_ip($forced)) {
+            return $forced;
+        }
+
+        $server_addr = isset($_SERVER['SERVER_ADDR']) ? trim($_SERVER['SERVER_ADDR']) : '';
+        if ($this->_is_usable_qrcode_ip($server_addr)) {
+            return $server_addr;
+        }
+
+        $http_host = isset($_SERVER['HTTP_HOST']) ? trim($_SERVER['HTTP_HOST']) : '';
+        if ($http_host !== '') {
+            $host = preg_replace('/:\\d+$/', '', $http_host);
+            if ($this->_is_usable_qrcode_ip($host)) {
+                return $host;
+            }
+        }
+
+        $hostname = gethostname();
+        if ($hostname) {
+            $candidates = @gethostbynamel($hostname);
+            if (is_array($candidates)) {
+                foreach ($candidates as $candidate) {
+                    if ($this->_is_usable_qrcode_ip($candidate)) {
+                        return $candidate;
+                    }
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Keep only IPv4 addresses that are reachable from a local network.
+     */
+    private function _is_usable_qrcode_ip($ip) {
+        if (empty($ip)) {
+            return false;
+        }
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return false;
+        }
+        if (strpos($ip, '127.') === 0) {
+            return false;
+        }
+        if (strpos($ip, '169.254.') === 0) {
+            return false;
+        }
+        if ($ip === '0.0.0.0') {
+            return false;
+        }
+        return true;
     }
 }
 

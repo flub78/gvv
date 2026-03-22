@@ -92,6 +92,17 @@ class BriefingPassagerModelTest extends TestCase
 
     public function testGetBriefingByVld_ReturnsCurrentVersionOnly()
     {
+        // Find and temporarily mark any existing current briefing as non-current
+        $displaced = $this->db->query(
+            "SELECT id FROM archived_documents WHERE vld_id = ? AND is_current_version = 1",
+            array($this->vld_id)
+        )->result_array();
+        $displaced_ids = array_column($displaced, 'id');
+        if (!empty($displaced_ids)) {
+            $this->db->where_in('id', $displaced_ids)
+                     ->update('archived_documents', array('is_current_version' => 0));
+        }
+
         // Create an old non-current version
         $data_old = array(
             'document_type_id'  => $this->briefing_type_id,
@@ -110,6 +121,13 @@ class BriefingPassagerModelTest extends TestCase
 
         // No current version → should return null
         $result = $this->model->get_briefing_by_vld($this->vld_id);
+
+        // Restore displaced docs
+        if (!empty($displaced_ids)) {
+            $this->db->where_in('id', $displaced_ids)
+                     ->update('archived_documents', array('is_current_version' => 1));
+        }
+
         $this->assertNull($result);
     }
 
