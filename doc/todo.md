@@ -82,7 +82,11 @@ Cela implique de:
   * [] quelques colonnes inutiles à supprimer
   * [x] donner les droits dans les controllers WIP
   
-* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
+* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.$
+
+* [] Définir un aérodrome par défaut dans les paramètres de configuration, et l'utiliser pour les réservations et les vols de découverte. Cela permettra d'éviter les erreurs de saisie et de simplifier le processus de réservation.
+
+* [] Vérifier que toutes les opérations CRUD sont loggèes
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 

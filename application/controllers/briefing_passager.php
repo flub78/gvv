@@ -76,10 +76,14 @@ class Briefing_passager extends Gvv_Controller {
 
         $existing = $this->archived_documents_model->get_briefing_by_vld($vld_id);
 
+        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $current_user   = $this->session->userdata('DX_username');
+
         $this->data['title']           = $this->lang->line('briefing_passager_upload');
         $this->data['vld']             = $vld;
         $this->data['vld_id']          = $vld_id;
         $this->data['briefing']        = $existing;
+        $this->data['is_dev_user']     = in_array($current_user, $dev_menu_users);
         $this->data['message']         = '';
         $this->data['terrain_selector'] = $this->terrains_model->selector_with_null();
         $this->data['machine_selector'] = $this->vols_decouverte_model->machine_selector();
@@ -382,9 +386,15 @@ class Briefing_passager extends Gvv_Controller {
             unlink($doc['file_path']);
         }
 
+        $vld_id = !empty($doc['vld_id']) ? (int)$doc['vld_id'] : 0;
+
         $this->archived_documents_model->delete_document($id, $current_user, true);
 
-        redirect('briefing_passager/admin_list');
+        if ($vld_id) {
+            redirect('briefing_passager/upload/' . $vld_id);
+        } else {
+            redirect('briefing_passager/admin_list');
+        }
     }
 
     // -----------------------------------------------------------------------

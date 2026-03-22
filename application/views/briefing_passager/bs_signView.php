@@ -113,9 +113,29 @@
 
     <h5 class="section-title"><i class="fas fa-pen"></i> <?= $this->lang->line('briefing_passager_sign_acceptance') ?></h5>
 
-    <!-- 5. Touch signature pad -->
+    <!-- Declaration text -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="mb-0"><?= $this->lang->line('briefing_passager_sign_checkbox') ?></p>
+        </div>
+    </div>
+
+    <!-- Mandatory checkbox -->
     <div class="mb-3">
-        <label class="form-label"><?= $this->lang->line('briefing_passager_sign_draw_pad') ?></label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="accept" value="1" id="accept_checkbox" required>
+            <label class="form-check-label fw-bold" for="accept_checkbox">
+                <?= $this->lang->line('briefing_passager_sign_i_accept') ?>
+            </label>
+        </div>
+    </div>
+
+    <!-- Optional signature pad -->
+    <div class="mb-3">
+        <label class="form-label">
+            <?= $this->lang->line('briefing_passager_sign_draw_pad') ?>
+            <span class="text-muted fw-normal small">(<?= $this->lang->line('briefing_passager_sign_optional') ?>)</span>
+        </label>
         <div>
             <canvas id="signature-pad" width="100%" height="150" class="w-100"></canvas>
         </div>
@@ -123,17 +143,6 @@
             <i class="fas fa-eraser"></i> <?= $this->lang->line('briefing_passager_sign_clear') ?>
         </button>
         <input type="hidden" name="signature_data" id="signature_data">
-    </div>
-
-    <!-- 6. Acceptance checkbox with declaration text -->
-    <div class="mb-3">
-        <small class="text-muted"><?= $this->lang->line('briefing_passager_sign_or') ?></small>
-        <div class="form-check mt-1">
-            <input class="form-check-input" type="checkbox" name="accept" value="1" id="accept_checkbox">
-            <label class="form-check-label" for="accept_checkbox">
-                <?= $this->lang->line('briefing_passager_sign_checkbox') ?>
-            </label>
-        </div>
     </div>
 
     <div class="d-grid mt-4">
@@ -172,7 +181,6 @@ function clearPad() {
 function prepareSig() {
     if (!signaturePad.isEmpty()) {
         document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
-        document.getElementById('accept_checkbox').checked = true;
     }
     return true;
 }

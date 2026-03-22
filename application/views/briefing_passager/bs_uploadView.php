@@ -74,7 +74,7 @@ $this->lang->load('vols_decouverte');
     <div>
         <?php echo attachment($briefing['id'], $briefing['file_path'], site_url('archived_documents/preview/' . $briefing['id'])); ?>
     </div>
-    <div>
+    <div class="flex-grow-1">
         <i class="fas fa-exclamation-triangle"></i>
         <?= $this->lang->line('briefing_passager_already_exists') ?>
         <div class="text-muted small mt-1">
@@ -82,6 +82,15 @@ $this->lang->load('vols_decouverte');
             <?= $briefing['uploaded_at'] ? '— ' . date('d/m/Y H:i', strtotime($briefing['uploaded_at'])) : '' ?>
         </div>
     </div>
+    <?php if ($is_dev_user): ?>
+    <div>
+        <a href="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"
+           class="btn btn-sm btn-danger"
+           onclick="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+            <i class="fas fa-trash"></i>
+        </a>
+    </div>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 

@@ -145,10 +145,18 @@ class Briefing_sign extends CI_Controller {
             'ip_address' => $this->input->ip_address(),
         ));
 
-        // Generate PDF summary
-        $pdf_path = $this->_generate_pdf($vld, $nom, $prenom, $ddn, $poids, $urgence, $signature_data, $token);
+        // Generate PDF summary (with consignes prepended if available)
+        $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
+        $consignes_abs = null;
+        if (!empty($consignes['file_path'])) {
+            $raw = $consignes['file_path'];
+            $abs = (strpos($raw, './') === 0) ? FCPATH . substr($raw, 2) : FCPATH . $raw;
+            if (file_exists($abs)) $consignes_abs = $abs;
+        }
+        $pdf_path = $this->_generate_pdf($vld, $nom, $prenom, $ddn, $poids, $urgence, $signature_data, $token, $consignes_abs);
 
         // Archive the PDF
+        $pdf_base64 = null;
         if ($pdf_path) {
             $doc_type = $this->document_types_model->get_by_code('briefing_passager');
             if ($doc_type) {
@@ -168,6 +176,12 @@ class Briefing_sign extends CI_Controller {
                 ));
             }
 
+            // Embed PDF for display on confirmation page
+            $abs_pdf = (strpos($pdf_path, '/') === 0) ? $pdf_path : FCPATH . $pdf_path;
+            if (file_exists($abs_pdf)) {
+                $pdf_base64 = base64_encode(file_get_contents($abs_pdf));
+            }
+
             // Send email if passenger email is on file
             if (!empty($vld['beneficiaire_email'])) {
                 $this->_send_email($vld['beneficiaire_email'], $nom, $pdf_path);
@@ -175,7 +189,7 @@ class Briefing_sign extends CI_Controller {
         }
 
         // Confirmation page
-        $data = array('vld' => $vld, 'nom' => $nom);
+        $data = array('vld' => $vld, 'nom' => $nom, 'pdf_base64' => $pdf_base64);
         $this->load->view('briefing_passager/bs_signConfirmView', $data);
         
     }
@@ -215,7 +229,7 @@ class Briefing_sign extends CI_Controller {
         
     }
 
-    private function _generate_pdf($vld, $nom, $prenom, $ddn, $poids, $urgence, $signature_data, $token) {
+    private function _generate_pdf($vld, $nom, $prenom, $ddn, $poids, $urgence, $signature_data, $token, $consignes_path = null) {
         $section_id  = $vld['club'];
         $dirname = FCPATH . 'uploads/documents/sections/' . $section_id . '/briefing_passager/';
         if (!file_exists($dirname)) {
@@ -270,22 +284,57 @@ class Briefing_sign extends CI_Controller {
         // Embed signature image if provided
         if ($signature_data && strpos($signature_data, 'data:image/png;base64,') === 0) {
             $img_data = base64_decode(substr($signature_data, strlen('data:image/png;base64,')));
-            $tmp_img  = tempnam(sys_get_temp_dir(), 'bpsig_') . '.png';
-            file_put_contents($tmp_img, $img_data);
-            $pdf->Image($tmp_img, 15, null, 80, 30);
-            @unlink($tmp_img);
-            $pdf->Ln(35);
+            if ($img_data) {
+                $tmp_img = tempnam(sys_get_temp_dir(), 'bpsig_') . '.png';
+                file_put_contents($tmp_img, $img_data);
+                $pdf->Image($tmp_img, 15, '', 80, 30);
+                @unlink($tmp_img);
+                $pdf->Ln(35);
+            }
         }
 
         $pdf->SetFont('helvetica', '', 8);
         $pdf->Cell(0, 5, 'Date : ' . date('d/m/Y H:i:s') . ' — IP : ' . $this->input->ip_address(), 0, 1);
 
-        $pdf->Output($filepath, 'F');
+        // Write signature page to temp file, then merge with consignes if available
+        if ($consignes_path) {
+            $sig_tmp = tempnam(sys_get_temp_dir(), 'bpsig_') . '.pdf';
+            $pdf->Output($sig_tmp, 'F');
+            $merged = $this->_merge_pdfs($consignes_path, $sig_tmp, $filepath);
+            @unlink($sig_tmp);
+            if (!$merged) {
+                // Ghostscript unavailable: fallback to signature page only
+                $pdf->Output($filepath, 'F');
+            }
+        } else {
+            $pdf->Output($filepath, 'F');
+        }
 
         // Return relative path (relative to FCPATH)
         $base = realpath(FCPATH) . '/';
         $abs  = realpath($filepath);
         return ($abs && strpos($abs, $base) === 0) ? substr($abs, strlen($base)) : $filepath;
+    }
+
+    private function _merge_pdfs($pdf1, $pdf2, $output) {
+        $gs = $this->_find_ghostscript();
+        if (!$gs) return false;
+
+        $cmd = escapeshellarg($gs)
+             . ' -dBATCH -dNOPAUSE -dQUIET -sDEVICE=pdfwrite'
+             . ' -sOutputFile=' . escapeshellarg($output)
+             . ' ' . escapeshellarg($pdf1)
+             . ' ' . escapeshellarg($pdf2);
+        exec($cmd, $out, $ret);
+        return ($ret === 0 && file_exists($output) && filesize($output) > 0);
+    }
+
+    private function _find_ghostscript() {
+        foreach (array('/usr/bin/gs', '/usr/local/bin/gs') as $path) {
+            if (file_exists($path) && is_executable($path)) return $path;
+        }
+        $which = trim(shell_exec('which gs 2>/dev/null'));
+        return $which ?: null;
     }
 
     private function _send_email($to, $nom, $pdf_path) {
