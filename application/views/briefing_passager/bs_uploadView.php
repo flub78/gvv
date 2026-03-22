@@ -84,12 +84,10 @@ $this->lang->load('vols_decouverte');
     </div>
     <?php if ($is_dev_user): ?>
     <div>
-        <form method="post" action="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"
-              onsubmit="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
-            <button type="submit" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-            </button>
-        </form>
+        <button type="submit" form="form-delete-briefing" class="btn btn-sm btn-danger"
+                onclick="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+            <i class="fas fa-trash"></i>
+        </button>
     </div>
     <?php endif; ?>
 </div>
@@ -120,6 +118,11 @@ $this->lang->load('vols_decouverte');
 </div>
 
 </form>
+
+<?php if (isset($briefing) && $briefing && $is_dev_user): ?>
+<form id="form-delete-briefing" method="post"
+      action="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"></form>
+<?php endif; ?>
 
 <?php else: ?>
 <div class="alert alert-danger"><?= $this->lang->line('briefing_passager_not_found') ?></div>

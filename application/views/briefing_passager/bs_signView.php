@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/bs_styles.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/gvv.css">
     <style>
-        #signature-pad { border: 1px solid #dee2e6; border-radius: 4px; background: #fff; touch-action: none; }
+        #signature-pad { border: 1px solid #dee2e6; border-radius: 4px; background: #fff; touch-action: none; aspect-ratio: 2 / 1; max-width: 480px; height: auto; }
         .section-title { border-left: 4px solid #0d6efd; padding-left: 0.75rem; margin: 1.5rem 0 1rem; }
     </style>
 </head>
@@ -137,7 +137,7 @@
             <span class="text-muted fw-normal small">(<?= $this->lang->line('briefing_passager_sign_optional') ?>)</span>
         </label>
         <div>
-            <canvas id="signature-pad" width="100%" height="150" class="w-100"></canvas>
+            <canvas id="signature-pad" style="width:100%;"></canvas>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearPad()">
             <i class="fas fa-eraser"></i> <?= $this->lang->line('briefing_passager_sign_clear') ?>
@@ -180,7 +180,15 @@ function clearPad() {
 
 function prepareSig() {
     if (!signaturePad.isEmpty()) {
-        var dataUrl = signaturePad.toDataURL('image/png');
+        // Normalize to fixed dimensions so PDF size is identical regardless of device
+        var norm = document.createElement('canvas');
+        norm.width  = 600;
+        norm.height = 300;
+        var ctx = norm.getContext('2d');
+        ctx.fillStyle = 'rgb(255,255,255)';
+        ctx.fillRect(0, 0, norm.width, norm.height);
+        ctx.drawImage(canvas, 0, 0, norm.width, norm.height);
+        var dataUrl = norm.toDataURL('image/png');
         // Strip the data URI prefix — CI2 global_xss_filtering strips "data:...base64,..." patterns
         var prefix = 'data:image/png;base64,';
         document.getElementById('signature_data').value = dataUrl.substring(prefix.length);

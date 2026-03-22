@@ -382,7 +382,7 @@ class Briefing_sign extends CI_Controller {
             $img_data = base64_decode($signature_data, true);
             if ($img_data !== false && strlen($img_data) > 0) {
                 try {
-                    $pdf->Image('@' . $img_data, 15, '', 160, 0, 'PNG');
+                    $pdf->Image('@' . $img_data, 15, '', 53, 0, 'PNG');
                     $pdf->Ln(5);
                 } catch (Exception $e) {
                     log_message('error', 'briefing_sign: Image() failed: ' . $e->getMessage());
