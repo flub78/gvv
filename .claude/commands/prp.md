@@ -4,6 +4,6 @@ Pruduct Document Plan, ne modifie pas de code, mais génère un plan de dévelop
 
 Le plan doit faire référence au PRD et éviter de dupliquer les informations. Il doit se concentrer sur la planification du développement et la gestion des ressources pour atteindre les objectifs du projet.
 
-Le plan doit inclure les étapes de validation et la description des tests.
+Le plan doit inclure les étapes de validation et la description des tests. 
 
 Génère un markdown dans doc/plan qui décrit le plan de développement pour le produit ou la fonctionnalité à développer. Le document doit être structuré de manière claire et concise, avec des sections pour chaque étape du développement et des sous-sections pour les détails spécifiques.

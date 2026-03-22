@@ -307,12 +307,53 @@ class Briefing_passager extends Gvv_Controller {
             $vld = $this->vols_decouverte_model->get_by_id('id', $doc['vld_id']);
         }
 
-        $this->data['title']   = $this->lang->line('briefing_passager_title');
-        $this->data['doc']     = $doc;
-        $this->data['vld']     = $vld;
-        $this->data['message'] = '';
+        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $current_user   = $this->session->userdata('DX_username');
+
+        $this->data['title']        = $this->lang->line('briefing_passager_title');
+        $this->data['doc']          = $doc;
+        $this->data['vld']          = $vld;
+        $this->data['message']      = '';
+        $this->data['is_dev_user']  = in_array($current_user, $dev_menu_users);
 
         load_last_view('briefing_passager/viewView', $this->data);
+    }
+
+    // -----------------------------------------------------------------------
+    // Delete a briefing document (dev users only)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Delete a briefing archived document. Restricted to dev_menu_users.
+     * @param int $id Archived document ID
+     */
+    function delete($id = 0) {
+        if (!$this->dx_auth->is_logged_in()) {
+            redirect('welcome/login');
+            return;
+        }
+
+        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $current_user   = $this->session->userdata('DX_username');
+        if (!in_array($current_user, $dev_menu_users)) {
+            show_error('Accès refusé', 403);
+            return;
+        }
+
+        $id  = (int)$id;
+        $doc = $this->archived_documents_model->get_by_id('id', $id);
+        if (!$doc) {
+            show_404();
+            return;
+        }
+
+        if (!empty($doc['file_path']) && file_exists($doc['file_path'])) {
+            unlink($doc['file_path']);
+        }
+
+        $this->archived_documents_model->delete_document($id, $current_user, true);
+
+        redirect('briefing_passager/admin_list');
     }
 
     // -----------------------------------------------------------------------

@@ -24,7 +24,7 @@ $this->lang->load('vols_decouverte');
                 <div class="col-md-3">
                     <label class="form-label small text-muted"><?= $this->lang->line('briefing_passager_field_date_vol') ?></label>
                     <input type="date" name="date_vol" class="form-control form-control-sm"
-                           value="<?= htmlspecialchars($vld['date_vol'] ?? '') ?>">
+                           value="<?= htmlspecialchars($vld['date_vol'] ?: date('Y-m-d')) ?>">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small text-muted"><?= $this->lang->line('briefing_passager_field_aerodrome') ?></label>

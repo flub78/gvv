@@ -73,6 +73,13 @@ $this->lang->load('briefing_passager');
             <a href="<?= site_url('vols_decouverte') ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> <?= $this->lang->line('gvv_button_back') ?>
             </a>
+            <?php if ($is_dev_user): ?>
+            <a href="<?= site_url('briefing_passager/delete/' . $doc['id']) ?>"
+               class="btn btn-outline-danger ms-auto"
+               onclick="return confirm('Supprimer ce briefing ?')">
+                <i class="fas fa-trash"></i> Supprimer
+            </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>
