@@ -1129,7 +1129,8 @@ class GVVMetadata extends Metadata {
                 $this->field['vols_decouverte']['airplane_immat']['Subtype'] = 'selector';
                 $this->field['vols_decouverte']['airplane_immat']['Selector'] = 'machine_selector';
 
-                $this->field['vols_decouverte']['aerodrome']['Type'] = 'string';
+                $this->field['vols_decouverte']['aerodrome']['Subtype'] = 'selector';
+                $this->field['vols_decouverte']['aerodrome']['Selector'] = 'terrains_selector';
 
                 $this->field['vols_decouverte']['prix']['Subtype'] = 'currency';
 
@@ -1229,6 +1230,7 @@ class GVVMetadata extends Metadata {
                         "ffvv_product" => "Produit pour la facturation des licences",
                         "gesasso" => "Export vers Gesasso",
                         "comptes.cotisations" => "Comptes de recette pour les cotisations",
+                        "defaut.aerodrome" => "Code OACI de l'aérodrome par défaut (vols avion, ULM et découverte)",
                 ];
                 $this->field['configuration']['cle']['Attrs'] = array(
                         'class' => "big_select big_select_large"

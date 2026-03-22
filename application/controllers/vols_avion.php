@@ -72,6 +72,7 @@ class Vols_avion extends Gvv_Controller {
         $this->load->model('comptes_model');
         $this->load->model('avions_model');
         $this->load->model('terrains_model');
+        $this->load->model('configuration_model');
         $this->load->model('events_types_model');
         $this->lang->load('vols_avion');
 
@@ -103,6 +104,17 @@ class Vols_avion extends Gvv_Controller {
         $this->data['is_new_vol'] = $is_fresh_creation;
         if ($is_fresh_creation) {
             $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
+        }
+
+        if ($action == CREATION) {
+            $defaut_aerodrome = $this->configuration_model->get_param('defaut.aerodrome');
+            if ($defaut_aerodrome) {
+                $terrain = $this->terrains_model->get_by_id('oaci', $defaut_aerodrome);
+                if (!empty($terrain)) {
+                    $this->data['valieudeco'] = $defaut_aerodrome;
+                    $this->data['valieuatt'] = $defaut_aerodrome;
+                }
+            }
         }
 
         $this->config->load('facturation');
