@@ -45,6 +45,8 @@ $lang['briefing_passager_already_exists']     = 'Er bestaat al een briefing voor
 $lang['briefing_passager_confirm_delete']     = 'Weet u zeker dat u deze briefing wilt verwijderen?';
 $lang['briefing_passager_delete_protected']   = 'Deze briefing kan niet worden verwijderd vóór 3 maanden.';
 $lang['briefing_passager_not_found']          = 'Briefing niet gevonden.';
+$lang['briefing_passager_dir_error']          = 'Kan de opslagmap niet aanmaken.';
+$lang['briefing_passager_type_error']         = 'Documenttype briefing_passager niet gevonden.';
 
 $lang['briefing_passager_sign_title']         = 'Risicoaanvaardingsverklaring';
 $lang['briefing_passager_sign_scan_qr']       = 'Scan om te openen op uw telefoon';

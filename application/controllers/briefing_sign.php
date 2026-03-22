@@ -60,12 +60,11 @@ class Briefing_sign extends CI_Controller {
 
         $sign_url = current_url();
 
-        // Generate QR code to temp file, embed as base64
+        // Generate QR code to temp file, embed as base64, then clean up
         $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
-        if (!file_exists($qr_file)) {
-            QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
-        }
+        QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
         $qr_base64 = base64_encode(file_get_contents($qr_file));
+        @unlink($qr_file);
 
         $data = array(
             'token'      => $token,
@@ -107,7 +106,8 @@ class Briefing_sign extends CI_Controller {
         // Collect passenger form data
         $nom     = trim($this->input->post('nom',     true));
         $prenom  = trim($this->input->post('prenom',  true));
-        $ddn     = trim($this->input->post('ddn',     true));
+        $ddn_raw = trim($this->input->post('ddn',     true));
+        $ddn     = preg_match('/^\d{4}-\d{2}-\d{2}$/', $ddn_raw) ? $ddn_raw : '';
         $poids   = (int)$this->input->post('poids',   true);
         $urgence = trim($this->input->post('urgence', true));
         $accept  = $this->input->post('accept',       true);
@@ -117,7 +117,9 @@ class Briefing_sign extends CI_Controller {
         if (!$accept) {
             $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
             $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
-            $qr_base64 = file_exists($qr_file) ? base64_encode(file_get_contents($qr_file)) : '';
+            QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
+            $qr_base64 = base64_encode(file_get_contents($qr_file));
+            @unlink($qr_file);
             $data = array(
                 'token'     => $token,
                 'vld'       => $vld,
@@ -140,12 +142,6 @@ class Briefing_sign extends CI_Controller {
             $this->db->where('id', $vld_id)->update('vols_decouverte', $update);
         }
 
-        // Mark token as used
-        $this->db->where('token', $token)->update('briefing_tokens', array(
-            'used_at'    => date('Y-m-d H:i:s'),
-            'ip_address' => $this->input->ip_address(),
-        ));
-
         // Generate PDF summary (with consignes prepended if available)
         $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
         $consignes_abs = null;
@@ -156,7 +152,7 @@ class Briefing_sign extends CI_Controller {
         }
         $pdf_path = $this->_generate_pdf($vld, $nom, $prenom, $ddn, $poids, $urgence, $signature_data, $token, $consignes_abs);
 
-        // Archive the PDF
+        // Archive the PDF, then mark token as used
         $pdf_base64 = null;
         if ($pdf_path) {
             $doc_type = $this->document_types_model->get_by_code('briefing_passager');
@@ -176,6 +172,12 @@ class Briefing_sign extends CI_Controller {
                     'validation_status' => 'approved',
                 ));
             }
+
+            // Mark token as used only after successful archiving
+            $this->db->where('token', $token)->update('briefing_tokens', array(
+                'used_at'    => date('Y-m-d H:i:s'),
+                'ip_address' => $this->input->ip_address(),
+            ));
 
             // Embed PDF for display on confirmation page
             $abs_pdf = (strpos($pdf_path, '/') === 0) ? $pdf_path : FCPATH . $pdf_path;
@@ -288,17 +290,14 @@ class Briefing_sign extends CI_Controller {
 
         // Embed signature image if provided
         // $signature_data is raw base64 (no data URI prefix — stripped client-side)
-        log_message('debug', 'BP_SIGN: signature_data length=' . strlen((string)$signature_data));
         if (!empty($signature_data)) {
             $img_data = base64_decode($signature_data, true);
-            log_message('debug', 'BP_SIGN: img_data length=' . strlen((string)$img_data));
             if ($img_data !== false && strlen($img_data) > 0) {
                 try {
                     $pdf->Image('@' . $img_data, 15, '', 160, 0, 'PNG');
                     $pdf->Ln(5);
-                    log_message('debug', 'BP_SIGN: signature image embedded OK');
                 } catch (Exception $e) {
-                    log_message('error', 'BP_SIGN: Image() failed: ' . $e->getMessage());
+                    log_message('error', 'briefing_sign: Image() failed: ' . $e->getMessage());
                 }
             }
         }

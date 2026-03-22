@@ -84,11 +84,12 @@ $this->lang->load('vols_decouverte');
     </div>
     <?php if ($is_dev_user): ?>
     <div>
-        <a href="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"
-           class="btn btn-sm btn-danger"
-           onclick="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
-            <i class="fas fa-trash"></i>
-        </a>
+        <form method="post" action="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"
+              onsubmit="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+            <button type="submit" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+            </button>
+        </form>
     </div>
     <?php endif; ?>
 </div>

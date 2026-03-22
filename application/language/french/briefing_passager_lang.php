@@ -45,6 +45,8 @@ $lang['briefing_passager_already_exists']     = 'Un briefing existe déjà pour 
 $lang['briefing_passager_confirm_delete']     = 'Êtes-vous sûr de vouloir supprimer ce briefing ?';
 $lang['briefing_passager_delete_protected']   = 'Ce briefing ne peut pas être supprimé avant 3 mois.';
 $lang['briefing_passager_not_found']          = 'Briefing introuvable.';
+$lang['briefing_passager_dir_error']          = 'Impossible de créer le répertoire de stockage.';
+$lang['briefing_passager_type_error']         = 'Type de document briefing_passager introuvable.';
 
 $lang['briefing_passager_sign_title']         = 'Déclaration d\'acceptation des risques';
 $lang['briefing_passager_sign_scan_qr']       = 'Scannez pour ouvrir sur votre téléphone';

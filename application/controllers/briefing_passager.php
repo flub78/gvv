@@ -85,13 +85,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['briefing']        = $existing;
         $this->data['is_dev_user']     = in_array($current_user, $dev_menu_users);
         $this->data['message']         = '';
-        $this->data['terrain_selector'] = $this->terrains_model->selector_with_null();
-        $this->data['machine_selector'] = $this->vols_decouverte_model->machine_selector();
-        $pilote_selector = $this->membres_model->vd_pilots();
-        if (count($pilote_selector) <= 1) {
-            $pilote_selector = $this->membres_model->selector_with_null(array('actif' => 1));
-        }
-        $this->data['pilote_selector'] = $pilote_selector;
+        $this->_load_upload_selectors();
 
         load_last_view('briefing_passager/uploadView', $this->data);
     }
@@ -154,17 +148,13 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
                 . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
                 . '</div>';
+            $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
             $this->data['title']           = $this->lang->line('briefing_passager_upload');
             $this->data['vld']             = $vld;
             $this->data['vld_id']          = $vld_id;
             $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-            $this->data['terrain_selector'] = $this->terrains_model->selector_with_null();
-            $this->data['machine_selector'] = $this->vols_decouverte_model->machine_selector();
-            $pilote_selector = $this->membres_model->vd_pilots();
-            if (count($pilote_selector) <= 1) {
-                $pilote_selector = $this->membres_model->selector_with_null(array('actif' => 1));
-            }
-            $this->data['pilote_selector'] = $pilote_selector;
+            $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_menu_users);
+            $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
             return;
         }
@@ -187,7 +177,7 @@ class Briefing_passager extends Gvv_Controller {
         // Get briefing_passager document type
         $doc_type = $this->document_types_model->get_by_code('briefing_passager');
         if (!$doc_type) {
-            $this->data['message'] = '<div class="alert alert-danger">Type de document briefing_passager introuvable.</div>';
+            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_type_error') . '</div>';
             $this->data['vld'] = $vld;
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
@@ -200,7 +190,7 @@ class Briefing_passager extends Gvv_Controller {
         $dirname = './uploads/documents/sections/' . $section_id . '/briefing_passager/';
 
         if (!$this->_ensure_directory($dirname)) {
-            $this->data['message'] = '<div class="alert alert-danger">Impossible de créer le répertoire de stockage.</div>';
+            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_dir_error') . '</div>';
             $this->data['vld'] = $vld;
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
@@ -283,16 +273,14 @@ class Briefing_passager extends Gvv_Controller {
             return;
         }
 
-        $escaped = '%' . $this->db->escape_like_str($q) . '%';
-        $escaped_id = $this->db->escape($escaped);
-        $escaped_val = $this->db->escape($escaped);
+        $escaped = $this->db->escape('%' . $this->db->escape_like_str($q) . '%');
 
         $sql = "SELECT id, date_vol, date_vente, beneficiaire, airplane_immat, aerodrome, pilote, club
                 FROM vols_decouverte
                 WHERE cancelled = 0
-                  AND (beneficiaire LIKE {$escaped_val}
-                       OR CAST(id AS CHAR) LIKE {$escaped_id}
-                       OR beneficiaire_tel LIKE {$escaped_val})
+                  AND (beneficiaire LIKE {$escaped}
+                       OR CAST(id AS CHAR) LIKE {$escaped}
+                       OR beneficiaire_tel LIKE {$escaped})
                 ORDER BY date_vente DESC
                 LIMIT 20";
 
@@ -365,6 +353,11 @@ class Briefing_passager extends Gvv_Controller {
     function delete($id = 0) {
         if (!$this->dx_auth->is_logged_in()) {
             redirect('welcome/login');
+            return;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée', 405);
             return;
         }
 
@@ -556,6 +549,16 @@ class Briefing_passager extends Gvv_Controller {
         if (!empty($update)) {
             $this->db->where('id', $vld_id)->update('vols_decouverte', $update);
         }
+    }
+
+    private function _load_upload_selectors() {
+        $this->data['terrain_selector'] = $this->terrains_model->selector_with_null();
+        $this->data['machine_selector'] = $this->vols_decouverte_model->machine_selector();
+        $pilote_selector = $this->membres_model->vd_pilots();
+        if (count($pilote_selector) <= 1) {
+            $pilote_selector = $this->membres_model->selector_with_null(array('actif' => 1));
+        }
+        $this->data['pilote_selector'] = $pilote_selector;
     }
 
     private function _is_admin() {

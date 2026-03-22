@@ -49,9 +49,10 @@ $this->lang->load('briefing_passager');
         </dl>
 
         <?php
-        $file = $doc['file_path'] ?? '';
-        $mime = $file ? (mime_content_type($file) ?: '') : '';
-        if ($file && file_exists($file)):
+        $file     = $doc['file_path'] ?? '';
+        $abs_file = $file ? (FCPATH . ltrim($file, './')) : '';
+        $mime     = $abs_file ? (mime_content_type($abs_file) ?: '') : '';
+        if ($file && file_exists($abs_file)):
             if ($mime === 'application/pdf'):
         ?>
         <div class="ratio" style="height:600px;">
@@ -74,11 +75,13 @@ $this->lang->load('briefing_passager');
                 <i class="fas fa-arrow-left"></i> <?= $this->lang->line('gvv_button_back') ?>
             </a>
             <?php if ($is_dev_user): ?>
-            <a href="<?= site_url('briefing_passager/delete/' . $doc['id']) ?>"
-               class="btn btn-outline-danger ms-auto"
-               onclick="return confirm('Supprimer ce briefing ?')">
-                <i class="fas fa-trash"></i> Supprimer
-            </a>
+            <form method="post" action="<?= site_url('briefing_passager/delete/' . $doc['id']) ?>"
+                  class="ms-auto"
+                  onsubmit="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-trash"></i> <?= $this->lang->line('briefing_passager_delete') ?>
+                </button>
+            </form>
             <?php endif; ?>
         </div>
     </div>
