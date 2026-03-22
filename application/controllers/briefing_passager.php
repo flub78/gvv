@@ -32,6 +32,16 @@ class Briefing_passager extends Gvv_Controller {
         $this->load->library('upload');
     }
 
+    /**
+     * pilote_vd implies gestion_vd: a VD pilot has all briefing management permissions.
+     */
+    public function user_has_role($role) {
+        if ($role === 'gestion_vd') {
+            return parent::user_has_role('gestion_vd') || parent::user_has_role('pilote_vd');
+        }
+        return parent::user_has_role($role);
+    }
+
     // -----------------------------------------------------------------------
     // UC1 — Standalone briefing form (search + upload)
     // -----------------------------------------------------------------------
@@ -61,6 +71,7 @@ class Briefing_passager extends Gvv_Controller {
             redirect('welcome/login');
             return;
         }
+        if (!$this->ensure_modification_rights()) return;
 
         $vld_id = (int)$vld_id;
         $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
@@ -100,6 +111,7 @@ class Briefing_passager extends Gvv_Controller {
             redirect('welcome/login');
             return;
         }
+        if (!$this->ensure_modification_rights()) return;
         $vld_id = (int)$vld_id;
         $this->_save_vld_fields($vld_id);
         redirect('briefing_passager/upload/' . $vld_id);
@@ -117,6 +129,7 @@ class Briefing_passager extends Gvv_Controller {
             redirect('welcome/login');
             return;
         }
+        if (!$this->ensure_modification_rights()) return;
 
         $vld_id = (int)$vld_id;
         $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
@@ -233,7 +246,7 @@ class Briefing_passager extends Gvv_Controller {
             'vld_id'            => $vld_id,
             'section_id'        => $section_id,
             'file_path'         => $file_path,
-            'original_filename' => $_FILES['userfile']['name'],
+            'original_filename' => $upload_data['orig_name'],
             'description'       => 'Briefing passager VLD #' . $vld_id . ' — ' . ($vld['beneficiaire'] ?? ''),
             'uploaded_by'       => $this->dx_auth->get_username(),
             'validation_status' => 'approved',
@@ -498,6 +511,7 @@ class Briefing_passager extends Gvv_Controller {
             redirect('welcome/login');
             return;
         }
+        if (!$this->ensure_modification_rights()) return;
 
         $vld_id = (int)$vld_id;
         $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
@@ -562,7 +576,7 @@ class Briefing_passager extends Gvv_Controller {
     }
 
     private function _is_admin() {
-        return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
+        return $this->user_has_role('gestion_vd') || $this->dx_auth->is_admin();
     }
 
     private function _ensure_directory($dirname) {
