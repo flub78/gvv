@@ -180,7 +180,10 @@ function clearPad() {
 
 function prepareSig() {
     if (!signaturePad.isEmpty()) {
-        document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
+        var dataUrl = signaturePad.toDataURL('image/png');
+        // Strip the data URI prefix — CI2 global_xss_filtering strips "data:...base64,..." patterns
+        var prefix = 'data:image/png;base64,';
+        document.getElementById('signature_data').value = dataUrl.substring(prefix.length);
     }
     return true;
 }

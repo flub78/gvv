@@ -111,7 +111,8 @@ class Briefing_sign extends CI_Controller {
         $poids   = (int)$this->input->post('poids',   true);
         $urgence = trim($this->input->post('urgence', true));
         $accept  = $this->input->post('accept',       true);
-        $signature_data = $this->input->post('signature_data', true); // base64 PNG from signature_pad
+        // Raw base64 only — prefix stripped client-side to bypass CI2 global_xss_filtering
+        $signature_data = $this->input->post('signature_data', false);
 
         if (!$accept) {
             $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
@@ -281,20 +282,26 @@ class Briefing_sign extends CI_Controller {
         $pdf->MultiCell(0, 6, $this->lang->line('briefing_passager_sign_checkbox'), 0, 'L');
         $pdf->Ln(3);
 
-        // Embed signature image if provided
-        if ($signature_data && strpos($signature_data, 'data:image/png;base64,') === 0) {
-            $img_data = base64_decode(substr($signature_data, strlen('data:image/png;base64,')));
-            if ($img_data) {
-                $tmp_img = tempnam(sys_get_temp_dir(), 'bpsig_') . '.png';
-                file_put_contents($tmp_img, $img_data);
-                $pdf->Image($tmp_img, 15, '', 80, 30);
-                @unlink($tmp_img);
-                $pdf->Ln(35);
-            }
-        }
-
         $pdf->SetFont('helvetica', '', 8);
         $pdf->Cell(0, 5, 'Date : ' . date('d/m/Y H:i:s') . ' — IP : ' . $this->input->ip_address(), 0, 1);
+        $pdf->Ln(3);
+
+        // Embed signature image if provided
+        // $signature_data is raw base64 (no data URI prefix — stripped client-side)
+        log_message('debug', 'BP_SIGN: signature_data length=' . strlen((string)$signature_data));
+        if (!empty($signature_data)) {
+            $img_data = base64_decode($signature_data, true);
+            log_message('debug', 'BP_SIGN: img_data length=' . strlen((string)$img_data));
+            if ($img_data !== false && strlen($img_data) > 0) {
+                try {
+                    $pdf->Image('@' . $img_data, 15, '', 160, 0, 'PNG');
+                    $pdf->Ln(5);
+                    log_message('debug', 'BP_SIGN: signature image embedded OK');
+                } catch (Exception $e) {
+                    log_message('error', 'BP_SIGN: Image() failed: ' . $e->getMessage());
+                }
+            }
+        }
 
         // Write signature page to temp file, then merge with consignes if available
         if ($consignes_path) {
