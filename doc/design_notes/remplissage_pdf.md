@@ -268,3 +268,48 @@ Les PDF générés sont archivés directement via `archived_documents_model->cre
 - Description incluant le nom du template utilisé
 - Stockage dans `uploads/documents/pilots/{login}/formulaire_pdf/`
 - L'historique et le re-téléchargement passent par le module `archived_documents`
+
+---
+
+## Nommage des champs de formulaire dans LibreOffice
+
+Pour remplir un PDF avec precision, il faut cibler les champs par leur nom technique, pas par position XY.
+
+### Procedure
+
+1. Activer la barre des controles de formulaire:
+  - Affichage > Barres d'outils > Controles de formulaire
+2. Activer le mode ebauche (Design Mode)
+3. Creer ou selectionner un champ (texte, case a cocher, liste, etc.)
+4. Ouvrir les proprietes du controle:
+  - Clic droit > Controle...
+5. Renseigner la propriete `Nom` (onglet General)
+6. Exporter le document en cochant "Creer un formulaire PDF"
+
+### Convention de nommage recommandee
+
+- Utiliser `snake_case`
+- Eviter espaces et accents
+- Utiliser des noms stables dans le temps
+- Renommer un champ uniquement avec mise a jour simultanee du script de remplissage
+
+Exemples de noms:
+- `nom_pilote`
+- `date_vol`
+- `signature_png`
+
+### Cas particulier des boutons radio
+
+- Les options d'un meme groupe partagent un meme nom de groupe
+- Chaque option doit avoir une valeur distincte
+- Le script choisit l'option en envoyant la valeur attendue
+
+### Signature PNG
+
+- Une image PNG peut etre placee de maniere precise dans une zone dediee du formulaire
+- Cette signature est visuelle uniquement
+- Si une signature legale forte est requise, ajouter ensuite une signature numerique du PDF final
+
+### Verification
+
+Apres export, verifier les noms de champs avec un outil d'inspection (`pdftk`, `qpdf`, `pypdf`) pour s'assurer que les noms du PDF correspondent exactement aux cles utilisees par le script.
