@@ -40,6 +40,7 @@ $lang['briefing_passager_select_vld']         = 'Selecteer een ontdekkingsvlucht
 
 $lang['briefing_passager_upload_success']     = 'Briefing succesvol opgeslagen.';
 $lang['briefing_passager_upload_error']       = 'Fout bij opslaan van de briefing.';
+$lang['briefing_passager_fields_required']    = 'De volgende velden zijn verplicht: %s';
 $lang['briefing_passager_already_exists']     = 'Er bestaat al een briefing voor deze vlucht. Wilt u die vervangen?';
 $lang['briefing_passager_confirm_delete']     = 'Weet u zeker dat u deze briefing wilt verwijderen?';
 $lang['briefing_passager_delete_protected']   = 'Deze briefing kan niet worden verwijderd vóór 3 maanden.';
@@ -73,6 +74,8 @@ $lang['briefing_passager_link_copy']          = 'Link kopiëren';
 $lang['briefing_passager_link_open']          = 'Link openen';
 $lang['briefing_passager_sign_draw_pad']      = 'Aanraakhandtekening';
 $lang['briefing_passager_sign_or']            = 'of';
+$lang['briefing_passager_sign_accept_required'] = 'U moet het document lezen en accepteren door het vakje aan te vinken of te ondertekenen voor u kunt indienen.';
+$lang['briefing_passager_sign_scroll_required'] = 'Scroll door het volledige document en lees het voor u kunt valideren.';
 $lang['briefing_passager_pdf_title']          = 'Verklaring aanvaarding risico\'s';
 $lang['briefing_passager_email_subject']      = 'Uw verklaring ontdekkingsvlucht';
 $lang['briefing_passager_email_body']         = 'Gelieve bijgevoegde verklaring aanvaarding van risico\'s te vinden.';

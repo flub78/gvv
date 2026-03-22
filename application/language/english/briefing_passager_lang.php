@@ -40,6 +40,7 @@ $lang['briefing_passager_select_vld']         = 'Select a discovery flight';
 
 $lang['briefing_passager_upload_success']     = 'Briefing saved successfully.';
 $lang['briefing_passager_upload_error']       = 'Error saving the briefing.';
+$lang['briefing_passager_fields_required']    = 'The following fields are required: %s';
 $lang['briefing_passager_already_exists']     = 'A briefing already exists for this flight. Do you want to replace it?';
 $lang['briefing_passager_confirm_delete']     = 'Are you sure you want to delete this briefing?';
 $lang['briefing_passager_delete_protected']   = 'This briefing cannot be deleted before 3 months.';
@@ -73,6 +74,8 @@ $lang['briefing_passager_link_copy']          = 'Copy link';
 $lang['briefing_passager_link_open']          = 'Open link';
 $lang['briefing_passager_sign_draw_pad']      = 'Touch signature';
 $lang['briefing_passager_sign_or']            = 'or';
+$lang['briefing_passager_sign_accept_required'] = 'You must read and accept the document by ticking the box or signing before submitting.';
+$lang['briefing_passager_sign_scroll_required'] = 'Please scroll through and read the entire document before you can validate.';
 $lang['briefing_passager_pdf_title']          = 'Risk acceptance declaration';
 $lang['briefing_passager_email_subject']      = 'Your discovery flight declaration';
 $lang['briefing_passager_email_body']         = 'Please find attached your risk acceptance declaration.';

@@ -5,15 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $this->lang->line('briefing_passager_sign_title') ?></title>
-    <link rel="stylesheet" href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/fontawesome/css/all.min.css') ?>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/408316024a.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/bs_styles.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/gvv.css">
     <style>
         #signature-pad { border: 1px solid #dee2e6; border-radius: 4px; background: #fff; touch-action: none; }
         .section-title { border-left: 4px solid #0d6efd; padding-left: 0.75rem; margin: 1.5rem 0 1rem; }
     </style>
 </head>
 <body class="bg-light">
-<div class="container py-4" style="max-width:700px;">
+
+<header class="container-fluid p-3 bg-success text-white text-center">
+    <h1 class="text-center header"><?= $this->config->item('nom_club') ?></h1>
+</header>
+
+<div class="container-fluid py-4 px-4">
 
 <?= $message ?>
 
@@ -44,9 +52,12 @@
 
 <!-- 3. Safety instructions PDF -->
 <h5 class="section-title"><i class="fas fa-file-pdf"></i> <?= $this->lang->line('briefing_passager_sign_instructions') ?></h5>
+<div id="scroll-notice" class="alert alert-warning">
+    <i class="fas fa-arrow-down"></i> <?= $this->lang->line('briefing_passager_sign_scroll_required') ?>
+</div>
 <?php if ($consignes && !empty($consignes['file_path'])): ?>
     <div class="mb-3">
-        <object data="<?= base_url($consignes['file_path']) ?>" type="application/pdf" width="100%" height="300">
+        <object id="pdf-object" data="<?= base_url($consignes['file_path']) ?>" type="application/pdf" width="100%" height="450">
             <p><?= $this->lang->line('briefing_passager_consignes_download') ?> :
                 <a href="<?= base_url($consignes['file_path']) ?>" target="_blank">
                     <i class="fas fa-download"></i> PDF
@@ -102,10 +113,6 @@
 
     <h5 class="section-title"><i class="fas fa-pen"></i> <?= $this->lang->line('briefing_passager_sign_acceptance') ?></h5>
 
-    <div class="alert alert-secondary mb-3">
-        <?= $this->lang->line('briefing_passager_sign_checkbox') ?>
-    </div>
-
     <!-- 5. Touch signature pad -->
     <div class="mb-3">
         <label class="form-label"><?= $this->lang->line('briefing_passager_sign_draw_pad') ?></label>
@@ -118,9 +125,9 @@
         <input type="hidden" name="signature_data" id="signature_data">
     </div>
 
-    <!-- 6. Fallback acceptance checkbox -->
+    <!-- 6. Acceptance checkbox with declaration text -->
     <div class="mb-3">
-        <small class="text-muted"><?= $this->lang->line('briefing_passager_sign_or') ?></small><br>
+        <small class="text-muted"><?= $this->lang->line('briefing_passager_sign_or') ?></small>
         <div class="form-check mt-1">
             <input class="form-check-input" type="checkbox" name="accept" value="1" id="accept_checkbox">
             <label class="form-check-label" for="accept_checkbox">
@@ -130,13 +137,17 @@
     </div>
 
     <div class="d-grid mt-4">
-        <button type="submit" class="btn btn-primary btn-lg" onclick="return prepareSig()">
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" onclick="return prepareSig()" disabled>
             <i class="fas fa-check-circle"></i> <?= $this->lang->line('briefing_passager_sign_submit') ?>
         </button>
     </div>
 </form>
 
 </div><!-- /container -->
+
+<footer class="container-fluid p-3 mt-3 bg-success text-white text-center">
+    <p><?= $this->lang->line('gvv_copyright') ?></p>
+</footer>
 
 <script src="<?= base_url('assets/js/signature_pad.umd.min.js') ?>"></script>
 <script>
@@ -165,6 +176,32 @@ function prepareSig() {
     }
     return true;
 }
+
+// Enable submit button only after user has scrolled past the PDF
+var pdfScrolled = false;
+function checkPdfScrolled() {
+    if (pdfScrolled) return;
+    var pdf = document.getElementById('pdf-object');
+    if (!pdf) { unlockSubmit(); return; }
+    var rect = pdf.getBoundingClientRect();
+    if (rect.bottom <= window.innerHeight) {
+        unlockSubmit();
+    }
+}
+function unlockSubmit() {
+    if (pdfScrolled) return;
+    pdfScrolled = true;
+    document.getElementById('submit-btn').disabled = false;
+    var notice = document.getElementById('scroll-notice');
+    if (notice) notice.remove();
+    window.removeEventListener('scroll', checkPdfScrolled);
+}
+<?php if (!($consignes && !empty($consignes['file_path']))): ?>
+unlockSubmit(); // No PDF to read, enable immediately
+<?php endif; ?>
+window.addEventListener('scroll', checkPdfScrolled);
+// Check on load in case page is short enough
+checkPdfScrolled();
 </script>
 </body>
 </html>

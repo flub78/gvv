@@ -123,7 +123,7 @@ class Briefing_sign extends CI_Controller {
                 'consignes' => $consignes,
                 'qr_base64' => $qr_base64,
                 'sign_url'  => site_url('briefing_sign/' . $token),
-                'message'   => '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_sign_checkbox') . '</div>',
+                'message'   => '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' . $this->lang->line('briefing_passager_sign_accept_required') . '</div>',
             );
             $this->load->view('briefing_passager/bs_signView', $data);
             

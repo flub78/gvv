@@ -94,6 +94,7 @@ class Briefing_passager extends Gvv_Controller {
 
     /**
      * Save VLD fields (date, aerodrome, airplane, name) from the upload form.
+     * Kept for backward compatibility (direct GET/POST to this URL).
      * @param int $vld_id Discovery flight ID
      */
     function update_vld($vld_id = 0) {
@@ -101,39 +102,16 @@ class Briefing_passager extends Gvv_Controller {
             redirect('welcome/login');
             return;
         }
-
         $vld_id = (int)$vld_id;
-        $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
-        if (!$vld) {
-            redirect('briefing_passager/upload/' . $vld_id);
-            return;
-        }
-
-        $date_vol     = trim($this->input->post('date_vol', true));
-        $aerodrome    = trim($this->input->post('aerodrome', true));
-        $airplane     = trim($this->input->post('airplane_immat', true));
-        $beneficiaire = trim($this->input->post('beneficiaire', true));
-        $pilote       = trim($this->input->post('pilote', true));
-
-        $update = array();
-        if ($date_vol !== '')     $update['date_vol']      = $date_vol;
-        if ($aerodrome !== '')    $update['aerodrome']      = $aerodrome;
-        else                      $update['aerodrome']      = null;
-        if ($airplane !== '')     $update['airplane_immat'] = $airplane;
-        else                      $update['airplane_immat'] = null;
-        if ($beneficiaire !== '') $update['beneficiaire']   = $beneficiaire;
-        if ($pilote !== '')       $update['pilote']         = $pilote;
-        else                      $update['pilote']         = null;
-
-        if (!empty($update)) {
-            $this->db->where('id', $vld_id)->update('vols_decouverte', $update);
-        }
-
+        $this->_save_vld_fields($vld_id);
         redirect('briefing_passager/upload/' . $vld_id);
     }
 
     /**
-     * Process the upload form (POST).
+     * Unified form handler: saves VLD fields, then dispatches based on action button.
+     * action=save   → save fields and return to upload form
+     * action=link   → save fields and generate digital signature link
+     * action=upload → save fields and process file upload (default)
      * @param int $vld_id Discovery flight ID
      */
     function upload_submit($vld_id = 0) {
@@ -146,6 +124,59 @@ class Briefing_passager extends Gvv_Controller {
         $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
         if (!$vld) {
             show_404();
+            return;
+        }
+
+        // Validate required fields before saving
+        $aerodrome    = trim($this->input->post('aerodrome', true));
+        $airplane     = trim($this->input->post('airplane_immat', true));
+        $pilote       = trim($this->input->post('pilote', true));
+
+        $errors = array();
+        if ($aerodrome    === '') $errors[] = $this->lang->line('briefing_passager_field_aerodrome');
+        if ($airplane     === '') $errors[] = $this->lang->line('briefing_passager_field_appareil');
+        if ($pilote       === '') $errors[] = $this->lang->line('briefing_passager_field_pilote');
+
+        if (!empty($errors)) {
+            // Merge posted values into $vld so the form keeps the user's input
+            $vld = array_merge($vld, array(
+                'date_vol'      => trim($this->input->post('date_vol', true)) ?: ($vld['date_vol'] ?? ''),
+                'aerodrome'     => $aerodrome,
+                'airplane_immat'=> $airplane,
+                'beneficiaire'  => trim($this->input->post('beneficiaire', true)),
+                'pilote'        => $pilote,
+            ));
+            $fields = implode(', ', $errors);
+            $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
+                . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
+                . '</div>';
+            $this->data['title']           = $this->lang->line('briefing_passager_upload');
+            $this->data['vld']             = $vld;
+            $this->data['vld_id']          = $vld_id;
+            $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
+            $this->data['terrain_selector'] = $this->terrains_model->selector_with_null();
+            $this->data['machine_selector'] = $this->vols_decouverte_model->machine_selector();
+            $pilote_selector = $this->membres_model->vd_pilots();
+            if (count($pilote_selector) <= 1) {
+                $pilote_selector = $this->membres_model->selector_with_null(array('actif' => 1));
+            }
+            $this->data['pilote_selector'] = $pilote_selector;
+            load_last_view('briefing_passager/uploadView', $this->data);
+            return;
+        }
+
+        // Save VLD fields
+        $this->_save_vld_fields($vld_id);
+
+        $action = $this->input->post('action');
+
+        if ($action === 'save') {
+            redirect('briefing_passager/upload/' . $vld_id);
+            return;
+        }
+
+        if ($action === 'link') {
+            redirect('briefing_passager/generate_link/' . $vld_id);
             return;
         }
 
@@ -494,6 +525,28 @@ class Briefing_passager extends Gvv_Controller {
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
+
+    private function _save_vld_fields($vld_id) {
+        $date_vol     = trim($this->input->post('date_vol', true));
+        $aerodrome    = trim($this->input->post('aerodrome', true));
+        $airplane     = trim($this->input->post('airplane_immat', true));
+        $beneficiaire = trim($this->input->post('beneficiaire', true));
+        $pilote       = trim($this->input->post('pilote', true));
+
+        $update = array();
+        if ($date_vol !== '')     $update['date_vol']      = $date_vol;
+        if ($aerodrome !== '')    $update['aerodrome']      = $aerodrome;
+        else                      $update['aerodrome']      = null;
+        if ($airplane !== '')     $update['airplane_immat'] = $airplane;
+        else                      $update['airplane_immat'] = null;
+        if ($beneficiaire !== '') $update['beneficiaire']   = $beneficiaire;
+        if ($pilote !== '')       $update['pilote']         = $pilote;
+        else                      $update['pilote']         = null;
+
+        if (!empty($update)) {
+            $this->db->where('id', $vld_id)->update('vols_decouverte', $update);
+        }
+    }
 
     private function _is_admin() {
         return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
