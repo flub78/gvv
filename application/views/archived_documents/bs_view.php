@@ -250,7 +250,12 @@ $is_private = !empty($type['is_private']);
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="<?= site_url('archived_documents/download/' . $ver['id']) ?>" class="btn btn-sm btn-outline-secondary">
+                        <?php if (!$ver['is_current_version']): ?>
+                        <a href="<?= site_url('archived_documents/view/' . $ver['id']) ?>" class="btn btn-sm btn-outline-info" target="_blank" title="Visualiser cette version">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <?php endif; ?>
+                        <a href="<?= site_url('archived_documents/download/' . $ver['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Télécharger">
                             <i class="fas fa-download"></i>
                         </a>
                     </td>
