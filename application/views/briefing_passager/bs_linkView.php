@@ -26,8 +26,10 @@ $qr_base64 = base64_encode(file_get_contents($qr_file));
 
 <div class="row">
     <div class="col-md-4 text-center mb-4">
-        <img src="data:image/png;base64,<?= $qr_base64 ?>" alt="QR Code" class="img-fluid" style="max-width:250px;">
-        <p class="mt-2 text-muted small"><?= $this->lang->line('briefing_passager_sign_scan_qr') ?></p>
+        <a href="<?= htmlspecialchars($sign_url) ?>" target="_blank" class="d-inline-block text-decoration-none">
+            <img src="data:image/png;base64,<?= $qr_base64 ?>" alt="QR Code" class="img-fluid" style="max-width:250px;">
+            <p class="mt-2 text-muted small"><?= $this->lang->line('briefing_passager_sign_scan_qr') ?><br><i class="fas fa-mouse-pointer"></i> <?= $this->lang->line('briefing_passager_link_open') ?></p>
+        </a>
     </div>
     <div class="col-md-8">
         <?php if ($vld): ?>
@@ -57,9 +59,6 @@ $qr_base64 = base64_encode(file_get_contents($qr_file));
                 <button class="btn btn-outline-secondary" type="button" onclick="copyLink()">
                     <i class="fas fa-copy"></i> <?= $this->lang->line('briefing_passager_link_copy') ?>
                 </button>
-                <a href="<?= htmlspecialchars($sign_url) ?>" target="_blank" class="btn btn-primary">
-                    <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('briefing_passager_link_open') ?>
-                </a>
             </div>
         </div>
 

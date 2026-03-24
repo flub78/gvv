@@ -939,16 +939,21 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check: admin or owner
-        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+        // Security check: admin, owner, or gestion_vd/pilote_vd for briefing_passager documents
+        $dtype_download = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        $is_briefing_passager = !empty($dtype_download['code']) && $dtype_download['code'] === 'briefing_passager';
+        $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
+        if (!$this->_is_admin()
+            && $doc['pilot_login'] !== $this->dx_auth->get_username()
+            && !($is_gestion_vd && $is_briefing_passager)) {
             redirect('archived_documents/my_documents');
             return;
         }
 
         // Private document: bureau/strict-admin/owner only
-        $type = !empty($doc['document_type_id'])
-            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
-            : null;
+        $type = $dtype_download;
         $is_private = !empty($type['is_private']);
         if (!$this->_can_access_private_file($is_private, $doc['pilot_login'])) {
             $this->session->set_flashdata('message', '<div class="alert alert-warning"><i class="fas fa-lock"></i> ' . $this->lang->line('archived_documents_no_file_access') . '</div>');
@@ -979,8 +984,16 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check: admin or owner
-        if (!$this->_is_admin() && $doc['pilot_login'] !== $this->dx_auth->get_username()) {
+        // Security check: admin, owner, or gestion_vd/pilote_vd for briefing_passager documents
+        $is_briefing_passager = false;
+        if (!empty($doc['document_type_id'])) {
+            $dtype = $this->document_types_model->get_by_id('id', $doc['document_type_id']);
+            $is_briefing_passager = !empty($dtype['code']) && $dtype['code'] === 'briefing_passager';
+        }
+        $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
+        if (!$this->_is_admin()
+            && $doc['pilot_login'] !== $this->dx_auth->get_username()
+            && !($is_gestion_vd && $is_briefing_passager)) {
             redirect('archived_documents/my_documents');
             return;
         }

@@ -25,11 +25,6 @@
 
 <?= $message ?>
 
-<!-- 1. QR code + scan invitation -->
-<div class="text-center mb-4">
-    <img src="data:image/png;base64,<?= $qr_base64 ?>" alt="QR Code" style="max-width:180px;">
-    <p class="text-muted small mt-1"><i class="fas fa-qrcode"></i> <?= $this->lang->line('briefing_passager_sign_scan_qr') ?></p>
-</div>
 
 <h4 class="text-center mb-4"><?= $this->lang->line('briefing_passager_sign_title') ?></h4>
 

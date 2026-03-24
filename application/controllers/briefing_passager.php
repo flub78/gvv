@@ -658,9 +658,14 @@ class Briefing_passager extends Gvv_Controller {
      * Resolve the best local network IP for QR code links.
      */
     private function _resolve_qrcode_ip() {
-        $forced = trim((string)$this->config->item('qrcode_forced_ip'));
-        if ($this->_is_usable_qrcode_ip($forced)) {
-            return $forced;
+        // Most reliable on Linux: ip route gives the preferred outgoing interface IP
+        $route_output = @shell_exec('ip route get 1.1.1.1 2>/dev/null');
+        if ($route_output) {
+            if (preg_match('/src\s+([\d.]+)/', $route_output, $m)) {
+                if ($this->_is_usable_qrcode_ip($m[1])) {
+                    return $m[1];
+                }
+            }
         }
 
         $server_addr = isset($_SERVER['SERVER_ADDR']) ? trim($_SERVER['SERVER_ADDR']) : '';
