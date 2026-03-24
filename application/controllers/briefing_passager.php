@@ -207,6 +207,7 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
             $this->data['title'] = $this->lang->line('briefing_passager_upload');
+            $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
             return;
         }
@@ -215,11 +216,12 @@ class Briefing_passager extends Gvv_Controller {
         $dirname = './uploads/documents/sections/' . $section_id . '/briefing_passager/';
 
         if (!$this->_ensure_directory($dirname)) {
-            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_dir_error') . '</div>';
+            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_dir_error') . ' (' . $dirname . ')</div>';
             $this->data['vld'] = $vld;
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
             $this->data['title'] = $this->lang->line('briefing_passager_upload');
+            $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
             return;
         }
@@ -240,6 +242,7 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
             $this->data['title'] = $this->lang->line('briefing_passager_upload');
+            $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
             return;
         }
@@ -274,6 +277,7 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['vld_id'] = $vld_id;
             $this->data['briefing'] = null;
             $this->data['title'] = $this->lang->line('briefing_passager_upload');
+            $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
         }
     }
@@ -592,13 +596,21 @@ class Briefing_passager extends Gvv_Controller {
     }
 
     private function _ensure_directory($dirname) {
-        if (!file_exists($dirname)) {
+        $abs = realpath($dirname) ?: (FCPATH . ltrim($dirname, './'));
+        if (!file_exists($abs)) {
             $old_umask = umask(0);
-            $created = @mkdir($dirname, 0777, true);
+            $created = @mkdir($abs, 0777, true);
             umask($old_umask);
+            if (!$created) {
+                gvv_log('error', "_ensure_directory: mkdir failed for '$abs', cwd=" . getcwd() . ", www-data groups=" . shell_exec('id www-data'));
+            }
             return $created;
         }
-        return is_writable($dirname);
+        $writable = is_writable($abs);
+        if (!$writable) {
+            gvv_log('error', "_ensure_directory: not writable '$abs', perms=" . decoct(fileperms($abs)) . ", owner=" . posix_getpwuid(fileowner($abs))['name']);
+        }
+        return $writable;
     }
 
     private function _sanitize_filename($filename) {
