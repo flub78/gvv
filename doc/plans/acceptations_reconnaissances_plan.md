@@ -102,6 +102,16 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 - [x] 3.9 Fichiers de langue FR/EN/NL pour l'administration
 - [x] 3.10 Valider : test Playwright accès page admin, création d'un élément, suivi des acceptations (4 tests, tous passent)
 
+### Lot 3b — Champ `code` sur `acceptance_items` (prérequis orchestrateur)
+
+- [ ] 3b.1 Créer une migration `09X_acceptance_items_code.php` : ajout colonne `code VARCHAR(50) NULL UNIQUE COMMENT 'Code ASCII snake_case référencé par workflows.json'`
+- [ ] 3b.2 Mettre à jour `application/config/migration.php`
+- [ ] 3b.3 Ajouter `code` dans `Gvvmetadata.php` pour `acceptance_items` (type string, affichage admin)
+- [ ] 3b.4 Ajouter `code` dans les fichiers de langue FR/EN/NL
+- [ ] 3b.5 Écrire le test PHPUnit de migration (up, vérification contrainte UNIQUE, down)
+
+> Ce champ est requis par le Module 4 (Orchestrateur) qui référence les éléments d'acceptation via `acceptance_code` dans `workflows.json`. NULL autorisé pour les éléments non gérés par l'orchestrateur.
+
 ### Lot 4 — Acceptation interne (utilisateurs membres)
 
 - [ ] 4.1 Créer le contrôleur `acceptance.php` (tableau de bord, lecture, acceptation, refus, historique)

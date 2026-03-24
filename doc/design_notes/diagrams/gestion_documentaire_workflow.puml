@@ -1,0 +1,76 @@
+@startuml gestion_documentaire_workflow
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+
+title Exécution d'un workflow documentaire
+
+actor "Initiateur\n(Membre/Admin)" as INIT
+participant "Orchestrateur\n(DocumentWorkflow)" as ORCH
+participant "Générateur PDF\n(Pdf_form_filler)" as GEN
+participant "Moteur Acceptation\n(Acceptations_model)" as ACC
+participant "Archivage\n(archived_documents_model)" as ARCH
+actor "Signataire" as SIGN
+
+== Phase 1 : Déclenchement ==
+
+INIT -> ORCH : execute(workflow_code, runtime_params)
+ORCH -> ORCH : charger la config du workflow
+ORCH -> ORCH : créer workflow_execution (status=pending)
+
+== Phase 2 : Production du document ==
+
+alt source_type = static_pdf
+  ORCH -> ARCH : get_document(source_ref)
+  ARCH --> ORCH : chemin du PDF statique
+else source_type = pdf_template
+  ORCH -> GEN : fill(template_id, contexts)
+  GEN -> GEN : collect_data(mapping, GVV_DB)
+  GEN -> GEN : appel pdf_forms.py fill
+  GEN --> ORCH : PDF généré (chemin temporaire)
+  ORCH -> ORCH : update execution (status=generated)
+end
+
+== Phase 3 : Action documentaire ==
+
+alt action_type = generate_only
+  ORCH -> ARCH : create_document(file, doc_type, entity)
+  ARCH --> ORCH : document_id
+  ORCH -> ORCH : update execution (status=archived)
+
+else action_type = accept_internal
+  ORCH -> ACC : create_or_get_item(item_config)
+  ACC --> ORCH : item_id
+  ORCH --> INIT : document disponible pour acceptation\n(notifications aux membres ciblés)
+  SIGN -> ACC : record_acceptance(item_id, click)
+  ACC -> ARCH : archive le document + lier acceptation
+  ACC --> ORCH : acceptation enregistrée
+  ORCH -> ORCH : update execution (status=signed)
+
+else action_type = sign_external
+  ORCH -> ACC : create_session(item_id, mode, initiator)
+  ACC --> ORCH : token + lien/QR code
+  ORCH --> INIT : lien / QR code à transmettre
+  SIGN -> ACC : submit_signature(token, nom, signature)
+  ACC -> ARCH : archive le document signé
+  ACC --> ORCH : signature enregistrée
+  ORCH -> ORCH : update execution (status=signed)
+
+else action_type = sign_double
+  ORCH -> ACC : create_item(double_validation=true)
+  ACC --> ORCH : item_id
+  INIT -> ACC : record_acceptance(party=party1)
+  note right: ex: instructeur valide\nla délivrance
+  SIGN -> ACC : record_acceptance(party=party2)
+  note right: ex: élève confirme\nla réception
+  ACC -> ARCH : archive quand les deux parties ont signé
+  ORCH -> ORCH : update execution (status=signed)
+end
+
+== Phase 4 : Finalisation ==
+
+ORCH -> ARCH : link execution to archived_doc
+ORCH -> ORCH : update execution (status=archived, completed_at=now)
+ORCH --> INIT : résultat (doc_id, status)
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml gestion_documentaire_composants
+!theme plain
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+
+title Architecture — Plateforme de Gestion Documentaire GVV
+
+package "Plateforme Gestion Documentaire" {
+
+  package "Module 1 : Archivage" #lightgreen {
+    component [archived_documents_model] as ARCH #lightgreen
+    database "archived_documents\ndocument_types" as ARCH_DB #lightgreen
+    ARCH --> ARCH_DB
+  }
+
+  package "Module 2 : Génération PDF" #lightyellow {
+    component [Pdf_form_filler\n(library)] as GEN #lightyellow
+    component [pdf_forms.py\n(script Python)] as PY #lightyellow
+    database "pdf_templates\npdf_template_mappings" as GEN_DB #lightyellow
+    GEN --> PY : appel shell
+    GEN --> GEN_DB
+  }
+
+  package "Module 3 : Acceptation & Signature" #lightyellow {
+    component [Acceptations\n(controller)] as ACC #lightyellow
+    component [Acceptations_model] as ACC_M #lightyellow
+    database "acceptation_items\nacceptations\nacceptation_sessions" as ACC_DB #lightyellow
+    ACC --> ACC_M
+    ACC_M --> ACC_DB
+  }
+
+  package "Module 4 : Orchestrateur" #lightblue {
+    component [DocumentWorkflow\n(library)] as ORCH #lightblue
+    database "document_workflows\nworkflow_executions" as ORCH_DB #lightblue
+    ORCH --> ORCH_DB
+  }
+}
+
+' Dépendances entre modules
+ORCH --> GEN : génère le PDF\nsi source = template
+ORCH --> ACC : crée la session\nd'acceptation
+ORCH --> ARCH : archive le\ndocument final
+GEN --> ARCH : archive le PDF\ngénéré
+ACC --> ARCH : lie la signature\nau document archivé
+
+' Sources de données GVV
+database "Base de données GVV\n(membres, vols, sections...)" as GVV_DB
+GEN --> GVV_DB : collecte\nles données
+
+' Acteurs
+actor "Administrateur" as ADMIN
+actor "Membre\n(utilisateur interne)" as MEMBRE
+actor "Utilisateur externe\n(passager, parent)" as EXT
+
+ADMIN --> ORCH : configure\nles workflows
+ADMIN --> GEN : configure\nles templates PDF
+MEMBRE --> ACC : accepte\nen un clic
+EXT --> ACC : signe via\nlien temporaire / QR code
+
+note right of ORCH
+  Les workflows sont définis dans
+  application/config/workflows.json
+  (versionné git, pas en base).
+  Seules les exécutions sont en base.
+end note
+
+legend right
+  |= Couleur |= État |
+  |<#lightgreen> | Existant et opérationnel |
+  |<#lightyellow>| Conçu, partiellement implémenté |
+  |<#lightblue>  | Nouveau module à créer |
+endlegend
+
+@enduml

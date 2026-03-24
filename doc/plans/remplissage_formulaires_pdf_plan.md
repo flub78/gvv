@@ -34,14 +34,16 @@ Permettre le remplissage automatique de formulaires PDF officiels (DGAC, FFPLUM,
 - [ ] Tester manuellement avec le formulaire `134iFormlic.pdf`
 - [ ] Écrire un test PHPUnit vérifiant l'appel au script Python et le parsing du JSON retourné
 
-### Lot 2 — Migration base de données (068)
+### Lot 2 — Migration base de données
 
-- [ ] Créer la migration `068_pdf_templates.php` avec les tables :
-  - `pdf_templates` : id, code, nom, description, fichier, champs (JSON), contextes (JSON), created_at, updated_at
+> Note : la migration 068 est déjà occupée par `068_acceptance_system.php`. Numéro à attribuer lors de l'implémentation (prochain disponible après 090).
+
+- [ ] Créer la migration `09X_pdf_templates.php` avec les tables :
+  - `pdf_templates` : id, `code VARCHAR(50) NOT NULL UNIQUE` (ASCII snake_case, référencé par `source_ref` dans `workflows.json`), nom, description, fichier, champs (JSON), contextes (JSON), created_at, updated_at
   - `pdf_template_mappings` : id, template_id, champ_pdf, source_type, source_value, format, contexte
 - [ ] Ajouter un type de document dans `document_types` pour les formulaires PDF générés (code `formulaire_pdf`, scope `pilot`)
 - [ ] Ajouter les index et clés étrangères
-- [ ] Mettre à jour `application/config/migration.php` (version 68)
+- [ ] Mettre à jour `application/config/migration.php`
 - [ ] Écrire un test PHPUnit de migration : up, vérification du schéma, down
 
 ### Lot 3 — Modèles
@@ -66,8 +68,9 @@ Permettre le remplissage automatique de formulaires PDF officiels (DGAC, FFPLUM,
     - Résolution `constant` : valeur directe
     - Résolution `expression` : évaluation d'expression SQL
     - Résolution `date` : date courante formatée
+    - Résolution `input` : valeur fournie par l'appelant dans `$runtime_params['input_fields']` (saisie utilisateur au moment de la génération)
   - `fill($template_id, $contextes, $output_path)` : orchestration complète (chargement mapping → collecte → appel Python → PDF généré)
-  - `archive($pdf_path, $template, $pilote_login)` : archivage via `archived_documents_model->create_document()` avec le type de document `formulaire_pdf`
+  - `archive(string $pdf_path, string $template_code, string $entity_type, string $entity_id): int` : archivage via `archived_documents_model->create_document()` — `entity_type` : `'pilot'|'section'|'club'`, `entity_id` : login ou id selon le type
 - [ ] Valider que les colonnes référencées dans un mapping existent (introspection BDD)
 - [ ] Écrire les tests PHPUnit de la bibliothèque (mock du script Python, résolution des sources)
 

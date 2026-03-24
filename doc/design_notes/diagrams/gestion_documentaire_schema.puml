@@ -1,0 +1,137 @@
+@startuml gestion_documentaire_schema
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+
+title Schéma de données — Plateforme Gestion Documentaire
+
+' Module 1 : Archivage (existant)
+entity "document_types" as DT #lightgreen {
+  * id : INT
+  --
+  * code : VARCHAR(50)
+  * name : VARCHAR(255)
+  * scope : ENUM(pilot,section,club)
+  expires : BOOLEAN
+  mandatory : BOOLEAN
+}
+
+entity "archived_documents" as AD #lightgreen {
+  * id : INT
+  --
+  * type_id : INT <<FK>>
+  pilot_login : VARCHAR(50)
+  section_id : INT
+  label : VARCHAR(255)
+  file_path : VARCHAR(255)
+  validity_date : DATE
+  previous_version_id : INT <<FK self>>
+  created_at : DATETIME
+}
+
+' Module 2 : Génération PDF (existant partiel)
+entity "pdf_templates" as PT #lightyellow {
+  * id : INT
+  --
+  * code : VARCHAR(50)
+  * name : VARCHAR(255)
+  * file_path : VARCHAR(255)
+  fields_cache : JSON
+  contexts : JSON
+  created_at : DATETIME
+}
+
+entity "pdf_template_mappings" as PTM #lightyellow {
+  * id : INT
+  --
+  * template_id : INT <<FK>>
+  * pdf_field : VARCHAR(255)
+  * source_type : ENUM(table,config,constant,expression,date)
+  * source_value : VARCHAR(255)
+  format : VARCHAR(50)
+  context : VARCHAR(50)
+}
+
+' Module 3 : Acceptation & Signature (existant partiel)
+entity "acceptation_items" as AI #lightyellow {
+  * id : INT
+  --
+  * code : VARCHAR(50)
+  * title : VARCHAR(255)
+  * category : ENUM(document,formation,controle,briefing,autorisation)
+  * target_type : ENUM(internal,external)
+  pdf_path : VARCHAR(255)
+  version_date : DATE
+  mandatory : BOOLEAN
+  deadline : DATE
+  active : BOOLEAN
+  double_validation : BOOLEAN
+  role_party1 : VARCHAR(50)
+  role_party2 : VARCHAR(50)
+}
+
+entity "acceptations" as AC #lightyellow {
+  * id : INT
+  --
+  * item_id : INT <<FK>>
+  * signed_at : DATETIME
+  signer_user_id : INT
+  signer_name : VARCHAR(255)
+  signer_firstname : VARCHAR(255)
+  signature_method : ENUM(click,touchpad,upload,paper)
+  signature_file : VARCHAR(255)
+  party : ENUM(party1,party2)
+  pilot_login : VARCHAR(50)
+  attached_by : INT
+  attached_at : DATETIME
+  archived_doc_id : INT <<FK>>
+}
+
+entity "acceptation_sessions" as AS #lightyellow {
+  * id : INT
+  --
+  * item_id : INT <<FK>>
+  * token : VARCHAR(64)
+  * mode : ENUM(direct,link,qrcode,paper)
+  * initiated_by : INT
+  * expires_at : DATETIME
+  used_at : DATETIME
+  created_at : DATETIME
+}
+
+' Module 4 : Orchestrateur (nouveau)
+' Les définitions de workflows sont dans application/config/workflows.json (versionné git)
+entity "workflow_executions" as WE #lightblue {
+  * id : INT
+  --
+  * workflow_code : VARCHAR(50)
+  note: "réf. code dans workflows.json"
+  * status : ENUM(pending,generated,signed,archived,failed)
+  * initiated_by : INT
+  entity_ref : VARCHAR(255)
+  runtime_params : JSON
+  generated_doc_id : INT <<FK>>
+  acceptance_session_id : INT <<FK>>
+  error_message : TEXT
+  created_at : DATETIME
+  completed_at : DATETIME
+}
+
+' Relations
+DT ||--o{ AD : type
+AD }o--|| AD : previous_version
+PT ||--o{ PTM : mappings
+AI ||--o{ AC : acceptations
+AI ||--o{ AS : sessions
+AC }o--o| AD : document archivé
+WE }o--o| AD : document généré
+WE }o--o| AS : session acceptation
+
+legend right
+  |= Couleur |= État |
+  |<#lightgreen> | Existant |
+  |<#lightyellow>| Existant partiel |
+  |<#lightblue>  | Nouveau |
+endlegend
+
+@enduml

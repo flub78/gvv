@@ -7,7 +7,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [x] archived_documents. Quand le fichier n'existe pas, on affiche un message d'erreur dans la première colonne qui est remplacé par un icone de warning. Après plusieurs tentative, claude code a fait un patch pour remplacer le contenu et contraindre la largeur de la colonne. Il faudrait identifier la cause racine et ne pas envoyer la chaine pour la remplacer aprés.
+
 
 
 ## Priorités
@@ -82,35 +82,30 @@ Cela implique de:
   * [] quelques colonnes inutiles à supprimer
   * [x] donner les droits dans les controllers WIP
   
-* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.$
-
-* [] Définir un aérodrome par défaut dans les paramètres de configuration, et l'utiliser pour les réservations et les vols de découverte. Cela permettra d'éviter les erreurs de saisie et de simplifier le processus de réservation.
+* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Vérifier que toutes les opérations CRUD sont loggèes
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
-* [x] supprimer la configuration des emails dans la base de données.
 
 * [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
 * [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
-* [x] Ajout de séance de formation théoriques sans vol.
 * [] Ajout d'un calendrier des échéances
-* [x] Ajout de vues semaines et mois aux réservations
+
+* [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
+
+* [] Support des messages du jour, qui pourront inclure les alarmes.
 
 * [] Interdire les réservations sans cotisation et sans argent sur le compte.
 
-* [x] Gestion des visites médicales (à travers la validité des documents)
-  
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
   
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   
-* [x] Reservation des avions                                  10j (plan OK)
-
 * [] Paiements en ligne                                       10j (PRD OK)
 
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
@@ -120,20 +115,16 @@ Cela implique de:
 
 ## Dette technique
 
-* [x] Supprimer les vues non bootstrap
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 * [] Supprimer les warnings en mode développement
 * [] Supprimer les anciens modes de validation de formulaires
 * [] IA revues de code et refactoring
 * [] Check translations completeness
-* [x] Corriger les tests qui ne passent pas
-* [x] Redéployer un serveur CI/CD fonctionnel
 * [] Définir une charte graphique et l'appliquer partout
   * [] Unifier le style des filtres
   * [] Unifier les erreurs de validation
 * [] Améliorer les vues saisies des vols (avion, planeur)
-* [x] basculer à tfpdf pour les exports PDF
-* [x] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
+
 
 ## Idées et suggestions
 
@@ -283,4 +274,18 @@ Cela implique de:
 * [x] problème d'alignement sur la page résultats, les chiffres devraient être alignés à droite.
 * [x] Création d'une vue planche ULM ()
 * [x] Mes vols Avion/ULM
-* [x] Gestion des fiches de progressions   
+* [x] Gestion des fiches de progressions
+* [x] archived_documents. Quand le fichier n'existe pas, on affiche un message d'erreur dans la première colonne qui est remplacé par un icône de warning. Après plusieurs tentative, claude code a fait un patch pour remplacer le contenu et contraindre la largeur de la colonne. Il faudrait identifier la cause racine et ne pas envoyer la chaîne pour la remplacer après.
+* [x] Définir un aérodrome par défaut dans les paramètres de configuration, et l'utiliser pour les réservations et les vols de découverte. Cela permettra d'éviter les erreurs de saisie et de simplifier le processus de réservation. 
+* [x] supprimer la configuration des emails dans la base de données.
+
+* [x] Ajout de vues semaines et mois aux réservations
+* [x] Ajout de séance de formation théoriques sans vol.
+* [x] Gestion des visites médicales (à travers la validité des documents)
+* [x] Reservation des avions                                  10j (plan OK)
+
+* [x] basculer à tfpdf pour les exports PDF
+* [x] Affichage des listing des comptes. Quand il y a plus de 400 écritures, on bascule sur le mode de pagination de codeigniter. Il faudrait utiliser le mode datatable partout. Et supprimer le code relatif à la pagination CodeIgniter.
+* [x] Corriger les tests qui ne passent pas
+* [x] Redéployer un serveur CI/CD fonctionnel
+* [x] Supprimer les vues non bootstrap

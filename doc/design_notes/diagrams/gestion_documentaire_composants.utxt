@@ -1,0 +1,39 @@
+java.lang.IllegalStateException
+	at net.sourceforge.plantuml.dot.AbstractGraphviz.createFile3(AbstractGraphviz.java:103)
+	at net.sourceforge.plantuml.posimo.GraphvizSolverB.solve(GraphvizSolverB.java:110)
+	at net.sourceforge.plantuml.dot.CucaDiagramTxtMaker.<init>(CucaDiagramTxtMaker.java:124)
+	at net.atmp.CucaDiagram.createFilesTxt(CucaDiagram.java:430)
+	at net.atmp.CucaDiagram.exportDiagramInternal(CucaDiagram.java:453)
+	at net.sourceforge.plantuml.UmlDiagram.exportDiagramNow(UmlDiagram.java:119)
+	at net.sourceforge.plantuml.AbstractPSystem.exportDiagram(AbstractPSystem.java:217)
+	at net.sourceforge.plantuml.PSystemUtils.exportDiagramsDefault(PSystemUtils.java:208)
+	at net.sourceforge.plantuml.PSystemUtils.exportDiagrams(PSystemUtils.java:96)
+	at net.sourceforge.plantuml.SourceFileReaderAbstract.getGeneratedImages(SourceFileReaderAbstract.java:195)
+	at net.sourceforge.plantuml.Run.manageFileInternal(Run.java:526)
+	at net.sourceforge.plantuml.Run.processArgs(Run.java:420)
+	at net.sourceforge.plantuml.Run.manageAllFiles(Run.java:387)
+	at net.sourceforge.plantuml.Run.main(Run.java:222)
+
+
+An error has occured : java.lang.IllegalStateException
+C'mon man, let's do something that really cooks.
+ 
+PlantUML (1.2025.4) has crashed.
+ 
+ 
+This version of PlantUML is 269 days old, so you should
+consider upgrading from https://plantuml.com/download
+Diagram size: 217 lines / 4511 characters.
+ 
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: fr
+Country: FR
+ 
+PLANTUML_LIMIT_SIZE: 4096
+ 
+You should send this diagram and this image to plantuml@gmail.com or
+post to https://plantuml.com/qa to solve this issue.
+You can try to turn around this issue by simplifing your diagram.
+ 
