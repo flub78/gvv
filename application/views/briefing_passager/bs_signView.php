@@ -108,19 +108,12 @@
 
     <h5 class="section-title"><i class="fas fa-pen"></i> <?= $this->lang->line('briefing_passager_sign_acceptance') ?></h5>
 
-    <!-- Declaration text -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <p class="mb-0"><?= $this->lang->line('briefing_passager_sign_checkbox') ?></p>
-        </div>
-    </div>
-
     <!-- Mandatory checkbox -->
     <div class="mb-3">
         <div class="form-check">
             <input class="form-check-input" type="checkbox" name="accept" value="1" id="accept_checkbox" required>
             <label class="form-check-label fw-bold" for="accept_checkbox">
-                <?= $this->lang->line('briefing_passager_sign_i_accept') ?>
+                <?= $this->lang->line('briefing_passager_sign_checkbox') ?>
             </label>
         </div>
     </div>

@@ -939,18 +939,24 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check: admin, owner, or gestion_vd/pilote_vd for briefing_passager documents
+        // Security check
         $dtype_download = !empty($doc['document_type_id'])
             ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
             : null;
-        $is_briefing_passager = !empty($dtype_download['code']) && $dtype_download['code'] === 'briefing_passager';
-        $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
-        if (!$this->_is_admin()
-            && $doc['pilot_login'] !== $this->dx_auth->get_username()
-            && !($is_gestion_vd && $is_briefing_passager)) {
-            redirect('archived_documents/my_documents');
-            return;
+        $scope = !empty($dtype_download['scope']) ? $dtype_download['scope'] : 'pilot';
+        if ($scope === 'pilot') {
+            // Personal document: admin, owner, or gestion_vd for briefing_passager
+            $is_briefing_passager = !empty($dtype_download['code']) && $dtype_download['code'] === 'briefing_passager';
+            $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
+            if (!$this->_is_admin()
+                && $doc['pilot_login'] !== $this->dx_auth->get_username()
+                && !($is_gestion_vd && $is_briefing_passager)) {
+                redirect('archived_documents/my_documents');
+                return;
+            }
         }
+        // Section/club document: accessible to any logged-in user
+        // (privacy restriction handled below by _can_access_private_file)
 
         // Private document: bureau/strict-admin/owner only
         $type = $dtype_download;
@@ -984,19 +990,24 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        // Security check: admin, owner, or gestion_vd/pilote_vd for briefing_passager documents
-        $is_briefing_passager = false;
-        if (!empty($doc['document_type_id'])) {
-            $dtype = $this->document_types_model->get_by_id('id', $doc['document_type_id']);
-            $is_briefing_passager = !empty($dtype['code']) && $dtype['code'] === 'briefing_passager';
+        // Security check
+        $dtype_preview = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        $scope = !empty($dtype_preview['scope']) ? $dtype_preview['scope'] : 'pilot';
+        if ($scope === 'pilot') {
+            // Personal document: admin, owner, or gestion_vd for briefing_passager
+            $is_briefing_passager = !empty($dtype_preview['code']) && $dtype_preview['code'] === 'briefing_passager';
+            $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
+            if (!$this->_is_admin()
+                && $doc['pilot_login'] !== $this->dx_auth->get_username()
+                && !($is_gestion_vd && $is_briefing_passager)) {
+                redirect('archived_documents/my_documents');
+                return;
+            }
         }
-        $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
-        if (!$this->_is_admin()
-            && $doc['pilot_login'] !== $this->dx_auth->get_username()
-            && !($is_gestion_vd && $is_briefing_passager)) {
-            redirect('archived_documents/my_documents');
-            return;
-        }
+        // Section/club document: accessible to any logged-in user
+        // (privacy restriction handled below by _can_access_private_file)
 
         // Private document: bureau/strict-admin/owner only
         $type = !empty($doc['document_type_id'])
