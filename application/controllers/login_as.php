@@ -115,6 +115,19 @@ class Login_as extends Gvv_Controller {
             return;
         }
 
+        // Vérifier que l'utilisateur cible est membre de la section courante
+        $section_id = $this->session->userdata('section');
+        if ($section_id) {
+            $this->load->model('membres_model');
+            $sections = $this->membres_model->registered_in_sections($username);
+            if (!in_array(intval($section_id), $sections)) {
+                $this->session->set_flashdata('error',
+                    'L\'utilisateur ' . htmlspecialchars($username) . ' n\'est pas membre de la section courante.');
+                redirect('login_as');
+                return;
+            }
+        }
+
         // Sauvegarder l'utilisateur admin original pour le log
         $original_user = $this->dx_auth->get_username();
 
