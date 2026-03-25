@@ -187,6 +187,7 @@ class Achats_model extends Common_Model {
      */
     public function create($data) {
         $data['saisie_par'] = $this->dx_auth->get_username();
+        $this->inject_audit_fields($data, TRUE);
 
         if (!$data['vol_planeur']) unset($data['vol_planeur']);
         if (!$data['vol_avion']) unset($data['vol_avion']);
@@ -254,6 +255,7 @@ class Achats_model extends Common_Model {
      *	@return bool		Le résultat de la requête
      */
     public function update($keyid, $data, $keyvalue = '') {
+        $this->inject_audit_fields($data, FALSE);
 
         if (!$data['vol_planeur']) unset($data['vol_planeur']);
         if (!$data['vol_avion']) unset($data['vol_avion']);
@@ -345,6 +347,8 @@ class Achats_model extends Common_Model {
      * @param unknown_type $data
      */
     function delete($where = array()) {
+        $username = $this->dx_auth->get_username();
+        gvv_info("delete requested, table=" . $this->table . ", by=" . $username . ", where=" . json_encode($where));
 
         // détruit les lignes d'écriture correspondante        
         $selection = $this->select_all($where);

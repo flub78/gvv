@@ -19,6 +19,7 @@ if (! defined('BASEPATH'))
 class Common_Model extends CI_Model {
     public $table;
     protected $primary_key;
+    protected static $table_columns_cache = array();
 
     /**
      * Constructor
@@ -120,6 +121,8 @@ class Common_Model extends CI_Model {
      *            des valeurs
      */
     public function create($data) {
+        $this->inject_audit_fields($data, TRUE);
+
         if ($this->db->insert($this->table, $data)) {
             $last_id = $this->db->insert_id();
             gvv_debug("create successful, table=" . $this->table . ", \$last_id=$last_id, data=" . var_export($data, true));
@@ -151,6 +154,8 @@ class Common_Model extends CI_Model {
      *            selection des éléments à détruire
      */
     function delete($where = array()) {
+        $username = $this->current_username();
+        gvv_info("delete requested, table=" . $this->table . ", by=" . $username . ", where=" . json_encode($where));
         $this->db->delete($this->table, $where);
     }
 
@@ -189,15 +194,106 @@ class Common_Model extends CI_Model {
     public function update($keyid, $data, $keyvalue = '') {
         if ($keyvalue == '')
             $keyvalue = $data[$keyid];
+
+        $this->inject_audit_fields($data, FALSE);
+
         // on positionne la base sur le bon élément
         $this->db->where($keyid, $keyvalue);
         unset($data[$keyid]);
 
         if (!$this->db->update($this->table, $data)) {
             // Get MySQL error message
+            $errno = $this->db->_error_number();
             $error = $this->db->_error_message();
             gvv_error("MySQL Error #$errno: $error");
         }
+    }
+
+    /**
+     * Fill audit fields automatically when target table contains matching columns.
+     *
+     * @param array $data Data to insert or update
+     * @param bool $is_create TRUE for create operation, FALSE for update
+     */
+    protected function inject_audit_fields(&$data, $is_create = TRUE) {
+        if (!is_array($data) || empty($this->table)) {
+            return;
+        }
+
+        $columns = $this->table_columns();
+        if (empty($columns)) {
+            return;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $username = $this->current_username();
+
+        if ($is_create) {
+            if (in_array('created_at', $columns, TRUE) && !isset($data['created_at'])) {
+                $data['created_at'] = $now;
+            }
+            if (in_array('created_by', $columns, TRUE) && !isset($data['created_by']) && $username !== NULL) {
+                $data['created_by'] = $username;
+            }
+        }
+
+        if (in_array('updated_at', $columns, TRUE) && !isset($data['updated_at'])) {
+            $data['updated_at'] = $now;
+        }
+        if (in_array('updated_by', $columns, TRUE) && !isset($data['updated_by']) && $username !== NULL) {
+            $data['updated_by'] = $username;
+        }
+    }
+
+    /**
+     * Get and cache table columns to avoid repeated schema introspection.
+     *
+     * @return array<string>
+     */
+    protected function table_columns() {
+        if (empty($this->table)) {
+            return array();
+        }
+
+        if (isset(self::$table_columns_cache[$this->table])) {
+            return self::$table_columns_cache[$this->table];
+        }
+
+        if (!$this->db->table_exists($this->table)) {
+            self::$table_columns_cache[$this->table] = array();
+            return self::$table_columns_cache[$this->table];
+        }
+
+        if (method_exists($this->db, 'list_fields')) {
+            $columns = $this->db->list_fields($this->table);
+        } else {
+            $columns = array();
+            $query = $this->db->query(
+                "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ?",
+                array($this->table)
+            );
+            foreach ($query->result_array() as $row) {
+                if (isset($row['column_name'])) {
+                    $columns[] = $row['column_name'];
+                }
+            }
+        }
+        self::$table_columns_cache[$this->table] = is_array($columns) ? $columns : array();
+
+        return self::$table_columns_cache[$this->table];
+    }
+
+    /**
+     * Return current authenticated username when available.
+     *
+     * @return string|null
+     */
+    protected function current_username() {
+        $CI = get_instance();
+        if (isset($CI->dx_auth) && method_exists($CI->dx_auth, 'get_username')) {
+            return $CI->dx_auth->get_username();
+        }
+        return NULL;
     }
 
     /**

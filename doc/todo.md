@@ -35,7 +35,6 @@ Cela implique de:
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
-* [] Vérifier que toutes les opérations CRUD sont loggèes
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
@@ -240,3 +239,4 @@ Cela implique de:
 * [x] Corriger les tests qui ne passent pas
 * [x] Redéployer un serveur CI/CD fonctionnel
 * [x] Supprimer les vues non bootstrap
+* [x] Vérifier que toutes les opérations CRUD sont loggèes

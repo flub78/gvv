@@ -527,6 +527,7 @@ if ($where) {
         }
         
         gvv_debug("create vol planeur, data = " . var_export($data, true));
+        $this->inject_audit_fields($data, TRUE);
 
         if (isset($data ['vpid'])) {
             if ($data ['vpid'] == '0') {
@@ -567,6 +568,7 @@ if ($where) {
      */
     public function update($keyid, $data, $keyvalue = '') {
         gvv_debug("update vol planeur, keyid=$keyid, data = " . var_export($data, true));
+        $this->inject_audit_fields($data, FALSE);
 
         // detruit les lignes d'achat correspondante
         $this->delete_facture($data [$keyid]);
@@ -597,6 +599,8 @@ if ($where) {
      * @param unknown_type $data
      */
     function delete($where = array ()) {
+        $username = $this->dx_auth->get_username();
+        gvv_info("delete requested, table=" . $this->table . ", by=" . $username . ", where=" . json_encode($where));
 
         // detruit les lignes d'achat correspondante
         $selection = $this->select_all($where);

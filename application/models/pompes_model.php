@@ -73,7 +73,8 @@ class Pompes_model extends Common_Model {
         // récupération du prix à la date du mouvement.
          $product_info = $this->tarifs_model->get_tarif($data['ppu'], $data['pdatemvt']);
 	        $data['pprix'] = $product_info['prix']*$data['pqte']*-1;
-        
+
+        $this->inject_audit_fields($data, TRUE);
         if ($this->db->insert($this->table, $data)) {
             $id = $this->db->insert_id();
             $data['pid'] = $id;
@@ -127,6 +128,7 @@ class Pompes_model extends Common_Model {
         
 
         // MAJ du vol
+        $this->inject_audit_fields($data, FALSE);
         $keyvalue = $data[$keyid];
         $this->db->where($keyid, $keyvalue);
         $this->db->update($this->table, $data);
@@ -137,6 +139,7 @@ class Pompes_model extends Common_Model {
     }    
      
     function delete($where = array ()) {
+        gvv_info('delete requested, table=' . $this->table . ', by=' . get_instance()->dx_auth->get_username() . ', where=' . json_encode($where));
 
         // detruit les lignes d'achat correspondante
 
