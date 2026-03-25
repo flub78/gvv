@@ -125,11 +125,19 @@ echo '</div>';
 
 <?php
 
+$is_pilot_only = !$has_modification_rights && (isset($has_pilot_rights) && $has_pilot_rights);
+if ($has_modification_rights) {
+    $table_actions = array('edit', 'delete', 'print_vd', 'email_vd', 'action', 'briefing_vd');
+} elseif ($is_pilot_only) {
+    $table_actions = array('print_vd', 'email_vd', 'action', 'briefing_vd');
+} else {
+    $table_actions = array();
+}
 $attrs = array(
     'controller' => $controller,
-    'actions' => array('edit', 'delete', 'print_vd', 'email_vd', 'action', 'briefing_vd'),
+    'actions' => $table_actions,
     'fields' => array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol',  'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation', 'prix'),
-    'mode' => ($has_modification_rights) ? "rw" : "ro",
+    'mode' => ($has_modification_rights || $is_pilot_only) ? "rw" : "ro",
     'class' => "datatable table table-striped"
 );
 

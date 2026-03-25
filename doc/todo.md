@@ -123,7 +123,7 @@ Cela implique de:
 * [] Définir une charte graphique et l'appliquer partout
   * [] Unifier le style des filtres
   * [] Unifier les erreurs de validation
-* [] Améliorer les vues saisies des vols (avion, planeur)
+* [x] Améliorer les vues saisies des vols (avion, planeur)
 
 
 ## Idées et suggestions

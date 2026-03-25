@@ -53,13 +53,43 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * pilote_vd implies gestion_vd: a VD pilot has all management permissions.
+     * Check if user has either pilote_vd or gestion_vd rights (or is admin).
+     * Used for actions that are accessible to both pilots and managers.
      */
-    public function user_has_role($role) {
-        if ($role === 'gestion_vd') {
-            return parent::user_has_role('gestion_vd') || parent::user_has_role('pilote_vd');
+    private function has_vd_pilot_rights() {
+        return $this->dx_auth->is_admin()
+            || parent::user_has_role('gestion_vd')
+            || parent::user_has_role('pilote_vd');
+    }
+
+    /**
+     * Override: pilote_vd can modify records only for pre_flight and done actions.
+     * Only gestion_vd (and admin) can edit, create, or delete.
+     */
+    protected function ensure_modification_rights($action = MODIFICATION) {
+        if ($action == VISUALISATION) return TRUE;
+        if (!isset($this->modification_level) || $this->modification_level === '') return TRUE;
+        if ($this->dx_auth->is_admin() || parent::user_has_role('gestion_vd')) return TRUE;
+
+        // pilote_vd may only access pre_flight and done
+        $method = $this->uri->segment(2);
+        if (parent::user_has_role('pilote_vd') && in_array($method, ['pre_flight', 'done'])) {
+            return TRUE;
         }
-        return parent::user_has_role($role);
+
+        show_404();
+        return FALSE;
+    }
+
+    /**
+     * Override: creation requires gestion_vd (parent does not check on create).
+     */
+    function create() {
+        if (!$this->dx_auth->is_admin() && !parent::user_has_role('gestion_vd')) {
+            show_404();
+            return;
+        }
+        return parent::create();
     }
 
     /**
@@ -196,6 +226,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['year'] = $current_year;
         $this->data['year_selector'] = $this->gvv_model->get_available_years();
         $this->data['controller'] = $this->controller;
+        $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
 
         // Handle filter error messages
         $filter_error = $this->session->userdata('vd_filter_error');
@@ -303,7 +334,8 @@ class Vols_decouverte extends Gvv_Controller {
             $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
         }
 
-        $this->data['has_modification_rights'] = !isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level);
+        $this->data['has_modification_rights'] = !isset($this->modification_level) || $this->dx_auth->is_admin() || parent::user_has_role($this->modification_level);
+        $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
