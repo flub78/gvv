@@ -196,12 +196,13 @@ Following `doc/development/workflow.md`:
 5. **Bootstrap UI**: Use Bootstrap 5 classes for all UI components
 6. **Testing**: Write PHPUnit tests, aim for >70% coverage
 7. **Migrations**: Always update `config/migration.php` after creating migration
-8. **Multi-language**: Support French, English, Dutch in language files
-9. **Permissions**: Web-writable directories need `chmod +wx` (logs, uploads, assets/images)
-10. **No Composer**: Project uses manual dependency management (predates Composer)
-11. **Database access**: Use the credential from configuration/database.php to analyze the database schema or data.
-12. **Mockups**: Generate mockups in ASCII art, generate prototypes in self contained HTML files
-13. **GUI**: Keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
+8. **Audit fields**: Every new database table MUST include `created_at`, `updated_at` (timestamps) and `created_by`, `updated_by` (user references) columns. These fields are mandatory for all tables.
+9. **Multi-language**: Support French, English, Dutch in language files
+10. **Permissions**: Web-writable directories need `chmod +wx` (logs, uploads, assets/images)
+11. **No Composer**: Project uses manual dependency management (predates Composer)
+12. **Database access**: Use the credential from configuration/database.php to analyze the database schema or data.
+13. **Mockups**: Generate mockups in ASCII art, generate prototypes in self contained HTML files
+14. **GUI**: Keep it as user friendly as possible. Never reject an action silently. The result of every action must be obvious to the user.
 15. **Documentation**: Do not clutter the project root directory, generate markdown files under doc appropriate subdirectories
 16. **PRD**: Limit the PRD documents to the description of requirements, no design elements.
 17. **Design notes**: Stay minimalist and focused on architecture, do not describe the implementation. Only include code when it is necessary to understand the design. Use plantuml diagrams for database schemas and classes relationship when it is useful. Enforce clear separation of concerns between components.

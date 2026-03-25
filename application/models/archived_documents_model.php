@@ -500,6 +500,7 @@ class Archived_documents_model extends Common_Model {
      * @return bool
      */
     public function update_document($id, $data) {
+        $this->inject_audit_fields($data, FALSE);
         $this->db->where('id', $id);
         return $this->db->update($this->table, $data);
     }

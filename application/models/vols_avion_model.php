@@ -457,6 +457,7 @@ class Vols_avion_model extends Common_Model {
      */
     public function create($data) {
         unset($data['vaid']);
+        $this->inject_audit_fields($data, TRUE);
         if ($this->db->insert($this->table, $data)) {
             $id = $this->db->insert_id();
             $data['vaid'] = $id;
@@ -511,6 +512,7 @@ class Vols_avion_model extends Common_Model {
      * @return bool Le résultat de la requête
      */
     public function update($keyid, $data, $keyvalue = '') {
+        $this->inject_audit_fields($data, FALSE);
         // detruit les lignes d'achat correspondante
         $this->delete_facture($data[$keyid]);
 
@@ -529,6 +531,8 @@ class Vols_avion_model extends Common_Model {
      * @param unknown_type $data
      */
     function delete($where = array()) {
+        $username = $this->dx_auth->get_username();
+        gvv_info("delete requested, table=" . $this->table . ", by=" . $username . ", where=" . json_encode($where));
 
         // detruit les lignes d'achat correspondante
         $selection = $this->select_all($where);

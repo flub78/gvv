@@ -16,6 +16,15 @@ class Email_lists_model extends CI_Model
     public $table = 'email_lists';
     protected $primary_key = 'id';
 
+    private function current_user_id()
+    {
+        $CI = &get_instance();
+        if (isset($CI->dx_auth) && method_exists($CI->dx_auth, 'get_user_id')) {
+            return (int) $CI->dx_auth->get_user_id();
+        }
+        return 0;
+    }
+
     public function __construct()
     {
         parent::__construct();
@@ -63,7 +72,8 @@ class Email_lists_model extends CI_Model
             'description' => isset($data['description']) ? $data['description'] : NULL,
             'active_member' => isset($data['active_member']) ? $data['active_member'] : 'active',
             'visible' => isset($data['visible']) ? $data['visible'] : 1,
-            'created_by' => $data['created_by']
+            'created_by' => $data['created_by'],
+            'updated_by' => isset($data['updated_by']) ? $data['updated_by'] : $data['created_by']
         );
 
         if ($this->db->insert($this->table, $insert_data)) {
@@ -118,6 +128,8 @@ class Email_lists_model extends CI_Model
             return FALSE;
         }
 
+        $update_data['updated_by'] = isset($data['updated_by']) ? $data['updated_by'] : $this->current_user_id();
+
         $this->db->where('id', $id);
         return $this->db->update($this->table, $update_data);
     }
@@ -134,6 +146,7 @@ class Email_lists_model extends CI_Model
             return FALSE;
         }
 
+        gvv_info('delete requested, table=' . $this->table . ', by=' . $this->current_user_id() . ', where=' . json_encode(array('id' => (int) $id)));
         $this->db->where('id', $id);
         return $this->db->delete($this->table);
     }

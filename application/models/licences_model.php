@@ -214,6 +214,7 @@ class Licences_model extends Common_Model {
             'comment' => $comment
         );
 
+        $this->inject_audit_fields($data, TRUE);
         $this->db->insert($this->table, $data);
 
         if ($this->db->affected_rows() > 0) {
