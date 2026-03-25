@@ -22,8 +22,23 @@ const fs = require('fs');
 const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
 
-// Path to test image
-const TEST_IMAGE_PATH = path.join(__dirname, '../fixtures/images/asterix.jpeg');
+// Path to test image (try legacy fixture first, then stable repo assets)
+function resolveTestImagePath() {
+  const candidates = [
+    path.join(__dirname, '../fixtures/images/asterix.jpeg'),
+    path.join(__dirname, '../../../assets/images/vd_recto.jpg'),
+    path.join(__dirname, '../../../assets/images/header.jpg'),
+    path.join(__dirname, '../../../assets/images/Bon-Bapteme.png')
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(`No test image found. Tried: ${candidates.join(', ')}`);
+}
 
 /**
  * Helper function to count files in uploads directory
@@ -84,11 +99,13 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
   test('should upload and delete member photo', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
+    const testImagePath = resolveTestImagePath();
+
     // Verify test image exists
-    if (!fs.existsSync(TEST_IMAGE_PATH)) {
-      throw new Error(`Test image not found: ${TEST_IMAGE_PATH}`);
+    if (!fs.existsSync(testImagePath)) {
+      throw new Error(`Test image not found: ${testImagePath}`);
     }
-    console.log(`Using test image: ${TEST_IMAGE_PATH}`);
+    console.log(`Using test image: ${testImagePath}`);
 
     // Login
     await loginPage.open();
@@ -167,7 +184,7 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
 
     // Find and fill the file input
     const fileInput = page.locator('input[type="file"][name="userfile"]');
-    await fileInput.setInputFiles(TEST_IMAGE_PATH);
+    await fileInput.setInputFiles(testImagePath);
     console.log('✓ Image file attached');
 
     // Wait a moment for the interface to update after file selection
