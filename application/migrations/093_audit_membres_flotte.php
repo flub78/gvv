@@ -30,6 +30,10 @@ class Migration_Audit_membres_flotte extends CI_Migration {
     private function add_audit_columns($table)
     {
         $t = $this->db->escape_str($table);
+        // Force an InnoDB table rebuild to ensure ROW_FORMAT=DYNAMIC is fully applied
+        // before adding columns. Some MariaDB/MySQL installations store tables with a
+        // stale internal format that triggers false "Row size too large" errors.
+        $this->db->query("ALTER TABLE `$t` ENGINE=InnoDB ROW_FORMAT=DYNAMIC");
         if (!$this->column_exists($table, 'created_by')) {
             $this->db->query("ALTER TABLE `$t` ADD COLUMN `created_by` VARCHAR(25) NULL");
         }
@@ -55,6 +59,12 @@ class Migration_Audit_membres_flotte extends CI_Migration {
     }
 
     public function up() {
+        // membres.comment is VARCHAR(2048) which consumes ~6KB of the 8126-byte InnoDB row limit.
+        // Convert to TEXT so it is stored off-page, freeing space for the four audit columns.
+        if ($this->column_exists('membres', 'comment')) {
+            $this->db->query("ALTER TABLE `membres` MODIFY COLUMN `comment` TEXT NULL");
+        }
+
         foreach ($this->tables as $table) {
             $this->add_audit_columns($table);
         }
@@ -71,6 +81,11 @@ class Migration_Audit_membres_flotte extends CI_Migration {
     public function down() {
         foreach ($this->tables as $table) {
             $this->drop_audit_columns($table);
+        }
+
+        // Revert membres.comment back to VARCHAR(2048).
+        if ($this->column_exists('membres', 'comment')) {
+            $this->db->query("ALTER TABLE `membres` MODIFY COLUMN `comment` VARCHAR(2048) NULL");
         }
     }
 }
