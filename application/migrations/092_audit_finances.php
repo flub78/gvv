@@ -70,8 +70,8 @@ class Migration_Audit_finances extends CI_Migration
         }
 
         // vols_decouverte already has created_at/updated_at from migration 058.
-        $ok = $this->add_column_if_missing('vols_decouverte', 'created_by', "VARCHAR(32) NULL COMMENT 'User who created the row'") && $ok;
-        $ok = $this->add_column_if_missing('vols_decouverte', 'updated_by', "VARCHAR(32) NULL COMMENT 'User who last updated the row'") && $ok;
+        $ok = $this->add_column_if_missing('vols_decouverte', 'created_by', "VARCHAR(25) NULL COMMENT 'User who created the row'") && $ok;
+        $ok = $this->add_column_if_missing('vols_decouverte', 'updated_by', "VARCHAR(25) NULL COMMENT 'User who last updated the row'") && $ok;
 
         // Backfill legacy creator fields.
         $this->db->query("UPDATE achats SET created_by = saisie_par WHERE created_by IS NULL AND saisie_par IS NOT NULL AND saisie_par <> ''");

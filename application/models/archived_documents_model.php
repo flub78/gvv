@@ -586,7 +586,6 @@ class Archived_documents_model extends Common_Model {
         $this->db->where('previous_version_id', $document_id);
         $this->db->update($this->table, array('previous_version_id' => $doc['previous_version_id']));
 
-        gvv_info('delete requested, table=' . $this->table . ', by=' . $user_login . ', where=' . json_encode(array('id' => $document_id)));
         $this->delete(array('id' => $document_id));
         return $this->db->affected_rows() > 0;
     }
