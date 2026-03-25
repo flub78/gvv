@@ -294,7 +294,8 @@ $lang['authorization_remove_member'] = "Remove";
 $lang['authorization_comm_error'] = "Communication error";
 $lang['authorization_role_removed'] = "Role removed";
 $lang['authorization_error'] = "Error";
-$lang['authorization_select_user_section'] = "Please select a user and a section in the filter";
+$lang['authorization_select_user_section'] = "Please select a user";
+$lang['authorization_select_section_to_add'] = "Select a section in the menu to add a member";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

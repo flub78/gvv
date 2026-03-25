@@ -354,11 +354,14 @@ class Authorization extends CI_Controller {
             show_404();
         }
 
+        $current_section_id = (int)$this->session->userdata('section');
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_role_members');
         $data['role'] = $role;
-        $data['members'] = $this->authorization_model->get_users_with_role($role_id);
+        $data['current_section_id'] = $current_section_id ?: NULL;
+        $data['members'] = $this->authorization_model->get_users_with_role($role_id, $current_section_id ?: NULL);
         $data['sections'] = $this->authorization_model->get_all_sections();
         $data['all_users'] = $this->authorization_model->get_all_users_for_selection();
 

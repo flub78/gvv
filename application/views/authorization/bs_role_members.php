@@ -34,6 +34,9 @@ foreach ($sections as $s) {
 
 $role_label = !empty($role['translation_key']) ? $this->lang->line($role['translation_key']) : $role['nom'];
 if ($role_label === FALSE) $role_label = $role['nom'];
+
+$has_section = !empty($current_section_id);
+$section_name = $has_section ? ($section_map[$current_section_id] ?? '') : '';
 ?>
 
 <div id="body" class="body container-fluid">
@@ -45,7 +48,12 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         </ol>
     </nav>
 
-    <h3><?= $this->lang->line('authorization_role_members') ?> : <em><?= htmlspecialchars($role_label) ?></em></h3>
+    <h3>
+        <?= $this->lang->line('authorization_role_members') ?> : <em><?= htmlspecialchars($role_label) ?></em>
+        <?php if ($has_section): ?>
+            <small class="text-muted fs-6">— <?= htmlspecialchars($section_name) ?></small>
+        <?php endif; ?>
+    </h3>
 
     <div id="alertBox"></div>
 
@@ -55,44 +63,37 @@ if ($role_label === FALSE) $role_label = $role['nom'];
             <h5 class="mb-0"><?= $this->lang->line('authorization_members') ?></h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <select id="filterSection" class="form-select w-auto">
-                    <option value=""><?= $this->lang->line('authorization_select_section') ?> — toutes</option>
-                    <?php foreach ($sections as $s): ?>
-                        <option value="<?= (int)$s['id'] ?>" data-nom="<?= htmlspecialchars($s['nom']) ?>"><?= htmlspecialchars($s['nom']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <table class="datatable table table-striped table-bordered" id="membersTable">
                 <thead>
                     <tr>
                         <th><?= $this->lang->line('authorization_username') ?></th>
                         <th><?= $this->lang->line('authorization_name') ?></th>
-                        <th><?= $this->lang->line('authorization_section') ?></th>
+                        <?php if (!$has_section): ?><th><?= $this->lang->line('authorization_section') ?></th><?php endif; ?>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                        <?php foreach ($members as $member): ?>
-                            <tr data-user-id="<?= (int)$member['user_id'] ?>" data-section-id="<?= (int)$member['section_id'] ?>">
-                                <td><?= htmlspecialchars($member['username']) ?></td>
-                                <td><?= htmlspecialchars(trim(($member['prenom'] ?? '') . ' ' . ($member['nom'] ?? ''))) ?></td>
-                                <td><?= htmlspecialchars($section_map[$member['section_id']] ?? '') ?></td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-danger btn-remove-member"
-                                            data-user-id="<?= (int)$member['user_id'] ?>"
-                                            data-section-id="<?= (int)$member['section_id'] ?>">
-                                        <i class="fas fa-times"></i> <?= $this->lang->line('authorization_remove_member') ?>
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                    <?php foreach ($members as $member): ?>
+                        <tr data-user-id="<?= (int)$member['user_id'] ?>" data-section-id="<?= (int)$member['section_id'] ?>">
+                            <td><?= htmlspecialchars($member['username']) ?></td>
+                            <td><?= htmlspecialchars(trim(($member['prenom'] ?? '') . ' ' . ($member['nom'] ?? ''))) ?></td>
+                            <?php if (!$has_section): ?><td><?= htmlspecialchars($section_map[$member['section_id']] ?? '') ?></td><?php endif; ?>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger btn-remove-member"
+                                        data-user-id="<?= (int)$member['user_id'] ?>"
+                                        data-section-id="<?= (int)$member['section_id'] ?>">
+                                    <i class="fas fa-times"></i> <?= $this->lang->line('authorization_remove_member') ?>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Add member form -->
+    <!-- Add member form — only available when a section is active -->
+    <?php if ($has_section): ?>
     <div class="card mt-3">
         <div class="card-header">
             <h5 class="mb-0"><?= $this->lang->line('authorization_add_member') ?></h5>
@@ -121,6 +122,11 @@ if ($role_label === FALSE) $role_label = $role['nom'];
             </div>
         </div>
     </div>
+    <?php else: ?>
+    <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle"></i> <?= $this->lang->line('authorization_select_section_to_add') ?>
+    </div>
+    <?php endif; ?>
 
     <div class="mt-3">
         <a href="<?= site_url('authorization/roles') ?>" class="btn btn-secondary">
@@ -132,37 +138,14 @@ if ($role_label === FALSE) $role_label = $role['nom'];
 <script>
 (function () {
     var roleId = <?= (int)$role['id'] ?>;
+    var sectionId = <?= (int)($current_section_id ?? 0) ?>;
     var ajaxUrl = '<?= site_url('authorization/edit_user_roles') ?>';
     var i18n = {
-        commError:         <?= json_encode($this->lang->line('authorization_comm_error')) ?>,
-        roleRemoved:       <?= json_encode($this->lang->line('authorization_role_removed')) ?>,
-        error:             <?= json_encode($this->lang->line('authorization_error')) ?>,
-        selectUserSection: <?= json_encode($this->lang->line('authorization_select_user_section')) ?>
+        commError:   <?= json_encode($this->lang->line('authorization_comm_error')) ?>,
+        roleRemoved: <?= json_encode($this->lang->line('authorization_role_removed')) ?>,
+        error:       <?= json_encode($this->lang->line('authorization_error')) ?>,
+        selectUser:  <?= json_encode($this->lang->line('authorization_select_user_section')) ?>
     };
-    var storageKey = 'role_members_section_' + roleId;
-
-    function applySection(sectionId) {
-        var sel = document.getElementById('filterSection');
-        sel.value = sectionId;
-        var nom = $(sel).find('option:selected').data('nom') || '';
-        var oTable = $('#membersTable').dataTable({'bRetrieve': true});
-        oTable.fnFilter(nom, 2, false, false);
-    }
-
-    // Restore saved section after DataTables is ready (window load fires after all document.ready callbacks)
-    $(window).on('load', function () {
-        var saved = sessionStorage.getItem(storageKey);
-        if (saved) { applySection(saved); }
-    });
-
-    // Section filter — runs on user interaction, table already initialized by footer
-    $('#filterSection').on('change', function () {
-        var val = $(this).val();
-        sessionStorage.setItem(storageKey, val);
-        var nom = $(this).find('option:selected').data('nom') || '';
-        var oTable = $('#membersTable').dataTable({'bRetrieve': true});
-        oTable.fnFilter(nom, 2, false, false);
-    });
 
     function showAlert(message, type) {
         var box = document.getElementById('alertBox');
@@ -172,7 +155,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
             + '</div>';
     }
 
-    function doAjax(userId, sectionId, action, callback) {
+    function doAjax(userId, sid, action, callback) {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', ajaxUrl, true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -187,7 +170,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                 }
             }
         };
-        xhr.send('user_id=' + userId + '&types_roles_id=' + roleId + '&section_id=' + sectionId + '&action=' + action);
+        xhr.send('user_id=' + userId + '&types_roles_id=' + roleId + '&section_id=' + sid + '&action=' + action);
     }
 
     // Remove member
@@ -195,8 +178,8 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         var btn = e.target.closest('.btn-remove-member');
         if (!btn) return;
         var userId = btn.getAttribute('data-user-id');
-        var sectionId = btn.getAttribute('data-section-id');
-        doAjax(userId, sectionId, 'revoke', function (resp) {
+        var sid    = btn.getAttribute('data-section-id');
+        doAjax(userId, sid, 'revoke', function (resp) {
             if (resp.success) {
                 var oTable = $('#membersTable').dataTable({'bRetrieve': true});
                 oTable.fnDeleteRow(btn.closest('tr'));
@@ -207,22 +190,22 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         });
     });
 
-    // Add member
+    <?php if ($has_section): ?>
+    // Add member — uses active section
     document.getElementById('btnAddMember').addEventListener('click', function () {
         var userId = $('#selectUser').val();
-        var sectionId = document.getElementById('filterSection').value;
-        if (!userId || !sectionId) {
-            showAlert(i18n.selectUserSection, 'warning');
+        if (!userId) {
+            showAlert(i18n.selectUser, 'warning');
             return;
         }
         doAjax(userId, sectionId, 'grant', function (resp) {
             if (resp.success) {
-                // Reload to refresh the list with correct section names
                 window.location.reload();
             } else {
                 showAlert(resp.message || i18n.error, 'danger');
             }
         });
     });
+    <?php endif; ?>
 }());
 </script>

@@ -353,7 +353,8 @@ $lang['authorization_remove_member'] = "Retirer";
 $lang['authorization_comm_error'] = "Erreur de communication";
 $lang['authorization_role_removed'] = "Rôle retiré";
 $lang['authorization_error'] = "Erreur";
-$lang['authorization_select_user_section'] = "Veuillez sélectionner un utilisateur et une section dans le filtre";
+$lang['authorization_select_user_section'] = "Veuillez sélectionner un utilisateur";
+$lang['authorization_select_section_to_add'] = "Sélectionnez une section dans le menu pour pouvoir ajouter un membre";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

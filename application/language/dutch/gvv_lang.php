@@ -288,7 +288,8 @@ $lang['authorization_remove_member'] = "Verwijderen";
 $lang['authorization_comm_error'] = "Communicatiefout";
 $lang['authorization_role_removed'] = "Rol verwijderd";
 $lang['authorization_error'] = "Fout";
-$lang['authorization_select_user_section'] = "Selecteer een gebruiker en een sectie in het filter";
+$lang['authorization_select_user_section'] = "Selecteer een gebruiker";
+$lang['authorization_select_section_to_add'] = "Selecteer een sectie in het menu om een lid toe te voegen";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
