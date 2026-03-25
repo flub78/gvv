@@ -574,7 +574,9 @@ class GliderFlightPage extends BasePage {
    * Check a checkbox
    */
   async check(selector) {
-    const checkbox = this.page.locator(`input[name="${selector}"], ${selector}`);
+    const checkbox = this.page.locator(
+      `input[type="checkbox"][name="${selector}"], input[type="checkbox"]#${selector}, ${selector}[type="checkbox"]`
+    ).first();
 
     // If checkbox is hidden, try to make it visible with JavaScript
     // This handles cases where form logic hasn't updated the UI yet
@@ -604,7 +606,9 @@ class GliderFlightPage extends BasePage {
    * Uncheck a checkbox
    */
   async uncheck(selector) {
-    const checkbox = this.page.locator(`input[name="${selector}"], ${selector}`);
+    const checkbox = this.page.locator(
+      `input[type="checkbox"][name="${selector}"], input[type="checkbox"]#${selector}, ${selector}[type="checkbox"]`
+    ).first();
     await checkbox.uncheck();
   }
 
