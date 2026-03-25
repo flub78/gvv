@@ -27,21 +27,7 @@ Cela implique de:
 
 #### Tests manuels authorisations
 
-  
-
 ## Reste à faire
-
-* [ ] Migration des tests
-  * [ ] phpunit
-    * [x] checks if there are still some CIUnit tests to migrate
-    * [x] migrate them
-    * [ ] Implement missing phpunit tests according to the test plan (low priority)
-    * [ ] Investigate the coverage reporting which looks underestimated
-  * [ ] playwright
-    * [x] mechanism to restore a well defined test database before testing
-    * [x] checks if there are still some Dusk tests to migrate
-    * [x] migrate them
-    * [ ] Implement missing playwright tests according to the test plan
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer

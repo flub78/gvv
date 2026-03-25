@@ -1,8 +1,8 @@
 # GVV Authorization System Refactoring Plan
 
 **Document Version:** 2.7
-**Date:** 2025-01-08 (Updated: 2026-03-04)
-**Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage
+**Date:** 2025-01-08 (Updated: 2026-03-25)
+**Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage aligned on all 5 Gaulois profiles
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
 
@@ -23,7 +23,7 @@
 - **Mechanism**: New table `use_new_authorization` lists users on new system
 - **Phases**: M1-M5 (Per-user testing → Global migration → Cleanup)
 - **Timeline**: 3-4 weeks to production (includes 1-2 week pilot)
-- **Current Status**: Phase M2 in progress — test users enrolled, Playwright tests covering 5 user profiles
+- **Current Status**: Phase M2 in progress — test users enrolled, Playwright coverage aligned on the 5 Gaulois user profiles
 
 ### ⏳ **Path 2: Controller Code Migration (OPTIONAL - 10+ weeks)**
 - Code cleanliness: All 53 controllers declare permissions in code
@@ -157,13 +157,14 @@ Les deux coexistent sans restriction : `user_roles_per_section` n'impose pas d'�
   - En tant que auto_planchiste (Avion) : peut créer des vols avion et modifier ses propres vols uniquement, pas d'accès à `plancheauto`
 - `panoramix` — club-admin (toutes sections)
 
-**Playwright authorization test suite** ✅ (8 fichiers, 4 profils couverts)
+**Playwright authorization test suite** ✅
 - `asterix-authorization.spec.js` + `asterix-recursive-authorizations.spec.js`
 - `obelix-authorization.spec.js` + `obelix-recursive-authorizations.spec.js`
 - `abraracourcix-authorization.spec.js` + `abraracourcix-recursive-authorizations.spec.js`
 - `goudurix-authorization.spec.js` + `goudurix-recursive-authorizations.spec.js`
+- `panoramix-recursive-authorizations.spec.js`
 
-**Manquant** : tests Playwright pour `panoramix` (admin)
+`panoramix` est désormais couvert par un test récursif dédié. Il n'est plus un manque bloquant du plan.
 
 ---
 
@@ -605,7 +606,7 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 | **Code-Based API (Phase 7)** | 100% | 100% | 🟢 Complete |
 | **Controllers migrés** | 53 | 20 (+3 prêts mais désactivés) | 🟡 38% migrés |
 | **Test users enrolled** | 5 Gaulois | 5 Gaulois | 🟢 Complete |
-| **Playwright auth tests** | 5 profils | 4 profils (manque panoramix) | 🟡 80% |
+| **Playwright auth tests** | 5 profils | 5 profils couverts | 🟢 100% |
 | **Feature Flag Status** | TRUE (prod) | FALSE (all envs) | 🔴 Awaiting M3 |
 | **Production user roles** | All (~400) | Test users only | 🔴 Not started |
 | **Global flag `use_new_authorization`** | TRUE | FALSE | Per-user via table |
@@ -1085,16 +1086,15 @@ $config['use_new_authorization'] = FALSE;
 - ✅ Authorization library implemented with `require_roles()` API
 - ✅ 20 controllers migrés avec `require_roles()`
 - ✅ 5 test users "Gaulois" enrolled dans `use_new_authorization`
-- ✅ Playwright authorization tests: 4 profils × 2 tests = 8 fichiers, tous passent
+- ✅ Playwright authorization tests: couverture alignée sur les 5 profils Gaulois, y compris `panoramix`
 - ✅ Global flag = FALSE, per-user migration active pour les Gaulois
 - ✅ Dashboard "Mon espace personnel" : rôle legacy (`$gvv_role`) masqué pour les nouveaux utilisateurs, carte "Mes autorisations" ajoutée
 - ✅ Page `membre/mes_autorisations` : liste les rôles de l'utilisateur par section (tableau)
 
 **Reste à faire — Priorité haute (avant Phase M3)**:
-1. **Tests Playwright pour panoramix** (admin) — seul profil non couvert
-2. **Activer les 3 controllers désactivés** : investiguer pourquoi `licences`, `email_lists`, `programmes` ont `use_new_auth = FALSE` et les corriger
-3. **Grant roles aux utilisateurs réels** : script SQL pour attribuer les rôles à tous les ~400 utilisateurs en production
-4. **Assigner les rôles spécialisés** (planchiste, ca, tresorier, bureau, club-admin) via UI ou SQL
+1. **Activer les 3 controllers désactivés** : investiguer pourquoi `licences`, `email_lists`, `programmes` ont `use_new_auth = FALSE` et les corriger
+2. **Grant roles aux utilisateurs réels** : script SQL pour attribuer les rôles à tous les ~400 utilisateurs en production
+3. **Assigner les rôles spécialisés** (planchiste, ca, tresorier, bureau, club-admin) via UI ou SQL
 
 **Reste à faire — Priorité moyenne (Phase M3-M4)**:
 5. **Migrer les ~30 controllers restants** sans `require_roles()` (admin, backend, facturation, historique, openflyers, FFVV, mails, pompes, etc.)
@@ -1116,31 +1116,27 @@ $config['use_new_authorization'] = FALSE;
 | **Test/Staging** | FALSE | ⏳ Pending pilot users | ⏳ Pending M3 | Not yet |
 | **Production** | FALSE | ⏳ Pending all users | ⏳ Pending M4 | Not yet |
 
-**Next Milestone**: Compléter la couverture Playwright (panoramix), activer les 3 controllers désactivés, puis enrôler des pilotes
+**Next Milestone**: Activer les 3 controllers désactivés, puis enrôler des pilotes
 
 ---
 
-## Reste à Faire (Updated v2.5 - 2026-02-18)
+## Reste à Faire (Updated v2.7 - 2026-03-25)
 
-### Priorité 1 : Compléter la couverture de test (Phase M2)
+### Priorité 1 : Finaliser la phase M2
 
-1. **Tests Playwright pour panoramix (admin)**
-   - Créer `panoramix-authorization.spec.js` et `panoramix-recursive-authorizations.spec.js`
-   - Panoramix = club-admin dans toutes les sections → toutes les routes autorisées sauf celles protégées par des checks legacy spécifiques
-
-2. **Investiguer et activer les 3 controllers désactivés**
+1. **Investiguer et activer les 3 controllers désactivés**
    - `licences.php` (`use_new_auth = FALSE`) — code `['ca']` prêt, pourquoi désactivé ?
    - `email_lists.php` (`use_new_auth = FALSE`) — code `['secretaire', 'ca']` prêt
    - `programmes.php` (`use_new_auth = FALSE`) — utilise `Formation_access` à la place
 
 ### Priorité 2 : Préparer le déploiement pilote (Phase M2 → M3)
 
-3. **Grant roles à tous les utilisateurs de production** (~400 users)
+2. **Grant roles à tous les utilisateurs de production** (~400 users)
    ```bash
    mysql -h localhost -u gvv_user -p gvv2 < grant_user_roles_simple.sql
    ```
 
-4. **Assigner les rôles spécialisés** via UI ou SQL :
+3. **Assigner les rôles spécialisés** via UI ou SQL :
    - planchiste, ca, bureau, tresorier, club-admin
 
 5. **Enrôler 5-10 utilisateurs pilotes** dans `use_new_authorization`
@@ -1319,9 +1315,9 @@ $config['use_new_authorization'] = FALSE;
   - Inventaire réel : 20 controllers migrés (vs 0 dans le plan v2.4)
   - 3 controllers avec code prêt mais `use_new_auth = FALSE` (licences, email_lists, programmes)
   - 5 test users Gaulois enrolled dans `use_new_authorization` table
-  - Playwright authorization tests : 8 fichiers couvrant 4 profils (asterix, obelix, abraracourcix, goudurix)
+  - À cette date, les tests Playwright d'autorisation couvraient 4 profils (asterix, obelix, abraracourcix, goudurix)
   - Tests abraracourcix et goudurix créés et validés (30 tests chacun, 100% pass)
-  - Identification du reste à faire : panoramix tests, 3 controllers désactivés, ~30 controllers à migrer, role assignment pour production users
+  - À cette date, le reste à faire principal portait sur la couverture admin, les 3 controllers désactivés, les ~30 controllers à migrer et l'assignation des rôles aux utilisateurs de production
   - Restructuration des priorités : couverture test → pilote → migration → cutover → cleanup
 - **v2.6 (2026-02-20): Comportements attendus par rôle pour vols_planeur**
   - Mise à jour de la description des utilisateurs Gaulois : obelix (planchiste Planeur + auto_planchiste ULM), goudurix (auto_planchiste Avion)
@@ -1329,6 +1325,11 @@ $config['use_new_authorization'] = FALSE;
     - planchiste : créer, modifier tous les vols, accès à `plancheauto`/`plancheauto_select`
     - auto_planchiste : créer, modifier ses propres vols uniquement, pas d'accès à `plancheauto`
   - Ajout de `create()` et `plancheauto()`/`plancheauto_select()` dans la spécification de migration
+- **v2.7 (2026-03-25): Panoramix coverage completed**
+  - Ajout et validation de `panoramix-recursive-authorizations.spec.js`
+  - La couverture Playwright d'autorisation est désormais alignée sur les 5 profils Gaulois
+  - `panoramix` sort du reste à faire prioritaire
+  - Le prochain jalon devient l'activation des 3 controllers désactivés puis le pilote de production
 
 ---
 
