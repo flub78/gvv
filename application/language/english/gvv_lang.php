@@ -137,6 +137,8 @@ $lang['role_rp'] = "Training manager";
 $lang['role_gestion_vd'] = "Discovery flight manager";
 $lang['role_pilote_vd'] = "Discovery flight pilot";
 $lang['role_backup_db'] = "Database backup";
+$lang['role_pilote_rem'] = "Tow pilot";
+$lang['role_pilote_rem_desc'] = "Pilot authorised to perform aerotow operations";
 
 $lang['role_user_desc'] = "Can login and view own data";
 $lang['role_auto_planchiste_desc'] = "Can create, modify and delete own flights";
@@ -283,6 +285,16 @@ $lang['authorization_global_role'] = "Global (all sections)";
 $lang['authorization_my_authorizations_title'] = "My authorizations";
 $lang['authorization_my_authorizations_desc'] = "By section";
 $lang['authorization_no_roles_assigned'] = "No authorizations assigned";
+$lang['authorization_role_members'] = "Role Members";
+$lang['authorization_members'] = "Members";
+$lang['authorization_add_member'] = "Add Member";
+$lang['authorization_no_members'] = "No members for this role";
+$lang['authorization_select_user'] = "Select a user";
+$lang['authorization_remove_member'] = "Remove";
+$lang['authorization_comm_error'] = "Communication error";
+$lang['authorization_role_removed'] = "Role removed";
+$lang['authorization_error'] = "Error";
+$lang['authorization_select_user_section'] = "Please select a user and a section in the filter";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

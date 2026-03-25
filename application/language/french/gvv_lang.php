@@ -154,6 +154,8 @@ $lang['role_rp'] = "Responsable pédagogique";
 $lang['role_gestion_vd'] = "Gestionnaire vols de découverte";
 $lang['role_pilote_vd'] = "Pilote vols de découverte";
 $lang['role_backup_db'] = "Sauvegarde base de données";
+$lang['role_pilote_rem'] = "Pilote remorqueur";
+$lang['role_pilote_rem_desc'] = "Pilote habilité à effectuer des remorquages";
 
 $lang['role_user_desc'] = "Peut se connecter et consulter ses propres données";
 $lang['role_auto_planchiste_desc'] = "Peut créer, modifier et supprimer ses propres vols";
@@ -342,6 +344,16 @@ $lang['authorization_global_role'] = "Global (toutes sections)";
 $lang['authorization_my_authorizations_title'] = "Mes autorisations";
 $lang['authorization_my_authorizations_desc'] = "Par section";
 $lang['authorization_no_roles_assigned'] = "Aucune autorisation attribuée";
+$lang['authorization_role_members'] = "Membres du rôle";
+$lang['authorization_members'] = "Membres";
+$lang['authorization_add_member'] = "Ajouter un membre";
+$lang['authorization_no_members'] = "Aucun membre pour ce rôle";
+$lang['authorization_select_user'] = "Sélectionner un utilisateur";
+$lang['authorization_remove_member'] = "Retirer";
+$lang['authorization_comm_error'] = "Erreur de communication";
+$lang['authorization_role_removed'] = "Rôle retiré";
+$lang['authorization_error'] = "Erreur";
+$lang['authorization_select_user_section'] = "Veuillez sélectionner un utilisateur et une section dans le filtre";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
