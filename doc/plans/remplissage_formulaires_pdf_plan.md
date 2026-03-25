@@ -28,11 +28,14 @@ Permettre le remplissage automatique de formulaires PDF officiels (DGAC, FFPLUM,
 - [ ] Refactorer `bin/pdf_extract_fields.py` en `bin/pdf_forms.py` avec deux sous-commandes :
   - `extract <pdf_file>` : reprendre la logique existante d'extraction des champs AcroForm au format JSON (nom, type, valeur par défaut)
   - `fill <pdf_file> <output> <json_data>` : remplissage d'un PDF avec des données JSON (à développer)
-- [ ] Affiner la distinction radio vs checkbox (les deux sont `/Btn` en AcroForm, distinguer via le flag `/Ff` bit 16)
-- [ ] Gérer l'encodage UTF-8 (caractères accentués) lors du remplissage
-- [ ] Compléter la gestion d'erreurs pour la commande `fill` (champs inconnus, données invalides)
-- [ ] Tester manuellement avec le formulaire `134iFormlic.pdf`
-- [ ] Écrire un test PHPUnit vérifiant l'appel au script Python et le parsing du JSON retourné
+- [x] Refactorer `bin/pdf_extract_fields.py` en `bin/pdf_forms.py` avec deux sous-commandes :
+  - `extract <pdf_file>` : reprise de l'extraction des champs AcroForm au format JSON (nom, type, valeur par défaut)
+  - `fill <pdf_file> <output> <json_data>` : remplissage d'un PDF avec des données JSON
+- [x] Affiner la distinction radio vs checkbox (les deux sont `/Btn` en AcroForm, distinction via le flag `/Ff` bit 16)
+- [x] Gérer l'encodage UTF-8 (caractères accentués) lors du remplissage
+- [x] Compléter la gestion d'erreurs pour la commande `fill` (champs inconnus, données invalides)
+- [x] Tester manuellement avec le formulaire `134iFormlic.pdf`
+- [x] Écrire un test PHPUnit vérifiant l'appel au script Python et le parsing du JSON retourné
 
 ### Lot 2 — Migration base de données
 

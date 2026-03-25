@@ -1,0 +1,26 @@
+{
+  "fields": {
+    "CopieScan rectoverso de la pièce didentité": "true",
+    "Nom de famille 1": "ELEVE TEST",
+    "Prénoms": "Andre",
+    "Date de naissance": "01/01/2000",
+    "Lieu de naissance": "Paris",
+    "Adresse": "10 rue de la Paix, 75000 Paris",
+    "Commune": "Paris",
+    "Code postal": "75000",
+    "Nom dusage Si différent de 1": "DUPONT",
+    "Téléphones": "0123456789",
+     "Courriel": "eleve.test@example.com",
+     "N licence Si applicable"  : "1234567890",
+     "Pays de résidence": "France",
+     "Nom de famille": "Duvollet",
+     "Prénom": "François",
+     "N Licence":   "IULM1234567890",
+     "Date de fin de validité": "31/12/2024",
+     "N Qualification dinstructeur": "QUAL1234567890",
+     "Date de fin de validité_2": "31/12/2024",
+     "Aéroclub  Association": "Aéroclub d'Abbeville - Buigny-Baie de Somme",
+     "Fait à": "Paris",
+     "Le": "01/01/2024"
+  }
+}

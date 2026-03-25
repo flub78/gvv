@@ -1,0 +1,163 @@
+[
+  {
+    "name": "CopieScan rectoverso de la pièce didentité",
+    "type": "checkbox",
+    "type_raw": "/Btn",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Nom de famille 1",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Nom dusage Si différent de 1",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Prénoms",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Date de naissance",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Lieu de naissance",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Adresse",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Commune",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Code postal",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Téléphones",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Courriel",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "N licence Si applicable",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Pays de résidence",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Nom de famille",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Prénom",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "N Licence",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Date de fin de validité",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "N Qualification dinstructeur",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Date de fin de validité_2",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Aéroclub  Association",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Fait à",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "Le",
+    "type": "text",
+    "type_raw": "/Tx",
+    "required": false,
+    "read_only": false
+  },
+  {
+    "name": "13 Les signatures avec  initiales  ou  Nomprénom  ne seront pas acceptées",
+    "type": "signature",
+    "type_raw": "/Sig",
+    "required": false,
+    "read_only": false
+  }
+]
