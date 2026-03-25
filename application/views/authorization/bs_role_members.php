@@ -59,7 +59,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                 <select id="filterSection" class="form-select w-auto">
                     <option value=""><?= $this->lang->line('authorization_select_section') ?> — toutes</option>
                     <?php foreach ($sections as $s): ?>
-                        <option value="<?= htmlspecialchars($s['nom']) ?>"><?= htmlspecialchars($s['nom']) ?></option>
+                        <option value="<?= (int)$s['id'] ?>" data-nom="<?= htmlspecialchars($s['nom']) ?>"><?= htmlspecialchars($s['nom']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -73,11 +73,6 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($members)): ?>
-                        <tr id="noMembersRow">
-                            <td colspan="4" class="text-muted text-center"><?= $this->lang->line('authorization_no_members') ?></td>
-                        </tr>
-                    <?php else: ?>
                         <?php foreach ($members as $member): ?>
                             <tr data-user-id="<?= (int)$member['user_id'] ?>" data-section-id="<?= (int)$member['section_id'] ?>">
                                 <td><?= htmlspecialchars($member['username']) ?></td>
@@ -92,7 +87,6 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -105,7 +99,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         </div>
         <div class="card-body">
             <div class="row g-2 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-9">
                     <label for="selectUser" class="form-label"><?= $this->lang->line('authorization_select_user') ?></label>
                     <select class="big_select" id="selectUser" style="width:300px">
                         <option value="">-- <?= $this->lang->line('authorization_select_user') ?> --</option>
@@ -116,15 +110,6 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                                 if ($full) $display .= ' (' . htmlspecialchars($full) . ')';
                             ?>
                             <option value="<?= (int)$user['id'] ?>"><?= $display ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="selectSection" class="form-label"><?= $this->lang->line('authorization_select_section') ?></label>
-                    <select class="form-select" id="selectSection">
-                        <option value="">-- <?= $this->lang->line('authorization_select_section') ?> --</option>
-                        <?php foreach ($sections as $section): ?>
-                            <option value="<?= (int)$section['id'] ?>"><?= htmlspecialchars($section['nom']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -148,11 +133,29 @@ if ($role_label === FALSE) $role_label = $role['nom'];
 (function () {
     var roleId = <?= (int)$role['id'] ?>;
     var ajaxUrl = '<?= site_url('authorization/edit_user_roles') ?>';
+    var storageKey = 'role_members_section_' + roleId;
+
+    function applySection(sectionId) {
+        var sel = document.getElementById('filterSection');
+        sel.value = sectionId;
+        var nom = $(sel).find('option:selected').data('nom') || '';
+        var oTable = $('#membersTable').dataTable({'bRetrieve': true});
+        oTable.fnFilter(nom, 2, false, false);
+    }
+
+    // Restore saved section after DataTables is ready (window load fires after all document.ready callbacks)
+    $(window).on('load', function () {
+        var saved = sessionStorage.getItem(storageKey);
+        if (saved) { applySection(saved); }
+    });
 
     // Section filter — runs on user interaction, table already initialized by footer
     $('#filterSection').on('change', function () {
+        var val = $(this).val();
+        sessionStorage.setItem(storageKey, val);
+        var nom = $(this).find('option:selected').data('nom') || '';
         var oTable = $('#membersTable').dataTable({'bRetrieve': true});
-        oTable.fnFilter($(this).val(), 2, false, false);
+        oTable.fnFilter(nom, 2, false, false);
     });
 
     function showAlert(message, type) {
@@ -189,15 +192,8 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         var sectionId = btn.getAttribute('data-section-id');
         doAjax(userId, sectionId, 'revoke', function (resp) {
             if (resp.success) {
-                var row = btn.closest('tr');
-                row.remove();
-                var tbody = document.querySelector('#membersTable tbody');
-                if (tbody.rows.length === 0) {
-                    var tr = document.createElement('tr');
-                    tr.id = 'noMembersRow';
-                    tr.innerHTML = '<td colspan="4" class="text-muted text-center"><?= $this->lang->line('authorization_no_members') ?></td>';
-                    tbody.appendChild(tr);
-                }
+                var oTable = $('#membersTable').dataTable({'bRetrieve': true});
+                oTable.fnDeleteRow(btn.closest('tr'));
                 showAlert(resp.message || 'Rôle retiré', 'success');
             } else {
                 showAlert(resp.message || 'Erreur', 'danger');
@@ -208,9 +204,9 @@ if ($role_label === FALSE) $role_label = $role['nom'];
     // Add member
     document.getElementById('btnAddMember').addEventListener('click', function () {
         var userId = $('#selectUser').val();
-        var sectionId = document.getElementById('selectSection').value;
+        var sectionId = document.getElementById('filterSection').value;
         if (!userId || !sectionId) {
-            showAlert('Veuillez sélectionner un utilisateur et une section', 'warning');
+            showAlert('Veuillez sélectionner un utilisateur et une section dans le filtre', 'warning');
             return;
         }
         doAjax(userId, sectionId, 'grant', function (resp) {

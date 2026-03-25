@@ -131,6 +131,8 @@ $lang['role_rp'] = "Verantwoordelijke opleiding";
 $lang['role_gestion_vd'] = "Beheerder ontdekkingsvluchten";
 $lang['role_pilote_vd'] = "Piloot ontdekkingsvluchten";
 $lang['role_backup_db'] = "Databaseback-up";
+$lang['role_pilote_rem'] = "Sleepvlieger";
+$lang['role_pilote_rem_desc'] = "Piloot gemachtigd om sleepopdrachten uit te voeren";
 
 $lang['role_user_desc'] = "Kan inloggen en eigen gegevens bekijken";
 $lang['role_auto_planchiste_desc'] = "Kan eigen vluchten aanmaken, wijzigen en verwijderen";

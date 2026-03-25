@@ -137,6 +137,8 @@ $lang['role_rp'] = "Training manager";
 $lang['role_gestion_vd'] = "Discovery flight manager";
 $lang['role_pilote_vd'] = "Discovery flight pilot";
 $lang['role_backup_db'] = "Database backup";
+$lang['role_pilote_rem'] = "Tow pilot";
+$lang['role_pilote_rem_desc'] = "Pilot authorised to perform aerotow operations";
 
 $lang['role_user_desc'] = "Can login and view own data";
 $lang['role_auto_planchiste_desc'] = "Can create, modify and delete own flights";
