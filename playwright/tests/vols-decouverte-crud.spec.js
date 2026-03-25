@@ -1,20 +1,15 @@
 const { test, expect } = require('@playwright/test');
 
 const LOGIN_URL = '/index.php/auth/login';
+const LOGOUT_URL = '/index.php/auth/logout';
 const VD_LIST_URL = '/index.php/vols_decouverte/page';
 const VD_CREATE_URL = '/index.php/vols_decouverte/create';
 
-const TEST_USER = {
-  username: 'testadmin',
-  password: 'password',
-};
-
-async function login(page) {
+async function loginAs(page, username, password) {
   await page.goto(LOGIN_URL);
   await page.waitForLoadState('networkidle');
-
-  await page.fill('input[name="username"]', TEST_USER.username);
-  await page.fill('input[name="password"]', TEST_USER.password);
+  await page.fill('input[name="username"]', username);
+  await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"], input[type="submit"]');
   await page.waitForLoadState('networkidle');
 }
@@ -43,9 +38,9 @@ async function selectFirstNonEmptyOption(page, selector) {
   throw new Error(`No non-empty option found for selector: ${selector}`);
 }
 
-test.describe('Vols decouverte CRUD', () => {
+test.describe('Vols decouverte CRUD (gestionnaire)', () => {
   test('should create, list, edit and delete a discovery flight', async ({ page }) => {
-    await login(page);
+    await loginAs(page, 'testadmin', 'password');
 
     const timestamp = Date.now();
     const beneficiaire = `PW VD ${timestamp}`;
@@ -121,5 +116,135 @@ test.describe('Vols decouverte CRUD', () => {
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('table tr', { hasText: updatedBeneficiaire })).toHaveCount(0);
+  });
+});
+
+test.describe('Vols decouverte - droits pilote_vd', () => {
+  let vdActionUrl;
+  let vdPreFlightUrl;
+  let vdDoneUrl;
+
+  // Create a fresh non-expired VD as admin for pilot tests
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await loginAs(page, 'testadmin', 'password');
+
+    const timestamp = Date.now();
+    const beneficiaire = `PW PILOT ${timestamp}`;
+
+    await page.goto(VD_CREATE_URL);
+    await page.waitForLoadState('networkidle');
+    await selectFirstNonEmptyOption(page, 'select[name="product"]');
+    await page.fill('input[name="beneficiaire"]', beneficiaire);
+    await page.fill('input[name="de_la_part"]', 'Test pilote');
+    await page.fill('input[name="beneficiaire_email"]', `pw-pilot-${timestamp}@example.test`);
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    // Get the obfuscated action URL from the list
+    await page.goto(VD_LIST_URL);
+    await page.waitForLoadState('networkidle');
+
+    const createdRow = page.locator('table tr', { hasText: beneficiaire }).first();
+    const actionLink = createdRow.locator('a[href*="/vols_decouverte/action/"]').first();
+    const actionHref = await actionLink.getAttribute('href');
+    vdActionUrl = actionHref.replace(/^.*\/index\.php/, '/index.php');
+
+    // Derive pre_flight and done URLs from the action URL
+    const obfuscatedId = actionHref.split('/action/')[1];
+    vdPreFlightUrl = `/index.php/vols_decouverte/pre_flight/${obfuscatedId}`;
+    vdDoneUrl = `/index.php/vols_decouverte/done/${obfuscatedId}`;
+
+    await page.close();
+  });
+
+  test('pilote_vd voit la liste et les liens action mais pas les boutons créer/modifier/supprimer', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    await page.goto(VD_LIST_URL);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    // La liste est visible
+    await expect(page.locator('table')).toBeVisible();
+
+    // Pas de bouton créer
+    await expect(page.locator('a[href*="/vols_decouverte/create"]')).toHaveCount(0);
+
+    // Pas de lien modifier ni supprimer
+    await expect(page.locator('a[href*="/vols_decouverte/edit/"]')).toHaveCount(0);
+    await expect(page.locator('a[href*="/vols_decouverte/delete/"]')).toHaveCount(0);
+
+    // Des liens action sont présents
+    await expect(page.locator('a[href*="/vols_decouverte/action/"]').first()).toBeVisible();
+  });
+
+  test('pilote_vd accède au menu action avec boutons pré-vol et post-vol', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    await page.goto(vdActionUrl);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    // Les boutons pré-vol et post-vol sont visibles
+    await expect(page.locator(`a[href*="/vols_decouverte/pre_flight/"]`)).toBeVisible();
+    await expect(page.locator(`a[href*="/vols_decouverte/done/"]`)).toBeVisible();
+  });
+
+  test('pilote_vd peut modifier le contact urgence (pre_flight)', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    await page.goto(vdPreFlightUrl);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    // Seul le champ urgence est éditable
+    await expect(page.locator('input[name="urgence"]')).toBeVisible();
+    await page.fill('input[name="urgence"]', '0611223344');
+
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+  });
+
+  test('pilote_vd peut enregistrer les infos du vol (done)', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    await page.goto(vdDoneUrl);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    // Les champs date_vol, pilote, airplane_immat sont visibles
+    await expect(page.locator('input[name="date_vol"], input[name="date_vol"]')).toBeVisible();
+
+    await page.fill('input[name="date_vol"]', '2026-03-25');
+
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+  });
+
+  test('pilote_vd ne peut pas créer un vol de découverte', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    const response = await page.goto(VD_CREATE_URL);
+    await page.waitForLoadState('networkidle');
+
+    // Doit recevoir une erreur 404
+    expect(response.status()).toBe(404);
+  });
+
+  test('pilote_vd peut accéder au briefing passager', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    // Get VD ID from the action URL
+    const obfuscatedId = vdActionUrl.split('/action/')[1];
+    // Navigate to briefing index (linked from list)
+    await page.goto('/index.php/briefing_passager');
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    // The briefing page should be accessible (not 404)
+    await expect(page.locator('body')).not.toContainText('404');
   });
 });

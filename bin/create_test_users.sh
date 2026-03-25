@@ -48,6 +48,8 @@ TR_TRESORIER=8
 TR_CLUB_ADMIN=10
 TR_INSTRUCTEUR=11
 TR_MECANO=12
+TR_GESTION_VD=14
+TR_PILOTE_VD=15
 
 # Role bits from program.php (for mniveaux field)
 BIT_TRESORIER=8          # 2**3
@@ -161,6 +163,8 @@ TESTPLANCHISTE_HASH='$1$DT0.QJ1.$yXqRz6gf/jWC4MzY2D05Y.'
 TESTCA_HASH='$1$9h..cY3.$NzkeKkCoSa2oxL7bQCq4v1'
 TESTBUREAU_HASH='$1$NC0.SN5.$qwnSUxiPbyh6v2JrhA1fH1'
 TESTTRESORIER_HASH='$1$8XMCm61f$CS0gO5YjH.xHm2ZyaZNQt/'
+IDEFIX_HASH='$1$RMO5L0Z4$dK0agqu3OImkLjgIfi5BD1'
+AGECANONIX_HASH='$1$RMO5L0Z4$dK0agqu3OImkLjgIfi5BD1'
 
 # Format: create_legacy_user username password_hash email legacy_role_id types_roles_id
 # Legacy role_id: 1=membre, 2=admin, 3=bureau, 7=planchiste, 8=ca, 9=tresorier
@@ -170,6 +174,21 @@ create_legacy_user "testplanchiste" "$TESTPLANCHISTE_HASH" "testplanchiste@free.
 create_legacy_user "testca"         "$TESTCA_HASH"         "testca@free.fr"             8 $TR_CA
 create_legacy_user "testbureau"     "$TESTBUREAU_HASH"     "testbureau@free.fr"         3 $TR_BUREAU
 create_legacy_user "testtresorier"  "$TESTTRESORIER_HASH"  "testresorier@free.fr"       9 $TR_TRESORIER
+create_legacy_user "idefix"         "$IDEFIX_HASH"         "idefix@village-gaulois.fr"  1 $TR_GESTION_VD
+create_legacy_user "agecanonix"     "$AGECANONIX_HASH"     "agecanonix@village-gaulois.fr" 1 $TR_PILOTE_VD
+# VD test users use new authorization (bypasses legacy URI check, uses user_roles_per_section)
+# They also need the 'user' role (TR_USER) in their section so _check_login_permission() passes
+for vd_user in idefix agecanonix; do
+    existing_new_auth=$(mysql_query "SELECT COUNT(*) FROM use_new_authorization WHERE username='$vd_user'")
+    if [ "$existing_new_auth" -eq 0 ]; then
+        mysql_exec -e "INSERT INTO use_new_authorization (username, created_at, notes) VALUES ('$vd_user', NOW(), 'test user');"
+    fi
+    vd_user_id=$(mysql_query "SELECT id FROM users WHERE username='$vd_user' LIMIT 1")
+    existing_user_role=$(mysql_query "SELECT COUNT(*) FROM user_roles_per_section WHERE user_id=$vd_user_id AND types_roles_id=$TR_USER AND section_id=$SECTION_ID")
+    if [ "$existing_user_role" -eq 0 ]; then
+        mysql_exec -e "INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id, granted_at) VALUES ($vd_user_id, $TR_USER, $SECTION_ID, NOW());"
+    fi
+done
 
 # =========================================
 # PART 2: Gaulois test users (new authorization system)
