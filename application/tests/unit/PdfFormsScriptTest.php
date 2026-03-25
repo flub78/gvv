@@ -115,4 +115,61 @@ class PdfFormsScriptTest extends TestCase
 
         @unlink($tmp_fields);
     }
+
+    public function testFillCommandSupportsImageOverlay()
+    {
+        $tmp_output = sys_get_temp_dir() . '/pdf_forms_img_test_' . uniqid() . '.pdf';
+        $tmp_data = sys_get_temp_dir() . '/pdf_forms_img_data_' . uniqid() . '.json';
+        $tmp_overlay_pdf = sys_get_temp_dir() . '/pdf_forms_overlay_' . uniqid() . '.pdf';
+        copy($this->pdf_fixture, $tmp_overlay_pdf);
+
+        $payload = array(
+            'fields' => array(
+                'Nom de famille 1' => 'IMAGE TEST',
+            ),
+            'images' => array(
+                array(
+                    'pdf' => $tmp_overlay_pdf,
+                    'page' => 0,
+                    'x' => 36,
+                    'y' => 36,
+                    'width' => 120,
+                    'height' => 40,
+                )
+            )
+        );
+
+        file_put_contents($tmp_data, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+        $fill_cmd = 'python3 ' . escapeshellarg($this->script)
+            . ' fill --pdf ' . escapeshellarg($this->pdf_fixture)
+            . ' --json_data ' . escapeshellarg($tmp_data)
+            . ' --output ' . escapeshellarg($tmp_output)
+            . ' 2>&1';
+
+        $fill_output = shell_exec($fill_cmd);
+        $this->assertTrue($fill_output === '' || $fill_output === null, 'stdout should be empty in fill mode with image overlay');
+
+        $this->assertFileExists($tmp_output, 'Filled PDF with image should be created');
+        $this->assertGreaterThan(0, filesize($tmp_output), 'Filled PDF with image should not be empty');
+
+        $extract_cmd = 'python3 ' . escapeshellarg($this->script)
+            . ' extract --pdf ' . escapeshellarg($tmp_output)
+            . ' 2>&1';
+        $extract_output = shell_exec($extract_cmd);
+        $decoded = json_decode($extract_output, true);
+        $this->assertIsArray($decoded, 'Extracted output from image-filled PDF should be valid JSON');
+
+        $by_name = array();
+        foreach ($decoded as $field) {
+            if (isset($field['name'])) {
+                $by_name[$field['name']] = $field;
+            }
+        }
+        $this->assertEquals('IMAGE TEST', $by_name['Nom de famille 1']['value']);
+
+        @unlink($tmp_output);
+        @unlink($tmp_data);
+        @unlink($tmp_overlay_pdf);
+    }
 }

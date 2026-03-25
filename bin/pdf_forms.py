@@ -17,12 +17,14 @@ Notes:
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 import textwrap
 from pathlib import Path
 
 try:
-    from PyPDF2 import PdfReader, PdfWriter
+    from PyPDF2 import PdfReader, PdfWriter, Transformation
     from PyPDF2.generic import BooleanObject, NameObject
 except ImportError:
     print("Erreur: PyPDF2 n'est pas installé. Installer avec: apt install python3-pypdf2", file=sys.stderr)
@@ -124,6 +126,110 @@ def _parse_json_file(path):
         return json.loads(text)
     except Exception as exc:
         raise ValueError(f"json invalide ({path}): {exc}")
+
+
+def _extract_fill_payload(json_data):
+    if isinstance(json_data, dict) and 'fields' in json_data:
+        fields_data = json_data['fields']
+        images_data = json_data.get('images', [])
+    else:
+        fields_data = json_data
+        images_data = []
+
+    if not isinstance(fields_data, dict):
+        raise ValueError("json_data doit contenir un objet JSON ou {'fields': {...}}")
+    if not isinstance(images_data, list):
+        raise ValueError("json_data.images doit être une liste")
+
+    return fields_data, images_data
+
+
+def _create_image_pdf(image_path, output_pdf):
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise RuntimeError("Pillow est requis pour l'insertion d'images (apt install python3-pil)") from exc
+
+    with Image.open(image_path) as img:
+        # Convert to RGB because PDF export in Pillow does not support alpha channel directly.
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        img.save(output_pdf, 'PDF', resolution=72.0)
+
+
+def _resolve_overlay_pdf(spec, idx, tmpdir):
+    """
+    Resolve one image spec into a PDF path ready to merge.
+    Supports either:
+    - {"pdf": "stamp.pdf", ...} -> no extra dependency
+    - {"file": "signature.png|jpg", ...} -> requires Pillow
+    """
+    overlay_pdf_path = spec.get('pdf')
+    if overlay_pdf_path:
+        if not os.path.exists(overlay_pdf_path):
+            raise ValueError(f"images[{idx}].pdf introuvable: {overlay_pdf_path}")
+        return overlay_pdf_path
+
+    image_path = spec.get('file')
+    if not image_path:
+        raise ValueError(f"images[{idx}] doit contenir 'file' (PNG/JPEG) ou 'pdf' (overlay PDF)")
+    if not os.path.exists(image_path):
+        raise ValueError(f"images[{idx}].file introuvable: {image_path}")
+
+    overlay_pdf = os.path.join(tmpdir, f'image_overlay_{idx}.pdf')
+    _create_image_pdf(image_path, overlay_pdf)
+    return overlay_pdf
+
+
+def _merge_images(writer, images_data):
+    if not images_data:
+        return
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for idx, spec in enumerate(images_data):
+            if not isinstance(spec, dict):
+                raise ValueError(f"images[{idx}] doit être un objet")
+
+            try:
+                page_num = int(spec.get('page', 0))
+            except Exception as exc:
+                raise ValueError(f"images[{idx}].page doit être un entier") from exc
+
+            if page_num < 0 or page_num >= len(writer.pages):
+                raise ValueError(f"images[{idx}].page hors limites: {page_num}")
+
+            try:
+                x = float(spec.get('x', 0))
+                y = float(spec.get('y', 0))
+                width = float(spec.get('width', 100))
+                height = float(spec.get('height', 50))
+            except Exception as exc:
+                raise ValueError(f"images[{idx}] coordonnées invalides (x/y/width/height)") from exc
+
+            if width <= 0 or height <= 0:
+                raise ValueError(f"images[{idx}] width/height doivent être > 0")
+
+            overlay_pdf = _resolve_overlay_pdf(spec, idx, tmpdir)
+
+            overlay_reader = PdfReader(overlay_pdf)
+            if not overlay_reader.pages:
+                raise ValueError(f"images[{idx}] impossible de charger l'image en PDF")
+
+            overlay_page = overlay_reader.pages[0]
+            src_w = float(overlay_page.mediabox.width)
+            src_h = float(overlay_page.mediabox.height)
+
+            if src_w <= 0 or src_h <= 0:
+                raise ValueError(f"images[{idx}] dimensions source invalides")
+
+            transform = Transformation().scale(width / src_w, height / src_h).translate(x, y)
+            target_page = writer.pages[page_num]
+            if hasattr(target_page, 'merge_transformed_page'):
+                target_page.merge_transformed_page(overlay_page, transform)
+            elif hasattr(target_page, 'mergeTransformedPage'):
+                target_page.mergeTransformedPage(overlay_page, transform)
+            else:
+                raise RuntimeError("Version de PyPDF2 incompatible: merge_transformed_page indisponible")
 
 
 def _set_need_appearances(writer, reader):
@@ -243,13 +349,7 @@ def fill_pdf(pdf_path, output_path, json_data):
     extracted = extract_fields(pdf_path)
     known_fields = {f['name']: f for f in extracted}
 
-    if isinstance(json_data, dict) and 'fields' in json_data:
-        fields_data = json_data['fields']
-    else:
-        fields_data = json_data
-
-    if not isinstance(fields_data, dict):
-        raise ValueError("json_data doit contenir un objet JSON ou {'fields': {...}}")
+    fields_data, images_data = _extract_fill_payload(json_data)
 
     unknown_fields = [k for k in fields_data.keys() if k not in known_fields]
     if unknown_fields:
@@ -272,6 +372,8 @@ def fill_pdf(pdf_path, output_path, json_data):
             writer.update_page_form_field_values(page, prepared_values)
 
     _apply_checkbox_widget_states(writer, checkbox_values)
+
+    _merge_images(writer, images_data)
 
     _set_need_appearances(writer, reader)
 
@@ -376,7 +478,25 @@ def build_parser():
                 "fields": {
                   "Nom de famille 1": "ELEVE TEST",
                   "Prénoms": "Andre"
-                }
+                                },
+                                "images": [
+                                    {
+                                        "file": "signature.png",
+                                        "page": 0,
+                                        "x": 200,
+                                        "y": 100,
+                                        "width": 150,
+                                        "height": 50
+                                    },
+                                    {
+                                        "pdf": "signature_overlay.pdf",
+                                        "page": 0,
+                                        "x": 200,
+                                        "y": 100,
+                                        "width": 150,
+                                        "height": 50
+                                    }
+                                ]
               }
 
             Exemple:
