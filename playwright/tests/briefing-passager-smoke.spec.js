@@ -16,7 +16,7 @@ const BRIEFING_URL     = '/index.php/briefing_passager';
 const ADMIN_LIST_URL   = '/index.php/briefing_passager/admin_list';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
-const PILOT_USER = { username: 'testuser',  password: 'password' };
+const BRIEFING_USER = { username: 'agecanonix',  password: 'password' };
 
 async function login(page, user) {
     await page.goto(LOGIN_URL);
@@ -30,12 +30,13 @@ async function login(page, user) {
 // --- UC1: Access standalone briefing form ---
 
 test('UC1: pilot can access standalone briefing form', async ({ page }) => {
-    await login(page, PILOT_USER);
+    await login(page, BRIEFING_USER);
     await page.goto(BRIEFING_URL);
     await page.waitForLoadState('networkidle');
 
-    // Page should load without error
+    // Page should load without error or authorization denial
     await expect(page).not.toHaveURL(/error|403|404/);
+    await expect(page.locator('body')).not.toContainText('Accès non autorisé');
     // Should contain the search field
     await expect(page.locator('#vld_search')).toBeVisible();
 });
@@ -69,14 +70,15 @@ test('UC1: briefing icon opens upload form for that VLD', async ({ page }) => {
     await page.waitForLoadState('networkidle');
 
     await expect(page).not.toHaveURL(/error|403|404/);
-    // Upload form should contain a file input
-    await expect(page.locator('input[name="userfile"]')).toBeVisible();
+    // Upload form should expose the visible drop zone and keep file input in DOM
+    await expect(page.locator('#drop-zone')).toBeVisible();
+    await expect(page.locator('input[name="userfile"]')).toHaveCount(1);
 });
 
 // --- UC1: AJAX search returns results ---
 
 test('UC1: AJAX VLD search returns results for known name', async ({ page }) => {
-    await login(page, PILOT_USER);
+    await login(page, BRIEFING_USER);
 
     // Call the search endpoint directly
     const response = await page.request.get('/index.php/briefing_passager/search_vld?q=a');
