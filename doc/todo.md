@@ -27,41 +27,6 @@ Cela implique de:
 
 #### Tests manuels authorisations
 
-#### Utilisateur de base
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
-  
-#### Planchiste
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
-  
-#### Membre du CA
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
-  
-#### Instructeur (réduire les test à formation)
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
-
-#### RP (réduire les tests à RP et instructeur)
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
-  
-#### Trésorier (réduire les tests à trésorerie)
-* [x] tous les liens et menus visibles sont accessibles sans erreur
-* [x] pas de lien vers des fonctionnalités interdites
-* [ ] les fonctionnalités interdites ne sont pas accessibles même en tapant l'URL directement
-* [x] Les fonctionnalités autorisées sont accessibles
   
 
 ## Reste à faire
