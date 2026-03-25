@@ -33,8 +33,10 @@ class RapprochementsPage extends BasePage {
     const fileInput = this.page.locator('input[type="file"][name="userfile"]');
     await fileInput.setInputFiles(filePath);
 
-    // Click submit button
-    await this.page.locator('input[type="submit"], button[type="submit"]').click();
+    // Click the upload submit button (avoid other submit buttons on the page)
+    const uploadButton = this.page.locator('#upload-btn, button#upload-btn, button[name="button"][value="Valider"]').first();
+    await uploadButton.waitFor({ state: 'visible', timeout: 10000 });
+    await uploadButton.click();
     await this.page.waitForLoadState('domcontentloaded');
 
     // Wait for the rapprochements page to load with tabs

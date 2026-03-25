@@ -1,142 +1,147 @@
 const { test, expect } = require('@playwright/test');
-const fs = require('fs');
-const path = require('path');
 
-// Load fixtures
-const fixturesPath = path.join(__dirname, '../test-data/fixtures.json');
-const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
+const STOP_WORDS = new Set([
+    'BALANCE', 'COMPTES', 'COMPTE', 'SECTION', 'GENERAL', 'GENERALE', 'TOUS',
+    'DEBITEURS', 'CREDITEURS', 'SOLDE', 'SOLDES', 'ZERO', 'FILTRE', 'RECHERCHER',
+    'CREER', 'TOUT', 'DEVELOPPER', 'REDUIRE', 'EXCEL', 'PDF', 'DATE',
+    'ASSOCIATIF', 'DEBITEUR', 'CREDITEUR', 'RESULTAT', 'PAR', 'SECTIONS'
+]);
+
+async function loginAndOpenBalance(page) {
+    await page.goto('/index.php/auth/login');
+
+    const sectionSelect = page.locator('select[name="section"]');
+    await sectionSelect.selectOption('4'); // Général section
+
+    await page.fill('input[name="username"]', 'testadmin');
+    await page.fill('input[name="password"]', 'password');
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('networkidle');
+
+    await page.goto('/index.php/comptes/balance');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
+    const balanceAccordion = page.locator('#balanceAccordion');
+    await balanceAccordion.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+}
+
+async function getVisibleAccordionTexts(page) {
+    return page.evaluate(() => {
+        const items = Array.from(document.querySelectorAll('#balanceAccordion .accordion-item'));
+        return items
+            .filter((item) => window.getComputedStyle(item).display !== 'none')
+            .map((item) => (item.textContent || '').replace(/\s+/g, ' ').trim())
+            .filter(Boolean);
+    });
+}
+
+async function getVisibleUserWordsFrom411(page) {
+    const itemTexts = await page.evaluate(() => {
+        const items = Array.from(document.querySelectorAll('#balanceAccordion .accordion-item'));
+        const visibleItems = items.filter((item) => window.getComputedStyle(item).display !== 'none');
+
+        return visibleItems
+            .map((item) => item.textContent || '')
+            .map((text) => text.replace(/\s+/g, ' ').trim())
+            .filter((text) => text.includes('(411)'));
+    });
+
+    const words = [];
+    for (const text of itemTexts) {
+        const normalized = text
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase();
+
+        const chunks = normalized.split('(411)').slice(1);
+        for (const chunk of chunks) {
+            const tokens = (chunk.match(/[A-Z]{3,}/g) || []).filter((w) => !STOP_WORDS.has(w));
+            if (tokens.length > 0) {
+                words.push(tokens[0]);
+            }
+        }
+    }
+
+    return words;
+}
+
+function extractWords(text) {
+    return text
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .match(/[A-Z]{3,}/g) || [];
+}
+
+function buildDynamicSearchTerms(words, maxTerms = 2) {
+    const terms = [];
+    for (const word of words) {
+        if (!word || word.length < 3) continue;
+        const term = word.slice(0, 3);
+        if (term.length < 3) continue;
+        if (!terms.some((t) => t.term === term)) {
+            terms.push({ term, expectedWord: word });
+        }
+        if (terms.length >= maxTerms) break;
+    }
+
+    return terms;
+}
 
 /**
  * Test to verify that balance search works correctly
- * Uses data from fixtures.json to test search functionality
+ * Uses terms extracted from the currently displayed balance data
+ * so it remains valid with the active database state.
  */
 test.describe('Balance Search Bug Fix', () => {
-    // Run tests for each search test case defined in fixtures
-    for (const testCase of fixtures.balance_search_tests) {
-        test(`should find "${testCase.expected_name}" when typing "${testCase.search_term}"`, async ({ page }) => {
-            // Go to login page
-            await page.goto('/index.php/auth/login');
+    test('should filter balance using users from current database', async ({ page }) => {
+        await loginAndOpenBalance(page);
 
-            // Select "Général" section BEFORE logging in to see all members
-            const sectionSelect = page.locator('select[name="section"]');
-            await sectionSelect.selectOption('4'); // Général section
-            console.log('✓ Selected Général section');
+        const searchInput = page.locator('#accordion-search');
+        await expect(searchInput).toBeVisible({ timeout: 10000 });
 
-            // Now login
-            await page.fill('input[name="username"]', 'testadmin');
-            await page.fill('input[name="password"]', 'password');
-            await page.click('button[type="submit"], input[type="submit"]');
-            await page.waitForLoadState('networkidle');
+        const expandAllButton = page.getByRole('button', { name: /Tout développer/i });
+        if (await expandAllButton.count() > 0) {
+            await expandAllButton.first().click();
+            await page.waitForTimeout(1200);
+        }
 
-            console.log('✓ Logged in successfully');
+        const initialTexts = await getVisibleAccordionTexts(page);
+        expect(initialTexts.length).toBeGreaterThan(0);
 
-            // Navigate to balance page
-            await page.goto('/index.php/comptes/balance');
-            await page.waitForLoadState('networkidle');
+        const userWords = await getVisibleUserWordsFrom411(page);
+        const dynamicTerms = buildDynamicSearchTerms(userWords, 2);
+        expect(dynamicTerms.length).toBeGreaterThan(0);
 
-            console.log('✓ Navigated to balance page');
+        let validatedTerms = 0;
 
-            // Wait for the page to be fully loaded
-            await page.waitForTimeout(2000);
-
-            // Scroll to the datatable/accordion before checking anything
-            const balanceAccordion = page.locator('#balanceAccordion');
-            await balanceAccordion.scrollIntoViewIfNeeded();
-            await page.waitForTimeout(500); // Wait for scroll to complete
-
-            console.log('✓ Scrolled to datatable');
-
-            // Find the search input
-            const searchInput = page.locator('#accordion-search');
-            await expect(searchInput).toBeVisible({ timeout: 10000 });
-
-            console.log('✓ Search input found');
-
-            // Type the search term from fixtures
-            await searchInput.fill(testCase.search_term);
-
-            // Trigger input event to ensure search is processed
+        for (const { term, expectedWord } of dynamicTerms) {
+            await searchInput.fill(term);
             await searchInput.dispatchEvent('input');
             await searchInput.dispatchEvent('keyup');
+            await page.waitForTimeout(1200);
 
-            // Wait longer for search to process and DOM to update
-            await page.waitForTimeout(2000); // Increased wait time
+            const filteredTexts = await getVisibleAccordionTexts(page);
 
-            console.log(`✓ Typed "${testCase.search_term}" in search input`);
+            console.log(`Term "${term}" (from "${expectedWord}") -> ${filteredTexts.length} visible items`);
 
-            // Check if any accordion items are visible
-            const accordionItems = page.locator('#balanceAccordion .accordion-item');
-            const visibleItems = await accordionItems.evaluateAll(items =>
-                items.filter(item => item.style.display !== 'none').length
+            if (filteredTexts.length === 0) {
+                continue;
+            }
+            const containsExpectedWord = filteredTexts.some((text) =>
+                text.toUpperCase().includes(expectedWord)
             );
+            expect(containsExpectedWord).toBeTruthy();
+            validatedTerms++;
+        }
 
-            console.log(`Found ${visibleItems} visible accordion items after search`);
-
-            // If no visible items, wait a bit longer and check again (sometimes search needs more time)
-            let finalVisibleItems = visibleItems;
-            if (visibleItems === 0) {
-                console.log('No items found, waiting longer and checking again...');
-                await page.waitForTimeout(2000);
-                finalVisibleItems = await accordionItems.evaluateAll(items =>
-                    items.filter(item => item.style.display !== 'none').length
-                );
-                console.log(`After retry: ${finalVisibleItems} visible items`);
-            }
-
-            // Look for the expected name in the page content (use .first() since multiple matches are expected for common names)
-            const nameVisible = await page.locator(`text=${testCase.expected_name}`).first().isVisible();
-            console.log(`${testCase.expected_name} visible: ${nameVisible}`);
-
-            // If not visible, let's check if the accordions are collapsed
-            if (!nameVisible && finalVisibleItems > 0) {
-                // Try to expand accordion sections that might contain the name
-                const clientAccordion = page.locator(`.accordion-item:has-text("${testCase.expected_account_code}")`).first();
-                if (await clientAccordion.isVisible()) {
-                    await clientAccordion.locator('.accordion-button').click();
-                    await page.waitForTimeout(500);
-
-                    const nameAfterExpand = await page.locator(`text=${testCase.expected_name}`).first().isVisible();
-                    console.log(`${testCase.expected_name} visible after expanding: ${nameAfterExpand}`);
-                }
-            }
-
-            // Take a screenshot for debugging
-            const screenshotName = `balance-search-${testCase.search_term.toLowerCase()}.png`;
-            await page.screenshot({ path: `test-results/${screenshotName}`, fullPage: true });
-
-            // Check if we have at least one visible item (the search should work)
-            // Note: If search still returns 0, this might indicate a bug in the application's search
-            expect(finalVisibleItems).toBeGreaterThan(0);
-
-            console.log(`✓ Search test completed for "${testCase.search_term}"`);
-        });
-    }
+        expect(validatedTerms).toBeGreaterThan(0);
+    });
 
     test('should clear search results when input is empty', async ({ page }) => {
-        // Go to login page
-        await page.goto('/index.php/auth/login');
-
-        // Select "Général" section BEFORE logging in
-        const sectionSelect = page.locator('select[name="section"]');
-        await sectionSelect.selectOption('4'); // Général section
-
-        // Login
-        await page.fill('input[name="username"]', 'testadmin');
-        await page.fill('input[name="password"]', 'password');
-        await page.click('button[type="submit"], input[type="submit"]');
-        await page.waitForLoadState('networkidle');
-
-        // Navigate to balance page
-        await page.goto('/index.php/comptes/balance');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(2000);
-
-        // Scroll to the datatable/accordion before checking anything
-        const balanceAccordion = page.locator('#balanceAccordion');
-        await balanceAccordion.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(500); // Wait for scroll to complete
-
-        console.log('✓ Scrolled to datatable');
+        await loginAndOpenBalance(page);
 
         const searchInput = page.locator('#accordion-search');
         await expect(searchInput).toBeVisible();

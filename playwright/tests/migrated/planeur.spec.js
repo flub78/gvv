@@ -61,6 +61,14 @@ async function getTotalCount(page) {
 }
 
 /**
+ * Assert we are on the glider list page using stable signals.
+ */
+async function assertOnGliderListPage(page) {
+  await expect(page).toHaveURL(/\/planeur\/page(?:[/?#]|$)/);
+  await expect(page.locator('table.datatable')).toBeVisible();
+}
+
+/**
  * Helper function to create a glider
  * @param {Page} page - Playwright page object
  * @param {LoginPage} loginPage - LoginPage helper
@@ -80,6 +88,12 @@ async function createGlider(page, loginPage, glider) {
   await page.fill('input[name="mpmodele"]', glider.type);          // Modèle
   await page.fill('input[name="mpimmat"]', glider.immat);          // Immatriculation
   await page.fill('input[name="mpbiplace"]', glider.nb_places);    // Nombre de sièges
+
+  // Required integer field in current schema
+  const fabricationField = page.locator('input[name="fabrication"]');
+  if (await fabricationField.count() > 0) {
+    await fabricationField.fill('2000');
+  }
 
   // Select mprix (pricing) - it's a Select2 dropdown, may be complex to interact with
   // Skip for now as it's optional and uses Select2 widget
@@ -129,7 +143,7 @@ async function createGlider(page, loginPage, glider) {
   }
 
   // Should be back on the planeurs page
-  await loginPage.assertText('Planeurs');
+  await assertOnGliderListPage(page);
 }
 
 /**
@@ -145,7 +159,7 @@ async function deleteGlider(page, loginPage, immat) {
   await page.waitForTimeout(1000);
 
   // Should be back on the planeurs page
-  await loginPage.assertText('Planeurs');
+  await assertOnGliderListPage(page);
 }
 
 test.describe('GVV Planeur (Glider) Tests (Migrated from Dusk)', () => {
@@ -166,9 +180,9 @@ test.describe('GVV Planeur (Glider) Tests (Migrated from Dusk)', () => {
     await loginPage.goto('planeur/page');
     await page.waitForLoadState('domcontentloaded');
 
-    // Verify page elements (Compta and Planeurs should be visible)
+    // Verify page elements with stable checks
     await loginPage.assertText('Compta');
-    await loginPage.assertText('Planeurs');
+    await assertOnGliderListPage(page);
     console.log('✓ Planeurs page is accessible');
 
     // Get initial count
@@ -185,7 +199,7 @@ test.describe('GVV Planeur (Glider) Tests (Migrated from Dusk)', () => {
 
     // Verify elements again
     await loginPage.assertText('Compta');
-    await loginPage.assertText('Planeurs');
+    await assertOnGliderListPage(page);
 
     // Get new count
     const newTotal = await getTotalCount(page);
@@ -223,7 +237,7 @@ test.describe('GVV Planeur (Glider) Tests (Migrated from Dusk)', () => {
     await loginPage.goto('planeur/page');
 
     // Verify page elements
-    await loginPage.assertText('Planeurs');
+    await assertOnGliderListPage(page);
 
     // Verify table exists
     const tableExists = await page.locator('table').count() > 0;
@@ -243,9 +257,9 @@ test.describe('GVV Planeur (Glider) Tests (Migrated from Dusk)', () => {
     const loginPage = new LoginPage(page);
 
     // Generate unique glider
-    const timestamp = Date.now().toString().slice(-6);
+    const timestamp = Date.now().toString().slice(-5);
     const glider = {
-      immat: `F-TEST${timestamp}`,
+      immat: `F-T${timestamp}`,
       type: 'ASK13',
       nb_places: '1',
       construct: 'Schleicher',

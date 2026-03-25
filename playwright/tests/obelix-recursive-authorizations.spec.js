@@ -173,6 +173,14 @@ function isAccessDenied(url, content) {
         || content.includes('Accès réservé aux administrateurs');
 }
 
+/**
+ * Playwright throws when navigating to download endpoints.
+ * This is expected and should not be treated as an authorization error.
+ */
+function isExpectedDownloadNavigationError(err) {
+    return Boolean(err && err.message && err.message.includes('Download is starting'));
+}
+
 test.describe('Obelix Recursive Authorization Crawl', () => {
 
     test('all visible links must be accessible (forbidden URLs must not appear in menus)', async ({ page }) => {
@@ -269,6 +277,12 @@ test.describe('Obelix Recursive Authorization Crawl', () => {
                 }
 
             } catch (err) {
+                if (isExpectedDownloadNavigationError(err)) {
+                    accessGranted.push({ url, pattern });
+                    console.log(`    => DOWNLOAD (OK)`);
+                    continue;
+                }
+
                 errors.push({ url, pattern, error: err.message });
                 console.log(`  ERROR: ${pattern}  (${url}) - ${err.message}`);
             }
