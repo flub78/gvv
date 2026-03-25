@@ -359,13 +359,8 @@ class Authorization extends CI_Controller {
         $data['title'] = $this->lang->line('authorization_role_members');
         $data['role'] = $role;
         $data['members'] = $this->authorization_model->get_users_with_role($role_id);
-        $data['sections'] = $this->db->get('sections')->result_array();
-
-        $this->db->select('u.id, u.username, u.email, m.mnom, m.mprenom');
-        $this->db->from('users u');
-        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
-        $this->db->order_by('u.username', 'ASC');
-        $data['all_users'] = $this->db->get()->result_array();
+        $data['sections'] = $this->authorization_model->get_all_sections();
+        $data['all_users'] = $this->authorization_model->get_all_users_for_selection();
 
         load_last_view('authorization/role_members', $data);
     }

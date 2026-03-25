@@ -268,6 +268,30 @@ class Authorization_model extends CI_Model {
     }
 
     /**
+     * Get all sections
+     *
+     * @return array
+     */
+    public function get_all_sections()
+    {
+        return $this->db->order_by('nom', 'ASC')->get('sections')->result_array();
+    }
+
+    /**
+     * Get all users with member info for role assignment
+     *
+     * @return array
+     */
+    public function get_all_users_for_selection()
+    {
+        $this->db->select('u.id, u.username, u.email, m.mnom, m.mprenom');
+        $this->db->from('users u');
+        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
+        $this->db->order_by('u.username', 'ASC');
+        return $this->db->get()->result_array();
+    }
+
+    /**
      * Get authorization audit log
      *
      * @param array $filters Filters (action_type, actor_user_id, target_user_id, date_from, date_to)

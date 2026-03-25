@@ -291,6 +291,10 @@ $lang['authorization_add_member'] = "Add Member";
 $lang['authorization_no_members'] = "No members for this role";
 $lang['authorization_select_user'] = "Select a user";
 $lang['authorization_remove_member'] = "Remove";
+$lang['authorization_comm_error'] = "Communication error";
+$lang['authorization_role_removed'] = "Role removed";
+$lang['authorization_error'] = "Error";
+$lang['authorization_select_user_section'] = "Please select a user and a section in the filter";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

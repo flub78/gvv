@@ -285,6 +285,10 @@ $lang['authorization_add_member'] = "Lid toevoegen";
 $lang['authorization_no_members'] = "Geen leden voor deze rol";
 $lang['authorization_select_user'] = "Selecteer een gebruiker";
 $lang['authorization_remove_member'] = "Verwijderen";
+$lang['authorization_comm_error'] = "Communicatiefout";
+$lang['authorization_role_removed'] = "Rol verwijderd";
+$lang['authorization_error'] = "Fout";
+$lang['authorization_select_user_section'] = "Selecteer een gebruiker en een sectie in het filter";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

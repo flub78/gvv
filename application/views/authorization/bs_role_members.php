@@ -133,6 +133,12 @@ if ($role_label === FALSE) $role_label = $role['nom'];
 (function () {
     var roleId = <?= (int)$role['id'] ?>;
     var ajaxUrl = '<?= site_url('authorization/edit_user_roles') ?>';
+    var i18n = {
+        commError:         <?= json_encode($this->lang->line('authorization_comm_error')) ?>,
+        roleRemoved:       <?= json_encode($this->lang->line('authorization_role_removed')) ?>,
+        error:             <?= json_encode($this->lang->line('authorization_error')) ?>,
+        selectUserSection: <?= json_encode($this->lang->line('authorization_select_user_section')) ?>
+    };
     var storageKey = 'role_members_section_' + roleId;
 
     function applySection(sectionId) {
@@ -177,7 +183,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                     var resp = JSON.parse(xhr.responseText);
                     callback(resp);
                 } catch (e) {
-                    callback({ success: false, message: 'Erreur de communication' });
+                    callback({ success: false, message: i18n.commError });
                 }
             }
         };
@@ -194,9 +200,9 @@ if ($role_label === FALSE) $role_label = $role['nom'];
             if (resp.success) {
                 var oTable = $('#membersTable').dataTable({'bRetrieve': true});
                 oTable.fnDeleteRow(btn.closest('tr'));
-                showAlert(resp.message || 'Rôle retiré', 'success');
+                showAlert(resp.message || i18n.roleRemoved, 'success');
             } else {
-                showAlert(resp.message || 'Erreur', 'danger');
+                showAlert(resp.message || i18n.error, 'danger');
             }
         });
     });
@@ -206,7 +212,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
         var userId = $('#selectUser').val();
         var sectionId = document.getElementById('filterSection').value;
         if (!userId || !sectionId) {
-            showAlert('Veuillez sélectionner un utilisateur et une section dans le filtre', 'warning');
+            showAlert(i18n.selectUserSection, 'warning');
             return;
         }
         doAjax(userId, sectionId, 'grant', function (resp) {
@@ -214,7 +220,7 @@ if ($role_label === FALSE) $role_label = $role['nom'];
                 // Reload to refresh the list with correct section names
                 window.location.reload();
             } else {
-                showAlert(resp.message || 'Erreur', 'danger');
+                showAlert(resp.message || i18n.error, 'danger');
             }
         });
     });
