@@ -51,6 +51,7 @@ $this->load->view('bs_banner');
                         <th><?= $this->lang->line('authorization_role_name') ?></th>
                         <th><?= $this->lang->line('authorization_role_description') ?></th>
                         <th><?= $this->lang->line('authorization_role_scope') ?></th>
+                        <th><?= $this->lang->line('authorization_members') ?></th>
                         <th><?= $this->lang->line('authorization_data_rules') ?></th>
                     </tr>
                 </thead>
@@ -76,6 +77,13 @@ $this->load->view('bs_banner');
                                         <i class="fas fa-building"></i> <?= $this->lang->line('authorization_section') ?>
                                     </span>
                                 <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="<?= site_url('authorization/role_members/' . $role['id']) ?>"
+                                   class="btn btn-sm btn-secondary"
+                                   title="<?= $this->lang->line('authorization_members') ?>">
+                                    <i class="fas fa-users"></i> <?= $this->lang->line('authorization_members') ?>
+                                </a>
                             </td>
                             <td>
                                 <a href="<?= site_url('authorization/data_access_rules/' . $role['id']) ?>"

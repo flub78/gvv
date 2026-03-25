@@ -341,6 +341,34 @@ class Authorization extends CI_Controller {
         load_last_view('authorization/roles', $data);
     }
 
+    /**
+     * Manage role members - show who has a given role and allow add/remove
+     */
+    function role_members($role_id = NULL) {
+        if (!$role_id) {
+            redirect('authorization/roles');
+        }
+
+        $role = $this->authorization_model->get_role($role_id);
+        if (!$role) {
+            show_404();
+        }
+
+        $data = array();
+        $data['controller'] = $this->controller;
+        $data['title'] = $this->lang->line('authorization_role_members');
+        $data['role'] = $role;
+        $data['members'] = $this->authorization_model->get_users_with_role($role_id);
+        $data['sections'] = $this->db->get('sections')->result_array();
+
+        $this->db->select('u.id, u.username, u.email, m.mnom, m.mprenom');
+        $this->db->from('users u');
+        $this->db->join('membres m', 'u.username = m.mlogin', 'left');
+        $this->db->order_by('u.username', 'ASC');
+        $data['all_users'] = $this->db->get()->result_array();
+
+        load_last_view('authorization/role_members', $data);
+    }
 
     /**
      * Manage data access rules

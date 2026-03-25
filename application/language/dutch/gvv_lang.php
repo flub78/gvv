@@ -277,6 +277,12 @@ $lang['authorization_global_role'] = "Globaal (alle secties)";
 $lang['authorization_my_authorizations_title'] = "Mijn autorisaties";
 $lang['authorization_my_authorizations_desc'] = "Per sectie";
 $lang['authorization_no_roles_assigned'] = "Geen autorisaties toegewezen";
+$lang['authorization_role_members'] = "Rolleden";
+$lang['authorization_members'] = "Leden";
+$lang['authorization_add_member'] = "Lid toevoegen";
+$lang['authorization_no_members'] = "Geen leden voor deze rol";
+$lang['authorization_select_user'] = "Selecteer een gebruiker";
+$lang['authorization_remove_member'] = "Verwijderen";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

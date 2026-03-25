@@ -283,6 +283,12 @@ $lang['authorization_global_role'] = "Global (all sections)";
 $lang['authorization_my_authorizations_title'] = "My authorizations";
 $lang['authorization_my_authorizations_desc'] = "By section";
 $lang['authorization_no_roles_assigned'] = "No authorizations assigned";
+$lang['authorization_role_members'] = "Role Members";
+$lang['authorization_members'] = "Members";
+$lang['authorization_add_member'] = "Add Member";
+$lang['authorization_no_members'] = "No members for this role";
+$lang['authorization_select_user'] = "Select a user";
+$lang['authorization_remove_member'] = "Remove";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";

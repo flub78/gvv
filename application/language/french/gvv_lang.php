@@ -342,6 +342,12 @@ $lang['authorization_global_role'] = "Global (toutes sections)";
 $lang['authorization_my_authorizations_title'] = "Mes autorisations";
 $lang['authorization_my_authorizations_desc'] = "Par section";
 $lang['authorization_no_roles_assigned'] = "Aucune autorisation attribuée";
+$lang['authorization_role_members'] = "Membres du rôle";
+$lang['authorization_members'] = "Membres";
+$lang['authorization_add_member'] = "Ajouter un membre";
+$lang['authorization_no_members'] = "Aucun membre pour ce rôle";
+$lang['authorization_select_user'] = "Sélectionner un utilisateur";
+$lang['authorization_remove_member'] = "Retirer";
 
 $lang['gvv_label_mode'] = "Mode";
 $lang['gvv_label_menu'] = "Menu";
