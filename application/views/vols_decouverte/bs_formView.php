@@ -130,6 +130,7 @@ if ($modification_type == 'edit') {
 	echo form_hidden('cancelled', $cancelled, '');
 	echo form_hidden('paiement', $paiement, '');
 	echo form_hidden('participation', $participation, '');
+	echo form_hidden('aerodrome', isset($aerodrome) ? $aerodrome : '', '');
 
 	if ($modification_type == 'pre_flight') {
 		echo form_hidden('date_vol', $date_vol, '');
