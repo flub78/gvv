@@ -7,6 +7,8 @@ GVV nécessite une solution de paiement en ligne simple, sans utilisation de Com
 
 ### 1. Stripe - Téléchargement Manuel
 
+Pour une association française loi 1901, Stripe applique un tarif réduit de 1,5 % + 0,25 € par transaction.
+
 #### Méthode d'Intégration Sans Composer
 
 1. **Téléchargement Direct**
