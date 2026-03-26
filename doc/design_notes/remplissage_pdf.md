@@ -127,9 +127,36 @@ CREATE TABLE pdf_template_mappings (
 """
 Utilitaire pour l'extraction des champs et le remplissage de formulaires PDF.
 Usage:
-  pdf_forms.py extract <pdf_file>          # Liste les champs au format JSON
-  pdf_forms.py fill <pdf_file> <output> <json_data>  # Remplit le PDF
+  pdf_forms.py extract --pdf file.pdf [--json_fields fields.json]
+  pdf_forms.py fill --pdf file.pdf --json_data data.json [--json_fields fields.json] [--output output.pdf]
 """
+```
+
+Points importants (état courant) :
+- Un seul script de référence : `bin/pdf_forms.py`.
+- Le remplissage des champs AcroForm (texte, checkbox, radio) est géré par `fill`.
+- Les signatures visuelles peuvent être ajoutées via le bloc `images` dans `json_data`.
+- Les checkboxes sont forcées avec l'état d'apparence réel du PDF (`/On` ou `/Yes` selon le formulaire).
+
+Exemple de `json_data` avec signature:
+
+```json
+{
+  "fields": {
+    "Nom de famille 1": "ELEVE TEST",
+    "Prénoms": "Andre"
+  },
+  "images": [
+    {
+      "pdf": "signature_overlay.pdf",
+      "page": 0,
+      "x": 200,
+      "y": 100,
+      "width": 150,
+      "height": 50
+    }
+  ]
+}
 ```
 
 #### Bibliothèque PHP : `application/libraries/Pdf_form_filler.php`
@@ -154,6 +181,12 @@ Vues :
 - **PyPDF2** : Installé (`python3-pypdf2`), lecture/écriture de formulaires AcroForm
 - **qpdf** : Installé, manipulation bas niveau des PDF
 - **TCPDF** : Disponible dans le projet (génération, pas remplissage)
+- **Pillow (optionnel)** : requis uniquement si `images[].file` pointe vers PNG/JPEG
+
+Contrainte serveur de production (sans droits root) :
+- Le chemin recommandé pour la signature est `images[].pdf` (overlay PDF), qui ne dépend que de PyPDF2.
+- Le chemin `images[].file` (PNG/JPEG) reste possible si Pillow est présent dans l'environnement Python (venv).
+- Aucune dépendance ImageMagick/`convert` n'est requise.
 
 ---
 
@@ -273,43 +306,153 @@ Les PDF générés sont archivés directement via `archived_documents_model->cre
 
 ## Nommage des champs de formulaire dans LibreOffice
 
-Pour remplir un PDF avec precision, il faut cibler les champs par leur nom technique, pas par position XY.
+Pour remplir un PDF avec précision, il faut cibler les champs par leur nom technique, pas par position XY.
 
-### Procedure
+### Procédure
 
-1. Activer la barre des controles de formulaire:
-  - Affichage > Barres d'outils > Controles de formulaire
-2. Activer le mode ebauche (Design Mode)
-3. Creer ou selectionner un champ (texte, case a cocher, liste, etc.)
-4. Ouvrir les proprietes du controle:
-  - Clic droit > Controle...
-5. Renseigner la propriete `Nom` (onglet General)
-6. Exporter le document en cochant "Creer un formulaire PDF"
+1. Activer la barre des contrôles de formulaire :
+  - Affichage > Barres d'outils > Contrôles de formulaire
+2. Activer le mode Ébauche (Design Mode)
+3. Créer ou sélectionner un champ (texte, case à cocher, liste, etc.)
+4. Ouvrir les propriétés du contrôle :
+  - Clic droit > Contrôle...
+5. Renseigner la propriété `Nom` (onglet Général)
+6. Exporter le document en cochant "Créer un formulaire PDF"
 
-### Convention de nommage recommandee
+### Convention de nommage recommandée
 
 - Utiliser `snake_case`
-- Eviter espaces et accents
+- Éviter les espaces et les accents
 - Utiliser des noms stables dans le temps
-- Renommer un champ uniquement avec mise a jour simultanee du script de remplissage
+- Renommer un champ uniquement avec mise à jour simultanée du script de remplissage
 
-Exemples de noms:
+Exemples de noms :
 - `nom_pilote`
 - `date_vol`
 - `signature_png`
 
 ### Cas particulier des boutons radio
 
-- Les options d'un meme groupe partagent un meme nom de groupe
+- Les options d'un même groupe partagent un même nom de groupe
 - Chaque option doit avoir une valeur distincte
 - Le script choisit l'option en envoyant la valeur attendue
 
 ### Signature PNG
 
-- Une image PNG peut etre placee de maniere precise dans une zone dediee du formulaire
-- Cette signature est visuelle uniquement
-- Si une signature legale forte est requise, ajouter ensuite une signature numerique du PDF final
+- Deux modes d'insertion sont supportés :
+  - `images[].pdf` : overlay PDF prêt à l'emploi (mode recommandé en production)
+  - `images[].file` : image PNG/JPEG (nécessite Pillow)
+- Comportement de l'overlay :
+  - La position et la taille finales ne sont pas figées dans l'overlay PDF.
+  - Le placement final est appliqué au moment du `fill` via `x`, `y`, `width`, `height`.
+  - Un même overlay peut donc être réutilisé pour plusieurs emplacements/signatures, en changeant uniquement les coordonnées et dimensions dans le JSON.
+- Coordonnées :
+  - Unité : point PDF (`1 pt = 1/72 inch`)
+  - Origine : coin bas-gauche de la page
+  - Paramètres : `x`, `y`, `width`, `height`
+- Bonnes pratiques de taille :
+  - Zone de signature typique : `width=120..180`, `height=35..60` (en points)
+  - Si source raster : viser au moins 2x la taille d'affichage (ex: 300x100 px pour ~150x50 pt)
+- Cette signature est visuelle uniquement.
+- Si une signature légale forte est requise, ajouter ensuite une signature numérique du PDF final.
 
-### Verification
+### Test manuel de l'insertion d'image
 
-Apres export, verifier les noms de champs avec un outil d'inspection (`pdftk`, `qpdf`, `pypdf`) pour s'assurer que les noms du PDF correspondent exactement aux cles utilisees par le script.
+#### Préparation du fichier JSON
+
+1. Copier `doc/prds/reference/pdf_data_134i.sample.json` vers un fichier de test local (ex: `/tmp/pdf_data_img_test.json`).
+2. Ajouter un bloc `images` dans le JSON.
+
+Exemple (mode overlay PDF) :
+
+```json
+{
+  "fields": {
+    "Nom de famille 1": "ELEVE TEST",
+    "Prénoms": "Andre"
+  },
+  "images": [
+    {
+      "pdf": "/chemin/vers/signature_overlay.pdf",
+      "page": 0,
+      "x": 200,
+      "y": 100,
+      "width": 150,
+      "height": 50
+    }
+  ]
+}
+```
+
+Exemple (mode PNG/JPEG) :
+
+```json
+{
+  "fields": {
+    "Nom de famille 1": "ELEVE TEST",
+    "Prénoms": "Andre"
+  },
+  "images": [
+    {
+      "file": "/chemin/vers/signature.png",
+      "page": 0,
+      "x": 200,
+      "y": 100,
+      "width": 150,
+      "height": 50
+    }
+  ]
+}
+```
+
+#### Commande de génération
+
+```bash
+python3 bin/pdf_forms.py fill \
+  --pdf doc/design_notes/documents/134iFormlic.pdf \
+  --json_fields doc/prds/reference/pdf_fields_134i.json \
+  --json_data /tmp/pdf_data_img_test.json \
+  --output /tmp/134i_with_signature.pdf
+```
+
+#### Ajustement rapide des coordonnées
+
+- Premier essai recommandé : `x=50`, `y=50`, `width=180`, `height=60`.
+- Si la signature est trop à droite, diminuer `x`.
+- Si la signature est trop haute, diminuer `y`.
+- Si la signature est trop grande, diminuer `width` et `height`.
+- Travailler par pas de 20 points pour converger rapidement.
+
+#### Dépannage (troubleshooting)
+
+- Erreur `fichier introuvable` :
+  - Vérifier le chemin de `--pdf`, `--json_data` et `images[].pdf`/`images[].file`.
+  - Utiliser des chemins absolus pour le premier test.
+
+- Erreur `images[i].page hors limites` :
+  - La numérotation commence à 0.
+  - Vérifier le nombre de pages du PDF source.
+
+- Erreur liée à Pillow (`Pillow est requis...`) :
+  - Cette erreur ne concerne que le mode `images[].file` (PNG/JPEG).
+  - En production minimale, basculer vers `images[].pdf`.
+
+- Signature invisible ou hors zone :
+  - Commencer avec `x=50`, `y=50`, `width=180`, `height=60`.
+  - Ajuster ensuite par pas de 20 points.
+
+- Signature déformée :
+  - Conserver un ratio `width/height` proche de l'image d'origine.
+  - Préparer une image source avec peu de marges blanches.
+
+- Rectangle blanc autour de la signature :
+  - Préférer un PNG avec transparence.
+  - Si conversion en PDF, générer un overlay recadré au plus près du tracé.
+
+- Erreur `champs inconnus` :
+  - Vérifier les noms exacts avec `extract`.
+  - Contrôler la cohérence avec `--json_fields` quand cette option est utilisée.
+
+### Vérification
+
+Après export, vérifier les noms de champs avec un outil d'inspection (`pdftk`, `qpdf`, `pypdf`) pour s'assurer que les noms du PDF correspondent exactement aux clés utilisées par le script.
