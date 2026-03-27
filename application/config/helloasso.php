@@ -21,7 +21,7 @@ $config['helloasso_environment'] = getenv('HELLOASSO_ENV') ?: 'sandbox';
 // API ENDPOINTS
 // ============================================================================
 $config['helloasso_api_urls'] = array(
-    'sandbox'    => 'https://sandbox-api.helloasso.com/v5/',
+    'sandbox'    => 'https://api.helloasso-sandbox.com/v5/',
     'production' => 'https://api.helloasso.com/v5/'
 );
 
@@ -44,9 +44,9 @@ $config['helloasso_auth_method'] = 'oauth2'; // or 'api_key'
  * Obtain from https://dev.helloasso.com/
  */
 $config['helloasso_oauth'] = array(
-    'client_id'      => getenv('HELLOASSO_CLIENT_ID') ?: '',
-    'client_secret'  => getenv('HELLOASSO_CLIENT_SECRET') ?: '',
-    'token_url'      => 'https://api.helloasso.com/oauth2/token',
+    'client_id'      => 'fc392b0be8154f2981c4216027046f50',
+    'client_secret'  => 'laBpM+YxXp8bN+gK/v5bARFdFHtLs6DL',
+    'token_url'      => 'https://api.helloasso-sandbox.com/oauth2/token',
     'token_scope'    => 'API', // Scope for API access
 );
 
@@ -75,7 +75,13 @@ $config['helloasso_merchant_id'] = getenv('HELLOASSO_MERCHANT_ID') ?: '';
  * Human-readable identifier (e.g., "club-vol-avion-montlucon")
  * Used in payment URLs visible to customers
  */
-$config['helloasso_account_slug'] = getenv('HELLOASSO_ACCOUNT_SLUG') ?: '';
+$config['helloasso_account_slug'] = getenv('HELLOASSO_ACCOUNT_SLUG') ?: 'aeroclub-d-abbeville';
+
+// Base URL used for payment callbacks.
+// Priority: HELLOASSO_APP_URL > APP_URL > default.
+// HelloAsso checkout URLs must be valid absolute URLs and are expected in HTTPS.
+$app_url = getenv('HELLOASSO_APP_URL') ?: (getenv('APP_URL') ?: 'https://gvv.net');
+$app_url = rtrim($app_url, '/');
 
 // ============================================================================
 // PAYMENT CONFIGURATION
@@ -86,14 +92,28 @@ $config['helloasso_account_slug'] = getenv('HELLOASSO_ACCOUNT_SLUG') ?: '';
  * Customer is redirected here after successful payment
  * Use full URL with protocol (http:// or https://)
  */
-$config['helloasso_return_url_success'] = getenv('APP_URL') . '/payments/helloasso_callback?status=success';
+$config['helloasso_return_url_success'] = $app_url . '/payments/helloasso_callback?status=success';
 
 /**
  * Payment Failure Return URL
  * 
  * Customer redirected here if payment fails or is cancelled
  */
-$config['helloasso_return_url_failure'] = getenv('APP_URL') . '/payments/helloasso_callback?status=failure';
+$config['helloasso_return_url_failure'] = $app_url . '/payments/helloasso_callback?status=failure';
+
+/**
+ * Payment Back URL
+ *
+ * Customer redirected here when going back/cancelling checkout.
+ */
+$config['helloasso_back_url'] = $app_url . '/payments/helloasso_callback?status=cancel';
+
+/**
+ * Payment Error URL
+ *
+ * Customer redirected here when checkout returns an error.
+ */
+$config['helloasso_error_url'] = $app_url . '/payments/helloasso_callback?status=error';
 
 /**
  * Payment Webhook URL (For Async Confirmation)
@@ -103,7 +123,7 @@ $config['helloasso_return_url_failure'] = getenv('APP_URL') . '/payments/helloas
  * 
  * Usage: Enable in Phase 2+ when webhook listener is implemented
  */
-$config['helloasso_webhook_url'] = getenv('APP_URL') . '/payments/helloasso_webhook';
+$config['helloasso_webhook_url'] = $app_url . '/payments/helloasso_webhook';
 
 /**
  * Webhook Secret Key

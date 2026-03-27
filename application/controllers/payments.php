@@ -205,11 +205,14 @@ class Payments extends CI_Controller {
             }
 
             // Prepare payment data
+            $amount_cents = round($amount * 100);
             $payment_data = array(
-                'amount' => round($amount * 100), // Convert EUR to cents
-                'initialAmount' => round($amount * 100),
-                'displayName' => $payer_name,
-                'description' => 'Test Payment: ' . $reference,
+                'initialAmount' => $amount_cents,
+                'totalAmount' => $amount_cents,
+                // Required by HelloAsso checkout-intents.
+                'itemName' => 'Paiement GVV - ' . $reference,
+                // Required by HelloAsso checkout-intents.
+                'containsDonation' => FALSE,
                 'payer' => array(
                     'firstName' => $payer_name,
                     'email' => !empty($payer_email) ? $payer_email : '',
@@ -219,20 +222,25 @@ class Payments extends CI_Controller {
                     'type' => 'spike_test',
                     'date' => date('Y-m-d H:i:s'),
                 ),
-                'returnUrl' => array(
-                    'successUrl' => $this->config->item('helloasso_return_url_success'),
-                    'errorUrl' => $this->config->item('helloasso_return_url_failure'),
-                    'unsubscribeUrl' => $this->config->item('helloasso_return_url_failure'),
-                ),
+                // HelloAsso checkout-intents expects returnUrl as a single string URL.
+                'returnUrl' => $this->config->item('helloasso_return_url_success'),
+                // Required by HelloAsso: URL used when user goes back/cancels checkout.
+                'backUrl' => $this->config->item('helloasso_back_url'),
+                // Required by HelloAsso: URL used when checkout returns an error.
+                'errorUrl' => $this->config->item('helloasso_error_url'),
             );
+
+            // Build correct HelloAsso checkout-intents endpoint
+            $account_slug = $this->config->item('helloasso_account_slug');
+            $endpoint = $api_base_url . 'organizations/' . $account_slug . '/checkout-intents';
 
             // Log API request if debug enabled
             if ($this->config->item('helloasso_debug')) {
-                $this->_log_helloasso('API REQUEST', 'POST ' . $api_base_url . 'payments', $payment_data);
+                $this->_log_helloasso('API REQUEST', 'POST ' . $endpoint, $payment_data);
             }
 
             // Make HTTP request using cURL
-            $response = $this->_http_post($api_base_url . 'payments', $payment_data, $auth_header);
+            $response = $this->_http_post($endpoint, $payment_data, $auth_header);
 
             // Log API response if debug enabled
             if ($this->config->item('helloasso_debug')) {
@@ -242,10 +250,10 @@ class Payments extends CI_Controller {
             // Handle API response
             if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
                 $response_data = json_decode($response['body'], TRUE);
-                if (isset($response_data['checkoutUrl'])) {
+                if (isset($response_data['redirectUrl'])) {
                     return array(
                         'success' => TRUE,
-                        'redirect_url' => $response_data['checkoutUrl'],
+                        'redirect_url' => $response_data['redirectUrl'],
                         'session_id' => $response_data['id'],
                         'reference' => $reference,
                     );
@@ -254,7 +262,32 @@ class Payments extends CI_Controller {
 
             // API error
             $error_body = json_decode($response['body'], TRUE);
-            $error_message = isset($error_body['message']) ? $error_body['message'] : 'Unknown API error';
+            $error_message = 'Unknown API error';
+
+            if (is_array($error_body)) {
+                if (isset($error_body['message']) && $error_body['message'] !== '') {
+                    $error_message = $error_body['message'];
+                } elseif (isset($error_body['title']) && $error_body['title'] !== '') {
+                    $error_message = $error_body['title'];
+                }
+
+                // Format used by some HelloAsso validation responses: {"errors":[{"code":"...","message":"..."}]}
+                if (isset($error_body['errors']) && is_array($error_body['errors']) && isset($error_body['errors'][0]) && is_array($error_body['errors'][0])) {
+                    if (isset($error_body['errors'][0]['message']) && $error_body['errors'][0]['message'] !== '') {
+                        $error_message = $error_body['errors'][0]['message'];
+                    }
+                }
+
+                if (isset($error_body['errors']) && is_array($error_body['errors'])) {
+                    foreach ($error_body['errors'] as $field => $field_errors) {
+                        if (is_array($field_errors) && isset($field_errors[0])) {
+                            $error_message .= ' [' . $field . ': ' . $field_errors[0] . ']';
+                            break;
+                        }
+                    }
+                }
+            }
+
             return $this->_api_error_response($error_message, $response['http_code']);
 
         } catch (Exception $e) {
@@ -289,10 +322,10 @@ class Payments extends CI_Controller {
             $api_key = $this->config->item('helloasso_api_key');
             return 'Bearer ' . $api_key;
         } elseif ($auth_method === 'oauth2') {
-            // For OAuth2, you would typically get a token first
-            // For this spike, we assume oauth2 is configured properly
-            $oauth_config = $this->config->item('helloasso_oauth');
             $token = $this->_get_oauth_token();
+            if ($token === FALSE) {
+                return ''; // Caller checks for empty and aborts
+            }
             return 'Bearer ' . $token;
         }
 
@@ -310,17 +343,20 @@ class Payments extends CI_Controller {
         $oauth_config = $this->config->item('helloasso_oauth');
 
         $token_request = array(
-            'grant_type' => 'client_credentials',
-            'client_id' => $oauth_config['client_id'],
+            'grant_type'    => 'client_credentials',
+            'client_id'     => $oauth_config['client_id'],
             'client_secret' => $oauth_config['client_secret'],
         );
 
-        // Log token request if debug enabled
+        // Log token request if debug enabled (redact secret)
         if ($this->config->item('helloasso_debug')) {
-            $this->_log_helloasso('OAUTH REQUEST', $oauth_config['token_url'], $token_request);
+            $log_data = $token_request;
+            $log_data['client_secret'] = '***REDACTED***';
+            $this->_log_helloasso('OAUTH REQUEST', $oauth_config['token_url'], $log_data);
         }
 
-        $response = $this->_http_post($oauth_config['token_url'], $token_request, '');
+        // OAuth2 token endpoint REQUIRES application/x-www-form-urlencoded (not JSON)
+        $response = $this->_http_post_form($oauth_config['token_url'], $token_request);
 
         if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
             $response_data = json_decode($response['body'], TRUE);
@@ -331,6 +367,30 @@ class Payments extends CI_Controller {
 
         $this->_log_helloasso('OAUTH ERROR', 'Status: ' . $response['http_code'], $response['body']);
         return FALSE;
+    }
+
+    /**
+     * Make HTTP POST with application/x-www-form-urlencoded (for OAuth token endpoint)
+     */
+    private function _http_post_form($url, $data) {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->config->item('helloasso_timeout'));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->config->item('helloasso_verify_ssl'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/x-www-form-urlencoded',
+            'Accept: application/json',
+        ));
+
+        $response_body = curl_exec($ch);
+        $http_code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return array('http_code' => $http_code, 'body' => $response_body);
     }
 
     /**
