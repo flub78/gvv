@@ -44,9 +44,9 @@ $config['helloasso_auth_method'] = 'oauth2'; // or 'api_key'
  * Obtain from https://dev.helloasso.com/
  */
 $config['helloasso_oauth'] = array(
-    'client_id'      => 'fc392b0be8154f2981c4216027046f50',
-    'client_secret'  => 'laBpM+YxXp8bN+gK/v5bARFdFHtLs6DL',
-    'token_url'      => 'https://api.helloasso-sandbox.com/oauth2/token',
+    'client_id'      => getenv('HELLOASSO_CLIENT_ID') ?: '',
+    'client_secret'  => getenv('HELLOASSO_CLIENT_SECRET') ?: '',
+    'token_url'      => getenv('HELLOASSO_TOKEN_URL') ?: 'https://api.helloasso-sandbox.com/oauth2/token',
     'token_scope'    => 'API', // Scope for API access
 );
 

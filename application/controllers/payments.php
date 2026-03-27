@@ -16,14 +16,11 @@ class Payments extends CI_Controller {
     /**
      * Constructor
      * 
-     * Checks user authentication and loads required libraries
+        * Loads required libraries and helpers
      */
     public function __construct() {
         parent::__construct();
-        
-        // Require user to be logged in
-        $this->dx_auth->check_login();
-        
+
         // Load required libraries and models
         $this->load->library('log');
         $this->load->config('helloasso');
@@ -66,6 +63,9 @@ class Payments extends CI_Controller {
      * Restricted to dev_menu_users (development admins only)
      */
     public function test_helloasso() {
+        // Payment test page is restricted to authenticated dev users.
+        $this->dx_auth->check_login();
+
         // Check authorization
         if (!$this->_is_dev_authorized()) {
             $this->_show_forbidden();
@@ -497,6 +497,13 @@ class Payments extends CI_Controller {
      * async payment confirmation from HelloAsso
      */
     public function helloasso_webhook() {
+        // Webhook endpoint is public but should only accept server-to-server POST calls.
+        if (strtoupper($this->input->server('REQUEST_METHOD')) !== 'POST') {
+            $this->output->set_status_header(405);
+            echo 'Method Not Allowed';
+            return;
+        }
+
         // Placeholder for webhook implementation
         echo "Webhook endpoint ready (Phase 2+)";
     }
@@ -507,6 +514,13 @@ class Payments extends CI_Controller {
      * This receives redirects from HelloAsso after payment
      */
     public function helloasso_callback() {
+        // Callback endpoint is public but should only be reached through browser redirects (GET).
+        if (strtoupper($this->input->server('REQUEST_METHOD')) !== 'GET') {
+            $this->output->set_status_header(405);
+            echo 'Method Not Allowed';
+            return;
+        }
+
         $status = $this->input->get('status');
         $data = array();
         $data['status'] = $status;
