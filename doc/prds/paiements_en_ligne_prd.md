@@ -357,6 +357,7 @@ Un pilote connecté et identifié dispose d'un solde positif sur son compte pilo
 - Le montant minimum est de 10€ pour limiter les frais de transaction
 - Le montant maximum est de 500€ par transaction pour sécurité
 - La plateforme de paiement prélève une commission (ex: HelloAsso 0% pour associations)
+- **Section obligatoire** : Toute opération impliquant un paiement par carte bancaire nécessite qu'une section active (autre que "Toutes") soit sélectionnée dans la session de l'utilisateur. Si la section active est "Toutes", l'opération est refusée avec un message explicite invitant l'utilisateur à sélectionner une section avant de procéder au paiement. Cette contrainte est indispensable car les crédentiels HelloAsso sont isolés par section.
 
 ---
 
@@ -825,6 +826,7 @@ public function helloasso_webhook() {
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
 - Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
+- **Section active obligatoire pour tout paiement CB** : si la session de l'utilisateur est en mode "Toutes les sections", toute opération impliquant un paiement par carte bancaire (provisionnement, bar, cotisation, bon de découverte) est refusée. L'utilisateur doit sélectionner une section spécifique. Cette règle s'applique également aux pages publiques (UC2, UC4) : le lien ou QR Code doit encoder explicitement l'identifiant de section — un lien sans section valide est rejeté.
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)
 - Interface responsive (mobile, tablette, desktop)
 
@@ -893,6 +895,7 @@ grep STATUS= application/logs/helloasso_payments.log
 - Tests d'intégration pour le flow de paiement complet
 - Configuration centralisée et facile à modifier
 - Logs détaillés pour debugging
+- **Tests Playwright conditionnels** : les tests nécessitant un appel HelloAsso réel (création de checkout, redirection, webhook) utilisent `test.skip` si les crédentiels sandbox ne sont pas définis dans `application/config/helloasso.php`. Un endpoint dédié `paiements_en_ligne/sandbox_available` permet aux specs de détecter la disponibilité des crédentiels avant d'exécuter ces tests.
 
 ### 7.6 Conformité
 
