@@ -11,7 +11,7 @@
 
 ## 1. Résumé Exécutif
 
-Ce PRD décrit les exigences pour permettre aux membres des clubs de vol à voile d'approvisionner leurs comptes pilotes en ligne via carte bancaire. Le système intégrera des plateformes de paiement en ligne (priorité : HelloAsso) et générera automatiquement les écritures comptables correspondantes dans GVV, exactement comme si le trésorier les avait saisies manuellement.
+Ce PRD décrit les exigences pour permettre aux membres des clubs de vol à voile d'approvisionner leurs comptes pilotes en ligne ou d'effectuer des paiements via carte bancaire. Le système intégrera des plateformes de paiement en ligne (priorité : HelloAsso) et générera automatiquement les écritures comptables correspondantes dans GVV, exactement comme si le trésorier les avait saisies manuellement.
 
 Cette fonctionnalité améliorera l'expérience utilisateur, réduira la charge de travail du trésorier, et modernisera la gestion financière des clubs en permettant des paiements instantanés 24/7.
 
@@ -76,6 +76,7 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 **Pilote/Membre :**
 - Provisionner son compte à tout moment via carte bancaire
+- Ou effectuer des paiements pour des services (bar, cotisation, etc.)
 - Voir immédiatement le crédit apparaître sur son compte
 - Recevoir une confirmation de paiement
 - Consulter l'historique de ses provisionnements en ligne
@@ -86,10 +87,18 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 - Suivre les commissions prélevées par la plateforme de paiement
 - Rapprocher automatiquement les virements de la plateforme de paiement
 
+**Personne Extérieure (non membre) :**
+- Payer une consommation au bar du club via QR Code, sans créer de compte GVV
+- Payer un bon de vol de découverte en ligne via un lien ou QR Code
+- Recevoir une confirmation de paiement par email
+- Télécharger un justificatif ou bon en PDF
+- Recevoir les bons de vol de découverte par email après paiement
+
 **Administrateur Système :**
 - Configurer les paramètres d'intégration avec la plateforme de paiement
 - Surveiller le bon fonctionnement des webhooks et notifications
 - Gérer les comptes de la plateforme de paiement (HelloAsso, etc.)
+- Générer et gérer les QR Codes et liens de paiement public
 
 ---
 
@@ -149,6 +158,171 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 - Payer par carte comme pour n'importe quel service en ligne
 - Recharger de petits montants facilement et fréquemment
 - Interface mobile-friendly
+
+---
+
+## 4.3 Cas d'Usage Additionnels et Scénarios Métier
+
+La plateforme de paiement en ligne doit supporter les scénarios métier suivants, au-delà du provisionnement simple de compte :
+
+### UC1 : Paiement de Notes de Bar par un Pilote Authentifié (Priorité : HAUTE)
+
+**Contexte :**
+Un pilote connecté et identifié dans GVV souhaite payer ses consommations (boissons, repas) au bar du club directement par carte bancaire.
+
+**Flux :**
+1. Le pilote accède à la page "Mes dépenses de bar"
+2. Il clique sur "Payer par carte"
+3. On lui demande seulement la **confirmation du montant** et une **courte description** (ex: "Consommations bar - 25/03/2026")
+4. Il est redirigé vers HelloAsso pour payer
+6. Après paiement réussi :
+   - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
+   - Le pilote reçoit une confirmation par email
+   - Son historique de compte affiche le paiement
+
+**Avantages :**
+- Paiement immédiat sans intervention du trésorier
+- Traçabilité complète en comptabilité
+- Réduit le "débit sur compte" manuel
+
+---
+
+### UC2 : Paiement de Notes de Bar par une Personne Externe (Priorité : MOYENNE)
+
+**Contexte :**
+Une personne extérieure au club (visiteur, ami d'un pilote) souhaite payer ses consommations au bar sans avoir de compte GVV.
+
+**Flux :**
+1. Le gestionnaire du bar (ou tout bénévole) dispose d'un **QR Code** affiché au bar
+2. La personne scanne le QR Code avec son téléphone
+3. Elle accède à une **page de paiement publique** (sans connexion requise) avec un formulaire :
+   - **Nom** (obligatoire)
+   - **Prénom** (obligatoire)  
+   - **Email** (obligatoire, pour confirmation)
+   - **Description** du paiement (ex: "Consommations bar - 3 bières, 2 cafés")
+   - **Montant** (libre, minimum 2€ pour couvrir les frais)
+4. Elle paie par carte
+5. Après succès :
+   - Confirmation par e-mail à l'adresse fournie
+   - La recette de bar est enregistrée en comptabilité
+
+**Avantages :**
+- Monétisation des services du bar auprès des externes
+- Flux de collecte autonome sans intervention humaine
+- Pas de fuite de trésorerie
+
+**Note :** Le QR Code doit être généré et géré par l'admin du club
+
+---
+
+### UC3 : Renouvellement de Cotisation en Ligne par un Pilote Authentifié (Priorité : MÉDIUM)
+
+**Contexte :**
+Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier.
+
+**Flux :**
+1. Le pilote accède à "Mon Compte" → "Gérer ma Cotisation"
+2. Le système affiche les **produits de cotisation** disponibles configurés par le club :
+   - Exemple : "Cotisation Pilote 2026 - 350€"
+   - Exemple : "Cotisation Junior 2026 - 200€"
+   - Exemple : "Formule Voltige 2026 - 500€"
+3. Il sélectionne le produit voulu
+4. Il paie par carte
+5. Après paiement :
+   - Écriture comptable automatique (vente de cotisation, compte 417)
+   - Marquage du pilote comme "cotisant à jour pour 2026"
+   - Attestation PDF générée et envoyée par email
+   - Notification au trésorier pour information
+   - Le compte du pilote affiche "Cotisation à jour jusqu'au 31/12/2026"
+
+**Avantages :**
+- Renouvellement autonome, 24/7
+- Pas de fuite de cotisation
+- Automatisation des attestations
+
+**Configuration requise :**
+- Les trésoriers doivent pouvoir créer des "produits de cotisation" dans GVV avec :
+  - Libellé
+  - Montant
+  - Validité (date de fin)
+  - Compte comptable associé
+
+---
+
+### UC4 : Paiement de Bon de Découverte par le Gestionnaire de Vol (Priorité : MÉDIUM)
+
+**Contexte :**
+Un gestionnaire ou responsable de vol de découverte souhaite proposer à une personne externe de payer son bon de découverte directement par carte, sans déranger le trésorier.
+
+**Flux :**
+1. Le gestionnaire de vol crée un **lien de paiement public** (ou un QR Code) pointant vers un formulaire de paiement
+2. Le lien contient le **montant préconfiguré** du bon (ex: 120€ pour vol 30 min)
+3. Une personne externe accède au lien sans connexion à GVV
+4. Elle remplit un formulaire simplifié :
+   - **Nom** (obligatoire)
+   - **Prénom** (obligatoire)
+   - **Email** (obligatoire)
+   - **Type de vol** (présélectionné, non modifiable) : "Vol de Découverte 30 min - 120€"
+   - **Message optionnel** (ex: notes du gestionnaire)
+5. Elle paie par carte
+6. Après succès :
+   - Confirmation par email avec les modalités du vol
+ - Création du vol de découverte et envoie par mail à l'adresse fournie
+ - Création de la recette associée, comme quand le bon est créé manuellement
+   - Notification email sur la moite mail du club
+   - Coupon/bon de paiement téléchargeable en PDF
+
+**Avantages :**
+- Autonomie du gestionnaire de vol, sans ticket de caisse
+- Documentation automatique des bons vendus
+
+**Configuration requise :**
+- Les gestionnaires doivent pouvoir générer des **liens de paiement publics** avec :
+  - Montant préconfiguré
+  - Libellé du service (vol 15 min, 30 min, etc.)
+  - Durée de validité du lien
+
+---
+
+### UC5 : Paiement de Notes de Bar par Débit de Solde du Pilote (Priorité : HAUTE)
+
+**Contexte :**
+Un pilote connecté et identifié dispose d'un solde positif sur son compte pilote. Il souhaite payer ses consommations du bar directement en débitant son solde, sans passer par un paiement par carte. Le système fonctionne exactement comme la facturation manuelle du trésorier, mais à l'initiative du pilote lui-même.
+
+**Flux :**
+1. Le pilote accède à la page "Mon Compte"
+2. On lui affiche son solde actuel et un message informatif :
+   > "Vous pouvez provisionner votre compte en ligne ou payer directement vos dépenses de bar avec votre solde disponible"
+3. Il accède à la section "Paiements par débit de solde" (ou "Dépenses du bar")
+4. Il voit ses **notes de bar en attente de paiement** (générées par les gérants du bar)
+5. Pour chaque note, il peut :
+   - Voir le détail (articles, montant total)
+   - Cliquer sur "Payer par mon solde"
+6. **Vérification du solde :**
+   - Si `solde_disponible >= montant_note` : paiement autorisé
+   - Si `solde_disponible < montant_note` : message d'erreur, transaction refusée
+     > "Solde insuffisant : vous avez 25€ disponible, cette note coûte 45€. Veuillez provisionner votre compte."
+7. Après acceptation du paiement :
+   - Écriture comptable créée automatiquement :
+     - Compte pilote (411) débité du montant
+     - Compte bar crédité du montant
+   - La note est marquée comme payée
+   - Le pilote reçoit une confirmation par email et dans l'interface
+   - Son historique de compte affiche le débit avec la description "Paiement bar"
+   - Son solde est immédiatement mis à jour
+
+**Avantages :**
+- Autonomie du pilote : paiement instantané sans intervention du trésorier
+- Fluidité : utilisation immédiate de son solde disponible
+- Traçabilité comptable complète (identique à la facturation manuelle)
+- Pas de frais de transaction (pas de plateforme de paiement impliquée)
+- Réduction des "oublis" de paiement de dépenses bar
+
+**Règles Métier :**
+- Le pilote ne peut payer que ses propres notes
+- La transaction est atomique : soit complètement acceptée, soit complètement refusée
+- Le solde est recalculé en temps réel et bloque tout paiement en cas d'insuffisance
+- Aucun paiement à crédit n'est possible (solde minimum = 0€)
 
 ---
 
@@ -255,7 +429,7 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 ### 5.4 EF4 : Liste des Provisionnements par le Trésorier (Priorité : HAUTE)
 
-**Description :** Fournir au trésorier une vue centralisée de tous les provisionnements en ligne effectués par les membres.
+**Description :** Fournir au trésorier une vue centralisée de tous les paiements en ligne effectués par les membres ou des personnes extérieures, avec les détails de chaque transaction pour vérification et rapprochement comptable.
 
 **User Story :**
 > En tant que trésorier, je veux lister tous les provisionnements en ligne avec les détails des transactions, afin de vérifier la cohérence comptable et suivre l'activité de paiement en ligne.
@@ -301,13 +475,13 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 **Critères d'Acceptation :**
 - CA5.1 : Page d'administration : `admin/paiements_en_ligne/config`
-- CA5.2 : Configuration par plateforme :
+- CA5.2 : Configuration par plateforme, **individualisée par section** :
   - **HelloAsso** (priorité 1) :
-    - Clé API Client ID
-    - Clé API Client Secret
-    - Mode sandbox/production
-    - ID de l'organisation HelloAsso
-    - URL de webhook
+    - Clé API Client ID (propre à chaque section HelloAsso)
+    - Clé API Client Secret (propre à chaque section HelloAsso)
+    - Slug de l'organisation HelloAsso (propre à chaque section)
+    - Mode sandbox/production (peut différer par section)
+    - URL de webhook (générée automatiquement avec l'identifiant de section)
   - **Autres plateformes** (optionnel futur) :
     - Stripe, Lydia, PayPal
 - CA5.3 : Configuration du compte comptable :
@@ -318,15 +492,17 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
   - Montant minimum de provisionnement
   - Montant maximum par transaction
   - Activation/désactivation du module par section
-- CA5.5 : Test de connexion disponible :
+- CA5.5 : Test de connexion disponible par section :
   - Bouton "Tester la connexion HelloAsso"
   - Affichage du résultat du test (succès/erreur avec détails)
 - CA5.6 : Génération automatique de l'URL de webhook pour copie dans l'interface HelloAsso
 
 **Règles Métier :**
 - Seuls les administrateurs (`admin`) peuvent modifier la configuration
-- Les clés API doivent être stockées de manière sécurisée (chiffrées en base de données)
-- Un log d'audit enregistre tous les changements de configuration
+- **Chaque section dispose de ses propres crédentiels HelloAsso** (Client ID, Client Secret, slug) : une section ne peut pas initier de paiement avec les crédentiels d'une autre section
+- Les crédentiels actifs sont sélectionnés automatiquement en fonction de la section courante de l'utilisateur au moment du paiement
+- Les clés API doivent être stockées de manière sécurisée (chiffrées en base de données), séparément par section
+- Un log d'audit enregistre tous les changements de configuration, avec indication de la section concernée
 
 ---
 
@@ -648,11 +824,69 @@ public function helloasso_webhook() {
 - Fonctionne avec PHP 7.4
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
-- Compatible avec le système de sections/clubs existant
+- Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)
 - Interface responsive (mobile, tablette, desktop)
 
-### 7.5 Maintenabilité
+### 7.5 Traçabilité des Échanges HelloAsso dans les Logs
+
+Toutes les interactions avec HelloAsso (requêtes sortantes, réponses, webhooks entrants, erreurs) doivent être enregistrées dans un fichier de log dédié **par jour**, dont le nom inclut la date au format `YYYY-MM-DD`, selon les règles suivantes :
+
+**Nommage du fichier de log :**
+```
+application/logs/helloasso_payments_YYYY-MM-DD.log
+```
+Exemples :
+```
+application/logs/helloasso_payments_2026-03-28.log
+application/logs/helloasso_payments_2026-03-29.log
+```
+Un nouveau fichier est créé automatiquement à chaque jour calendaire. Cela permet de consulter ou d'archiver une journée spécifique sans manipuler l'ensemble de l'historique.
+
+**Mot-clé de filtrage universel :**
+Chaque ligne de log commence par le mot-clé fixe `[HELLOASSO]`, permettant d'extraire instantanément toutes les interactions HelloAsso :
+```
+grep HELLOASSO application/logs/helloasso_payments.log
+```
+
+**Identifiant de transaction :**
+Chaque échange lié à une transaction porte un identifiant de corrélation unique `txid=<id>`, permettant de regrouper tous les messages d'une même transaction (demande initiale, token OAuth, appel API checkout, callback retour, webhook de confirmation) :
+```
+grep "txid=abc123" application/logs/helloasso_payments.log
+```
+
+**Statut final de la transaction :**
+Le résultat final de chaque transaction est consigné sur une ligne dédiée avec la balise `STATUS=<valeur>` parmi : `SUCCESS`, `FAILED`, `CANCELLED`, `PENDING` :
+```
+grep STATUS= application/logs/helloasso_payments.log
+```
+
+**Format de ligne :**
+```
+[YYYY-MM-DD HH:MM:SS] [HELLOASSO] [<NIVEAU>] txid=<id> <TYPE> - <détail>
+[YYYY-MM-DD HH:MM:SS] [HELLOASSO] [INFO]  txid=<id> STATUS=<STATUS> montant=<EUR>
+```
+
+**Exemples :**
+```
+[2026-03-28 10:12:01] [HELLOASSO] [DEBUG] txid=ha-789xyz OAUTH_REQUEST - client_id=fc392b... client_secret=***
+[2026-03-28 10:12:02] [HELLOASSO] [DEBUG] txid=ha-789xyz OAUTH_RESPONSE - http_code=200 expires_in=1800
+[2026-03-28 10:12:02] [HELLOASSO] [DEBUG] txid=ha-789xyz CHECKOUT_REQUEST - montant=5000 slug=aeroclub-...
+[2026-03-28 10:12:03] [HELLOASSO] [DEBUG] txid=ha-789xyz CHECKOUT_RESPONSE - http_code=200 redirectUrl=https://...
+[2026-03-28 10:12:45] [HELLOASSO] [INFO]  txid=ha-789xyz CALLBACK - status=success checkoutIntentId=196259
+[2026-03-28 10:12:46] [HELLOASSO] [INFO]  txid=ha-789xyz STATUS=SUCCESS montant=50.00
+```
+
+**Règles complémentaires :**
+- Les secrets (client_secret, tokens) ne sont jamais enregistrés ; remplacer par `***`
+- Les données personnelles (email, nom) sont journalisées uniquement en mode DEBUG et masquées en INFO/ERROR
+- Le niveau de log est configurable (DEBUG en développement, INFO en production)
+- Un fichier de log est créé par jour ; les anciens fichiers sont conservés au minimum 90 jours pour permettre l'audit
+- La suppression automatique des fichiers de plus de 90 jours est recommandée (nettoyage applicatif ou cron)
+
+---
+
+### 7.6 Maintenabilité
 
 - Code bien documenté avec PHPDoc
 - Tests unitaires pour la logique métier critique
@@ -1006,6 +1240,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ## 16. Documents Associés
 
+- **Spike HelloAsso** : `doc/plan/HelloAssoSpike.md` - Étude préalable et prototypage du flux HelloAsso (référence pour implémentation)
 - **Plan d'Implémentation** : `doc/plans/paiements_en_ligne_plan.md` (à créer)
 - **Documentation API HelloAsso** : https://dev.helloasso.com/
 - **Documentation Système Comptable GVV** : `doc/comptabilite.md`
@@ -1014,7 +1249,47 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ---
 
-## 17. Approbation et Validation
+## 17. Directive d'Implémentation : Réutilisation du Spike HelloAsso
+
+Le spike HelloAsso (`doc/plan/HelloAssoSpike.md`) contient un prototype fonctionnel du flux de paiement HelloAsso, incluant :
+- Contrôleur `application/controllers/payments.php` avec logique HelloAsso
+- Configuration `application/config/helloasso.php` avec gestion des secrets via environnement
+- Vues de test et de callback
+- Logging structuré avec traçabilité des transactions
+- Gestion des erreurs et des cas limites
+
+**Directive pour le développeur :**
+
+L'implémentation du présent PRD DOIT s'appuyer sur le code du spike comme base de départ :
+1. **Ne pas repartir de zéro** : Réutiliser le contrôleur, config et vues du spike
+2. **Étendre progressivement** : Ajouter les fonctionnalités UC2-UC5 et EF2-EF5 au-dessus de la structure existante
+3. **Respecter les patterns établis** : Conserver la structure de logging, la gestion des secrets, et les patterns de requêtes HTTP
+4. **Tests d'acceptation** : Les tests unitaires et d'intégration du spike doivent être preservés et étendus
+5. **Configuration multi-section** : Modifier la configuration pour isoler les crédentiels HelloAsso par section (voir EF5)
+
+Ce réutilisage démultipliera l'efficacité du développement et garantira la continuité de la qualité de code.
+
+**Statut de Validation du Spike :**
+
+✅ La méthode `payments/test_helloasso` a été testée avec succès sur l'environnement sandbox HelloAsso :
+- OAuth2 client credentials flow fonctionnel
+- Création de checkout HelloAsso validée
+- Redirection vers formulaire de paiement HelloAsso confirmée
+- Callback et webhook reçus et traités correctement
+- Écritures comptables générées automatiquement
+- Logs structurés avec traçabilité complète (txid, STATUS, [HELLOASSO])
+
+**Conservation du Spike :**
+
+⚙️ Le spike `payments/test_helloasso` DOIT être conservé en production comme **outil permanent de vérification de la connectivité HelloAsso**. Il sert de :
+- Test de santé de la connexion API HelloAsso
+- Outil de dépannage pour les administrateurs
+- Validation manuelle des configurations HelloAsso
+- Démonstration du flux complet pour former les utilisateurs
+
+Accès : Menu Administration → Paiements en Ligne → Test HelloAsso (réservé aux admins et staff technique)
+
+
 
 | Rôle | Nom | Signature | Date |
 |------|------|-----------|------|
