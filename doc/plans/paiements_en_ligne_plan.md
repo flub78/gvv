@@ -3,7 +3,7 @@
 **Fonctionnalité :** Provisionnement de Compte par Paiement en Ligne
 **PRD :** `doc/prds/paiements_en_ligne_prd.md`
 **Spike de référence :** `doc/plan/HelloAssoSpike.md`
-**Statut :** En cours (étapes 1–2 terminées)
+**Statut :** En cours (étapes 1–3 terminées)
 
 ---
 
@@ -31,7 +31,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 |-------|----|-------------|----------|--------|
 | 1 | — | Audit système notes de bar existant | — | ✅ |
 | 2 | UC5 | Paiement notes de bar — débit de solde pilote | HAUTE | ✅ |
-| 3 | — | Migration de base de données | — | ☐ |
+| 3 | — | Migration de base de données | — | ✅ |
 | 4 | — | Bibliothèque HelloAsso | — | ☐ |
 | 5 | EF5 | Configuration des plateformes par section | MOYENNE | ☐ |
 | 6 | — | Contrôleur et modèle de base | — | ☐ |
@@ -119,10 +119,14 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Clé étrangère `ecriture_id → ecritures.id ON DELETE RESTRICT` : la suppression d'une écriture liée à un paiement est physiquement impossible — toute correction comptable passe par une contre-écriture d'annulation
 - **Ajout colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0`** à la table `sections` existante : indique si la section dispose d'un bar. Valeur par défaut `false` — aucune section n'a le bar activé sans action explicite de l'admin.
 
-**Validation :**
-- Test PHPUnit : `up()` crée les deux tables avec les bons champs et index
-- Test PHPUnit : `down()` supprime les tables sans erreur
-- La version dans `config/migration.php` est incrémentée
+**Validation :** ✅ Complète
+- ✅ PHPUnit (8 tests) : `up()` crée tables/colonnes/index/FK, `down()` supprime, idempotence — `application/tests/mysql/PaiementsEnLigneMigrationTest.php`
+- ✅ Migration appliquée en base (niveau 97)
+
+**Fichiers créés/modifiés :**
+- `application/migrations/097_paiements_en_ligne.php`
+- `application/config/migration.php` (version 97)
+- `application/tests/mysql/PaiementsEnLigneMigrationTest.php`
 
 ---
 
