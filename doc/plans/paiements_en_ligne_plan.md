@@ -3,7 +3,7 @@
 **Fonctionnalité :** Provisionnement de Compte par Paiement en Ligne
 **PRD :** `doc/prds/paiements_en_ligne_prd.md`
 **Spike de référence :** `doc/plan/HelloAssoSpike.md`
-**Statut :** À démarrer
+**Statut :** En cours (étapes 1–2 terminées)
 
 ---
 
@@ -29,8 +29,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 | Ordre | ID | Description | Priorité | Statut |
 |-------|----|-------------|----------|--------|
-| 1 | — | Audit système notes de bar existant | — | ☐ |
-| 2 | UC5 | Paiement notes de bar — débit de solde pilote | HAUTE | ☐ |
+| 1 | — | Audit système notes de bar existant | — | ✅ |
+| 2 | UC5 | Paiement notes de bar — débit de solde pilote | HAUTE | ✅ |
 | 3 | — | Migration de base de données | — | ☐ |
 | 4 | — | Bibliothèque HelloAsso | — | ☐ |
 | 5 | EF5 | Configuration des plateformes par section | MOYENNE | ☐ |
@@ -88,13 +88,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Nouveau contrôleur `application/controllers/paiements_en_ligne.php` ou méthode dans le contrôleur `compta` existant (à décider selon cohérence de l'interface)
 - Vue formulaire de saisie bar
 
-**Validation :**
-- Test PHPUnit : solde suffisant → écriture créée avec bon compte débit (411) et bon compte crédit (7xx configuré)
-- Test PHPUnit : solde insuffisant → erreur, aucune écriture créée
-- Test PHPUnit : montant nul ou descriptif vide → validation refusée
-- Test PHPUnit : accès à l'URL de règlement bar pour une section avec `has_bar = false` → refus (403 ou redirection)
-- Test Playwright : flow complet — formulaire soumis, confirmation affichée, solde mis à jour dans "Mon Compte"
-- Test Playwright : le lien bar est absent du menu pour une section sans bar
+**Validation :** ✅ Complète
+- ✅ PHPUnit (11 tests) : migration 096, écriture créée, solde insuffisant, validation montant/description, flag has_bar — `application/tests/mysql/PaiementsEnLigneBarTest.php`
+- ✅ Playwright (7 tests) : flow complet, lien absent sans bar, redirection avec erreur, formulaire, validations — `playwright/tests/paiements-en-ligne-smoke.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/migrations/096_add_has_bar_to_sections.php`
+- `application/controllers/paiements_en_ligne.php` (extends MY_Controller)
+- `application/views/paiements_en_ligne/bs_bar_form.php`
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php`
+- `application/controllers/compta.php` (has_bar dans journal_data)
+- `application/views/compta/bs_journalCompteView.php` (lien bar conditionnel)
+- `application/tests/mysql/PaiementsEnLigneBarTest.php`
+- `playwright/tests/paiements-en-ligne-smoke.spec.js`
 
 ---
 

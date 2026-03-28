@@ -46,14 +46,23 @@ class Sections extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
-        
+
         // Authorization: Code-based (v2.0) - only for migrated users
         // page/view accessible to all users, create/edit/delete requires ca (via modification_level)
         if ($this->use_new_auth) {
             $this->require_roles(['user']);
         }
-        
+
         $this->lang->load('sections');
+        $this->load->model('comptes_model');
+    }
+
+    /**
+     * Génération des éléments statiques du formulaire (sélecteurs)
+     */
+    protected function form_static_element($action) {
+        parent::form_static_element($action);
+        $this->gvvmetadata->set_selector('bar_compte_selector', $this->comptes_model->selector_comptes_700(FALSE));
     }
 
     /**

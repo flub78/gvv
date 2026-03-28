@@ -1,0 +1,21 @@
+<?php
+$lang['gvv_bar_title']                   = "Mijn bar rekening betalen";
+$lang['gvv_bar_intro']                   = "Geef uw bar consumptie op en debiteer uw pilootsaldo direct.";
+$lang['gvv_bar_label_solde']             = "Uw huidige saldo";
+$lang['gvv_bar_label_section']           = "Sectie";
+$lang['gvv_bar_montant']                 = "Bedrag";
+$lang['gvv_bar_montant_help']            = "Minimumbedrag: € 0,50";
+$lang['gvv_bar_description']             = "Omschrijving van consumptie";
+$lang['gvv_bar_description_placeholder'] = "Bijv.: 2 koffies, 1 broodje – 28/03/2026";
+$lang['gvv_bar_description_help']        = "Beschrijf wat u heeft geconsumeerd (verplicht).";
+$lang['gvv_bar_button_valider']          = "Betaling bevestigen";
+$lang['gvv_bar_button_link']             = "Mijn bar rekening betalen";
+$lang['gvv_bar_success']                 = "Betaling van € %s geregistreerd. Uw saldo is bijgewerkt.";
+$lang['gvv_bar_error_section']           = "Selecteer een sectie voordat u een betaling doet.";
+$lang['gvv_bar_error_no_bar']            = "Deze sectie heeft geen bar.";
+$lang['gvv_bar_error_no_account']        = "De bar-opbrengstrekening is niet geconfigureerd voor deze sectie. Neem contact op met de beheerder.";
+$lang['gvv_bar_error_no_pilot_account']  = "Uw pilootrekening is niet gevonden in deze sectie.";
+$lang['gvv_bar_error_montant_min']       = "Het minimumbedrag is € 0,50.";
+$lang['gvv_bar_error_description']       = "Een omschrijving van uw consumptie is verplicht.";
+$lang['gvv_bar_error_solde']             = "Onvoldoende saldo: u heeft € %.2f beschikbaar.";
+$lang['gvv_bar_error_creation']          = "Er is een fout opgetreden bij het registreren. Probeer het opnieuw.";

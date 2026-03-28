@@ -389,6 +389,17 @@ if ($codec == 411 && $navigation_allowed && $section) {
 <?php
 }
 
+// Lien paiement bar par débit de solde (UC5) — visible uniquement si has_bar = true pour la section
+if ($codec == 411 && isset($has_bar) && $has_bar && $section) {
+?>
+    <div class="mt-3 mb-2">
+        <a href="<?= site_url('paiements_en_ligne/bar_debit_solde') ?>" class="btn btn-outline-primary">
+            <?= $this->lang->line('gvv_bar_button_link') ?>
+        </a>
+    </div>
+<?php
+}
+
 if ($this->dx_auth->is_role('tresorier')) {
     echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 } else {

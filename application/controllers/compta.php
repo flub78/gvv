@@ -1874,6 +1874,9 @@ class Compta extends Gvv_Controller {
         $this->data['section'] = $selected_section;
         // Add section name for display in the form
         $this->data['section_name'] = $selected_section ? $selected_section['nom'] : '';
+        // Bar payment link visibility (UC5)
+        $this->data['has_bar'] = $selected_section && !empty($selected_section['has_bar']) && !empty($selected_section['bar_account_id']);
+        $this->lang->load('paiements_en_ligne');
         load_last_view('compta/journalCompteView', $this->data);
     }
 

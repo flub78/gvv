@@ -1,0 +1,21 @@
+<?php
+$lang['gvv_bar_title']                   = "Régler mes consommations de bar";
+$lang['gvv_bar_intro']                   = "Déclarez vos consommations et débitez votre solde pilote directement.";
+$lang['gvv_bar_label_solde']             = "Votre solde actuel";
+$lang['gvv_bar_label_section']           = "Section";
+$lang['gvv_bar_montant']                 = "Montant";
+$lang['gvv_bar_montant_help']            = "Montant minimum : 0,50 €";
+$lang['gvv_bar_description']             = "Descriptif des consommations";
+$lang['gvv_bar_description_placeholder'] = "Ex : 2 cafés, 1 sandwich – 28/03/2026";
+$lang['gvv_bar_description_help']        = "Décrivez ce que vous avez consommé (obligatoire).";
+$lang['gvv_bar_button_valider']          = "Confirmer le paiement";
+$lang['gvv_bar_button_link']             = "Régler mes consommations de bar";
+$lang['gvv_bar_success']                 = "Paiement de %s € enregistré. Votre solde a été mis à jour.";
+$lang['gvv_bar_error_section']           = "Veuillez sélectionner une section avant d'effectuer un paiement.";
+$lang['gvv_bar_error_no_bar']            = "Cette section ne dispose pas d'un bar.";
+$lang['gvv_bar_error_no_account']        = "Le compte de recette bar n'est pas configuré pour cette section. Contactez l'administrateur.";
+$lang['gvv_bar_error_no_pilot_account']  = "Votre compte pilote est introuvable dans cette section.";
+$lang['gvv_bar_error_montant_min']       = "Le montant minimum est de 0,50 €.";
+$lang['gvv_bar_error_description']       = "Le descriptif des consommations est obligatoire.";
+$lang['gvv_bar_error_solde']             = "Solde insuffisant : vous avez %.2f € disponibles.";
+$lang['gvv_bar_error_creation']          = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";

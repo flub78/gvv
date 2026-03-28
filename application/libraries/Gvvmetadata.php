@@ -810,6 +810,15 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['show_presences']['Type']    = 'int';
                 $this->field['sections']['show_presences']['Subtype'] = 'boolean';
 
+                $this->field['sections']['has_bar']['Name']    = $CI->lang->line('gvv_sections_field_has_bar');
+                $this->field['sections']['has_bar']['Type']    = 'int';
+                $this->field['sections']['has_bar']['Subtype'] = 'boolean';
+
+                $this->field['sections']['bar_account_id']['Name']    = $CI->lang->line('gvv_sections_field_bar_account_id');
+                $this->field['sections']['bar_account_id']['Type']    = 'int';
+                $this->field['sections']['bar_account_id']['Subtype'] = 'selector';
+                $this->field['sections']['bar_account_id']['Selector'] = 'bar_compte_selector';
+
                 /**
                  * Vue sections
                  */

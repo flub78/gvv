@@ -1,0 +1,21 @@
+<?php
+$lang['gvv_bar_title']                   = "Pay my bar tab";
+$lang['gvv_bar_intro']                   = "Declare your bar purchases and debit your pilot balance directly.";
+$lang['gvv_bar_label_solde']             = "Your current balance";
+$lang['gvv_bar_label_section']           = "Section";
+$lang['gvv_bar_montant']                 = "Amount";
+$lang['gvv_bar_montant_help']            = "Minimum amount: €0.50";
+$lang['gvv_bar_description']             = "Description of purchases";
+$lang['gvv_bar_description_placeholder'] = "E.g.: 2 coffees, 1 sandwich – 28/03/2026";
+$lang['gvv_bar_description_help']        = "Describe what you consumed (required).";
+$lang['gvv_bar_button_valider']          = "Confirm payment";
+$lang['gvv_bar_button_link']             = "Pay my bar tab";
+$lang['gvv_bar_success']                 = "Payment of €%s recorded. Your balance has been updated.";
+$lang['gvv_bar_error_section']           = "Please select a section before making a payment.";
+$lang['gvv_bar_error_no_bar']            = "This section does not have a bar.";
+$lang['gvv_bar_error_no_account']        = "The bar revenue account is not configured for this section. Contact the administrator.";
+$lang['gvv_bar_error_no_pilot_account']  = "Your pilot account could not be found in this section.";
+$lang['gvv_bar_error_montant_min']       = "The minimum amount is €0.50.";
+$lang['gvv_bar_error_description']       = "A description of your purchases is required.";
+$lang['gvv_bar_error_solde']             = "Insufficient balance: you have €%.2f available.";
+$lang['gvv_bar_error_creation']          = "An error occurred while recording the payment. Please try again.";
