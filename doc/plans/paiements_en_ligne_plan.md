@@ -51,45 +51,50 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Objectif :** Comprendre le mécanisme existant dans GVV pour les notes de bar avant toute implémentation, afin de ne pas repartir de zéro ni créer de doublon.
 
-**Questions à résoudre :**
-- Existe-t-il une table ou un modèle gérant les notes de bar et leur statut (payée / en attente) ?
-- Comment les gérants du bar créent-ils une note attribuée à un pilote ?
-- Quel compte comptable représente la recette bar dans le plan comptable du club ?
-- Comment est actuellement soldée une note (écriture manuelle du trésorier) ?
+**Résultat de l'audit :**
 
-**Livrable :** Note d'une page dans ce plan (section "Résultat audit bar") précisant les tables/modèles impliqués et les ajustements éventuels à prévoir pour UC5 et UC1.
+- Il n'existe pas de table "notes de bar" ni de mécanisme de notes en attente dans GVV.
+- Le modèle actuel est basé sur la confiance : c'est le trésorier qui facture manuellement un pilote en créant une écriture comptable (débit compte 411 pilote, crédit compte recette bar 7xx).
+- Il n'y a pas de gérant de bar établissant des notes : le pilote est responsable de déclarer ce qu'il a consommé.
+- Le compte de recette bar (7xx) varie selon le club et doit être configurable par section.
+- UC5 et UC1 reproduisent exactement ce que le trésorier fait manuellement, mais à l'initiative du pilote lui-même : saisie d'un descriptif de consommation + montant, génération de l'écriture comptable correspondante.
+- **Toutes les sections n'ont pas de bar.** La fonctionnalité de paiement bar (UC5, UC1) ne doit être visible que dans les sections qui ont un bar. Un flag `has_bar` (booléen, défaut `false`) sera ajouté à la table `sections`. L'option de règlement bar n'est affichée au pilote que si sa section active a `has_bar = true`.
 
-**Validation :**
-- Les questions ci-dessus ont une réponse documentée avant de passer à l'étape 2
+**Validation :** ✅ Audit terminé — étape 2 débloquée.
 
 ---
 
-## Étape 2 : Paiement notes de bar par débit de solde (UC5)
+## Étape 2 : Paiement bar par débit de solde (UC5)
 
-**Objectif :** Permettre au pilote de payer ses notes de bar en débitant son solde existant, sans carte bancaire. Cette étape ne nécessite aucune intégration HelloAsso.
+**Objectif :** Permettre au pilote de déclarer et régler ses consommations de bar en débitant son solde existant, sans carte bancaire. Aucune intégration HelloAsso requise.
 
-**Prérequis :** Résultats de l'étape 1.
+**Modèle :** Le pilote saisit lui-même le descriptif et le montant de ses consommations (modèle de confiance). Le système génère l'écriture comptable identique à ce que ferait le trésorier manuellement : débit compte 411 pilote, crédit compte recette bar (7xx configurable par section).
 
 **Flux :**
-1. Pilote accède à "Mon Compte" → section "Notes de bar en attente"
-2. Affichage des notes (détail, montant) avec bouton "Payer par mon solde"
-3. Vérification : `solde_disponible >= montant_note` — refus avec message explicite si insuffisant :
-   > "Solde insuffisant : vous avez X€ disponibles, cette note coûte Y€."
-4. Transaction DB atomique : écriture comptable (débit compte 411 pilote, crédit compte bar)
-5. Note marquée comme payée
-6. Confirmation affichée et solde mis à jour immédiatement
+1. Pilote accède à "Mon Compte" → "Régler mes consommations de bar"
+2. Formulaire : montant (min 0,50€), descriptif libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
+3. Vérification : `solde_disponible >= montant` — refus avec message explicite si insuffisant :
+   > "Solde insuffisant : vous avez X€ disponibles."
+4. Transaction DB atomique : écriture comptable (débit 411 pilote, crédit compte bar 7xx configuré pour la section)
+5. Confirmation affichée et solde mis à jour immédiatement
 
-**Règles :** Aucun paiement à crédit (solde minimum 0€), transaction atomique (rollback complet en cas d'erreur), pilote ne peut payer que ses propres notes.
+**Configuration requise :** Le compte de recette bar (7xx) est configurable par section dans la page d'administration (à ajouter à EF5, étape 5).
+
+**Visibilité :** Le lien "Régler mes consommations de bar" n'est affiché dans "Mon Compte" que si la section active du pilote a `has_bar = true`. Il est invisible (et l'URL inaccessible) pour les sections sans bar.
+
+**Règles :** Aucun paiement à crédit (solde minimum 0€), transaction atomique, le pilote ne peut régler que pour son propre compte.
 
 **Fichiers :**
-- Méthode(s) dans le contrôleur bar existant (ou nouveau contrôleur selon résultat étape 1)
-- Vue "Notes en attente" intégrée dans "Mon Compte"
+- Nouveau contrôleur `application/controllers/paiements_en_ligne.php` ou méthode dans le contrôleur `compta` existant (à décider selon cohérence de l'interface)
+- Vue formulaire de saisie bar
 
 **Validation :**
-- Test PHPUnit : solde suffisant → écriture créée, note marquée payée
-- Test PHPUnit : solde insuffisant → erreur retournée, aucune écriture créée, note inchangée
-- Test PHPUnit : tentative de payer la note d'un autre pilote → refus
-- Test Playwright : flow complet visible dans "Mon Compte" — note disparaît après paiement, solde mis à jour
+- Test PHPUnit : solde suffisant → écriture créée avec bon compte débit (411) et bon compte crédit (7xx configuré)
+- Test PHPUnit : solde insuffisant → erreur, aucune écriture créée
+- Test PHPUnit : montant nul ou descriptif vide → validation refusée
+- Test PHPUnit : accès à l'URL de règlement bar pour une section avec `has_bar = false` → refus (403 ou redirection)
+- Test Playwright : flow complet — formulaire soumis, confirmation affichée, solde mis à jour dans "Mon Compte"
+- Test Playwright : le lien bar est absent du menu pour une section sans bar
 
 ---
 
@@ -106,6 +111,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Table `paiements_en_ligne_config` : `id`, `plateforme`, `param_key`, `param_value` (chiffré), `club`, `created_at`, `updated_at`, `created_by`, `updated_by`
 - Index sur `user_id`, `statut`, `transaction_id`, `date_paiement`
 - Clé étrangère `ecriture_id → ecritures.id ON DELETE RESTRICT` : la suppression d'une écriture liée à un paiement est physiquement impossible — toute correction comptable passe par une contre-écriture d'annulation
+- **Ajout colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0`** à la table `sections` existante : indique si la section dispose d'un bar. Valeur par défaut `false` — aucune section n'a le bar activé sans action explicite de l'admin.
 
 **Validation :**
 - Test PHPUnit : `up()` crée les deux tables avec les bons champs et index
@@ -149,6 +155,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Formulaire par section : Client ID, Client Secret (chiffré en BDD), slug organisation, mode sandbox/production
 - URL de webhook générée automatiquement et affichée pour copie dans l'interface HelloAsso
 - Compte comptable de passage par défaut (467)
+- **Activation bar** : case à cocher "Cette section dispose d'un bar" — modifie le flag `has_bar` dans la table `sections`
+- **Compte de recette bar (7xx)** : sélecteur de compte parmi les comptes 7xx du plan comptable de la section — utilisé comme contrepartie crédit pour UC5 et UC1 (visible uniquement si bar activé)
 - Montant minimum (10€) et maximum (500€) par transaction
 - Activation/désactivation par section
 - Bouton "Tester la connexion" : appelle HelloAsso OAuth2 et affiche le résultat
@@ -223,29 +231,31 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 8 : Paiement notes de bar par carte — pilote (UC1)
+## Étape 8 : Paiement bar par carte — pilote (UC1)
 
-**Objectif :** Permettre au pilote connecté de payer ses notes de bar directement par carte via HelloAsso.
+**Objectif :** Permettre au pilote connecté de déclarer et régler ses consommations de bar par carte via HelloAsso, selon le même modèle de confiance que UC5.
 
 **Prérequis :** Étapes 4, 5, 6, 7 complétées.
 
 **Flux :**
-1. Pilote accède à "Mes dépenses de bar" → "Payer par carte"
-2. Formulaire : confirmation du montant, description (ex. "Consommations bar – 25/03/2026")
+1. Pilote accède à "Mon Compte" → "Régler mes consommations de bar par carte"
+2. Formulaire : montant (min 0,50€), descriptif libre obligatoire (ex. "Consommations bar – 25/03/2026")
 3. Vérification section active (pas "Toutes") via `_require_active_section()`
-4. Création transaction `pending` avec `metadata.type=bar`
+4. Création transaction `pending` avec `metadata.type=bar` et `metadata.description`
 5. Appel `Helloasso::create_checkout()` → redirection vers HelloAsso
-6. Retour webhook → handler étape 7 → écriture (débit 411, crédit compte bar)
+6. Retour webhook → handler étape 7 → écriture (débit 411 pilote, crédit compte bar 7xx configuré)
 7. Confirmation email + historique
 
 **Sécurité :**
 - Token CSRF sur le formulaire
 - `_require_active_section()` : refus si section "Toutes" avec message explicite
-- Vérification que la note appartient bien au pilote connecté
+- Le pilote ne peut régler que pour son propre compte
+- L'URL est inaccessible et l'option invisible si la section active a `has_bar = false`
 
 **Validation :**
-- `[SKIP SI SANDBOX]` Test Playwright en sandbox : flow complet pilote → paiement bar → écriture créée, note soldée
+- `[SKIP SI SANDBOX]` Test Playwright en sandbox : flow complet pilote → paiement bar → écriture créée
 - Test PHPUnit : tentative avec section "Toutes" → refus, aucun checkout créé
+- Test PHPUnit : tentative sur section avec `has_bar = false` → refus
 
 ---
 

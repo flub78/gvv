@@ -167,6 +167,8 @@ La plateforme de paiement en ligne doit supporter les scénarios métier suivant
 
 ### UC1 : Paiement de Notes de Bar par un Pilote Authentifié (Priorité : HAUTE)
 
+> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
+
 **Contexte :**
 Un pilote connecté et identifié dans GVV souhaite payer ses consommations (boissons, repas) au bar du club directement par carte bancaire.
 
@@ -285,6 +287,8 @@ Un gestionnaire ou responsable de vol de découverte souhaite proposer à une pe
 ---
 
 ### UC5 : Paiement de Notes de Bar par Débit de Solde du Pilote (Priorité : HAUTE)
+
+> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
 
 **Contexte :**
 Un pilote connecté et identifié dispose d'un solde positif sur son compte pilote. Il souhaite payer ses consommations du bar directement en débitant son solde, sans passer par un paiement par carte. Le système fonctionne exactement comme la facturation manuelle du trésorier, mais à l'initiative du pilote lui-même.
@@ -825,6 +829,7 @@ public function helloasso_webhook() {
 - Fonctionne avec PHP 7.4
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
+- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. Les fonctionnalités de paiement bar (UC1, UC5) sont conditionnées à ce flag.
 - Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
 - **Section active obligatoire pour tout paiement CB** : si la session de l'utilisateur est en mode "Toutes les sections", toute opération impliquant un paiement par carte bancaire (provisionnement, bar, cotisation, bon de découverte) est refusée. L'utilisateur doit sélectionner une section spécifique. Cette règle s'applique également aux pages publiques (UC2, UC4) : le lien ou QR Code doit encoder explicitement l'identifiant de section — un lien sans section valide est rejeté.
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)
