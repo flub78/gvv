@@ -74,7 +74,7 @@
         <?= $this->lang->line('gvv_bar_button_valider') ?>
     </button>
     <a href="<?= site_url('compta/mon_compte') ?>" class="btn btn-secondary">
-        <?= $this->lang->line('gvv_str_cancel') ?>
+        <?= $this->lang->line('gvv_button_cancel') ?>
     </a>
 </div>
 
@@ -82,4 +82,3 @@
 
 </div>
 
-<?php $this->load->view('bs_footer'); ?>

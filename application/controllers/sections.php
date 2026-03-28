@@ -62,7 +62,7 @@ class Sections extends Gvv_Controller {
      */
     protected function form_static_element($action) {
         parent::form_static_element($action);
-        $this->gvvmetadata->set_selector('bar_compte_selector', $this->comptes_model->selector_comptes_700(FALSE));
+        $this->gvvmetadata->set_selector('bar_compte_selector', $this->comptes_model->selector_comptes_700(TRUE));
     }
 
     /**
