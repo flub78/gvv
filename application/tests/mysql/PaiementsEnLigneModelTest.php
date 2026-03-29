@@ -335,4 +335,49 @@ class PaiementsEnLigneModelTest extends TestCase
         $result = $this->model->get_config('helloasso', $key, $club + 1);
         $this->assertFalse($result);
     }
+
+    public function testUpsertConfigEncryptsSensitiveKeyAtRest()
+    {
+        $club = 996;
+        $key = 'client_secret';
+        $value = 'super_secret_phpunit_' . uniqid();
+
+        $ok = $this->model->upsert_config('helloasso', $key, $value, $club, 'phpunit');
+        $this->assertTrue($ok);
+
+        $row = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('club', $club)
+            ->where('param_key', $key)
+            ->get('paiements_en_ligne_config')
+            ->row_array();
+
+        $this->assertIsArray($row);
+        $this->created_config_ids[] = (int) $row['id'];
+
+        $this->assertNotEquals($value, $row['param_value']);
+        $this->assertStringStartsWith('enc:v1:', $row['param_value']);
+    }
+
+    public function testGetConfigDecryptsSensitiveKey()
+    {
+        $club = 995;
+        $key = 'webhook_secret';
+        $value = 'webhook_secret_phpunit_' . uniqid();
+
+        $ok = $this->model->upsert_config('helloasso', $key, $value, $club, 'phpunit');
+        $this->assertTrue($ok);
+
+        $row = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('club', $club)
+            ->where('param_key', $key)
+            ->get('paiements_en_ligne_config')
+            ->row_array();
+        $this->assertIsArray($row);
+        $this->created_config_ids[] = (int) $row['id'];
+
+        $result = $this->model->get_config('helloasso', $key, $club);
+        $this->assertEquals($value, $result);
+    }
 }

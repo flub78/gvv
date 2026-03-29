@@ -272,16 +272,8 @@ class Helloasso {
      */
     protected function _get_config($club_id)
     {
-        $query = $this->_CI->db
-            ->where('plateforme', 'helloasso')
-            ->where('club', (int) $club_id)
-            ->get('paiements_en_ligne_config');
-
-        $config = array();
-        foreach ($query->result_array() as $row) {
-            $config[$row['param_key']] = $row['param_value'];
-        }
-        return $config;
+        $this->_CI->load->model('paiements_en_ligne_model');
+        return $this->_CI->paiements_en_ligne_model->get_all_config('helloasso', (int) $club_id);
     }
 
     /**

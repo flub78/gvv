@@ -427,7 +427,18 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         foreach ($keys as $key => $value) {
-            $this->_upsert_config($club_id, $key, (string) $value, $username);
+            $ok = $this->paiements_en_ligne_model->upsert_config(
+                'helloasso',
+                $key,
+                (string) $value,
+                $club_id,
+                $username
+            );
+            if (!$ok) {
+                $this->session->set_flashdata('error', $this->lang->line('gvv_admin_config_test_fail'));
+                redirect('paiements_en_ligne/admin_config?section=' . $club_id);
+                return;
+            }
         }
 
         // Paramètres bar dans la table sections
@@ -472,13 +483,9 @@ class Paiements_en_ligne extends MY_Controller {
 
         if (!$club_id) return $defaults;
 
-        $query = $this->db
-            ->where('plateforme', 'helloasso')
-            ->where('club', $club_id)
-            ->get('paiements_en_ligne_config');
-
-        foreach ($query->result_array() as $row) {
-            $defaults[$row['param_key']] = $row['param_value'];
+        $config = $this->paiements_en_ligne_model->get_all_config('helloasso', $club_id);
+        foreach ($config as $key => $value) {
+            $defaults[$key] = $value;
         }
         return $defaults;
     }
@@ -487,35 +494,12 @@ class Paiements_en_ligne extends MY_Controller {
      * Insert ou update une clé de configuration (upsert).
      */
     private function _upsert_config($club_id, $key, $value, $username) {
-        $exists = $this->db
-            ->where('plateforme', 'helloasso')
-            ->where('club', $club_id)
-            ->where('param_key', $key)
-            ->count_all_results('paiements_en_ligne_config');
-
-        $now = date('Y-m-d H:i:s');
-
-        if ($exists) {
-            $this->db
-                ->where('plateforme', 'helloasso')
-                ->where('club', $club_id)
-                ->where('param_key', $key)
-                ->update('paiements_en_ligne_config', array(
-                    'param_value' => $value,
-                    'updated_at'  => $now,
-                    'updated_by'  => $username,
-                ));
-        } else {
-            $this->db->insert('paiements_en_ligne_config', array(
-                'plateforme'  => 'helloasso',
-                'club'        => $club_id,
-                'param_key'   => $key,
-                'param_value' => $value,
-                'created_at'  => $now,
-                'updated_at'  => $now,
-                'created_by'  => $username,
-                'updated_by'  => $username,
-            ));
-        }
+        return $this->paiements_en_ligne_model->upsert_config(
+            'helloasso',
+            $key,
+            $value,
+            (int) $club_id,
+            $username
+        );
     }
 }

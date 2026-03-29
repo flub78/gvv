@@ -191,6 +191,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 **Validation :**
 - Test Playwright : accès refusé pour un non-admin, formulaire sauvegardé et rechargé correctement pour un admin
 - `[SKIP SI SANDBOX]` Test du bouton "Tester la connexion" : succès retourné en mode sandbox
+- ✅ Secrets HelloAsso (`client_secret`, `webhook_secret`) chiffrés en BDD (AES-256-GCM) ; clé applicative lue depuis `application/config/helloasso_crypto.php` (fichier local non versionné) ou variable d'environnement `GVV_HELLOASSO_CRYPTO_KEY`
 
 ---
 

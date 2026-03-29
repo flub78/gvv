@@ -15,6 +15,7 @@ application/config/database.php
 application/config/dx_auth.php
 application/config/program.php
 application/config/google.php
+application/config/helloasso_crypto.php
 setenv.sh
 results/*
 captcha/*
