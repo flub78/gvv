@@ -164,20 +164,18 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 La plateforme de paiement en ligne doit supporter les scénarios métier suivants, au-delà du provisionnement simple de compte :
 
-### UC1 : Paiement de Notes de Bar par un Pilote Authentifié (Priorité : HAUTE)
+### UC1 : Paiement de Consommations de Bar par un Pilote Authentifié par Carte (Priorité : HAUTE)
 
 > **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
 
 **Contexte :**
-Un pilote connecté et identifié dans GVV souhaite payer ses consommations (boissons, repas) au bar du club directement par carte bancaire.
+Un pilote connecté souhaite régler ses consommations au bar du club par carte bancaire. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
 
 **Flux :**
-1. Le pilote accède à la page "Mes dépenses de bar"
-2. Il clique sur "Payer par carte"
-3. On lui demande seulement la **confirmation du montant** et une **courte description** (ex: "Consommations bar - 3 bières, 2 cafés")
-4. La date, le nom du pilote et sont email sont automatiquement renseignés, il n'a pas à les saisir
-5. Il est redirigé vers HelloAsso pour payer
-6. Après paiement réussi :
+1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar par carte"
+2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
+3. Il est redirigé vers HelloAsso pour payer
+4. Après paiement réussi :
    - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
    - Le pilote reçoit une confirmation par email
    - Son historique de compte affiche le paiement
@@ -185,24 +183,25 @@ Un pilote connecté et identifié dans GVV souhaite payer ses consommations (boi
 **Avantages :**
 - Paiement immédiat sans intervention du trésorier
 - Traçabilité complète en comptabilité
-- Réduit le "débit sur compte" manuel
+- Réduit la saisie manuelle du trésorier
 
 ---
 
-### UC2 : Paiement de Notes de Bar par une Personne Externe (Priorité : MOYENNE)
+### UC2 : Paiement de Consommations de Bar par une Personne Externe (Priorité : MOYENNE)
 
 **Contexte :**
-Une personne extérieure au club (visiteur, ami d'un pilote) souhaite payer ses consommations au bar sans avoir de compte GVV.
+Une personne extérieure au club (visiteur, ami d'un pilote) souhaite régler ses consommations au bar sans avoir de compte GVV. Ce mécanisme sera également utilisé par les membres qui ne veulent pas se connecter à GVV. Si c'est une personne totalement extérieure elle sera accompagnée et guidée par un membre.
+Elle saisit elle-même le montant et la description et effectue le paiement.
 
 **Flux :**
-1. Le gestionnaire du bar (ou tout bénévole) dispose d'un **QR Code** affiché au bar
+1. Un **QR Code** est affiché au bar, généré par le trésorier
 2. La personne scanne le QR Code avec son téléphone
 3. Elle accède à une **page de paiement publique** (sans connexion requise) avec un formulaire :
    - **Nom** (obligatoire)
-   - **Prénom** (obligatoire)  
+   - **Prénom** (obligatoire)
    - **Email** (obligatoire, pour confirmation)
-   - **Description** du paiement (ex: "Consommations bar - 3 bières, 2 cafés")
-   - **Montant** (libre, minimum 2€ pour couvrir les frais)
+   - **Description** des consommations (ex. "2 cafés, 1 bière – 28/03/2026")
+   - **Montant** (libre, minimum 2€)
 4. Elle paie par carte
 5. Après succès :
    - Confirmation par e-mail à l'adresse fournie
@@ -285,46 +284,36 @@ Un gestionnaire ou responsable de vol de découverte souhaite proposer à une pe
 
 ---
 
-### UC5 : Paiement de Notes de Bar par Débit de Solde du Pilote (Priorité : HAUTE)
+### UC5 : Règlement de Consommations de Bar par Débit de Solde du Pilote (Priorité : HAUTE)
 
 > **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
 
 **Contexte :**
-Un pilote connecté et identifié dispose d'un solde positif sur son compte pilote. Il souhaite payer ses consommations du bar directement en débitant son solde, sans passer par un paiement par carte. Le système fonctionne exactement comme la facturation manuelle du trésorier, mais à l'initiative du pilote lui-même.
+Un pilote connecté dispose d'un solde positif sur son compte pilote et souhaite régler ses consommations de bar en débitant directement son solde, sans paiement par carte. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
 
 **Flux :**
-1. Le pilote accède à la page "Mon Compte"
-2. On lui affiche son solde actuel et un message informatif :
-   > "Vous pouvez provisionner votre compte en ligne ou payer directement vos dépenses de bar avec votre solde disponible"
-3. Il accède à la section "Paiements par débit de solde" (ou "Dépenses du bar")
-4. Il voit ses **notes de bar en attente de paiement** (générées par les gérants du bar)
-5. Pour chaque note, il peut :
-   - Voir le détail (articles, montant total)
-   - Cliquer sur "Payer par mon solde"
-6. **Vérification du solde :**
-   - Si `solde_disponible >= montant_note` : paiement autorisé
-   - Si `solde_disponible < montant_note` : message d'erreur, transaction refusée
-     > "Solde insuffisant : vous avez 25€ disponible, cette note coûte 45€. Veuillez provisionner votre compte."
-7. Après acceptation du paiement :
+1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar"
+2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
+3. **Vérification du solde :**
+   - Si `solde_disponible >= montant` : paiement autorisé
+   - Si `solde_disponible < montant` : message d'erreur, transaction refusée
+     > "Solde insuffisant : vous avez 25€ disponible. Veuillez provisionner votre compte."
+4. Après confirmation :
    - Écriture comptable créée automatiquement :
      - Compte pilote (411) débité du montant
      - Compte bar crédité du montant
-   - La note est marquée comme payée
-   - Le pilote reçoit une confirmation par email et dans l'interface
-   - Son historique de compte affiche le débit avec la description "Paiement bar"
+   - Le pilote reçoit une confirmation dans l'interface
    - Son solde est immédiatement mis à jour
 
 **Avantages :**
-- Autonomie du pilote : paiement instantané sans intervention du trésorier
-- Fluidité : utilisation immédiate de son solde disponible
-- Traçabilité comptable complète (identique à la facturation manuelle)
+- Autonomie du pilote : règlement instantané sans intervention du trésorier
 - Pas de frais de transaction (pas de plateforme de paiement impliquée)
-- Réduction des "oublis" de paiement de dépenses bar
+- Traçabilité comptable complète
 
 **Règles Métier :**
-- Le pilote ne peut payer que ses propres notes
+- Le pilote ne peut régler que sur son propre compte
 - La transaction est atomique : soit complètement acceptée, soit complètement refusée
-- Le solde est recalculé en temps réel et bloque tout paiement en cas d'insuffisance
+- Le solde est vérifié au moment de la soumission et bloque tout paiement en cas d'insuffisance
 - Aucun paiement à crédit n'est possible (solde minimum = 0€)
 
 ---
@@ -414,7 +403,7 @@ Le trésorier crédite le compte d'un pilote. Plutôt qu'un paiement par chèque
 
 **Règles Métier :**
 - Un pilote ne peut provisionner que son propre compte
-- Le montant minimum est de 10€ pour limiter les frais de transaction
+- Le montant minimum est de 50€ pour limiter le nombre d'écritures
 - Le montant maximum est de 500€ par transaction pour sécurité
 - La plateforme de paiement prélève une commission (ex: HelloAsso 0% pour associations)
 - **Section obligatoire** : Toute opération impliquant un paiement par carte bancaire nécessite qu'une section active (autre que "Toutes") soit sélectionnée dans la session de l'utilisateur. Si la section active est "Toutes", l'opération est refusée avec un message explicite invitant l'utilisateur à sélectionner une section avant de procéder au paiement. Cette contrainte est indispensable car les crédentiels HelloAsso sont isolés par section.
@@ -547,7 +536,6 @@ Le trésorier crédite le compte d'un pilote. Plutôt qu'un paiement par chèque
     - Stripe, Lydia, PayPal
 - CA5.3 : Configuration du compte comptable :
   - Compte de passage par défaut (ex: 467)
-  - Compte de commission (ex: 627 - Frais bancaires)
   - Libellé personnalisé pour les écritures
 - CA5.4 : Paramètres généraux :
   - Montant minimum de provisionnement

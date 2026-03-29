@@ -7,6 +7,16 @@
 
 ---
 
+## Contrainte de déploiement : visibilité conditionnelle via `dev_users`
+
+Le serveur de production est le seul serveur accessible depuis Internet, ce qui est nécessaire pour recevoir les webhooks HelloAsso. Il n'existe pas d'environnement de préproduction public. En conséquence, les tests de la fonctionnalité de paiement en ligne se font directement en production.
+
+**Pendant toute la phase de test**, tous les boutons, liens et écrans liés au paiement en ligne (boutons HelloAsso dans les formulaires de cotisation et de crédit de compte, menus de navigation, pages du module) sont **masqués aux utilisateurs ordinaires** et uniquement visibles pour les utilisateurs listés dans la configuration `dev_users`.
+
+La levée de cette restriction, pour rendre la fonctionnalité accessible à tous, est une action de mise en production explicite, décidée une fois la validation complète effectuée.
+
+---
+
 ## Convention : Tests Playwright nécessitant HelloAsso Sandbox
 
 Les tests Playwright qui déclenchent un vrai appel HelloAsso (création de checkout, redirection, webhook) doivent être **skippés automatiquement** si les crédentiels sandbox ne sont pas configurés dans `application/config/helloasso.php`.
@@ -29,33 +39,35 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 | Ordre | ID | Description | Priorité | Statut |
 |-------|----|-------------|----------|--------|
-| 1 | — | Audit système notes de bar existant | — | ✅ |
-| 2 | UC5 | Paiement notes de bar — débit de solde pilote | HAUTE | ✅ |
+| 1 | — | Audit système bar existant | — | ✅ |
+| 2 | UC5 | Règlement consommations bar — débit de solde pilote | HAUTE | ✅ |
 | 3 | — | Migration de base de données | — | ✅ |
 | 4 | — | Bibliothèque HelloAsso | — | ☐ |
 | 5 | EF5 | Configuration des plateformes par section | MOYENNE | ☐ |
 | 6 | — | Contrôleur et modèle de base | — | ☐ |
 | 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ☐ |
-| 8 | UC1 | Paiement notes de bar — pilote authentifié par carte | HAUTE | ☐ |
+| 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ☐ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ☐ |
-| 12 | UC2 | Paiement notes de bar — personne externe via QR Code | MOYENNE | ☐ |
-| 13 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
-| 14 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
-| 15 | — | Tests de recette et validation finale | — | ☐ |
+| 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ☐ |
+| 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ☐ |
+| 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ☐ |
+| 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
+| 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
+| 17 | — | Tests de recette et validation finale | — | ☐ |
 
 ---
 
-## Étape 1 : Audit du système notes de bar existant
+## Étape 1 : Audit du système bar existant
 
-**Objectif :** Comprendre le mécanisme existant dans GVV pour les notes de bar avant toute implémentation, afin de ne pas repartir de zéro ni créer de doublon.
+**Objectif :** Comprendre le mécanisme existant dans GVV pour les règlements de bar avant toute implémentation, afin de ne pas repartir de zéro ni créer de doublon.
 
 **Résultat de l'audit :**
 
-- Il n'existe pas de table "notes de bar" ni de mécanisme de notes en attente dans GVV.
-- Le modèle actuel est basé sur la confiance : c'est le trésorier qui facture manuellement un pilote en créant une écriture comptable (débit compte 411 pilote, crédit compte recette bar 7xx).
-- Il n'y a pas de gérant de bar établissant des notes : le pilote est responsable de déclarer ce qu'il a consommé.
+- Il n'existe pas de table dédiée aux consommations de bar dans GVV, ni de mécanisme de notes préétablies.
+- Le modèle est basé sur la confiance : c'est le trésorier qui enregistre manuellement une écriture comptable sur demande du pilote (débit compte 411 pilote, crédit compte recette bar 7xx). Personne n'établit de note pour le pilote — il déclare lui-même ses consommations.
+- Aucun "gérant de bar" n'intervient : le pilote est seul responsable de déclarer le montant et la description de ce qu'il a consommé.
 - Le compte de recette bar (7xx) varie selon le club et doit être configurable par section.
 - UC5 et UC1 reproduisent exactement ce que le trésorier fait manuellement, mais à l'initiative du pilote lui-même : saisie d'un descriptif de consommation + montant, génération de l'écriture comptable correspondante.
 - **Toutes les sections n'ont pas de bar.** La fonctionnalité de paiement bar (UC5, UC1) ne doit être visible que dans les sections qui ont un bar. Un flag `has_bar` (booléen, défaut `false`) sera ajouté à la table `sections`. L'option de règlement bar n'est affichée au pilote que si sa section active a `has_bar = true`.
@@ -228,6 +240,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
    - `type=bar_externe` : crédit compte bar (sans compte pilote)
    - `type=cotisation` : écriture compte cotisation 417
    - `type=decouverte` : écriture recette bon de découverte
+   - `type=cotisation_tresorier` : deux écritures atomiques — écriture cotisation (débit compte pilote, crédit cotisation) + approvisionnement compte pilote (débit compte de passage 467, crédit compte pilote 411) → solde net pilote inchangé
+   - `type=credit_tresorier` : crédit compte pilote 411, débit compte de passage 467 (identique à `provisionnement` mais initié par le trésorier)
 8. Mettre à jour la transaction : statut `completed`, `ecriture_id`, `date_paiement`, `metadata` complète
 9. Log `STATUS=SUCCESS montant=X`
 10. Envoyer email de confirmation
@@ -330,7 +344,67 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 12 : Paiement externe bar via QR Code (UC2)
+## Étape 12 : Paiement CB cotisation via trésorier (UC6)
+
+**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire de création de cotisation, à côté du bouton "Valider" habituel. En cas de succès, deux écritures atomiques sont créées : la cotisation et un approvisionnement de même montant, laissant le solde net du pilote inchangé.
+
+**Prérequis :** Étapes 4, 5, 6, 7 complétées.
+
+**Visibilité :** Le bouton HelloAsso n'est visible que pour les utilisateurs listés dans `dev_users` tant que la fonctionnalité n'est pas validée pour la mise en production générale.
+
+**Flux :**
+1. Trésorier accède au formulaire de création de cotisation (formulaire existant, inchangé)
+2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
+3. Si "Payer par carte" :
+   - Création d'une transaction `pending` avec `metadata.type=cotisation_tresorier` et les données de la cotisation
+   - Le trésorier choisit : utiliser son propre écran ou générer un QR Code / lien pour le porteur de carte
+   - Checkout HelloAsso → paiement → webhook → handler étape 7 → deux écritures atomiques
+4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur, possibilité de basculer en validation classique
+
+**Règles :**
+- Les deux écritures (cotisation + approvisionnement) sont créées dans une seule transaction DB — tout ou rien
+- Vérification section active (`_require_active_section()`) avant création du checkout
+- Accès réservé aux rôles `tresorier`, `bureau`, `admin`
+
+**Validation :**
+- Test PHPUnit : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
+- Test PHPUnit : échec HelloAsso → aucune écriture, transaction `failed`
+- Test Playwright : bouton présent pour `dev_users`, absent pour un pilote ordinaire
+- `[SKIP SI SANDBOX]` Test Playwright : flow complet trésorier → paiement CB → deux écritures vérifiées
+
+---
+
+## Étape 13 : Approvisionnement compte pilote par CB via trésorier (UC7)
+
+**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire de crédit de compte pilote, à côté du bouton "Valider" habituel.
+
+**Prérequis :** Étapes 4, 5, 6, 7 complétées.
+
+**Visibilité :** Le bouton HelloAsso n'est visible que pour les utilisateurs listés dans `dev_users` tant que la fonctionnalité n'est pas validée pour la mise en production générale.
+
+**Flux :**
+1. Trésorier accède au formulaire de crédit de compte pilote (formulaire existant, inchangé)
+2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
+3. Si "Payer par carte" :
+   - Création d'une transaction `pending` avec `metadata.type=credit_tresorier`
+   - Le trésorier choisit : utiliser son propre écran ou générer un QR Code / lien pour le porteur de carte
+   - Checkout HelloAsso → paiement → webhook → handler étape 7 → écriture de crédit compte pilote
+4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur, possibilité de basculer en validation classique
+
+**Règles :**
+- La transaction est atomique : écriture créée uniquement si paiement HelloAsso confirmé
+- Vérification section active (`_require_active_section()`) avant création du checkout
+- Accès réservé aux rôles `tresorier`, `bureau`, `admin`
+
+**Validation :**
+- Test PHPUnit : webhook `type=credit_tresorier` → écriture de crédit compte pilote créée
+- Test PHPUnit : échec HelloAsso → aucune écriture, transaction `failed`
+- Test Playwright : bouton présent pour `dev_users`, absent pour un pilote ordinaire
+- `[SKIP SI SANDBOX]` Test Playwright : flow complet trésorier → paiement CB → écriture de crédit vérifiée
+
+---
+
+## Étape 14 : Paiement externe bar via QR Code (UC2)
 
 **Objectif :** Permettre à une personne extérieure de payer ses consommations via un QR Code affiché au bar, sans compte GVV.
 
@@ -354,7 +428,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 13 : Renouvellement de cotisation (UC3)
+## Étape 15 : Renouvellement de cotisation (UC3)
 
 **Objectif :** Permettre au pilote connecté de renouveler sa cotisation en ligne.
 
@@ -374,7 +448,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 14 : Bon de découverte via lien/QR Code (UC4)
+## Étape 16 : Bon de découverte via lien/QR Code (UC4)
 
 **Objectif :** Permettre à un gestionnaire de générer un lien de paiement public pour un bon de vol de découverte.
 
@@ -391,7 +465,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 15 : Tests de recette et validation finale
+## Étape 17 : Tests de recette et validation finale
 
 **Objectif :** Valider l'ensemble du module en conditions proches de la production.
 
@@ -401,6 +475,9 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - [ ] Test Playwright smoke : UC5 débit de solde bar (sans sandbox)
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC1 paiement bar par carte (EF2 → confirmation)
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : EF1 provisionnement pilote (EF1 → EF2 → EF3)
+- [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC6 cotisation via trésorier CB → deux écritures, solde pilote inchangé
+- [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC7 crédit compte pilote via trésorier CB → écriture créée
+- [ ] Vérification visibilité `dev_users` : boutons HelloAsso absents pour utilisateur ordinaire, présents pour `dev_users`
 - [ ] Test Playwright smoke : accès liste trésorier (EF4)
 - [ ] Test Playwright smoke : page config admin (EF5)
 - [ ] Vérification sécurité : signature webhook invalide rejetée, CSRF actif, accès rôles respectés
