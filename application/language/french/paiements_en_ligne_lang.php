@@ -19,3 +19,62 @@ $lang['gvv_bar_error_montant_min']       = "Le montant minimum est de 0,50 €."
 $lang['gvv_bar_error_description']       = "Le descriptif des consommations est obligatoire.";
 $lang['gvv_bar_error_solde']             = "Solde insuffisant : vous avez %.2f € disponibles.";
 $lang['gvv_bar_error_creation']          = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
+
+// Index / transactions pilote (EF6)
+$lang['gvv_pel_index_title']         = "Mes paiements en ligne";
+$lang['gvv_pel_index_intro']         = "Historique de vos paiements en ligne (HelloAsso).";
+$lang['gvv_pel_index_empty']         = "Aucun paiement enregistré.";
+$lang['gvv_pel_col_date']            = "Date";
+$lang['gvv_pel_col_montant']         = "Montant";
+$lang['gvv_pel_col_statut']          = "Statut";
+$lang['gvv_pel_col_plateforme']      = "Plateforme";
+$lang['gvv_pel_statut_pending']      = "En attente";
+$lang['gvv_pel_statut_completed']    = "Réglé";
+$lang['gvv_pel_statut_failed']       = "Échec";
+$lang['gvv_pel_statut_cancelled']    = "Annulé";
+
+// Confirmation / annulation / erreur (EF6)
+$lang['gvv_pel_confirm_title']       = "Paiement confirmé";
+$lang['gvv_pel_confirm_intro']       = "Votre paiement a bien été enregistré.";
+$lang['gvv_pel_confirm_back']        = "Retour à mon compte";
+$lang['gvv_pel_cancel_title']        = "Paiement annulé";
+$lang['gvv_pel_cancel_intro']        = "Vous avez annulé le paiement. Aucun montant n'a été débité.";
+$lang['gvv_pel_cancel_back']         = "Retour à mon compte";
+$lang['gvv_pel_error_title']         = "Erreur de paiement";
+$lang['gvv_pel_error_intro']         = "Une erreur est survenue lors du paiement. Veuillez réessayer ou contacter l'administrateur.";
+$lang['gvv_pel_error_back']          = "Retour à mon compte";
+
+// Config admin HelloAsso (EF5)
+$lang['gvv_admin_config_title']              = "Configuration Paiements en Ligne (HelloAsso)";
+$lang['gvv_admin_config_section']            = "Section";
+$lang['gvv_admin_config_select_section']     = "— Choisir une section —";
+$lang['gvv_admin_config_helloasso_title']    = "Crédentiels HelloAsso";
+$lang['gvv_admin_config_client_id']         = "Client ID";
+$lang['gvv_admin_config_client_secret']     = "Client Secret";
+$lang['gvv_admin_config_secret_set']        = "● défini (laisser vide pour conserver)";
+$lang['gvv_admin_config_secret_empty']      = "non défini";
+$lang['gvv_admin_config_secret_help']       = "Laisser vide pour conserver le secret actuel.";
+$lang['gvv_admin_config_account_slug']      = "Slug de l'organisation";
+$lang['gvv_admin_config_slug_help']         = "Identifiant de votre association dans HelloAsso (ex: aeroclub-de-xxx).";
+$lang['gvv_admin_config_environment']       = "Environnement";
+$lang['gvv_admin_config_webhook_secret']    = "Secret Webhook";
+$lang['gvv_admin_config_webhook_url']       = "URL Webhook (à copier dans HelloAsso)";
+$lang['gvv_admin_config_webhook_url_help']  = "Copiez cette URL dans votre interface HelloAsso pour recevoir les confirmations de paiement.";
+$lang['gvv_admin_config_test_btn']          = "Tester la connexion";
+$lang['gvv_admin_config_test_ok']           = "Connexion HelloAsso établie avec succès.";
+$lang['gvv_admin_config_test_fail']         = "Échec de la connexion HelloAsso. Vérifiez les crédentiels.";
+$lang['gvv_admin_config_test_pending']      = "Test en cours…";
+$lang['gvv_admin_config_test_error']        = "Erreur réseau lors du test.";
+$lang['gvv_admin_config_bar_title']         = "Configuration Bar";
+$lang['gvv_admin_config_has_bar']           = "Cette section dispose d'un bar";
+$lang['gvv_admin_config_bar_account']       = "Compte de recette bar (7xx)";
+$lang['gvv_admin_config_bar_account_help']  = "Compte crédité lors des règlements de consommations de bar.";
+$lang['gvv_admin_config_transaction_title'] = "Paramètres de transaction";
+$lang['gvv_admin_config_compte_passage']    = "Compte de passage (débit HelloAsso)";
+$lang['gvv_admin_config_compte_passage_help'] = "Compte débité lors d'un paiement HelloAsso, en attente du virement de la plateforme (ex: 467).";
+$lang['gvv_admin_config_montant_min']       = "Montant minimum (€)";
+$lang['gvv_admin_config_montant_max']       = "Montant maximum (€)";
+$lang['gvv_admin_config_enabled']           = "Activer les paiements en ligne pour cette section";
+$lang['gvv_admin_config_enabled_help']      = "Si désactivé, les boutons de paiement en ligne sont masqués pour tous les utilisateurs.";
+$lang['gvv_admin_config_saved']             = "Configuration enregistrée.";
+$lang['gvv_admin_config_error_no_section']  = "Veuillez sélectionner une section.";

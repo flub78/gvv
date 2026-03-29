@@ -19,3 +19,62 @@ $lang['gvv_bar_error_montant_min']       = "Het minimumbedrag is € 0,50.";
 $lang['gvv_bar_error_description']       = "Een omschrijving van uw consumptie is verplicht.";
 $lang['gvv_bar_error_solde']             = "Onvoldoende saldo: u heeft € %.2f beschikbaar.";
 $lang['gvv_bar_error_creation']          = "Er is een fout opgetreden bij het registreren. Probeer het opnieuw.";
+
+// Index / piloot transacties (EF6)
+$lang['gvv_pel_index_title']         = "Mijn online betalingen";
+$lang['gvv_pel_index_intro']         = "Geschiedenis van uw online betalingen (HelloAsso).";
+$lang['gvv_pel_index_empty']         = "Geen betalingen geregistreerd.";
+$lang['gvv_pel_col_date']            = "Datum";
+$lang['gvv_pel_col_montant']         = "Bedrag";
+$lang['gvv_pel_col_statut']          = "Status";
+$lang['gvv_pel_col_plateforme']      = "Platform";
+$lang['gvv_pel_statut_pending']      = "In afwachting";
+$lang['gvv_pel_statut_completed']    = "Betaald";
+$lang['gvv_pel_statut_failed']       = "Mislukt";
+$lang['gvv_pel_statut_cancelled']    = "Geannuleerd";
+
+// Bevestiging / annulering / fout (EF6)
+$lang['gvv_pel_confirm_title']       = "Betaling bevestigd";
+$lang['gvv_pel_confirm_intro']       = "Uw betaling is succesvol geregistreerd.";
+$lang['gvv_pel_confirm_back']        = "Terug naar mijn rekening";
+$lang['gvv_pel_cancel_title']        = "Betaling geannuleerd";
+$lang['gvv_pel_cancel_intro']        = "U heeft de betaling geannuleerd. Er is geen bedrag afgeschreven.";
+$lang['gvv_pel_cancel_back']         = "Terug naar mijn rekening";
+$lang['gvv_pel_error_title']         = "Betalingsfout";
+$lang['gvv_pel_error_intro']         = "Er is een fout opgetreden tijdens de betaling. Probeer het opnieuw of neem contact op met de beheerder.";
+$lang['gvv_pel_error_back']          = "Terug naar mijn rekening";
+
+// HelloAsso admin config (EF5)
+$lang['gvv_admin_config_title']              = "Configuratie Online Betalingen (HelloAsso)";
+$lang['gvv_admin_config_section']            = "Sectie";
+$lang['gvv_admin_config_select_section']     = "— Selecteer een sectie —";
+$lang['gvv_admin_config_helloasso_title']    = "HelloAsso Inloggegevens";
+$lang['gvv_admin_config_client_id']         = "Client ID";
+$lang['gvv_admin_config_client_secret']     = "Client Secret";
+$lang['gvv_admin_config_secret_set']        = "● ingesteld (leeg laten om te behouden)";
+$lang['gvv_admin_config_secret_empty']      = "niet ingesteld";
+$lang['gvv_admin_config_secret_help']       = "Leeg laten om het huidige secret te behouden.";
+$lang['gvv_admin_config_account_slug']      = "Organisatie Slug";
+$lang['gvv_admin_config_slug_help']         = "Uw verenigingsidentificator in HelloAsso (bijv. aeroclub-de-xxx).";
+$lang['gvv_admin_config_environment']       = "Omgeving";
+$lang['gvv_admin_config_webhook_secret']    = "Webhook Secret";
+$lang['gvv_admin_config_webhook_url']       = "Webhook URL (kopiëren naar HelloAsso)";
+$lang['gvv_admin_config_webhook_url_help']  = "Kopieer deze URL naar uw HelloAsso-interface om betalingsbevestigingen te ontvangen.";
+$lang['gvv_admin_config_test_btn']          = "Verbinding testen";
+$lang['gvv_admin_config_test_ok']           = "HelloAsso-verbinding succesvol tot stand gebracht.";
+$lang['gvv_admin_config_test_fail']         = "HelloAsso-verbinding mislukt. Controleer uw inloggegevens.";
+$lang['gvv_admin_config_test_pending']      = "Testen…";
+$lang['gvv_admin_config_test_error']        = "Netwerkfout tijdens de test.";
+$lang['gvv_admin_config_bar_title']         = "Bar Configuratie";
+$lang['gvv_admin_config_has_bar']           = "Deze sectie heeft een bar";
+$lang['gvv_admin_config_bar_account']       = "Bar-opbrengstrekening (7xx)";
+$lang['gvv_admin_config_bar_account_help']  = "Rekening gecrediteerd bij betaling van barconsumptie.";
+$lang['gvv_admin_config_transaction_title'] = "Transactieparameters";
+$lang['gvv_admin_config_compte_passage']    = "Doorlooprekening (HelloAsso debet)";
+$lang['gvv_admin_config_compte_passage_help'] = "Rekening gedebiteerd bij HelloAsso-betalingen, in afwachting van platformoverboeking (bijv. 467).";
+$lang['gvv_admin_config_montant_min']       = "Minimumbedrag (€)";
+$lang['gvv_admin_config_montant_max']       = "Maximumbedrag (€)";
+$lang['gvv_admin_config_enabled']           = "Online betalingen inschakelen voor deze sectie";
+$lang['gvv_admin_config_enabled_help']      = "Indien uitgeschakeld, zijn online betalingsknoppen verborgen voor alle gebruikers.";
+$lang['gvv_admin_config_saved']             = "Configuratie opgeslagen.";
+$lang['gvv_admin_config_error_no_section']  = "Selecteer een sectie.";

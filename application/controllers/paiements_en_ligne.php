@@ -24,9 +24,12 @@
  *
  * PHPUnit tests:
  *   - phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneBarTest.php
+ *   - phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneModelTest.php
  *
  * Playwright tests:
  *   - npx playwright test tests/paiements-en-ligne-smoke.spec.js
+ *   - npx playwright test tests/paiements-en-ligne-admin-config.spec.js
+ *   - npx playwright test tests/paiements-en-ligne-base.spec.js
  */
 
 include('./application/libraries/Gvv_Controller.php');
@@ -46,6 +49,8 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->model('comptes_model');
         $this->load->model('sections_model');
         $this->load->model('ecritures_model');
+        $this->load->model('paiements_en_ligne_model');
+        $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
         $this->lang->load('compta');
     }
@@ -193,5 +198,324 @@ class Paiements_en_ligne extends MY_Controller {
             sprintf($this->lang->line('gvv_bar_success'), number_format($montant, 2, ',', ' '))
         );
         redirect('compta/mon_compte');
+    }
+
+    // =========================================================================
+    // EF6 — Contrôleur et modèle de base
+    // =========================================================================
+
+    /**
+     * Page d'accueil : liste des paiements en ligne du pilote connecté.
+     *
+     * Accès : pilote authentifié
+     */
+    public function index() {
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $user_id = (int) $this->dx_auth->get_user_id();
+        $transactions = $this->paiements_en_ligne_model->get_transactions(array(
+            'user_id' => $user_id,
+            'club'    => (int) $section['id'],
+        ));
+
+        $data = array('transactions' => $transactions);
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_index', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Page de confirmation après paiement HelloAsso réussi.
+     * Appelée depuis l'URL de retour configurée dans le checkout HelloAsso.
+     *
+     * @param string $transaction_id  ID externe HelloAsso (dans l'URL)
+     */
+    public function confirmation($transaction_id = '') {
+        $transaction = false;
+        if ($transaction_id !== '') {
+            $transaction = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        }
+
+        $data = array('transaction' => $transaction);
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_confirmation', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Page d'annulation après refus ou abandon du paiement HelloAsso.
+     */
+    public function annulation() {
+        $data = array();
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_annulation', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Page d'erreur après échec du paiement HelloAsso.
+     */
+    public function erreur() {
+        $data = array();
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_erreur', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Endpoint de détection sandbox (utilisé par les specs Playwright).
+     *
+     * GET/POST : HTTP 200 si client_id et client_secret sont définis et non vides
+     *            pour la section active, sinon HTTP 503.
+     *
+     * Pas de vue — réponse JSON minimale.
+     */
+    public function sandbox_available() {
+        $section = $this->sections_model->section();
+        $club_id = isset($section['id']) ? (int) $section['id'] : 0;
+
+        $available = false;
+        if ($club_id > 0) {
+            $client_id     = $this->paiements_en_ligne_model->get_config('helloasso', 'client_id', $club_id);
+            $client_secret = $this->paiements_en_ligne_model->get_config('helloasso', 'client_secret', $club_id);
+            $available = !empty($client_id) && !empty($client_secret);
+        }
+
+        $this->output->set_content_type('application/json');
+        if ($available) {
+            $this->output->set_status_header(200);
+            $this->output->set_output(json_encode(array('available' => true)));
+        } else {
+            $this->output->set_status_header(503);
+            $this->output->set_output(json_encode(array('available' => false)));
+        }
+    }
+
+    // =========================================================================
+    // EF5 — Configuration admin HelloAsso
+    // =========================================================================
+
+    /**
+     * Page de configuration HelloAsso par section (EF5).
+     *
+     * GET  : affiche le formulaire pour la section sélectionnée
+     * POST : enregistre la configuration
+     *
+     * Accès : admin uniquement
+     */
+    public function admin_config() {
+        if (!$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Section cible : paramètre GET ou section active
+        $club_id = (int) ($this->input->get('section') ?: 0);
+        if ($club_id === 0) {
+            $active = $this->sections_model->section();
+            $club_id = isset($active['id']) ? (int) $active['id'] : 0;
+        }
+
+        if ($this->input->post('button') === 'save') {
+            $this->_save_admin_config($club_id);
+            return;
+        }
+
+        // Sélecteur de comptes 7xx pour le bar
+        $bar_account_selector = $this->comptes_model->selector_with_null(
+            array('codec >=' => '700', 'codec <' => '800'),
+            TRUE
+        );
+
+        // Chargement de la config courante
+        $cfg = $this->_load_config($club_id);
+
+        // Info de la section courante (has_bar, bar_account_id)
+        $section_row = null;
+        if ($club_id) {
+            $query = $this->db->where('id', $club_id)->get('sections');
+            $section_row = $query->row_array();
+        }
+
+        $data = array(
+            'sections_selector'    => $this->sections_model->selector(),
+            'bar_account_selector' => $bar_account_selector,
+            'club_id'              => $club_id,
+            'cfg'                  => $cfg,
+            'section_row'          => $section_row,
+            'webhook_url'          => site_url('paiements_en_ligne/webhook'),
+            'success'              => $this->session->flashdata('success'),
+            'error'                => $this->session->flashdata('error'),
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_admin_config', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Test de la connexion HelloAsso (AJAX).
+     *
+     * POST → JSON { success: bool, message: string }
+     *
+     * Accès : admin uniquement
+     */
+    public function test_connexion() {
+        if (!$this->dx_auth->is_admin()) {
+            $this->output->set_status_header(403);
+            $this->output->set_content_type('application/json');
+            $this->output->set_output(json_encode(array('success' => false, 'message' => 'Accès refusé')));
+            return;
+        }
+
+        $club_id = (int) $this->input->post('club_id');
+        $this->output->set_content_type('application/json');
+
+        $token = $this->helloasso->get_oauth_token($club_id);
+        if ($token !== FALSE) {
+            $this->output->set_output(json_encode(array(
+                'success' => true,
+                'message' => $this->lang->line('gvv_admin_config_test_ok'),
+            )));
+        } else {
+            $this->output->set_output(json_encode(array(
+                'success' => false,
+                'message' => $this->lang->line('gvv_admin_config_test_fail'),
+            )));
+        }
+    }
+
+    /**
+     * Enregistre la configuration HelloAsso pour un club.
+     */
+    private function _save_admin_config($club_id) {
+        if ($club_id === 0) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_admin_config_error_no_section'));
+            redirect('paiements_en_ligne/admin_config');
+            return;
+        }
+
+        $username = $this->dx_auth->get_username();
+
+        // Paramètres HelloAsso dans paiements_en_ligne_config
+        $keys = array(
+            'client_id'      => trim($this->input->post('client_id') ?: ''),
+            'account_slug'   => trim($this->input->post('account_slug') ?: ''),
+            'environment'    => $this->input->post('environment') === 'production' ? 'production' : 'sandbox',
+            'webhook_secret' => trim($this->input->post('webhook_secret') ?: ''),
+            'compte_passage' => trim($this->input->post('compte_passage') ?: '467'),
+            'montant_min'    => (float) ($this->input->post('montant_min') ?: 10),
+            'montant_max'    => (float) ($this->input->post('montant_max') ?: 500),
+            'enabled'        => $this->input->post('enabled') ? '1' : '0',
+        );
+
+        // client_secret : ne remplacer que si une nouvelle valeur est saisie
+        $new_secret = trim($this->input->post('client_secret') ?: '');
+        if ($new_secret !== '') {
+            $keys['client_secret'] = $new_secret;
+        }
+
+        foreach ($keys as $key => $value) {
+            $this->_upsert_config($club_id, $key, (string) $value, $username);
+        }
+
+        // Paramètres bar dans la table sections
+        $has_bar        = $this->input->post('has_bar') ? 1 : 0;
+        $bar_account_id = (int) ($this->input->post('bar_account_id') ?: 0) ?: null;
+
+        $this->db->where('id', $club_id)->update('sections', array(
+            'has_bar'        => $has_bar,
+            'bar_account_id' => $bar_account_id,
+        ));
+
+        // Log d'audit
+        $this->helloasso->log('INFO', 'none', 'admin_config',
+            'Config updated for club=' . $club_id . ' by=' . $username
+            . ' enabled=' . $keys['enabled']
+            . ' environment=' . $keys['environment']
+            . ' has_bar=' . $has_bar
+        );
+
+        $this->session->set_flashdata('success', $this->lang->line('gvv_admin_config_saved'));
+        redirect('paiements_en_ligne/admin_config?section=' . $club_id);
+    }
+
+    /**
+     * Charge toute la configuration HelloAsso d'un club depuis paiements_en_ligne_config.
+     *
+     * @param  int   $club_id
+     * @return array Tableau associatif param_key => param_value avec valeurs par défaut
+     */
+    private function _load_config($club_id) {
+        $defaults = array(
+            'client_id'      => '',
+            'client_secret'  => '',
+            'account_slug'   => '',
+            'environment'    => 'sandbox',
+            'webhook_secret' => '',
+            'compte_passage' => '467',
+            'montant_min'    => '10',
+            'montant_max'    => '500',
+            'enabled'        => '0',
+        );
+
+        if (!$club_id) return $defaults;
+
+        $query = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('club', $club_id)
+            ->get('paiements_en_ligne_config');
+
+        foreach ($query->result_array() as $row) {
+            $defaults[$row['param_key']] = $row['param_value'];
+        }
+        return $defaults;
+    }
+
+    /**
+     * Insert ou update une clé de configuration (upsert).
+     */
+    private function _upsert_config($club_id, $key, $value, $username) {
+        $exists = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('club', $club_id)
+            ->where('param_key', $key)
+            ->count_all_results('paiements_en_ligne_config');
+
+        $now = date('Y-m-d H:i:s');
+
+        if ($exists) {
+            $this->db
+                ->where('plateforme', 'helloasso')
+                ->where('club', $club_id)
+                ->where('param_key', $key)
+                ->update('paiements_en_ligne_config', array(
+                    'param_value' => $value,
+                    'updated_at'  => $now,
+                    'updated_by'  => $username,
+                ));
+        } else {
+            $this->db->insert('paiements_en_ligne_config', array(
+                'plateforme'  => 'helloasso',
+                'club'        => $club_id,
+                'param_key'   => $key,
+                'param_value' => $value,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+                'created_by'  => $username,
+                'updated_by'  => $username,
+            ));
+        }
     }
 }

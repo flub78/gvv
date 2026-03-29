@@ -3,7 +3,7 @@
 **Fonctionnalité :** Provisionnement de Compte par Paiement en Ligne
 **PRD :** `doc/prds/paiements_en_ligne_prd.md`
 **Spike de référence :** `doc/plan/HelloAssoSpike.md`
-**Statut :** En cours (étapes 1–3 terminées)
+**Statut :** En cours (étapes 1–6 terminées)
 
 ---
 
@@ -42,9 +42,9 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 1 | — | Audit système bar existant | — | ✅ |
 | 2 | UC5 | Règlement consommations bar — débit de solde pilote | HAUTE | ✅ |
 | 3 | — | Migration de base de données | — | ✅ |
-| 4 | — | Bibliothèque HelloAsso | — | ☐ |
-| 5 | EF5 | Configuration des plateformes par section | MOYENNE | ☐ |
-| 6 | — | Contrôleur et modèle de base | — | ☐ |
+| 4 | — | Bibliothèque HelloAsso | — | ✅ |
+| 5 | EF5 | Configuration des plateformes par section | MOYENNE | ✅ |
+| 6 | — | Contrôleur et modèle de base | — | ✅ |
 | 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ☐ |
 | 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ☐ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
@@ -158,10 +158,12 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Multi-section :** Les crédentiels (client_id, client_secret, slug) sont récupérés depuis `paiements_en_ligne_config` filtrés par `club`, jamais partagés entre sections.
 
-**Validation :**
-- Test unitaire : `get_oauth_token()` retourne un token avec un mock cURL (pas de dépendance réseau)
-- Test unitaire : `verify_webhook_signature()` accepte une signature valide et rejette une signature invalide
-- Test unitaire : logging produit un fichier daté avec les mots-clés `[HELLOASSO]` et `txid=`, secrets masqués
+**Validation :** ✅ Complète
+- ✅ PHPUnit (19 tests) : `get_oauth_token` succès/échec/crédentiels manquants, `verify_webhook_signature` valide/invalide/préfixé/secret absent, `log` format/mots-clés/masquage secret/multi-lignes, `sandbox_available`, `create_checkout` succès/échec OAuth/slug manquant/log PENDING+SUCCESS — `application/tests/unit/libraries/HelloassoLibraryTest.php`
+
+**Fichiers créés :**
+- `application/libraries/Helloasso.php`
+- `application/tests/unit/libraries/HelloassoLibraryTest.php`
 
 ---
 
@@ -404,19 +406,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 14 : Paiement externe bar via QR Code (UC2)
+## Étape 14 : Règlement consommations bar — personne externe via QR Code (UC2)
 
-**Objectif :** Permettre à une personne extérieure de payer ses consommations via un QR Code affiché au bar, sans compte GVV.
+**Objectif :** Permettre à une personne extérieure de régler ses consommations de bar via un QR Code affiché au bar, sans compte GVV. La personne saisit elle-même le montant et la description (modèle de confiance, identique aux pilotes).
 
 **Fichiers :**
 - Route publique : `paiements_en_ligne/public_bar`
-- Vue : formulaire sans connexion (nom, prénom, email, description, montant libre min 2€)
-- QR Code généré et géré par l'admin : URL pointant vers `public_bar?club=X`
+- Vue : formulaire sans connexion (nom, prénom, email, description libre, montant libre min 2€)
+- QR Code généré et géré par le trésorier : URL pointant vers `public_bar?club=X`
 
 **Flux :**
 1. Scan QR Code → page publique
-2. Remplir formulaire → création transaction avec `metadata.type=bar_externe`
-3. Checkout HelloAsso → webhook → handler étape 7 → écriture recette bar
+2. La personne saisit : nom, prénom, email, description de ses consommations, montant
+3. Création transaction avec `metadata.type=bar_externe` → Checkout HelloAsso → webhook → handler étape 7 → écriture recette bar
 4. Email de confirmation à l'adresse fournie
 
 **Sécurité :** CSRF, validation montant minimum. Le paramètre `club` doit être un identifiant de section valide — tout accès sans `club` valide est rejeté avec message d'erreur explicite.
