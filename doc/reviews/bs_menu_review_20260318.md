@@ -116,7 +116,7 @@ La valeur est construite depuis `mprenom` et `mnom` (DB), sans `htmlspecialchars
 <li><a class="dropdown-item" href="https://legacy.datatables.net/api.html">
 ```
 
-URL externe figée dans un menu visible uniquement des utilisateurs `dev_menu_users`. Impact limité.
+URL externe figée dans un menu visible uniquement des utilisateurs `dev_users`. Impact limité.
 
 ---
 

@@ -1,12 +1,12 @@
 # Plan: HelloAsso Payment Spike Implementation
 
 ## TL;DR
-Create a **dev-only proof-of-concept** payment controller for HelloAsso testing. Build a form where authorized admins (via `dev_menu_users`) can submit payment test data (reference, payer name, amount) and trigger HelloAsso payment initiation. No database storage needed for the spike phase. Success criterion: small payment processed in sandbox and credited to association's HelloAsso account.
+Create a **dev-only proof-of-concept** payment controller for HelloAsso testing. Build a form where authorized admins (via `dev_users`) can submit payment test data (reference, payer name, amount) and trigger HelloAsso payment initiation. No database storage needed for the spike phase. Success criterion: small payment processed in sandbox and credited to association's HelloAsso account.
 
 ## Context
 - GVV uses internal accounting system (comptes/ecritures tables), no current external payment integration
 - This spike is proof-of-concept only; no integration with accounting system
-- Access restricted to development admins via `dev_menu_users` config
+- Access restricted to development admins via `dev_users` config
 - Uses HelloAsso sandbox for testing
 
 ## Phase 1: HelloAsso API Research & Setup ✅ COMPLETE
@@ -24,12 +24,12 @@ Create a **dev-only proof-of-concept** payment controller for HelloAsso testing.
 
 ✅ Created `Payments` class extending `CI_Controller`:
 - Constructor: Check user login + load required libraries
-- Authorization check: Restricts to `dev_menu_users` only
+- Authorization check: Restricts to `dev_users` only
 - Method `test_helloasso()`: 
   - GET: Display form with Reference, Payer Name, Amount, Email fields
   - POST: Validate inputs, call HelloAsso API, display response
 - Helper methods:
-  - `_is_dev_authorized()` — Check if user is in dev_menu_users
+  - `_is_dev_authorized()` — Check if user is in dev_users
   - `_process_helloasso_payment()` — Form submission handler
   - `_validate_payment_form()` — Input validation (reference, name, amount, email)
   - `_call_helloasso_api()` — Call HelloAsso payment initiation endpoint
@@ -99,7 +99,7 @@ All code implemented and syntax validated ✅
 ### Manual Testing Checklist
 - [ ] Verify dev access restriction: 
   - Logout as dev user, try to access `/payments/test_helloasso` (should see 403)
-  - Login as dev user from `dev_menu_users`, access `/payments/test_helloasso` (should see form)
+  - Login as dev user from `dev_users`, access `/payments/test_helloasso` (should see form)
 - [ ] Test form validation: 
   - Submit with empty Reference (should show error)
   - Submit with empty Payer Name (should show error)
@@ -144,14 +144,14 @@ Use these files as templates:
 - `application/controllers/openflyers.php` — External API integration pattern (CSV import)
 - `application/libraries/GoogleCal.php` — OAuth2 authentication pattern
 - `application/core/MY_Controller.php` — Base controller class, authorization checks
-- `application/config/program.example.php` — dev_menu_users configuration example
+- `application/config/program.example.php` — dev_users configuration example
 - `application/views/welcome/index.php` — Bootstrap 5 form structure
 
 ## Success Criteria
 
 | Criterion | Details | Verification |
 |-----------|---------|--------|
-| **Access Control** | Only `dev_menu_users` can access | Try accessing as non-dev user (should see 403) |
+| **Access Control** | Only `dev_users` can access | Try accessing as non-dev user (should see 403) |
 | **Form Validation** | Invalid amounts rejected | Submit form with negative amount or 0 |
 | **API Integration** | HelloAsso API called successfully | Check logs for API request details |
 | **Payment Redirect** | User redirected to HelloAsso payment page | Click redirect link in success message |
@@ -161,7 +161,7 @@ Use these files as templates:
 ## Key Decisions
 
 1. **Spike-Only**: No integration with GVV's accounting system (comptes/ecritures)
-2. **Dev Restriction**: Access via `dev_menu_users` config only
+2. **Dev Restriction**: Access via `dev_users` config only
 3. **No Database Storage**: Payment data not persisted for spike phase
 4. **Direct API Calls**: Simple HTTP client, no service layer needed
 5. **Sandbox Testing**: Use HelloAsso test account to avoid real charges

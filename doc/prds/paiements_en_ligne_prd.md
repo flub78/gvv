@@ -84,7 +84,6 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 **Trésorier :**
 - Consulter tous les provisionnements en ligne effectués par les membres
 - Vérifier que les écritures comptables sont correctement générées
-- Suivre les commissions prélevées par la plateforme de paiement
 - Rapprocher automatiquement les virements de la plateforme de paiement
 
 **Personne Extérieure (non membre) :**
@@ -175,8 +174,9 @@ Un pilote connecté et identifié dans GVV souhaite payer ses consommations (boi
 **Flux :**
 1. Le pilote accède à la page "Mes dépenses de bar"
 2. Il clique sur "Payer par carte"
-3. On lui demande seulement la **confirmation du montant** et une **courte description** (ex: "Consommations bar - 25/03/2026")
-4. Il est redirigé vers HelloAsso pour payer
+3. On lui demande seulement la **confirmation du montant** et une **courte description** (ex: "Consommations bar - 3 bières, 2 cafés")
+4. La date, le nom du pilote et sont email sont automatiquement renseignés, il n'a pas à les saisir
+5. Il est redirigé vers HelloAsso pour payer
 6. Après paiement réussi :
    - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
    - Le pilote reçoit une confirmation par email
@@ -213,7 +213,7 @@ Une personne extérieure au club (visiteur, ami d'un pilote) souhaite payer ses 
 - Flux de collecte autonome sans intervention humaine
 - Pas de fuite de trésorerie
 
-**Note :** Le QR Code doit être généré et géré par l'admin du club
+**Note :** Le QR Code doit être généré et géré par un trésorier
 
 ---
 
@@ -227,11 +227,10 @@ Un pilote connecté souhaite renouveler sa cotisation annuelle du club directeme
 2. Le système affiche les **produits de cotisation** disponibles configurés par le club :
    - Exemple : "Cotisation Pilote 2026 - 350€"
    - Exemple : "Cotisation Junior 2026 - 200€"
-   - Exemple : "Formule Voltige 2026 - 500€"
 3. Il sélectionne le produit voulu
 4. Il paie par carte
 5. Après paiement :
-   - Écriture comptable automatique (vente de cotisation, compte 417)
+   - Écriture comptable automatique (vente de cotisation, compte 411)
    - Marquage du pilote comme "cotisant à jour pour 2026"
    - Attestation PDF générée et envoyée par email
    - Notification au trésorier pour information
@@ -327,6 +326,63 @@ Un pilote connecté et identifié dispose d'un solde positif sur son compte pilo
 - La transaction est atomique : soit complètement acceptée, soit complètement refusée
 - Le solde est recalculé en temps réel et bloque tout paiement en cas d'insuffisance
 - Aucun paiement à crédit n'est possible (solde minimum = 0€)
+
+---
+
+### UC6 : Paiement par Carte lors de la Saisie d'une Cotisation par le Trésorier (Priorité : HAUTE)
+
+**Contexte :**
+Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un chèque ou un espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de saisie de la cotisation.
+
+**Flux :**
+1. Le trésorier accède à l'interface de création de cotisation (formulaire habituel)
+2. Deux boutons sont présents en bas du formulaire :
+   - **"Valider"** (comportement habituel, paiement classique)
+   - **"Payer par carte (HelloAsso)"**
+3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
+   - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
+   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone pour effectuer le paiement lui-même
+4. Après confirmation du paiement par HelloAsso (succès) :
+   - Une écriture de cotisation est créée (identique à la validation classique)
+   - Un approvisionnement de compte pilote est créé pour le même montant (crédit du compte pilote)
+   - Ces deux écritures sont créées de manière **atomique** (tout ou rien)
+   - Le solde du compte pilote reste inchangé en net : il est débité de la cotisation et crédité d'un approvisionnement équivalent
+5. En cas d'échec du paiement HelloAsso :
+   - Aucune écriture n'est créée
+   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
+
+**Règles Métier :**
+- La transaction comptable est atomique : les deux écritures (cotisation + approvisionnement) sont créées ensemble ou pas du tout
+- En cas d'échec HelloAsso, aucun impact sur la comptabilité
+- Le solde net du pilote est inchangé après l'opération : la cotisation débite le compte et l'approvisionnement le crédite du même montant
+- Le trésorier a le choix du mode de paiement HelloAsso : sur son écran ou par QR Code envoyé au porteur de carte
+
+---
+
+### UC7 : Approvisionnement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
+
+**Contexte :**
+Le trésorier crédite le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de crédit de compte.
+
+**Flux :**
+1. Le trésorier accède à l'interface de crédit de compte pilote (formulaire habituel)
+2. Deux boutons sont présents en bas du formulaire :
+   - **"Valider"** (comportement habituel, paiement classique)
+   - **"Payer par carte (HelloAsso)"**
+3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
+   - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
+   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone pour effectuer le paiement lui-même
+4. Après confirmation du paiement par HelloAsso (succès) :
+   - L'écriture de crédit de compte est créée (identique à la validation classique)
+   - Le compte pilote est crédité du montant payé par carte
+5. En cas d'échec du paiement HelloAsso :
+   - Aucune écriture n'est créée
+   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
+
+**Règles Métier :**
+- La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
+- En cas d'échec HelloAsso, aucun impact sur la comptabilité
+- Le trésorier a le choix du mode de paiement HelloAsso : sur son écran ou par QR Code envoyé au porteur de carte
 
 ---
 
@@ -913,6 +969,17 @@ grep STATUS= application/logs/helloasso_payments.log
   - Traçabilité complète pour audit
   - Numérotation séquentielle des écritures
 
+### 7.7 Contraintes de Déploiement
+
+**Environnement de test sur production :**
+
+Le serveur de production est le seul serveur visible depuis Internet, ce qui est une condition nécessaire au bon fonctionnement des webhooks HelloAsso. Il n'existe pas d'environnement de préproduction accessible publiquement. En conséquence :
+
+- Les tests de la fonctionnalité de paiement en ligne (y compris les tests sandbox HelloAsso) se déroulent directement sur le serveur de production.
+- Pendant la phase de test, tous les boutons, liens et écrans liés au paiement en ligne sont **invisibles pour les utilisateurs ordinaires** et uniquement visibles pour les utilisateurs listés dans la configuration `dev_users`.
+- Cette restriction s'applique à l'ensemble des points d'entrée : boutons de paiement dans les formulaires de cotisation et de crédit de compte, menus de navigation, pages de confirmation, et toute interface HelloAsso.
+- Dès que la fonctionnalité est validée et prête pour la mise en production générale, la restriction `dev_users` est levée et les boutons deviennent visibles pour tous les utilisateurs autorisés.
+
 ---
 
 ## 8. Plateformes de Paiement Supportées
@@ -1224,7 +1291,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 ## 15. Questions Ouvertes
 
 1. **Q :** Faut-il permettre aux membres de provisionner le compte d'un autre membre (ex: parent pour enfant) ?
-   **R :** À décider - Suggestion : Phase 2, nécessite validation d'autorisation
+   **R :** Noon, si un membre veut provisionner pour un autre, il faudra que ce soit fait depuis le compte du destinataire.
 
 2. **Q :** Faut-il envoyer un email de confirmation systématique après chaque provisionnement ?
    **R :** Oui recommandé - Option configurable par utilisateur
@@ -1239,7 +1306,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
    **R :** Processus manuel géré par le trésorier (hors scope automatisation)
 
 6. **Q :** Faut-il créer une écriture comptable distincte pour les commissions ?
-   **R :** Optionnel Phase 2 - Si HelloAsso prélève des frais, créer une 2ème écriture
+   **R :** Non les commissions HelloAsso sont débité au payeur mais ne transitent pas par GVV, donc pas d'écriture comptable nécessaire côté GVV
 
 7. **Q :** Doit-on garder un historique des tentatives de paiement échouées ?
    **R :** Oui - Utile pour debugging et statistiques

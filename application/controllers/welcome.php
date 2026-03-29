@@ -133,8 +133,8 @@ class Welcome extends Gvv_Controller {
         }
 
         // Check if user is authorized for development/test features
-        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
-        $data['is_dev_authorized'] = in_array($data['username'], $dev_menu_users);
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+        $data['is_dev_authorized'] = in_array($data['username'], $dev_users);
 
         // Configuration options
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');

@@ -408,10 +408,10 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
         ?>
 
         <?php
-          $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+          $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
           $current_username = $this->session->userdata('DX_username');
         ?>
-        <?php if (in_array($current_username, $dev_menu_users)) : ?>
+        <?php if (in_array($current_username, $dev_users)) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
