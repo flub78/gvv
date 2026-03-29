@@ -884,6 +884,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-warehouse text-secondary"></i>
+                        <div class="card-title text-muted">Gestion du parc</div>
+                        <div class="card-text text-muted">À venir</div>
+                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    </div>
+                </div>
+
             </div>
         </div>
         </div>
@@ -1122,6 +1131,15 @@ $this->lang->load('welcome');
                         <div class="card-title">Autorisations</div>
                         <div class="card-text text-muted">Gestion</div>
                         <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-credit-card text-primary"></i>
+                        <div class="card-title">Paiements en ligne</div>
+                        <div class="card-text text-muted">HelloAsso</div>
+                        <a href="<?= controller_url('paiements_en_ligne/admin_config') ?>" class="btn btn-primary btn-sm">Configurer</a>
                     </div>
                 </div>
 

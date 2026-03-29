@@ -32,6 +32,9 @@ $lang['gvv_admin_menu_custom_permissions'] = "Custom Permissions";
 
 $lang['gvv_admin_menu_ut'] = "Tests unitaires";
 $lang['gvv_admin_menu_coverage'] = "Mesure de couverture";
+$lang['gvv_admin_menu_online_payments'] = "Paiements en ligne (HelloAsso)";
+$lang['gvv_admin_menu_online_payments_desc'] = "Configuration par section";
+$lang['gvv_admin_menu_open'] = "Ouvrir";
 
 $lang['gvv_admin_db_warning'] = "Attention, par défaut la restauration de la base écrase toutes les données.";
 $lang['gvv_admin_db_select'] = "Choisissez la sauvegarde que vous voulez recharger.";
