@@ -52,7 +52,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
-| 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ☐ |
+| 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ✅ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ☐ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
@@ -468,11 +468,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Vérification section active (`_require_active_section()`) avant création du checkout
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
 
-**Validation :**
-- Test PHPUnit : webhook `type=credit_tresorier` → écriture de crédit compte pilote créée
-- Test PHPUnit : échec HelloAsso → aucune écriture, transaction `failed`
-- Test Playwright : bouton présent pour `dev_users`, absent pour un pilote ordinaire
-- `[SKIP SI SANDBOX]` Test Playwright : flow complet trésorier → paiement CB → écriture de crédit vérifiée
+**Validation :** ✅
+- ✅ Test PHPUnit `PaiementsEnLigneCreditTest` (2 tests) : webhook `type=credit_tresorier` → écriture créée, solde pilote augmenté du montant
+- ✅ Test Playwright `paiements-en-ligne-uc7-credit.spec.js` (4 tests) : accès pilote refusé, trésorier accède au formulaire, bouton HelloAsso absent pour non-dev_user, QR avec txid invalide redirige
+
+**Fichiers :**
+- `application/controllers/compta.php` : `provisionnement_tresorier()`, `_process_provisionnement_valider()`, `_initiate_credit_helloasso()`
+- `application/controllers/paiements_en_ligne.php` : `credit_qr()`, `credit_qr_image()`
+- `application/views/compta/bs_provisionnement_tresorier.php` : formulaire trésorier
+- `application/views/paiements_en_ligne/bs_credit_qr.php` : page QR code intermédiaire
+- `application/views/bs_menu.php` : entrée de menu "Approvisionner compte pilote (CB)"
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_credit_tresorier_*`, `gvv_credit_qr_*`
+- `application/tests/mysql/PaiementsEnLigneCreditTest.php`
+- `playwright/tests/paiements-en-ligne-uc7-credit.spec.js`
 
 ---
 

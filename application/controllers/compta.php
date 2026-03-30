@@ -1345,6 +1345,252 @@ class Compta extends Gvv_Controller {
         redirect('paiements_en_ligne/cotisation_qr/' . $txid);
     }
 
+    // =========================================================================
+    // UC7 — Approvisionnement compte pilote par CB via trésorier
+    // =========================================================================
+
+    /**
+     * Formulaire d'approvisionnement du compte pilote par le trésorier.
+     *
+     * GET  : affiche le formulaire (pilote, montant, description, compte_banque)
+     * POST : selon le bouton :
+     *   - "valider"    → écriture directe (débit compte_banque, crédit 411 pilote)
+     *   - "helloasso"  → création transaction pending + checkout HelloAsso → QR code
+     *
+     * Accès : trésorier, bureau, admin
+     */
+    public function provisionnement_tresorier() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $this->load->model('comptes_model');
+        $this->load->model('membres_model');
+        $this->load->model('ecritures_model');
+        $this->lang->load('paiements_en_ligne');
+
+        $this->data['title'] = $this->lang->line('gvv_credit_tresorier_title');
+
+        // Valeurs POST conservées en cas d'erreur
+        $this->data['pilote']        = $this->input->post('pilote') ?: '';
+        $this->data['montant']       = $this->input->post('montant') ?: '';
+        $this->data['description']   = $this->input->post('description') ?: '';
+        $this->data['compte_banque'] = $this->input->post('compte_banque') ?: '';
+
+        // Sélecteurs
+        $this->data['pilote_selector']        = $this->membres_model->selector_with_null(array('actif' => 1));
+        $this->data['compte_banque_selector'] = $this->comptes_model->selector_comptes_512();
+
+        // Auto-sélection si un seul compte 512
+        $comptes_512 = array_filter($this->data['compte_banque_selector'], function($k) {
+            return $k !== '';
+        }, ARRAY_FILTER_USE_KEY);
+        $this->data['single_compte_banque'] = false;
+        $this->data['compte_banque_label']  = '';
+        if (count($comptes_512) === 1) {
+            $ids = array_keys($comptes_512);
+            $this->data['compte_banque']       = $ids[0];
+            $this->data['single_compte_banque'] = true;
+            $this->data['compte_banque_label']  = $comptes_512[$ids[0]];
+        }
+
+        // Visibilité bouton HelloAsso
+        $dev_users_cfg = $this->config->item('dev_users') ?: '';
+        $dev_users     = array_map('trim', explode(',', $dev_users_cfg));
+        $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
+
+        $this->data['helloasso_enabled'] = false;
+        $section_id = (int) $this->session->userdata('section');
+        if ($section_id > 0 && $this->data['is_dev_authorized']) {
+            $this->load->model('paiements_en_ligne_model');
+            $this->data['helloasso_enabled'] =
+                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
+        }
+
+        if ($this->input->post('button') === 'valider') {
+            $this->_process_provisionnement_valider();
+            return;
+        }
+
+        if ($this->input->post('button') === 'helloasso') {
+            $pilote  = $this->input->post('pilote');
+            $montant = (float) str_replace(',', '.', $this->input->post('montant'));
+            $desc    = trim($this->input->post('description') ?: '');
+            if (!$desc) {
+                $desc = 'Approvisionnement compte pilote ' . $pilote;
+            }
+            $this->_initiate_credit_helloasso($pilote, $montant, $desc);
+            return;
+        }
+
+        $this->load->view('bs_header', $this->data);
+        $this->load->view('bs_menu', $this->data);
+        $this->load->view('bs_banner', $this->data);
+        $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Traite le chemin "Valider" : écriture directe débit compte_banque → crédit 411 pilote.
+     */
+    private function _process_provisionnement_valider() {
+        $pilote        = $this->input->post('pilote');
+        $montant       = (float) str_replace(',', '.', $this->input->post('montant'));
+        $description   = trim($this->input->post('description') ?: '');
+        $compte_banque = (int) $this->input->post('compte_banque');
+
+        $errors = array();
+        if (empty($pilote)) {
+            $errors[] = $this->lang->line('gvv_credit_tresorier_error_user');
+        }
+        if ($montant <= 0) {
+            $errors[] = $this->lang->line('gvv_bar_error_montant_min');
+        }
+        if (!$compte_banque) {
+            $errors[] = $this->lang->line('gvv_compta_error_no_account');
+        }
+
+        if (empty($errors)) {
+            $section_id   = (int) $this->session->userdata('section');
+            $cpilote      = $this->comptes_model->compte_pilote($pilote, $section_id ?: null);
+            if (!$cpilote) {
+                $errors[] = $this->lang->line('gvv_credit_tresorier_error_user');
+            }
+        }
+
+        if (!empty($errors)) {
+            $this->data['error_message'] = implode('<br>', $errors);
+            $this->load->view('bs_header', $this->data);
+            $this->load->view('bs_menu', $this->data);
+            $this->load->view('bs_banner', $this->data);
+            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $section_id = (int) $this->session->userdata('section');
+        $cpilote    = $this->comptes_model->compte_pilote($pilote, $section_id ?: null);
+        $date_op    = date('Y-m-d');
+
+        $ecriture = array(
+            'compte_debit'  => $compte_banque,
+            'compte_credit' => $cpilote['id'],
+            'montant'       => $montant,
+            'description'   => $description ?: 'Approvisionnement compte pilote ' . $pilote,
+            'date_op'       => $date_op,
+            'num_cheque'    => '',
+            'saisie_par'    => $this->dx_auth->get_username(),
+            'club'          => $section_id,
+        );
+
+        $ok = $this->ecritures_model->create_ecriture($ecriture);
+        if ($ok !== false) {
+            $this->session->set_flashdata('success',
+                sprintf($this->lang->line('gvv_credit_tresorier_success'), number_format($montant, 2, ',', ' '), $pilote));
+            redirect('compta/provisionnement_tresorier');
+        } else {
+            $this->data['error_message'] = $this->lang->line('gvv_bar_error_creation');
+            $this->load->view('bs_header', $this->data);
+            $this->load->view('bs_menu', $this->data);
+            $this->load->view('bs_banner', $this->data);
+            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+            $this->load->view('bs_footer');
+        }
+    }
+
+    /**
+     * Initie un paiement HelloAsso pour l'approvisionnement d'un compte pilote par le trésorier (UC7).
+     *
+     * Crée une transaction pending type=credit_tresorier, appelle create_checkout(),
+     * met à jour les metadata avec checkout_url, redirige vers la page QR.
+     *
+     * @param string $pilote  login du pilote
+     * @param float  $montant montant en euros
+     * @param string $description
+     */
+    private function _initiate_credit_helloasso($pilote, $montant, $description) {
+        $this->load->model('paiements_en_ligne_model');
+        $this->load->library('Helloasso');
+        $this->lang->load('paiements_en_ligne');
+
+        // Résoudre user_id du pilote
+        $user_row = $this->db->select('id')->from('users')
+            ->where('username', $pilote)->get()->row_array();
+        $user_id  = $user_row ? (int)$user_row['id'] : 0;
+
+        if (!$user_id) {
+            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_user');
+            $this->load->view('bs_header', $this->data);
+            $this->load->view('bs_menu', $this->data);
+            $this->load->view('bs_banner', $this->data);
+            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $club_id = (int) $this->session->userdata('section');
+        $txid    = 'credit-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
+
+        $metadata = array(
+            'type'               => 'credit_tresorier',
+            'pilote_login'       => $pilote,
+            'description'        => $description,
+            'gvv_transaction_id' => $txid,
+        );
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => $user_id,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode($metadata),
+            'created_by'     => $this->dx_auth->get_username(),
+        ));
+
+        if (!$tx_id) {
+            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_tx');
+            $this->load->view('bs_header', $this->data);
+            $this->load->view('bs_menu', $this->data);
+            $this->load->view('bs_banner', $this->data);
+            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $member = $this->db->select('mprenom, memail')->from('membres')
+            ->where('mlogin', $pilote)->get()->row_array();
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
+            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
+            'back_url'         => site_url('paiements_en_ligne/annulation'),
+            'error_url'        => site_url('paiements_en_ligne/erreur'),
+            'metadata'         => $metadata,
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_checkout');
+            $this->load->view('bs_header', $this->data);
+            $this->load->view('bs_menu', $this->data);
+            $this->load->view('bs_banner', $this->data);
+            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $metadata['checkout_url'] = $checkout['redirect_url'];
+        $this->db->where('transaction_id', $txid)
+            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
+
+        redirect('paiements_en_ligne/credit_qr/' . $txid);
+    }
+
     /**
      * Méthode AJAX pour récupérer le compte 411 d'un pilote
      * Retourne les informations du compte au format JSON

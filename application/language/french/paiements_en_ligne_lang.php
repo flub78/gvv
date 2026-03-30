@@ -134,6 +134,25 @@ $lang['gvv_cotisation_qr_direct_button']       = "Ouvrir HelloAsso";
 $lang['gvv_cotisation_qr_back']                = "Retour au formulaire cotisation";
 $lang['gvv_cotisation_qr_url_missing']         = "URL de paiement non disponible. Contactez l'administrateur.";
 
+// Approvisionnement compte pilote par CB — trésorier (UC7)
+$lang['gvv_credit_tresorier_title']             = "Approvisionner un compte pilote par carte";
+$lang['gvv_credit_tresorier_intro']             = "Sélectionnez le pilote et le montant, puis choisissez le mode de règlement.";
+$lang['gvv_credit_tresorier_button']            = "Payer par carte (HelloAsso)";
+$lang['gvv_credit_tresorier_error_user']        = "Pilote introuvable. Veuillez vérifier la sélection.";
+$lang['gvv_credit_tresorier_error_tx']          = "Erreur lors de la création de la transaction. Veuillez réessayer.";
+$lang['gvv_credit_tresorier_error_checkout']    = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer ou valider manuellement.";
+$lang['gvv_credit_tresorier_success']           = "Provisionnement de %s € enregistré pour le pilote %s.";
+$lang['gvv_credit_qr_title']                    = "Approvisionner compte pilote par carte — HelloAsso";
+$lang['gvv_credit_qr_intro']                    = "Invitez le pilote à scanner le QR code ou ouvrez le lien sur cet écran pour procéder au paiement par carte.";
+$lang['gvv_credit_qr_scan_title']               = "Scanner avec le téléphone";
+$lang['gvv_credit_qr_scan_intro']               = "Le pilote scanne ce QR code avec son smartphone pour payer directement.";
+$lang['gvv_credit_qr_direct_title']             = "Payer sur cet écran";
+$lang['gvv_credit_qr_direct_intro']             = "Ouvre la page de paiement HelloAsso sur ce poste.";
+$lang['gvv_credit_qr_direct_button']            = "Ouvrir HelloAsso";
+$lang['gvv_credit_qr_back']                     = "Retour au formulaire approvisionnement";
+$lang['gvv_credit_qr_url_missing']              = "URL de paiement non disponible. Contactez l'administrateur.";
+$lang['gvv_credit_tresorier_menu']              = "Approvisionner compte pilote (CB)";
+
 // Liste trésorier (EF4)
 $lang['gvv_liste_title']                    = "Paiements en ligne";
 $lang['gvv_liste_filter_from']              = "Du";

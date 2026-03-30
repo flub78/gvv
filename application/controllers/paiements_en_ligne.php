@@ -606,6 +606,73 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    // UC7 — Approvisionnement compte pilote par CB via trésorier
+    // =========================================================================
+
+    /**
+     * Page intermédiaire QR code + lien direct après création d'un checkout
+     * approvisionnement compte pilote par le trésorier (UC7).
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function credit_qr($transaction_id = '') {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('compta/provisionnement_tresorier');
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        $data = array(
+            'transaction'    => $tx,
+            'meta'           => $meta,
+            'checkout_url'   => $checkout_url,
+            'transaction_id' => $transaction_id,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_credit_qr', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Génère l'image QR code PNG pour l'URL checkout d'une transaction credit_tresorier.
+     * Endpoint public (pas de session requise).
+     *
+     * @param string $transaction_id
+     */
+    public function credit_qr_image($transaction_id = '') {
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        if (empty($checkout_url)) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+        header('Content-Type: image/png');
+        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
+        exit;
+    }
+
+    // =========================================================================
     // EF4 — Liste des paiements pour le trésorier
     // =========================================================================
 

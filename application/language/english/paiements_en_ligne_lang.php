@@ -134,6 +134,25 @@ $lang['gvv_cotisation_qr_direct_button']       = "Open HelloAsso";
 $lang['gvv_cotisation_qr_back']                = "Back to membership form";
 $lang['gvv_cotisation_qr_url_missing']         = "Payment URL not available. Contact your administrator.";
 
+// Pilot account top-up by card — treasurer (UC7)
+$lang['gvv_credit_tresorier_title']             = "Top up a pilot account by card";
+$lang['gvv_credit_tresorier_intro']             = "Select the pilot and amount, then choose the payment method.";
+$lang['gvv_credit_tresorier_button']            = "Pay by card (HelloAsso)";
+$lang['gvv_credit_tresorier_error_user']        = "Pilot not found. Please check the selection.";
+$lang['gvv_credit_tresorier_error_tx']          = "Error creating the transaction. Please try again.";
+$lang['gvv_credit_tresorier_error_checkout']    = "Unable to initiate HelloAsso payment. Please retry or validate manually.";
+$lang['gvv_credit_tresorier_success']           = "Top-up of €%s recorded for pilot %s.";
+$lang['gvv_credit_qr_title']                    = "Top up pilot account by card — HelloAsso";
+$lang['gvv_credit_qr_intro']                    = "Ask the pilot to scan the QR code or open the link on this screen to proceed with card payment.";
+$lang['gvv_credit_qr_scan_title']               = "Scan with smartphone";
+$lang['gvv_credit_qr_scan_intro']               = "The pilot scans this QR code with their phone to pay directly.";
+$lang['gvv_credit_qr_direct_title']             = "Pay on this screen";
+$lang['gvv_credit_qr_direct_intro']             = "Opens the HelloAsso payment page on this device.";
+$lang['gvv_credit_qr_direct_button']            = "Open HelloAsso";
+$lang['gvv_credit_qr_back']                     = "Back to top-up form";
+$lang['gvv_credit_qr_url_missing']              = "Payment URL not available. Contact your administrator.";
+$lang['gvv_credit_tresorier_menu']              = "Top up pilot account (card)";
+
 // Treasurer list (EF4)
 $lang['gvv_liste_title']                    = "Online Payments";
 $lang['gvv_liste_filter_from']              = "From";
