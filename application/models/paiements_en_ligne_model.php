@@ -12,6 +12,7 @@ if (! defined('BASEPATH'))
  *
  * PHPUnit tests:
  *   phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneModelTest.php
+ *   phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneWebhookTest.php
  */
 class Paiements_en_ligne_model extends CI_Model {
 
@@ -159,6 +160,426 @@ class Paiements_en_ligne_model extends CI_Model {
             ->order_by('date_demande', 'ASC')
             ->get($this->table)
             ->result_array();
+    }
+
+    // =========================================================================
+    // Traitement webhook HelloAsso (EF2)
+    // =========================================================================
+
+    /**
+     * Traite un événement Order HelloAsso : idempotence, vérification du statut
+     * de paiement, création des écritures comptables, mise à jour de la transaction.
+     *
+     * Doit être appelé APRÈS vérification de la signature HMAC (côté contrôleur).
+     *
+     * @param  array $order_data  Contenu de event['data'] (payload décodé)
+     * @param  int   $club_id     Section cible
+     * @return array [
+     *   'ok'          => bool,
+     *   'status'      => 'completed'|'already_completed'|'failed'|'error',
+     *   'ecriture_id' => int|null,
+     *   'transaction' => array|null,
+     *   'error'       => string|null,
+     * ]
+     */
+    public function process_order_event(array $order_data, $club_id)
+    {
+        // ── 1. Décoder les metadata ──────────────────────────────────────────
+        $raw_meta = isset($order_data['metadata']) ? $order_data['metadata'] : null;
+        if (is_string($raw_meta)) {
+            $raw_meta = json_decode($raw_meta, true);
+        }
+        if (!is_array($raw_meta)) {
+            return $this->_webhook_error('Metadata manquant ou invalide dans le payload HelloAsso');
+        }
+
+        $gvv_txid = isset($raw_meta['gvv_transaction_id'])
+            ? (string) $raw_meta['gvv_transaction_id']
+            : null;
+        if (!$gvv_txid) {
+            return $this->_webhook_error('gvv_transaction_id absent des metadata');
+        }
+
+        // ── 2. Charger la transaction GVV ────────────────────────────────────
+        $transaction = $this->get_by_transaction_id($gvv_txid);
+        if (!$transaction) {
+            return $this->_webhook_error('Transaction introuvable : ' . $gvv_txid);
+        }
+
+        // ── 3. Idempotence ───────────────────────────────────────────────────
+        if ($transaction['statut'] === 'completed') {
+            return array(
+                'ok'          => true,
+                'status'      => 'already_completed',
+                'ecriture_id' => $transaction['ecriture_id'],
+                'transaction' => $transaction,
+            );
+        }
+
+        // ── 4. Vérifier le statut de paiement HelloAsso ──────────────────────
+        $payment_state = $this->_extract_payment_state($order_data);
+        if ($payment_state !== 'Authorized') {
+            $this->update_transaction_status($gvv_txid, 'failed');
+            return array(
+                'ok'          => true,
+                'status'      => 'failed',
+                'error'       => 'Paiement non autorisé : state=' . $payment_state,
+                'transaction' => $transaction,
+            );
+        }
+
+        // ── 5. Créer les écritures comptables ────────────────────────────────
+        $type   = isset($raw_meta['type']) ? $raw_meta['type'] : '';
+        $result = $this->_create_ecritures($transaction, $raw_meta, (int) $club_id, $type);
+
+        if (!$result['ok']) {
+            // Erreur de configuration ou DB : marquer failed, remonter 200 à HA
+            $this->update_transaction_status($gvv_txid, 'failed');
+            return array(
+                'ok'          => true,
+                'status'      => 'failed',
+                'error'       => $result['error'],
+                'transaction' => $transaction,
+            );
+        }
+
+        // ── 6. Marquer completed ─────────────────────────────────────────────
+        $ecriture_id = $result['ecriture_id'];
+        $now = date('Y-m-d H:i:s');
+        $this->db->where('transaction_id', $gvv_txid)->update($this->table, array(
+            'statut'        => 'completed',
+            'ecriture_id'   => $ecriture_id,
+            'date_paiement' => $now,
+            'metadata'      => json_encode(array_merge($raw_meta, array(
+                'processed_at' => $now,
+                'ecriture_id'  => $ecriture_id,
+            ))),
+            'updated_at'    => $now,
+            'updated_by'    => 'helloasso_webhook',
+        ));
+
+        return array(
+            'ok'          => true,
+            'status'      => 'completed',
+            'ecriture_id' => $ecriture_id,
+            'transaction' => $transaction,
+        );
+    }
+
+    // ── Helpers webhook (privés) ──────────────────────────────────────────────
+
+    /**
+     * Extrait l'état du premier paiement dans le payload HelloAsso Order.
+     * Gère deux structures possibles : payments[] en haut ou items[].payments[].
+     */
+    private function _extract_payment_state(array $order_data)
+    {
+        if (!empty($order_data['payments'][0]['state'])) {
+            return $order_data['payments'][0]['state'];
+        }
+        if (!empty($order_data['items'][0]['payments'][0]['state'])) {
+            return $order_data['items'][0]['payments'][0]['state'];
+        }
+        return 'Unknown';
+    }
+
+    /**
+     * Dispatch la création d'écriture selon le type de paiement.
+     *
+     * @return array ['ok' => bool, 'ecriture_id' => int|null, 'error' => string|null]
+     */
+    private function _create_ecritures(array $transaction, array $meta, $club_id, $type)
+    {
+        // S'assurer que les modèles sont chargés (patterns pour tests PHPUnit sans contrôleur)
+        $CI = get_instance();
+        $CI->load->model('ecritures_model');
+        $CI->load->model('comptes_model');
+
+        $montant     = (float) $transaction['montant'];
+        $gvv_txid    = (string) $transaction['transaction_id'];
+        $description = !empty($meta['description'])
+            ? (string) $meta['description']
+            : 'Paiement HelloAsso ' . $type;
+        $num_cheque  = 'HelloAsso:' . $gvv_txid;
+        $date        = date('Y-m-d');
+
+        switch ($type) {
+            case 'provisionnement':
+            case 'credit_tresorier':
+                return $this->_ecriture_provisionnement(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            case 'bar':
+                return $this->_ecriture_bar(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            case 'bar_externe':
+                return $this->_ecriture_bar_externe(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            case 'cotisation':
+                return $this->_ecriture_cotisation(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            case 'decouverte':
+                return $this->_ecriture_decouverte(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            case 'cotisation_tresorier':
+                return $this->_ecriture_cotisation_tresorier(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
+            default:
+                return array('ok' => false, 'error' => 'Type de paiement inconnu : ' . $type);
+        }
+    }
+
+    // ── Écritures par type ────────────────────────────────────────────────────
+
+    /** provisionnement / credit_tresorier : débit 467, crédit 411 pilote */
+    private function _ecriture_provisionnement($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+        $cpilote = $this->_get_compte_pilote($tx, $club_id);
+        if (!$cpilote) {
+            return array('ok' => false, 'error' => 'Compte pilote (411) introuvable pour user_id=' . $tx['user_id']);
+        }
+
+        $id = get_instance()->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cpilote['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture provisionnement');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /** bar : débit 411 pilote, crédit compte bar 7xx */
+    private function _ecriture_bar($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cpilote = $this->_get_compte_pilote($tx, $club_id);
+        if (!$cpilote) {
+            return array('ok' => false, 'error' => 'Compte pilote (411) introuvable pour user_id=' . $tx['user_id']);
+        }
+        $cbar = $this->_get_bar_account($club_id);
+        if (!$cbar) {
+            return array('ok' => false, 'error' => 'Compte bar introuvable pour club=' . $club_id);
+        }
+
+        $id = get_instance()->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cpilote['id'], $cbar['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture bar');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /** bar_externe : débit 467, crédit compte bar 7xx — sans compte pilote */
+    private function _ecriture_bar_externe($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+        $cbar = $this->_get_bar_account($club_id);
+        if (!$cbar) {
+            return array('ok' => false, 'error' => 'Compte bar introuvable pour club=' . $club_id);
+        }
+
+        if (!empty($meta['payer_name'])) {
+            $desc = (string) $meta['payer_name'] . ' — ' . $desc;
+        }
+
+        $id = get_instance()->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cbar['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture bar_externe');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /** cotisation : débit 467, crédit 417 (depuis metadata ou premier 417 de la section) */
+    private function _ecriture_cotisation($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+
+        $CI = get_instance();
+        if (!empty($meta['compte_cotisation_id'])) {
+            $ccot = $CI->comptes_model->get_by_id('id', (int) $meta['compte_cotisation_id']);
+        } else {
+            $ccot = $CI->comptes_model->get_by_section_and_codec((int) $club_id, '417');
+        }
+        if (!$ccot) {
+            return array('ok' => false, 'error' => 'Compte cotisation (417) introuvable pour club=' . $club_id);
+        }
+
+        $id = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $ccot['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture cotisation');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /** decouverte : débit 467, crédit compte destination (obligatoire dans metadata) */
+    private function _ecriture_decouverte($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+
+        if (empty($meta['compte_destination_id'])) {
+            return array('ok' => false, 'error' => 'compte_destination_id absent des metadata pour type=decouverte');
+        }
+        $CI    = get_instance();
+        $cdest = $CI->comptes_model->get_by_id('id', (int) $meta['compte_destination_id']);
+        if (!$cdest) {
+            return array('ok' => false, 'error' => 'Compte destination introuvable id=' . $meta['compte_destination_id']);
+        }
+
+        $id = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cdest['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture decouverte');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /**
+     * cotisation_tresorier : deux écritures atomiques.
+     *   Écriture 1 : débit 411 pilote → crédit 417 cotisation  (enregistre la cotisation)
+     *   Écriture 2 : débit 467 passage → crédit 411 pilote     (rembourse le solde pilote)
+     * Effet net sur le solde pilote : 0 (les deux écritures s'annulent).
+     */
+    private function _ecriture_cotisation_tresorier($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $CI = get_instance();
+
+        $cpilote = $this->_get_compte_pilote($tx, $club_id);
+        if (!$cpilote) {
+            return array('ok' => false, 'error' => 'Compte pilote (411) introuvable pour user_id=' . $tx['user_id']);
+        }
+
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+
+        if (!empty($meta['compte_cotisation_id'])) {
+            $ccot = $CI->comptes_model->get_by_id('id', (int) $meta['compte_cotisation_id']);
+        } else {
+            $ccot = $CI->comptes_model->get_by_section_and_codec((int) $club_id, '417');
+        }
+        if (!$ccot) {
+            return array('ok' => false, 'error' => 'Compte cotisation (417) introuvable pour club=' . $club_id);
+        }
+
+        // Transaction DB englobante — CI2 gère la profondeur d'imbrication
+        $this->db->trans_start();
+
+        // Écriture 1 : débit pilote 411, crédit cotisation 417
+        $id1 = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cpilote['id'], $ccot['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+
+        // Écriture 2 : débit passage 467, crédit pilote 411
+        $id2 = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cpilote['id'], $montant,
+                $desc . ' (remboursement compte pilote)', $cheque, $date, $club_id)
+        );
+
+        $committed = $this->db->trans_complete();
+
+        if (!$committed || $id1 === false || $id2 === false) {
+            return array('ok' => false, 'error' => 'Erreur DB : double écriture cotisation_tresorier non atomique');
+        }
+        return array('ok' => true, 'ecriture_id' => $id1, 'ecriture_id2' => $id2);
+    }
+
+    // ── Helpers lookup comptes ────────────────────────────────────────────────
+
+    /**
+     * Retourne le compte de passage configuré pour un club.
+     * La config `compte_passage` stocke le codec (ex. '467').
+     * En l'absence de config, utilise le codec '467' par défaut.
+     */
+    private function _get_compte_passage($club_id)
+    {
+        $codec = $this->get_config('helloasso', 'compte_passage', (int) $club_id);
+        if (!$codec) {
+            $codec = '467';
+        }
+        return get_instance()->comptes_model->get_by_section_and_codec((int) $club_id, (string) $codec);
+    }
+
+    /**
+     * Retourne le compte pilote 411 d'une transaction (résout user_id → mlogin).
+     */
+    private function _get_compte_pilote(array $transaction, $club_id)
+    {
+        $user_id = (int) $transaction['user_id'];
+        $row = $this->db
+            ->select('username')
+            ->from('users')
+            ->where('id', $user_id)
+            ->get()->row_array();
+        if (!$row) {
+            return null;
+        }
+        return get_instance()->comptes_model->compte_pilote($row['username'], (int) $club_id);
+    }
+
+    /**
+     * Retourne le compte bar (7xx) configuré pour un club (via sections.bar_account_id).
+     */
+    private function _get_bar_account($club_id)
+    {
+        $row = $this->db
+            ->select('bar_account_id')
+            ->from('sections')
+            ->where('id', (int) $club_id)
+            ->get()->row_array();
+        if (!$row || empty($row['bar_account_id'])) {
+            return null;
+        }
+        return get_instance()->comptes_model->get_by_id('id', (int) $row['bar_account_id']);
+    }
+
+    /**
+     * Construit le tableau de données d'une écriture comptable.
+     * compte1 = débit, compte2 = crédit (convention GVV).
+     */
+    private function _ecriture_data($compte1_id, $compte2_id, $montant, $description, $num_cheque, $date, $club_id)
+    {
+        return array(
+            'annee_exercise' => (int) date('Y', strtotime($date)),
+            'date_creation'  => date('Y-m-d H:i:s'),
+            'date_op'        => $date,
+            'compte1'        => (int) $compte1_id,
+            'compte2'        => (int) $compte2_id,
+            'montant'        => $montant,
+            'description'    => (string) $description,
+            'num_cheque'     => (string) $num_cheque,
+            'saisie_par'     => 'helloasso_webhook',
+            'club'           => (int) $club_id,
+        );
+    }
+
+    /** Retourne un tableau d'erreur uniforme pour les erreurs de traitement webhook. */
+    private function _webhook_error($message)
+    {
+        return array('ok' => false, 'status' => 'error', 'error' => $message, 'transaction' => null);
     }
 
     // =========================================================================

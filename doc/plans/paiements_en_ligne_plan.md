@@ -3,7 +3,7 @@
 **Fonctionnalité :** Provisionnement de Compte par Paiement en Ligne
 **PRD :** `doc/prds/paiements_en_ligne_prd.md`
 **Spike de référence :** `doc/plan/HelloAssoSpike.md`
-**Statut :** En cours (étapes 1–6 terminées)
+**Statut :** En cours (étapes 1–7 terminées)
 
 ---
 
@@ -45,7 +45,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 4 | — | Bibliothèque HelloAsso | — | ✅ |
 | 5 | EF5 | Configuration des plateformes par section | MOYENNE | ✅ |
 | 6 | — | Contrôleur et modèle de base | — | ✅ |
-| 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ☐ |
+| 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ✅ |
 | 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ☐ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
@@ -265,6 +265,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Test PHPUnit : webhook valide `type=bar` → bonne écriture de débit bar
 - Test PHPUnit : signature invalide → HTTP 401, aucune écriture créée
 - Test PHPUnit : webhook reçu deux fois avec le même `transaction_id` → idempotence, une seule écriture
+
+**✅ Complète** — 10 tests PHPUnit (`application/tests/mysql/PaiementsEnLigneWebhookTest.php`, 62 assertions) + 8 tests Playwright (`playwright/tests/paiements-en-ligne-webhook.spec.js`), tous verts.
 
 ---
 

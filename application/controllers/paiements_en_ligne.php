@@ -25,11 +25,13 @@
  * PHPUnit tests:
  *   - phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneBarTest.php
  *   - phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneModelTest.php
+ *   - phpunit --configuration phpunit_mysql.xml application/tests/mysql/PaiementsEnLigneWebhookTest.php
  *
  * Playwright tests:
  *   - npx playwright test tests/paiements-en-ligne-smoke.spec.js
  *   - npx playwright test tests/paiements-en-ligne-admin-config.spec.js
  *   - npx playwright test tests/paiements-en-ligne-base.spec.js
+ *   - npx playwright test tests/paiements-en-ligne-webhook.spec.js
  */
 
 include('./application/libraries/Gvv_Controller.php');
@@ -41,8 +43,12 @@ class Paiements_en_ligne extends MY_Controller {
     function __construct() {
         parent::__construct();
 
-        if (!$this->dx_auth->is_logged_in()) {
-            redirect('auth/login');
+        // helloasso_webhook est un endpoint public (appel serveur-à-serveur HelloAsso,
+        // sans session utilisateur). Tous les autres méthodes exigent une connexion.
+        if ($this->router->fetch_method() !== 'helloasso_webhook') {
+            if (!$this->dx_auth->is_logged_in()) {
+                redirect('auth/login');
+            }
         }
 
         $this->load->helper('validation');
@@ -198,6 +204,188 @@ class Paiements_en_ligne extends MY_Controller {
             sprintf($this->lang->line('gvv_bar_success'), number_format($montant, 2, ',', ' '))
         );
         redirect('compta/mon_compte');
+    }
+
+    // =========================================================================
+    // EF2 — Webhook HelloAsso (endpoint public)
+    // =========================================================================
+
+    /**
+     * Webhook HelloAsso — POST serveur-à-serveur, sans session.
+     *
+     * Algorithme :
+     *  1. Vérifier que la méthode HTTP est POST
+     *  2. Lire le payload brut et le header X-Ha-Signature
+     *  3. Décoder JSON — ignorer silencieusement tout eventType != 'Order'
+     *  4. Extraire gvv_transaction_id pour déterminer le club_id (la signature
+     *     est propre à chaque section)
+     *  5. Vérifier HMAC-SHA256 — HTTP 401 si invalide
+     *  6. Déléguer au modèle : idempotence, payment state, écritures, mise à jour
+     *  7. Logger le résultat, envoyer un email de confirmation si completed
+     *  8. Retourner HTTP 200
+     *
+     * Retourne toujours HTTP 200 (sauf 401 sig invalide) pour éviter les retries HA
+     * sur des erreurs de configuration permanentes.
+     */
+    public function helloasso_webhook()
+    {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            $this->output->set_status_header(405);
+            $this->output->set_content_type('text/plain');
+            $this->output->set_output('Method Not Allowed');
+            return;
+        }
+
+        $raw_body  = (string) file_get_contents('php://input');
+        $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
+
+        // ── Décoder JSON ────────────────────────────────────────────────────
+        $event = json_decode($raw_body, true);
+        if (!is_array($event)) {
+            $this->helloasso->log('ERROR', 'none', 'webhook', 'Payload JSON invalide');
+            $this->_webhook_respond_ok();
+            return;
+        }
+
+        // Ignorer silencieusement les événements autres que 'Order'
+        $event_type = isset($event['eventType']) ? $event['eventType'] : '';
+        if ($event_type !== 'Order') {
+            $this->_webhook_respond_ok();
+            return;
+        }
+
+        $order_data = isset($event['data']) ? $event['data'] : array();
+
+        // ── Déterminer club_id pour la vérification de signature ────────────
+        $gvv_txid   = $this->_extract_gvv_txid($order_data);
+        $transaction = $gvv_txid
+            ? $this->paiements_en_ligne_model->get_by_transaction_id($gvv_txid)
+            : null;
+        $club_id = ($transaction && isset($transaction['club'])) ? (int) $transaction['club'] : 0;
+
+        if (!$club_id) {
+            $this->helloasso->log('ERROR', $gvv_txid ?: 'none', 'webhook',
+                'club_id indéterminable — transaction introuvable pour txid=' . ($gvv_txid ?: 'none'));
+            $this->_webhook_respond_ok();
+            return;
+        }
+
+        // ── Vérifier la signature HMAC-SHA256 ───────────────────────────────
+        if (!$this->helloasso->verify_webhook_signature($raw_body, $signature, $club_id)) {
+            $this->helloasso->log('ERROR', $gvv_txid, 'webhook',
+                'STATUS=REJECTED signature HMAC invalide club=' . $club_id);
+            $this->output->set_status_header(401);
+            $this->output->set_content_type('text/plain');
+            $this->output->set_output('Unauthorized');
+            return;
+        }
+
+        // ── Traiter l'événement ─────────────────────────────────────────────
+        $result = $this->paiements_en_ligne_model->process_order_event($order_data, $club_id);
+
+        switch ($result['status']) {
+
+            case 'already_completed':
+                $this->helloasso->log('INFO', $gvv_txid, 'webhook',
+                    'STATUS=DUPLICATE transaction déjà traitée — idempotence OK');
+                break;
+
+            case 'completed':
+                $montant = isset($transaction['montant']) ? $transaction['montant'] : '?';
+                $this->helloasso->log('INFO', $gvv_txid, 'webhook',
+                    'STATUS=SUCCESS montant=' . $montant . ' ecriture_id=' . $result['ecriture_id']);
+                $this->_send_payment_confirmation_email(
+                    isset($result['transaction']) ? $result['transaction'] : $transaction,
+                    $result
+                );
+                break;
+
+            case 'failed':
+                $this->helloasso->log('INFO', $gvv_txid, 'webhook',
+                    'STATUS=FAILED ' . ($result['error'] ?? ''));
+                break;
+
+            default: // 'error'
+                $this->helloasso->log('ERROR', $gvv_txid, 'webhook',
+                    'STATUS=ERROR ' . ($result['error'] ?? 'erreur inconnue'));
+                break;
+        }
+
+        $this->_webhook_respond_ok();
+    }
+
+    /** Extrait gvv_transaction_id depuis order_data.metadata. */
+    private function _extract_gvv_txid(array $order_data)
+    {
+        $raw_meta = isset($order_data['metadata']) ? $order_data['metadata'] : null;
+        if (is_string($raw_meta)) {
+            $raw_meta = json_decode($raw_meta, true);
+        }
+        if (!is_array($raw_meta)) {
+            return null;
+        }
+        return isset($raw_meta['gvv_transaction_id'])
+            ? (string) $raw_meta['gvv_transaction_id']
+            : null;
+    }
+
+    /** Réponse HTTP 200 standard pour le webhook. */
+    private function _webhook_respond_ok()
+    {
+        $this->output->set_status_header(200);
+        $this->output->set_content_type('text/plain');
+        $this->output->set_output('OK');
+    }
+
+    /**
+     * Envoie un email de confirmation de paiement au pilote.
+     * Echec silencieux si email non configuré ou adresse absente.
+     */
+    private function _send_payment_confirmation_email(array $transaction, array $result)
+    {
+        if (empty($transaction['user_id'])) {
+            return;
+        }
+
+        try {
+            $user = $this->db
+                ->select('u.username, m.memail, m.mprenom, m.mnom')
+                ->from('users u')
+                ->join('membres m', 'm.mlogin = u.username', 'left')
+                ->where('u.id', (int) $transaction['user_id'])
+                ->get()->row_array();
+
+            if (empty($user) || empty($user['memail'])) {
+                return;
+            }
+
+            $montant = number_format((float) $transaction['montant'], 2, ',', ' ');
+            $prenom  = isset($user['mprenom']) ? $user['mprenom'] : '';
+            $nom     = isset($user['mnom'])    ? $user['mnom']    : '';
+            $nom_club = $this->config->item('nom_club') ?: 'GVV';
+
+            $subject = $this->lang->line('gvv_payment_email_subject') ?: 'Paiement en ligne confirmé';
+            $message = sprintf(
+                "%s %s,\n\nVotre paiement de %s\xe2\x82\xac a \xc3\xa9t\xc3\xa9 enregistr\xc3\xa9 avec succ\xc3\xa8s.\n\nCordialement,\n%s",
+                $prenom, $nom, $montant, $nom_club
+            );
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'text',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->to($user['memail']);
+            $this->email->subject($subject);
+            $this->email->message($message);
+            @$this->email->send();   // Échec silencieux
+
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur email confirmation : ' . $e->getMessage());
+        }
     }
 
     // =========================================================================

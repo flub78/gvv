@@ -1241,6 +1241,15 @@ $this->lang->load('welcome');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-info">
+                        <i class="fas fa-credit-card text-info"></i>
+                        <div class="card-title">HelloAsso test</div>
+                        <div class="card-text text-muted">Paiement sandbox</div>
+                        <a href="<?= controller_url('payments/test_helloasso') ?>" class="btn btn-info btn-sm">Accéder</a>
+                    </div>
+                </div>
+
                 <!-- Outils de Développement -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> Outils de développement</h6>
