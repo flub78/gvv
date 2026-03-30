@@ -20,6 +20,15 @@ $lang['gvv_bar_error_description']       = "A description of your purchases is r
 $lang['gvv_bar_error_solde']             = "Insufficient balance: you have €%.2f available.";
 $lang['gvv_bar_error_creation']          = "An error occurred while recording the payment. Please try again.";
 
+// Bar by card — authenticated pilot (UC1)
+$lang['gvv_bar_carte_title']             = "Pay my bar tab by card";
+$lang['gvv_bar_carte_intro']             = "Pay your bar purchases directly by card via HelloAsso.";
+$lang['gvv_bar_carte_button_link']       = "Pay my bar tab by card";
+$lang['gvv_bar_carte_button_valider']    = "Pay by card";
+$lang['gvv_bar_carte_helloasso_notice']  = "You will be redirected to HelloAsso to complete the card payment.";
+$lang['gvv_bar_carte_error_disabled']    = "Online payments are not enabled for this section. Contact the administrator.";
+$lang['gvv_bar_carte_error_checkout']    = "Unable to initiate HelloAsso payment. Please try again or contact the administrator.";
+
 // Index / pilot transactions (EF6)
 $lang['gvv_pel_index_title']         = "My online payments";
 $lang['gvv_pel_index_intro']         = "History of your online payments (HelloAsso).";

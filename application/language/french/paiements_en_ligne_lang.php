@@ -20,6 +20,15 @@ $lang['gvv_bar_error_description']       = "Le descriptif des consommations est 
 $lang['gvv_bar_error_solde']             = "Solde insuffisant : vous avez %.2f € disponibles.";
 $lang['gvv_bar_error_creation']          = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
 
+// Bar par carte — pilote authentifié (UC1)
+$lang['gvv_bar_carte_title']             = "Régler mes consommations de bar par carte";
+$lang['gvv_bar_carte_intro']             = "Payez vos consommations de bar directement par carte bancaire via HelloAsso.";
+$lang['gvv_bar_carte_button_link']       = "Régler mes consommations par carte";
+$lang['gvv_bar_carte_button_valider']    = "Payer par carte";
+$lang['gvv_bar_carte_helloasso_notice']  = "Vous allez être redirigé vers HelloAsso pour effectuer le paiement par carte bancaire.";
+$lang['gvv_bar_carte_error_disabled']    = "Les paiements en ligne ne sont pas activés pour cette section. Contactez l'administrateur.";
+$lang['gvv_bar_carte_error_checkout']    = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer ou contacter l'administrateur.";
+
 // Index / transactions pilote (EF6)
 $lang['gvv_pel_index_title']         = "Mes paiements en ligne";
 $lang['gvv_pel_index_intro']         = "Historique de vos paiements en ligne (HelloAsso).";

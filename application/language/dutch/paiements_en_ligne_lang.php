@@ -20,6 +20,15 @@ $lang['gvv_bar_error_description']       = "Een omschrijving van uw consumptie i
 $lang['gvv_bar_error_solde']             = "Onvoldoende saldo: u heeft € %.2f beschikbaar.";
 $lang['gvv_bar_error_creation']          = "Er is een fout opgetreden bij het registreren. Probeer het opnieuw.";
 
+// Bar per kaart — geauthenticeerde piloot (UC1)
+$lang['gvv_bar_carte_title']             = "Mijn bar rekening betalen met kaart";
+$lang['gvv_bar_carte_intro']             = "Betaal uw bar consumptie direct met bankkaart via HelloAsso.";
+$lang['gvv_bar_carte_button_link']       = "Bar rekening betalen met kaart";
+$lang['gvv_bar_carte_button_valider']    = "Betalen met kaart";
+$lang['gvv_bar_carte_helloasso_notice']  = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
+$lang['gvv_bar_carte_error_disabled']    = "Online betalingen zijn niet ingeschakeld voor deze sectie. Neem contact op met de beheerder.";
+$lang['gvv_bar_carte_error_checkout']    = "Kan HelloAsso betaling niet starten. Probeer het opnieuw of neem contact op met de beheerder.";
+
 // Index / piloot transacties (EF6)
 $lang['gvv_pel_index_title']         = "Mijn online betalingen";
 $lang['gvv_pel_index_intro']         = "Geschiedenis van uw online betalingen (HelloAsso).";

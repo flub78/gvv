@@ -32,6 +32,7 @@
  *   - npx playwright test tests/paiements-en-ligne-admin-config.spec.js
  *   - npx playwright test tests/paiements-en-ligne-base.spec.js
  *   - npx playwright test tests/paiements-en-ligne-webhook.spec.js
+ *   - npx playwright test tests/paiements-en-ligne-uc1-bar-carte.spec.js
  */
 
 include('./application/libraries/Gvv_Controller.php');
@@ -204,6 +205,154 @@ class Paiements_en_ligne extends MY_Controller {
             sprintf($this->lang->line('gvv_bar_success'), number_format($montant, 2, ',', ' '))
         );
         redirect('compta/mon_compte');
+    }
+
+    // =========================================================================
+    // UC1 — Paiement bar par carte (pilote authentifié)
+    // =========================================================================
+
+    /**
+     * Paiement des consommations de bar par carte bancaire via HelloAsso (UC1).
+     *
+     * GET  : affiche le formulaire (montant + descriptif)
+     * POST : valide, crée une transaction pending, redirige vers HelloAsso
+     *
+     * Accès : pilote authentifié, section active avec has_bar = true, HelloAsso activé
+     */
+    public function bar_carte() {
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        if (empty($section['has_bar'])) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_bar'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        if (empty($section['bar_account_id'])) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_account'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $club_id = (int) $section['id'];
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if (!$enabled) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $mlogin = $this->dx_auth->get_username();
+        $compte_pilote = $this->comptes_model->compte_pilote($mlogin, $section);
+        if (!$compte_pilote) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_pilot_account'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        if ($this->input->post('button') === 'valider') {
+            $this->_process_bar_carte($section, $club_id, $compte_pilote);
+            return;
+        }
+
+        $data = array(
+            'section'     => $section,
+            'montant'     => '',
+            'description' => '',
+            'error'       => $this->session->flashdata('error'),
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_bar_carte_form', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Traite la soumission du formulaire bar_carte : validation, création transaction, redirection HelloAsso.
+     */
+    private function _process_bar_carte($section, $club_id, $compte_pilote) {
+        $montant     = (float) str_replace(',', '.', $this->input->post('montant'));
+        $description = trim($this->input->post('description'));
+
+        $errors = array();
+        if ($montant < 0.50) {
+            $errors[] = $this->lang->line('gvv_bar_error_montant_min');
+        }
+        if (empty($description)) {
+            $errors[] = $this->lang->line('gvv_bar_error_description');
+        }
+
+        if (!empty($errors)) {
+            $data = array(
+                'section'     => $section,
+                'montant'     => $montant,
+                'description' => $description,
+                'error'       => implode('<br>', $errors),
+            );
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('paiements_en_ligne/bs_bar_carte_form', $data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $user_id = (int) $this->dx_auth->get_user_id();
+        $mlogin  = $this->dx_auth->get_username();
+        $txid    = 'bar-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => $user_id,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode(array(
+                'type'               => 'bar',
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            )),
+            'created_by' => $mlogin,
+        ));
+
+        if (!$tx_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('paiements_en_ligne/bar_carte');
+            return;
+        }
+
+        // Pré-remplissage HelloAsso avec les infos du membre
+        $member = $this->db
+            ->select('m.mprenom, m.memail')
+            ->from('membres m')
+            ->where('m.mlogin', $mlogin)
+            ->get()->row_array();
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
+            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
+            'back_url'         => site_url('paiements_en_ligne/annulation'),
+            'error_url'        => site_url('paiements_en_ligne/erreur'),
+            'metadata'         => array(
+                'type'               => 'bar',
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            ),
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_checkout'));
+            redirect('paiements_en_ligne/bar_carte');
+            return;
+        }
+
+        redirect($checkout['redirect_url']);
     }
 
     // =========================================================================

@@ -3,7 +3,7 @@
 **Fonctionnalité :** Provisionnement de Compte par Paiement en Ligne
 **PRD :** `doc/prds/paiements_en_ligne_prd.md`
 **Spike de référence :** `doc/plan/HelloAssoSpike.md`
-**Statut :** En cours (étapes 1–7 terminées)
+**Statut :** En cours (étapes 1–8 terminées)
 
 ---
 
@@ -46,7 +46,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 5 | EF5 | Configuration des plateformes par section | MOYENNE | ✅ |
 | 6 | — | Contrôleur et modèle de base | — | ✅ |
 | 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ✅ |
-| 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ☐ |
+| 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ✅ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ☐ |
@@ -295,6 +295,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - `[SKIP SI SANDBOX]` Test Playwright en sandbox : flow complet pilote → paiement bar → écriture créée
 - Test PHPUnit : tentative avec section "Toutes" → refus, aucun checkout créé
 - Test PHPUnit : tentative sur section avec `has_bar = false` → refus
+
+**✅ Complète** — 13 tests PHPUnit dans `PaiementsEnLigneBarTest.php` (dont 2 guards UC1) + 4 tests Playwright `paiements-en-ligne-uc1-bar-carte.spec.js` (2 passent, 2 skippés sandbox/HelloAsso non activé).
 
 ---
 
