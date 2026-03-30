@@ -28,6 +28,8 @@ Cela implique de:
 #### Tests manuels authorisations
 
 ## Reste à faire
+
+* [] Briefing passager, simplifier le workflow avec le QRCode
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
