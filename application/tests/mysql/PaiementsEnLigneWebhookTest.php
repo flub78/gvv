@@ -91,8 +91,8 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->created_transaction_ids = array();
         $this->created_config_ids      = array();
 
-        // Configurer compte_passage pour club=4 (codec '467')
-        $ok = $this->model->upsert_config('helloasso', 'compte_passage', '467',
+        // Configurer compte_passage pour club=4 (ID du compte 467)
+        $ok = $this->model->upsert_config('helloasso', 'compte_passage', (string) self::$compte_passage_id,
             self::$club_id, 'phpunit');
         $this->assertTrue($ok, 'Impossible d\'insérer la config compte_passage');
 

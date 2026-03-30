@@ -673,6 +673,12 @@ class Paiements_en_ligne extends MY_Controller {
             TRUE
         );
 
+        // Sélecteur de comptes 467 pour le compte de passage
+        $compte_passage_selector = $this->comptes_model->selector_with_null(
+            array('codec' => '467'),
+            TRUE
+        );
+
         // Chargement de la config courante
         $cfg = $this->_load_config($club_id);
 
@@ -685,7 +691,8 @@ class Paiements_en_ligne extends MY_Controller {
 
         $data = array(
             'sections_selector'    => $this->sections_model->selector(),
-            'bar_account_selector' => $bar_account_selector,
+            'bar_account_selector'      => $bar_account_selector,
+            'compte_passage_selector'   => $compte_passage_selector,
             'club_id'              => $club_id,
             'cfg'                  => $cfg,
             'section_row'          => $section_row,
@@ -751,7 +758,7 @@ class Paiements_en_ligne extends MY_Controller {
             'account_slug'   => trim($this->input->post('account_slug') ?: ''),
             'environment'    => $this->input->post('environment') === 'production' ? 'production' : 'sandbox',
             'webhook_secret' => trim($this->input->post('webhook_secret') ?: ''),
-            'compte_passage' => trim($this->input->post('compte_passage') ?: '467'),
+            'compte_passage' => (string)(int)($this->input->post('compte_passage') ?: 0),
             'montant_min'    => (float) ($this->input->post('montant_min') ?: 10),
             'montant_max'    => (float) ($this->input->post('montant_max') ?: 500),
             'enabled'        => $this->input->post('enabled') ? '1' : '0',
@@ -812,7 +819,7 @@ class Paiements_en_ligne extends MY_Controller {
             'account_slug'   => '',
             'environment'    => 'sandbox',
             'webhook_secret' => '',
-            'compte_passage' => '467',
+            'compte_passage' => '0',
             'montant_min'    => '10',
             'montant_max'    => '500',
             'enabled'        => '0',

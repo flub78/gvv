@@ -158,7 +158,7 @@ test.describe('EF5 — Admin config HelloAsso', () => {
         await expect(page.locator('input[name="has_bar"]')).toBeVisible();
 
         // Transaction params card
-        await expect(page.locator('input[name="compte_passage"]')).toBeVisible();
+        await expect(page.locator('select[name="compte_passage"]')).toBeVisible();
         await expect(page.locator('input[name="montant_min"]')).toBeVisible();
         await expect(page.locator('input[name="montant_max"]')).toBeVisible();
 

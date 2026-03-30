@@ -155,8 +155,8 @@
 
       <div class="col-md-4">
         <label class="form-label"><?= $this->lang->line('gvv_admin_config_compte_passage') ?></label>
-        <input type="text" name="compte_passage" class="form-control font-monospace"
-               value="<?= htmlspecialchars($cfg['compte_passage']) ?>" placeholder="467" />
+        <?= dropdown_field('compte_passage', $cfg['compte_passage'],
+            $compte_passage_selector, 'class="form-select" style="max-width:400px;"') ?>
         <div class="form-text"><?= $this->lang->line('gvv_admin_config_compte_passage_help') ?></div>
       </div>
 

@@ -511,16 +511,18 @@ class Paiements_en_ligne_model extends CI_Model {
 
     /**
      * Retourne le compte de passage configuré pour un club.
-     * La config `compte_passage` stocke le codec (ex. '467').
-     * En l'absence de config, utilise le codec '467' par défaut.
+     * La config `compte_passage` stocke l'ID du compte (int).
+     * Fallback : si la valeur stockée est un codec (ex. '467'), recherche par codec.
      */
     private function _get_compte_passage($club_id)
     {
-        $codec = $this->get_config('helloasso', 'compte_passage', (int) $club_id);
-        if (!$codec) {
-            $codec = '467';
+        $value = $this->get_config('helloasso', 'compte_passage', (int) $club_id);
+        $id = (int) $value;
+        if ($id > 0) {
+            return get_instance()->comptes_model->get_by_id('id', $id);
         }
-        return get_instance()->comptes_model->get_by_section_and_codec((int) $club_id, (string) $codec);
+        // Fallback pour les anciennes configs stockant un codec
+        return get_instance()->comptes_model->get_by_section_and_codec((int) $club_id, '467');
     }
 
     /**
