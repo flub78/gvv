@@ -155,11 +155,19 @@ $this->lang->load('welcome');
                             $title = translation('dashboard_my_account') . ' - ' . $section_name;
                         }
                 ?>
+                <?php
+                    $solde = isset($account['solde']) ? (float)$account['solde'] : null;
+                    $solde_class = ($solde !== null && $solde < 0) ? 'text-danger fw-bold' : 'text-success fw-bold';
+                ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-file-invoice-dollar text-success"></i>
+                        <i class="fas fa-file-invoice-dollar <?= $solde !== null && $solde < 0 ? 'text-danger' : 'text-success' ?>"></i>
                         <div class="card-title"><?= $title ?></div>
+                        <?php if ($solde !== null): ?>
+                        <div class="card-text <?= $solde_class ?>"><?= euros($solde) ?></div>
+                        <?php else: ?>
                         <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
+                        <?php endif; ?>
                         <a href="<?= controller_url('compta/mon_compte/' . $account['club']) ?>" class="btn btn-success btn-sm">Accéder</a>
                     </div>
                 </div>

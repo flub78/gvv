@@ -87,7 +87,13 @@ class Welcome extends Gvv_Controller {
         // Comptes multi-sections pour le pilote courant
         $this->load->model('comptes_model');
         $this->load->model('sections_model');
-        $data['user_accounts'] = $this->comptes_model->get_pilote_comptes($data['username']);
+        $this->load->model('ecritures_model');
+        $raw_accounts = $this->comptes_model->get_pilote_comptes($data['username']);
+        foreach ($raw_accounts as &$account) {
+            $account['solde'] = $this->ecritures_model->solde_compte($account['id']);
+        }
+        unset($account);
+        $data['user_accounts'] = $raw_accounts;
 
         // Pass new auth status to view
         $data['use_new_auth'] = $this->use_new_auth;
