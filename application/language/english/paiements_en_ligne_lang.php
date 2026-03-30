@@ -118,3 +118,24 @@ $lang['gvv_bar_hub_debit_sub']              = "Deduct amount from your available
 $lang['gvv_bar_hub_carte_title']            = "Online payment (card)";
 $lang['gvv_bar_hub_carte_sub']              = "Pay by credit card via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Back";
+
+// Treasurer list (EF4)
+$lang['gvv_liste_title']                    = "Online Payments";
+$lang['gvv_liste_filter_from']              = "From";
+$lang['gvv_liste_filter_to']               = "To";
+$lang['gvv_liste_filter_statut']            = "Status";
+$lang['gvv_liste_filter_plateforme']        = "Platform";
+$lang['gvv_liste_filter_section']           = "Section";
+$lang['gvv_liste_filter_all']               = "All";
+$lang['gvv_liste_filter_apply']             = "Filter";
+$lang['gvv_liste_filter_reset']             = "Reset";
+$lang['gvv_liste_stat_count']               = "Completed this month";
+$lang['gvv_liste_stat_total']               = "Total amount";
+$lang['gvv_liste_stat_commissions']         = "Commissions";
+$lang['gvv_liste_export_csv']               = "Export CSV";
+$lang['gvv_liste_empty']                    = "No payments for the selected period.";
+$lang['gvv_liste_col_pilote']               = "Pilot";
+$lang['gvv_liste_col_commission']           = "Commission";
+$lang['gvv_liste_col_reference']            = "Reference";
+$lang['gvv_liste_col_section']              = "Section";
+$lang['gvv_liste_menu']                     = "Online payments";

@@ -599,14 +599,16 @@ $this->lang->load('welcome');
                 <?php endif; ?>
                 <?php endif; ?>
 
+                <?php if (has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin()): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center" style="opacity: 0.5;">
-                        <i class="fas fa-credit-card text-secondary"></i>
-                        <div class="card-title text-muted">Paiements en ligne</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    <div class="sub-card text-center">
+                        <i class="fas fa-credit-card text-success"></i>
+                        <div class="card-title">Paiements en ligne</div>
+                        <div class="card-text text-muted">HelloAsso</div>
+                        <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-success btn-sm">Consulter</a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <?php if (has_role('tresorier')) : ?>
 

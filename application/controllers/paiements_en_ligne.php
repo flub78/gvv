@@ -539,6 +539,129 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    // EF4 — Liste des paiements pour le trésorier
+    // =========================================================================
+
+    /**
+     * Liste des paiements en ligne — vue trésorier (EF4).
+     *
+     * Filtres : période, statut, plateforme, section
+     * Statistiques : count, montant total, commissions totales
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function liste() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        // Filtres
+        $date_from  = $this->input->get('date_from')  ?: date('Y-m-01');  // 1er du mois
+        $date_to    = $this->input->get('date_to')    ?: date('Y-m-d');
+        $statut     = $this->input->get('statut')     ?: '';
+        $plateforme = $this->input->get('plateforme') ?: '';
+        $club_filter= (int) $this->input->get('club');
+
+        $filters = array('date_from' => $date_from, 'date_to' => $date_to);
+        if ($statut)      $filters['statut']     = $statut;
+        if ($plateforme)  $filters['plateforme'] = $plateforme;
+        if ($club_filter) $filters['club']       = $club_filter;
+
+        $transactions = $this->paiements_en_ligne_model->get_transactions_with_user($filters);
+
+        // Statistiques
+        $stats = array('count' => 0, 'total' => 0.0, 'commissions' => 0.0);
+        foreach ($transactions as $tx) {
+            if ($tx['statut'] === 'completed') {
+                $stats['count']++;
+                $stats['total']       += (float) $tx['montant'];
+                $stats['commissions'] += (float) $tx['commission'];
+            }
+        }
+
+        $sections = $this->sections_model->section_list();
+
+        $data = array(
+            'transactions' => $transactions,
+            'stats'        => $stats,
+            'sections'     => $sections,
+            'filters'      => array(
+                'date_from'  => $date_from,
+                'date_to'    => $date_to,
+                'statut'     => $statut,
+                'plateforme' => $plateforme,
+                'club'       => $club_filter,
+            ),
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_liste', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Export CSV de la liste des paiements (EF4).
+     * Mêmes filtres que liste().
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function liste_csv() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $date_from  = $this->input->get('date_from')  ?: date('Y-m-01');
+        $date_to    = $this->input->get('date_to')    ?: date('Y-m-d');
+        $statut     = $this->input->get('statut')     ?: '';
+        $plateforme = $this->input->get('plateforme') ?: '';
+        $club_filter= (int) $this->input->get('club');
+
+        $filters = array('date_from' => $date_from, 'date_to' => $date_to);
+        if ($statut)      $filters['statut']     = $statut;
+        if ($plateforme)  $filters['plateforme'] = $plateforme;
+        if ($club_filter) $filters['club']       = $club_filter;
+
+        $transactions = $this->paiements_en_ligne_model->get_transactions_with_user($filters);
+
+        $filename = 'paiements_en_ligne_' . $date_from . '_' . $date_to . '.csv';
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $out = fopen('php://output', 'w');
+        // BOM UTF-8 pour Excel
+        fputs($out, "\xEF\xBB\xBF");
+        fputcsv($out, array(
+            'Date', 'Pilote', 'Montant (€)', 'Commission (€)',
+            'Plateforme', 'Référence', 'Statut', 'Section',
+        ), ';');
+
+        foreach ($transactions as $tx) {
+            $prenom = isset($tx['mprenom']) ? $tx['mprenom'] : '';
+            $nom    = isset($tx['mnom'])    ? $tx['mnom']    : '';
+            fputcsv($out, array(
+                $tx['date_demande'],
+                trim($prenom . ' ' . $nom) ?: $tx['username'],
+                number_format((float) $tx['montant'],    2, ',', ''),
+                number_format((float) $tx['commission'], 2, ',', ''),
+                $tx['plateforme'],
+                $tx['transaction_id'],
+                $tx['statut'],
+                $tx['club'],
+            ), ';');
+        }
+
+        fclose($out);
+        exit;
+    }
+
+    // =========================================================================
     // EF2 — Webhook HelloAsso (endpoint public)
     // =========================================================================
 

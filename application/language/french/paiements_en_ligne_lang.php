@@ -118,3 +118,24 @@ $lang['gvv_bar_hub_debit_sub']              = "Déduire le montant de votre sold
 $lang['gvv_bar_hub_carte_title']            = "Paiement en ligne (CB)";
 $lang['gvv_bar_hub_carte_sub']              = "Payer par carte bancaire via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Retour";
+
+// Liste trésorier (EF4)
+$lang['gvv_liste_title']                    = "Paiements en ligne";
+$lang['gvv_liste_filter_from']              = "Du";
+$lang['gvv_liste_filter_to']               = "Au";
+$lang['gvv_liste_filter_statut']            = "Statut";
+$lang['gvv_liste_filter_plateforme']        = "Plateforme";
+$lang['gvv_liste_filter_section']           = "Section";
+$lang['gvv_liste_filter_all']               = "Tous";
+$lang['gvv_liste_filter_apply']             = "Filtrer";
+$lang['gvv_liste_filter_reset']             = "Réinitialiser";
+$lang['gvv_liste_stat_count']               = "Réglés ce mois";
+$lang['gvv_liste_stat_total']               = "Montant total";
+$lang['gvv_liste_stat_commissions']         = "Commissions";
+$lang['gvv_liste_export_csv']               = "Exporter CSV";
+$lang['gvv_liste_empty']                    = "Aucun paiement pour la période sélectionnée.";
+$lang['gvv_liste_col_pilote']               = "Pilote";
+$lang['gvv_liste_col_commission']           = "Commission";
+$lang['gvv_liste_col_reference']            = "Référence";
+$lang['gvv_liste_col_section']              = "Section";
+$lang['gvv_liste_menu']                     = "Paiements en ligne";

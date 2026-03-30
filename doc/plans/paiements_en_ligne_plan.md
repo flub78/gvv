@@ -50,7 +50,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 8b | EF6 | Navigation dashboard — section "Mes paiements" | HAUTE | ✅ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ✅ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
-| 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ☐ |
+| 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ☐ |
 | 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ☐ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ☐ |
@@ -380,18 +380,31 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Méthode :** `paiements_en_ligne::liste()` — réservé aux rôles `tresorier`, `bureau`, `admin`
 
-**Tableau :** Date/heure, nom du pilote, montant, plateforme, référence de transaction, statut, lien vers l'écriture comptable, commission
+**Tableau :** Date/heure, nom du pilote, montant, commission, plateforme, référence de transaction, statut, lien vers l'écriture comptable
 
-**Filtres :** Période, plateforme, section, statut, pilote
+**Filtres :** Période (date_from/date_to), plateforme, section, statut
 
-**Exports :** CSV (rapprochement bancaire), PDF (archivage/audit)
+**Exports :** CSV avec BOM UTF-8 (rapprochement bancaire) — via `liste_csv()`
 
-**Statistiques :** Nombre de provisionnements du mois, montant total, commissions totales
+**Statistiques :** Transactions complétées, montant total, commissions totales
 
-**Validation :**
-- Test Playwright : accès refusé pour un pilote simple, accessible pour un trésorier
-- Test PHPUnit : filtres par période et statut retournent les bons enregistrements
-- Export CSV généré sans erreur
+**Navigation :**
+- Carte trésorier dans le dashboard (section Comptabilité)
+- Entrée dans le menu Comptabilité → sous-menu trésorier
+
+**✅ Complète**
+- ✅ PHPUnit (5 tests) : filtres statut, période, plateforme, club, jointure membres — `application/tests/mysql/PaiementsEnLigneListeTest.php`
+- ✅ Playwright (4 tests) : accès refusé pilote, accès trésorier, filtres+tableau, lien CSV — `playwright/tests/paiements-en-ligne-ef4-liste.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/paiements_en_ligne.php` (méthodes `liste`, `liste_csv`)
+- `application/models/paiements_en_ligne_model.php` (méthode `get_transactions_with_user`)
+- `application/views/paiements_en_ligne/bs_liste.php` (nouveau)
+- `application/views/bs_dashboard.php` (carte trésorier activée)
+- `application/views/bs_menu.php` (lien menu trésorier)
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (clés `gvv_liste_*`)
+- `application/tests/mysql/PaiementsEnLigneListeTest.php` (nouveau)
+- `playwright/tests/paiements-en-ligne-ef4-liste.spec.js` (nouveau)
 
 ---
 

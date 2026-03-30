@@ -118,3 +118,24 @@ $lang['gvv_bar_hub_debit_sub']              = "Bedrag aftrekken van uw beschikba
 $lang['gvv_bar_hub_carte_title']            = "Online betaling (kaart)";
 $lang['gvv_bar_hub_carte_sub']              = "Betalen met bankkaart via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Terug";
+
+// Trésorier lijst (EF4)
+$lang['gvv_liste_title']                    = "Online betalingen";
+$lang['gvv_liste_filter_from']              = "Van";
+$lang['gvv_liste_filter_to']               = "Tot";
+$lang['gvv_liste_filter_statut']            = "Status";
+$lang['gvv_liste_filter_plateforme']        = "Platform";
+$lang['gvv_liste_filter_section']           = "Sectie";
+$lang['gvv_liste_filter_all']               = "Alle";
+$lang['gvv_liste_filter_apply']             = "Filteren";
+$lang['gvv_liste_filter_reset']             = "Resetten";
+$lang['gvv_liste_stat_count']               = "Betaald deze maand";
+$lang['gvv_liste_stat_total']               = "Totaalbedrag";
+$lang['gvv_liste_stat_commissions']         = "Commissies";
+$lang['gvv_liste_export_csv']               = "CSV exporteren";
+$lang['gvv_liste_empty']                    = "Geen betalingen voor de geselecteerde periode.";
+$lang['gvv_liste_col_pilote']               = "Piloot";
+$lang['gvv_liste_col_commission']           = "Commissie";
+$lang['gvv_liste_col_reference']            = "Referentie";
+$lang['gvv_liste_col_section']              = "Sectie";
+$lang['gvv_liste_menu']                     = "Online betalingen";

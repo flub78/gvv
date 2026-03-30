@@ -146,6 +146,43 @@ class Paiements_en_ligne_model extends CI_Model {
     }
 
     /**
+     * Liste des transactions avec jointure membres (nom du pilote).
+     * Utilisée par la vue liste trésorier (EF4).
+     *
+     * @param  array $filters  Clés : user_id, statut, club, plateforme, date_from, date_to
+     * @return array           Chaque ligne ajoute : mprenom, mnom (depuis membres)
+     */
+    public function get_transactions_with_user(array $filters = array()) {
+        $this->db
+            ->select('p.*, m.mprenom, m.mnom, u.username')
+            ->from($this->table . ' p')
+            ->join('users u',     'u.id = p.user_id',     'left')
+            ->join('membres m',   'm.mlogin = u.username', 'left');
+
+        if (!empty($filters['user_id'])) {
+            $this->db->where('p.user_id', (int) $filters['user_id']);
+        }
+        if (!empty($filters['statut'])) {
+            $this->db->where('p.statut', $filters['statut']);
+        }
+        if (!empty($filters['club'])) {
+            $this->db->where('p.club', (int) $filters['club']);
+        }
+        if (!empty($filters['plateforme'])) {
+            $this->db->where('p.plateforme', $filters['plateforme']);
+        }
+        if (!empty($filters['date_from'])) {
+            $this->db->where('p.date_demande >=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $this->db->where('p.date_demande <=', $filters['date_to'] . ' 23:59:59');
+        }
+
+        $this->db->order_by('p.date_demande', 'DESC');
+        return $this->db->get()->result_array();
+    }
+
+    /**
      * Retourne les transactions "pending" créées il y a plus de $minutes minutes.
      * Utilisé par les éventuels processus de nettoyage.
      *
