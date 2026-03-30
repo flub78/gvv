@@ -46,6 +46,8 @@ const DEBIT_ACCT_ID   = 19;   // compte 606 "Frais de bureau", club=1
 
 // Track test ecriture IDs for cleanup
 let testEcritureIds = [];
+// Original bar state saved in beforeAll for restoration in afterAll
+let originalBarState = null;
 
 // ─── DB helpers ───────────────────────────────────────────────────────────────
 
@@ -80,6 +82,22 @@ function fundAsterix(amount) {
         { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
     ).trim();
     return parseInt(result, 10);
+}
+
+function getBarState() {
+    const result = execSync(
+        `mysql -h${DB_HOST} -u${DB_USER} -p${DB_PASS} ${DB_NAME} -se "SELECT has_bar, COALESCE(bar_account_id,'NULL') FROM sections WHERE id=${SECTION_ID}"`,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+    ).trim().split('\t');
+    return {
+        has_bar: parseInt(result[0], 10),
+        bar_account_id: result[1] === 'NULL' ? null : parseInt(result[1], 10),
+    };
+}
+
+function restoreBarState(state) {
+    const acct = state.bar_account_id !== null ? state.bar_account_id : 'NULL';
+    runSql(`UPDATE sections SET has_bar=${state.has_bar}, bar_account_id=${acct} WHERE id=${SECTION_ID}`);
 }
 
 function cleanupEcritures() {
@@ -119,14 +137,15 @@ async function login(page) {
 test.describe('UC5 — Bar payment by balance debit', () => {
 
     test.beforeAll(() => {
-        // Ensure bar is disabled and accounts are clean at the start
+        // Save original bar state before modifying it
+        originalBarState = getBarState();
         disableBar();
         cleanupEcritures();
     });
 
     test.afterAll(() => {
-        // Restore clean state: disable bar and remove test ecritures
-        disableBar();
+        // Restore original bar state instead of always disabling
+        restoreBarState(originalBarState);
         cleanupEcritures();
     });
 

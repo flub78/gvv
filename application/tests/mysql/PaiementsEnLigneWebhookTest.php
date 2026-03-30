@@ -33,6 +33,8 @@ class PaiementsEnLigneWebhookTest extends TestCase
     protected $created_transaction_ids = array();
     /** IDs de config insérés (nettoyage tearDown) */
     protected $created_config_ids = array();
+    /** Ligne config compte_passage existante avant setUp (pour restauration) */
+    protected $original_compte_passage = null;
 
     // Fixtures stables (section 4, asterix)
     protected static $club_id     = 4;
@@ -87,22 +89,34 @@ class PaiementsEnLigneWebhookTest extends TestCase
     {
         $this->db    = self::$CI->db;
         $this->model = self::$CI->paiements_en_ligne_model;
-        $this->created_ecriture_ids   = array();
+        $this->created_ecriture_ids    = array();
         $this->created_transaction_ids = array();
         $this->created_config_ids      = array();
+        $this->original_compte_passage = null;
+
+        // Lire la config existante avant toute modification (pour restauration en tearDown)
+        $existing = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('club', self::$club_id)
+            ->where('param_key', 'compte_passage')
+            ->get('paiements_en_ligne_config')->row_array();
+        $this->original_compte_passage = $existing ?: null;
 
         // Configurer compte_passage pour club=4 (ID du compte 467)
         $ok = $this->model->upsert_config('helloasso', 'compte_passage', (string) self::$compte_passage_id,
             self::$club_id, 'phpunit');
         $this->assertTrue($ok, 'Impossible d\'insérer la config compte_passage');
 
-        $row = $this->db
-            ->where('plateforme', 'helloasso')
-            ->where('club', self::$club_id)
-            ->where('param_key', 'compte_passage')
-            ->get('paiements_en_ligne_config')->row_array();
-        if ($row) {
-            $this->created_config_ids[] = (int) $row['id'];
+        // Si la ligne n'existait pas avant, on la supprime en tearDown ; sinon on restaure la valeur
+        if (!$existing) {
+            $row = $this->db
+                ->where('plateforme', 'helloasso')
+                ->where('club', self::$club_id)
+                ->where('param_key', 'compte_passage')
+                ->get('paiements_en_ligne_config')->row_array();
+            if ($row) {
+                $this->created_config_ids[] = (int) $row['id'];
+            }
         }
     }
 
@@ -121,9 +135,22 @@ class PaiementsEnLigneWebhookTest extends TestCase
         foreach ($this->created_ecriture_ids as $id) {
             $this->db->where('id', $id)->delete('ecritures');
         }
-        // 4. Supprimer la config de test
-        foreach ($this->created_config_ids as $id) {
-            $this->db->where('id', $id)->delete('paiements_en_ligne_config');
+        // 4. Restaurer ou supprimer la config compte_passage
+        if ($this->original_compte_passage) {
+            // La ligne existait avant le test : restaurer la valeur et updated_by d'origine
+            $this->db
+                ->where('plateforme', 'helloasso')
+                ->where('club', self::$club_id)
+                ->where('param_key', 'compte_passage')
+                ->update('paiements_en_ligne_config', array(
+                    'param_value' => $this->original_compte_passage['param_value'],
+                    'updated_by'  => $this->original_compte_passage['updated_by'],
+                ));
+        } else {
+            // La ligne a été insérée par le test : la supprimer
+            foreach ($this->created_config_ids as $id) {
+                $this->db->where('id', $id)->delete('paiements_en_ligne_config');
+            }
         }
     }
 
