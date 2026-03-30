@@ -528,6 +528,23 @@ class Archived_documents extends Gvv_Controller {
         // Prepare document data
         $previous_version_id = $this->input->post('previous_version_id');
         $machine_immat = $new_version_lock ? $new_version_lock['machine_immat'] : ($this->input->post('machine_immat') ?: null);
+        
+        // Auto-detect previous version: if not explicitly specified, find current version of same
+        // document type for the same scope (pilot/section/machine) to maintain version chain
+        if (empty($previous_version_id) && !empty($document_type_id)) {
+            $search_criteria = array(
+                'document_type_id' => $document_type_id,
+                'section_id'       => $section_id,
+                'pilot_login'      => !empty($pilot_login) ? $pilot_login : null,
+                'machine_immat'    => $machine_immat,
+                'is_current_version' => 1,
+            );
+            $existing_current = $this->gvv_model->get_first($search_criteria);
+            if ($existing_current) {
+                $previous_version_id = $existing_current['id'];
+            }
+        }
+        
         $doc_data = array(
             'document_type_id'   => $document_type_id ?: null,
             'pilot_login'        => !empty($pilot_login) ? $pilot_login : null,
