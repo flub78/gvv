@@ -504,7 +504,6 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="<?= controller_url("membre/ma_fiche") ?>"><i class="fas fa-id-card text-primary"></i> <?= translation("gvv_menu_ma_fiche") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
               <?php if ($this->config->item('gestion_tickets')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
