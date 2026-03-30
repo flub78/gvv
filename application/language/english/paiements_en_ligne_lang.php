@@ -88,6 +88,17 @@ $lang['gvv_admin_config_enabled_help']      = "When disabled, online payment but
 $lang['gvv_admin_config_saved']             = "Configuration saved.";
 $lang['gvv_admin_config_error_no_section']  = "Please select a section.";
 
+// Pilot account top-up (EF1)
+$lang['gvv_provision_title']                = "Top up my pilot account";
+$lang['gvv_provision_intro']                = "Recharge your pilot account by card via HelloAsso.";
+$lang['gvv_provision_montant_help']         = "Amount between €%s and €%s.";
+$lang['gvv_provision_button_valider']       = "Top up by card";
+$lang['gvv_provision_checkout_description'] = "Pilot account top-up — %s";
+$lang['gvv_provision_error_montant_min']    = "The minimum amount is €%s.";
+$lang['gvv_provision_error_montant_max']    = "The maximum amount is €%s.";
+$lang['gvv_provision_error_limit_day']      = "You have reached the limit of 5 pending requests per day. Try again tomorrow or contact the administrator.";
+$lang['gvv_button_cancel']                  = "Cancel";
+
 // Dashboard — Mes paiements
 $lang['gvv_dashboard_payments_title']       = "My payments";
 $lang['gvv_dashboard_pay_cotisation']       = "Pay my membership fee";

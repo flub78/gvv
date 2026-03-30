@@ -596,6 +596,21 @@ class Paiements_en_ligne_model extends CI_Model {
      * @param  int    $club_id
      * @return string|false        La valeur ou false si absente
      */
+    /**
+     * Compte les transactions "pending" créées aujourd'hui par un utilisateur dans un club.
+     * Utilisé pour limiter les demandes à 5 par jour.
+     */
+    public function count_pending_today($user_id, $club_id)
+    {
+        return $this->db
+            ->where('user_id',          (int) $user_id)
+            ->where('club',             (int) $club_id)
+            ->where('statut',           'pending')
+            ->where('date_demande >=',  date('Y-m-d') . ' 00:00:00')
+            ->where('date_demande <=',  date('Y-m-d') . ' 23:59:59')
+            ->count_all_results($this->table);
+    }
+
     public function get_config($plateforme, $key, $club_id) {
         $row = $this->db
             ->select('param_value')

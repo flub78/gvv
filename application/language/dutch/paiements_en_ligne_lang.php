@@ -88,6 +88,17 @@ $lang['gvv_admin_config_enabled_help']      = "Indien uitgeschakeld, zijn online
 $lang['gvv_admin_config_saved']             = "Configuratie opgeslagen.";
 $lang['gvv_admin_config_error_no_section']  = "Selecteer een sectie.";
 
+// Pilotenrekening opladen (EF1)
+$lang['gvv_provision_title']                = "Mijn pilootrekening opladen";
+$lang['gvv_provision_intro']                = "Laad uw pilootrekening op met bankkaart via HelloAsso.";
+$lang['gvv_provision_montant_help']         = "Bedrag tussen €\u{00A0}%s en €\u{00A0}%s.";
+$lang['gvv_provision_button_valider']       = "Opladen met kaart";
+$lang['gvv_provision_checkout_description'] = "Pilotenrekening opladen — %s";
+$lang['gvv_provision_error_montant_min']    = "Het minimumbedrag is €\u{00A0}%s.";
+$lang['gvv_provision_error_montant_max']    = "Het maximumbedrag is €\u{00A0}%s.";
+$lang['gvv_provision_error_limit_day']      = "U heeft de limiet van 5 openstaande aanvragen per dag bereikt. Probeer het morgen opnieuw of neem contact op met de beheerder.";
+$lang['gvv_button_cancel']                  = "Annuleren";
+
 // Dashboard — Mes paiements
 $lang['gvv_dashboard_payments_title']       = "Mijn betalingen";
 $lang['gvv_dashboard_pay_cotisation']       = "Contributie betalen";

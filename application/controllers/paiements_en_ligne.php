@@ -107,6 +107,160 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
+     * Provisionnement du compte pilote 411 par carte bancaire via HelloAsso (EF1).
+     *
+     * GET  : formulaire montant (entre montant_min et montant_max configurés)
+     * POST : validation, limite journalière, création transaction pending,
+     *        appel create_checkout(), redirection HelloAsso
+     *
+     * Retour webhook → handler étape 7 → type=provisionnement → crédit 411, débit 467
+     *
+     * Accès : pilote authentifié, section active, HelloAsso activé
+     */
+    function demande() {
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $club_id = (int) $section['id'];
+
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if ($enabled !== '1') {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $mlogin = $this->dx_auth->get_username();
+        $compte_pilote = $this->comptes_model->compte_pilote($mlogin, $section);
+        if (!$compte_pilote) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_pilot_account'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $montant_min = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_min', $club_id) ?: 5);
+        $montant_max = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_max', $club_id) ?: 500);
+
+        if ($this->input->post('button') === 'valider') {
+            $this->_process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max);
+            return;
+        }
+
+        $data = array(
+            'section'     => $section,
+            'montant'     => '',
+            'montant_min' => $montant_min,
+            'montant_max' => $montant_max,
+            'error'       => $this->session->flashdata('error'),
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_demande_form', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Traite la soumission du formulaire demande :
+     * validation montant, limite 5 transactions pending/jour,
+     * création transaction, appel HelloAsso, redirection.
+     */
+    private function _process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
+        $montant = (float) str_replace(',', '.', $this->input->post('montant'));
+
+        $errors = array();
+
+        if ($montant < $montant_min) {
+            $errors[] = sprintf($this->lang->line('gvv_provision_error_montant_min'),
+                number_format($montant_min, 2, ',', ' '));
+        }
+        if ($montant > $montant_max) {
+            $errors[] = sprintf($this->lang->line('gvv_provision_error_montant_max'),
+                number_format($montant_max, 2, ',', ' '));
+        }
+
+        if (empty($errors)) {
+            $user_id   = (int) $this->dx_auth->get_user_id();
+            $nb_pending = $this->paiements_en_ligne_model->count_pending_today($user_id, $club_id);
+            if ($nb_pending >= 5) {
+                $errors[] = $this->lang->line('gvv_provision_error_limit_day');
+            }
+        }
+
+        if (!empty($errors)) {
+            $data = array(
+                'section'     => $section,
+                'montant'     => $montant,
+                'montant_min' => $montant_min,
+                'montant_max' => $montant_max,
+                'error'       => implode('<br>', $errors),
+            );
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('paiements_en_ligne/bs_demande_form', $data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $user_id = (int) $this->dx_auth->get_user_id();
+        $mlogin  = $this->dx_auth->get_username();
+        $txid    = 'prov-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
+        $description = sprintf($this->lang->line('gvv_provision_checkout_description'),
+            htmlspecialchars($section['nom']));
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => $user_id,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode(array(
+                'type'               => 'provisionnement',
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            )),
+            'created_by' => $mlogin,
+        ));
+
+        if (!$tx_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('paiements_en_ligne/demande');
+            return;
+        }
+
+        $member = $this->db
+            ->select('mprenom, memail')
+            ->from('membres')
+            ->where('mlogin', $mlogin)
+            ->get()->row_array();
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
+            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
+            'back_url'         => site_url('paiements_en_ligne/annulation'),
+            'error_url'        => site_url('paiements_en_ligne/erreur'),
+            'metadata'         => array(
+                'type'               => 'provisionnement',
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            ),
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed', array());
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_checkout'));
+            redirect('paiements_en_ligne/demande');
+            return;
+        }
+
+        redirect($checkout['redirect_url']);
+    }
+
+    /**
      * Paiement des consommations de bar par débit du solde pilote (UC5).
      *
      * GET  : affiche le formulaire de saisie (montant + descriptif)

@@ -48,7 +48,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ✅ |
 | 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ✅ |
 | 8b | EF6 | Navigation dashboard — section "Mes paiements" | HAUTE | ✅ |
-| 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
+| 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ✅ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ☐ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ☐ |
@@ -345,10 +345,17 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Token CSRF, limite de 5 transactions par jour par utilisateur
 - `_require_active_section()` centralisé
 
-**Validation :**
-- `[SKIP SI SANDBOX]` Test Playwright en sandbox : formulaire soumis → redirection HelloAsso → retour confirmation
-- Test PHPUnit : montant hors limites (9€, 501€) → erreur de validation
-- Test PHPUnit : section "Toutes" → refus avec message, aucun appel HelloAsso
+**Validation :** ✅ Complète
+- ✅ PHPUnit (8 tests) : validation montant min/max, garde section "Toutes", `count_pending_today()` (comptage, filtre statut, filtre date), limite 5/jour — `application/tests/mysql/PaiementsEnLigneProvisionTest.php`
+- ✅ Playwright (5 tests, 1 `[SKIP SI SANDBOX]`) : sans session → login, avec session → formulaire/mon_compte, attributs min/max, validation serveur montant invalide, flow sandbox — `playwright/tests/paiements-en-ligne-ef1-demande.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/paiements_en_ligne.php` (méthodes `demande`, `_process_demande`)
+- `application/models/paiements_en_ligne_model.php` (méthode `count_pending_today`)
+- `application/views/paiements_en_ligne/bs_demande_form.php` (nouveau)
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (clés `gvv_provision_*`, `gvv_button_cancel`)
+- `application/tests/mysql/PaiementsEnLigneProvisionTest.php` (nouveau)
+- `playwright/tests/paiements-en-ligne-ef1-demande.spec.js` (nouveau)
 
 ---
 

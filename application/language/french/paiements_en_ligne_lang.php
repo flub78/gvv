@@ -88,6 +88,17 @@ $lang['gvv_admin_config_enabled_help']      = "Si désactivé, les boutons de pa
 $lang['gvv_admin_config_saved']             = "Configuration enregistrée.";
 $lang['gvv_admin_config_error_no_section']  = "Veuillez sélectionner une section.";
 
+// Provisionnement compte pilote (EF1)
+$lang['gvv_provision_title']                = "Approvisionner mon compte pilote";
+$lang['gvv_provision_intro']                = "Rechargez votre compte pilote par carte bancaire via HelloAsso.";
+$lang['gvv_provision_montant_help']         = "Montant entre %s\u{00A0}€ et %s\u{00A0}€.";
+$lang['gvv_provision_button_valider']       = "Approvisionner par carte";
+$lang['gvv_provision_checkout_description'] = "Provisionnement compte pilote — %s";
+$lang['gvv_provision_error_montant_min']    = "Le montant minimum est de %s\u{00A0}€.";
+$lang['gvv_provision_error_montant_max']    = "Le montant maximum est de %s\u{00A0}€.";
+$lang['gvv_provision_error_limit_day']      = "Vous avez atteint la limite de 5 demandes en attente par jour. Réessayez demain ou contactez l'administrateur.";
+$lang['gvv_button_cancel']                  = "Annuler";
+
 // Dashboard — section Mes paiements
 $lang['gvv_dashboard_payments_title']       = "Mes paiements";
 $lang['gvv_dashboard_pay_cotisation']       = "Payer ma cotisation";
