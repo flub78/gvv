@@ -218,9 +218,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - `get_pending_transactions()` — transactions `pending` plus vieilles de 30 minutes
 - `get_config($plateforme, $key, $club_id)` — lit la configuration
 
-**Validation :**
-- Test PHPUnit du modèle : CRUD complet sur les tables créées à l'étape 3
-- Accès à `/paiements_en_ligne` retourne HTTP 200 pour un pilote connecté
+**Validation :** ✅ Complète
+- ✅ PHPUnit (21 tests) : CRUD complet sur les tables, filtres, statuts, chiffrement config — `application/tests/mysql/PaiementsEnLigneModelTest.php`
+- ✅ Playwright (6 tests) : index HTTP 200, confirmation/annulation/erreur accessibles, sandbox_available JSON, accès non connecté redirige — `playwright/tests/paiements-en-ligne-base.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/paiements_en_ligne.php` (méthodes index, confirmation, annulation, erreur, sandbox_available)
+- `application/models/paiements_en_ligne_model.php`
+- `application/views/paiements_en_ligne/bs_index.php`
+- `application/views/paiements_en_ligne/bs_confirmation.php`
+- `application/views/paiements_en_ligne/bs_annulation.php`
+- `application/views/paiements_en_ligne/bs_erreur.php`
+- `application/tests/mysql/PaiementsEnLigneModelTest.php`
+- `playwright/tests/paiements-en-ligne-base.spec.js`
 
 ---
 
