@@ -539,6 +539,73 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    // UC6 — Cotisation trésorier par carte HelloAsso
+    // =========================================================================
+
+    /**
+     * Page intermédiaire QR code + lien direct après création d'un checkout
+     * cotisation trésorier (UC6).
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function cotisation_qr($transaction_id = '') {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('compta/saisie_cotisation');
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        $data = array(
+            'transaction'    => $tx,
+            'meta'           => $meta,
+            'checkout_url'   => $checkout_url,
+            'transaction_id' => $transaction_id,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_cotisation_qr', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Génère l'image QR code PNG pour l'URL checkout d'une transaction.
+     * Endpoint public (pas de session requise : le QR est affiché sur l'écran du trésorier).
+     *
+     * @param string $transaction_id
+     */
+    public function cotisation_qr_image($transaction_id = '') {
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        if (empty($checkout_url)) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+        header('Content-Type: image/png');
+        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
+        exit;
+    }
+
+    // =========================================================================
     // EF4 — Liste des paiements pour le trésorier
     // =========================================================================
 
@@ -753,6 +820,13 @@ class Paiements_en_ligne extends MY_Controller {
                     isset($result['transaction']) ? $result['transaction'] : $transaction,
                     $result
                 );
+                // Création de la licence pour les cotisations trésorier
+                if (isset($result['type']) && $result['type'] === 'cotisation_tresorier') {
+                    $this->_create_licence_from_cotisation_meta(
+                        isset($result['metadata']) ? $result['metadata'] : array(),
+                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                    );
+                }
                 break;
 
             case 'failed':
@@ -782,6 +856,51 @@ class Paiements_en_ligne extends MY_Controller {
         return isset($raw_meta['gvv_transaction_id'])
             ? (string) $raw_meta['gvv_transaction_id']
             : null;
+    }
+
+    /**
+     * Crée la licence de cotisation suite à un paiement cotisation_tresorier confirmé.
+     * Echec silencieux loggé — le webhook a déjà répondu 200 et les écritures sont créées.
+     *
+     * @param array $meta        Metadata de la transaction (pilote_login, annee_cotisation)
+     * @param array $transaction Transaction GVV
+     */
+    private function _create_licence_from_cotisation_meta(array $meta, array $transaction)
+    {
+        $pilote_login     = isset($meta['pilote_login'])     ? (string) $meta['pilote_login']     : '';
+        $annee_cotisation = isset($meta['annee_cotisation']) ? (int)    $meta['annee_cotisation'] : 0;
+
+        if (empty($pilote_login) || $annee_cotisation < 2000) {
+            $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
+                'cotisation_tresorier : pilote_login ou annee_cotisation manquant dans metadata');
+            return;
+        }
+
+        try {
+            $this->load->model('licences_model');
+            $date = isset($transaction['date_paiement'])
+                ? substr($transaction['date_paiement'], 0, 10)
+                : date('Y-m-d');
+
+            $licence_id = $this->licences_model->create_cotisation(
+                $pilote_login,
+                0,
+                $annee_cotisation,
+                $date,
+                'Cotisation enregistrée via paiement HelloAsso'
+            );
+
+            if ($licence_id) {
+                $this->helloasso->log('INFO', $transaction['transaction_id'], 'webhook',
+                    'Licence cotisation créée id=' . $licence_id . ' pilote=' . $pilote_login);
+            } else {
+                $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
+                    'Échec création licence cotisation pilote=' . $pilote_login);
+            }
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
+                'Exception création licence : ' . $e->getMessage());
+        }
     }
 
     /** Réponse HTTP 200 standard pour le webhook. */

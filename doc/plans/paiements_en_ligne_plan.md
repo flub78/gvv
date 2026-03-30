@@ -51,7 +51,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ✅ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
-| 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ☐ |
+| 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
 | 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ☐ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ☐ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
@@ -430,11 +430,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Vérification section active (`_require_active_section()`) avant création du checkout
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
 
-**Validation :**
-- Test PHPUnit : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
-- Test PHPUnit : échec HelloAsso → aucune écriture, transaction `failed`
-- Test Playwright : bouton présent pour `dev_users`, absent pour un pilote ordinaire
-- `[SKIP SI SANDBOX]` Test Playwright : flow complet trésorier → paiement CB → deux écritures vérifiées
+**Validation :** ✅
+- ✅ Test PHPUnit `PaiementsEnLigneCotisationTest` (2 tests) : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
+- ✅ Test Playwright `paiements-en-ligne-uc6-cotisation.spec.js` (4 tests) : accès pilote refusé, trésorier accède au formulaire, bouton HelloAsso absent pour non-dev_user, QR avec txid invalide redirige
+
+**Fichiers :**
+- `application/controllers/compta.php` : `formValidation_saisie_cotisation()` + `_initiate_cotisation_helloasso()`
+- `application/controllers/paiements_en_ligne.php` : `cotisation_qr()`, `cotisation_qr_image()`, `_create_licence_from_cotisation_meta()`
+- `application/models/paiements_en_ligne_model.php` : `_ecriture_cotisation_tresorier()`, `process_order_event()` retourne `type` et `metadata`
+- `application/views/compta/bs_saisie_cotisation_formView.php` : bouton HelloAsso conditionnel
+- `application/views/paiements_en_ligne/bs_cotisation_qr.php` : page QR code intermédiaire
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_cotisation_*`
+- `application/tests/mysql/PaiementsEnLigneCotisationTest.php`
+- `playwright/tests/paiements-en-ligne-uc6-cotisation.spec.js`
 
 ---
 

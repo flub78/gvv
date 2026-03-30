@@ -300,6 +300,8 @@ class Paiements_en_ligne_model extends CI_Model {
             'status'      => 'completed',
             'ecriture_id' => $ecriture_id,
             'transaction' => $transaction,
+            'type'        => $type,
+            'metadata'    => $raw_meta,
         );
     }
 
