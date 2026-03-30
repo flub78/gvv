@@ -41,7 +41,7 @@ const DB_NAME = 'gvv2';
 // Section 1 test fixtures
 const SECTION_ID      = 1;
 const BAR_ACCOUNT_ID  = 55;   // compte 706 "Heures de vol + remorqués", club=1
-const ASTERIX_411_ID  = 1456; // compte 411 d'asterix dans section 1
+const ASTERIX_411_ID  = 1476; // compte 411 d'asterix dans section 1
 const DEBIT_ACCT_ID   = 19;   // compte 606 "Frais de bureau", club=1
 
 // Track test ecriture IDs for cleanup
@@ -208,7 +208,7 @@ test.describe('UC5 — Bar payment by balance debit', () => {
     });
 
     test('submitting a valid payment redirects to mon_compte with success', async ({ page }) => {
-        // DB state: has_bar=1
+        // DB state: has_bar=1, asterix funded 50€ in previous test
         await login(page);
 
         await page.goto('/index.php/paiements_en_ligne/bar_debit_solde');
