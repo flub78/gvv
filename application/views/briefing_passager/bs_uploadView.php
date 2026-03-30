@@ -9,11 +9,72 @@ $this->lang->load('vols_decouverte');
 
 <div id="body" class="body container-fluid">
 
-<h3><i class="fas fa-upload"></i> <?= $this->lang->line('briefing_passager_upload') ?></h3>
+<h3><i class="fas fa-clipboard-check"></i> <?= $this->lang->line('briefing_passager_title') ?></h3>
 
 <?= $message ?>
 
 <?php if ($vld): ?>
+
+<!-- ── Primary actions ──────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+
+    <!-- Option 1 : Télécharger -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center d-flex flex-column justify-content-center p-4">
+                <div class="mb-3"><i class="fas fa-file-pdf fa-3x text-danger"></i></div>
+                <h5><?= $this->lang->line('briefing_passager_action_download') ?></h5>
+                <p class="text-muted small mb-3"><?= $this->lang->line('briefing_passager_action_download_help') ?></p>
+                <?php if (!empty($consignes['file_path'])): ?>
+                <a href="<?= base_url($consignes['file_path']) ?>" target="_blank" class="btn btn-outline-danger mt-auto">
+                    <i class="fas fa-download"></i> <?= $this->lang->line('briefing_passager_consignes_download') ?>
+                </a>
+                <?php else: ?>
+                <span class="text-muted small"><?= $this->lang->line('briefing_passager_no_consignes') ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 2 : Lire et accepter (signature numérique) -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm border-primary" style="border:2px solid #0d6efd!important;">
+            <div class="card-body text-center d-flex flex-column justify-content-center p-4">
+                <div class="mb-3"><i class="fas fa-pen-square fa-3x text-primary"></i></div>
+                <h5><?= $this->lang->line('briefing_passager_action_sign') ?></h5>
+                <p class="text-muted small mb-3"><?= $this->lang->line('briefing_passager_action_sign_help') ?></p>
+                <form method="post" action="<?= site_url('briefing_passager/sign_in_context/' . $vld_id) ?>" class="mt-auto">
+                    <input type="hidden" name="date_vol"       value="<?= htmlspecialchars($vld['date_vol'] ?: date('Y-m-d')) ?>">
+                    <input type="hidden" name="aerodrome"      value="<?= htmlspecialchars($vld['aerodrome'] ?? '') ?>">
+                    <input type="hidden" name="airplane_immat" value="<?= htmlspecialchars($vld['airplane_immat'] ?? '') ?>">
+                    <input type="hidden" name="beneficiaire"   value="<?= htmlspecialchars($vld['beneficiaire'] ?? '') ?>">
+                    <input type="hidden" name="pilote"         value="<?= htmlspecialchars($vld['pilote'] ?? '') ?>">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_action_sign') ?>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Option 3 : Déposer un document scanné -->
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center d-flex flex-column justify-content-center p-4">
+                <div class="mb-3"><i class="fas fa-upload fa-3x text-secondary"></i></div>
+                <h5><?= $this->lang->line('briefing_passager_upload') ?></h5>
+                <p class="text-muted small mb-3"><?= $this->lang->line('briefing_passager_action_upload_help') ?></p>
+                <a href="#section-upload" class="btn btn-outline-secondary mt-auto">
+                    <i class="fas fa-arrow-down"></i> <?= $this->lang->line('briefing_passager_upload') ?>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /row primary actions -->
+
+<!-- ── VLD fields + file upload (secondary) ─────────────────────────────── -->
+<div id="section-upload">
 
 <!-- Single unified form: VLD fields + action buttons -->
 <form method="post" action="<?= site_url('briefing_passager/upload_submit/' . $vld_id) ?>" enctype="multipart/form-data">
@@ -163,6 +224,8 @@ $this->lang->load('vols_decouverte');
 <form id="form-delete-briefing" method="post"
       action="<?= site_url('briefing_passager/delete/' . $briefing['id']) ?>"></form>
 <?php endif; ?>
+
+</div><!-- /section-upload -->
 
 <?php else: ?>
 <div class="alert alert-danger"><?= $this->lang->line('briefing_passager_not_found') ?></div>

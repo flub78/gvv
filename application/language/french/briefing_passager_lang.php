@@ -86,5 +86,13 @@ $lang['briefing_passager_email_body']         = 'Veuillez trouver ci-joint votre
 $lang['briefing_passager_add']                = 'Ajouter un briefing';
 $lang['briefing_passager_redirecting']        = 'Chargement…';
 
+// Actions principales sur la page upload (simplification)
+$lang['briefing_passager_action_download']      = 'Télécharger les consignes';
+$lang['briefing_passager_action_download_help'] = 'Téléchargez le document PDF des consignes de sécurité.';
+$lang['briefing_passager_action_sign']          = 'Lire et accepter';
+$lang['briefing_passager_action_sign_help']     = 'Le passager lit les consignes et signe la déclaration sur cet écran ou sur son téléphone.';
+$lang['briefing_passager_action_upload_help']   = 'Déposez un document signé scanné (photo ou PDF).';
+$lang['briefing_passager_sign_qr_help']         = 'Scanner avec le téléphone du passager pour signer depuis son appareil.';
+
 /* End of file briefing_passager_lang.php */
 /* Location: ./application/language/french/briefing_passager_lang.php */

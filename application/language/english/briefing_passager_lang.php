@@ -86,5 +86,13 @@ $lang['briefing_passager_email_body']         = 'Please find attached your risk 
 $lang['briefing_passager_add']           = 'Add briefing';
 $lang['briefing_passager_redirecting']    = 'Loading…';
 
+// Actions on upload page
+$lang['briefing_passager_action_download']      = 'Download instructions';
+$lang['briefing_passager_action_download_help'] = 'Download the PDF safety instructions document.';
+$lang['briefing_passager_action_sign']          = 'Read and accept';
+$lang['briefing_passager_action_sign_help']     = 'The passenger reads the instructions and signs the declaration on this screen or on their phone.';
+$lang['briefing_passager_action_upload_help']   = 'Upload a scanned signed document (photo or PDF).';
+$lang['briefing_passager_sign_qr_help']         = 'Scan with the passenger\'s phone to sign from their device.';
+
 /* End of file briefing_passager_lang.php */
 /* Location: ./application/language/english/briefing_passager_lang.php */

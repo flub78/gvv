@@ -102,10 +102,13 @@ class Briefing_passager extends Gvv_Controller {
             }
         }
 
+        $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
+
         $this->data['title']           = $this->lang->line('briefing_passager_upload');
         $this->data['vld']             = $vld;
         $this->data['vld_id']          = $vld_id;
         $this->data['briefing']        = $existing;
+        $this->data['consignes']       = $consignes;
         $this->data['is_dev_user']     = in_array($current_user, $dev_menu_users);
         $this->data['message']         = '';
         $this->_load_upload_selectors();
@@ -553,6 +556,103 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['message'] = '';
 
         load_last_view('briefing_passager/linkView', $this->data);
+    }
+
+    // -----------------------------------------------------------------------
+    // UC2b — Sign in connected context (with QR code for phone transfer)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Show the briefing sign form within the connected GVV context.
+     *
+     * Generates a one-time token (like generate_link), then renders the sign
+     * form with the GVV header/menu and a QR code so the passenger can
+     * transfer the form to their phone.
+     *
+     * @param int $vld_id Discovery flight ID
+     */
+    function sign_in_context($vld_id = 0) {
+        if (!$this->dx_auth->is_logged_in()) {
+            redirect('welcome/login');
+            return;
+        }
+        if (!$this->ensure_modification_rights()) return;
+
+        $vld_id = (int)$vld_id;
+        $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
+        if (!$vld) {
+            show_404();
+            return;
+        }
+
+        // Save VLD fields if submitted via POST before displaying the form
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $aerodrome = trim($this->input->post('aerodrome', true));
+            $airplane  = trim($this->input->post('airplane_immat', true));
+            $pilote    = trim($this->input->post('pilote', true));
+
+            $errors = array();
+            if ($aerodrome === '') $errors[] = $this->lang->line('briefing_passager_field_aerodrome');
+            if ($airplane  === '') $errors[] = $this->lang->line('briefing_passager_field_appareil');
+            if ($pilote    === '') $errors[] = $this->lang->line('briefing_passager_field_pilote');
+
+            if (!empty($errors)) {
+                $vld = array_merge($vld, array(
+                    'date_vol'       => trim($this->input->post('date_vol', true)) ?: ($vld['date_vol'] ?? ''),
+                    'aerodrome'      => $aerodrome,
+                    'airplane_immat' => $airplane,
+                    'beneficiaire'   => trim($this->input->post('beneficiaire', true)),
+                    'pilote'         => $pilote,
+                ));
+                $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+                $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
+                    . sprintf($this->lang->line('briefing_passager_fields_required'), implode(', ', $errors))
+                    . '</div>';
+                $this->data['title']       = $this->lang->line('briefing_passager_upload');
+                $this->data['vld']         = $vld;
+                $this->data['vld_id']      = $vld_id;
+                $this->data['briefing']    = $this->archived_documents_model->get_briefing_by_vld($vld_id);
+                $this->data['consignes']   = $this->archived_documents_model->get_consignes_by_section($vld['club']);
+                $this->data['is_dev_user'] = in_array($this->session->userdata('DX_username'), $dev_menu_users);
+                $this->_load_upload_selectors();
+                load_last_view('briefing_passager/uploadView', $this->data);
+                return;
+            }
+
+            $this->_save_vld_fields($vld_id);
+            // Reload VLD with saved values
+            $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
+        }
+
+        $token = bin2hex(random_bytes(32));
+
+        $this->db->insert('briefing_tokens', array(
+            'vld_id'     => $vld_id,
+            'token'      => $token,
+            'created_at' => date('Y-m-d H:i:s'),
+            'expires_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
+        ));
+
+        $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
+        $sign_url  = $this->_build_public_sign_url($token);
+
+        $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
+        if (!file_exists($qr_file)) {
+            include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+            QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 8, 2);
+        }
+        $qr_base64 = base64_encode(file_get_contents($qr_file));
+
+        $this->data['title']     = $this->lang->line('briefing_passager_sign_title');
+        $this->data['vld']       = $vld;
+        $this->data['vld_id']    = $vld_id;
+        $this->data['token']     = $token;
+        $this->data['sign_url']  = $sign_url;
+        $this->data['qr_base64'] = $qr_base64;
+        $this->data['consignes'] = $consignes;
+        $this->data['message']   = '';
+
+        load_last_view('briefing_passager/signConnectedView', $this->data);
     }
 
     // -----------------------------------------------------------------------

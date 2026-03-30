@@ -86,5 +86,13 @@ $lang['briefing_passager_email_body']         = 'Gelieve bijgevoegde verklaring 
 $lang['briefing_passager_add']           = 'Briefing toevoegen';
 $lang['briefing_passager_redirecting']    = 'Laden…';
 
+// Acties op uploadpagina
+$lang['briefing_passager_action_download']      = 'Instructies downloaden';
+$lang['briefing_passager_action_download_help'] = 'Download het PDF-document met veiligheidsinstructies.';
+$lang['briefing_passager_action_sign']          = 'Lezen en accepteren';
+$lang['briefing_passager_action_sign_help']     = 'De passagier leest de instructies en ondertekent de verklaring op dit scherm of op zijn telefoon.';
+$lang['briefing_passager_action_upload_help']   = 'Upload een gescand ondertekend document (foto of PDF).';
+$lang['briefing_passager_sign_qr_help']         = 'Scan met de telefoon van de passagier om te ondertekenen vanaf zijn apparaat.';
+
 /* End of file briefing_passager_lang.php */
 /* Location: ./application/language/dutch/briefing_passager_lang.php */
