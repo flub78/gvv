@@ -47,6 +47,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 6 | — | Contrôleur et modèle de base | — | ✅ |
 | 7 | EF2 | Webhook + écriture comptable (infrastructure partagée) | HAUTE | ✅ |
 | 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ✅ |
+| 8b | EF6 | Navigation dashboard — section "Mes paiements" | HAUTE | ✅ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ☐ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ☐ |
@@ -297,6 +298,32 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Test PHPUnit : tentative sur section avec `has_bar = false` → refus
 
 **✅ Complète** — 13 tests PHPUnit dans `PaiementsEnLigneBarTest.php` (dont 2 guards UC1) + 4 tests Playwright `paiements-en-ligne-uc1-bar-carte.spec.js` (2 passent, 2 skippés sandbox/HelloAsso non activé).
+
+---
+
+## Étape 8b : Navigation dashboard — section "Mes paiements" (EF6)
+
+**Objectif :** Afficher dans "Mon espace personnel" une sous-section "Mes paiements" avec des cartes d'accès rapide aux fonctionnalités de paiement, conditionnées par la configuration de chaque section.
+
+**Règles de visibilité :**
+- La sous-section n'apparaît que si au moins une section du pilote a `paiements_en_ligne_config.enabled = '1'`
+- Carte "Payer mes notes de bar" : visible si `has_bar = true` ET paiements activés pour la section
+- Carte "Approvisionner mon compte [section] (CB)" : une par section avec paiements activés
+- Carte "Payer ma cotisation" : visible dès qu'une section a les paiements activés
+
+**Hub bar (`paiements_en_ligne/bar_hub`) :**
+- Deux cartes : "Débiter mon compte" → `bar_debit_solde` et "Paiement en ligne (CB)" → `bar_carte`
+- La carte CB n'est visible que si HelloAsso est activé pour la section
+
+**Validation :** ✅ Complète
+- ✅ Implémenté : contrôleur `welcome::index`, vue `bs_dashboard.php`, contrôleur `paiements_en_ligne::bar_hub`, vue `bs_bar_hub.php`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/welcome.php` (calcul `$payment_sections`)
+- `application/views/bs_dashboard.php` (sous-section "Mes paiements")
+- `application/controllers/paiements_en_ligne.php` (méthode `bar_hub`)
+- `application/views/paiements_en_ligne/bs_bar_hub.php` (nouvelle vue)
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (nouvelles clés)
 
 ---
 

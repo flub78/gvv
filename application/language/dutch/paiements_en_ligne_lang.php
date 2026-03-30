@@ -87,3 +87,23 @@ $lang['gvv_admin_config_enabled']           = "Online betalingen inschakelen voo
 $lang['gvv_admin_config_enabled_help']      = "Indien uitgeschakeld, zijn online betalingsknoppen verborgen voor alle gebruikers.";
 $lang['gvv_admin_config_saved']             = "Configuratie opgeslagen.";
 $lang['gvv_admin_config_error_no_section']  = "Selecteer een sectie.";
+
+// Dashboard — Mes paiements
+$lang['gvv_dashboard_payments_title']       = "Mijn betalingen";
+$lang['gvv_dashboard_pay_cotisation']       = "Contributie betalen";
+$lang['gvv_dashboard_pay_cotisation_sub']   = "Online verlenging";
+$lang['gvv_dashboard_pay_section_active']   = "Actieve sectie: %s";
+$lang['gvv_dashboard_pay_section_required'] = "Selecteer een actieve sectie";
+$lang['gvv_dashboard_pay_bar']              = "Barrekening betalen";
+$lang['gvv_dashboard_pay_bar_sub']          = "Saldo afschrijven of kaart";
+$lang['gvv_dashboard_provision_account']    = "Mijn %s-rekening opladen (kaart)";
+$lang['gvv_dashboard_provision_sub']        = "HelloAsso online betaling";
+
+// Bar hub
+$lang['gvv_bar_hub_title']                  = "Barrekening betalen";
+$lang['gvv_bar_hub_intro']                  = "Kies uw betaalmethode voor barconsumptie.";
+$lang['gvv_bar_hub_debit_title']            = "Rekening afschrijven";
+$lang['gvv_bar_hub_debit_sub']              = "Bedrag aftrekken van uw beschikbaar pilotsaldo";
+$lang['gvv_bar_hub_carte_title']            = "Online betaling (kaart)";
+$lang['gvv_bar_hub_carte_sub']              = "Betalen met bankkaart via HelloAsso";
+$lang['gvv_bar_hub_back']                   = "Terug";

@@ -58,6 +58,7 @@ class Welcome extends Gvv_Controller {
 
         $this->lang->load('welcome');
         $this->lang->load('config');
+        $this->lang->load('paiements_en_ligne');
 
         $this->load->library('migration');
         $this->config->load('migration');
@@ -135,6 +136,25 @@ class Welcome extends Gvv_Controller {
         // Check if user is authorized for development/test features
         $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $data['is_dev_authorized'] = in_array($data['username'], $dev_users);
+
+        // Sections avec paiements en ligne activés pour ce pilote
+        $data['payment_sections'] = array();
+        if (!empty($data['user_accounts'])) {
+            $this->load->model('paiements_en_ligne_model');
+            foreach ($data['user_accounts'] as $account) {
+                $section_id = (int) $account['club'];
+                $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
+                if ($enabled === '1') {
+                    $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
+                    $data['payment_sections'][] = array(
+                        'section_id'   => $section_id,
+                        'section_name' => $account['section_name'],
+                        'has_bar'      => !empty($section_row['has_bar']),
+                        'helloasso_enabled' => true,
+                    );
+                }
+            }
+        }
 
         // Configuration options
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');

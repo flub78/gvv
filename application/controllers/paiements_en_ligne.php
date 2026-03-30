@@ -78,6 +78,35 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
+     * Hub de paiement bar — choix entre débit de solde (UC5) et paiement CB (UC1).
+     *
+     * Accès : pilote authentifié, section active avec has_bar = true
+     */
+    function bar_hub() {
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        if (empty($section['has_bar'])) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_bar'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $helloasso_enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', (int) $section['id']) === '1';
+
+        $data = array(
+            'section'            => $section,
+            'helloasso_enabled'  => $helloasso_enabled,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_bar_hub', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
      * Paiement des consommations de bar par débit du solde pilote (UC5).
      *
      * GET  : affiche le formulaire de saisie (montant + descriptif)

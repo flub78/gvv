@@ -555,6 +555,31 @@ Le trésorier crédite le compte d'un pilote. Plutôt qu'un paiement par chèque
 
 ---
 
+### 5.6 EF6 : Navigation Dashboard — Section "Mes paiements" (Priorité : HAUTE)
+
+**Description :** Centraliser l'accès aux paiements pilote depuis le tableau de bord, dans la section "Mon espace personnel".
+
+**User Story :**
+> En tant que pilote, je veux voir directement depuis mon tableau de bord les actions de paiement disponibles pour mes sections, afin d'accéder en un clic aux fonctionnalités de paiement pertinentes.
+
+**Critères d'Acceptation :**
+- CA6.1 : Une sous-section "Mes paiements" apparaît dans "Mon espace personnel" du tableau de bord **uniquement si au moins une section du pilote a les paiements en ligne activés** (`paiements_en_ligne_config.enabled = '1'`)
+- CA6.2 : Cartes affichées conditionnellement :
+  - **"Payer ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
+  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige vers hub bar)
+  - **"Approvisionner mon compte [nom section] (CB)"** : une carte par section avec paiements activés (redirige vers `paiements_en_ligne/demande`)
+- CA6.3 : La carte "Payer mes notes de bar" redirige vers une page hub avec deux choix :
+  - "Débiter mon compte" → `paiements_en_ligne/bar_debit_solde`
+  - "Paiement en ligne (CB)" → `paiements_en_ligne/bar_carte` (affiché uniquement si HelloAsso activé pour la section)
+- CA6.4 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
+
+**Règles Métier :**
+- La visibilité est calculée à chaque chargement du dashboard (pas de cache)
+- Une carte par section pour l'approvisionnement (le nom de la section apparaît dans le titre)
+- La carte bar est partagée entre débit solde et CB via une page hub intermédiaire
+
+---
+
 ## 6. Spécifications Techniques
 
 ### 6.1 Architecture d'Intégration

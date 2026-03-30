@@ -87,3 +87,23 @@ $lang['gvv_admin_config_enabled']           = "Enable online payments for this s
 $lang['gvv_admin_config_enabled_help']      = "When disabled, online payment buttons are hidden for all users.";
 $lang['gvv_admin_config_saved']             = "Configuration saved.";
 $lang['gvv_admin_config_error_no_section']  = "Please select a section.";
+
+// Dashboard — Mes paiements
+$lang['gvv_dashboard_payments_title']       = "My payments";
+$lang['gvv_dashboard_pay_cotisation']       = "Pay my membership fee";
+$lang['gvv_dashboard_pay_cotisation_sub']   = "Online renewal";
+$lang['gvv_dashboard_pay_section_active']   = "Active section: %s";
+$lang['gvv_dashboard_pay_section_required'] = "Select an active section";
+$lang['gvv_dashboard_pay_bar']              = "Pay my bar tab";
+$lang['gvv_dashboard_pay_bar_sub']          = "Balance debit or card";
+$lang['gvv_dashboard_provision_account']    = "Top up my %s account (card)";
+$lang['gvv_dashboard_provision_sub']        = "HelloAsso online payment";
+
+// Bar hub
+$lang['gvv_bar_hub_title']                  = "Pay my bar tab";
+$lang['gvv_bar_hub_intro']                  = "Choose your payment method for bar purchases.";
+$lang['gvv_bar_hub_debit_title']            = "Debit my account";
+$lang['gvv_bar_hub_debit_sub']              = "Deduct amount from your available pilot balance";
+$lang['gvv_bar_hub_carte_title']            = "Online payment (card)";
+$lang['gvv_bar_hub_carte_sub']              = "Pay by credit card via HelloAsso";
+$lang['gvv_bar_hub_back']                   = "Back";

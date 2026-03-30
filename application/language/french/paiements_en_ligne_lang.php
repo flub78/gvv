@@ -87,3 +87,23 @@ $lang['gvv_admin_config_enabled']           = "Activer les paiements en ligne po
 $lang['gvv_admin_config_enabled_help']      = "Si désactivé, les boutons de paiement en ligne sont masqués pour tous les utilisateurs.";
 $lang['gvv_admin_config_saved']             = "Configuration enregistrée.";
 $lang['gvv_admin_config_error_no_section']  = "Veuillez sélectionner une section.";
+
+// Dashboard — section Mes paiements
+$lang['gvv_dashboard_payments_title']       = "Mes paiements";
+$lang['gvv_dashboard_pay_cotisation']       = "Payer ma cotisation";
+$lang['gvv_dashboard_pay_cotisation_sub']   = "Renouvellement en ligne";
+$lang['gvv_dashboard_pay_section_active']   = "Section active : %s";
+$lang['gvv_dashboard_pay_section_required'] = "Choisissez une section active";
+$lang['gvv_dashboard_pay_bar']              = "Payer mes notes de bar";
+$lang['gvv_dashboard_pay_bar_sub']          = "Débit solde ou carte";
+$lang['gvv_dashboard_provision_account']    = "Approvisionner mon compte %s (CB)";
+$lang['gvv_dashboard_provision_sub']        = "Paiement en ligne HelloAsso";
+
+// Bar hub
+$lang['gvv_bar_hub_title']                  = "Payer mes notes de bar";
+$lang['gvv_bar_hub_intro']                  = "Choisissez votre mode de règlement pour vos consommations de bar.";
+$lang['gvv_bar_hub_debit_title']            = "Débiter mon compte";
+$lang['gvv_bar_hub_debit_sub']              = "Déduire le montant de votre solde pilote disponible";
+$lang['gvv_bar_hub_carte_title']            = "Paiement en ligne (CB)";
+$lang['gvv_bar_hub_carte_sub']              = "Payer par carte bancaire via HelloAsso";
+$lang['gvv_bar_hub_back']                   = "Retour";

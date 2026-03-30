@@ -249,6 +249,62 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if (!empty($payment_sections)): ?>
+                <?php
+                    $active_section_name = (!empty($section['id']) && (int) $section['id'] > 0 && !empty($section['nom']))
+                        ? $section['nom']
+                        : '';
+                ?>
+                <!-- Sous-section Mes paiements -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2">
+                        <i class="fas fa-credit-card me-1"></i>
+                        <?= $this->lang->line('gvv_dashboard_payments_title') ?>
+                    </h6>
+                </div>
+
+                <!-- Payer ma cotisation -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-id-card text-primary"></i>
+                        <div class="card-title"><?= $this->lang->line('gvv_dashboard_pay_cotisation') ?></div>
+                        <div class="card-text text-muted">
+                            <?php if ($active_section_name !== ''): ?>
+                                <?= sprintf($this->lang->line('gvv_dashboard_pay_section_active'), htmlspecialchars($active_section_name)) ?>
+                            <?php else: ?>
+                                <?= $this->lang->line('gvv_dashboard_pay_section_required') ?>
+                            <?php endif; ?>
+                        </div>
+                        <a href="<?= controller_url('paiements_en_ligne/cotisation') ?>" class="btn btn-primary btn-sm">Payer</a>
+                    </div>
+                </div>
+
+                <?php foreach ($payment_sections as $ps): ?>
+                    <?php if ($ps['has_bar']): ?>
+                    <!-- Payer mes notes de bar -->
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="sub-card text-center">
+                            <i class="fas fa-coffee text-warning"></i>
+                            <div class="card-title"><?= $this->lang->line('gvv_dashboard_pay_bar') ?></div>
+                            <div class="card-text text-muted"><?= htmlspecialchars($ps['section_name']) ?></div>
+                            <a href="<?= controller_url('paiements_en_ligne/bar_hub') ?>" class="btn btn-warning btn-sm">Payer</a>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Approvisionner mon compte (CB) -->
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="sub-card text-center">
+                            <i class="fas fa-wallet text-success"></i>
+                            <div class="card-title"><?= sprintf($this->lang->line('gvv_dashboard_provision_account'), htmlspecialchars($ps['section_name'])) ?></div>
+                            <div class="card-text text-muted"><?= $this->lang->line('gvv_dashboard_provision_sub') ?></div>
+                            <a href="<?= controller_url('paiements_en_ligne/demande') ?>" class="btn btn-success btn-sm">Payer</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
+
             </div>
         </div>
         </div>
