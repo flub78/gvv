@@ -45,7 +45,13 @@ class Paiements_en_ligne extends MY_Controller {
         parent::__construct();
 
         // Endpoints publics (sans session utilisateur).
-        $public_methods = array('helloasso_webhook', 'public_bar', 'public_bar_confirmation');
+        $public_methods = array(
+            'helloasso_webhook',
+            'public_bar',
+            'public_bar_confirmation',
+            'public_decouverte_confirmation',
+            'decouverte_qr_image',
+        );
         if (!in_array($this->router->fetch_method(), $public_methods)) {
             if (!$this->dx_auth->is_logged_in()) {
                 redirect('auth/login');
@@ -58,9 +64,258 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->model('ecritures_model');
         $this->load->model('paiements_en_ligne_model');
         $this->load->model('cotisation_produits_model');
+        $this->load->model('tarifs_model');
+        $this->load->model('vols_decouverte_model');
         $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
         $this->lang->load('compta');
+    }
+
+    // =========================================================================
+    // UC4 — Bon découverte via lien / QR public
+    // =========================================================================
+
+    /**
+     * Formulaire gestionnaire pour créer un lien/QR de paiement HelloAsso
+     * d'un bon découverte.
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function decouverte_manager() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $club_id = (int) $section['id'];
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if ($enabled !== '1') {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
+            redirect('vols_decouverte');
+            return;
+        }
+
+        if ($this->input->post('button') === 'generer') {
+            $this->_process_decouverte_manager($section, $club_id);
+            return;
+        }
+
+        $produits = $this->_get_decouverte_products($club_id);
+
+        $data = array(
+            'section'            => $section,
+            'produits'           => $produits,
+            'selected_product'   => '',
+            'beneficiaire'       => '',
+            'de_la_part'         => '',
+            'beneficiaire_email' => '',
+            'error'              => $this->session->flashdata('error'),
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_decouverte_manager_form', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Crée transaction + checkout HelloAsso puis redirige vers la page QR.
+     */
+    private function _process_decouverte_manager(array $section, $club_id) {
+        $selected_product   = trim((string) $this->input->post('product'));
+        $beneficiaire       = trim((string) $this->input->post('beneficiaire'));
+        $de_la_part         = trim((string) $this->input->post('de_la_part'));
+        $beneficiaire_email = trim((string) $this->input->post('beneficiaire_email'));
+
+        $produits = $this->_get_decouverte_products($club_id);
+        $product_map = array();
+        foreach ($produits as $row) {
+            $product_map[$row['reference']] = $row;
+        }
+
+        $errors = array();
+        if (empty($selected_product) || !isset($product_map[$selected_product])) {
+            $errors[] = $this->lang->line('gvv_decouverte_error_product');
+        }
+        if (empty($beneficiaire)) {
+            $errors[] = $this->lang->line('gvv_decouverte_error_beneficiaire');
+        }
+        if (!empty($beneficiaire_email) && !filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = $this->lang->line('gvv_decouverte_error_email');
+        }
+
+        if (!empty($errors)) {
+            $data = array(
+                'section'            => $section,
+                'produits'           => $produits,
+                'selected_product'   => $selected_product,
+                'beneficiaire'       => $beneficiaire,
+                'de_la_part'         => $de_la_part,
+                'beneficiaire_email' => $beneficiaire_email,
+                'error'              => implode('<br>', $errors),
+            );
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('paiements_en_ligne/bs_decouverte_manager_form', $data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        $produit = $product_map[$selected_product];
+        $montant = (float) $produit['prix'];
+        if ($montant <= 0) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_amount'));
+            redirect('paiements_en_ligne/decouverte_manager');
+            return;
+        }
+
+        $txid = 'dec-' . $club_id . '-0-' . time() . '-' . substr(uniqid(), -6);
+        $description = trim('Bon découverte - ' . $produit['description']);
+
+        $metadata = array(
+            'type'                  => 'decouverte',
+            'product_reference'     => (string) $produit['reference'],
+            'product_description'   => (string) $produit['description'],
+            'beneficiaire'          => $beneficiaire,
+            'de_la_part'            => $de_la_part,
+            'beneficiaire_email'    => $beneficiaire_email,
+            'compte_destination_id' => (int) $produit['compte'],
+            'description'           => $description,
+            'gvv_transaction_id'    => $txid,
+        );
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => 0,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode($metadata),
+            'created_by'     => $this->dx_auth->get_username(),
+        ));
+
+        if (!$tx_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_tx'));
+            redirect('paiements_en_ligne/decouverte_manager');
+            return;
+        }
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => '',
+            'payer_last_name'  => '',
+            'payer_email'      => $beneficiaire_email,
+            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $club_id),
+            'back_url'         => site_url('paiements_en_ligne/decouverte_manager'),
+            'error_url'        => site_url('paiements_en_ligne/decouverte_manager'),
+            'metadata'         => $metadata,
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_checkout'));
+            redirect('paiements_en_ligne/decouverte_manager');
+            return;
+        }
+
+        $metadata['checkout_url'] = $checkout['redirect_url'];
+        $this->db->where('transaction_id', $txid)
+            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
+
+        redirect('paiements_en_ligne/decouverte_qr/' . $txid);
+    }
+
+    /**
+     * Retourne les produits découverte (type_ticket=1) disponibles sur la section.
+     */
+    private function _get_decouverte_products($club_id) {
+        return $this->db
+            ->select('reference, description, prix, compte')
+            ->from('tarifs')
+            ->where('club', (int) $club_id)
+            ->where('type_ticket', 1)
+            ->order_by('description', 'ASC')
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * Page QR/lien direct pour un paiement bon découverte.
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function decouverte_qr($transaction_id = '') {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('paiements_en_ligne/decouverte_manager');
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        $data = array(
+            'transaction'    => $tx,
+            'meta'           => $meta,
+            'checkout_url'   => $checkout_url,
+            'transaction_id' => $transaction_id,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_decouverte_qr', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Image QR PNG pour un checkout bon découverte.
+     *
+     * @param string $transaction_id
+     */
+    public function decouverte_qr_image($transaction_id = '') {
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        $meta         = json_decode($tx['metadata'], true) ?: array();
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        if (empty($checkout_url)) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+        header('Content-Type: image/png');
+        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
+        exit;
+    }
+
+    /**
+     * Confirmation publique après retour HelloAsso pour un bon découverte.
+     */
+    public function public_decouverte_confirmation() {
+        $club_id = (int) $this->input->get('club');
+        $section = $club_id ? $this->sections_model->get_by_id('id', $club_id) : null;
+        $data = array('section' => $section);
+        $this->load->view('bs_header', $data);
+        $this->load->view('paiements_en_ligne/bs_public_decouverte_confirmation', $data);
+        $this->load->view('bs_footer');
     }
 
     /**
@@ -1325,6 +1580,21 @@ class Paiements_en_ligne extends MY_Controller {
                         isset($result['transaction']) ? $result['transaction'] : $transaction
                     );
                 }
+                // Création du bon découverte + emails pour le flux UC4
+                if (isset($result['type']) && $result['type'] === 'decouverte') {
+                    $this->_create_decouverte_voucher(
+                        isset($result['metadata']) ? $result['metadata'] : array(),
+                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                    );
+                    $this->_send_external_decouverte_email(
+                        isset($result['metadata']) ? $result['metadata'] : array(),
+                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                    );
+                    $this->_notify_tresorier_decouverte(
+                        isset($result['transaction']) ? $result['transaction'] : $transaction,
+                        isset($result['metadata']) ? $result['metadata'] : array()
+                    );
+                }
                 break;
 
             case 'failed':
@@ -1542,6 +1812,167 @@ class Paiements_en_ligne extends MY_Controller {
         } catch (Exception $e) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'Erreur notification trésorier cotisation : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Crée un bon découverte en base après paiement confirmé.
+     * Idempotence renforcée : un paiement HelloAsso ne crée qu'un bon.
+     */
+    private function _create_decouverte_voucher(array $meta, array $transaction)
+    {
+        $txid = isset($transaction['transaction_id']) ? (string) $transaction['transaction_id'] : '';
+        if ($txid === '') {
+            return;
+        }
+
+        $paiement_ref = 'HelloAsso:' . $txid;
+        $existing = $this->db->where('paiement', $paiement_ref)->get('vols_decouverte')->row_array();
+        if (!empty($existing)) {
+            return;
+        }
+
+        $club_id = isset($transaction['club']) ? (int) $transaction['club'] : 0;
+        $product = isset($meta['product_reference']) ? trim((string) $meta['product_reference']) : '';
+        if ($club_id <= 0 || $product === '') {
+            $this->helloasso->log('ERROR', $txid, 'webhook', 'decouverte: metadata incomplète pour créer le bon');
+            return;
+        }
+
+        $date_vente = isset($transaction['date_paiement'])
+            ? substr((string) $transaction['date_paiement'], 0, 10)
+            : date('Y-m-d');
+        $date_validite = date('Y-m-d', strtotime($date_vente . ' +1 year'));
+        $year = (int) date('Y', strtotime($date_vente));
+        $next_id = ((int) $this->vols_decouverte_model->highest_id_by_year($year)) + 1;
+        $now = date('Y-m-d H:i:s');
+
+        $insert = array(
+            'id'                => $next_id,
+            'date_vente'        => $date_vente,
+            'club'              => $club_id,
+            'product'           => $product,
+            'beneficiaire'      => isset($meta['beneficiaire']) ? (string) $meta['beneficiaire'] : '',
+            'de_la_part'        => isset($meta['de_la_part']) ? (string) $meta['de_la_part'] : '',
+            'beneficiaire_email'=> isset($meta['beneficiaire_email']) ? (string) $meta['beneficiaire_email'] : '',
+            'paiement'          => $paiement_ref,
+            'participation'     => 'payé en ligne',
+            'prix'              => isset($transaction['montant']) ? (float) $transaction['montant'] : 0,
+            'saisie_par'        => 'helloasso',
+        );
+
+        if ($this->db->field_exists('date_validite', 'vols_decouverte')) {
+            $insert['date_validite'] = $date_validite;
+        }
+        if ($this->db->field_exists('created_at', 'vols_decouverte')) {
+            $insert['created_at'] = $now;
+        }
+        if ($this->db->field_exists('updated_at', 'vols_decouverte')) {
+            $insert['updated_at'] = $now;
+        }
+
+        if ($this->db->field_exists('created_by', 'vols_decouverte')) {
+            $insert['created_by'] = 'helloasso';
+        }
+        if ($this->db->field_exists('updated_by', 'vols_decouverte')) {
+            $insert['updated_by'] = 'helloasso';
+        }
+
+        $ok = $this->db->insert('vols_decouverte', $insert);
+        if (!$ok) {
+            $this->helloasso->log('ERROR', $txid, 'webhook',
+                'decouverte: échec insertion bon découverte - ' . $this->db->_error_message());
+            return;
+        }
+
+        $this->helloasso->log('INFO', $txid, 'webhook',
+            'Bon découverte créé id=' . $next_id . ' product=' . $product);
+    }
+
+    /**
+     * Envoie un email de confirmation au bénéficiaire d'un bon découverte.
+     */
+    private function _send_external_decouverte_email(array $meta, array $transaction)
+    {
+        $email = isset($meta['beneficiaire_email']) ? trim((string) $meta['beneficiaire_email']) : '';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        try {
+            $nom_club   = $this->config->item('nom_club') ?: 'GVV';
+            $montant    = number_format((float) $transaction['montant'], 2, ',', ' ');
+            $benef      = isset($meta['beneficiaire']) ? trim((string) $meta['beneficiaire']) : $email;
+            $product    = isset($meta['product_description']) ? (string) $meta['product_description'] : '';
+
+            $subject = $this->lang->line('gvv_decouverte_email_subject') ?: 'Bon découverte confirmé';
+            $message = sprintf(
+                "%s,\n\nVotre bon découverte (%s) a été réglé avec succès (%s€).\n\nCordialement,\n%s",
+                $benef,
+                $product ?: 'vol découverte',
+                $montant,
+                $nom_club
+            );
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'text',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->to($email);
+            $this->email->subject($subject);
+            $this->email->message($message);
+            @$this->email->send();
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur email bon découverte : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifie le club après création d'un bon découverte via paiement en ligne.
+     */
+    private function _notify_tresorier_decouverte(array $transaction, array $meta)
+    {
+        $email_club = $this->config->item('email_club');
+        if (empty($email_club)) {
+            return;
+        }
+
+        try {
+            $nom_club = $this->config->item('nom_club') ?: 'GVV';
+            $benef    = isset($meta['beneficiaire']) ? (string) $meta['beneficiaire'] : '?';
+            $offreur  = isset($meta['de_la_part']) ? (string) $meta['de_la_part'] : '';
+            $product  = isset($meta['product_description']) ? (string) $meta['product_description'] : '';
+            $montant  = number_format((float) $transaction['montant'], 2, ',', ' ');
+
+            $subject = sprintf('[%s] Bon découverte réglé — %s', $nom_club, $benef);
+            $message = sprintf(
+                "Bonjour,\n\nUn bon découverte a été réglé en ligne via HelloAsso.\n\nBénéficiaire : %s\nDe la part de : %s\nProduit : %s\nMontant : %s€\nTransaction : %s\n\nCordialement,\n%s",
+                $benef,
+                $offreur ?: '-',
+                $product ?: '-',
+                $montant,
+                isset($transaction['transaction_id']) ? $transaction['transaction_id'] : '-',
+                $nom_club
+            );
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'text',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->to($email_club);
+            $this->email->subject($subject);
+            $this->email->message($message);
+            @$this->email->send();
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur notification trésorier bon découverte : ' . $e->getMessage());
         }
     }
 

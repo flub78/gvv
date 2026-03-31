@@ -312,6 +312,48 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertStringContainsString('Jean Dupont', $ecriture['description']);
     }
 
+    // ── Tests decouverte ─────────────────────────────────────────────────────
+
+    public function testDecouverteDebitPassageCreditDestination()
+    {
+        $txid = 'test-wh-decouverte-' . uniqid();
+        $destination_compte = self::$bar_account_id;
+
+        $id = $this->model->create_transaction(array(
+            'user_id'        => 0,
+            'montant'        => 55.00,
+            'plateforme'     => 'helloasso',
+            'club'           => self::$club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode(array(
+                'type'                  => 'decouverte',
+                'description'           => 'Bon decouverte test',
+                'product_reference'     => 'VD-TEST',
+                'compte_destination_id' => $destination_compte,
+                'gvv_transaction_id'    => $txid,
+            )),
+            'created_by' => 'phpunit',
+        ));
+        $this->assertIsInt($id);
+        $this->created_transaction_ids[] = $id;
+
+        $payload = $this->buildOrderPayload($txid, 'decouverte', 'Authorized', array(
+            'product_reference'     => 'VD-TEST',
+            'compte_destination_id' => $destination_compte,
+        ));
+
+        $result = $this->model->process_order_event($payload, self::$club_id);
+
+        $this->assertTrue($result['ok'], $result['error'] ?? '');
+        $this->assertEquals('completed', $result['status']);
+        $this->assertEquals('decouverte', $result['type']);
+        $this->created_ecriture_ids[] = $result['ecriture_id'];
+
+        $ecriture = $this->db->where('id', $result['ecriture_id'])->get('ecritures')->row_array();
+        $this->assertEquals(self::$compte_passage_id, (int) $ecriture['compte1']);
+        $this->assertEquals($destination_compte, (int) $ecriture['compte2']);
+    }
+
     // ── Tests état de paiement non autorisé ──────────────────────────────────
 
     public function testPaymentStateNotAuthorizedMarksTransactionFailed()
