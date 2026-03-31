@@ -173,3 +173,26 @@ $lang['gvv_liste_col_commission']           = "Commission";
 $lang['gvv_liste_col_reference']            = "Reference";
 $lang['gvv_liste_col_section']              = "Section";
 $lang['gvv_liste_menu']                     = "Online payments";
+
+// Bar externe via QR Code — external person without GVV account (UC2)
+$lang['gvv_public_bar_title']              = "Pay my bar tab";
+$lang['gvv_public_bar_intro']              = "Pay your bar purchases by card via HelloAsso —";
+$lang['gvv_public_bar_prenom']             = "First name";
+$lang['gvv_public_bar_nom']               = "Last name";
+$lang['gvv_public_bar_email']             = "Email (optional)";
+$lang['gvv_public_bar_email_placeholder'] = "your@email.com";
+$lang['gvv_public_bar_email_help']        = "To receive a payment confirmation.";
+$lang['gvv_public_bar_montant_help']      = "Minimum amount: €2.00";
+$lang['gvv_public_bar_button_valider']    = "Pay by card";
+$lang['gvv_public_bar_helloasso_notice']  = "You will be redirected to HelloAsso to complete the card payment.";
+$lang['gvv_public_bar_error_club']        = "Missing or invalid section identifier. Please use the QR code provided by the club.";
+$lang['gvv_public_bar_error_no_bar']      = "This section does not have a bar or online payment is not enabled.";
+$lang['gvv_public_bar_error_disabled']    = "Online payments are not enabled for this section.";
+$lang['gvv_public_bar_error_nom']         = "Last name is required.";
+$lang['gvv_public_bar_error_prenom']      = "First name is required.";
+$lang['gvv_public_bar_error_email']       = "The email address is not valid.";
+$lang['gvv_public_bar_error_montant_min'] = "The minimum amount is €2.00.";
+$lang['gvv_public_bar_error_checkout']    = "Unable to initiate HelloAsso payment. Please try again.";
+$lang['gvv_public_bar_confirm_title']     = "Payment recorded";
+$lang['gvv_public_bar_confirm_intro']     = "Your payment has been successfully recorded. Thank you!";
+$lang['gvv_public_bar_confirm_section']   = "Section:";

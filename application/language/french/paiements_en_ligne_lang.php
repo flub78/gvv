@@ -153,6 +153,29 @@ $lang['gvv_credit_qr_back']                     = "Retour au formulaire approvis
 $lang['gvv_credit_qr_url_missing']              = "URL de paiement non disponible. Contactez l'administrateur.";
 $lang['gvv_credit_tresorier_menu']              = "Approvisionner compte pilote (CB)";
 
+// Bar externe via QR Code — personne sans compte GVV (UC2)
+$lang['gvv_public_bar_title']              = "Régler mes consommations de bar";
+$lang['gvv_public_bar_intro']              = "Payez vos consommations de bar par carte bancaire via HelloAsso —";
+$lang['gvv_public_bar_prenom']             = "Prénom";
+$lang['gvv_public_bar_nom']               = "Nom";
+$lang['gvv_public_bar_email']             = "Email (optionnel)";
+$lang['gvv_public_bar_email_placeholder'] = "votre@email.fr";
+$lang['gvv_public_bar_email_help']        = "Pour recevoir une confirmation de paiement.";
+$lang['gvv_public_bar_montant_help']      = "Montant minimum : 2,00 €";
+$lang['gvv_public_bar_button_valider']    = "Payer par carte";
+$lang['gvv_public_bar_helloasso_notice']  = "Vous allez être redirigé vers HelloAsso pour effectuer le paiement par carte bancaire.";
+$lang['gvv_public_bar_error_club']        = "Identifiant de section manquant ou invalide. Veuillez utiliser le QR code fourni par le club.";
+$lang['gvv_public_bar_error_no_bar']      = "Cette section ne dispose pas d'un bar ou le paiement en ligne n'est pas activé.";
+$lang['gvv_public_bar_error_disabled']    = "Les paiements en ligne ne sont pas activés pour cette section.";
+$lang['gvv_public_bar_error_nom']         = "Le nom est obligatoire.";
+$lang['gvv_public_bar_error_prenom']      = "Le prénom est obligatoire.";
+$lang['gvv_public_bar_error_email']       = "L'adresse email n'est pas valide.";
+$lang['gvv_public_bar_error_montant_min'] = "Le montant minimum est de 2,00 €.";
+$lang['gvv_public_bar_error_checkout']    = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer.";
+$lang['gvv_public_bar_confirm_title']     = "Paiement enregistré";
+$lang['gvv_public_bar_confirm_intro']     = "Votre règlement a bien été pris en compte. Merci !";
+$lang['gvv_public_bar_confirm_section']   = "Section :";
+
 // Liste trésorier (EF4)
 $lang['gvv_liste_title']                    = "Paiements en ligne";
 $lang['gvv_liste_filter_from']              = "Du";

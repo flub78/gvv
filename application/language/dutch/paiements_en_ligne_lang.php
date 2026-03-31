@@ -173,3 +173,26 @@ $lang['gvv_liste_col_commission']           = "Commissie";
 $lang['gvv_liste_col_reference']            = "Referentie";
 $lang['gvv_liste_col_section']              = "Sectie";
 $lang['gvv_liste_menu']                     = "Online betalingen";
+
+// Bar externe via QR Code — externe persoon zonder GVV account (UC2)
+$lang['gvv_public_bar_title']              = "Mijn bar rekening betalen";
+$lang['gvv_public_bar_intro']              = "Betaal uw bar consumptie via kaart via HelloAsso —";
+$lang['gvv_public_bar_prenom']             = "Voornaam";
+$lang['gvv_public_bar_nom']               = "Achternaam";
+$lang['gvv_public_bar_email']             = "E-mail (optioneel)";
+$lang['gvv_public_bar_email_placeholder'] = "uw@email.nl";
+$lang['gvv_public_bar_email_help']        = "Om een betalingsbevestiging te ontvangen.";
+$lang['gvv_public_bar_montant_help']      = "Minimumbedrag: € 2,00";
+$lang['gvv_public_bar_button_valider']    = "Betalen met kaart";
+$lang['gvv_public_bar_helloasso_notice']  = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
+$lang['gvv_public_bar_error_club']        = "Ontbrekende of ongeldige sectie-id. Gebruik de QR-code van de club.";
+$lang['gvv_public_bar_error_no_bar']      = "Deze sectie heeft geen bar of online betaling is niet ingeschakeld.";
+$lang['gvv_public_bar_error_disabled']    = "Online betalingen zijn niet ingeschakeld voor deze sectie.";
+$lang['gvv_public_bar_error_nom']         = "Achternaam is verplicht.";
+$lang['gvv_public_bar_error_prenom']      = "Voornaam is verplicht.";
+$lang['gvv_public_bar_error_email']       = "Het e-mailadres is ongeldig.";
+$lang['gvv_public_bar_error_montant_min'] = "Het minimumbedrag is € 2,00.";
+$lang['gvv_public_bar_error_checkout']    = "Kan HelloAsso-betaling niet starten. Probeer het opnieuw.";
+$lang['gvv_public_bar_confirm_title']     = "Betaling geregistreerd";
+$lang['gvv_public_bar_confirm_intro']     = "Uw betaling is succesvol geregistreerd. Dank u!";
+$lang['gvv_public_bar_confirm_section']   = "Sectie:";

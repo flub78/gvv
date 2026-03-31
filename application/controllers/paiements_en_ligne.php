@@ -44,9 +44,9 @@ class Paiements_en_ligne extends MY_Controller {
     function __construct() {
         parent::__construct();
 
-        // helloasso_webhook est un endpoint public (appel serveur-à-serveur HelloAsso,
-        // sans session utilisateur). Tous les autres méthodes exigent une connexion.
-        if ($this->router->fetch_method() !== 'helloasso_webhook') {
+        // Endpoints publics (sans session utilisateur).
+        $public_methods = array('helloasso_webhook', 'public_bar', 'public_bar_confirmation');
+        if (!in_array($this->router->fetch_method(), $public_methods)) {
             if (!$this->dx_auth->is_logged_in()) {
                 redirect('auth/login');
             }
@@ -539,6 +539,176 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    // UC2 — Bar externe via QR Code — personne sans compte GVV
+    // =========================================================================
+
+    /**
+     * Formulaire public de règlement des consommations de bar par QR Code.
+     * Accessible sans connexion. Le paramètre club identifie la section.
+     *
+     * Accès : public (pas de session requise)
+     */
+    public function public_bar($club = null) {
+        $club_id = (int) ($club ?: $this->input->get('club'));
+
+        $data = array(
+            'club_id'     => $club_id,
+            'section'     => null,
+            'nom'         => '',
+            'prenom'      => '',
+            'email'       => '',
+            'description' => '',
+            'montant'     => '',
+            'error'       => '',
+        );
+
+        if (!$club_id) {
+            $data['error'] = $this->lang->line('gvv_public_bar_error_club');
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        $section = $this->sections_model->get_by_id('id', $club_id);
+        if (!$section || empty($section['has_bar'])) {
+            $data['error'] = $this->lang->line('gvv_public_bar_error_no_bar');
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if (!$enabled) {
+            $data['error'] = $this->lang->line('gvv_public_bar_error_disabled');
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        $data['section'] = $section;
+
+        if ($this->input->post('button') === 'valider') {
+            $this->_process_public_bar($data, $club_id, $section);
+            return;
+        }
+
+        $this->_render_public_bar($data);
+    }
+
+    private function _render_public_bar(array $data) {
+        $this->load->view('bs_header', $data);
+        $this->load->view('paiements_en_ligne/bs_public_bar', $data);
+        $this->load->view('bs_footer');
+    }
+
+    private function _process_public_bar(array $data, $club_id, array $section) {
+        $nom         = trim($this->input->post('nom'));
+        $prenom      = trim($this->input->post('prenom'));
+        $email       = trim($this->input->post('email'));
+        $description = trim($this->input->post('description'));
+        $montant     = (float) str_replace(',', '.', $this->input->post('montant'));
+
+        $errors = array();
+        if (empty($nom)) {
+            $errors[] = $this->lang->line('gvv_public_bar_error_nom');
+        }
+        if (empty($prenom)) {
+            $errors[] = $this->lang->line('gvv_public_bar_error_prenom');
+        }
+        if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = $this->lang->line('gvv_public_bar_error_email');
+        }
+        if (empty($description)) {
+            $errors[] = $this->lang->line('gvv_bar_error_description');
+        }
+        if ($montant < 2.00) {
+            $errors[] = $this->lang->line('gvv_public_bar_error_montant_min');
+        }
+
+        if (!empty($errors)) {
+            $data['nom']         = $nom;
+            $data['prenom']      = $prenom;
+            $data['email']       = $email;
+            $data['description'] = $description;
+            $data['montant']     = $montant ?: '';
+            $data['error']       = implode('<br>', $errors);
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        $payer_name = $prenom . ' ' . $nom;
+        $txid = 'barext-' . $club_id . '-0-' . time() . '-' . substr(uniqid(), -6);
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => 0,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode(array(
+                'type'               => 'bar_externe',
+                'payer_name'         => $payer_name,
+                'payer_email'        => $email,
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            )),
+            'created_by' => 'public_bar',
+        ));
+
+        if (!$tx_id) {
+            $data['nom']         = $nom;
+            $data['prenom']      = $prenom;
+            $data['email']       = $email;
+            $data['description'] = $description;
+            $data['montant']     = $montant;
+            $data['error']       = $this->lang->line('gvv_bar_error_creation');
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => $prenom,
+            'payer_last_name'  => $nom,
+            'payer_email'      => $email,
+            'return_url'       => site_url('paiements_en_ligne/public_bar_confirmation?club=' . $club_id),
+            'back_url'         => site_url('paiements_en_ligne/public_bar?club=' . $club_id),
+            'error_url'        => site_url('paiements_en_ligne/public_bar?club=' . $club_id),
+            'metadata'         => array(
+                'type'               => 'bar_externe',
+                'payer_name'         => $payer_name,
+                'payer_email'        => $email,
+                'description'        => $description,
+                'gvv_transaction_id' => $txid,
+            ),
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $data['nom']         = $nom;
+            $data['prenom']      = $prenom;
+            $data['email']       = $email;
+            $data['description'] = $description;
+            $data['montant']     = $montant;
+            $data['error']       = $this->lang->line('gvv_public_bar_error_checkout');
+            $this->_render_public_bar($data);
+            return;
+        }
+
+        redirect($checkout['redirect_url']);
+    }
+
+    /**
+     * Page de confirmation après retour de HelloAsso — accès public.
+     */
+    public function public_bar_confirmation() {
+        $club_id = (int) $this->input->get('club');
+        $section = $club_id ? $this->sections_model->get_by_id('id', $club_id) : null;
+        $data = array('section' => $section);
+        $this->load->view('bs_header', $data);
+        $this->load->view('paiements_en_ligne/bs_public_bar_confirmation', $data);
+        $this->load->view('bs_footer');
+    }
+
+    // =========================================================================
     // UC6 — Cotisation trésorier par carte HelloAsso
     // =========================================================================
 
@@ -887,6 +1057,13 @@ class Paiements_en_ligne extends MY_Controller {
                     isset($result['transaction']) ? $result['transaction'] : $transaction,
                     $result
                 );
+                // Email de confirmation pour les payeurs externes (bar_externe)
+                if (isset($result['type']) && $result['type'] === 'bar_externe') {
+                    $this->_send_external_bar_email(
+                        isset($result['metadata']) ? $result['metadata'] : array(),
+                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                    );
+                }
                 // Création de la licence pour les cotisations trésorier
                 if (isset($result['type']) && $result['type'] === 'cotisation_tresorier') {
                     $this->_create_licence_from_cotisation_meta(
@@ -1026,6 +1203,50 @@ class Paiements_en_ligne extends MY_Controller {
         } catch (Exception $e) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'Erreur email confirmation : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie un email de confirmation à un payeur externe (bar_externe).
+     * L'adresse email est lue depuis metadata.payer_email.
+     */
+    private function _send_external_bar_email(array $meta, array $transaction)
+    {
+        $email = isset($meta['payer_email']) ? trim($meta['payer_email']) : '';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        try {
+            $nom_club = $this->config->item('nom_club') ?: 'GVV';
+            $prenom   = '';
+            if (!empty($meta['payer_name'])) {
+                $parts  = explode(' ', $meta['payer_name'], 2);
+                $prenom = $parts[0];
+            }
+            $montant = number_format((float) $transaction['montant'], 2, ',', ' ');
+
+            $subject = $this->lang->line('gvv_payment_email_subject') ?: 'Paiement en ligne confirmé';
+            $message = sprintf(
+                "%s,\n\nVotre r\xc3\xa8glement de %s\xe2\x82\xac a \xc3\xa9t\xc3\xa9 enregistr\xc3\xa9 avec succ\xc3\xa8s.\n\nCordialement,\n%s",
+                $prenom ?: $email, $montant, $nom_club
+            );
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'text',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->to($email);
+            $this->email->subject($subject);
+            $this->email->message($message);
+            @$this->email->send();
+
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur email bar_externe : ' . $e->getMessage());
         }
     }
 

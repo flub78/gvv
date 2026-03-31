@@ -53,7 +53,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
 | 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ✅ |
-| 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ☐ |
+| 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
 | 17 | — | Tests de recette et validation finale | — | ☐ |
@@ -501,10 +501,17 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Sécurité :** CSRF, validation montant minimum. Le paramètre `club` doit être un identifiant de section valide — tout accès sans `club` valide est rejeté avec message d'erreur explicite.
 
-**Validation :**
-- `[SKIP SI SANDBOX]` Test Playwright : accès sans connexion avec club valide, formulaire soumis, redirection HelloAsso
-- Test PHPUnit : accès sans paramètre `club` (ou `club=0`) → refus, aucun checkout créé
-- Test PHPUnit : webhook `type=bar_externe` → écriture de recette bar créée sans compte pilote
+**Validation :** ✅
+- ✅ Test PHPUnit `PaiementsEnLigneBarExterneTest` (3 tests) : transaction créée avec user_id=0, webhook `type=bar_externe` → écriture créée (débit 467, crédit 7xx), idempotence
+- ✅ Test Playwright `paiements-en-ligne-uc2-bar-externe.spec.js` (4 tests) : accès sans club → erreur, club=0 → erreur, club valide → page chargée, `[SKIP SI SANDBOX]` soumission formulaire → redirection HelloAsso
+
+**Fichiers créés/modifiés :**
+- `application/controllers/paiements_en_ligne.php` : constructeur (public_bar/public_bar_confirmation), `public_bar()`, `_render_public_bar()`, `_process_public_bar()`, `public_bar_confirmation()`, `_send_external_bar_email()`, webhook handler (appel `_send_external_bar_email` pour bar_externe)
+- `application/views/paiements_en_ligne/bs_public_bar.php` : formulaire public
+- `application/views/paiements_en_ligne/bs_public_bar_confirmation.php` : page de confirmation
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_public_bar_*`
+- `application/tests/mysql/PaiementsEnLigneBarExterneTest.php`
+- `playwright/tests/paiements-en-ligne-uc2-bar-externe.spec.js`
 
 ---
 
