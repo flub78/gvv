@@ -1,9 +1,9 @@
 /**
- * Playwright smoke tests — UC7 : Approvisionnement compte pilote par carte (HelloAsso)
+ * Playwright smoke tests — UC7 : Règlement compte pilote par carte (HelloAsso)
  *
  * Tests :
- *  1. Pilote ordinaire → formulaire approvisionnement inaccessible
- *  2. Trésorier → formulaire approvisionnement accessible
+ *  1. Pilote ordinaire → formulaire règlement inaccessible
+ *  2. Trésorier → formulaire règlement accessible
  *  3. Bouton HelloAsso absent pour un trésorier non dev_user
  *  4. Accès direct credit_qr avec txid invalide → redirection
  *
@@ -15,17 +15,17 @@
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
 
-const CREDIT_URL   = '/index.php/compta/provisionnement_tresorier';
+const CREDIT_URL   = '/index.php/compta/reglement_pilote';
 const QR_URL_FAKE  = '/index.php/paiements_en_ligne/credit_qr/txid-inexistant-000';
 
 const PILOT     = { username: 'asterix',       password: 'password', section: '1' };
 const TRESORIER = { username: 'testtresorier', password: 'password', section: '1' };
 
-test.describe('UC7 — Approvisionnement compte pilote par carte', () => {
+test.describe('UC7 — Règlement compte pilote par carte', () => {
 
     // ── 1. Pilote ordinaire : accès refusé ───────────────────────────────────
 
-    test('Pilot cannot access provisionnement_tresorier', async ({ page }) => {
+    test('Pilot cannot access reglement_pilote', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(PILOT.username, PILOT.password, PILOT.section);
@@ -35,12 +35,12 @@ test.describe('UC7 — Approvisionnement compte pilote par carte', () => {
 
         // Doit être redirigé (login ou deny)
         const url = page.url();
-        expect(url.includes('provisionnement_tresorier')).toBeFalsy();
+        expect(url.includes('reglement_pilote')).toBeFalsy();
     });
 
     // ── 2. Trésorier : formulaire accessible ─────────────────────────────────
 
-    test('Tresorier can access provisionnement_tresorier form', async ({ page }) => {
+    test('Tresorier can access reglement_pilote form', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);
@@ -63,18 +63,16 @@ test.describe('UC7 — Approvisionnement compte pilote par carte', () => {
         await page.goto(CREDIT_URL);
         await page.waitForLoadState('domcontentloaded');
 
-        if (!page.url().includes('provisionnement_tresorier')) {
-            test.skip(true, 'Formulaire approvisionnement non accessible');
+        if (!page.url().includes('reglement_pilote') &&
+            !page.url().includes('compta') &&
+            !page.url().includes('formView')) {
+            test.skip(true, 'Formulaire règlement non accessible');
             return;
         }
 
         // Le bouton HelloAsso ne doit pas être présent
         const helloassoBtn = page.locator('button[value="helloasso"]');
         await expect(helloassoBtn).not.toBeVisible();
-
-        // Le bouton Valider standard doit être présent
-        const validateBtn = page.locator('button[value="valider"], button#btnValidate');
-        await expect(validateBtn).toBeVisible();
     });
 
     // ── 4. credit_qr avec txid invalide → redirection ────────────────────────

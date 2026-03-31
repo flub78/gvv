@@ -453,38 +453,38 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 13 : Approvisionnement compte pilote par CB via trésorier (UC7)
+## Étape 13 : Règlement compte pilote par CB via trésorier (UC7)
 
-**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire de crédit de compte pilote, à côté du bouton "Valider" habituel.
+**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire `compta/reglement_pilote`, à côté du bouton "Valider" habituel.
 
 **Prérequis :** Étapes 4, 5, 6, 7 complétées.
 
 **Visibilité :** Le bouton HelloAsso n'est visible que pour les utilisateurs listés dans `dev_users` tant que la fonctionnalité n'est pas validée pour la mise en production générale.
 
 **Flux :**
-1. Trésorier accède au formulaire de crédit de compte pilote (formulaire existant, inchangé)
+1. Trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard de règlement)
 2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
 3. Si "Payer par carte" :
+   - Le compte2 (411 pilote) et le montant sont lus depuis le formulaire
+   - Le login pilote est résolu depuis l'ID du compte 411
    - Création d'une transaction `pending` avec `metadata.type=credit_tresorier`
-   - Le trésorier choisit : utiliser son propre écran ou générer un QR Code / lien pour le porteur de carte
-   - Checkout HelloAsso → paiement → webhook → handler étape 7 → écriture de crédit compte pilote
-4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur, possibilité de basculer en validation classique
+   - Checkout HelloAsso → paiement → webhook → handler étape 7 → écriture de règlement
+4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur flashdata, retour sur reglement_pilote
 
 **Règles :**
 - La transaction est atomique : écriture créée uniquement si paiement HelloAsso confirmé
-- Vérification section active (`_require_active_section()`) avant création du checkout
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
+- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
 
 **Validation :** ✅
 - ✅ Test PHPUnit `PaiementsEnLigneCreditTest` (2 tests) : webhook `type=credit_tresorier` → écriture créée, solde pilote augmenté du montant
 - ✅ Test Playwright `paiements-en-ligne-uc7-credit.spec.js` (4 tests) : accès pilote refusé, trésorier accède au formulaire, bouton HelloAsso absent pour non-dev_user, QR avec txid invalide redirige
 
 **Fichiers :**
-- `application/controllers/compta.php` : `provisionnement_tresorier()`, `_process_provisionnement_valider()`, `_initiate_credit_helloasso()`
+- `application/controllers/compta.php` : `reglement_pilote()`, `_initiate_reglement_helloasso()`, `_initiate_credit_helloasso()`
 - `application/controllers/paiements_en_ligne.php` : `credit_qr()`, `credit_qr_image()`
-- `application/views/compta/bs_provisionnement_tresorier.php` : formulaire trésorier
+- `application/views/compta/bs_formView.php` : bouton CB conditionnel
 - `application/views/paiements_en_ligne/bs_credit_qr.php` : page QR code intermédiaire
-- `application/views/bs_menu.php` : entrée de menu "Approvisionner compte pilote (CB)"
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_credit_tresorier_*`, `gvv_credit_qr_*`
 - `application/tests/mysql/PaiementsEnLigneCreditTest.php`
 - `playwright/tests/paiements-en-ligne-uc7-credit.spec.js`

@@ -70,7 +70,7 @@ $montant_fmt = euros((float) $transaction['montant']);
 
 </div>
 
-<a href="<?= site_url('compta/provisionnement_tresorier') ?>" class="btn btn-outline-secondary">
+<a href="<?= site_url('compta/reglement_pilote') ?>" class="btn btn-outline-secondary">
     <i class="fas fa-arrow-left"></i> <?= $this->lang->line('gvv_credit_qr_back') ?>
 </a>
 

@@ -309,6 +309,9 @@ class Compta extends Gvv_Controller {
             $id = $this->input->post($this->kid);
             $this->delete($id);
             return;
+        } elseif ($button === 'helloasso' && $this->input->post('title_key') === 'gvv_compta_title_paiement') {
+            $this->_initiate_reglement_helloasso();
+            return;
         }
 
         // Validates the form entries
@@ -466,6 +469,34 @@ class Compta extends Gvv_Controller {
         }
         parent::create(FALSE);
         $this->session->set_userdata('current_url', current_url());
+
+        // HelloAsso flags for reglement_pilote — must be set after parent::create() resets $this->data (UC7)
+        if ($title_key === 'gvv_compta_title_paiement') {
+            $section_id = (int) $this->session->userdata('section');
+            $dev_users_cfg = $this->config->item('dev_users') ?: '';
+            $dev_users = array_map('trim', explode(',', $dev_users_cfg));
+            $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
+            $this->data['helloasso_enabled'] = false;
+            if ($section_id > 0 && $this->data['is_dev_authorized']) {
+                $this->load->model('paiements_en_ligne_model');
+                $this->data['helloasso_enabled'] =
+                    $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
+            }
+
+            // Restore form values and detailed error after CB flow failure
+            $cb_form = $this->session->flashdata('cb_reglement_form');
+            if (is_array($cb_form)) {
+                foreach (array('date_op', 'compte1', 'compte2', 'montant', 'description', 'num_cheque') as $field) {
+                    if (array_key_exists($field, $cb_form)) {
+                        $this->data[$field] = $cb_form[$field];
+                    }
+                }
+            }
+            $cb_error = $this->session->flashdata('cb_reglement_error');
+            if (!empty($cb_error)) {
+                $this->data['error_message'] = $cb_error;
+            }
+        }
 
         // Store account selection filters to preserve them during validation errors
         $this->emploi_selection = $emploi_selection;
@@ -1346,161 +1377,81 @@ class Compta extends Gvv_Controller {
     }
 
     // =========================================================================
-    // UC7 — Approvisionnement compte pilote par CB via trésorier
+    // UC7 — Règlement compte pilote par CB via trésorier
     // =========================================================================
 
     /**
-     * Formulaire d'approvisionnement du compte pilote par le trésorier.
-     *
-     * GET  : affiche le formulaire (pilote, montant, description, compte_banque)
-     * POST : selon le bouton :
-     *   - "valider"    → écriture directe (débit compte_banque, crédit 411 pilote)
-     *   - "helloasso"  → création transaction pending + checkout HelloAsso → QR code
-     *
-     * Accès : trésorier, bureau, admin
+     * Dispatche vers _initiate_credit_helloasso() depuis le formulaire reglement_pilote (UC7).
+     * Résout le login pilote depuis le compte2 (411), puis initie le flux HelloAsso.
      */
-    public function provisionnement_tresorier() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
+    private function _initiate_reglement_helloasso() {
         $this->load->model('comptes_model');
-        $this->load->model('membres_model');
-        $this->load->model('ecritures_model');
         $this->lang->load('paiements_en_ligne');
 
-        $this->data['title'] = $this->lang->line('gvv_credit_tresorier_title');
-
-        // Valeurs POST conservées en cas d'erreur
-        $this->data['pilote']        = $this->input->post('pilote') ?: '';
-        $this->data['montant']       = $this->input->post('montant') ?: '';
-        $this->data['description']   = $this->input->post('description') ?: '';
-        $this->data['compte_banque'] = $this->input->post('compte_banque') ?: '';
-
-        // Sélecteurs
-        $this->data['pilote_selector']        = $this->membres_model->selector_with_null(array('actif' => 1));
-        $this->data['compte_banque_selector'] = $this->comptes_model->selector_comptes_512();
-
-        // Auto-sélection si un seul compte 512
-        $comptes_512 = array_filter($this->data['compte_banque_selector'], function($k) {
-            return $k !== '';
-        }, ARRAY_FILTER_USE_KEY);
-        $this->data['single_compte_banque'] = false;
-        $this->data['compte_banque_label']  = '';
-        if (count($comptes_512) === 1) {
-            $ids = array_keys($comptes_512);
-            $this->data['compte_banque']       = $ids[0];
-            $this->data['single_compte_banque'] = true;
-            $this->data['compte_banque_label']  = $comptes_512[$ids[0]];
-        }
-
-        // Visibilité bouton HelloAsso
-        $dev_users_cfg = $this->config->item('dev_users') ?: '';
-        $dev_users     = array_map('trim', explode(',', $dev_users_cfg));
-        $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
-
-        $this->data['helloasso_enabled'] = false;
-        $section_id = (int) $this->session->userdata('section');
-        if ($section_id > 0 && $this->data['is_dev_authorized']) {
-            $this->load->model('paiements_en_ligne_model');
-            $this->data['helloasso_enabled'] =
-                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
-        }
-
-        if ($this->input->post('button') === 'valider') {
-            $this->_process_provisionnement_valider();
-            return;
-        }
-
-        if ($this->input->post('button') === 'helloasso') {
-            $pilote  = $this->input->post('pilote');
-            $montant = (float) str_replace(',', '.', $this->input->post('montant'));
-            $desc    = trim($this->input->post('description') ?: '');
-            if (!$desc) {
-                $desc = 'Approvisionnement compte pilote ' . $pilote;
-            }
-            $this->_initiate_credit_helloasso($pilote, $montant, $desc);
-            return;
-        }
-
-        $this->load->view('bs_header', $this->data);
-        $this->load->view('bs_menu', $this->data);
-        $this->load->view('bs_banner', $this->data);
-        $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
-     * Traite le chemin "Valider" : écriture directe débit compte_banque → crédit 411 pilote.
-     */
-    private function _process_provisionnement_valider() {
-        $pilote        = $this->input->post('pilote');
-        $montant       = (float) str_replace(',', '.', $this->input->post('montant'));
-        $description   = trim($this->input->post('description') ?: '');
-        $compte_banque = (int) $this->input->post('compte_banque');
+        $compte2_id = (int) $this->input->post('compte2');
+        $montant    = (float) str_replace(',', '.', $this->input->post('montant'));
+        $desc       = trim($this->input->post('description') ?: '');
 
         $errors = array();
-        if (empty($pilote)) {
-            $errors[] = $this->lang->line('gvv_credit_tresorier_error_user');
+        if ($compte2_id <= 0) {
+            $errors[] = 'Compte pilote (411) non sélectionné.';
         }
         if ($montant <= 0) {
-            $errors[] = $this->lang->line('gvv_bar_error_montant_min');
+            $errors[] = 'Montant invalide (doit être supérieur à 0).';
         }
-        if (!$compte_banque) {
-            $errors[] = $this->lang->line('gvv_compta_error_no_account');
-        }
-
-        if (empty($errors)) {
-            $section_id   = (int) $this->session->userdata('section');
-            $cpilote      = $this->comptes_model->compte_pilote($pilote, $section_id ?: null);
-            if (!$cpilote) {
-                $errors[] = $this->lang->line('gvv_credit_tresorier_error_user');
-            }
-        }
-
         if (!empty($errors)) {
-            $this->data['error_message'] = implode('<br>', $errors);
-            $this->load->view('bs_header', $this->data);
-            $this->load->view('bs_menu', $this->data);
-            $this->load->view('bs_banner', $this->data);
-            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-            $this->load->view('bs_footer');
+            $this->_redirect_reglement_cb_error("Impossible d'initier le paiement CB :\n- " . implode("\n- ", $errors));
             return;
         }
 
-        $section_id = (int) $this->session->userdata('section');
-        $cpilote    = $this->comptes_model->compte_pilote($pilote, $section_id ?: null);
-        $date_op    = date('Y-m-d');
+        // Résoudre le login pilote depuis l'ID du compte 411
+        $compte = $this->db->select('pilote')->from('comptes')
+            ->where('id', $compte2_id)->where('codec', '411')->get()->row_array();
 
-        $ecriture = array(
-            'compte_debit'  => $compte_banque,
-            'compte_credit' => $cpilote['id'],
-            'montant'       => $montant,
-            'description'   => $description ?: 'Approvisionnement compte pilote ' . $pilote,
-            'date_op'       => $date_op,
-            'num_cheque'    => '',
-            'saisie_par'    => $this->dx_auth->get_username(),
-            'club'          => $section_id,
-        );
-
-        $ok = $this->ecritures_model->create_ecriture($ecriture);
-        if ($ok !== false) {
-            $this->session->set_flashdata('success',
-                sprintf($this->lang->line('gvv_credit_tresorier_success'), number_format($montant, 2, ',', ' '), $pilote));
-            redirect('compta/provisionnement_tresorier');
-        } else {
-            $this->data['error_message'] = $this->lang->line('gvv_bar_error_creation');
-            $this->load->view('bs_header', $this->data);
-            $this->load->view('bs_menu', $this->data);
-            $this->load->view('bs_banner', $this->data);
-            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-            $this->load->view('bs_footer');
+        if (!$compte || empty($compte['pilote'])) {
+            $this->_redirect_reglement_cb_error(
+                "Impossible d'identifier le pilote pour le compte 411 sélectionné (id=$compte2_id)."
+            );
+            return;
         }
+
+        $pilote = $compte['pilote'];
+        if (!$desc) {
+            $desc = 'Règlement par CB pilote ' . $pilote;
+        }
+
+        $this->_initiate_credit_helloasso($pilote, $montant, $desc);
     }
 
     /**
-     * Initie un paiement HelloAsso pour l'approvisionnement d'un compte pilote par le trésorier (UC7).
+     * Values to restore in reglement_pilote form when CB flow fails.
+     *
+     * @return array
+     */
+    private function _get_reglement_cb_form_values() {
+        return array(
+            'date_op' => $this->input->post('date_op') ?: '',
+            'compte1' => $this->input->post('compte1') ?: '',
+            'compte2' => $this->input->post('compte2') ?: '',
+            'montant' => $this->input->post('montant') ?: '',
+            'description' => $this->input->post('description') ?: '',
+            'num_cheque' => $this->input->post('num_cheque') ?: '',
+        );
+    }
+
+    /**
+     * Redirect back to reglement_pilote with detailed bootstrap-danger message and repopulated form.
+     *
+     * @param string $error_message
+     */
+    private function _redirect_reglement_cb_error($error_message) {
+        $this->session->set_flashdata('cb_reglement_error', $error_message);
+        $this->session->set_flashdata('cb_reglement_form', $this->_get_reglement_cb_form_values());
+        redirect('compta/reglement_pilote');
+    }
+
+    /**
+     * Initie un paiement HelloAsso pour le règlement d'un compte pilote par le trésorier (UC7).
      *
      * Crée une transaction pending type=credit_tresorier, appelle create_checkout(),
      * met à jour les metadata avec checkout_url, redirige vers la page QR.
@@ -1520,12 +1471,9 @@ class Compta extends Gvv_Controller {
         $user_id  = $user_row ? (int)$user_row['id'] : 0;
 
         if (!$user_id) {
-            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_user');
-            $this->load->view('bs_header', $this->data);
-            $this->load->view('bs_menu', $this->data);
-            $this->load->view('bs_banner', $this->data);
-            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-            $this->load->view('bs_footer');
+            $this->_redirect_reglement_cb_error(
+                $this->lang->line('gvv_credit_tresorier_error_user') . "\nLogin pilote: " . $pilote
+            );
             return;
         }
 
@@ -1550,12 +1498,11 @@ class Compta extends Gvv_Controller {
         ));
 
         if (!$tx_id) {
-            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_tx');
-            $this->load->view('bs_header', $this->data);
-            $this->load->view('bs_menu', $this->data);
-            $this->load->view('bs_banner', $this->data);
-            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-            $this->load->view('bs_footer');
+            $this->_redirect_reglement_cb_error(
+                $this->lang->line('gvv_credit_tresorier_error_tx')
+                . "\nPilote: " . $pilote
+                . "\nMontant: " . number_format((float)$montant, 2, ',', ' ') . " EUR"
+            );
             return;
         }
 
@@ -1575,12 +1522,13 @@ class Compta extends Gvv_Controller {
 
         if (!$checkout['success']) {
             $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->data['error_message'] = $this->lang->line('gvv_credit_tresorier_error_checkout');
-            $this->load->view('bs_header', $this->data);
-            $this->load->view('bs_menu', $this->data);
-            $this->load->view('bs_banner', $this->data);
-            $this->load->view('compta/bs_provisionnement_tresorier', $this->data);
-            $this->load->view('bs_footer');
+            $checkout_error = isset($checkout['error']) ? $checkout['error'] : '';
+            $details = $this->lang->line('gvv_credit_tresorier_error_checkout');
+            if (!empty($checkout_error)) {
+                $details .= "\nDétail HelloAsso: " . $checkout_error;
+            }
+            $details .= "\nTransaction: " . $txid;
+            $this->_redirect_reglement_cb_error($details);
             return;
         }
 

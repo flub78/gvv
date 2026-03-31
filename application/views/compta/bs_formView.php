@@ -46,6 +46,14 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 </div>
 <?php endif; ?>
 
+<?php if (isset($error_message) && $error_message): ?>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong><i class="bi bi-exclamation-triangle-fill"></i> Erreur paiement CB</strong><br>
+    <?= nl2br(htmlspecialchars($error_message)) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php endif; ?>
+
 <div class="d-flex flex-row flex-wrap">
     <div <?php if (isset($ran_mode_enabled) && $ran_mode_enabled && $action == CREATION) echo 'style="background-color: #ffe6e6; padding: 20px; border-radius: 5px;"'; ?>>
         <?php
@@ -103,7 +111,19 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
                 echo $this->lang->line("gvv_button_validate");
                 echo '</button>';
             } else {
-                echo validation_button($action);
+                $buttons_html = validation_button($action);
+                $buttons_html = str_replace('<table>', '<table class="gvv-inline-buttons-table">', $buttons_html);
+                echo '<div class="gvv-inline-buttons-row">';
+                echo $buttons_html;
+                // Payer par CB (HelloAsso) — visible uniquement depuis reglement_pilote (UC7)
+                if (!empty($helloasso_enabled) && !empty($is_dev_authorized)) {
+                    $this->lang->load('paiements_en_ligne');
+                    echo '<button type="submit" name="button" value="helloasso" class="btn btn-warning mt-3">';
+                    echo '<i class="fas fa-credit-card"></i> ';
+                    echo $this->lang->line('gvv_credit_tresorier_button');
+                    echo '</button>';
+                }
+                echo '</div>';
             }
         }
         echo form_close();
@@ -148,6 +168,15 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 <style>
 .file-list {
     margin-top: 10px;
+}
+.gvv-inline-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.gvv-inline-buttons-table {
+    display: inline-table;
+    margin-bottom: 0;
 }
 .file-item {
     padding: 8px 12px;

@@ -342,30 +342,32 @@ Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un
 
 ---
 
-### UC7 : Approvisionnement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
+### UC7 : Règlement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
 
 **Contexte :**
-Le trésorier crédite le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de crédit de compte.
+Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de règlement de compte (`compta/reglement_pilote`).
 
 **Flux :**
-1. Le trésorier accède à l'interface de crédit de compte pilote (formulaire habituel)
+1. Le trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard)
 2. Deux boutons sont présents en bas du formulaire :
    - **"Valider"** (comportement habituel, paiement classique)
-   - **"Payer par carte (HelloAsso)"**
+   - **"Payer par carte (HelloAsso)"** (visible uniquement si HelloAsso activé et utilisateur dans `dev_users`)
 3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
+   - Le compte pilote (compte2, 411) et le montant sont lus depuis le formulaire
+   - Le login du pilote est résolu depuis l'ID du compte 411
    - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
-   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone pour effectuer le paiement lui-même
+   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone
 4. Après confirmation du paiement par HelloAsso (succès) :
-   - L'écriture de crédit de compte est créée (identique à la validation classique)
-   - Le compte pilote est crédité du montant payé par carte
+   - L'écriture de règlement est créée automatiquement
+   - Le compte pilote est débité du montant payé par carte
 5. En cas d'échec du paiement HelloAsso :
    - Aucune écriture n'est créée
-   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
+   - Le trésorier est redirigé vers `reglement_pilote` avec un message d'erreur
 
 **Règles Métier :**
 - La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
 - En cas d'échec HelloAsso, aucun impact sur la comptabilité
-- Le trésorier a le choix du mode de paiement HelloAsso : sur son écran ou par QR Code envoyé au porteur de carte
+- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
 
 ---
 

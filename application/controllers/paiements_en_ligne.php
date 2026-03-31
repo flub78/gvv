@@ -1115,7 +1115,7 @@ class Paiements_en_ligne extends MY_Controller {
         $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
         if (!$tx) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
-            redirect('compta/provisionnement_tresorier');
+            redirect('compta/reglement_pilote');
             return;
         }
 
