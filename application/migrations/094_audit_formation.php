@@ -12,6 +12,27 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Migration_Audit_formation extends CI_Migration {
 
+    private function is_row_size_too_large_error($exception)
+    {
+        return stripos($exception->getMessage(), 'Row size too large') !== false;
+    }
+
+    private function run_alter_with_rebuild_retry($table, $alter_sql)
+    {
+        try {
+            $this->db->query($alter_sql);
+        } catch (Exception $e) {
+            if (!$this->is_row_size_too_large_error($e)) {
+                throw $e;
+            }
+
+            $t = $this->db->escape_str($table);
+            // Some legacy InnoDB tables need a physical rebuild before new columns can be added.
+            $this->db->query("ALTER TABLE `$t` FORCE");
+            $this->db->query($alter_sql);
+        }
+    }
+
     private function column_exists($table, $column)
     {
         $t = $this->db->escape_str($table);
@@ -47,16 +68,28 @@ class Migration_Audit_formation extends CI_Migration {
     {
         $t = $this->db->escape_str($table);
         if (!$this->column_exists($table, 'created_by')) {
-            $this->db->query("ALTER TABLE `$t` ADD COLUMN `created_by` VARCHAR(25) NULL");
+            $this->run_alter_with_rebuild_retry(
+                $table,
+                "ALTER TABLE `$t` ADD COLUMN `created_by` VARCHAR(25) NULL"
+            );
         }
         if (!$this->column_exists($table, 'created_at')) {
-            $this->db->query("ALTER TABLE `$t` ADD COLUMN `created_at` DATETIME NULL");
+            $this->run_alter_with_rebuild_retry(
+                $table,
+                "ALTER TABLE `$t` ADD COLUMN `created_at` DATETIME NULL"
+            );
         }
         if (!$this->column_exists($table, 'updated_by')) {
-            $this->db->query("ALTER TABLE `$t` ADD COLUMN `updated_by` VARCHAR(25) NULL");
+            $this->run_alter_with_rebuild_retry(
+                $table,
+                "ALTER TABLE `$t` ADD COLUMN `updated_by` VARCHAR(25) NULL"
+            );
         }
         if (!$this->column_exists($table, 'updated_at')) {
-            $this->db->query("ALTER TABLE `$t` ADD COLUMN `updated_at` DATETIME NULL");
+            $this->run_alter_with_rebuild_retry(
+                $table,
+                "ALTER TABLE `$t` ADD COLUMN `updated_at` DATETIME NULL"
+            );
         }
     }
 
@@ -65,7 +98,10 @@ class Migration_Audit_formation extends CI_Migration {
         $t = $this->db->escape_str($table);
         foreach (array('updated_at', 'updated_by', 'created_at', 'created_by') as $col) {
             if ($this->column_exists($table, $col)) {
-                $this->db->query("ALTER TABLE `$t` DROP COLUMN `$col`");
+                $this->run_alter_with_rebuild_retry(
+                    $table,
+                    "ALTER TABLE `$t` DROP COLUMN `$col`"
+                );
             }
         }
     }

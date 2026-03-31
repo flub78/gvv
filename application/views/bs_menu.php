@@ -166,6 +166,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><i class="fas fa-pencil-alt text-info"></i> <?= translation("welcome_global_entries_title") ?></a></li>
 
                     <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/liste") ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_liste_menu") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/admin_cotisations") ?>"><i class="fas fa-id-card text-info"></i> <?= translation("gvv_admin_cotisations_menu") ?></a></li>
 
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-chart-line text-success"></i> <?= translation("welcome_global_financial_report") ?></a></li>
                     <?php if ($this->config->item('gestion_tickets')) : ?>

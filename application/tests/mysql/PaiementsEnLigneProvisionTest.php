@@ -50,27 +50,29 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     // Validation montant
     // -------------------------------------------------------------------------
 
-    public function testMontantSousMinimumEstRefuse() {
-        $montant_min = 5.00;
-        $this->assertLessThan($montant_min, 4.99,
-            'Un montant de 4,99 € doit être refusé (< minimum 5 €)');
+    public function testMontantNonMultipleDe100EstRefuse() {
+        // Seuls les multiples de 100 sont acceptés
+        $this->assertNotEquals(0, 150 % 100, '150 n\'est pas un multiple de 100');
+        $this->assertNotEquals(0, 50 % 100,  '50 n\'est pas un multiple de 100');
+        $this->assertNotEquals(0, 0 % 100 === 0 && 0 <= 0 ? 1 : 0, '0 doit être refusé');
     }
 
-    public function testMontantAuMinimumEstAccepte() {
-        $montant_min = 5.00;
-        $this->assertGreaterThanOrEqual($montant_min, 5.00,
-            'Un montant de 5 € doit être accepté (= minimum)');
+    public function testMontantMultipleDe100EstAccepte() {
+        foreach (array(100, 200, 300, 400, 500) as $montant) {
+            $this->assertEquals(0, $montant % 100, "$montant est un multiple de 100");
+            $this->assertGreaterThan(0, $montant, "$montant est positif");
+        }
     }
 
     public function testMontantAuDessusMaximumEstRefuse() {
-        $montant_max = 500.00;
-        $this->assertGreaterThan($montant_max, 500.01,
-            'Un montant de 500,01 € doit être refusé (> maximum 500 €)');
+        $montant_max = 500;
+        $this->assertGreaterThan($montant_max, 600,
+            'Un montant de 600 € doit être refusé (> maximum 500 €)');
     }
 
     public function testMontantZeroEstRefuse() {
-        $montant_min = 5.00;
-        $this->assertLessThan($montant_min, 0.00,
+        $montant = 0;
+        $this->assertFalse($montant > 0 && $montant % 100 === 0,
             'Un montant de 0 € doit être refusé');
     }
 

@@ -57,6 +57,7 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->model('sections_model');
         $this->load->model('ecritures_model');
         $this->load->model('paiements_en_ligne_model');
+        $this->load->model('cotisation_produits_model');
         $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
         $this->lang->load('compta');
@@ -166,17 +167,15 @@ class Paiements_en_ligne extends MY_Controller {
      * création transaction, appel HelloAsso, redirection.
      */
     private function _process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
-        $montant = (float) str_replace(',', '.', $this->input->post('montant'));
+        $montant = (int) $this->input->post('montant');
 
         $errors = array();
 
-        if ($montant < $montant_min) {
-            $errors[] = sprintf($this->lang->line('gvv_provision_error_montant_min'),
-                number_format($montant_min, 2, ',', ' '));
-        }
-        if ($montant > $montant_max) {
+        if ($montant <= 0 || $montant % 100 !== 0) {
+            $errors[] = $this->lang->line('gvv_provision_error_montant_multiple');
+        } elseif ($montant > $montant_max) {
             $errors[] = sprintf($this->lang->line('gvv_provision_error_montant_max'),
-                number_format($montant_max, 2, ',', ' '));
+                number_format($montant_max, 0, ',', ' '));
         }
 
         if (empty($errors)) {
@@ -323,13 +322,13 @@ class Paiements_en_ligne extends MY_Controller {
      * Traite le paiement bar après soumission du formulaire.
      */
     private function _process_bar_payment($section, $compte_pilote, $solde) {
-        $montant     = (float) str_replace(',', '.', $this->input->post('montant'));
+        $montant     = (int) $this->input->post('montant');
         $description = trim($this->input->post('description'));
 
         // Validation
         $errors = array();
 
-        if ($montant < 0.50) {
+        if ($montant < 1) {
             $errors[] = $this->lang->line('gvv_bar_error_montant_min');
         }
 
@@ -456,11 +455,11 @@ class Paiements_en_ligne extends MY_Controller {
      * Traite la soumission du formulaire bar_carte : validation, création transaction, redirection HelloAsso.
      */
     private function _process_bar_carte($section, $club_id, $compte_pilote) {
-        $montant     = (float) str_replace(',', '.', $this->input->post('montant'));
+        $montant     = (int) $this->input->post('montant');
         $description = trim($this->input->post('description'));
 
         $errors = array();
-        if ($montant < 0.50) {
+        if ($montant < 1) {
             $errors[] = $this->lang->line('gvv_bar_error_montant_min');
         }
         if (empty($description)) {
@@ -536,6 +535,250 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         redirect($checkout['redirect_url']);
+    }
+
+    // =========================================================================
+    // UC3 — Renouvellement de cotisation en ligne par le pilote
+    // =========================================================================
+
+    /**
+     * Page de paiement cotisation en ligne pour le pilote.
+     *
+     * GET  : liste des produits actifs pour la section
+     * POST : validation, création transaction, redirection HelloAsso
+     *
+     * Accès : pilote authentifié, section active, HelloAsso activé
+     */
+    public function cotisation() {
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $club_id = (int) $section['id'];
+
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if ($enabled !== '1') {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
+            redirect('compta/mon_compte');
+            return;
+        }
+
+        $mlogin = $this->dx_auth->get_username();
+
+        if ($this->input->post('button') === 'payer') {
+            $this->_process_cotisation($section, $club_id, $mlogin);
+            return;
+        }
+
+        $produits = $this->cotisation_produits_model->get_active_for_section($club_id);
+
+        $data = array(
+            'section'  => $section,
+            'produits' => $produits,
+            'mlogin'   => $mlogin,
+            'error'    => $this->session->flashdata('error'),
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_cotisation_form', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Traite la soumission du formulaire cotisation :
+     * validation produit, vérification doublon, création transaction, checkout HelloAsso.
+     */
+    private function _process_cotisation($section, $club_id, $mlogin) {
+        $produit_id = (int) $this->input->post('produit_id');
+
+        if (!$produit_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_produit'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        $produit = $this->cotisation_produits_model->get_by_id('id', $produit_id);
+        if (!$produit || (int) $produit['section_id'] !== $club_id || !$produit['actif']) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_produit'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        // Vérifier doublon cotisation pour cette année
+        $this->load->model('licences_model');
+        if ($this->licences_model->check_cotisation_exists($mlogin, (int) $produit['annee'])) {
+            $this->session->set_flashdata('error', sprintf(
+                $this->lang->line('gvv_cotisation_error_already_paid'),
+                (int) $produit['annee']
+            ));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        $user_id     = (int) $this->dx_auth->get_user_id();
+        $txid        = 'cot-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
+        $description = $produit['libelle'] . ' ' . $produit['annee'];
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => $user_id,
+            'montant'        => (float) $produit['montant'],
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode(array(
+                'type'                 => 'cotisation',
+                'pilote_login'         => $mlogin,
+                'annee_cotisation'     => (int) $produit['annee'],
+                'compte_cotisation_id' => (int) $produit['compte_cotisation_id'],
+                'produit_libelle'      => $produit['libelle'],
+                'description'          => $description,
+                'gvv_transaction_id'   => $txid,
+            )),
+            'created_by' => $mlogin,
+        ));
+
+        if (!$tx_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_tx'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        $member = $this->db
+            ->select('m.mprenom, m.memail, m.mnom')
+            ->from('membres m')
+            ->where('m.mlogin', $mlogin)
+            ->get()->row_array();
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => (float) $produit['montant'],
+            'item_name'        => $description,
+            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
+            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
+            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
+            'back_url'         => site_url('paiements_en_ligne/cotisation'),
+            'error_url'        => site_url('paiements_en_ligne/erreur'),
+            'metadata'         => array(
+                'type'                 => 'cotisation',
+                'pilote_login'         => $mlogin,
+                'annee_cotisation'     => (int) $produit['annee'],
+                'compte_cotisation_id' => (int) $produit['compte_cotisation_id'],
+                'description'          => $description,
+                'gvv_transaction_id'   => $txid,
+            ),
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_checkout'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        redirect($checkout['redirect_url']);
+    }
+
+    /**
+     * Interface admin : gestion des produits de cotisation (trésorier/admin).
+     *
+     * GET  : liste des produits + formulaire d'ajout
+     * POST : enregistrement d'un nouveau produit
+     */
+    public function admin_cotisations() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $club_id = (int) $section['id'];
+
+        if ($this->input->post('button') === 'save') {
+            $this->_save_cotisation_produit($club_id);
+            return;
+        }
+
+        $produits = $this->cotisation_produits_model->get_all_for_section($club_id);
+
+        $comptes_417 = $this->db
+            ->select('id, nom AS libelle, codec')
+            ->from('comptes')
+            ->where('club', $club_id)
+            ->like('codec', '417', 'after')
+            ->order_by('codec', 'ASC')
+            ->get()->result_array();
+
+        $data = array(
+            'section'     => $section,
+            'produits'    => $produits,
+            'comptes_417' => $comptes_417,
+            'annee_courant' => (int) date('Y'),
+            'error'       => $this->session->flashdata('error'),
+            'success'     => $this->session->flashdata('success'),
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_admin_cotisations', $data);
+        $this->load->view('bs_footer');
+    }
+
+    private function _save_cotisation_produit($club_id) {
+        $libelle   = trim($this->input->post('libelle'));
+        $montant   = (float) str_replace(',', '.', $this->input->post('montant'));
+        $annee     = (int) $this->input->post('annee');
+        $compte_id = (int) $this->input->post('compte_cotisation_id');
+
+        $errors = array();
+        if (empty($libelle)) {
+            $errors[] = $this->lang->line('gvv_admin_cotisations_error_libelle');
+        }
+        if ($montant <= 0) {
+            $errors[] = $this->lang->line('gvv_admin_cotisations_error_montant');
+        }
+        if ($annee < 2000 || $annee > (int) date('Y') + 5) {
+            $errors[] = $this->lang->line('gvv_admin_cotisations_error_annee');
+        }
+        if (!$compte_id) {
+            $errors[] = $this->lang->line('gvv_admin_cotisations_error_compte');
+        }
+
+        if (!empty($errors)) {
+            $this->session->set_flashdata('error', implode('<br>', $errors));
+            redirect('paiements_en_ligne/admin_cotisations');
+            return;
+        }
+
+        $id = $this->cotisation_produits_model->create(array(
+            'section_id'           => $club_id,
+            'libelle'              => $libelle,
+            'montant'              => $montant,
+            'annee'                => $annee,
+            'compte_cotisation_id' => $compte_id,
+            'created_by'           => $this->dx_auth->get_username(),
+        ));
+
+        if ($id) {
+            $this->session->set_flashdata('success', $this->lang->line('gvv_admin_cotisations_saved'));
+        } else {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_admin_cotisations_error_save'));
+        }
+        redirect('paiements_en_ligne/admin_cotisations');
+    }
+
+    /**
+     * Bascule actif/inactif d'un produit de cotisation.
+     * Accès : trésorier/bureau/admin.
+     */
+    public function toggle_cotisation_produit($id = 0) {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+        $this->cotisation_produits_model->toggle_actif((int) $id, $this->dx_auth->get_username());
+        redirect('paiements_en_ligne/admin_cotisations');
     }
 
     // =========================================================================
@@ -1064,6 +1307,17 @@ class Paiements_en_ligne extends MY_Controller {
                         isset($result['transaction']) ? $result['transaction'] : $transaction
                     );
                 }
+                // Licence et notification trésorier pour cotisation pilote en ligne (UC3)
+                if (isset($result['type']) && $result['type'] === 'cotisation') {
+                    $this->_create_licence_from_cotisation_meta(
+                        isset($result['metadata']) ? $result['metadata'] : array(),
+                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                    );
+                    $this->_notify_tresorier_cotisation(
+                        isset($result['transaction']) ? $result['transaction'] : $transaction,
+                        isset($result['metadata']) ? $result['metadata'] : array()
+                    );
+                }
                 // Création de la licence pour les cotisations trésorier
                 if (isset($result['type']) && $result['type'] === 'cotisation_tresorier') {
                     $this->_create_licence_from_cotisation_meta(
@@ -1251,6 +1505,46 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    /**
+     * Notifie le trésorier par email qu'une cotisation en ligne a été enregistrée (UC3).
+     */
+    private function _notify_tresorier_cotisation(array $transaction, array $meta)
+    {
+        $email_club = $this->config->item('email_club');
+        if (empty($email_club)) {
+            return;
+        }
+
+        try {
+            $nom_club = $this->config->item('nom_club') ?: 'GVV';
+            $pilote   = isset($meta['pilote_login'])     ? $meta['pilote_login']     : '?';
+            $annee    = isset($meta['annee_cotisation'])  ? $meta['annee_cotisation'] : '?';
+            $montant  = number_format((float) $transaction['montant'], 2, ',', ' ');
+
+            $subject = sprintf('[%s] Cotisation %s — %s', $nom_club, $annee, $pilote);
+            $message = sprintf(
+                "Bonjour,\n\nLa cotisation %s de %s (%s\xe2\x82\xac) a \xc3\xa9t\xc3\xa9 r\xc3\xa9gl\xc3\xa9e en ligne via HelloAsso.\n\nCordialement,\n%s",
+                $annee, $pilote, $montant, $nom_club
+            );
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'text',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->to($email_club);
+            $this->email->subject($subject);
+            $this->email->message($message);
+            @$this->email->send();
+
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur notification trésorier cotisation : ' . $e->getMessage());
+        }
+    }
+
     // EF6 — Contrôleur et modèle de base
     // =========================================================================
 

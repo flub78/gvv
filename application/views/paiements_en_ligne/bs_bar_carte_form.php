@@ -34,12 +34,12 @@
                id="montant"
                name="montant"
                value="<?= htmlspecialchars($montant) ?>"
-               min="0.50"
-               step="0.01"
+               min="1"
+               step="1"
                class="form-control"
                required
                style="max-width: 150px;"
-               placeholder="0,00" />
+               placeholder="0" />
         <span class="input-group-text">€</span>
     </div>
     <div class="form-text"><?= $this->lang->line('gvv_bar_montant_help') ?></div>

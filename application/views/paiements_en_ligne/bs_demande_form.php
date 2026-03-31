@@ -25,29 +25,20 @@
 
 <?= form_open('paiements_en_ligne/demande', array('name' => 'saisie')) ?>
 
-<div class="mb-3" style="max-width: 500px;">
+<div class="mb-3" style="max-width: 300px;">
     <label for="montant" class="form-label">
         <?= $this->lang->line('gvv_bar_montant') ?> <span class="text-danger">*</span>
     </label>
-    <div class="input-group">
-        <input type="number"
-               id="montant"
-               name="montant"
-               value="<?= htmlspecialchars($montant) ?>"
-               min="<?= $montant_min ?>"
-               max="<?= $montant_max ?>"
-               step="0.01"
-               class="form-control"
-               required
-               style="max-width: 150px;"
-               placeholder="0,00" />
-        <span class="input-group-text">€</span>
-    </div>
-    <div class="form-text">
-        <?= sprintf($this->lang->line('gvv_provision_montant_help'),
-            number_format($montant_min, 2, ',', ' '),
-            number_format($montant_max, 2, ',', ' ')) ?>
-    </div>
+    <select id="montant" name="montant" class="form-select" required>
+        <option value=""><?= $this->lang->line('gvv_provision_select_montant') ?></option>
+        <?php
+        $step = 100;
+        for ($m = $step; $m <= (int) $montant_max; $m += $step):
+        ?>
+        <option value="<?= $m ?>" <?= ((int)$montant === $m) ? 'selected' : '' ?>><?= $m ?> €</option>
+        <?php endfor; ?>
+    </select>
+    <div class="form-text"><?= $this->lang->line('gvv_provision_montant_help_multi') ?></div>
 </div>
 
 <div class="alert alert-info" style="max-width: 500px;">

@@ -54,7 +54,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
 | 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ✅ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
-| 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ☐ |
+| 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
 | 17 | — | Tests de recette et validation finale | — | ☐ |
 
@@ -529,9 +529,21 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Configuration requise :** Interface admin pour créer/modifier les produits de cotisation.
 
-**Validation :**
-- Test PHPUnit : webhook `type=cotisation` → écriture 417 créée, statut cotisant mis à jour
-- `[SKIP SI SANDBOX]` Test Playwright : pilote voit son statut "à jour" après paiement
+**✅ Complète**
+- ✅ PHPUnit (4 tests) : CRUD produit, webhook `type=cotisation` → écriture créée, licence créée, idempotence — `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
+- ✅ Playwright (4 tests, 1 `[SKIP SI SANDBOX]`) : sans session → login, pilote → page accessible, trésorier → admin_cotisations accessible, pilote → admin_cotisations refusé — `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/migrations/098_cotisation_produits.php` (nouveau)
+- `application/models/cotisation_produits_model.php` (nouveau)
+- `application/controllers/paiements_en_ligne.php` (méthodes `cotisation`, `_process_cotisation`, `admin_cotisations`, `_save_cotisation_produit`, `toggle_cotisation_produit`, `_create_licence_from_cotisation_meta`, `_notify_tresorier_cotisation`)
+- `application/views/paiements_en_ligne/bs_cotisation_form.php` (nouveau)
+- `application/views/paiements_en_ligne/bs_admin_cotisations.php` (nouveau)
+- `application/views/bs_menu.php` (lien admin_cotisations)
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (clés UC3)
+- `application/config/migration.php` (version 98)
+- `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php` (nouveau)
+- `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js` (nouveau)
 
 ---
 

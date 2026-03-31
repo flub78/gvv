@@ -164,10 +164,10 @@ class PaiementsEnLigneBarTest extends TestCase {
     }
 
     public function testBarPaymentValidationMontantMin() {
-        // La validation minimum de 0.50€ est appliquée dans le contrôleur
-        $montant_invalide = 0.49;
-        $this->assertLessThan(0.50, $montant_invalide,
-            "Un montant de 0.49€ est inférieur au minimum de 0.50€");
+        // Le bar n'accepte que des montants entiers >= 1 €
+        $montant_invalide = 0;
+        $this->assertLessThan(1, $montant_invalide,
+            "Un montant de 0 est inférieur au minimum de 1 €");
     }
 
     public function testBarPaymentValidationDescriptionRequired() {
