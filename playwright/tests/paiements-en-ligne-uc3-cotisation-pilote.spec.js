@@ -4,9 +4,7 @@
  * Tests :
  *  1. Pilote sans session → redirigé vers login
  *  2. Pilote connecté → page cotisation accessible (ou message si HelloAsso non activé)
- *  3. Trésorier → page admin_cotisations accessible
- *  4. Non-trésorier → admin_cotisations refusé
- *  5. [SKIP SI SANDBOX] Formulaire cotisation → redirection HelloAsso
+ *  3. [SKIP SI SANDBOX] Formulaire cotisation → redirection HelloAsso
  *
  * Usage :
  *   cd playwright
@@ -17,11 +15,9 @@ const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
 
 const COTISATION_URL       = '/index.php/paiements_en_ligne/cotisation';
-const ADMIN_COTISATIONS_URL = '/index.php/paiements_en_ligne/admin_cotisations';
 const BASE_URL             = 'http://gvv.net';
 
 const PILOT     = { username: 'asterix',       password: 'password', section: '1' };
-const TRESORIER = { username: 'testtresorier', password: 'password', section: '1' };
 
 test.describe('UC3 — Cotisation en ligne par le pilote', () => {
 
@@ -56,48 +52,7 @@ test.describe('UC3 — Cotisation en ligne par le pilote', () => {
         expect(hasForm || hasMessage || page.url().includes('mon_compte')).toBeTruthy();
     });
 
-    // ── 3. Trésorier → admin_cotisations accessible ───────────────────────────
-
-    test('Tresorier can access admin_cotisations', async ({ page }) => {
-        const lp = new LoginPage(page);
-        await lp.open();
-        await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);
-
-        await page.goto(BASE_URL + ADMIN_COTISATIONS_URL);
-        await page.waitForLoadState('domcontentloaded');
-
-        expect(page.url()).not.toContain('/auth/login');
-        expect(page.url()).not.toContain('/auth/deny');
-
-        // La page doit contenir le titre ou le formulaire d'ajout
-        const body = await page.content();
-        expect(
-            body.includes('Produits de cotisation') ||
-            body.includes('Membership products') ||
-            body.includes('admin_cotisations') ||
-            body.includes('Ajouter un produit')
-        ).toBeTruthy();
-    });
-
-    // ── 4. Pilote ordinaire → admin_cotisations refusé ────────────────────────
-
-    test('Pilot cannot access admin_cotisations', async ({ page }) => {
-        const lp = new LoginPage(page);
-        await lp.open();
-        await lp.login(PILOT.username, PILOT.password, PILOT.section);
-
-        await page.goto(BASE_URL + ADMIN_COTISATIONS_URL);
-        await page.waitForLoadState('domcontentloaded');
-
-        const url = page.url();
-        expect(
-            url.includes('/auth/deny') ||
-            url.includes('/auth/login') ||
-            !url.includes('admin_cotisations')
-        ).toBeTruthy();
-    });
-
-    // ── 5. [SKIP SI SANDBOX] Flow complet sandbox ─────────────────────────────
+    // ── 3. [SKIP SI SANDBOX] Flow complet sandbox ─────────────────────────────
 
     test('[SKIP SI SANDBOX] Cotisation form submits to HelloAsso', async ({ page }) => {
         const sandboxCheck = await page.request.get(BASE_URL + '/index.php/paiements_en_ligne/sandbox_available');

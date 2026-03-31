@@ -213,34 +213,6 @@ $lang['gvv_cotisation_error_already_paid']  = "U heeft uw lidmaatschap voor %d a
 $lang['gvv_cotisation_error_tx']            = "Fout bij aanmaken transactie. Probeer het opnieuw.";
 $lang['gvv_cotisation_error_checkout']      = "Kan HelloAsso betaling niet starten. Probeer het opnieuw.";
 
-// Admin lidmaatschapsproducten (UC3)
-$lang['gvv_admin_cotisations_title']                = "Lidmaatschapsproducten";
-$lang['gvv_admin_cotisations_intro']                = "Beheer lidmaatschappen voor sectie";
-$lang['gvv_admin_cotisations_empty']                = "Geen lidmaatschapsproducten gedefinieerd voor deze sectie.";
-$lang['gvv_admin_cotisations_add_title']            = "Lidmaatschapsproduct toevoegen";
-$lang['gvv_admin_cotisations_col_libelle']          = "Omschrijving";
-$lang['gvv_admin_cotisations_col_annee']            = "Jaar";
-$lang['gvv_admin_cotisations_col_montant']          = "Bedrag";
-$lang['gvv_admin_cotisations_col_statut']           = "Status";
-$lang['gvv_admin_cotisations_actif']                = "Actief";
-$lang['gvv_admin_cotisations_inactif']              = "Inactief";
-$lang['gvv_admin_cotisations_compte']               = "Rekening 417";
-$lang['gvv_admin_cotisations_select_compte']        = "— Selecteer een rekening —";
-$lang['gvv_admin_cotisations_no_compte_417']        = "Geen 417 rekening gevonden voor deze sectie.";
-$lang['gvv_admin_cotisations_libelle_placeholder']  = "Bijv.: Piloot lidmaatschap";
-$lang['gvv_admin_cotisations_btn_add']              = "Toevoegen";
-$lang['gvv_admin_cotisations_btn_activer']          = "Activeren";
-$lang['gvv_admin_cotisations_btn_desactiver']       = "Deactiveren";
-$lang['gvv_admin_cotisations_confirm_activer']      = "Dit product activeren?";
-$lang['gvv_admin_cotisations_confirm_desactiver']   = "Dit product deactiveren?";
-$lang['gvv_admin_cotisations_saved']                = "Lidmaatschapsproduct opgeslagen.";
-$lang['gvv_admin_cotisations_error_libelle']        = "Omschrijving is verplicht.";
-$lang['gvv_admin_cotisations_error_montant']        = "Bedrag moet groter zijn dan 0.";
-$lang['gvv_admin_cotisations_error_annee']          = "Jaar is ongeldig.";
-$lang['gvv_admin_cotisations_error_compte']         = "Selecteer een lidmaatschapsrekening.";
-$lang['gvv_admin_cotisations_error_save']           = "Fout bij opslaan product.";
-$lang['gvv_admin_cotisations_menu']                 = "Lidmaatschapsproducten";
-
 // Discoveriebon via publieke link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discoveriebon (kaartbetaling)";
 $lang['gvv_decouverte_manager_title']               = "Discoveriebon - Betaling per kaart";

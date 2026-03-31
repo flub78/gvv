@@ -213,34 +213,6 @@ $lang['gvv_cotisation_error_already_paid']  = "You have already paid your member
 $lang['gvv_cotisation_error_tx']            = "Error creating transaction. Please try again.";
 $lang['gvv_cotisation_error_checkout']      = "Unable to initiate HelloAsso payment. Please try again.";
 
-// Admin membership products (UC3)
-$lang['gvv_admin_cotisations_title']                = "Membership products";
-$lang['gvv_admin_cotisations_intro']                = "Manage memberships available for section";
-$lang['gvv_admin_cotisations_empty']                = "No membership products defined for this section.";
-$lang['gvv_admin_cotisations_add_title']            = "Add a membership product";
-$lang['gvv_admin_cotisations_col_libelle']          = "Label";
-$lang['gvv_admin_cotisations_col_annee']            = "Year";
-$lang['gvv_admin_cotisations_col_montant']          = "Amount";
-$lang['gvv_admin_cotisations_col_statut']           = "Status";
-$lang['gvv_admin_cotisations_actif']                = "Active";
-$lang['gvv_admin_cotisations_inactif']              = "Inactive";
-$lang['gvv_admin_cotisations_compte']               = "Account 417";
-$lang['gvv_admin_cotisations_select_compte']        = "— Select an account —";
-$lang['gvv_admin_cotisations_no_compte_417']        = "No 417 account found for this section.";
-$lang['gvv_admin_cotisations_libelle_placeholder']  = "E.g.: Pilot membership";
-$lang['gvv_admin_cotisations_btn_add']              = "Add";
-$lang['gvv_admin_cotisations_btn_activer']          = "Activate";
-$lang['gvv_admin_cotisations_btn_desactiver']       = "Deactivate";
-$lang['gvv_admin_cotisations_confirm_activer']      = "Activate this product?";
-$lang['gvv_admin_cotisations_confirm_desactiver']   = "Deactivate this product?";
-$lang['gvv_admin_cotisations_saved']                = "Membership product saved.";
-$lang['gvv_admin_cotisations_error_libelle']        = "Label is required.";
-$lang['gvv_admin_cotisations_error_montant']        = "Amount must be greater than 0.";
-$lang['gvv_admin_cotisations_error_annee']          = "Year is invalid.";
-$lang['gvv_admin_cotisations_error_compte']         = "Please select a membership account.";
-$lang['gvv_admin_cotisations_error_save']           = "Error saving product.";
-$lang['gvv_admin_cotisations_menu']                 = "Membership products";
-
 // Discovery voucher via public link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discovery voucher (card payment)";
 $lang['gvv_decouverte_manager_title']               = "Discovery voucher - Card payment";

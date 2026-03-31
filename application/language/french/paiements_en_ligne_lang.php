@@ -169,12 +169,6 @@ $lang['gvv_cotisation_error_already_paid']  = "Vous avez déjà réglé votre co
 $lang['gvv_cotisation_error_tx']            = "Erreur lors de la création de la transaction. Veuillez réessayer.";
 $lang['gvv_cotisation_error_checkout']      = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer.";
 
-// Admin produits cotisation (UC3)
-$lang['gvv_admin_cotisations_title']                = "Produits de cotisation";
-$lang['gvv_admin_cotisations_intro']                = "Gérez les cotisations disponibles pour la section";
-$lang['gvv_admin_cotisations_empty']                = "Aucun produit de cotisation défini pour cette section.";
-$lang['gvv_admin_cotisations_add_title']            = "Ajouter un produit de cotisation";
-
 // Bon decouverte via lien / QR public (UC4)
 $lang['gvv_decouverte_menu']                        = "Bon découverte (paiement carte)";
 $lang['gvv_decouverte_manager_title']               = "Bon découverte - Paiement par carte";
@@ -207,29 +201,6 @@ $lang['gvv_decouverte_qr_back']                     = "Retour au formulaire bon 
 $lang['gvv_decouverte_public_confirm_title']        = "Paiement enregistré";
 $lang['gvv_decouverte_public_confirm_intro']        = "Votre paiement du bon découverte a été enregistré avec succès.";
 $lang['gvv_decouverte_email_subject']               = "Bon découverte confirmé";
-$lang['gvv_admin_cotisations_col_libelle']          = "Libellé";
-$lang['gvv_admin_cotisations_col_annee']            = "Année";
-$lang['gvv_admin_cotisations_col_montant']          = "Montant";
-$lang['gvv_admin_cotisations_col_statut']           = "Statut";
-$lang['gvv_admin_cotisations_actif']                = "Actif";
-$lang['gvv_admin_cotisations_inactif']              = "Inactif";
-$lang['gvv_admin_cotisations_compte']               = "Compte 417";
-$lang['gvv_admin_cotisations_select_compte']        = "— Choisir un compte —";
-$lang['gvv_admin_cotisations_no_compte_417']        = "Aucun compte 417 trouvé pour cette section.";
-$lang['gvv_admin_cotisations_libelle_placeholder']  = "Ex : Cotisation pilote";
-$lang['gvv_admin_cotisations_btn_add']              = "Ajouter";
-$lang['gvv_admin_cotisations_btn_activer']          = "Activer";
-$lang['gvv_admin_cotisations_btn_desactiver']       = "Désactiver";
-$lang['gvv_admin_cotisations_confirm_activer']      = "Activer ce produit ?";
-$lang['gvv_admin_cotisations_confirm_desactiver']   = "Désactiver ce produit ?";
-$lang['gvv_admin_cotisations_saved']                = "Produit de cotisation enregistré.";
-$lang['gvv_admin_cotisations_error_libelle']        = "Le libellé est obligatoire.";
-$lang['gvv_admin_cotisations_error_montant']        = "Le montant doit être supérieur à 0.";
-$lang['gvv_admin_cotisations_error_annee']          = "L'année est invalide.";
-$lang['gvv_admin_cotisations_error_compte']         = "Veuillez sélectionner un compte de cotisation.";
-$lang['gvv_admin_cotisations_error_save']           = "Erreur lors de l'enregistrement.";
-$lang['gvv_admin_cotisations_menu']                 = "Produits cotisation";
-
 // Bar externe via QR Code — personne sans compte GVV (UC2)
 $lang['gvv_public_bar_title']              = "Régler mes consommations de bar";
 $lang['gvv_public_bar_intro']              = "Payez vos consommations de bar par carte bancaire via HelloAsso —";
