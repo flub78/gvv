@@ -257,14 +257,7 @@ class Paiements_en_ligne extends MY_Controller {
     private function _process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
         $montant = (int) $this->input->post('montant');
 
-        $errors = array();
-
-        if ($montant <= 0 || $montant % 100 !== 0) {
-            $errors[] = $this->lang->line('gvv_provision_error_montant_multiple');
-        } elseif ($montant > $montant_max) {
-            $errors[] = sprintf($this->lang->line('gvv_provision_error_montant_max'),
-                number_format($montant_max, 0, ',', ' '));
-        }
+        $errors = $this->paiements_en_ligne_model->validate_demande_montant($montant, $montant_max);
 
         if (empty($errors)) {
             $user_id   = (int) $this->dx_auth->get_user_id();
