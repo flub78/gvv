@@ -89,7 +89,7 @@ $lang['gvv_menu_accounting_dashboard'] = "Tableau de bord";
 
 $lang['gvv_menu_entries'] = "Ecritures";
 $lang['gvv_menu_entries_income'] = "Recettes";
-$lang['gvv_menu_entries_pilot_payment'] = "Approvisionement compte pilote";
+$lang['gvv_menu_entries_pilot_payment'] = "Approvisionnement compte pilote";
 $lang['gvv_menu_entries_pilot_billing'] = "Facturation manuelle d'un pilote";
 $lang['gvv_menu_entries_membership_fee'] = "Saisie cotisation";
 $lang['gvv_menu_entries_supplier_credit'] = "Enregistrement avoir fournisseur";
