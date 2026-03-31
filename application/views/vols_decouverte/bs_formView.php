@@ -26,12 +26,22 @@ $this->load->view('bs_banner');
 $this->load->view('bs_menu');
 
 $this->lang->load('vols_decouverte');
+$this->lang->load('paiements_en_ligne');
 
 echo '<div id="body" class="body container-fluid">';
 
 if (isset($message)) {
 	echo p($message) . br();
 }
+
+$error = $this->session->flashdata('error');
+if (!empty($error)) {
+	echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
+		. $error
+		. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+		. '</div>';
+}
+
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
 echo heading("gvv_vols_decouverte_element", 3);
@@ -204,8 +214,12 @@ if ($action == CREATION) {
         )) . '</td>';
     }
     if (!empty($is_dev_authorized) && !empty($helloasso_enabled)) {
-        echo '<td><button type="submit" name="button" value="payer_cb" class="btn btn-warning mt-3 ms-2">'
-            . '<i class="fas fa-credit-card"></i> ' . $CI->lang->line('gvv_decouverte_payer_cb_button')
+		$cb_label = $CI->lang->line('gvv_decouverte_payer_cb_button');
+		if (!$cb_label) {
+			$cb_label = 'Payer par CB (HelloAsso)';
+		}
+		echo '<td><button type="submit" name="button" value="payer_cb" class="btn btn-warning mt-3 ms-2">'
+			. '<i class="fas fa-credit-card"></i> ' . $cb_label
             . '</button></td>';
     }
     echo '</tr></table>';

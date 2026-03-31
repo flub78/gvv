@@ -253,6 +253,7 @@ $lang['gvv_decouverte_email']                       = "E-mail begunstigde (optio
 $lang['gvv_decouverte_email_help']                  = "Wordt gebruikt om na betaling een bevestiging te sturen.";
 $lang['gvv_decouverte_helloasso_notice']            = "De begunstigde kan betalen door de QR-code te scannen of de HelloAsso-link te openen.";
 $lang['gvv_decouverte_generate_button']             = "QR-code genereren";
+$lang['gvv_decouverte_payer_cb_label']              = "Kaartbetaling";
 $lang['gvv_decouverte_payer_cb_button']             = "Betalen per kaart (HelloAsso)";
 $lang['gvv_decouverte_error_product']               = "Selecteer een geldig discoverieproduct.";
 $lang['gvv_decouverte_error_beneficiaire']          = "Naam van de begunstigde is verplicht.";

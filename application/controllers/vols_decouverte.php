@@ -111,6 +111,16 @@ class Vols_decouverte extends Gvv_Controller {
                 $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
         }
 
+        // Repeuple le formulaire après un échec d'initiation CB.
+        $form_data = $this->session->flashdata('decouverte_form_data');
+        if (is_array($form_data)) {
+            foreach (array('product', 'beneficiaire', 'de_la_part', 'beneficiaire_email', 'occasion', 'date_vente', 'date_validite') as $field) {
+                if (array_key_exists($field, $form_data)) {
+                    $this->data[$field] = $form_data[$field];
+                }
+            }
+        }
+
         return load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
@@ -145,18 +155,17 @@ class Vols_decouverte extends Gvv_Controller {
         $this->load->model('paiements_en_ligne_model');
         $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
+        $form_input = $this->_get_decouverte_form_input();
 
         $section_id = (int) $this->session->userdata('section');
         if (!$section_id) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_section'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_bar_carte_error_section'), $form_input);
             return;
         }
 
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
         if ($enabled !== '1') {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_bar_carte_error_disabled'), $form_input);
             return;
         }
 
@@ -166,18 +175,15 @@ class Vols_decouverte extends Gvv_Controller {
         $beneficiaire_email = trim((string) $this->input->post('beneficiaire_email'));
 
         if (empty($product_ref)) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_product'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_product'), $form_input);
             return;
         }
         if (empty($beneficiaire)) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_beneficiaire'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_beneficiaire'), $form_input);
             return;
         }
         if (!empty($beneficiaire_email) && !filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_email'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_email'), $form_input);
             return;
         }
 
@@ -191,15 +197,13 @@ class Vols_decouverte extends Gvv_Controller {
             ->row_array();
 
         if (!$produit) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_product'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_product'), $form_input);
             return;
         }
 
         $montant = (float) $produit['prix'];
         if ($montant <= 0) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_amount'));
-            redirect('vols_decouverte/create');
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_amount'), $form_input);
             return;
         }
 
@@ -229,8 +233,11 @@ class Vols_decouverte extends Gvv_Controller {
         ));
 
         if (!$tx_id) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_tx'));
-            redirect('vols_decouverte/create');
+            $error = $this->lang->line('gvv_decouverte_error_tx')
+                . ' Détails: txid=' . $txid
+                . ', section=' . (int) $section_id
+                . ', montant=' . number_format((float) $montant, 2, '.', '');
+            $this->_redirect_decouverte_create_with_error($error, $form_input);
             return;
         }
 
@@ -248,8 +255,13 @@ class Vols_decouverte extends Gvv_Controller {
 
         if (!$checkout['success']) {
             $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_checkout'));
-            redirect('vols_decouverte/create');
+            $checkout_error = isset($checkout['error_message']) ? (string) $checkout['error_message'] : 'unknown';
+            $checkout_code = isset($checkout['error_code']) ? (int) $checkout['error_code'] : 0;
+            $error = $this->lang->line('gvv_decouverte_error_checkout')
+                . ' Détails: txid=' . $txid
+                . ', code=' . $checkout_code
+                . ', helloasso=' . $checkout_error;
+            $this->_redirect_decouverte_create_with_error($error, $form_input);
             return;
         }
 
@@ -258,6 +270,30 @@ class Vols_decouverte extends Gvv_Controller {
             ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
 
         redirect('paiements_en_ligne/decouverte_qr/' . $txid);
+    }
+
+    /**
+     * Récupère les champs du formulaire de création bon découverte à conserver en cas d'échec CB.
+     */
+    private function _get_decouverte_form_input() {
+        return array(
+            'product'            => trim((string) $this->input->post('product')),
+            'beneficiaire'       => trim((string) $this->input->post('beneficiaire')),
+            'de_la_part'         => trim((string) $this->input->post('de_la_part')),
+            'beneficiaire_email' => trim((string) $this->input->post('beneficiaire_email')),
+            'occasion'           => trim((string) $this->input->post('occasion')),
+            'date_vente'         => trim((string) $this->input->post('date_vente')),
+            'date_validite'      => trim((string) $this->input->post('date_validite')),
+        );
+    }
+
+    /**
+     * Affiche une erreur détaillée et recharge le formulaire avec les données saisies.
+     */
+    private function _redirect_decouverte_create_with_error($error_message, array $form_input) {
+        $this->session->set_flashdata('error', $error_message);
+        $this->session->set_flashdata('decouverte_form_data', $form_input);
+        redirect('vols_decouverte/create');
     }
 
     /**

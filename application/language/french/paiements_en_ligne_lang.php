@@ -187,6 +187,7 @@ $lang['gvv_decouverte_email']                       = "Email du bénéficiaire (
 $lang['gvv_decouverte_email_help']                  = "Utilisé pour envoyer la confirmation du bon après paiement.";
 $lang['gvv_decouverte_helloasso_notice']            = "Le bénéficiaire pourra payer en scannant le QR code ou en ouvrant le lien HelloAsso.";
 $lang['gvv_decouverte_generate_button']             = "Générer le QR code";
+$lang['gvv_decouverte_payer_cb_label']              = "Paiement carte";
 $lang['gvv_decouverte_payer_cb_button']             = "Payer par CB (HelloAsso)";
 $lang['gvv_decouverte_error_product']               = "Veuillez sélectionner un produit découverte valide.";
 $lang['gvv_decouverte_error_beneficiaire']          = "Le nom du bénéficiaire est obligatoire.";
