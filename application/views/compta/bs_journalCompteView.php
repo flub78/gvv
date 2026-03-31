@@ -400,6 +400,17 @@ if ($codec == 411 && isset($has_bar) && $has_bar && $section) {
 <?php
 }
 
+// Lien provisionnement en ligne (EF3) — visible si HelloAsso activé pour la section
+if ($codec == 411 && !empty($helloasso_enabled) && $section) {
+?>
+    <div class="mt-2 mb-2">
+        <a href="<?= site_url('paiements_en_ligne/demande') ?>" class="btn btn-outline-success">
+            <?= $this->lang->line('gvv_provision_button_link') ?>
+        </a>
+    </div>
+<?php
+}
+
 if ($this->dx_auth->is_role('tresorier')) {
     echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 } else {

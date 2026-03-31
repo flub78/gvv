@@ -2228,6 +2228,18 @@ class Compta extends Gvv_Controller {
         $this->data['section_name'] = $selected_section ? $selected_section['nom'] : '';
         // Bar payment link visibility (UC5)
         $this->data['has_bar'] = $selected_section && !empty($selected_section['has_bar']) && !empty($selected_section['bar_account_id']);
+
+        // HelloAsso provisioning link visibility (EF3)
+        $dev_users_cfg = $this->config->item('dev_users') ?: '';
+        $dev_users     = array_map('trim', explode(',', $dev_users_cfg));
+        $is_dev_authorized = in_array($this->dx_auth->get_username(), $dev_users);
+        $this->data['helloasso_enabled'] = false;
+        if ($selected_section && $is_dev_authorized) {
+            $this->load->model('paiements_en_ligne_model');
+            $this->data['helloasso_enabled'] =
+                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $selected_section['id']) === '1';
+        }
+
         $this->lang->load('paiements_en_ligne');
         load_last_view('compta/journalCompteView', $this->data);
     }
@@ -2465,7 +2477,12 @@ class Compta extends Gvv_Controller {
                 } else {
                     $row[] = htmlspecialchars($description);
                 }
-                $row[] = isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : '';
+                $num_cheque = isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : '';
+                if (strpos($num_cheque, 'HelloAsso:') === 0) {
+                    $ref = htmlspecialchars(substr($num_cheque, strlen('HelloAsso:')));
+                    $num_cheque = '<span class="badge bg-info me-1">HelloAsso</span>' . $ref;
+                }
+                $row[] = $num_cheque;
                 $row[] = isset($ecriture['prix']) ? euros($ecriture['prix']) : '';
                 $row[] = isset($ecriture['quantite']) ? $ecriture['quantite'] : '';
                 $row[] = isset($ecriture['debit']) ? euros($ecriture['debit']) : '';

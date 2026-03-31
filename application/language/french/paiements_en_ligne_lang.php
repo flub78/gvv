@@ -10,6 +10,7 @@ $lang['gvv_bar_description_placeholder'] = "Ex : 2 cafés, 1 sandwich – 28/03/
 $lang['gvv_bar_description_help']        = "Décrivez ce que vous avez consommé (obligatoire).";
 $lang['gvv_bar_button_valider']          = "Confirmer le paiement";
 $lang['gvv_bar_button_link']             = "Régler mes consommations de bar";
+$lang['gvv_provision_button_link']       = "Provisionner mon compte en ligne";
 $lang['gvv_bar_success']                 = "Paiement de %s € enregistré. Votre solde a été mis à jour.";
 $lang['gvv_bar_error_section']           = "Veuillez sélectionner une section avant d'effectuer un paiement.";
 $lang['gvv_bar_error_no_bar']            = "Cette section ne dispose pas d'un bar.";

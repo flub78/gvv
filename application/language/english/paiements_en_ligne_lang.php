@@ -10,6 +10,7 @@ $lang['gvv_bar_description_placeholder'] = "E.g.: 2 coffees, 1 sandwich – 28/0
 $lang['gvv_bar_description_help']        = "Describe what you consumed (required).";
 $lang['gvv_bar_button_valider']          = "Confirm payment";
 $lang['gvv_bar_button_link']             = "Pay my bar tab";
+$lang['gvv_provision_button_link']       = "Top up my account online";
 $lang['gvv_bar_success']                 = "Payment of €%s recorded. Your balance has been updated.";
 $lang['gvv_bar_error_section']           = "Please select a section before making a payment.";
 $lang['gvv_bar_error_no_bar']            = "This section does not have a bar.";

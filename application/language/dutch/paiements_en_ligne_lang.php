@@ -10,6 +10,7 @@ $lang['gvv_bar_description_placeholder'] = "Bijv.: 2 koffies, 1 broodje – 28/0
 $lang['gvv_bar_description_help']        = "Beschrijf wat u heeft geconsumeerd (verplicht).";
 $lang['gvv_bar_button_valider']          = "Betaling bevestigen";
 $lang['gvv_bar_button_link']             = "Mijn bar rekening betalen";
+$lang['gvv_provision_button_link']       = "Mijn account online opwaarderen";
 $lang['gvv_bar_success']                 = "Betaling van € %s geregistreerd. Uw saldo is bijgewerkt.";
 $lang['gvv_bar_error_section']           = "Selecteer een sectie voordat u een betaling doet.";
 $lang['gvv_bar_error_no_bar']            = "Deze sectie heeft geen bar.";

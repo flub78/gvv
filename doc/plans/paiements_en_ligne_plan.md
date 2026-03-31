@@ -49,13 +49,13 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 8 | UC1 | Règlement consommations bar — pilote authentifié par carte | HAUTE | ✅ |
 | 8b | EF6 | Navigation dashboard — section "Mes paiements" | HAUTE | ✅ |
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ✅ |
-| 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ☐ |
+| 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ✅ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
 | 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ✅ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
-| 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ☐ |
+| 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ✅ |
 | 17 | — | Tests de recette et validation finale | — | ☐ |
 
 ---
@@ -368,9 +368,16 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Lien "Provisionner mon compte en ligne" dans le menu Mon Compte
 - Page `paiements_en_ligne/index` : historique des transactions du pilote connecté (date, montant, statut, référence)
 
-**Validation :**
-- `[SKIP SI SANDBOX]` Test Playwright : après provisionnement, la nouvelle écriture apparaît dans Mon Compte avec le badge "en ligne"
-- Test PHPUnit : `get_transactions()` filtré par `user_id` retourne uniquement les transactions du pilote
+**✅ Complète**
+- ✅ PHPUnit (6 tests) : filtrage par user_id, filtrage par club, structure retournée, liste vide, badge HelloAsso identifiable — `application/tests/mysql/PaiementsEnLigneHistoriqueTest.php`
+- ✅ Playwright (3 tests, 1 skipped) : historique accessible, mon_compte accessible, absence du lien si HelloAsso non activé — `playwright/tests/paiements-en-ligne-ef3-mon-compte.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/compta.php` : badge HelloAsso dans `datatable_journal_compte()`, `helloasso_enabled` dans `journal_data()`
+- `application/views/compta/bs_journalCompteView.php` : lien "Provisionner mon compte en ligne" conditionnel
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clé `gvv_provision_button_link`
+- `application/tests/mysql/PaiementsEnLigneHistoriqueTest.php` (nouveau)
+- `playwright/tests/paiements-en-ligne-ef3-mon-compte.spec.js` (nouveau)
 
 ---
 
@@ -558,9 +565,19 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Configuration requise :** Interface pour générer et gérer les liens (montant, libellé, durée de validité). Le lien encode obligatoirement l'identifiant de section.
 
-**Validation :**
-- Test PHPUnit : webhook `type=decouverte` → bon créé, recette enregistrée
-- `[SKIP SI SANDBOX]` Test Playwright : flow complet depuis lien public → confirmation + email
+**Validation :** ✅
+- ✅ Test PHPUnit : webhook `type=decouverte` → bon créé, recette enregistrée — `application/tests/mysql/PaiementsEnLigneWebhookTest.php`
+- ✅ Test Playwright (4 tests) : pilote non autorisé (RBAC), trésorier autorisé, QR invalide redirect, confirmation publique sans login — `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js`
+
+**Fichiers créés/modifiés :**
+- `application/controllers/paiements_en_ligne.php` : `decouverte_manager()`, `_process_decouverte_manager()`, `_get_decouverte_products()`, `decouverte_qr()`, `decouverte_qr_image()`, `public_decouverte_confirmation()`, `_create_decouverte_voucher()`, `_send_external_decouverte_email()`, `_notify_tresorier_decouverte()`, branche webhook `type=decouverte`
+- `application/views/paiements_en_ligne/bs_decouverte_manager_form.php` (nouveau)
+- `application/views/paiements_en_ligne/bs_decouverte_qr.php` (nouveau)
+- `application/views/paiements_en_ligne/bs_public_decouverte_confirmation.php` (nouveau)
+- `application/views/bs_menu.php` : entrée menu `gvv_decouverte_menu`
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : 31 clés UC4
+- `application/tests/mysql/PaiementsEnLigneWebhookTest.php` : test `testDecouverteDebitPassageCreditDestination`
+- `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js` (nouveau)
 
 ---
 
