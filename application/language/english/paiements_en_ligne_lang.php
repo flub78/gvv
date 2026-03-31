@@ -253,6 +253,7 @@ $lang['gvv_decouverte_email']                       = "Beneficiary email (option
 $lang['gvv_decouverte_email_help']                  = "Used to send voucher confirmation after payment.";
 $lang['gvv_decouverte_helloasso_notice']            = "The beneficiary can pay by scanning the QR code or opening the HelloAsso link.";
 $lang['gvv_decouverte_generate_button']             = "Generate QR code";
+$lang['gvv_decouverte_payer_cb_button']             = "Pay by card (HelloAsso)";
 $lang['gvv_decouverte_error_product']               = "Please select a valid discovery product.";
 $lang['gvv_decouverte_error_beneficiaire']          = "Beneficiary name is required.";
 $lang['gvv_decouverte_error_email']                 = "Beneficiary email address is invalid.";

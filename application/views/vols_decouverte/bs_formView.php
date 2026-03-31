@@ -190,7 +190,28 @@ if (isset($kid) && isset($$kid)) {
 	}
 }
 
-echo validation_button($action);
+if ($action == CREATION) {
+    // Création : "Créer" visible trésorier seulement, "Payer par CB" si HelloAsso activé, pas de "Créer et continuer"
+    $CI = &get_instance();
+    echo '<table><tr>';
+    if (!empty($is_tresorier)) {
+        echo '<td>' . form_input(array(
+            'type'  => 'submit',
+            'name'  => 'button',
+            'id'    => 'validate',
+            'value' => $CI->lang->line('gvv_button_create'),
+            'class' => 'btn btn-primary mt-3'
+        )) . '</td>';
+    }
+    if (!empty($is_dev_authorized) && !empty($helloasso_enabled)) {
+        echo '<td><button type="submit" name="button" value="payer_cb" class="btn btn-warning mt-3 ms-2">'
+            . '<i class="fas fa-credit-card"></i> ' . $CI->lang->line('gvv_decouverte_payer_cb_button')
+            . '</button></td>';
+    }
+    echo '</tr></table>';
+} else {
+    echo validation_button($action);
+}
 echo form_close();
 
 echo '</div>';

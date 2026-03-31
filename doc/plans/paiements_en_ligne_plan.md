@@ -526,58 +526,71 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Objectif :** Permettre au pilote connecté de renouveler sa cotisation en ligne.
 
-**Prérequis :** Configuration des "produits de cotisation" par le trésorier (libellé, montant, validité, compte comptable).
+**Prérequis :** Le trésorier marque un ou plusieurs tarifs comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
 
 **Flux :**
 1. Pilote accède à "Mon Compte" → "Gérer ma Cotisation"
-2. Affichage des produits disponibles
+2. Affichage des tarifs marqués `is_cotisation=1` et valides à la date du jour
 3. Sélection + paiement via HelloAsso avec `metadata.type=cotisation`
 4. Webhook → handler étape 7 → écriture compte 417, marquage pilote "cotisant à jour", attestation PDF par email, notification trésorier
 
-**Configuration requise :** Interface admin pour créer/modifier les produits de cotisation.
+**Configuration requise :** Flag `is_cotisation` sur les tarifs. Un même tarif peut couvrir plusieurs années sans modification ; un clone daté suffit en cas de changement de montant.
 
 **✅ Complète**
-- ✅ PHPUnit (4 tests) : CRUD produit, webhook `type=cotisation` → écriture créée, licence créée, idempotence — `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
+- ✅ PHPUnit (4 tests) : flag is_cotisation sur tarif, webhook `type=cotisation` → écriture créée, licence créée, idempotence — `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
+- ✅ PHPUnit (2 tests) : migration 099 up/down — `application/tests/mysql/TarifsIsCotisationMigrationTest.php`
 - ✅ Playwright (4 tests, 1 `[SKIP SI SANDBOX]`) : sans session → login, pilote → page accessible, trésorier → admin_cotisations accessible, pilote → admin_cotisations refusé — `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js`
 
 **Fichiers créés/modifiés :**
-- `application/migrations/098_cotisation_produits.php` (nouveau)
-- `application/models/cotisation_produits_model.php` (nouveau)
-- `application/controllers/paiements_en_ligne.php` (méthodes `cotisation`, `_process_cotisation`, `admin_cotisations`, `_save_cotisation_produit`, `toggle_cotisation_produit`, `_create_licence_from_cotisation_meta`, `_notify_tresorier_cotisation`)
-- `application/views/paiements_en_ligne/bs_cotisation_form.php` (nouveau)
+- `application/migrations/098_cotisation_produits.php` (nouveau — table admin conservée)
+- `application/migrations/099_tarifs_is_cotisation.php` (nouveau — flag is_cotisation sur tarifs)
+- `application/models/cotisation_produits_model.php` (nouveau — admin_cotisations conservé)
+- `application/models/tarifs_model.php` (méthodes `get_cotisation_products_for_section`, `get_cotisation_product_by_id`)
+- `application/libraries/Gvvmetadata.php` (metadata boolean is_cotisation)
+- `application/controllers/paiements_en_ligne.php` (méthodes `cotisation`, `_process_cotisation` → tarifs_model ; `admin_cotisations`, `_save_cotisation_produit`, `toggle_cotisation_produit`, `_create_licence_from_cotisation_meta`, `_notify_tresorier_cotisation`)
+- `application/views/tarifs/bs_formView.php` (champ is_cotisation)
+- `application/views/tarifs/bs_tableView.php` (colonne is_cotisation)
+- `application/views/paiements_en_ligne/bs_cotisation_form.php` (nouveau — libellé sans année)
 - `application/views/paiements_en_ligne/bs_admin_cotisations.php` (nouveau)
 - `application/views/bs_menu.php` (lien admin_cotisations)
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (clés UC3)
-- `application/config/migration.php` (version 98)
+- `application/config/migration.php` (version 99)
 - `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php` (nouveau)
+- `application/tests/mysql/TarifsIsCotisationMigrationTest.php` (nouveau)
 - `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js` (nouveau)
 
 ---
 
-## Étape 16 : Bon de découverte via lien/QR Code (UC4)
+## Étape 16 : Paiement CB bon de découverte depuis vols_decouverte/create (UC4)
 
-**Objectif :** Permettre à un gestionnaire de générer un lien de paiement public pour un bon de vol de découverte.
+**Objectif :** Intégrer le paiement CB pour les bons de découverte directement dans le formulaire de création `vols_decouverte/create`, en supprimant la page `decouverte_manager` dédiée.
 
 **Flux :**
-1. Gestionnaire génère un lien avec montant préconfiguré et type de vol (ex. "30 min – 120€")
-2. Personne externe remplit nom/prénom/email → checkout HelloAsso avec `metadata.type=decouverte`
-3. Webhook → handler étape 7 → création du bon de vol (logique identique à la création manuelle), recette comptable, email à l'externe + notification boîte mail du club
+1. L'utilisateur accède à `vols_decouverte/create` (accessible aux trésoriers, gestionnaires vd et pilotes vd)
+2. Il remplit le formulaire et clique sur "Payer par CB (HelloAsso)"
+3. Un checkout HelloAsso est créé avec les données du formulaire (produit, bénéficiaire, email)
+4. Redirection vers la page QR/lien (`paiements_en_ligne/decouverte_qr`)
+5. Webhook → handler existant → création du bon de vol, recette comptable, email bénéficiaire + club
 
-**Configuration requise :** Interface pour générer et gérer les liens (montant, libellé, durée de validité). Le lien encode obligatoirement l'identifiant de section.
+**Règles de visibilité :**
+- "Créer" : trésorier/bureau/admin uniquement
+- "Payer par CB" : tous les utilisateurs avec accès à la page (tresorier, gestion_vd, pilote_vd) si HelloAsso activé et dev_user
+- "Créer et continuer" : supprimé
 
 **Validation :** ✅
 - ✅ Test PHPUnit : webhook `type=decouverte` → bon créé, recette enregistrée — `application/tests/mysql/PaiementsEnLigneWebhookTest.php`
-- ✅ Test Playwright (4 tests) : pilote non autorisé (RBAC), trésorier autorisé, QR invalide redirect, confirmation publique sans login — `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js`
+- ✅ Test Playwright (4 tests) : pilote ordinaire refusé, trésorier autorisé, QR invalide redirect, confirmation publique sans login — `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js`
 
 **Fichiers créés/modifiés :**
-- `application/controllers/paiements_en_ligne.php` : `decouverte_manager()`, `_process_decouverte_manager()`, `_get_decouverte_products()`, `decouverte_qr()`, `decouverte_qr_image()`, `public_decouverte_confirmation()`, `_create_decouverte_voucher()`, `_send_external_decouverte_email()`, `_notify_tresorier_decouverte()`, branche webhook `type=decouverte`
-- `application/views/paiements_en_ligne/bs_decouverte_manager_form.php` (nouveau)
-- `application/views/paiements_en_ligne/bs_decouverte_qr.php` (nouveau)
-- `application/views/paiements_en_ligne/bs_public_decouverte_confirmation.php` (nouveau)
-- `application/views/bs_menu.php` : entrée menu `gvv_decouverte_menu`
-- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : 31 clés UC4
-- `application/tests/mysql/PaiementsEnLigneWebhookTest.php` : test `testDecouverteDebitPassageCreditDestination`
-- `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js` (nouveau)
+- `application/controllers/vols_decouverte.php` : `create()` étendu (pilote_vd, is_tresorier, helloasso_enabled), `formValidation()` override, `_initiate_decouverte_helloasso()`
+- `application/views/vols_decouverte/bs_formView.php` : boutons personnalisés en mode création
+- `application/controllers/paiements_en_ligne.php` : suppression de `decouverte_manager()`, `_process_decouverte_manager()`, `_get_decouverte_products()` ; `decouverte_qr()` élargi aux rôles gestion_vd/pilote_vd
+- `application/views/paiements_en_ligne/bs_decouverte_qr.php` : back URL → `vols_decouverte/create`
+- `application/views/bs_menu.php` : suppression entrée `gvv_decouverte_menu`
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clé `gvv_decouverte_payer_cb_button`
+- `application/tests/mysql/PaiementsEnLigneWebhookTest.php` : inchangé
+- `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js` : mis à jour
+- Suppression : `application/views/paiements_en_ligne/bs_decouverte_manager_form.php`
 
 ---
 

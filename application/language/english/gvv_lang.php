@@ -77,7 +77,7 @@ $lang['gvv_menu_accounting_cash'] = "Cash";
 
 $lang['gvv_menu_entries'] = "Entries";
 $lang['gvv_menu_entries_income'] = "Income";
-$lang['gvv_menu_entries_pilot_payment'] = "Pilot payment";
+$lang['gvv_menu_entries_pilot_payment'] = "Top up pilot account";
 $lang['gvv_menu_entries_pilot_billing'] = "Pilot manual billing";
 $lang['gvv_menu_entries_membership_fee'] = "Membership fee entry";
 $lang['gvv_menu_entries_supplier_credit'] = "Supplier credit registration";

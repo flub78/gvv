@@ -76,182 +76,15 @@ class Paiements_en_ligne extends MY_Controller {
     // =========================================================================
 
     /**
-     * Formulaire gestionnaire pour créer un lien/QR de paiement HelloAsso
-     * d'un bon découverte.
-     *
-     * Accès : tresorier, bureau, admin
-     */
-    public function decouverte_manager() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
-        $section = $this->_require_active_section();
-        if (!$section) return;
-
-        $club_id = (int) $section['id'];
-        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
-        if ($enabled !== '1') {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
-            redirect('vols_decouverte');
-            return;
-        }
-
-        if ($this->input->post('button') === 'generer') {
-            $this->_process_decouverte_manager($section, $club_id);
-            return;
-        }
-
-        $produits = $this->_get_decouverte_products($club_id);
-
-        $data = array(
-            'section'            => $section,
-            'produits'           => $produits,
-            'selected_product'   => '',
-            'beneficiaire'       => '',
-            'de_la_part'         => '',
-            'beneficiaire_email' => '',
-            'error'              => $this->session->flashdata('error'),
-        );
-
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu', $data);
-        $this->load->view('bs_banner', $data);
-        $this->load->view('paiements_en_ligne/bs_decouverte_manager_form', $data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
-     * Crée transaction + checkout HelloAsso puis redirige vers la page QR.
-     */
-    private function _process_decouverte_manager(array $section, $club_id) {
-        $selected_product   = trim((string) $this->input->post('product'));
-        $beneficiaire       = trim((string) $this->input->post('beneficiaire'));
-        $de_la_part         = trim((string) $this->input->post('de_la_part'));
-        $beneficiaire_email = trim((string) $this->input->post('beneficiaire_email'));
-
-        $produits = $this->_get_decouverte_products($club_id);
-        $product_map = array();
-        foreach ($produits as $row) {
-            $product_map[$row['reference']] = $row;
-        }
-
-        $errors = array();
-        if (empty($selected_product) || !isset($product_map[$selected_product])) {
-            $errors[] = $this->lang->line('gvv_decouverte_error_product');
-        }
-        if (empty($beneficiaire)) {
-            $errors[] = $this->lang->line('gvv_decouverte_error_beneficiaire');
-        }
-        if (!empty($beneficiaire_email) && !filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = $this->lang->line('gvv_decouverte_error_email');
-        }
-
-        if (!empty($errors)) {
-            $data = array(
-                'section'            => $section,
-                'produits'           => $produits,
-                'selected_product'   => $selected_product,
-                'beneficiaire'       => $beneficiaire,
-                'de_la_part'         => $de_la_part,
-                'beneficiaire_email' => $beneficiaire_email,
-                'error'              => implode('<br>', $errors),
-            );
-            $this->load->view('bs_header', $data);
-            $this->load->view('bs_menu', $data);
-            $this->load->view('bs_banner', $data);
-            $this->load->view('paiements_en_ligne/bs_decouverte_manager_form', $data);
-            $this->load->view('bs_footer');
-            return;
-        }
-
-        $produit = $product_map[$selected_product];
-        $montant = (float) $produit['prix'];
-        if ($montant <= 0) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_amount'));
-            redirect('paiements_en_ligne/decouverte_manager');
-            return;
-        }
-
-        $txid = 'dec-' . $club_id . '-0-' . time() . '-' . substr(uniqid(), -6);
-        $description = trim('Bon découverte - ' . $produit['description']);
-
-        $metadata = array(
-            'type'                  => 'decouverte',
-            'product_reference'     => (string) $produit['reference'],
-            'product_description'   => (string) $produit['description'],
-            'beneficiaire'          => $beneficiaire,
-            'de_la_part'            => $de_la_part,
-            'beneficiaire_email'    => $beneficiaire_email,
-            'compte_destination_id' => (int) $produit['compte'],
-            'description'           => $description,
-            'gvv_transaction_id'    => $txid,
-        );
-
-        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
-            'user_id'        => 0,
-            'montant'        => $montant,
-            'plateforme'     => 'helloasso',
-            'club'           => $club_id,
-            'transaction_id' => $txid,
-            'metadata'       => json_encode($metadata),
-            'created_by'     => $this->dx_auth->get_username(),
-        ));
-
-        if (!$tx_id) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_tx'));
-            redirect('paiements_en_ligne/decouverte_manager');
-            return;
-        }
-
-        $checkout = $this->helloasso->create_checkout($club_id, array(
-            'amount'           => $montant,
-            'item_name'        => $description,
-            'payer_first_name' => '',
-            'payer_last_name'  => '',
-            'payer_email'      => $beneficiaire_email,
-            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $club_id),
-            'back_url'         => site_url('paiements_en_ligne/decouverte_manager'),
-            'error_url'        => site_url('paiements_en_ligne/decouverte_manager'),
-            'metadata'         => $metadata,
-        ));
-
-        if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_checkout'));
-            redirect('paiements_en_ligne/decouverte_manager');
-            return;
-        }
-
-        $metadata['checkout_url'] = $checkout['redirect_url'];
-        $this->db->where('transaction_id', $txid)
-            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
-
-        redirect('paiements_en_ligne/decouverte_qr/' . $txid);
-    }
-
-    /**
-     * Retourne les produits découverte (type_ticket=1) disponibles sur la section.
-     */
-    private function _get_decouverte_products($club_id) {
-        return $this->db
-            ->select('reference, description, prix, compte')
-            ->from('tarifs')
-            ->where('club', (int) $club_id)
-            ->where('type_ticket', 1)
-            ->order_by('description', 'ASC')
-            ->get()
-            ->result_array();
-    }
-
-    /**
      * Page QR/lien direct pour un paiement bon découverte.
      *
-     * Accès : tresorier, bureau, admin
+     * Accès : tresorier, bureau, gestion_vd, pilote_vd, admin
      */
     public function decouverte_qr($transaction_id = '') {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+        if (!has_role('tresorier') && !has_role('bureau')
+            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('gestion_vd')
+            && !$this->user_has_role('pilote_vd')) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -259,7 +92,7 @@ class Paiements_en_ligne extends MY_Controller {
         $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
         if (!$tx) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
-            redirect('paiements_en_ligne/decouverte_manager');
+            redirect('vols_decouverte/create');
             return;
         }
 

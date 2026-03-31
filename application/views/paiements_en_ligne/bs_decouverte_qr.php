@@ -77,7 +77,7 @@ $montant_fmt = euros((float) $transaction['montant']);
 
 </div>
 
-<a href="<?= site_url('paiements_en_ligne/decouverte_manager') ?>" class="btn btn-outline-secondary">
+<a href="<?= site_url('vols_decouverte/create') ?>" class="btn btn-outline-secondary">
     <i class="fas fa-arrow-left"></i> <?= $this->lang->line('gvv_decouverte_qr_back') ?>
 </a>
 

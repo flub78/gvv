@@ -241,46 +241,40 @@ Un pilote connecté souhaite renouveler sa cotisation annuelle du club directeme
 - Automatisation des attestations
 
 **Configuration requise :**
-- Les trésoriers doivent pouvoir créer des "produits de cotisation" dans GVV avec :
-  - Libellé
-  - Montant
-  - Validité (date de fin)
-  - Compte comptable associé
+- Les trésoriers marquent des tarifs existants comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
+- Un tarif de cotisation est défini par : libellé, montant, date de validité (date/date_fin) et compte comptable associé.
+- Le même tarif peut rester actif plusieurs années sans modification si le montant ne change pas ; un clone daté suffit en cas de changement de tarif.
 
 ---
 
-### UC4 : Paiement de Bon de Découverte par le Gestionnaire de Vol (Priorité : MÉDIUM)
+### UC4 : Paiement de Bon de Découverte par CB depuis la création (Priorité : MÉDIUM)
 
 **Contexte :**
-Un gestionnaire ou responsable de vol de découverte souhaite proposer à une personne externe de payer son bon de découverte directement par carte, sans déranger le trésorier.
+Un gestionnaire ou pilote de vol de découverte souhaite créer un bon et le faire payer directement par carte, sans déranger le trésorier. Le trésorier peut également créer le bon de façon classique (sans paiement CB) ou initier le paiement CB.
 
 **Flux :**
-1. Le gestionnaire de vol crée un **lien de paiement public** (ou un QR Code) pointant vers un formulaire de paiement
-2. Le lien contient le **montant préconfiguré** du bon (ex: 120€ pour vol 30 min)
-3. Une personne externe accède au lien sans connexion à GVV
-4. Elle remplit un formulaire simplifié :
-   - **Nom** (obligatoire)
-   - **Prénom** (obligatoire)
-   - **Email** (obligatoire)
-   - **Type de vol** (présélectionné, non modifiable) : "Vol de Découverte 30 min - 120€"
-   - **Message optionnel** (ex: notes du gestionnaire)
-5. Elle paie par carte
-6. Après succès :
-   - Confirmation par email avec les modalités du vol
- - Création du vol de découverte et envoie par mail à l'adresse fournie
- - Création de la recette associée, comme quand le bon est créé manuellement
-   - Notification email sur la moite mail du club
-   - Coupon/bon de paiement téléchargeable en PDF
+1. L'utilisateur accède à `vols_decouverte/create` et remplit le formulaire (bénéficiaire, produit, etc.)
+2. Deux boutons sont disponibles selon le rôle :
+   - **"Créer"** (visible trésorier uniquement) : crée le bon immédiatement, sans paiement CB
+   - **"Payer par CB (HelloAsso)"** (visible trésorier, gestionnaire vd, pilote vd) : initie le paiement CB
+3. Si "Payer par CB" est sélectionné :
+   - Un checkout HelloAsso est créé avec les données du formulaire
+   - L'utilisateur est redirigé vers la page QR/lien pour que le client effectue le paiement
+4. Après paiement réussi (webhook) :
+   - Le bon de découverte est créé automatiquement
+   - La recette comptable est enregistrée
+   - Email de confirmation envoyé au bénéficiaire si email fourni
+   - Notification email envoyée à la boîte mail du club
+
+**Règles de visibilité des boutons :**
+- Bouton "Créer" : visible pour les trésoriers (et bureau, admin) uniquement
+- Bouton "Payer par CB" : visible pour les trésoriers, gestionnaires vd et pilotes vd, uniquement si HelloAsso est activé pour la section et que l'utilisateur est dans `dev_users`
+- Le bouton "Créer et continuer" est supprimé de cette page
 
 **Avantages :**
-- Autonomie du gestionnaire de vol, sans ticket de caisse
+- Intégration dans le flux de création existant, pas de page séparée
+- Autonomie du gestionnaire et du pilote vd pour les paiements CB
 - Documentation automatique des bons vendus
-
-**Configuration requise :**
-- Les gestionnaires doivent pouvoir générer des **liens de paiement publics** avec :
-  - Montant préconfiguré
-  - Libellé du service (vol 15 min, 30 min, etc.)
-  - Durée de validité du lien
 
 ---
 

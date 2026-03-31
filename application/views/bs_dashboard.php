@@ -630,7 +630,7 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-hand-holding-usd text-success"></i>
-                        <div class="card-title">Règlement pilote</div>
+                        <div class="card-title"><?= translation("gvv_menu_entries_pilot_payment") ?></div>
                         <div class="card-text text-muted">Paiement</div>
                         <a href="<?= controller_url('compta/reglement_pilote') ?>" class="btn btn-success btn-sm">Saisir</a>
                     </div>
