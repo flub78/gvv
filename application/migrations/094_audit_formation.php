@@ -12,24 +12,60 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Migration_Audit_formation extends CI_Migration {
 
-    private function is_row_size_too_large_error($exception)
+    private function is_row_size_too_large_error($error_message)
     {
-        return stripos($exception->getMessage(), 'Row size too large') !== false;
+        return stripos($error_message, 'Row size too large') !== false;
     }
 
     private function run_alter_with_rebuild_retry($table, $alter_sql)
     {
-        try {
-            $this->db->query($alter_sql);
-        } catch (Exception $e) {
-            if (!$this->is_row_size_too_large_error($e)) {
-                throw $e;
-            }
+        // In CodeIgniter 2, $this->db->query() returns FALSE on error instead of throwing.
+        $result = $this->db->query($alter_sql);
+        if ($result !== FALSE) {
+            return;
+        }
 
-            $t = $this->db->escape_str($table);
-            // Some legacy InnoDB tables need a physical rebuild before new columns can be added.
-            $this->db->query("ALTER TABLE `$t` FORCE");
-            $this->db->query($alter_sql);
+        // Retrieve error information in a way that works for CI2 (_error_* methods)
+        // and CI3+ (error() method).
+        if (method_exists($this->db, 'error')) {
+            $error      = $this->db->error();
+            $error_code = isset($error['code']) ? $error['code'] : 0;
+            $error_msg  = isset($error['message']) ? $error['message'] : '';
+        } else {
+            $error_code = method_exists($this->db, '_error_number') ? $this->db->_error_number() : 0;
+            $error_msg  = method_exists($this->db, '_error_message') ? $this->db->_error_message() : '';
+        }
+
+        if (!$this->is_row_size_too_large_error($error_msg)) {
+            throw new RuntimeException("Database error {$error_code} while running ALTER: {$error_msg}");
+        }
+
+        $t = $this->db->escape_str($table);
+        // Some legacy InnoDB tables need a physical rebuild before new columns can be added.
+        $force_result = $this->db->query("ALTER TABLE `$t` FORCE");
+        if ($force_result === FALSE) {
+            if (method_exists($this->db, 'error')) {
+                $force_error      = $this->db->error();
+                $force_error_code = isset($force_error['code']) ? $force_error['code'] : 0;
+                $force_error_msg  = isset($force_error['message']) ? $force_error['message'] : '';
+            } else {
+                $force_error_code = method_exists($this->db, '_error_number') ? $this->db->_error_number() : 0;
+                $force_error_msg  = method_exists($this->db, '_error_message') ? $this->db->_error_message() : '';
+            }
+            throw new RuntimeException("Database error {$force_error_code} while running ALTER FORCE: {$force_error_msg}");
+        }
+
+        $retry_result = $this->db->query($alter_sql);
+        if ($retry_result === FALSE) {
+            if (method_exists($this->db, 'error')) {
+                $retry_error      = $this->db->error();
+                $retry_error_code = isset($retry_error['code']) ? $retry_error['code'] : 0;
+                $retry_error_msg  = isset($retry_error['message']) ? $retry_error['message'] : '';
+            } else {
+                $retry_error_code = method_exists($this->db, '_error_number') ? $this->db->_error_number() : 0;
+                $retry_error_msg  = method_exists($this->db, '_error_message') ? $this->db->_error_message() : '';
+            }
+            throw new RuntimeException("Database error {$retry_error_code} while retrying ALTER: {$retry_error_msg}");
         }
     }
 
