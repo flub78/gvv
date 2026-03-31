@@ -89,8 +89,39 @@ class Welcome extends Gvv_Controller {
         $this->load->model('sections_model');
         $this->load->model('ecritures_model');
         $raw_accounts = $this->comptes_model->get_pilote_comptes($data['username']);
+
+        // Optimisation potentielle : calculer les soldes en batch si le modèle le permet,
+        // sinon, revenir au comportement existant (une requête par compte).
+        $account_ids = array();
+        foreach ($raw_accounts as $account) {
+            if (isset($account['id'])) {
+                $account_ids[] = $account['id'];
+            }
+        }
+
+        $balances_by_id = array();
+        if (!empty($account_ids) && method_exists($this->ecritures_model, 'solde_comptes')) {
+            // La méthode solde_comptes($ids) doit retourner un tableau [id_compte => solde]
+            $balances_by_id = $this->ecritures_model->solde_comptes($account_ids);
+        } else {
+            // Fallback : comportement existant, une requête par compte
+            foreach ($account_ids as $account_id) {
+                $balances_by_id[$account_id] = $this->ecritures_model->solde_compte($account_id);
+            }
+        }
+
         foreach ($raw_accounts as &$account) {
-            $account['solde'] = $this->ecritures_model->solde_compte($account['id']);
+            $account_id = isset($account['id']) ? $account['id'] : null;
+            if ($account_id !== null && array_key_exists($account_id, $balances_by_id)) {
+                $account['solde'] = $balances_by_id[$account_id];
+            } else {
+                // Par sécurité, si le solde est introuvable, conserver l'ancien comportement
+                if ($account_id !== null) {
+                    $account['solde'] = $this->ecritures_model->solde_compte($account_id);
+                } else {
+                    $account['solde'] = null;
+                }
+            }
         }
         unset($account);
         $data['user_accounts'] = $raw_accounts;
