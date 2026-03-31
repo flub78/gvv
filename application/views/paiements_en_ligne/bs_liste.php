@@ -120,7 +120,7 @@
         <?php
         $prenom = isset($tx['mprenom']) ? $tx['mprenom'] : '';
         $nom    = isset($tx['mnom'])    ? $tx['mnom']    : '';
-        $pilot  = trim($prenom . ' ' . $nom) ?: htmlspecialchars($tx['username']);
+        $pilot  = trim($prenom . ' ' . $nom) ?: $tx['username'];
 
         $badge_class = array(
             'pending'   => 'bg-warning text-dark',

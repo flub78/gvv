@@ -10,7 +10,7 @@
 <?= checkalert($this->session) ?>
 
 <?php if (!empty($error)): ?>
-<div class="alert alert-danger"><?= $error ?></div>
+<div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
 <h3><?= $this->lang->line('gvv_cotisation_form_title') ?></h3>
