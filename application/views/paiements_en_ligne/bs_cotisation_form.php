@@ -41,7 +41,6 @@
                            for="produit_<?= (int) $p['id'] ?>">
                         <span>
                             <strong><?= htmlspecialchars($p['libelle']) ?></strong>
-                            <span class="text-muted small ms-2">(<?= (int) $p['annee'] ?>)</span>
                         </span>
                         <span class="badge bg-warning text-dark fs-6">
                             <?= euros((float) $p['montant']) ?>

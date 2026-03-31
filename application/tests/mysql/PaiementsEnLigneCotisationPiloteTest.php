@@ -6,25 +6,25 @@ use PHPUnit\Framework\TestCase;
  * PHPUnit MySQL Tests — Cotisation en ligne par le pilote (UC3)
  *
  * Vérifie :
- *  - Création/lecture/toggle d'un produit de cotisation
+ *  - Flag is_cotisation sur un tarif : création/lecture/toggle
  *  - process_order_event type=cotisation → écriture 417 créée
  *  - Idempotence webhook
  *  - Création licence de cotisation via metadata
  *
  * @see application/controllers/paiements_en_ligne.php
  * @see application/models/paiements_en_ligne_model.php
- * @see application/models/cotisation_produits_model.php
+ * @see application/models/tarifs_model.php
  */
 class PaiementsEnLigneCotisationPiloteTest extends TestCase
 {
     protected static $CI;
     protected $db;
     protected $model;
-    protected $produits_model;
+    protected $tarifs_model;
 
     protected $created_transaction_ids = array();
     protected $created_ecriture_ids    = array();
-    protected $created_produit_ids     = array();
+    protected $created_tarif_ids       = array();
     protected $created_licence_ids     = array();
 
     protected static $club_id          = 4;
@@ -36,7 +36,7 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         self::$CI = &get_instance();
         self::$CI->load->database();
         self::$CI->load->model('paiements_en_ligne_model');
-        self::$CI->load->model('cotisation_produits_model');
+        self::$CI->load->model('tarifs_model');
         self::$CI->load->model('ecritures_model');
         self::$CI->load->model('comptes_model');
         self::$CI->load->model('licences_model');
@@ -50,22 +50,22 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         }
 
         $q2 = self::$CI->db->query(
-            "SELECT COUNT(*) AS cnt FROM information_schema.TABLES
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cotisation_produits'"
+            "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tarifs' AND COLUMN_NAME = 'is_cotisation'"
         )->row_array();
         if ((int) $q2['cnt'] === 0) {
-            self::markTestSkipped('Table cotisation_produits absente — exécuter la migration 098');
+            self::markTestSkipped('Colonne tarifs.is_cotisation absente — exécuter la migration 099');
         }
     }
 
     protected function setUp(): void
     {
-        $this->db             = self::$CI->db;
-        $this->model          = self::$CI->paiements_en_ligne_model;
-        $this->produits_model = self::$CI->cotisation_produits_model;
+        $this->db           = self::$CI->db;
+        $this->model        = self::$CI->paiements_en_ligne_model;
+        $this->tarifs_model = self::$CI->tarifs_model;
         $this->created_transaction_ids = array();
         $this->created_ecriture_ids    = array();
-        $this->created_produit_ids     = array();
+        $this->created_tarif_ids       = array();
         $this->created_licence_ids     = array();
 
         // Configurer compte_passage pour club=4
@@ -90,8 +90,8 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         foreach ($this->created_ecriture_ids as $id) {
             $this->db->where('id', $id)->delete('ecritures');
         }
-        foreach ($this->created_produit_ids as $id) {
-            $this->db->where('id', $id)->delete('cotisation_produits');
+        foreach ($this->created_tarif_ids as $id) {
+            $this->db->where('id', $id)->delete('tarifs');
         }
         foreach ($this->created_licence_ids as $id) {
             $this->db->where('id', $id)->delete('licences');
@@ -113,46 +113,77 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         return $c;
     }
 
+    /**
+     * Retourne un compte 7xx utilisable comme compte de tarif.
+     */
+    private function _get_compte_tarif() {
+        return $this->db->where('club', self::$club_id)
+            ->where('codec >=', '700')->where('codec <', '800')
+            ->order_by('id', 'ASC')->get('comptes')->row_array();
+    }
+
     // ── Tests ────────────────────────────────────────────────────────────────
 
     /**
-     * CRUD produit de cotisation.
+     * Flag is_cotisation sur un tarif : création, lecture via get_cotisation_products_for_section,
+     * toggle off, toggle on.
      */
-    public function testCotisationProduitCrud()
+    public function testCotisationTarifFlag()
     {
-        $c417 = $this->_get_compte_cotisation();
-        if (!$c417) {
-            $this->markTestSkipped('Aucun compte 417/708 dans club=4');
+        $compte = $this->_get_compte_tarif();
+        if (!$compte) {
+            $this->markTestSkipped('Aucun compte 7xx dans club=4');
         }
 
-        // Création
-        $id = $this->produits_model->create(array(
-            'section_id'           => self::$club_id,
-            'libelle'              => 'Cotisation test PHPUnit',
-            'montant'              => 50.00,
-            'annee'                => 2099,
-            'compte_cotisation_id' => (int) $c417['id'],
-            'created_by'           => 'phpunit',
+        // Création d'un tarif marqué is_cotisation=1 avec une date passée et un date_fin futur
+        $this->db->insert('tarifs', array(
+            'reference'      => 'COT-PHPUNIT-' . uniqid(),
+            'date'           => '2026-01-01',
+            'date_fin'       => '2099-12-31',
+            'description'    => 'Cotisation test PHPUnit',
+            'prix'           => 50.00,
+            'compte'         => (int) $compte['id'],
+            'saisie_par'     => 'phpunit',
+            'club'           => self::$club_id,
+            'is_cotisation'  => 1,
+            'created_by'     => 'phpunit',
+            'created_at'     => date('Y-m-d H:i:s'),
         ));
-        $this->assertIsInt($id);
-        $this->created_produit_ids[] = $id;
+        $id = (int) $this->db->insert_id();
+        $this->assertGreaterThan(0, $id);
+        $this->created_tarif_ids[] = $id;
 
-        // Lecture
-        $produits = $this->produits_model->get_active_for_section(self::$club_id);
+        // Lecture : doit apparaître dans les produits cotisation
+        $produits = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found = array_filter($produits, function ($p) use ($id) { return (int) $p['id'] === $id; });
-        $this->assertNotEmpty($found, 'Produit créé doit être dans la liste active');
+        $this->assertNotEmpty($found, 'Tarif is_cotisation=1 doit être dans la liste cotisation');
 
-        // Toggle inactif
-        $this->produits_model->toggle_actif($id, 'phpunit');
-        $produits_after = $this->produits_model->get_active_for_section(self::$club_id);
+        // Vérification des aliases retournés
+        $p = reset($found);
+        $this->assertArrayHasKey('libelle', $p);
+        $this->assertArrayHasKey('annee', $p);
+        $this->assertArrayHasKey('montant', $p);
+        $this->assertArrayHasKey('compte_cotisation_id', $p);
+        $this->assertEquals('Cotisation test PHPUnit', $p['libelle']);
+        $this->assertEquals(2026, (int) $p['annee']);
+        $this->assertEquals(50.00, (float) $p['montant']);
+
+        // Toggle off : is_cotisation = 0
+        $this->db->where('id', $id)->update('tarifs', array('is_cotisation' => 0));
+        $produits_after = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found_after = array_filter($produits_after, function ($p) use ($id) { return (int) $p['id'] === $id; });
-        $this->assertEmpty($found_after, 'Produit désactivé ne doit plus être dans la liste active');
+        $this->assertEmpty($found_after, 'Tarif is_cotisation=0 ne doit plus être dans la liste cotisation');
 
-        // Toggle actif
-        $this->produits_model->toggle_actif($id, 'phpunit');
-        $produits_final = $this->produits_model->get_active_for_section(self::$club_id);
+        // Toggle on : is_cotisation = 1
+        $this->db->where('id', $id)->update('tarifs', array('is_cotisation' => 1));
+        $produits_final = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found_final = array_filter($produits_final, function ($p) use ($id) { return (int) $p['id'] === $id; });
-        $this->assertNotEmpty($found_final, 'Produit réactivé doit être dans la liste active');
+        $this->assertNotEmpty($found_final, 'Tarif is_cotisation=1 réactivé doit être dans la liste cotisation');
+
+        // Vérification get_cotisation_product_by_id
+        $produit = $this->tarifs_model->get_cotisation_product_by_id($id);
+        $this->assertNotEmpty($produit);
+        $this->assertEquals($id, (int) $produit['id']);
     }
 
     /**

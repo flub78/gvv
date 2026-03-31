@@ -390,6 +390,8 @@ class GVVMetadata extends Metadata {
                 $this->field['tarifs']['type_ticket']['Default'] = '';
                 $this->field['tarifs']['public']['Subtype'] = 'boolean';
                 $this->field['vue_tarifs']['public']['Subtype'] = 'boolean';
+                $this->field['tarifs']['is_cotisation']['Subtype'] = 'boolean';
+                $this->field['vue_tarifs']['is_cotisation']['Subtype'] = 'boolean';
 
                 /**
                  * Table terrains

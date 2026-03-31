@@ -824,7 +824,7 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $produits = $this->cotisation_produits_model->get_active_for_section($club_id);
+        $produits = $this->tarifs_model->get_cotisation_products_for_section($club_id);
 
         $data = array(
             'section'  => $section,
@@ -852,8 +852,8 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $produit = $this->cotisation_produits_model->get_by_id('id', $produit_id);
-        if (!$produit || (int) $produit['section_id'] !== $club_id || !$produit['actif']) {
+        $produit = $this->tarifs_model->get_cotisation_product_by_id($produit_id);
+        if (!$produit || (int) $produit['section_id'] !== $club_id) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_produit'));
             redirect('paiements_en_ligne/cotisation');
             return;

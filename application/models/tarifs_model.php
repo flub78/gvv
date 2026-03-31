@@ -31,7 +31,7 @@ class Tarifs_model extends Common_Model {
         gvv_debug("tarifs select date=" . $tarif_date);
 
         if ($tarif_tout) {
-            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket')
+            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket, is_cotisation')
                 ->from("tarifs, comptes")
                 ->where("tarifs.compte = comptes.id")
                 ->order_by('tarifs.reference', 'asc')
@@ -63,7 +63,7 @@ class Tarifs_model extends Common_Model {
             }
 
             // Select ordered by desc date
-            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket')
+            $this->db->select('tarifs.id as id, date, date_fin, public, tarifs.reference as reference, tarifs.description as description, tarifs.prix as prix, tarifs.club as club, comptes.nom as nom_compte, nb_tickets, type_ticket, is_cotisation')
                 ->from("tarifs, comptes")
                 ->where("tarifs.compte = comptes.id")
                 ->where("date <= '$filter_date'")
@@ -207,6 +207,49 @@ class Tarifs_model extends Common_Model {
             arsort($result);
         }
         return $result;
+    }
+
+    /**
+     * Retourne les tarifs marqués comme produits de cotisation pour une section.
+     *
+     * Retourne les champs avec les noms attendus par paiements_en_ligne/cotisation :
+     *   id, libelle, annee, montant, compte_cotisation_id, section_id, actif
+     *
+     * Filtrage : is_cotisation=1, date <= aujourd'hui, date_fin >= aujourd'hui ou null
+     */
+    public function get_cotisation_products_for_section($club_id) {
+        $today = $this->db->escape(date('Y-m-d'));
+        $cid   = (int) $club_id;
+        $sql = "SELECT id, description AS libelle, YEAR(date) AS annee, prix AS montant,
+                       compte AS compte_cotisation_id, club AS section_id, 1 AS actif
+                FROM tarifs
+                WHERE club = $cid
+                  AND is_cotisation = 1
+                  AND date <= $today
+                  AND (date_fin IS NULL OR date_fin >= $today)
+                ORDER BY date DESC, description ASC";
+        return $this->db->query($sql)->result_array();
+    }
+
+    /**
+     * Retourne un tarif de cotisation par son id.
+     *
+     * Vérifie que le tarif est bien marqué is_cotisation=1 et est valide (date).
+     * Retourne les mêmes alias que get_cotisation_products_for_section().
+     * Retourne false si introuvable ou non valide.
+     */
+    public function get_cotisation_product_by_id($id) {
+        $today = $this->db->escape(date('Y-m-d'));
+        $id    = (int) $id;
+        $sql = "SELECT id, description AS libelle, YEAR(date) AS annee, prix AS montant,
+                       compte AS compte_cotisation_id, club AS section_id, 1 AS actif
+                FROM tarifs
+                WHERE id = $id
+                  AND is_cotisation = 1
+                  AND date <= $today
+                  AND (date_fin IS NULL OR date_fin >= $today)";
+        $row = $this->db->query($sql)->row_array();
+        return $row ? $row : false;
     }
 
     /**
