@@ -936,6 +936,99 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->view('bs_footer');
     }
 
+    /**
+     * Génère une affiche PDF avec QR code vers la page publique de paiement bar.
+     *
+     * Accès : tresorier, bureau, admin
+     */
+    public function genere_bar_qrcode() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $section = $this->_require_active_section();
+        if (!$section) {
+            return;
+        }
+
+        $club_id = (int) $section['id'];
+        $payment_url = site_url('paiements_en_ligne/public_bar/' . $club_id);
+        $can_generate = !empty($section['has_bar']);
+
+        $data = array(
+            'section'      => $section,
+            'title'        => $this->input->post('title') ?: $this->lang->line('gvv_bar_qrcode_default_title'),
+            'text_top'     => $this->input->post('text_top') ?: $this->lang->line('gvv_bar_qrcode_default_text_top'),
+            'text_bottom'  => $this->input->post('text_bottom') ?: $this->lang->line('gvv_bar_qrcode_default_text_bottom'),
+            'payment_url'  => $payment_url,
+            'error'        => $can_generate ? '' : $this->lang->line('gvv_bar_error_no_bar'),
+            'can_generate' => $can_generate,
+        );
+
+        if ($can_generate && $this->input->post('button') === 'generate_pdf') {
+            $title = trim((string) $this->input->post('title'));
+            $text_top = trim((string) $this->input->post('text_top'));
+            $text_bottom = trim((string) $this->input->post('text_bottom'));
+
+            if ($title === '') {
+                $data['error'] = $this->lang->line('gvv_bar_qrcode_error_title_required');
+            } else {
+                include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
+
+                $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+                $pdf->SetCreator('GVV');
+                $pdf->SetAuthor('GVV');
+                $pdf->SetTitle($title);
+                $pdf->SetMargins(15, 15, 15);
+                $pdf->SetAutoPageBreak(true, 15);
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+                $pdf->AddPage();
+
+                $pdf->SetFont('helvetica', 'B', 24);
+                $pdf->MultiCell(0, 14, $title, 0, 'C', false, 1);
+
+                if ($text_top !== '') {
+                    $pdf->Ln(3);
+                    $pdf->SetFont('helvetica', '', 13);
+                    $pdf->MultiCell(0, 8, $text_top, 0, 'C', false, 1);
+                }
+
+                $qr_size = 80;
+                $qr_x = (210 - $qr_size) / 2;
+                $qr_y = $pdf->GetY() + 6;
+                $style = array(
+                    'border' => 0,
+                    'padding' => 0,
+                    'fgcolor' => array(0, 0, 0),
+                    'bgcolor' => false,
+                );
+                $pdf->write2DBarcode($payment_url, 'QRCODE,H', $qr_x, $qr_y, $qr_size, $qr_size, $style, 'N');
+
+                $pdf->SetY($qr_y + $qr_size + 8);
+                if ($text_bottom !== '') {
+                    $pdf->SetFont('helvetica', '', 12);
+                    $pdf->MultiCell(0, 8, $text_bottom, 0, 'C', false, 1);
+                }
+
+                $pdf->Ln(4);
+                $pdf->SetFont('helvetica', '', 9);
+                $pdf->MultiCell(0, 6, $payment_url, 0, 'C', false, 1);
+
+                $filename = 'affiche-bar-qrcode-section-' . $club_id . '.pdf';
+                $pdf->Output($filename, 'I');
+                return;
+            }
+        }
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_genere_bar_qrcode', $data);
+        $this->load->view('bs_footer');
+    }
+
     // =========================================================================
     // UC6 — Cotisation trésorier par carte HelloAsso
     // =========================================================================

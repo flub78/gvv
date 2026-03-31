@@ -201,6 +201,20 @@ $lang['gvv_public_bar_confirm_title']     = "Payment recorded";
 $lang['gvv_public_bar_confirm_intro']     = "Your payment has been successfully recorded. Thank you!";
 $lang['gvv_public_bar_confirm_section']   = "Section:";
 
+// Bar QR code poster generation — treasurer
+$lang['gvv_bar_qrcode_menu']                  = "Generate bar QR code poster";
+$lang['gvv_bar_qrcode_title']                 = "Generate a bar QR code poster";
+$lang['gvv_bar_qrcode_intro']                 = "Customize the poster then generate a printable PDF for bar payments in section";
+$lang['gvv_bar_qrcode_label_title']           = "Title";
+$lang['gvv_bar_qrcode_label_text_top']        = "Text above the QR code";
+$lang['gvv_bar_qrcode_label_text_bottom']     = "Text below the QR code";
+$lang['gvv_bar_qrcode_label_url']             = "Payment URL encoded in the QR code";
+$lang['gvv_bar_qrcode_button_generate_pdf']   = "Generate PDF";
+$lang['gvv_bar_qrcode_error_title_required']  = "Title is required.";
+$lang['gvv_bar_qrcode_default_title']         = "Bar purchases payment";
+$lang['gvv_bar_qrcode_default_text_top']      = "Scan this QR code to pay your bar purchases by card.";
+$lang['gvv_bar_qrcode_default_text_bottom']   = "Please show your payment confirmation at the bar.";
+
 // Cotisation online — pilot (UC3)
 $lang['gvv_cotisation_form_title']          = "Pay my membership fee online";
 $lang['gvv_cotisation_form_intro']          = "Select your membership and pay by card via HelloAsso.";

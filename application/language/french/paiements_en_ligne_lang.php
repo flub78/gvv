@@ -224,6 +224,20 @@ $lang['gvv_public_bar_confirm_title']     = "Paiement enregistré";
 $lang['gvv_public_bar_confirm_intro']     = "Votre règlement a bien été pris en compte. Merci !";
 $lang['gvv_public_bar_confirm_section']   = "Section :";
 
+// Génération affiche QR code bar — trésorier
+$lang['gvv_bar_qrcode_menu']                  = "Générer affiche QR code bar";
+$lang['gvv_bar_qrcode_title']                 = "Générer une affiche QR code pour le bar";
+$lang['gvv_bar_qrcode_intro']                 = "Personnalisez l'affiche puis générez le PDF imprimable pour les paiements bar de la section";
+$lang['gvv_bar_qrcode_label_title']           = "Titre";
+$lang['gvv_bar_qrcode_label_text_top']        = "Texte au-dessus du QR code";
+$lang['gvv_bar_qrcode_label_text_bottom']     = "Texte au-dessous du QR code";
+$lang['gvv_bar_qrcode_label_url']             = "URL de paiement encodée dans le QR code";
+$lang['gvv_bar_qrcode_button_generate_pdf']   = "Générer le PDF";
+$lang['gvv_bar_qrcode_error_title_required']  = "Le titre est obligatoire.";
+$lang['gvv_bar_qrcode_default_title']         = "Règlement des consommations bar";
+$lang['gvv_bar_qrcode_default_text_top']      = "Scannez ce QR code pour régler votre consommation par carte bancaire.";
+$lang['gvv_bar_qrcode_default_text_bottom']   = "Merci de présenter votre confirmation de paiement au bar.";
+
 // Liste trésorier (EF4)
 $lang['gvv_liste_title']                    = "Paiements en ligne";
 $lang['gvv_liste_filter_from']              = "Du";

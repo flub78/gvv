@@ -201,6 +201,20 @@ $lang['gvv_public_bar_confirm_title']     = "Betaling geregistreerd";
 $lang['gvv_public_bar_confirm_intro']     = "Uw betaling is succesvol geregistreerd. Dank u!";
 $lang['gvv_public_bar_confirm_section']   = "Sectie:";
 
+// Bar QR-code affiche generatie — penningmeester
+$lang['gvv_bar_qrcode_menu']                  = "Bar QR-code affiche genereren";
+$lang['gvv_bar_qrcode_title']                 = "Genereer een bar QR-code affiche";
+$lang['gvv_bar_qrcode_intro']                 = "Pas de affiche aan en genereer daarna een afdrukbare PDF voor barbetalingen van sectie";
+$lang['gvv_bar_qrcode_label_title']           = "Titel";
+$lang['gvv_bar_qrcode_label_text_top']        = "Tekst boven de QR-code";
+$lang['gvv_bar_qrcode_label_text_bottom']     = "Tekst onder de QR-code";
+$lang['gvv_bar_qrcode_label_url']             = "Betalings-URL gecodeerd in de QR-code";
+$lang['gvv_bar_qrcode_button_generate_pdf']   = "PDF genereren";
+$lang['gvv_bar_qrcode_error_title_required']  = "Titel is verplicht.";
+$lang['gvv_bar_qrcode_default_title']         = "Betaling barconsumpties";
+$lang['gvv_bar_qrcode_default_text_top']      = "Scan deze QR-code om uw barconsumpties met kaart te betalen.";
+$lang['gvv_bar_qrcode_default_text_bottom']   = "Toon uw betalingsbevestiging aan de bar.";
+
 // Lidmaatschap online — piloot (UC3)
 $lang['gvv_cotisation_form_title']          = "Mijn lidmaatschap online betalen";
 $lang['gvv_cotisation_form_intro']          = "Selecteer uw lidmaatschap en betaal via kaart via HelloAsso.";
