@@ -143,8 +143,15 @@ class Welcome extends Gvv_Controller {
         $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $data['is_dev_authorized'] = in_array($data['username'], $dev_users);
 
+        // Resolve active section first (needed for payment card filtering)
+        $active_section_id = (int) $this->session->userdata('section');
+        if ($active_section_id <= 0) {
+            $active_section_id = !empty($data['section']['id']) ? (int) $data['section']['id'] : 0;
+        }
+
         // Sections avec paiements en ligne activés pour ce pilote
         $data['payment_sections'] = array();
+        $data['active_payment_section'] = null;
         if (!empty($data['user_accounts'])) {
             $this->load->model('paiements_en_ligne_model');
             foreach ($data['user_accounts'] as $account) {
@@ -152,14 +159,33 @@ class Welcome extends Gvv_Controller {
                 $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
                 if ($enabled === '1') {
                     $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
-                    $data['payment_sections'][] = array(
+                    $entry = array(
                         'section_id'   => $section_id,
                         'section_name' => $account['section_name'],
                         'has_bar'      => !empty($section_row['has_bar']),
                         'helloasso_enabled' => true,
                     );
+                    $data['payment_sections'][] = $entry;
+                    if ($section_id === $active_section_id) {
+                        $data['active_payment_section'] = $entry;
+                    }
                 }
             }
+        }
+
+        // Carte "Payer ma cotisation" : visible si la section active a HelloAsso
+        // ET possède au moins un produit de cotisation valide.
+        $data['show_pay_cotisation_card'] = false;
+        if (!empty($data['active_payment_section']) && $active_section_id > 0) {
+            $today = date('Y-m-d');
+            $cotisation_count = (int) $this->db
+                ->from('tarifs')
+                ->where('club', $active_section_id)
+                ->where('is_cotisation', 1)
+                ->where('date <=', $today)
+                ->where('(date_fin IS NULL OR date_fin >= ' . $this->db->escape($today) . ')', null, false)
+                ->count_all_results();
+            $data['show_pay_cotisation_card'] = ($cotisation_count > 0);
         }
 
         // Configuration options
