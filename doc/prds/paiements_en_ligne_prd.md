@@ -259,7 +259,8 @@ Un gestionnaire ou pilote de vol de découverte souhaite créer un bon et le fai
    - **"Payer par CB (HelloAsso)"** (visible trésorier, gestionnaire vd, pilote vd) : initie le paiement CB
 3. Si "Payer par CB" est sélectionné :
    - Un checkout HelloAsso est créé avec les données du formulaire
-   - L'utilisateur est redirigé vers la page QR/lien pour que le client effectue le paiement
+    - L'utilisateur est redirigé vers une page de paiement avec lien direct et un **petit QR code de transfert** pour que le porteur de la carte poursuive la saisie sur son téléphone
+    - Si le paiement est initié par le même utilisateur sur le même poste, le QR code de transfert n'est pas affiché
 4. Après paiement réussi (webhook) :
    - Le bon de découverte est créé automatiquement
    - La recette comptable est enregistrée
@@ -323,8 +324,7 @@ Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un
    - **"Valider"** (comportement habituel, paiement classique)
    - **"Payer par carte (HelloAsso)"**
 3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
-   - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
-   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone pour effectuer le paiement lui-même
+    - Il paie sur son propre écran (lien direct HelloAsso)
 4. Après confirmation du paiement par HelloAsso (succès) :
    - Une écriture de cotisation est créée (identique à la validation classique)
    - Un approvisionnement de compte pilote est créé pour le même montant (crédit du compte pilote)
@@ -338,7 +338,7 @@ Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un
 - La transaction comptable est atomique : les deux écritures (cotisation + approvisionnement) sont créées ensemble ou pas du tout
 - En cas d'échec HelloAsso, aucun impact sur la comptabilité
 - Le solde net du pilote est inchangé après l'opération : la cotisation débite le compte et l'approvisionnement le crédite du même montant
-- Le trésorier a le choix du mode de paiement HelloAsso : sur son écran ou par QR Code envoyé au porteur de carte
+- Le flux cotisation via trésorier ne propose pas d'écran QR dédié ; le paiement est direct sur le poste courant
 
 ---
 
@@ -355,8 +355,8 @@ Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque o
 3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
    - Le compte pilote (compte2, 411) et le montant sont lus depuis le formulaire
    - Le login du pilote est résolu depuis l'ID du compte 411
-   - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
-   - Il peut **générer un QR Code / lien** que le titulaire de la carte scanne sur son téléphone
+    - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
+    - Il peut **transférer le contrôle au porteur de la carte** via un petit QR code ouvrant la même page de paiement sur téléphone
 4. Après confirmation du paiement par HelloAsso (succès) :
    - L'écriture de règlement est créée automatiquement
    - Le compte pilote est débité du montant payé par carte
@@ -368,6 +368,7 @@ Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque o
 - La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
 - En cas d'échec HelloAsso, aucun impact sur la comptabilité
 - La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
+- Le QR code de transfert n'est affiché que si le paiement n'est pas initié par l'utilisateur payeur lui-même
 
 ---
 

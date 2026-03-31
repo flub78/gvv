@@ -1327,6 +1327,7 @@ class Compta extends Gvv_Controller {
             'annee_cotisation'     => (int) $annee_cotisation,
             'compte_cotisation_id' => (int) $compte_recette,
             'description'          => $description,
+            'initiated_by_user'    => ((string) $this->dx_auth->get_username() === (string) $pilote),
             'gvv_transaction_id'   => $txid,
         );
 
@@ -1368,12 +1369,7 @@ class Compta extends Gvv_Controller {
             return;
         }
 
-        // Stocker l'URL checkout dans les metadata pour la page QR
-        $metadata['checkout_url'] = $checkout['redirect_url'];
-        $this->db->where('transaction_id', $txid)
-            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
-
-        redirect('paiements_en_ligne/cotisation_qr/' . $txid);
+        redirect($checkout['redirect_url']);
     }
 
     // =========================================================================
@@ -1484,6 +1480,7 @@ class Compta extends Gvv_Controller {
             'type'               => 'credit_tresorier',
             'pilote_login'       => $pilote,
             'description'        => $description,
+            'initiated_by_user'  => ((string) $this->dx_auth->get_username() === (string) $pilote),
             'gvv_transaction_id' => $txid,
         );
 

@@ -428,7 +428,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
 3. Si "Payer par carte" :
    - Création d'une transaction `pending` avec `metadata.type=cotisation_tresorier` et les données de la cotisation
-   - Le trésorier choisit : utiliser son propre écran ou générer un QR Code / lien pour le porteur de carte
+   - Le paiement est lancé en mode direct sur le poste courant (sans écran QR dédié)
    - Checkout HelloAsso → paiement → webhook → handler étape 7 → deux écritures atomiques
 4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur, possibilité de basculer en validation classique
 
@@ -436,6 +436,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Les deux écritures (cotisation + approvisionnement) sont créées dans une seule transaction DB — tout ou rien
 - Vérification section active (`_require_active_section()`) avant création du checkout
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
+- Aucun écran QR de transfert pour UC6 (réservé à UC4 et UC7)
 
 **Validation :** ✅
 - ✅ Test PHPUnit `PaiementsEnLigneCotisationTest` (2 tests) : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
@@ -443,10 +444,10 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 **Fichiers :**
 - `application/controllers/compta.php` : `formValidation_saisie_cotisation()` + `_initiate_cotisation_helloasso()`
-- `application/controllers/paiements_en_ligne.php` : `cotisation_qr()`, `cotisation_qr_image()`, `_create_licence_from_cotisation_meta()`
+- `application/controllers/paiements_en_ligne.php` : `cotisation_qr()`, `cotisation_qr_image()`, `_create_licence_from_cotisation_meta()` (écran direct sans QR)
 - `application/models/paiements_en_ligne_model.php` : `_ecriture_cotisation_tresorier()`, `process_order_event()` retourne `type` et `metadata`
 - `application/views/compta/bs_saisie_cotisation_formView.php` : bouton HelloAsso conditionnel
-- `application/views/paiements_en_ligne/bs_cotisation_qr.php` : page QR code intermédiaire
+- `application/views/paiements_en_ligne/bs_cotisation_qr.php` : page intermédiaire paiement direct (sans QR)
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_cotisation_*`
 - `application/tests/mysql/PaiementsEnLigneCotisationTest.php`
 - `playwright/tests/paiements-en-ligne-uc6-cotisation.spec.js`
@@ -468,13 +469,14 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
    - Le compte2 (411 pilote) et le montant sont lus depuis le formulaire
    - Le login pilote est résolu depuis l'ID du compte 411
    - Création d'une transaction `pending` avec `metadata.type=credit_tresorier`
-   - Checkout HelloAsso → paiement → webhook → handler étape 7 → écriture de règlement
+   - Checkout HelloAsso + écran intermédiaire avec lien direct et **petit QR de transfert de contrôle** → paiement → webhook → handler étape 7 → écriture de règlement
 4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur flashdata, retour sur reglement_pilote
 
 **Règles :**
 - La transaction est atomique : écriture créée uniquement si paiement HelloAsso confirmé
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
 - La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
+- Le petit QR de transfert n'est pas affiché si le paiement est initié par le payeur lui-même
 
 **Validation :** ✅
 - ✅ Test PHPUnit `PaiementsEnLigneCreditTest` (2 tests) : webhook `type=credit_tresorier` → écriture créée, solde pilote augmenté du montant
@@ -570,6 +572,8 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 2. Il remplit le formulaire et clique sur "Payer par CB (HelloAsso)"
 3. Un checkout HelloAsso est créé avec les données du formulaire (produit, bénéficiaire, email)
 4. Redirection vers la page QR/lien (`paiements_en_ligne/decouverte_qr`)
+   - Cette page inclut un lien direct + un petit QR de transfert vers téléphone
+   - Le QR est masqué si le paiement est initié par le même utilisateur
 5. Webhook → handler existant → création du bon de vol, recette comptable, email bénéficiaire + club
 
 **Règles de visibilité :**

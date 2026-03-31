@@ -207,6 +207,17 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
+        $current_user_email = '';
+        $current_member = $this->db->select('memail')->from('membres')
+            ->where('mlogin', $this->dx_auth->get_username())->get()->row_array();
+        if ($current_member && !empty($current_member['memail'])) {
+            $current_user_email = strtolower(trim((string) $current_member['memail']));
+        }
+        $beneficiaire_email_norm = strtolower(trim((string) $beneficiaire_email));
+        $initiated_by_user = ($current_user_email !== ''
+            && $beneficiaire_email_norm !== ''
+            && $current_user_email === $beneficiaire_email_norm);
+
         $txid        = 'dec-' . $section_id . '-0-' . time() . '-' . substr(uniqid(), -6);
         $description = trim('Bon découverte - ' . $produit['description']);
 
@@ -217,6 +228,7 @@ class Vols_decouverte extends Gvv_Controller {
             'beneficiaire'          => $beneficiaire,
             'de_la_part'            => $de_la_part,
             'beneficiaire_email'    => $beneficiaire_email,
+            'initiated_by_user'     => $initiated_by_user,
             'compte_destination_id' => (int) $produit['compte'],
             'description'           => $description,
             'gvv_transaction_id'    => $txid,

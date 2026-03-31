@@ -90,6 +90,7 @@ class PaiementsEnLigneCreditTest extends TestCase
                 'type'               => 'credit_tresorier',
                 'pilote_login'       => 'asterix',
                 'description'        => 'Approvisionnement compte pilote asterix',
+                'initiated_by_user'  => false,
                 'gvv_transaction_id' => $txid,
             )),
             'created_by' => 'phpunit',
@@ -102,6 +103,7 @@ class PaiementsEnLigneCreditTest extends TestCase
                 'type'               => 'credit_tresorier',
                 'pilote_login'       => 'asterix',
                 'description'        => 'Approvisionnement compte pilote asterix',
+                'initiated_by_user'  => false,
                 'gvv_transaction_id' => $txid,
             ),
             'payments' => array(array('state' => 'Authorized', 'amount' => 10000)),
@@ -117,6 +119,8 @@ class PaiementsEnLigneCreditTest extends TestCase
         $this->assertArrayHasKey('metadata', $result);
         $this->assertEquals('credit_tresorier', $result['type']);
         $this->assertEquals('asterix', $result['metadata']['pilote_login']);
+        $this->assertArrayHasKey('initiated_by_user', $result['metadata']);
+        $this->assertFalse((bool) $result['metadata']['initiated_by_user']);
 
         // Collecter les écritures pour le nettoyage
         $ecritures = $this->db->where('num_cheque', 'HelloAsso:' . $txid)->get('ecritures')->result_array();
