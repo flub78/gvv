@@ -1244,6 +1244,11 @@ class Paiements_en_ligne extends MY_Controller {
         if ($club_filter) $filters['club']       = $club_filter;
 
         $transactions = $this->paiements_en_ligne_model->get_transactions_with_user($filters);
+        $sections = $this->sections_model->section_list();
+        $sections_map = array();
+        foreach ($sections as $section) {
+            $sections_map[(int) $section['id']] = $section['nom'];
+        }
 
         $filename = 'paiements_en_ligne_' . $date_from . '_' . $date_to . '.csv';
 
@@ -1263,6 +1268,14 @@ class Paiements_en_ligne extends MY_Controller {
         foreach ($transactions as $tx) {
             $prenom = isset($tx['mprenom']) ? $tx['mprenom'] : '';
             $nom    = isset($tx['mnom'])    ? $tx['mnom']    : '';
+            $section_name = isset($sections_map[(int) $tx['club']])
+                ? $sections_map[(int) $tx['club']]
+                : (string) $tx['club'];
+            $statut_key = 'gvv_pel_statut_' . $tx['statut'];
+            $statut_label = $this->lang->line($statut_key);
+            if ($statut_label === FALSE || $statut_label === '') {
+                $statut_label = $tx['statut'];
+            }
             fputcsv($out, array(
                 $tx['date_demande'],
                 trim($prenom . ' ' . $nom) ?: $tx['username'],
@@ -1270,8 +1283,8 @@ class Paiements_en_ligne extends MY_Controller {
                 number_format((float) $tx['commission'], 2, ',', ''),
                 $tx['plateforme'],
                 $tx['transaction_id'],
-                $tx['statut'],
-                $tx['club'],
+                $statut_label,
+                $section_name,
             ), ';');
         }
 
@@ -1324,16 +1337,30 @@ class Paiements_en_ligne extends MY_Controller {
 
         $raw_body  = (string) file_get_contents('php://input');
         $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
+        $request_ip = $this->helloasso->get_request_ip();
 
-        // ── Vérifier la signature HMAC-SHA256 avant tout traitement du payload ──
-        if (!$this->helloasso->verify_webhook_signature($raw_body, $signature, $club_id)) {
+        // ── Auth webhook : signature HMAC (partenaires) OU IP allowlist (non-partenaires) ──
+        $signature_ok = $this->helloasso->verify_webhook_signature($raw_body, $signature, $club_id);
+        $ip_ok = $this->helloasso->is_webhook_ip_allowed($club_id, $request_ip);
+
+        if (!$signature_ok && !$ip_ok) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
-                'STATUS=REJECTED signature HMAC invalide club=' . $club_id);
+                'STATUS=REJECTED auth invalid club=' . $club_id
+                . ' ip=' . ($request_ip ?: 'unknown')
+                . ' signature=' . ($signature === '' ? 'missing' : 'present')
+            );
             $this->output->set_status_header(401);
             $this->output->set_content_type('text/plain');
             $this->output->set_output('Unauthorized');
             return;
         }
+
+        $auth_mode = $signature_ok ? 'signature' : 'ip_allowlist';
+        $this->helloasso->log('INFO', 'none', 'webhook',
+            'STATUS=ACCEPTED auth=' . $auth_mode
+            . ' club=' . $club_id
+            . ' ip=' . ($request_ip ?: 'unknown')
+        );
 
         // ── Décoder JSON ────────────────────────────────────────────────────
         $event = json_decode($raw_body, true);

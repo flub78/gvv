@@ -43,6 +43,12 @@ class Helloasso {
         'production' => 'https://api.helloasso.com/oauth2/token',
     );
 
+    /** @var array Webhook source IPs by environment */
+    protected static $_WEBHOOK_SOURCE_IPS = array(
+        'sandbox'    => array('4.233.135.234'),
+        'production' => array('51.138.206.200'),
+    );
+
     // -----------------------------------------------------------------------
     // Constructeur
     // -----------------------------------------------------------------------
@@ -267,9 +273,61 @@ class Helloasso {
 
         $expected = hash_hmac('sha256', $payload, $secret);
         // HelloAsso peut envoyer "sha256=<hash>" ou directement "<hash>"
-        $received = preg_replace('/^sha256=/', '', $signature);
+        $received = preg_replace('/^sha256=/i', '', trim((string) $signature));
 
         return hash_equals($expected, $received);
+    }
+
+    /**
+     * Vérifie que l'IP source de la requête webhook est autorisée.
+     *
+     * Pour les comptes non partenaires HelloAsso, l'authenticité peut être
+     * validée par allowlist IP selon l'environnement sandbox/production.
+     *
+     * @param  int         $club_id
+     * @param  string|null $ip      IP explicite (sinon auto-détection)
+     * @return bool
+     */
+    public function is_webhook_ip_allowed($club_id, $ip = null)
+    {
+        $config = $this->_get_config($club_id);
+        $env = isset($config['environment']) ? $config['environment'] : 'sandbox';
+        $allowed_ips = isset(self::$_WEBHOOK_SOURCE_IPS[$env])
+            ? self::$_WEBHOOK_SOURCE_IPS[$env]
+            : self::$_WEBHOOK_SOURCE_IPS['sandbox'];
+
+        $client_ip = $ip !== null ? trim((string) $ip) : $this->get_request_ip();
+        if ($client_ip === '') {
+            return FALSE;
+        }
+
+        return in_array($client_ip, $allowed_ips, true);
+    }
+
+    /**
+     * Récupère l'IP cliente de la requête courante.
+     *
+     * Priorité : X-Forwarded-For (première IP) puis REMOTE_ADDR.
+     *
+     * @return string
+     */
+    public function get_request_ip()
+    {
+        $xff = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? trim((string) $_SERVER['HTTP_X_FORWARDED_FOR']) : '';
+        if ($xff !== '') {
+            $parts = explode(',', $xff);
+            $candidate = trim($parts[0]);
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                return $candidate;
+            }
+        }
+
+        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? trim((string) $_SERVER['REMOTE_ADDR']) : '';
+        if (filter_var($remote_addr, FILTER_VALIDATE_IP)) {
+            return $remote_addr;
+        }
+
+        return '';
     }
 
     /**
