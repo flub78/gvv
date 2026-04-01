@@ -1981,10 +1981,17 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $club_id = (int) $this->input->post('club_id');
+        $club_id       = (int) $this->input->post('club_id');
+        $client_id     = trim($this->input->post('client_id') ?: '');
+        $client_secret = trim($this->input->post('client_secret') ?: '');
+        $environment   = $this->input->post('environment') ?: 'sandbox';
         $this->output->set_content_type('application/json');
 
-        $token = $this->helloasso->get_oauth_token($club_id);
+        if (!empty($client_id) && !empty($client_secret)) {
+            $token = $this->helloasso->get_oauth_token_with_credentials($client_id, $client_secret, $environment);
+        } else {
+            $token = $this->helloasso->get_oauth_token($club_id);
+        }
         if ($token !== FALSE) {
             $this->output->set_output(json_encode(array(
                 'success' => true,
@@ -2037,7 +2044,7 @@ class Paiements_en_ligne extends MY_Controller {
                 $username
             );
             if (!$ok) {
-                $this->session->set_flashdata('error', $this->lang->line('gvv_admin_config_test_fail'));
+                $this->session->set_flashdata('error', $this->lang->line('gvv_admin_config_error_crypto_key'));
                 redirect('paiements_en_ligne/admin_config?section=' . $club_id);
                 return;
             }

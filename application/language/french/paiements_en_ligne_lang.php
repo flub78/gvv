@@ -74,6 +74,7 @@ $lang['gvv_admin_config_webhook_url_help']  = "Copiez cette URL dans votre inter
 $lang['gvv_admin_config_test_btn']          = "Tester la connexion";
 $lang['gvv_admin_config_test_ok']           = "Connexion HelloAsso établie avec succès.";
 $lang['gvv_admin_config_test_fail']         = "Échec de la connexion HelloAsso. Vérifiez les crédentiels.";
+$lang['gvv_admin_config_error_crypto_key']  = "Erreur de configuration, clé d'encription non définie.";
 $lang['gvv_admin_config_test_pending']      = "Test en cours…";
 $lang['gvv_admin_config_test_error']        = "Erreur réseau lors du test.";
 $lang['gvv_admin_config_bar_title']         = "Configuration Bar";
